@@ -5,11 +5,11 @@
 </div>
 
 
-A collection of `ZenFiles`: Production-grade ML use-cases powered by [ZenML](https://zenml.io/zenml-io/zenml)
+A collection of `ZenFiles`: Production-grade ML use-cases powered by [ZenML](https://zenml.io/zenml-io/zenml).
 
 
 
-## Generate
+## Generate a project template
 
 To generate a ZenFile project folder:
 
