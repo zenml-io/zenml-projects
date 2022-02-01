@@ -9,7 +9,13 @@ And naturally, all credits to the awesome [X-Files](https://en.wikipedia.org/wik
 
 A collection of `ZenFiles`: Production-grade ML use-cases powered by [ZenML](https://zenml.io/zenml-io/zenml).
 
-## Generate a project template
+# Overview
+
+|     Name      |  Link 
+| ------------- | --------------------------|
+| NBA Predictor |  [README](nba-pipeline)   |
+
+# Generate a project template
 
 To generate a ZenFile project folder:
 
