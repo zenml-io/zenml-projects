@@ -11,9 +11,11 @@ A collection of `ZenFiles`: Production-grade ML use-cases powered by [ZenML](htt
 
 # Overview
 
-|     Name      |  Link 
-| ------------- | --------------------------|
-| NBA Predictor |  [README](nba-pipeline)   |
+Here is a list of updated and maintained ZenFiles:
+
+|     Name      |  Link                     | Tags                 |
+| ------------- | --------------------------|----------------------|
+| NBA Predictor |  [README](nba-pipeline)   | drift, predictions   |
 
 # Generate a project template
 
