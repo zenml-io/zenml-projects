@@ -1,0 +1,2 @@
+nba-api
+evidently==v0.1.41.dev0
