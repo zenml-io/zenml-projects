@@ -46,6 +46,8 @@ Within the Python environment of your choice, run:
 git clone https://github.com/zenml-io/nba-ml-pipeline
 cd nba-ml-pipeline
 pip install -r requirements.txt
+# For running the Kubeflow pipeline
+pip install -r requirements_kubeflow.txt
 ```
 
 ## :basketball: The Task
