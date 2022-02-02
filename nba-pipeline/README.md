@@ -24,6 +24,14 @@ results to our [Discord](https://discord.com/).
 
 ![](_assets/evidently+mlflow+discord+kubeflow.png)
 
+*Come watch along as Hamza Tahir, Co-Founder and CTO of ZenMl showcases an early version of this repo
+to the MLOps.community.
+
+<div class="embed-responsive embed-responsive-16by9 mb-5">
+    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/Ne-dt9tu11g"  frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+
 ## :computer: System Requirements
 
 In order to run this demo you need to have some packages installed on your machine.
