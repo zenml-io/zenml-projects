@@ -54,6 +54,14 @@ cd nba-ml-pipeline
 pip install -r requirements.txt
 ```
 
+If you are running the `run_pipeline.py` script, you will also need to install some integrations using zenml:
+
+```bash
+zenml integration install evidently -f
+zenml integration install mlflow -f
+zenml integration install kubeflow -f
+```
+
 ## :basketball: The Task
 
 A couple of weeks ago, we were looking for a fun project to work on for the next chapter of our ZenHacks. During our 
@@ -75,14 +83,27 @@ create an inference pipeline for the upcoming matches in the NBA.
 
 ## :notebook: Diving into the code
 
-We're ready to go now. Spin up Jupyter notebooks and open  `Building and Using An MLOPs Stack With ZenML.ipynb`.
+We're ready to go now. You have two options:
+
+### Notebook
+
+You can spin up a step-by-step guide in `Building and Using An MLOPs Stack With ZenML.ipynb`:
 
 ```python
 jupyter notebook
 ```
 
-## :rocket: Going from local orchestration to kubeflow pipelines
+### Script
 
+You can also directly run the code, using the `run_pipeline.py` script.
+
+```python
+python run_pipeline.py drift  # Run one-shot drift pipeline
+python run_pipeline.py train  # Run training pipeline
+python run_pipeline.py infer  # Run inference pipeline
+```
+
+## :rocket: Going from local orchestration to kubeflow pipelines
 
 ZenML manages the configuration of the infrastructure where ZenML pipelines are run using ZenML `Stacks`. For now, a Stack consists of:
 - A metadata store: To store metadata like parameters and artifact URIs
@@ -117,7 +138,6 @@ zenml stack up
 
 
 ![ZenML stack for running pipelines on a local Kubeflow Pipelines deployment](_assets/localstack-with-kubeflow-orchestrator.png)
-
 
 
 ## :checkered_flag: Cleaning up when you're done
