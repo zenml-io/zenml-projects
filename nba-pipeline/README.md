@@ -70,7 +70,7 @@ close to a real-life application like a "3-Pointer Predictor" while simultaneous
 of the trending topics within our team.
 
 As we were building the dataset around a "3-Pointer Predictor", we realized that there is one factor that we need to
-take into consideration first: Stephen Curry, The Baby Faced Assasin. In our opinion, there is no denying that he 
+take into consideration first: Stephen Curry, The Baby Faced Assassin. In our opinion, there is no denying that he 
 changed the way that the games are played in the NBA and we wanted to actually prove that this was the case first.
 
 That's why our story in this ZenHack will start with a pipeline dedicated to drift detection. As the breakpoint of this 

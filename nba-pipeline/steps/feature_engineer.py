@@ -48,7 +48,7 @@ def feature_engineer(
 
     def add_opponent(match_rows):
         """Within a given game_id there is two rows, one for each team.
-        For each of these rows the corresponding opponent ist added to a new
+        For each of these rows the corresponding opponent is added to a new
         OPPONENT_TEAM_ABBREVIATION - column
         """
         teams_in_match = pd.unique(match_rows["TEAM_ABBREVIATION"])
