@@ -7,7 +7,7 @@ import time
 
 
 class ImporterConfig(BaseStepConfig):
-    """Parmeters for the `importer` step.
+    """Parameters for the `importer` step.
 
     Attributes:
         seasons: List of seasons to query NBA API historically.
