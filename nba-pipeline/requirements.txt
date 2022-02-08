@@ -1,4 +1,4 @@
 nba-api
 notebook
 scikit-learn>=1.0.0
-zenml==0.6.0
+zenml==0.6.1
