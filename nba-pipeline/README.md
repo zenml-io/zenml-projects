@@ -50,7 +50,7 @@ Within the Python environment of your choice, run:
 
 ```bash
 git clone https://github.com/zenml-io/nba-ml-pipeline
-cd nba-ml-pipeline
+cd nba-pipeline
 pip install -r requirements.txt
 ```
 
