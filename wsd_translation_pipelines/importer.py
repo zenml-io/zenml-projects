@@ -28,7 +28,7 @@ class ListOfSentenceMaterializer(BaseMaterializer):
             pickle.dump(my_obj, f)
 
 @step
-def sentence_importer(config: DatasetConfig) -> List[str]:
+def sentence_importer(config: DatasetConfig) -> pd.DataFrame:
     """
     :param path: path to sentence file
     It reads the list of sentences in the txt file
@@ -38,6 +38,5 @@ def sentence_importer(config: DatasetConfig) -> List[str]:
     with open(config.file_path, 'r') as f:
         for line in f:
             sentences.append(line.rstrip())
-    return sentences
-    # return pd.DataFrame.from_dict({"sentences": sentences})
-
+    # return sentences
+    return pd.DataFrame.from_dict({"sentences": sentences})

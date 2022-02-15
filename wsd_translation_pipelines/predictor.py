@@ -11,14 +11,14 @@ from lemmatize import get_word_token_and_index
 
 
 @step
-def translate(model: MBartForConditionalGeneration, tokenizer: MBart50Tokenizer, sentences: List[str]) -> List[str]:
+def translate(model: MBartForConditionalGeneration, tokenizer: MBart50Tokenizer, sentences: pd.DataFrame) -> pd.DataFrame:
 
     tokenizer.src_lang = "en_XX"
     translated_sentences = list()
     lang_code = 'de_DE'
 
-    # for sentence in sentences['sentences'].tolist():
-    for sentence in sentences:
+    for sentence in sentences['sentences'].tolist():
+    # for sentence in sentences:
         encoded_ar = tokenizer(sentence, return_tensors="pt")
         encoded_ar["output_hidden_states"] = True
 
@@ -26,7 +26,7 @@ def translate(model: MBartForConditionalGeneration, tokenizer: MBart50Tokenizer,
         translated = tokenizer.batch_decode(outputs, skip_special_tokens=True)
         translated_sentences.append(translated[0])
 
-    # sentences[lang_code] = translated_sentences
+    sentences[lang_code] = translated_sentences
 
     return sentences
 

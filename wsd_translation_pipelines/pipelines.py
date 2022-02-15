@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     pipeline_translate = translation_pipeline(
         # importer=sentence_importer(DatasetConfig()),
-        importer=sentence_importer(DatasetConfig()).with_return_materializers(ListOfSentenceMaterializer),
+        importer=sentence_importer(DatasetConfig()),
         model_translate=translation_model(TranslationModelConfig()).with_return_materializers(BARTMaterializer),
         tokenizer_translate=translation_tokenizer(TranslationModelConfig()).with_return_materializers(BARTTokenizerMaterializer),
         translator=translate()
