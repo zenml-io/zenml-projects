@@ -10,7 +10,7 @@ class Languages(str, Enum):
     SPANISH = "es_XX"
     FRENCH = "fr_XX"
     RUSSIAN = "ru_RU"
-    SLOVAK = "sk_SK"
+    SLOVAK = "ask_SK"
     TURKISH = "tr_TR"
     FINNISH = "fi_FI"
     ESTONIAN = "et_EE"
