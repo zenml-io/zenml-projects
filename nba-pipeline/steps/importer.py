@@ -37,6 +37,11 @@ class ImporterConfig(BaseStepConfig):
         "2021-22",
     ]
 
+@step
+def fake_data_importer(config: ImporterConfig) -> pd.DataFrame:
+    """Load season data from csv."""
+    return pd.read_csv('nba_data.csv')
+    
 
 @step
 def game_data_importer(config: ImporterConfig) -> pd.DataFrame:

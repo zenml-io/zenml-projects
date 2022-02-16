@@ -16,7 +16,7 @@ from steps.discord_bot import discord_alert, discord_post_prediction
 from steps.encoder import data_encoder
 from steps.evaluator import tester
 from steps.feature_engineer import feature_engineer
-from steps.importer import game_data_importer
+from steps.importer import game_data_importer, fake_data_importer
 from steps.profiler import evidently_drift_detector
 from steps.splitter import (
     sklearn_splitter,
@@ -37,7 +37,7 @@ from pipelines.training_pipeline import training_pipeline
 from pipelines.prediction_pipeline import inference_pipeline
 
 
-last_week = date.today() - timedelta(days=7)
+last_week = date.today() - timedelta(days=365)
 ONE_WEEK_AGO = last_week.strftime("%Y-%m-%d")
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
@@ -57,11 +57,12 @@ def run_analysis():
     eda_pipeline.run()
 
 
+
 def run_training():
     """Create a training pipeline run."""
     # Initialize the pipeline
     train_pipe = training_pipeline(
-        importer=game_data_importer(),
+        importer=fake_data_importer(),
         # Train Model
         feature_engineer=feature_engineer(),
         encoder=data_encoder(),
