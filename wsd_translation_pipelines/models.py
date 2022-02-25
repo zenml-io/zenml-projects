@@ -91,13 +91,13 @@ class BertTokenizerMaterializer(BaseMaterializer):
 
 
 @step
-def translation_model() -> MBartForConditionalGeneration:
-    model = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+def translation_model(config: TranslationModelConfig) -> MBartForConditionalGeneration:
+    model = MBartForConditionalGeneration.from_pretrained(config.model_name)
     return model
 
 @step
-def translation_tokenizer() -> MBart50Tokenizer:
-    tokenizer = MBart50Tokenizer.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+def translation_tokenizer(config: TranslationModelConfig) -> MBart50Tokenizer:
+    tokenizer = MBart50Tokenizer.from_pretrained(config.tokenizer_name)
     return tokenizer
 
 @step
