@@ -38,6 +38,7 @@ def translation_pipeline(
 #                  sentences=sentences, word=word)
 
 
+
 if __name__ == "__main__":
     from importer import sentence_importer, ListOfSentenceMaterializer
 

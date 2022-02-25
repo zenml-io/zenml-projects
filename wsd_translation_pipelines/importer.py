@@ -10,6 +10,7 @@ import pickle
 import pandas as pd
 
 
+
 class ListOfSentenceMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES = (List[str], )
     ASSOCIATED_ARTIFACT_TYPES = (DataArtifact, )
@@ -40,3 +41,4 @@ def sentence_importer(config: DatasetConfig) -> pd.DataFrame:
             sentences.append(line.rstrip())
     # return sentences
     return pd.DataFrame.from_dict({"sentences": sentences})
+
