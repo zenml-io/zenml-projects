@@ -3,7 +3,7 @@ from zenml.pipelines import pipeline
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
 
-@pipeline
+@pipeline(requirements_file='requirements.txt')
 def data_analysis_pipeline(
     importer, drift_splitter, drift_detector, drift_analyzer
 ):

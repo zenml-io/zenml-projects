@@ -1,7 +1,7 @@
 from zenml.pipelines import pipeline
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=False, requirements_file='requirements.txt')
 def inference_pipeline(
     importer,
     preprocessor,
