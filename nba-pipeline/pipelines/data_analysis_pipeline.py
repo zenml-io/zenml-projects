@@ -1,9 +1,10 @@
 from zenml.pipelines import pipeline
+from zenml.integrations.constants import SKLEARN
 
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
 
-@pipeline(requirements_file='requirements.txt')
+@pipeline(required_integrations=SKLEARN)
 def data_analysis_pipeline(
     importer, drift_splitter, drift_detector, drift_analyzer
 ):
