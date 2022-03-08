@@ -21,7 +21,8 @@ class ReplayBufferMaterializer(BaseMaterializer):
         return clf
 
     def handle_return(self, clf: Union[ReplayBuffer, ReplayBuffer],) -> None:
-        """Creates a pickle for a sklearn label encoder.
+        """Creates a pickle for a RelayBuffer.
+
         Args:
             clf: A sklearn label encoder.
         """
