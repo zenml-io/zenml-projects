@@ -37,7 +37,8 @@ python run_pipeline.py train
 
 
 - `steps/game_wrap.py` It is a wrapper for the Gym environment. It will manage the state fed to the DQN.
-- `steps/build_dqn.py` It builds the keras model
+- `steps/build_dqn.py` It builds the DQN model in Keras.
+
 - `steps/replay_buffer.py` It takes care of managing the stored experiences and sampling from them on demand.
 - `steps/agent.py` It will put together the Keras DQN model (including the target network) and the ReplayBuffer. It will take care of things like choosing the action and performing gradient descent.
 - `steps/get_information_meta.py` It returns a set of lists like frame number, rewards, and loss lists.
