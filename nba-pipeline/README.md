@@ -113,6 +113,8 @@ ZenML manages the configuration of the infrastructure where ZenML pipelines are 
 
 ![Local ZenML stack](_assets/localstack.png)
 
+### Kubeflow running locally 
+
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
 
 
@@ -126,7 +128,6 @@ zenml stack register local_kubeflow_stack \
     -c local_registry
 ```
 
-To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/guides/functional-api/deploy-to-production#run-the-same-pipeline-on-kubeflow-pipelines-deployed-to-gcp).
 For the local setup, our kubeflow stack keeps the existing `local_metadata_store` and `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
 
 Once the stack is registered we can activate it and provision resources for the local Kubeflow Pipelines deployment:
@@ -139,6 +140,36 @@ zenml stack up
 
 ![ZenML stack for running pipelines on a local Kubeflow Pipelines deployment](_assets/localstack-with-kubeflow-orchestrator.png)
 
+### Kubeflow on the cloud
+
+Besides running locally, we can choose to run our pipelines on the cloud. ZenML supports three major cloud providers (AWS, Azure, GCP) and you can find a step-by-step guide for each one of them in [our docs](https://docs.zenml.io/guides/functional-api/deploy-to-production#run-the-same-pipeline-on-kubeflow-pipelines-deployed-to-gcp). For this example, let's use **AWS**!
+
+![ZenML stack for running pipelines on an AWS Kubeflow Pipelines deployment](_assets/aws-stack.png)
+
+First, we need to make sure we have the `aws` integration installed. 
+```bash
+zenml integration install aws
+```
+We'll register a new stack that uses our AWS components:
+
+```bash
+# define the components
+zenml container-registry register cloud_registry --type=default --uri=ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com
+zenml orchestrator register cloud_orchestrator --type=kubeflow 
+zenml metadata-store register kubeflow_metadata_store --type=kubeflow
+zenml artifact-store register cloud_artifact_store --type=s3 --path=s3://<bucket-name>
+
+# Register the aws stack
+zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_artifact_store -o cloud_orchestrator -c cloud_registry
+```
+For more information on how to setup these components, you can check out [our docs](https://docs.zenml.io/features/cloud-pipelines/guide-aws-gcp-azure).
+
+Once registered, you can activate the stack:
+```bash
+zenml stack set cloud_kubeflow_stack
+```
+
+Your pipelines will now run on your AWS cloud! 🔥
 
 ## :checkered_flag: Cleaning up when you're done
 
