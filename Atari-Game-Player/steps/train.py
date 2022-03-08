@@ -140,9 +140,9 @@ def train(
                     writer.flush()
 
                 # Save model
-                if len(rewards) > 300 and SAVE_PATH is not None:
+                if len(rewards) > 300 and config.SAVE_PATH is not None:
                     agent.save(
-                        f"{SAVE_PATH}/save-{str(frame_number).zfill(8)}",
+                        f"{config.SAVE_PATH}/save-{str(frame_number).zfill(8)}",
                         frame_number=frame_number,
                         rewards=rewards,
                         loss_list=loss_list,
@@ -151,18 +151,18 @@ def train(
         print("\nTraining exited early.")
         writer.close()
 
-        if SAVE_PATH is None:
+        if config.SAVE_PATH is None:
             try:
-                SAVE_PATH = input(
+                config.SAVE_PATH = input(
                     "Would you like to save the trained model? If so, type in a save path, otherwise, interrupt with ctrl+c. "
                 )
             except KeyboardInterrupt:
                 print("\nExiting...")
 
-        if SAVE_PATH is not None:
+        if config.SAVE_PATH is not None:
             print("Saving...")
             agent.save(
-                f"{SAVE_PATH}/save-{str(frame_number).zfill(8)}",
+                f"{config.SAVE_PATH}/save-{str(frame_number).zfill(8)}",
                 frame_number=frame_number,
                 rewards=rewards,
                 loss_list=loss_list,

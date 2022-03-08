@@ -11,6 +11,7 @@ class PreTrainingConfigs(BaseStepConfig):
     LEARNING_RATE: float = 0.00001
     INPUT_SHAPE: tuple = (84, 84)
     BATCH_SIZE: int = 32
+    SAVE_PATH = "breakout-saves"
 
     USE_PER: bool = False
     MEM_SIZE: int = 100

@@ -1,5 +1,5 @@
 import random
-import numpy as np 
+import numpy as np
 import numpy as np
 import cv2
 
@@ -9,6 +9,7 @@ import json
 import time
 
 import gym
+
 env = gym.envs.make("BreakoutDeterministic-v4")
 
 import tensorflow as tf
@@ -38,7 +39,9 @@ def process_frame(frame, shape=(84, 84)):
     Returns:
         The processed frame
     """
-    frame = frame.astype(np.uint8)  # cv2 requires np.uint8, other dtypes will not work
+    frame = frame.astype(
+        np.uint8
+    )  # cv2 requires np.uint8, other dtypes will not work
 
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     frame = frame[34 : 34 + 160, :160]  # crop image
@@ -105,7 +108,9 @@ def build_q_network(
     val = Dense(1, kernel_initializer=VarianceScaling(scale=2.0))(val_stream)
 
     adv_stream = Flatten()(adv_stream)
-    adv = Dense(n_actions, kernel_initializer=VarianceScaling(scale=2.0))(adv_stream)
+    adv = Dense(n_actions, kernel_initializer=VarianceScaling(scale=2.0))(
+        adv_stream
+    )
 
     # Combine streams into Q-Values
     reduce_mean = Lambda(
@@ -149,7 +154,9 @@ class GameWrapper:
                 self.env.step(1)
 
         # For the initial state, we stack the first frame four times
-        self.state = np.repeat(process_frame(self.frame), self.history_length, axis=2)
+        self.state = np.repeat(
+            process_frame(self.frame), self.history_length, axis=2
+        )
 
     def step(self, action, render_mode=None):
         """Performs an action and observes the result
@@ -174,11 +181,11 @@ class GameWrapper:
 
         # We use life_lost to force the agent to start the game
         # and not sit around doing nothing.
-        if info["ale.lives"] < self.last_lives:
+        if info["lives"] < self.last_lives:
             life_lost = True
         else:
             life_lost = terminal
-        self.last_lives = info["ale.lives"]
+        self.last_lives = info["lives"]
 
         processed_frame = process_frame(new_frame)
         self.state = np.append(self.state[:, :, 1:], processed_frame, axis=2)
@@ -258,12 +265,20 @@ class Agent(object):
 
         # Slopes and intercepts for exploration decrease
         # (Credit to Fabio M. Graetz for this and calculating epsilon based on frame number)
-        self.slope = -(self.eps_initial - self.eps_final) / self.eps_annealing_frames
-        self.intercept = self.eps_initial - self.slope * self.replay_buffer_start_size
-        self.slope_2 = -(self.eps_final - self.eps_final_frame) / (
-            self.max_frames - self.eps_annealing_frames - self.replay_buffer_start_size
+        self.slope = (
+            -(self.eps_initial - self.eps_final) / self.eps_annealing_frames
         )
-        self.intercept_2 = self.eps_final_frame - self.slope_2 * self.max_frames
+        self.intercept = (
+            self.eps_initial - self.slope * self.replay_buffer_start_size
+        )
+        self.slope_2 = -(self.eps_final - self.eps_final_frame) / (
+            self.max_frames
+            - self.eps_annealing_frames
+            - self.replay_buffer_start_size
+        )
+        self.intercept_2 = (
+            self.eps_final_frame - self.slope_2 * self.max_frames
+        )
 
         # DQN
         self.DQN = dqn
@@ -283,10 +298,14 @@ class Agent(object):
             return self.eps_initial
         elif (
             frame_number >= self.replay_buffer_start_size
-            and frame_number < self.replay_buffer_start_size + self.eps_annealing_frames
+            and frame_number
+            < self.replay_buffer_start_size + self.eps_annealing_frames
         ):
             return self.slope * frame_number + self.intercept
-        elif frame_number >= self.replay_buffer_start_size + self.eps_annealing_frames:
+        elif (
+            frame_number
+            >= self.replay_buffer_start_size + self.eps_annealing_frames
+        ):
             return self.slope_2 * frame_number + self.intercept_2
 
     def get_action(self, frame_number, state, evaluation=False):
@@ -309,7 +328,12 @@ class Agent(object):
         # Otherwise, query the DQN for an action
         q_vals = self.DQN.predict(
             state.reshape(
-                (-1, self.input_shape[0], self.input_shape[1], self.history_length,)
+                (
+                    -1,
+                    self.input_shape[0],
+                    self.input_shape[1],
+                    self.history_length,
+                )
             )
         )[0]
         return q_vals.argmax()
@@ -329,7 +353,8 @@ class Agent(object):
         # Prepare list of layers
         if isinstance(layer_names, list) or isinstance(layer_names, tuple):
             layers = [
-                self.DQN.get_layer(name=layer_name).output for layer_name in layer_names
+                self.DQN.get_layer(name=layer_name).output
+                for layer_name in layer_names
             ]
         else:
             layers = self.DQN.get_layer(name=layer_names).output
@@ -346,7 +371,12 @@ class Agent(object):
         # Put it all together
         return temp_model.predict(
             state.reshape(
-                (-1, self.input_shape[0], self.input_shape[1], self.history_length,)
+                (
+                    -1,
+                    self.input_shape[0],
+                    self.input_shape[1],
+                    self.history_length,
+                )
             )
         )
 
@@ -354,9 +384,13 @@ class Agent(object):
         """Update the target Q network"""
         self.target_dqn.set_weights(self.DQN.get_weights())
 
-    def add_experience(self, action, frame, reward, terminal, clip_reward=True):
+    def add_experience(
+        self, action, frame, reward, terminal, clip_reward=True
+    ):
         """Wrapper function for adding an experience to the Agent's replay buffer"""
-        self.replay_buffer.add_experience(action, frame, reward, terminal, clip_reward)
+        self.replay_buffer.add_experience(
+            action, frame, reward, terminal, clip_reward
+        )
 
     def learn(self, batch_size, gamma, frame_number, priority_scale=1.0):
         """Sample a batch and use it to improve the DQN
@@ -472,7 +506,9 @@ class Agent(object):
 
         # Load DQNs
         self.DQN = tf.keras.models.load_model(folder_name + "/dqn.h5")
-        self.target_dqn = tf.keras.models.load_model(folder_name + "/target_dqn.h5")
+        self.target_dqn = tf.keras.models.load_model(
+            folder_name + "/target_dqn.h5"
+        )
         self.optimizer = self.DQN.optimizer
 
         # Load replay buffer
@@ -500,7 +536,11 @@ class ReplayBuffer:
     here: https://github.com/fg91/Deep-Q-Learning/blob/master/DQN.ipynb"""
 
     def __init__(
-        self, size=1000000, input_shape=(84, 84), history_length=4, use_per=True,
+        self,
+        size=1000000,
+        input_shape=(84, 84),
+        history_length=4,
+        use_per=True,
     ):
         """
         Arguments:
@@ -512,21 +552,26 @@ class ReplayBuffer:
         self.size = size
         self.input_shape = input_shape
         self.history_length = history_length
-        self.count = 0  # total index of memory written to, always less than self.size
+        self.count = (
+            0  # total index of memory written to, always less than self.size
+        )
         self.current = 0  # index to write to
 
         # Pre-allocate memory
         self.actions = np.empty(self.size, dtype=np.int32)
         self.rewards = np.empty(self.size, dtype=np.float32)
         self.frames = np.empty(
-            (self.size, self.input_shape[0], self.input_shape[1]), dtype=np.uint8,
+            (self.size, self.input_shape[0], self.input_shape[1]),
+            dtype=np.uint8,
         )
         self.terminal_flags = np.empty(self.size, dtype=np.bool)
         self.priorities = np.zeros(self.size, dtype=np.float32)
 
         self.use_per = use_per
 
-    def add_experience(self, action, frame, reward, terminal, clip_reward=True):
+    def add_experience(
+        self, action, frame, reward, terminal, clip_reward=True
+    ):
         """Saves a transition to the replay buffer
         Arguments:
             action: An integer between 0 and env.action_space.n - 1 
@@ -570,7 +615,8 @@ class ReplayBuffer:
         # Get sampling probabilities from priority list
         if self.use_per:
             scaled_priorities = (
-                self.priorities[self.history_length : self.count - 1] ** priority_scale
+                self.priorities[self.history_length : self.count - 1]
+                ** priority_scale
             )
             sample_probabilities = scaled_priorities / sum(scaled_priorities)
 
@@ -593,7 +639,9 @@ class ReplayBuffer:
                     and index - self.history_length <= self.current
                 ):
                     continue
-                if self.terminal_flags[index - self.history_length : index].any():
+                if self.terminal_flags[
+                    index - self.history_length : index
+                ].any():
                     continue
                 break
             indices.append(index)
@@ -603,7 +651,9 @@ class ReplayBuffer:
         new_states = []
         for idx in indices:
             states.append(self.frames[idx - self.history_length : idx, ...])
-            new_states.append(self.frames[idx - self.history_length + 1 : idx + 1, ...])
+            new_states.append(
+                self.frames[idx - self.history_length + 1 : idx + 1, ...]
+            )
 
         states = np.transpose(np.asarray(states), axes=(0, 2, 3, 1))
         new_states = np.transpose(np.asarray(new_states), axes=(0, 2, 3, 1))
