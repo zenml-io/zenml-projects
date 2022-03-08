@@ -1,6 +1,6 @@
 from zenml.steps import step, Output
 from .configs import PreTrainingConfigs
-from ..DQN.GameWrapper import ReplayBuffer
+from DQN.model import ReplayBuffer
 
 
 @step

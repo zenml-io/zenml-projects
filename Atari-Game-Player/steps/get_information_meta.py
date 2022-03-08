@@ -1,5 +1,5 @@
 from .configs import PreTrainingConfigs
-from ..DQN.GameWrapper import Agent
+from DQN.model import Agent
 from zenml.steps import step, Output
 
 

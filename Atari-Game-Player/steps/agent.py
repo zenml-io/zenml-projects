@@ -1,5 +1,5 @@
 from .configs import PreTrainingConfigs
-from ..DQN.model import *
+from DQN.model import *
 from zenml.steps import step, Output
 
 

@@ -1,7 +1,7 @@
 from .configs import PreTrainingConfigs
-from ..DQN.model import *
+from DQN.model import *
 from zenml.steps import step, Output
- 
+
 @step
 def build_dqn(
     config: PreTrainingConfigs, game_wrapper: GameWrapper

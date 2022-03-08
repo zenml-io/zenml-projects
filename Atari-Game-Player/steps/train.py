@@ -1,6 +1,7 @@
 from .configs import PreTrainingConfigs
-from ..DQN.GameWrapper import *
+from DQN.model import *
 from zenml.steps import step, Output
+
 
 @step
 def train(
