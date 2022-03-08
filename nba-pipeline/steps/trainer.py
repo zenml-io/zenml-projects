@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 from sklearn.base import RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
-
+from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
 from zenml.steps import step
 from zenml.steps.base_step_config import BaseStepConfig
+import mlflow
 
 
 class RandomForestTrainerConfig(BaseStepConfig):
@@ -19,6 +20,7 @@ class RandomForestTrainerConfig(BaseStepConfig):
     target_col: str = "FG3M"
 
 
+@enable_mlflow
 @step(enable_cache=False)
 def random_forest_trainer(
     train_df_x: pd.DataFrame,
@@ -39,6 +41,7 @@ def random_forest_trainer(
     Returns:
         RegressorMixin: [description]
     """
+    mlflow.sklearn.autolog()
     clf = RandomForestRegressor(max_depth=config.max_depth)
     clf.fit(train_df_x, np.squeeze(train_df_y.values.T))
     eval_score = clf.score(eval_df_x, np.squeeze(eval_df_y.values.T))
