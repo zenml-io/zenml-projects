@@ -115,7 +115,6 @@ ZenML manages the configuration of the infrastructure where ZenML pipelines are 
 
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
 
-
 ```bash
 zenml container-registry register local_registry --type=default --uri=localhost:5000
 zenml orchestrator register kubeflow_orchestrator --type=kubeflow
@@ -127,6 +126,7 @@ zenml stack register local_kubeflow_stack \
 ```
 
 To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/guides/functional-api/deploy-to-production#run-the-same-pipeline-on-kubeflow-pipelines-deployed-to-gcp).
+
 For the local setup, our kubeflow stack keeps the existing `local_metadata_store` and `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
 
 Once the stack is registered we can activate it and provision resources for the local Kubeflow Pipelines deployment:
@@ -138,7 +138,6 @@ zenml stack up
 
 
 ![ZenML stack for running pipelines on a local Kubeflow Pipelines deployment](_assets/localstack-with-kubeflow-orchestrator.png)
-
 
 ## :checkered_flag: Cleaning up when you're done
 

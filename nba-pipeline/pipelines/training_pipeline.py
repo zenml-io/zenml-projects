@@ -1,9 +1,9 @@
-from datetime import date, timedelta, datetime
+from zenml.pipelines import pipeline
+from zenml.integrations.constants import AWS, KUBEFLOW, MLFLOW, EVIDENTLY, SKLEARN
 
-from zenml.pipelines import pipeline, Schedule
 
-
-@pipeline(enable_cache=False, requirements_file='requirements_kubeflow.txt')
+@pipeline(enable_cache=False, requirements_file='requirements_kubeflow.txt',
+          required_integrations=[AWS, KUBEFLOW, MLFLOW, EVIDENTLY, SKLEARN])
 def training_pipeline(
     importer,
     feature_engineer,
