@@ -31,7 +31,8 @@ python run_pipeline.py train
 
 ## 📓 Explanation of Code
 
-- `DQN/model.py` This file consists all the utility functions and classes which we need for developing our steps, all the classes and functions are explained in detail in their respective docstring.
+- `DQN/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstring.
+
 
 - `pipelines/training_pipeline` This file has the pipeline for training the model, built using the ZenML pipeline module.
 
