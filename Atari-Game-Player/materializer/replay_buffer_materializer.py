@@ -12,7 +12,8 @@ class ReplayBufferMaterializer(BaseMaterializer):
     def handle_input(
         self, data_type: Type[Any]
     ) -> Union[ReplayBuffer, ReplayBuffer]:
-        """Reads a base sklearn label encoder from a pickle file."""
+        """Reads a RelayBuffer from a pickle file."""
+
         super().handle_input(data_type)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
         with fileio.open(filepath, "rb") as fid:
