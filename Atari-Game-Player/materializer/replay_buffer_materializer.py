@@ -24,7 +24,8 @@ class ReplayBufferMaterializer(BaseMaterializer):
         """Creates a pickle for a RelayBuffer.
 
         Args:
-            clf: A sklearn label encoder.
+            clf: A RelayBuffer.
+
         """
         super().handle_return(clf)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
