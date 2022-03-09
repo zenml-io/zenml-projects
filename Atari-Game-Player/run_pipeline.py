@@ -1,11 +1,4 @@
-import sys
-
-sys.path.append("..")
-import os
-
-print(os.getcwd())
-
-from steps.game_wrap import GameWraps
+from steps.game_wrap import game_wrap
 from steps.build_dqn import build_dqn
 from steps.replay_buffer import replay_buffer
 from steps.agent import agent
@@ -14,18 +7,15 @@ from steps.train import train
 from pipelines.training_pipeline import train_pipeline
 import argparse
 
-
-from materializer.game_wrap_materializer import GameWrapperMaterializer
-from materializer.replay_buffer_materializer import ReplayBufferMaterializer
-from materializer.agent_materializer import AgentMaterializer
+from materializer.dqn_custom_materializer import dqn_materializer
 
 
 def run_training():
     training = train_pipeline(
-        GameWraps().with_return_materializers(GameWrapperMaterializer),
+        game_wrap().with_return_materializers(dqn_materializer),
         build_dqn(),
-        replay_buffer().with_return_materializers(ReplayBufferMaterializer),
-        agent().with_return_materializers(AgentMaterializer),
+        replay_buffer().with_return_materializers(dqn_materializer),
+        agent().with_return_materializers(dqn_materializer),
         get_information_meta(),
         train(),
     )
@@ -37,7 +27,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("pipeline", type=str, choices=["train"])
     args = parser.parse_args()
-    print(os.getcwd())
 
     if args.pipeline == "train":
         run_training()

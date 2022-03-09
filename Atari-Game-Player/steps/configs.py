@@ -1,7 +1,8 @@
 from zenml.steps import BaseStepConfig
 
 
-class PreTrainingConfigs(BaseStepConfig):
+class PreTrainingConfigs(BaseStepConfig): 
+    # The configuration for the pre-training of the agent
     ENV_NAME: str = "BreakoutDeterministic-v4"
     MAX_NOOP_STEPS: int = 20
 

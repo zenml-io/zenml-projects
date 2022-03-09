@@ -1,7 +1,6 @@
 # Atari - Solving Games with AI 🤖
 
-The purpose of this repository is to demonstrate how ZenML enables you to build complex applications in an easy way and Use ZenML for various classes of tasks.
-
+The purpose of this repository is to demonstrate how ZenML enables you to build complex reinforcement learning applications in very easy way. It exposes a DQN Agent that can be trained to play Atari games which is one of the most famous games in the world.
 
 ZenML is an extensible, open-source MLOps framework to create production-ready machine learning pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
 
@@ -32,7 +31,7 @@ python run_pipeline.py train
 
 ## 📓 Explanation of Code
 
-- `DQN/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstring.
+- `DQN/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstrings.
 
 
 - `pipelines/training_pipeline` This file has the pipeline for training the model, built using the ZenML pipeline module.

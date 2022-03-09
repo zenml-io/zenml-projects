@@ -1,6 +1,8 @@
 from .configs import PreTrainingConfigs
-from DQN.model import *
+from dqn.model import *
 from zenml.steps import step, Output
+
+import logging
 
 
 @step
@@ -11,7 +13,24 @@ def train(
     rewards: list,
     frame_number: int,
     agent: Agent,
-):
+): 
+    ''' 
+    We initialize the agent, the game environment, and the TensorBoard writer. Then, we train the agent
+    until the game is over
+    
+    :param config: PreTrainingConfigs
+    :type config: PreTrainingConfigs
+    :param game_wrapper: The GameWrapper object that wraps the Atari game
+    :type game_wrapper: GameWrapper
+    :param loss_list: list,
+    :type loss_list: list
+    :param rewards: A list of the last 100 rewards
+    :type rewards: list
+    :param frame_number: The number of the current frame
+    :type frame_number: int
+    :param agent: The agent that we created in the previous section
+    :type agent: Agent
+    '''
     try:
         writer = tf.summary.create_file_writer(config.TENSORBOARD_DIR)
         with writer.as_default():
@@ -90,7 +109,7 @@ def train(
                             )
                             writer.flush()
 
-                        print(
+                        logging.info(
                             f"Game number: {str(len(rewards)).zfill(6)}  Frame number: {str(frame_number).zfill(8)}  Average reward: {np.mean(rewards[-10:]):0.1f}  Time taken: {(time.time() - start_time):.1f}s"
                         )
 
@@ -131,8 +150,8 @@ def train(
                 else:
                     # In case the game is longer than the number of frames allowed
                     final_score = episode_reward_sum
-                # Print score and write to tensorboard
-                print("Evaluation score:", final_score)
+                # logging.info score and write to tensorboard
+                logging.info("Evaluation score:", final_score)
                 if config.WRITE_TENSORBOARD:
                     tf.summary.scalar(
                         "Evaluation score", final_score, frame_number
@@ -148,7 +167,7 @@ def train(
                         loss_list=loss_list,
                     )
     except KeyboardInterrupt:
-        print("\nTraining exited early.")
+        logging.info("\nTraining exited early.")
         writer.close()
 
         if config.SAVE_PATH is None:
@@ -157,14 +176,14 @@ def train(
                     "Would you like to save the trained model? If so, type in a save path, otherwise, interrupt with ctrl+c. "
                 )
             except KeyboardInterrupt:
-                print("\nExiting...")
+                logging.info("\nExiting...")
 
         if config.SAVE_PATH is not None:
-            print("Saving...")
+            logging.info("Saving...")
             agent.save(
                 f"{config.SAVE_PATH}/save-{str(frame_number).zfill(8)}",
                 frame_number=frame_number,
                 rewards=rewards,
                 loss_list=loss_list,
             )
-            print("Saved.")
+            logging.info("Saved.")
