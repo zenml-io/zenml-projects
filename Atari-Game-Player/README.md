@@ -1,6 +1,6 @@
 # Atari - Solving Games with AI 🤖
 
-The purpose of this repository is to demonstrate how ZenML enables you to build complex applications in an easy way and Use ZenML for various classes of tasks.
+The purpose of this repository is to demonstrate how ZenML enables you to build complex reinforcement learning application in fairly simple way and we had made use of DQN Agent that solves Atari Games.
 
 ZenML is an extensible, open-source MLOps framework to create production-ready machine learning pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
 
