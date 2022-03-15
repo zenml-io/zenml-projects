@@ -7,10 +7,8 @@ from dqn.model import ReplayBuffer
 def replay_buffer(config: PreTrainingConfigs,) -> ReplayBuffer:
     """
     Create a ReplayBuffer object with the given configs
-    
-    :param config: PreTrainingConfigs
-    :type config: PreTrainingConfigs
-    :return: A replay buffer object.
+    Args:
+        config: PreTrainingConfigs
     """
     replay_buffer = ReplayBuffer(
         size=config.MEM_SIZE,

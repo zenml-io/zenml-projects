@@ -17,19 +17,13 @@ def train(
     ''' 
     We initialize the agent, the game environment, and the TensorBoard writer. Then, we train the agent
     until the game is over
-    
-    :param config: PreTrainingConfigs
-    :type config: PreTrainingConfigs
-    :param game_wrapper: The GameWrapper object that wraps the Atari game
-    :type game_wrapper: GameWrapper
-    :param loss_list: list,
-    :type loss_list: list
-    :param rewards: A list of the last 100 rewards
-    :type rewards: list
-    :param frame_number: The number of the current frame
-    :type frame_number: int
-    :param agent: The agent that we created in the previous section
-    :type agent: Agent
+    Args: 
+        config: PreTrainingConfigs
+        game_wrapper: The GameWrapper object that wraps the Atari game
+        loss_list: list,
+        rewards: A list of the last 100 rewards
+        frame_number: The number of the current frame
+        agent: The agent that we created in the previous section
     '''
     try:
         writer = tf.summary.create_file_writer(config.TENSORBOARD_DIR)

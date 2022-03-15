@@ -9,13 +9,10 @@ def get_information_meta(
 ) -> Output(frame_number=int, rewards=list, loss_list=list):
     """
     If we're loading from a checkpoint, load the information from the checkpoint. Otherwise, start from
-    scratch
-    
-    :param config: PreTrainingConfigs
-    :type config: PreTrainingConfigs
-    :param agent: Agent
-    :type agent: Agent
-    :return: the frame_number, rewards and loss_list.
+    scratch.
+    Args:    
+        config: PreTrainingConfigs
+        agent: Agent
     """
 
     if config.LOAD_FROM is None:

@@ -34,8 +34,9 @@ from tensorflow import keras
 def process_frame(frame, shape=(84, 84)):
     """Preprocesses a 210x160x3 frame to 84x84x1 grayscale
 
-    Arguments:
-        frame: The frame to process.  Must have values ranging from 0-255
+    Args:
+        frame: The frame to process, It's the frame of our environment that we are using.  Must have values ranging from 0-255 
+        shape: The shape of the frame to return.  Defaults to 84x84x1 
     Returns:
         The processed frame
     """
@@ -55,7 +56,7 @@ def build_q_network(
     n_actions, learning_rate=0.00001, input_shape=(84, 84), history_length=4
 ):
     """Builds a dueling DQN as a Keras model
-    Arguments:
+    Args:
         n_actions: Number of possible action the agent can take
         learning_rate: Learning rate
         input_shape: Shape of the preprocessed frame the model sees

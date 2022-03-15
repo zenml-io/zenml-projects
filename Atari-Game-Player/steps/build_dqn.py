@@ -9,12 +9,9 @@ def build_dqn(
 ) -> Output(MAIN_DQN=tf.keras.Model, target_dqn=tf.keras.Model):
     """
     It builds the main and target DQN.
-    
-    :param config: PreTrainingConfigs
-    :type config: PreTrainingConfigs
-    :param game_wrapper: The GameWrapper object that wraps the Atari game
-    :type game_wrapper: GameWrapper
-    :return: the main DQN and the target DQN.
+    Args:
+        config: PreTrainingConfigs
+        game_wrapper: The GameWrapper object that wraps the Atari game
     """
 
     main_dqn = build_q_network(
