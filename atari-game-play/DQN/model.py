@@ -26,17 +26,20 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, RMSprop
 
-from typing import Any, Type, Union, List
+from typing import Any, Type, Union, List, Tuple
 import pickle
 from tensorflow import keras
 
 
-def process_frame(frame, shape=(84, 84)):
-    """Preprocesses a 210x160x3 frame to 84x84x1 grayscale
+def process_frame(
+    frame: np.ndarray, shape: Tuple[int, int] = (84, 84)
+) -> np.ndarray:
+    """
+    Preprocesses a 210x160x3 frame to 84x84x1 grayscale
 
     Args:
-        frame: The frame to process, It's the frame of our environment that we are using.  Must have values ranging from 0-255 
-        shape: The shape of the frame to return.  Defaults to 84x84x1 
+        frame: The frame to process, It's the frame of our environment that we are using.  Must have values ranging from 0-255
+        shape: The shape of the frame to return.  Defaults to 84x84x1
     Returns:
         The processed frame
     """
@@ -53,7 +56,10 @@ def process_frame(frame, shape=(84, 84)):
 
 
 def build_q_network(
-    n_actions, learning_rate=0.00001, input_shape=(84, 84), history_length=4
+    n_actions: int,
+    learning_rate: float = 0.00001,
+    input_shape: Tuple[int, int] = (84, 84),
+    history_length: int = 4,
 ):
     """Builds a dueling DQN as a Keras model
     Args:
@@ -64,6 +70,7 @@ def build_q_network(
     Returns:
         A compiled Keras model
     """
+
     model_input = Input(shape=(input_shape[0], input_shape[1], history_length))
     x = Lambda(lambda layer: layer / 255)(model_input)  # normalize by 255
 
@@ -138,7 +145,7 @@ class GameWrapper:
         self.state = None
         self.last_lives = 0
 
-    def reset(self, evaluation=False):
+    def reset(self, evaluation: bool = False):
         """Resets the environment
         Arguments:
             evaluation: Set to True when the agent is being evaluated. Takes a random number of no-op steps if True.
@@ -159,7 +166,9 @@ class GameWrapper:
             process_frame(self.frame), self.history_length, axis=2
         )
 
-    def step(self, action, render_mode=None):
+    def step(
+        self, action: int, render_mode=None
+    ) -> Union[bool, np.ndarray, bool, Any]:
         """Performs an action and observes the result
         Arguments:
             action: An integer describe action the agent chose
@@ -201,6 +210,11 @@ class GameWrapper:
             )
         elif render_mode == "human":
             self.env.render()
+
+        # print(type(reward))
+        # print(type(processed_frame))
+        # print(type(terminal))
+        # print(type(life_lost))
 
         return processed_frame, reward, terminal, life_lost
 
@@ -285,7 +299,9 @@ class Agent(object):
         self.DQN = dqn
         self.target_dqn = target_dqn
 
-    def calc_epsilon(self, frame_number, evaluation=False):
+    def calc_epsilon(
+        self, frame_number: np.ndarray, evaluation: bool = False
+    ) -> float:
         """Get the appropriate epsilon value from a given frame number
         Arguments:
             frame_number: Global frame number (used for epsilon)
@@ -309,7 +325,12 @@ class Agent(object):
         ):
             return self.slope_2 * frame_number + self.intercept_2
 
-    def get_action(self, frame_number, state, evaluation=False):
+    def get_action(
+        self,
+        frame_number: np.ndarray,
+        state: np.ndarray,
+        evaluation: bool = False,
+    ) -> int:
         """Query the DQN for an action given a state
         Arguments:
             frame_number: Global frame number (used for epsilon)
@@ -340,8 +361,11 @@ class Agent(object):
         return q_vals.argmax()
 
     def get_intermediate_representation(
-        self, state, layer_names=None, stack_state=True
-    ):
+        self,
+        state: np.ndarray,
+        layer_names: str = None,
+        stack_state: bool = True,
+    ) -> np.ndarray:
         """
         Get the output of a hidden layer inside the model.  This will be/is used for visualizing model
         Arguments:
@@ -381,20 +405,32 @@ class Agent(object):
             )
         )
 
-    def update_target_network(self):
+    def update_target_network(self) -> None:
         """Update the target Q network"""
         self.target_dqn.set_weights(self.DQN.get_weights())
 
     def add_experience(
-        self, action, frame, reward, terminal, clip_reward=True
+        self,
+        action: int,
+        frame: np.ndarray,
+        reward: np.ndarray,
+        terminal: bool,
+        clip_reward: bool = True,
     ):
         """Wrapper function for adding an experience to the Agent's replay buffer"""
         self.replay_buffer.add_experience(
             action, frame, reward, terminal, clip_reward
         )
 
-    def learn(self, batch_size, gamma, frame_number, priority_scale=1.0):
+    def learn(
+        self,
+        batch_size: int,
+        gamma: float,
+        frame_number: np.ndarray,
+        priority_scale: float = 1.0,
+    ):
         """Sample a batch and use it to improve the DQN
+
         Arguments:
             batch_size: How many samples to draw for an update
             gamma: Reward discount
@@ -571,11 +607,16 @@ class ReplayBuffer:
         self.use_per = use_per
 
     def add_experience(
-        self, action, frame, reward, terminal, clip_reward=True
+        self,
+        action: int,
+        frame: np.ndarray,
+        reward: np.ndarray,
+        terminal: bool,
+        clip_reward: bool = True,
     ):
         """Saves a transition to the replay buffer
         Arguments:
-            action: An integer between 0 and env.action_space.n - 1 
+            action: An integer between 0 and env.action_space.n - 1
                 determining the action the agent perfomed
             frame: A (84, 84, 1) frame of the game in grayscale
             reward: A float determining the reward the agend received for performing an action
@@ -598,7 +639,7 @@ class ReplayBuffer:
         self.count = max(self.count, self.current + 1)
         self.current = (self.current + 1) % self.size
 
-    def get_minibatch(self, batch_size=32, priority_scale=0.0):
+    def get_minibatch(self, batch_size: int = 32, priority_scale: float = 0.0):
         """Returns a minibatch of self.batch_size = 32 transitions
         Arguments:
             batch_size: How many samples to return

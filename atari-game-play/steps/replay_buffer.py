@@ -6,7 +6,8 @@ from dqn.model import ReplayBuffer
 @step
 def replay_buffer(config: PreTrainingConfigs,) -> ReplayBuffer:
     """
-    Create a ReplayBuffer object with the given configs
+    Create a ReplayBuffer object with the given configs.
+    
     Args:
         config: PreTrainingConfigs
     """

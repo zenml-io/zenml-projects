@@ -16,7 +16,8 @@ def train(
 ): 
     ''' 
     We initialize the agent, the game environment, and the TensorBoard writer. Then, we train the agent
-    until the game is over
+    until the game is over.
+    
     Args: 
         config: PreTrainingConfigs
         game_wrapper: The GameWrapper object that wraps the Atari game

@@ -9,7 +9,8 @@ def get_information_meta(
 ) -> Output(frame_number=int, rewards=list, loss_list=list):
     """
     If we're loading from a checkpoint, load the information from the checkpoint. Otherwise, start from
-    scratch.
+    scratch. 
+    
     Args:    
         config: PreTrainingConfigs
         agent: Agent

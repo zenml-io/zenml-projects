@@ -7,7 +7,8 @@ from dqn.model import GameWrapper
 def game_wrap(config: PreTrainingConfigs) -> GameWrapper:
     """
     The GameWrapper class wraps the OpenAI Gym environment and provides some useful functions such as
-    resetting the environment and keeping track of useful statistics such as lives left
+    resetting the environment and keeping track of useful statistics such as lives left 
+    
     Args:
         config: PreTrainingConfigs
     """

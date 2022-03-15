@@ -1,10 +1,9 @@
 from zenml.steps import BaseStepConfig
 
 
-class PreTrainingConfigs(BaseStepConfig): 
+class PreTrainingConfigs(BaseStepConfig):
     # The configuration for the pre-training of the agent
     ENV_NAME: str = "BreakoutDeterministic-v4"
-    MAX_NOOP_STEPS: int = 20
 
     WRITE_TENSORBOARD: bool = True
     TENSORBOARD_DIR: str = "tensorboard/"
@@ -20,7 +19,7 @@ class PreTrainingConfigs(BaseStepConfig):
     LOAD_FROM: str = None
     LOAD_REPLAY_BUFFER: bool = True
 
-    MAX_NOOP_STEPS: int = 20
+    MAX_NOOP_STEPS: int = 2000
 
     TOTAL_FRAMES: int = 3000
     FRAMES_BETWEEN_EVAL: int = 100000

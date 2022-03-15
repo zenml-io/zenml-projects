@@ -12,7 +12,8 @@ def agent(
     target_dqn: tf.keras.Model,
 ) -> Agent:
     """
-    Create an agent with the given parameters
+    Create an agent with the given parameters.
+
     Args:
         config: PreTrainingConfigs
         game_wrapper: The game environment
