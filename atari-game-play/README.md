@@ -18,7 +18,7 @@ Before running this project, you have to install some python packages in your en
 
 ```
 git clone https://github.com/zenml-io/zenfiles.git
-cd Atari-Game-Player
+cd atari-game-play
 pip install -r requirements.txt
 ```
 
