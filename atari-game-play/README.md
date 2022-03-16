@@ -8,7 +8,7 @@ At its core, ZenML pipelines execute ML-specific workflows from sourcing data to
 
 Within this repo, we will use ZenML to build pipelines for developing one of the most powerful reinforcement learning algorithms, DQN, which learns to solve Atari Games using AI.
 
-The demo for a trained model which solves Atari is following:-
+A fully trained agent that plays Atari Breakout, will look like this: ```
 
 ![](/_assets/demo.gif)
 
