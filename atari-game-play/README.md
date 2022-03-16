@@ -32,7 +32,7 @@ python run_pipeline.py train
 
 ## 📓 Explanation of Code
 
-- `DQN/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstrings.
+- `dqn/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstrings.
 - `pipelines/training_pipeline` This file has the pipeline for training the model, built using the ZenML pipeline module.
 
 - `steps/game_wrap.py` It is a wrapper for the Gym environment. It will manage the state fed to the DQN.
