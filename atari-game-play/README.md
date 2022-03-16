@@ -6,9 +6,9 @@ ZenML is an extensible, open-source MLOps framework to create production-ready m
 
 At its core, ZenML pipelines execute ML-specific workflows from sourcing data to splitting, preprocessing, training, all the way to the evaluation of results and even serving. There are many built-in batteries to support common ML development tasks. ZenML is not here to replace the great tools that solve these individual problems. Rather, it integrates natively with popular ML tooling and gives standard abstraction to write your workflows.
 
-Within this repo, we will use ZenML to build pipelines for developing One of the most powerful reinforcement learning algorithms which is DQN, which leans to solve Atari Games using AI.
+Within this repo, we will use ZenML to build pipelines for developing one of the most powerful reinforcement learning algorithms, DQN, which learns to solve Atari Games using AI.
 
-The demo for a trained model which solves Atari is following:-
+A fully trained agent that plays Atari Breakout, will look like this: ```
 
 ![](/_assets/demo.gif)
 
@@ -18,7 +18,7 @@ Before running this project, you have to install some python packages in your en
 
 ```
 git clone https://github.com/zenml-io/zenfiles.git
-cd Atari-Game-Player
+cd atari-game-play
 pip install -r requirements.txt
 ```
 
@@ -32,7 +32,7 @@ python run_pipeline.py train
 
 ## 📓 Explanation of Code
 
-- `DQN/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstrings.
+- `dqn/model.py` This file consists of all the utility functions and classes which we need for developing our steps. All the classes and functions are explained in detail in their respective docstrings.
 - `pipelines/training_pipeline` This file has the pipeline for training the model, built using the ZenML pipeline module.
 
 - `steps/game_wrap.py` It is a wrapper for the Gym environment. It will manage the state fed to the DQN.

@@ -24,9 +24,4 @@ def run_training():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("pipeline", type=str, choices=["train"])
-    args = parser.parse_args()
-
-    if args.pipeline == "train":
         run_training()
