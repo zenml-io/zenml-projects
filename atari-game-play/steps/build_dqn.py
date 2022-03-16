@@ -1,5 +1,6 @@
 from .configs import PreTrainingConfigs
-from dqn.model import *
+from dqn.model import GameWrapper, build_q_network 
+import tensorflow as tf
 from zenml.steps import step, Output
 
 

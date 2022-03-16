@@ -1,5 +1,8 @@
 from .configs import PreTrainingConfigs
-from dqn.model import *
+from dqn.model import GameWrapper, build_q_network, Agent
+import tensorflow as tf
+import time
+import numpy as np
 from zenml.steps import step, Output
 
 import logging
@@ -13,19 +16,19 @@ def train(
     rewards: list,
     frame_number: int,
     agent: Agent,
-): 
-    ''' 
+):
+    """
     We initialize the agent, the game environment, and the TensorBoard writer. Then, we train the agent
     until the game is over.
-    
-    Args: 
+
+    Args:
         config: PreTrainingConfigs
         game_wrapper: The GameWrapper object that wraps the Atari game
         loss_list: list,
         rewards: A list of the last 100 rewards
         frame_number: The number of the current frame
         agent: The agent that we created in the previous section
-    '''
+    """
     try:
         writer = tf.summary.create_file_writer(config.TENSORBOARD_DIR)
         with writer.as_default():
