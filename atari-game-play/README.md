@@ -6,7 +6,7 @@ ZenML is an extensible, open-source MLOps framework to create production-ready m
 
 At its core, ZenML pipelines execute ML-specific workflows from sourcing data to splitting, preprocessing, training, all the way to the evaluation of results and even serving. There are many built-in batteries to support common ML development tasks. ZenML is not here to replace the great tools that solve these individual problems. Rather, it integrates natively with popular ML tooling and gives standard abstraction to write your workflows.
 
-Within this repo, we will use ZenML to build pipelines for developing One of the most powerful reinforcement learning algorithms which is DQN, which leans to solve Atari Games using AI.
+Within this repo, we will use ZenML to build pipelines for developing one of the most powerful reinforcement learning algorithms, DQN, which learns to solve Atari Games using AI.
 
 The demo for a trained model which solves Atari is following:-
 
