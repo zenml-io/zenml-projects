@@ -1,0 +1,5 @@
+gym==0.22.0
+numpy==1.22.2
+opencv_python==4.5.5.62
+tensorflow==2.8.0
+zenml==0.6.2
