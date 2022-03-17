@@ -45,4 +45,3 @@ Here is a short summary of what each step does:
 - `steps/get_information_meta.py` It returns a set of lists like frame number, rewards, and loss lists.
 - `steps/train.py` It trains your model.
 
-Above are a short summary of what every step does!!!
