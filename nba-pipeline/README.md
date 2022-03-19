@@ -49,8 +49,8 @@ Once you've got the system requirements figured out, let's jump into the Python 
 Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/nba-ml-pipeline
-cd nba-ml-pipeline
+git clone https://github.com/zenml-io/zenfiles
+cd nba-pipeline
 pip install -r requirements.txt
 ```
 
