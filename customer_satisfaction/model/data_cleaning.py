@@ -34,7 +34,10 @@ class DataCleaning:
         self.df["review_comment_message"].fillna("No review", inplace=True)
 
         self.df = self.df.select_dtypes(include=[np.number])
-        cols_to_drop = ["customer_zip_code_prefix", "order_item_id"]
+        cols_to_drop = [
+            "customer_zip_code_prefix",
+            "order_item_id",
+        ]
         self.df = self.df.drop(cols_to_drop, axis=1)
 
         return self.df

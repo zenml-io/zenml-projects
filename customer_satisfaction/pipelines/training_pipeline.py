@@ -1,7 +1,8 @@
 from zenml.pipelines import pipeline
+from zenml.integrations.constants import MLFLOW
 
 
-@pipeline
+@pipeline(enable_cache=False, required_integrations=[MLFLOW])
 def train_pipeline(ingest_data, clean_data, model_train, evaluation):
     """
     Args:
@@ -16,8 +17,8 @@ def train_pipeline(ingest_data, clean_data, model_train, evaluation):
     """
     df = ingest_data()
     x_train, x_test, y_train, y_test = clean_data(df)
-    lg_model, rf_model, lgbm_model, xgb_model = model_train(
+    rf_model, lgbm_model, xgb_model = model_train(
         x_train, x_test, y_train, y_test
     )
-    r2_score, rmse = evaluation(lg_model, x_test, y_test)
+    r2_score, rmse = evaluation(rf_model, x_test, y_test)
     return r2_score, rmse
