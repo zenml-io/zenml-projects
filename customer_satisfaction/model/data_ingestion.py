@@ -48,3 +48,10 @@ class IngestData:
         os.system("rm datacustomersat.zip")
         os.system("mv datacustomersat.csv ./data/")
         os.system("mv datacustomersat.csv.csv ./data/")
+
+    def get_data_for_test(self) -> pd.DataFrame:
+        df = pd.read_csv("./data/olist_customers_dataset.csv")
+        # take sample from the data 
+        df = df.sample(n=100)
+        return df
+        
