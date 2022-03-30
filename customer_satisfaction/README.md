@@ -33,7 +33,7 @@ Our team at ZenML was looking for a project which is model centric, data centric
 
 As a result of this discussion we decided to build a pipeline which will predict the customer satisfaction score for the next order or purchase. We given special consideration to zenml standard pipeline and it's steps, mlflow tracking to track our metrics and parameters, mlflow deployment to deploy our model. 
 
-Our standard training pipeline cosnsists of several steps: 
+Our standard training pipeline consists of several steps: 
 
 * ingest_data  :- This step will ingest the data from the dataset and will create a dataframe.
 * clean_data   :- This step will clean the data and remove the unwanted columns. 
