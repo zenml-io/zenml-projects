@@ -11,6 +11,7 @@ from zenml.pipelines import pipeline
 from zenml.services import load_last_service_from_step
 from zenml.steps import BaseStepConfig, Output, StepContext, step
 
+
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
 class DeploymentTriggerConfig(BaseStepConfig):
@@ -108,3 +109,59 @@ def inference_pipeline(
     batch_data = dynamic_importer()
     model_deployment_service = prediction_service_loader()
     predictor(model_deployment_service, batch_data)
+
+
+
+def preprocess_data(df):
+    df = df.drop(
+        [
+                "order_approved_at",
+                "order_delivered_carrier_date",
+                "order_delivered_customer_date",
+                "order_estimated_delivery_date",
+                "order_purchase_timestamp",
+        ],
+        axis=1,
+        )
+    df["product_weight_g"].fillna(
+            df["product_weight_g"].median(), inplace=True
+        )
+    df["product_length_cm"].fillna(
+            df["product_length_cm"].median(), inplace=True
+        )
+    df["product_height_cm"].fillna(
+            df["product_height_cm"].median(), inplace=True
+        )
+    df["product_width_cm"].fillna(
+            df["product_width_cm"].median(), inplace=True
+        )
+        # write "No review" in review_comment_message column
+    df["review_comment_message"].fillna("No review", inplace=True)
+
+    df = df.select_dtypes(include=[np.number])
+    cols_to_drop = [
+            "customer_zip_code_prefix",
+            "order_item_id",
+        ]
+    df = df.drop(cols_to_drop, axis=1)
+
+    return df
+
+def get_data_for_test():
+    df = pd.read_csv("data/olist_customers_dataset.csv")
+        # take sample from the data 
+    df = df.sample(n=100)
+    df = preprocess_data(df) 
+    df.drop(["review_score"], axis=1, inplace=True)    
+    df = df.to_numpy() 
+    # convert df to numpy array
+    return df
+
+
+@step(enable_cache=False)
+def dynamic_importer() -> Output(data=np.ndarray):
+    """Downloads the latest data from a mock API."""
+    data = get_data_for_test()
+    return data
+
+

@@ -8,7 +8,8 @@ from pipelines.deployment_pipeline import (DeploymentTriggerConfig,
     inference_pipeline,
     model_deployer,
     prediction_service_loader,
-    predictor,
+    predictor, 
+dynamic_importer
 )
 
 from steps.ingest_data import ingest_data
@@ -17,7 +18,6 @@ from steps.model_train import train_model
 from steps.evaluation import evaluation
 from materializer.custom_materializer import cs_materializer
 from model.data_ingestion import IngestData
-
 
 from rich import print
 
@@ -40,6 +40,7 @@ from zenml.services import load_last_service_from_step
 )
 
 def main(min_accuracy: float, stop_service: bool): 
+
     '''Run the mlflow example pipeline''' 
     if stop_service:
         service = load_last_service_from_step(
@@ -66,7 +67,7 @@ def main(min_accuracy: float, stop_service: bool):
     deployment.run() 
 
     inference = inference_pipeline(
-        dynamic_importer=IngestData.get_data_for_test(),
+        dynamic_importer=dynamic_importer().with_return_materializers(cs_materializer),
         prediction_service_loader=prediction_service_loader(
             MLFlowDeploymentLoaderStepConfig(
                 pipeline_name="continuous_deployment_pipeline",

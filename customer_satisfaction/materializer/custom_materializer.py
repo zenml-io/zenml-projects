@@ -11,11 +11,15 @@ from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 
+import numpy as np 
+
+
 DEFAULT_FILENAME = "CustomerSatisfactionEnvironment"
 
 
 class cs_materializer(BaseMaterializer):
     ASSOCIATED_TYPES = [
+        np.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
@@ -27,6 +31,7 @@ class cs_materializer(BaseMaterializer):
     def handle_input(
         self, data_type: Type[Any]
     ) -> Union[
+        np.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
@@ -44,6 +49,7 @@ class cs_materializer(BaseMaterializer):
     def handle_return(
         self,
         clf: Union[
+            np.ndarray,
             pd.Series,
             pd.DataFrame,
             CatBoostRegressor,
