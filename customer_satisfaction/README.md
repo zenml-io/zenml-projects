@@ -40,7 +40,7 @@ Our standard training pipeline consists of several steps:
 * model_train  :- This step will train the model and will save the model using mlfow autlogging. 
 * evaluation   :- This step will evaluate the model and will save the metrics using mlfow autlogging into the artifact store.  
 
-We have another pipeline which is deployment_pipeline.py that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
+We have another pipeline which is the deployment_pipeline.py that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
 
 We also have an inference pipeline that interacts with the prediction server deployed by the continuous deployment pipeline to get online predictions based on live data. 
 
