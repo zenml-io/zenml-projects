@@ -27,7 +27,8 @@ results to our [Discord](https://discord.com/).
 
 
 [![](https://img.youtube.com/vi/Ne-dt9tu11g/0.jpg)](https://www.youtube.com/watch?v=Ne-dt9tu11g)
-*Come watch along as Hamza Tahir, Co-Founder and CTO of ZenMl showcases an early version of this repo
+
+*Come watch along as Hamza Tahir, Co-Founder and CTO of ZenML showcases an early version of this repo
 to the MLOps.community.*
 
 ## :computer: System Requirements
