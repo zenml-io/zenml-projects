@@ -6,7 +6,7 @@
 The Purpose of this repository to demonstrate how [ZenML](https://github.com/zenml-io/zenml) enables your business to build and deploy machine learning pipelines in a multitude of ways:
 
 * By offering you a framework or template to develop within
-* By Integrationg of tools like mlflow deployment, mlflow tracking and etc 
+* By integration of tools like mlflow deployment, mlflow tracking and more
 * By allowing you to easily build and deploy your machine learning pipelines 
 
 ZenML is an extensible, open-source MLOps framework to create production-ready machine learning pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
