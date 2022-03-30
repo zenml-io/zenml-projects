@@ -16,7 +16,7 @@ ZenML is an extensible, open-source MLOps framework to create production-ready m
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
 ```bash
-https://github.com/zenml-io/zenfiles.git
+git clone https://github.com/zenml-io/zenfiles.git
 cd customer_satisfaction
 pip install -r requirements.txt
 ```
