@@ -38,7 +38,7 @@ Our standard training pipeline consists of several steps:
 * ingest_data  :- This step will ingest the data from the dataset and will create a dataframe.
 * clean_data   :- This step will clean the data and remove the unwanted columns. 
 * model_train  :- This step will train the model and will save the model using mlfow autlogging. 
-* evaluation   :- This step will evaluate the model and will save the metrics using mlfow autlogging in artifact store.  
+* evaluation   :- This step will evaluate the model and will save the metrics using mlfow autlogging into the artifact store.  
 
 We have another pipeline which is deployment_pipeline.py that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
 
