@@ -3,7 +3,7 @@
 
 **Problem statement**:- For a given historical data of the customer predict the review score for the next order or purchase. I will be using [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) dataset, The data-set has information of 100k orders from 2016 to 2018 made at multiple marketplaces in Brazil. Its features allow viewing orders from multiple dimensions: from order status, price, payment, and freight performance to customer location, product attributes and finally reviews written by customers. The objective here is to predict the customer satisfaction score for a given order based on the given features like order status, price, payment, etc. I will be using the [ZenML](https://zenml.io/) framework to build a production ready pipeline to predict the customer satisfaction score for the next order or purchase.
 
-The Purpose of this repository to demonstrate how [ZenML](https://github.com/zenml-io/zenml) enables your business to build and deploy machine learning pipelines in a multitude of ways:
+The Purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
 
 * By offering you a framework or template to develop within
 * By integration of tools like mlflow deployment, mlflow tracking and more
