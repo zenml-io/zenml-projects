@@ -20,9 +20,7 @@ def train_model(
     y_train: pd.Series,
     y_test: pd.Series,
 ) -> Output(
-    rf_model=RandomForestRegressor,
     lgbm_model=LGBMRegressor,
-    xgb_model=XGBRegressor,
 ):
     """ 
     Args:  
@@ -31,20 +29,10 @@ def train_model(
         y_train: pd.Series
         y_test: pd.Series
     Returns: 
-        lg_model: CatBoostRegressor
-        rf_model: RandomForestRegressor
-        lgbm_model: LGBMRegressor
-        xgb_model: XGBRegressor
+        lgm_model: LGBMRegressor
     """
     model_training = ModelTraining(x_train, y_train, x_test, y_test)
-    # lg_model = model_training.Catboost(fine_tuning=False)
-    # logging.info("CatBoost model trained")
-    mlflow.sklearn.autolog() 
-    rf_model = model_training.random_forest(fine_tuning=False)
-    logging.info("Random Forest model trained")
     mlflow.lightgbm.autolog()
     lgbm_model = model_training.LightGBM(fine_tuning=False)
     logging.info("Light GBM model trained")
-    mlflow.xgboost.autolog()
-    xgb_model = model_training.xgboost(fine_tuning=False)
-    return rf_model, lgbm_model, xgb_model
+    return lgbm_model

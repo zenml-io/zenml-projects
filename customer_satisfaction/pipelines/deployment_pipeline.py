@@ -91,7 +91,7 @@ def continuous_deployment_pipeline(
     # Link all the steps artifacts together
     df = ingest_data()
     x_train, x_test, y_train, y_test = clean_data(df)
-    model, lgbm_model, xgb_model = model_train(
+    model= model_train(
         x_train, x_test, y_train, y_test
     )
     r2_score, rmse = evaluation(model, x_test, y_test) 
@@ -153,13 +153,14 @@ def get_data_for_test():
     df = df.sample(n=100)
     df = preprocess_data(df) 
     df.drop(["review_score"], axis=1, inplace=True)    
-    df = df.to_numpy() 
     # convert df to numpy array
-    return df
-
+    data = df.to_json(orient='split')
+    print(type(data)) 
+    print(data)
+    return data 
 
 @step(enable_cache=False)
-def dynamic_importer() -> Output(data=np.ndarray):
+def dynamic_importer() -> Output(data=str):
     """Downloads the latest data from a mock API."""
     data = get_data_for_test()
     return data

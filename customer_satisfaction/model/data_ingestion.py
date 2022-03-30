@@ -3,8 +3,10 @@ import os
 import numpy as np
 import pandas as pd
 
-
-class IngestData:
+class IngestData: 
+    '''
+    Data Ingestion class which ingests the data from the source and returns the dataframe. 
+    '''
     def __init__(self) -> None:
         pass
 
@@ -38,20 +40,9 @@ class IngestData:
     def get_data(self) -> pd.DataFrame: 
         df = pd.read_csv("./data/olist_customers_dataset.csv") 
         return df 
-    def download_data(self, link: str) -> None:
-        """
-        TODO: Need to Test it ( if it is working or not)
-        """
-        link = "https://ayushml.blob.core.windows.net/data/datacustomersat.zip"
-        os.system("wget " + link)
-        os.system("unzip datacustomersat.zip")
-        os.system("rm datacustomersat.zip")
-        os.system("mv datacustomersat.csv ./data/")
-        os.system("mv datacustomersat.csv.csv ./data/")
 
     def get_data_for_test(self) -> pd.DataFrame:
         df = pd.read_csv("./data/olist_customers_dataset.csv")
         # take sample from the data 
         df = df.sample(n=100)
         return df
-        

@@ -10,7 +10,7 @@ from zenml.integrations.mlflow.mlflow_environment import (
 )
 
 
-def run_training():
+def run_training(): 
     training = train_pipeline(
         ingest_data(),
         clean_data().with_return_materializers(cs_materializer),

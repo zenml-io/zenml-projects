@@ -1,3 +1,4 @@
+from typing import Type
 from model.evaluation import Evaluation
 from zenml.steps import step, Output
 import logging
@@ -16,21 +17,16 @@ import mlflow
 @enable_mlflow
 @step
 def evaluation(
-    model: CatBoostRegressor, x_test: pd.DataFrame, y_test: pd.Series
+    model: LGBMRegressor, x_test: pd.DataFrame, y_test: pd.Series
 ) -> Output(r2_score=float, rmse=float):
     """ 
     Args:  
-        lg_model: CatBoostRegressor
-        rf_model: RandomForestRegressor
-        lgbm_model: LGBMRegressor
-        xgb_model: XGBRegressor
+        model: LGBMRegressor ( or any other sklearn model) 
         x_test: pd.DataFrame
         y_test: pd.Series
     Returns: 
-        lg_score: float
-        rf_score: float
-        lgbm_score: float
-        xgb_score: float
+        r2_score: float
+        rmse: float
     """
     prediction = model.predict(x_test)
     evaluation = Evaluation()

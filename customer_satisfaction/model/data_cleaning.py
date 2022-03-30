@@ -3,11 +3,17 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-class DataCleaning:
+class DataCleaning: 
+    ''' 
+    Data Cleaning class which preprocesses the data and divides it into train and test data. 
+    '''
     def __init__(self, data) -> None:
         self.df = data
 
-    def preprocess_data(self) -> None:
+    def preprocess_data(self) -> pd.DataFrame:
+        """
+        It preprocesses the data. 
+        """
         self.df = self.df.drop(
             [
                 "order_approved_at",
@@ -42,7 +48,10 @@ class DataCleaning:
 
         return self.df
 
-    def divide_data(self, df: pd.DataFrame) -> pd.DataFrame:
+    def divide_data(self, df: pd.DataFrame) -> pd.DataFrame: 
+        ''' 
+        It divides the data into train and test data.  
+        '''
         X = df.drop("review_score", axis=1)
         y = df["review_score"]
         X_train, X_test, y_train, y_test = train_test_split(

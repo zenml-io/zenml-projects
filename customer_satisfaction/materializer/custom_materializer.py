@@ -18,7 +18,11 @@ DEFAULT_FILENAME = "CustomerSatisfactionEnvironment"
 
 
 class cs_materializer(BaseMaterializer):
+    '''
+    Custom materializer for the Customer Satisfaction Zenfile 
+    '''
     ASSOCIATED_TYPES = [
+        str,
         np.ndarray,
         pd.Series,
         pd.DataFrame,
@@ -31,6 +35,7 @@ class cs_materializer(BaseMaterializer):
     def handle_input(
         self, data_type: Type[Any]
     ) -> Union[
+        str,
         np.ndarray,
         pd.Series,
         pd.DataFrame,
@@ -48,7 +53,8 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        clf: Union[
+        clf: Union[ 
+            str,
             np.ndarray,
             pd.Series,
             pd.DataFrame,
