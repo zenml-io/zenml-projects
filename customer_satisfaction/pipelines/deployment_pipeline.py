@@ -1,5 +1,6 @@
 import os 
-import mlflow
+import mlflow 
+import json 
 import numpy as np  
 import pandas as pd  
 import requests  
@@ -10,6 +11,8 @@ from zenml.integrations.mlflow.steps import mlflow_deployer_step
 from zenml.pipelines import pipeline
 from zenml.services import load_last_service_from_step
 from zenml.steps import BaseStepConfig, Output, StepContext, step
+from io import StringIO
+import json
 
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
@@ -74,9 +77,15 @@ def predictor(
 ) -> Output(predictions=np.ndarray):
     """Run a inference request against a prediction service"""
 
-    service.start(timeout=10)  # should be a NOP if already started
-    prediction = service.predict(data)
-
+    service.start(timeout=10)  # should be a NOP if already started 
+    data = json.loads(data)  
+    data.pop("columns")   
+    data.pop("index")
+    columns_for_df = ["payment_sequential","payment_installments","payment_value","price","freight_value","product_name_lenght","product_description_lenght","product_photos_qty","product_weight_g","product_length_cm","product_height_cm","product_width_cm"]
+    df = pd.DataFrame(data["data"],  columns=columns_for_df) 
+    json_list = json.loads(json.dumps(list(df.T.to_dict().values()))) 
+    data = np.array(json_list)
+    prediction = service.predict(data) 
     return prediction  
 
 @pipeline(enable_cache=True, requirements_file=requirements_file)
@@ -154,10 +163,10 @@ def get_data_for_test():
     df = preprocess_data(df) 
     df.drop(["review_score"], axis=1, inplace=True)    
     # convert df to numpy array
-    data = df.to_json(orient='split')
-    print(type(data)) 
-    print(data)
-    return data 
+    result = df.to_json(orient="split")
+    # load temp.json 
+    print(type(result))
+    return result 
 
 @step(enable_cache=False)
 def dynamic_importer() -> Output(data=str):
