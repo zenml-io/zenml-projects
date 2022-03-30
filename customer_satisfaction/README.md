@@ -27,7 +27,7 @@ If you are running the `run_deployment.py` script, you will also need to install
 zenml integration install mlflow -f
 ```
 
-## :basketball: The Task
+## :thumbsup: The Task
 
 Our team at ZenML was looking for a project which is model centric, data centric and zenml centirc for our next Zenfile. During our intiial discussions we listed out several questions like What will be the usecase for this zenfile? what's the impact of this zenfile?, etc. to evaluate a zenfile. We found out that it would be really great if we build an end to end pipeline for predicting the customer satisfaction score for the next order or purchase which will help businesses to take better decisions. 
 
