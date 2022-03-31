@@ -15,7 +15,8 @@ from catboost import CatBoostRegressor
 class Hyperparameter_Optimization:  
 
     ''' 
-    Class for doing Hyperparamaters Optimization for several models using Optuna. 
+    Class for doing hyperparameter optimization.
+
     '''
     def __init__(self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series) -> None:
         self.x_train = x_train
