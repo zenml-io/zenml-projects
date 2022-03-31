@@ -12,7 +12,8 @@ from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
 
 
-class Hyperparameters_Optimization:  
+class Hyperparameter_Optimization:  
+
     ''' 
     Class for doing Hyperparamaters Optimization for several models using Optuna. 
     '''
