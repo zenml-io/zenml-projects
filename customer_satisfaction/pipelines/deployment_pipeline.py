@@ -96,7 +96,7 @@ def continuous_deployment_pipeline(
     evaluation, 
     deployment_trigger,
     model_deployer,
-):
+): 
     # Link all the steps artifacts together
     df = ingest_data()
     x_train, x_test, y_train, y_test = clean_data(df)

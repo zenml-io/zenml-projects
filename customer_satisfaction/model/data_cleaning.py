@@ -12,7 +12,7 @@ class DataCleaning:
 
     def preprocess_data(self) -> pd.DataFrame:
         """
-        It preprocesses the data. 
+        It removes the columns which are not required, it fills the missing values with mean and converts the data type to float. 
         """
         self.df = self.df.drop(
             [
