@@ -31,7 +31,7 @@ zenml integration install mlflow -f
 
 Our team at ZenML was looking for a project which is model centric, data centric and zenml centirc for our next Zenfile. During our intiial discussions we listed out several questions like What will be the usecase for this zenfile? what's the impact of this zenfile?, etc. to evaluate a zenfile. We found out that it would be really great if we build an end to end pipeline for predicting the customer satisfaction score for the next order or purchase which will help businesses to take better decisions. 
 
-As a result of this discussion we decided to build a pipeline which will predict the customer satisfaction score for the next order or purchase. We given special consideration to zenml standard pipeline and it's steps, mlflow tracking to track our metrics and parameters, mlflow deployment to deploy our model. 
+As a result of this discussion we decided to build a pipeline which will predict the customer satisfaction score for the next order or purchase. We given special consideration to ZenML standard pipeline and its steps, MLflow tracking to track our metrics and parameters, MLflow deployment to deploy our model. 
 
 Our standard training pipeline consists of several steps: 
 
