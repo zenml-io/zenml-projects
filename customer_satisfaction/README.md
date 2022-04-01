@@ -9,8 +9,6 @@ The Purpose of this repository is to demonstrate how [ZenML](https://github.com/
 * By integration of tools like mlflow deployment, mlflow tracking and more
 * By allowing you to easily build and deploy your machine learning pipelines 
 
-ZenML is an extensible, open-source MLOps framework to create production-ready machine learning pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
-
 ## :snake: Python Requirements
 
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
@@ -29,7 +27,7 @@ zenml integration install mlflow -f
 
 ## :thumbsup: The Task
 
-Our team at ZenML was looking for a project which is model centric, data centric and zenml centirc for our next Zenfile. During our intiial discussions we listed out several questions like What will be the usecase for this zenfile? what's the impact of this zenfile?, etc. to evaluate a zenfile. We found out that it would be really great if we build an end to end pipeline for predicting the customer satisfaction score for the next order or purchase which will help businesses to take better decisions. 
+Our team at ZenML was looking for a project which is model centric, data centric and zenml centirc for our next Zenfile. During our intiial discussions we listed out several questions like What will be the usecase for this zenfile? what's the impact of this zenfile?, etc. to evaluate a zenfile. We found out that it would be really great if we build an end to end pipeline for predicting the customer satisfaction score for the next order or purchase which will help businesses to take better decisions. We can't just train our model in our local system and we need to serve to the users, so we need it to be deployed in the cloud. For doing Machine learning at scale we need machine learning pipelines whichb is an end-to-end construct that orchestrates the flow of data into, and output from, a machine learning model (or set of multiple models). It includes raw data input, features, outputs, the machine learning model and model parameters, and prediction outputs. and All these capbilities are built on top of the zenml framework.
 
 As a result of this discussion we decided to build a pipeline which will predict the customer satisfaction score for the next order or purchase. We given special consideration to zenml standard pipeline and it's steps, mlflow tracking to track our metrics and parameters, mlflow deployment to deploy our model. 
 
@@ -40,9 +38,9 @@ Our standard training pipeline consists of several steps:
 * model_train  :- This step will train the model and will save the model using mlfow autlogging. 
 * evaluation   :- This step will evaluate the model and will save the metrics using mlfow autlogging into the artifact store.  
 
-We have another pipeline which is the deployment_pipeline.py that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
+### Depoloyment & Inference Pipeline 
 
-We also have an inference pipeline that interacts with the prediction server deployed by the continuous deployment pipeline to get online predictions based on live data. 
+We have another pipeline which is the deployment_pipeline.py that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
 
 In the deployment pipeline, ZenML's MLflow tracking integration is used to log the hyperparameter values -- as well as the trained model itself and the model evaluation metrics -- as MLflow experiment tracking artifacts into the local MLflow backend. This pipeline also launches a local MLflow deployment server to serve the latest MLflow model if its accuracy is above a configured threshold.
 
@@ -50,11 +48,13 @@ The MLflow deployment server is running locally as a daemon process that will co
 
 The deployment pipeline has caching enabled to avoid re-training the model if the training data and hyperparameter values don't change. When a new model is trained that passes the accuracy threshold validation, the pipeline automatically updates the currently running MLflow deployment server so that the new model is being served instead of the old one.
 
-The inference pipeline simulates loading data from a dynamic external source, then uses that data to perform online predictions using the running MLflow prediction server.
+We also have an inference pipeline that interacts with the prediction server deployed by the continuous deployment pipeline to get online predictions based on live data. The inference pipeline simulates loading data from a dynamic external source, then uses that data to perform online predictions using the running MLflow prediction server.
+
+![training_and_deployment_pipeline](_assets/training_and_deployment_pipeline.png)
 
 ## :notebook: Diving into the code
 
-You have two pipelines to run, `run_pipeline.py` which is standard ZenML Pipeline and `run_deployment.py` which is continuous deployment pipeline. So, if you want to run `run_pipeline.py` you can run the following command: 
+You have two pipelines to run, `run_pipeline.py` which is traditional ZenML Pipeline and `run_deployment.py` which is continuous deployment pipeline. So, if you want to run `run_pipeline.py` you can run the following command: 
 
 ```bash
 python run_pipeline.py

@@ -12,7 +12,9 @@ def clean_data(
     y_train=pd.Series,
     y_test=pd.Series,
 ):
-    """
+    """ 
+    Data Cleaning class which preprocesses the data and divides it into train and test data. 
+
     Args:
         data: pd.DataFrame 
     """

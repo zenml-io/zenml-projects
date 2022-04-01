@@ -2,20 +2,20 @@ from typing import Any, Type, Union, List
 import pickle
 import os
 
-from zenml.io import fileio
-from zenml.materializers.base_materializer import BaseMaterializer
-import pandas as pd
-
 from catboost import CatBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 
 import numpy as np 
+import pandas as pd
+
+from zenml.io import fileio
+from zenml.materializers.base_materializer import BaseMaterializer
+
 
 
 DEFAULT_FILENAME = "CustomerSatisfactionEnvironment"
-
 
 class cs_materializer(BaseMaterializer):
     '''
@@ -44,7 +44,12 @@ class cs_materializer(BaseMaterializer):
         LGBMRegressor,
         XGBRegressor,
     ]:
-        """Reads a base sklearn label encoder from a pickle file."""
+        """
+        It loads the model from the artifact and returns it. 
+
+        Args: 
+            data_type: The type of the model to be loaded
+        """
         super().handle_input(data_type)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
         with fileio.open(filepath, "rb") as fid:
@@ -64,10 +69,13 @@ class cs_materializer(BaseMaterializer):
             XGBRegressor,
         ],
     ) -> None:
-        """Creates a pickle for a sklearn label encoder.
-        Args:
-            clf: A sklearn label encoder.
         """
+        It saves the model to the artifact store.
+        
+        Args:
+            clf: The model to be saved
+        """
+
         super().handle_return(clf)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
         with fileio.open(filepath, "wb") as fid:

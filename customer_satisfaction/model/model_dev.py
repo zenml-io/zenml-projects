@@ -27,7 +27,6 @@ class Hyperparameters_Optimization:
         '''
         Method for Optimizing Random Forest
         '''
-        logging.info("optimize_randomforest")
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
         max_depth = trial.suggest_int("max_depth", 1, 20)
         min_samples_split = trial.suggest_int("min_samples_split", 2, 20)
@@ -40,11 +39,10 @@ class Hyperparameters_Optimization:
         val_accuracy = reg.score(self.x_test, self.y_test)
         return val_accuracy
 
-    def Optimize_LightGBM(self, trial: optuna.Trial) -> float:
+    def optimize_lightgbm(self, trial: optuna.Trial) -> float:
         '''
         Method for Optimizing LightGBM 
         '''
-        logging.info("Optimize_LightGBM")
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
         max_depth = trial.suggest_int("max_depth", 1, 20)
         learning_rate = trial.suggest_uniform("learning_rate", 0.01, 0.99)
@@ -57,11 +55,10 @@ class Hyperparameters_Optimization:
         val_accuracy = reg.score(self.x_test, self.y_test)
         return val_accuracy
 
-    def Optimize_Xgboost_regressor(self, trial: optuna.Trial) -> float: 
+    def optimize_xgboost_regressor(self, trial: optuna.Trial) -> float: 
         '''
         Method for Optimizing Xgboost
         '''
-        logging.info("Optimize_Xgboost_regressor")
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
             "learning_rate": trial.suggest_loguniform(
@@ -86,7 +83,7 @@ class ModelTraining:
         self.y_test = y_test
 
 
-    def random_forest(self, fine_tuning: bool = True): 
+    def random_forest_model(self, fine_tuning: bool = True): 
         """
         It trains the random forest model.
         
@@ -126,7 +123,7 @@ class ModelTraining:
             return None
 
 
-    def LightGBM(self, fine_tuning: bool = True): 
+    def lightgbm_model(self, fine_tuning: bool = True): 
         """
         It trains the LightGBM model.
         
@@ -142,7 +139,7 @@ class ModelTraining:
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hyper_opt.Optimize_LightGBM, n_trials=100)
+                study.optimize(hyper_opt.optimize_lightgbm, n_trials=100)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 max_depth = trial.params["max_depth"]
@@ -165,7 +162,7 @@ class ModelTraining:
             logging.error(e)
             return None
 
-    def xgboost(self, fine_tuning: bool = True):
+    def xgboost_model(self, fine_tuning: bool = True):
         """
         It trains the xgboost model.
         
@@ -181,7 +178,7 @@ class ModelTraining:
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hy_opt.Optimize_Xgboost_regressor, n_trials=100)
+                study.optimize(hy_opt.optimize_xgboost_regressor, n_trials=100)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 learning_rate = trial.params["learning_rate"]

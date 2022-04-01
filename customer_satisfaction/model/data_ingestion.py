@@ -1,8 +1,8 @@
 import os
-
 import numpy as np
 import pandas as pd
 
+from data_cleaning import DataCleaning
 class IngestData: 
     '''
     Data Ingestion class which ingests the data from the source and returns the dataframe. 
@@ -41,8 +41,11 @@ class IngestData:
         df = pd.read_csv("./data/olist_customers_dataset.csv") 
         return df 
 
-    def get_data_for_test(self) -> pd.DataFrame:
-        df = pd.read_csv("./data/olist_customers_dataset.csv")
-        # take sample from the data 
-        df = df.sample(n=100)
-        return df
+    def get_data_for_test():
+        df = pd.read_csv("data/olist_customers_dataset.csv")
+        df = df.sample(n=100) 
+        data_clean = DataCleaning(df) 
+        df = data_clean.preprocess_data() 
+        df.drop(["review_score"], axis=1, inplace=True)    
+        result = df.to_json(orient="split")
+        return result 
