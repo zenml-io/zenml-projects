@@ -20,5 +20,6 @@ def clean_data(
     """
     data_cleaning = DataCleaning(data)
     df = data_cleaning.preprocess_data()
-    x_train, x_test, y_train, y_test = data_cleaning.divide_data(df)
+    x_train, x_test, y_train, y_test = data_cleaning.divide_data(df) 
+    print(x_train.head())
     return x_train, x_test, y_train, y_test

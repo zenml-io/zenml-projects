@@ -97,7 +97,7 @@ class ModelTraining:
         logging.info("Entered for training Random Forest model")
         try:
             if fine_tuning:
-                hyper_opt = Hyperparameters_Optimization(
+                hyper_opt = Hyperparameter_Optimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
@@ -138,7 +138,7 @@ class ModelTraining:
         logging.info("Entered for training LightGBM model")
         try:
             if fine_tuning:
-                hyper_opt = Hyperparameters_Optimization(
+                hyper_opt = Hyperparameter_Optimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
@@ -177,7 +177,7 @@ class ModelTraining:
         logging.info("Entered for training XGBoost model")
         try:
             if fine_tuning:
-                hy_opt = Hyperparameters_Optimization(
+                hy_opt = Hyperparameter_Optimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")

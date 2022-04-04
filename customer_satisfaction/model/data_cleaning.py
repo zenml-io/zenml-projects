@@ -13,7 +13,6 @@ class DataCleaning:
     def preprocess_data(self) -> pd.DataFrame:
         """
         Removes columns which are not required, fills missing values with median average values, and converts the data type to float.
-
         """
         self.df = self.df.drop(
             [

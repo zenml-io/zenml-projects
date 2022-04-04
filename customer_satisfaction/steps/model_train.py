@@ -33,6 +33,6 @@ def train_model(
     """
     model_training = ModelTraining(x_train, y_train, x_test, y_test)
     mlflow.lightgbm.autolog()
-    lgbm_model = model_training.LightGBM(fine_tuning=False)
+    lgbm_model = model_training.lightgbm_model(fine_tuning=False)
     logging.info("Light GBM model trained")
     return lgbm_model
