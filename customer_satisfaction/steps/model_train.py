@@ -2,7 +2,6 @@ import logging
 from zenml.steps import step, Output
 from model.model_dev import ModelTraining
 import pandas as pd
-from catboost import CatBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
@@ -33,6 +32,6 @@ def train_model(
     """
     model_training = ModelTraining(x_train, y_train, x_test, y_test)
     mlflow.lightgbm.autolog()
-    lgbm_model = model_training.lightgbm_model(fine_tuning=False)
+    lgm_model = model_training.lightgbm_model(fine_tuning=False)
     logging.info("Light GBM model trained")
-    return lgbm_model
+    return lgm_model
