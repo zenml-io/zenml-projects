@@ -617,7 +617,7 @@ class ReplayBuffer:
         """Saves a transition to the replay buffer
         Arguments:
             action: An integer between 0 and env.action_space.n - 1
-                determining the action the agent perfomed
+                determining the action the agent performed
             frame: A (84, 84, 1) frame of the game in grayscale
             reward: A float determining the reward the agend received for performing an action
             terminal: A bool stating whether the episode terminated
