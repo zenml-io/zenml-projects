@@ -2,8 +2,10 @@ import logging
 from zenml.steps import step, Output
 from model.model_dev import ModelTraining
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
+
+# you can uncomment the following two lines if you're changing the model 
+# from sklearn.ensemble import RandomForestRegressor
+# from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 
 from zenml.integrations.constants import MLFLOW

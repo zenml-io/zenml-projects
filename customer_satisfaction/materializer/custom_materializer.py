@@ -73,7 +73,7 @@ class cs_materializer(BaseMaterializer):
         It saves the model to the artifact store.
         
         Args:
-            clf: The model to be saved
+            model: The model to be saved
         """
 
         super().handle_return(clf)

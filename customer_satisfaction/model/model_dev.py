@@ -3,14 +3,9 @@ import numpy as np
 import logging
 
 import optuna
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import AdaBoostRegressor
 from lightgbm import LGBMRegressor
 import xgboost as xgb
-from xgboost import XGBRegressor
-from catboost import CatBoostRegressor
-
 
 class Hyperparameter_Optimization:  
 
@@ -86,7 +81,7 @@ class ModelTraining:
         self.y_test = y_test
 
 
-    def random_forest_model(self, fine_tuning: bool = True): 
+    def random_forest_trainer(self, fine_tuning: bool = True): 
         """
         It trains the random forest model.
         
@@ -126,7 +121,7 @@ class ModelTraining:
             return None
 
 
-    def lightgbm_model(self, fine_tuning: bool = True): 
+    def lightgbm_trainer(self, fine_tuning: bool = True): 
         """
         It trains the LightGBM model.
         
@@ -165,7 +160,7 @@ class ModelTraining:
             logging.error(e)
             return None
 
-    def xgboost_model(self, fine_tuning: bool = True):
+    def xgboost_trainer(self, fine_tuning: bool = True):
         """
         It trains the xgboost model.
         

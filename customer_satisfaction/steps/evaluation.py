@@ -1,16 +1,10 @@
-from typing import Type
 from model.evaluation import Evaluation
 from zenml.steps import step, Output
-import logging
 
 import pandas as pd
 import numpy as np
 
-from catboost import CatBoostRegressor
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
-from zenml.integrations.constants import MLFLOW
 from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
 import mlflow
 

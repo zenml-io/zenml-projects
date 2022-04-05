@@ -27,20 +27,20 @@ zenml integration install mlflow -f
 
 ## :thumbsup: The Task
 
-Our team at ZenML was looking for a project for our next Zenfile. During our initial discussions, we listed several questions like What will be the use case for this zenfile? What's the impact of this zenfile? etc., to evaluate a zenfile. We found out that it would be great if we build an end-to-end pipeline for predicting the customer satisfaction score for the next order or purchase, which will help businesses make better decisions. We can't just train our model in our local system, and we need to serve the users, so we need it to be deployed in the cloud. We need machine learning pipelines for machine learning at scale, an end-to-end construct that orchestrates the flow of data into and output from a machine learning model (or set of multiple models). It includes raw data input, features, results, the machine learning model and model parameters, and prediction outputs. And All these capabilities are built on top of the ZenML framework.
+Our team at ZenML was looking for a project for our next Zenfile.We build an end-to-end pipeline for predicting the customer satisfaction score for the next order or purchase, which will help businesses make better decisions. We can't just train our model in our local system, and we need to serve the users, so we need it to be deployed in the cloud. We need machine learning pipelines for machine learning at scale, an end-to-end construct that orchestrates the flow of data into and output from a machine learning model (or set of multiple models). It includes raw data input, features, results, the machine learning model and model parameters, and prediction outputs. And All these capabilities are built on top of the ZenML framework.
 
-As a result of this discussion, we decided to build a pipeline to predict the customer satisfaction score for the next order or purchase. We gave special consideration to ZenML standard pipeline and its steps, MLflow tracking to track our metrics and parameters, and MLflow deployment to deploy our model. 
+We built a pipeline to predict the customer satisfaction score for the next order or purchase. We gave special consideration to ZenML standard pipeline and its steps, MLflow tracking to track our metrics and parameters, and MLflow deployment to deploy our model. 
 
 Our standard training pipeline consists of several steps: 
 
-* `ingest_data`:- This step will ingest the data from the dataset and create a DataFrame.
-* clean_data:- This step will clean the data and remove the unwanted columns. 
-* model_train:- This step will train the model and save the model using MLflow auto logging. 
-* evaluation:- This step will evaluate the model and save the metrics using mlfow autlogging into the artifact store.  
+* `ingest_data`:- This step will ingest the data and create a DataFrame.
+* `clean_data`:- This step will clean the data and remove the unwanted columns. 
+* `model_train`:- This step will train the model and save the model using [MLflow auto logging](https://www.mlflow.org/docs/latest/tracking.html). 
+* `evaluation`:- This step will evaluate the model and save the metrics using MLflow autologging into the artifact store.  
 
 ### Depoloyment & Inference Pipeline 
 
-We have another pipeline, the deployment_pipeline.py, that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets some evaluation criteria.
+We have another pipeline, the deployment_pipeline.py, that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets our evaluation criteria which is r2 score, you can also set your own minimum r2 score.
 
 In the deployment pipeline, ZenML's MLflow tracking integration is used for logging the hyperparameter values and the trained model itself and the model evaluation metrics -- as MLflow experiment tracking artifacts into the local MLflow backend. This pipeline also launches a local MLflow deployment server to serve the latest MLflow model if its accuracy is above a configured threshold.
 
@@ -70,20 +70,22 @@ We also made a live demo of this project using streamlit which you can find (her
 
 ## :question: FAQ
 
-1. When running the continuous deployment pipeline, I get an error about No Step found for the name `mlflow_deployer`.
+1. When running the continuous deployment pipeline, I get an error about ```No Step found for the name mlflow_deployer```.
 
 Solution: It happens because your artifact store is overridden after running the continuous deployment pipeline. So, you need to delete the artifact store and rerun the pipeline. You can get the location of the artifact store by running the following command:
 
 ```bash
 zenml artifact-store describe
 ``` 
-and then you can delete the artifact store by the following command:- 
+and then you can delete the artifact store with the following command:
+
+**Note**:- Following is a dangerous command, please give your path carefully, otherwise it may remove other folders in your computer.
 
 ```bash
 rm -rf PATH
 ```
 
-2. When running the continuous deployment pipeline, I get an error about ```No Environment component with name mlflow is currently registered.``` 
+2. When running the continuous deployment pipeline, I get the following error: `No Environment component with name mlflow is currently registered.`
 
 Solution: You forgot to install the MLflow integration in your ZenML environment. So, you need to install the MLflow integration by running the following command:
 

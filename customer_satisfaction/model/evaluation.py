@@ -31,7 +31,7 @@ class Evaluation:
             return mse
         except Exception as e:
             logging.info(
-                "Exception occured in mean_squared_error method of the Evaluation class. Exception message:  "
+                "Exception occurred in mean_squared_error method of the Evaluation class. Exception message:  "
                 + str(e),
             )
             logging.info(
@@ -39,7 +39,7 @@ class Evaluation:
             )
             raise Exception()
 
-    def r2_score(self, y_true: np.ndarray, y_pred: np.ndarray): 
+    def r2_score(self, y_true: np.ndarray, y_pred: np.ndarray) -> float: 
         ''' 
         R2 Score (R2) is a statistical measure of how close the observed values
         are to the predicted values. It is also known as the coefficient of
@@ -61,13 +61,13 @@ class Evaluation:
             return r2
         except Exception as e:
             logging.info(
-                "Exception occured in r2_score method of the Evaluation class. Exception message:  "
+                "Exception occurred in r2_score method of the Evaluation class. Exception message:  "
                 + str(e),
             )
             logging.info("Exited the r2_score method of the Evaluation class",)
             raise Exception()
 
-    def root_mean_squared_error(self, y_true: np.ndarray, y_pred: np.ndarray):
+    def root_mean_squared_error(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
          
         '''
         Root Mean Squared Error (RMSE) is the square root of the mean of the
@@ -88,7 +88,7 @@ class Evaluation:
             return rmse
         except Exception as e:
             logging.info(
-                "Exception occured in root_mean_squared_error method of the Evaluation class. Exception message:  "
+                "Exception occurred in root_mean_squared_error method of the Evaluation class. Exception message:  "
                 + str(e),
             )
             logging.info(

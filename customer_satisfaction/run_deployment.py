@@ -1,5 +1,4 @@
 import click 
-import os 
 from pipelines.deployment_pipeline import (DeploymentTriggerConfig,
     MLFlowDeploymentLoaderStepConfig,
     deployment_trigger, 
@@ -17,8 +16,6 @@ from steps.clean_data import clean_data
 from steps.model_train import train_model
 from steps.evaluation import evaluation
 from materializer.custom_materializer import cs_materializer
-from model.data_ingestion import IngestData
-
 from rich import print
 
 from zenml.environment import Environment

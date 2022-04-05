@@ -1,18 +1,14 @@
 import os 
-import mlflow 
 import json 
 import numpy as np  
 import pandas as pd  
-import requests  
-import tensorflow as tf  
-from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
+import json 
+
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
 from zenml.integrations.mlflow.steps import mlflow_deployer_step
 from zenml.pipelines import pipeline
 from zenml.services import load_last_service_from_step
 from zenml.steps import BaseStepConfig, Output, StepContext, step
-from io import StringIO
-import json
 
 from model.data_ingestion import IngestData 
 
