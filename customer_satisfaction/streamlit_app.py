@@ -12,9 +12,14 @@ def main():
     image = Image.open('_assets/high_level_overview.png')
     st.image(image, caption='High Level Pipeline')
 
-    st.markdown("""
+    st.markdown(""" 
+    #### Problem Statement 
+For a given customer's historical data, predict the review score for the next order or purchase. Making use of [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) dataset; The dataset has information on 100k orders from 2016 to 2018 made at multiple marketplaces in Brazil. Its features allow viewing charges from various dimensions: from order status, price, payment, freight performance to customer location, product attributes and finally, reviews written by customers. The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. I will be using the [ZenML](https://zenml.io/) framework to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.
+    """
+    )
+    st.markdown(""" 
     #### Description of Features 
-    This app is designed to predict the customer satisfaction score for a given customer.
+    This app is designed to predict the customer satisfaction score for a given customer. You can input the features of the product listed below and get the customer satisfaction score. 
 
     * Payment Sequential:-   Customer may pay an order with more than one payment method. If he does so, a sequence will be created to accommodate all payments.
     * Payment Installments:- Number of installments chosen by the customer.
