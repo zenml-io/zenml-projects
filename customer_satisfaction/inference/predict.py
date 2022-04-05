@@ -4,7 +4,7 @@ import joblib
 
 import mlflow
 
-def predict(payment_sequential,
+def predict(model, payment_sequential,
 payment_installments,
 payment_value,	
 price,	
@@ -28,7 +28,6 @@ product_length_cm,
 product_height_cm,
 product_width_cm] ]
     # convert list to pd dataframe
-    model = joblib.load("saved_model/model.pkl")
     input_df = pd.DataFrame(input_list, columns=['payment_sequential', 'payment_installments', 'payment_value', 'price', 'freight_value', 'product_name_lenght', 'product_description_lenght', 'product_photos_qty', 'product_weight_g', 'product_length_cm', 'product_height_cm', 'product_width_cm']) 
     y_pred = model.predict(pd.DataFrame(input_df))
     return y_pred 
