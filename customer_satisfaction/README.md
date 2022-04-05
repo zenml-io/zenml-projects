@@ -50,7 +50,7 @@ The deployment pipeline has caching enabled to avoid re-training the model if th
 
 We also have an inference pipeline that interacts with the continuous prediction server deployed to get online predictions based on live data. The inference pipeline simulates loading data from a dynamic external source and then uses that data to perform online predictions using the running MLflow prediction server.
 
-![training_and_deployment_pipeline](_assets/training_and_deployment_pipeline.png)
+![training_and_deployment_pipeline](_assets/training_and_deployment_pipeline_updated.png)
 
 ## :notebook: Diving into the code
 
