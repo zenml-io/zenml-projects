@@ -77,7 +77,7 @@ Solution: It happens because your artifact store is overridden after running the
 ```bash
 zenml artifact-store describe
 ``` 
-and then you can delete the artifact store by the following command:- 
+and then you can delete the artifact store with the following command:
 
 ```bash
 rm -rf PATH
