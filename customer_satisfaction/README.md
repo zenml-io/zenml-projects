@@ -33,7 +33,7 @@ As a result of this discussion, we decided to build a pipeline to predict the cu
 
 Our standard training pipeline consists of several steps: 
 
-* ingest_data:- This step will ingest the data from the dataset and create a data frame.
+* `ingest_data`:- This step will ingest the data from the dataset and create a DataFrame.
 * clean_data:- This step will clean the data and remove the unwanted columns. 
 * model_train:- This step will train the model and save the model using MLflow auto logging. 
 * evaluation:- This step will evaluate the model and save the metrics using mlfow autlogging into the artifact store.  
