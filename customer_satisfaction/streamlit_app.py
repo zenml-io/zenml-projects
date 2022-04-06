@@ -16,8 +16,7 @@ def main():
     
     st.markdown(""" 
     #### Problem Statement 
-    The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. I will be using the [ZenML](https://zenml.io/) framework to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.
-    """
+     The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. I will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.    """
     )
     st.image(whole_pipeline_image, caption='Whole Pipeline')
     st.markdown(""" 
