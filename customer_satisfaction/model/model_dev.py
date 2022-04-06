@@ -40,7 +40,8 @@ class Hyperparameter_Optimization:
 
     def optimize_lightgbm(self, trial: optuna.Trial) -> float:
         '''
-        Method for Optimizing LightGBM 
+        Method for Optimizing LightGBM.
+
         '''
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
         max_depth = trial.suggest_int("max_depth", 1, 20)
