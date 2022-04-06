@@ -34,7 +34,7 @@ def main():
     | Payment Installments   | Number of installments chosen by the customer. |  
     | Payment Value |       Total amount paid by the customer. | 
     | Price |       Price of the product. |
-    | Frieght Value |    Frieght value of the product.  | 
+    | Freight Value |    Freight value of the product.  | 
     | Product Name length |    Length of the product name. |
     | Product Description length |    Length of the product description. |
     | Product photos Quantity |    Number of product published photos |
