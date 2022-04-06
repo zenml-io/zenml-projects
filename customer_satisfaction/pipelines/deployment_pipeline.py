@@ -1,5 +1,4 @@
 import os 
-import json 
 import numpy as np  
 import pandas as pd  
 import json 
@@ -114,8 +113,6 @@ def inference_pipeline(
     batch_data = dynamic_importer()
     model_deployment_service = prediction_service_loader()
     predictor(model_deployment_service, batch_data)
-
-
 
 
 @step(enable_cache=False)
