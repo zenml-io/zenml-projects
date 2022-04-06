@@ -5,7 +5,8 @@ from sklearn.model_selection import train_test_split
 
 class DataCleaning: 
     ''' 
-    Data Cleaning class which preprocesses the data and divides it into train and test data. 
+    Data cleaning class which preprocesses the data and divides it into train and test data. 
+
     '''
     def __init__(self, data) -> None:
         self.df = data
