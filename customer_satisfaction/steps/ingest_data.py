@@ -4,7 +4,8 @@ import pandas as pd
 
 class IngestData: 
     '''
-    Data Ingestion class which ingests the data from the source and returns the dataframe. 
+    Data ingestion class which ingests data from the source and returns a DataFrame. 
+
     '''
     def __init__(self) -> None:
         pass
