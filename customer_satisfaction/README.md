@@ -66,7 +66,9 @@ And this will run the standard ZenML pipeline. If you want to run `run_deploymen
 python run_deployment.py
 ```
 
-We also made a live demo of this project using streamlit which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using our trained models.  
+## 🕹 Demo App
+
+We also made a live demo of this project using [Streamlit](https://streamlit.io/) which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using our trained models.
 
 ## :question: FAQ
 
