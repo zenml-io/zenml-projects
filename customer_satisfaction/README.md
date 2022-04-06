@@ -60,7 +60,7 @@ You have two pipelines to run, `run_pipeline.py`, a traditional ZenML Pipeline, 
 python run_pipeline.py
 ```
 
-And this will run the standard ZenML pipeline. If you want to run `run_deployment.py`, you can run the following command:
+And this will run the standard ZenML pipeline. If you want to run deployment part of this project; you can run `run_deployment.py` script, for running this script, you can run the following command:
 
 ```bash
 python run_deployment.py

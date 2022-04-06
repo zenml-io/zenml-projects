@@ -89,10 +89,10 @@ class ModelTraining:
         
         Args:
             fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used. Defaults to True (optional)
+            parameters are used. Defaults to True (optional).
 
         """
-        logging.info("Entered for training Random Forest model")
+        logging.info("Started training Random Forest model.")
         try:
             if fine_tuning:
                 hyper_opt = Hyperparameter_Optimization(
@@ -130,10 +130,10 @@ class ModelTraining:
         
         Args:
             fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, defaults to True (optional)
+            parameters are used, Defaults to True (optional).
         """
 
-        logging.info("Entered for training LightGBM model")
+        logging.info("Started training LightGBM model.")
         try:
             if fine_tuning:
                 hyper_opt = Hyperparameter_Optimization(
@@ -159,7 +159,7 @@ class ModelTraining:
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:
-            logging.error("Error in training LightGBM model")
+            logging.error("Error in training LightGBM model.")
             logging.error(e)
             return None
 
@@ -169,10 +169,10 @@ class ModelTraining:
         
         Args:
             fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, defaults to True (optional)
+            parameters are used, Defaults to True (optional).
         """
 
-        logging.info("Entered for training XGBoost model")
+        logging.info("Started training XGBoost model.")
         try:
             if fine_tuning:
                 hy_opt = Hyperparameter_Optimization(
@@ -199,7 +199,7 @@ class ModelTraining:
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:
-            logging.error("Error in training XGBoost model")
+            logging.error("Error in training XGBoost model.")
             logging.error(e)
             return None
 
