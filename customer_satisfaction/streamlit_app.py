@@ -10,7 +10,7 @@ def main():
 
 
     high_levbel_image = Image.open('_assets/high_level_overview.png')
-    st.image(high_levbel_image, caption='High Level Pipeline')
+    st.image(high_level_image, caption='High Level Pipeline')
 
     whole_pipeline_image = Image.open('_assets/training_and_deployment_pipeline.png')
     
