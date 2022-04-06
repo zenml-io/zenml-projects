@@ -13,7 +13,8 @@ def clean_data(
     y_test=pd.Series,
 ):
     """ 
-    Data Cleaning class which preprocesses the data and divides it into train and test data. 
+    Data cleaning class which preprocesses the data and divides it into train and test data. 
+
 
     Args:
         data: pd.DataFrame 
