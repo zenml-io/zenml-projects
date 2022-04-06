@@ -72,7 +72,7 @@ We also made a live demo of this project using [Streamlit](https://streamlit.io/
 
 ## :question: FAQ
 
-1. When running the continuous deployment pipeline, I get an error about ```No Step found for the name mlflow_deployer```.
+1. When running the continuous deployment pipeline, I get an error stating: `No Step found for the name mlflow_deployer`.
 
 Solution: It happens because your artifact store is overridden after running the continuous deployment pipeline. So, you need to delete the artifact store and rerun the pipeline. You can get the location of the artifact store by running the following command:
 
