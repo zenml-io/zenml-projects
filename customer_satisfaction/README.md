@@ -81,7 +81,7 @@ zenml artifact-store describe
 ``` 
 and then you can delete the artifact store with the following command:
 
-**Note**:- Following is a dangerous command, please give your path carefully, otherwise it may remove other folders in your computer.
+**Note**: This is a dangerous / destructive command! Please enter your path carefully, otherwise it may delete other folders from your computer.
 
 ```bash
 rm -rf PATH
