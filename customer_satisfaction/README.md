@@ -38,7 +38,7 @@ Our standard training pipeline consists of several steps:
 * `model_train`:- This step will train the model and save the model using [MLflow auto logging](https://www.mlflow.org/docs/latest/tracking.html). 
 * `evaluation`:- This step will evaluate the model and save the metrics using MLflow autologging into the artifact store.  
 
-### Depoloyment & Inference Pipeline 
+### Deployment & Inference Pipeline 
 
 We have another pipeline, the deployment_pipeline.py, that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets our evaluation criteria which is r2 score, you can also set your own minimum r2 score.
 
