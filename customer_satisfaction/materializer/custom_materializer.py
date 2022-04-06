@@ -53,12 +53,12 @@ class cs_materializer(BaseMaterializer):
         super().handle_input(data_type)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
         with fileio.open(filepath, "rb") as fid:
-            clf = pickle.load(fid)
-        return clf
+            obj = pickle.load(fid)
+        return obj
 
     def handle_return(
         self,
-        clf: Union[ 
+        obj: Union[ 
             str,
             np.ndarray,
             pd.Series,
@@ -76,7 +76,7 @@ class cs_materializer(BaseMaterializer):
             model: The model to be saved
         """
 
-        super().handle_return(clf)
+        super().handle_return(obj)
         filepath = os.path.join(self.artifact.uri, DEFAULT_FILENAME)
         with fileio.open(filepath, "wb") as fid:
-            pickle.dump(clf, fid)
+            pickle.dump(obj, fid)
