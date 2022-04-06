@@ -89,7 +89,8 @@ class ModelTraining:
         
         Args:
             fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, defaults to True (optional)
+            parameters are used. Defaults to True (optional)
+
         """
         logging.info("Entered for training Random Forest model")
         try:
