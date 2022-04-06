@@ -58,9 +58,10 @@ def prediction_service_loader(
     )
     if not service:
         raise RuntimeError(
-            f"No MLflow prediction service deployed by the "
+            "No MLflow prediction service deployed by the "
             f"{config.step_name} step in the {config.pipeline_name} pipeline "
-            f"is currently running."
+            "is currently running."
+
         )
 
     return service
