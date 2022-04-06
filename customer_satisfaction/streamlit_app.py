@@ -75,7 +75,7 @@ def main():
                         product_width_cm) 
         st.success('Your Customer Satisfactory rate(range between 0 - 5) with given product details is :-{}'.format(result))
     if st.button("Results"): 
-        st.write("We have experimented with 2 ensemble and tree based models and compared the performance of each model. The results are as follows:")
+        st.write("We have experimented with two ensemble and tree based models and compared the performance of each model. The results are as follows:")
 
         df = pd.DataFrame(
             { 
