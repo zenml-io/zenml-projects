@@ -40,7 +40,7 @@ Our standard training pipeline consists of several steps:
 
 ### Deployment & Inference Pipeline 
 
-We have another pipeline, the deployment_pipeline.py, that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets our evaluation criteria which is r2 score, you can also set your own minimum r2 score.
+We have another pipeline, the `deployment_pipeline.py`, that implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets our evaluation criteria. For us this is the [r2 score](https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score); you can also set your own minimum r2 score.
 
 In the deployment pipeline, ZenML's MLflow tracking integration is used for logging the hyperparameter values and the trained model itself and the model evaluation metrics -- as MLflow experiment tracking artifacts into the local MLflow backend. This pipeline also launches a local MLflow deployment server to serve the latest MLflow model if its accuracy is above a configured threshold.
 
