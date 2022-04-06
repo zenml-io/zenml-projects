@@ -7,7 +7,8 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 class Evaluation: 
     '''
-    Evaluation class which evaluates the model performance using the sklearn metrics 
+    Evaluation class which evaluates the model performance using the sklearn metrics.
+
     '''
     def __init__(self) -> None:
         pass 
