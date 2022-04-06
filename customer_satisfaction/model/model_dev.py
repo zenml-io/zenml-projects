@@ -22,7 +22,8 @@ class Hyperparameter_Optimization:
 
     def optimize_randomforest(self, trial: optuna.Trial) -> float: 
         '''
-        Method for optimizing Random Forest
+        Method for optimizing Random Forest.
+
 
         '''
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
