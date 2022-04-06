@@ -12,7 +12,7 @@ def main():
     high_level_image = Image.open('_assets/high_level_overview.png')
     st.image(high_level_image, caption='High Level Pipeline')
 
-    whole_pipeline_image = Image.open('_assets/training_and_deployment_pipeline.png')
+    whole_pipeline_image = Image.open('_assets/training_and_deployment_pipeline_updated.png')
     
     st.markdown(""" 
     #### Problem Statement 
@@ -48,8 +48,8 @@ def main():
     payment_value = st.number_input("Payment Value") 
     price = st.number_input("Price")  
     freight_value = st.number_input("freight_value") 
-    product_name_lenght = st.number_input("Product name length")  
-    product_description_lenght = st.number_input("Product Description length") 
+    product_name_length = st.number_input("Product name length")  
+    product_description_length = st.number_input("Product Description length") 
     product_photos_qty = st.number_input("Product photos Quantity ") 
     product_weight_g = st.number_input("Product weight measured in grams") 
     product_length_cm = st.number_input("Product length (CMs)") 
@@ -65,8 +65,8 @@ def main():
                         payment_value,	
                         price,	
                         freight_value,	
-                        product_name_lenght	,
-                        product_description_lenght,	
+                        product_name_length	,
+                        product_description_length,	
                         product_photos_qty,	
                         product_weight_g,	
                         product_length_cm,
@@ -78,7 +78,7 @@ def main():
 
         df = pd.DataFrame(
             { 
-                'Models': ['LightGBM', 'XGboost'], 
+                'Models': ['LightGBM', 'Xgboost'], 
                 'MSE': [1.804, 1.781], 
                 'RMSE': [1.343, 1.335] 
             }

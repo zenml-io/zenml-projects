@@ -9,12 +9,13 @@ from zenml.pipelines import pipeline
 from zenml.services import load_last_service_from_step
 from zenml.steps import BaseStepConfig, Output, StepContext, step
 
-from model.data_ingestion import IngestData 
+from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 class DeploymentTriggerConfig(BaseStepConfig):
     """Parameters that are used to trigger the deployment"""
     min_accuracy: float
+
 
 @step
 def deployment_trigger(
@@ -86,7 +87,7 @@ def predictor(
     return prediction  
 
 @pipeline(enable_cache=True, requirements_file=requirements_file)
-def continuous_deployment_pipeline(
+def continuous_deployment_pipeline( 
     ingest_data, 
     clean_data, 
     model_train, 
@@ -100,8 +101,8 @@ def continuous_deployment_pipeline(
     model= model_train(
         x_train, x_test, y_train, y_test
     )
-    r2_score, rmse = evaluation(model, x_test, y_test) 
-    deployment_decision = deployment_trigger(accuracy=r2_score)
+    mse, rmse = evaluation(model, x_test, y_test) 
+    deployment_decision = deployment_trigger(accuracy=mse)
     model_deployer(deployment_decision)
 
 
@@ -120,8 +121,7 @@ def inference_pipeline(
 @step(enable_cache=False)
 def dynamic_importer() -> Output(data=str):
     """Downloads the latest data from a mock API.""" 
-    ingest_data = IngestData()
-    data = ingest_data.get_data_for_test()
+    data = get_data_for_test()
     return data
 
 

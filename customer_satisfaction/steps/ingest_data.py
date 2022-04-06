@@ -1,6 +1,6 @@
 from zenml.steps import step
-from model.data_cleaning import DataCleaning
 import pandas as pd
+import logging 
 
 class IngestData: 
     '''
@@ -14,15 +14,6 @@ class IngestData:
         df = pd.read_csv("./data/olist_customers_dataset.csv") 
         return df 
 
-    def get_data_for_test():
-        df = pd.read_csv("data/olist_customers_dataset.csv")
-        df = df.sample(n=100) 
-        data_clean = DataCleaning(df) 
-        df = data_clean.preprocess_data() 
-        df.drop(["review_score"], axis=1, inplace=True)    
-        result = df.to_json(orient="split")
-        return result 
-
 @step
 def ingest_data() -> pd.DataFrame:
     """ 
@@ -30,8 +21,12 @@ def ingest_data() -> pd.DataFrame:
         None 
     Returns: 
         df: pd.DataFrame
-    """
-    ingest_data = IngestData()
-    df = ingest_data.get_data()
-    return df
+    """ 
+    try:
+        ingest_data = IngestData()
+        df = ingest_data.get_data()
+        return df
+    except Exception as e:
+        logging.error(e)
+        raise e
 

@@ -1,17 +1,15 @@
 import logging
-from zenml.steps import step, Output
-from model.model_dev import ModelTraining
 import pandas as pd
 
-# you can uncomment the following two lines if you're changing the model 
-# from sklearn.ensemble import RandomForestRegressor
-# from xgboost import XGBRegressor
-from lightgbm import LGBMRegressor
+from sklearn.base import RegressorMixin
 
+from zenml.steps import step, Output
 from zenml.integrations.constants import MLFLOW
 from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
-import mlflow
+import mlflow 
 
+from model.model_dev import ModelTraining
+from .config import ModelNameConfig 
 
 @enable_mlflow
 @step
@@ -19,9 +17,10 @@ def train_model(
     x_train: pd.DataFrame,
     x_test: pd.DataFrame,
     y_train: pd.Series,
-    y_test: pd.Series,
+    y_test: pd.Series, 
+    config: ModelNameConfig
 ) -> Output(
-    lgbm_model=LGBMRegressor,
+    model=RegressorMixin
 ):
     """ 
     Args:  
@@ -30,10 +29,26 @@ def train_model(
         y_train: pd.Series
         y_test: pd.Series
     Returns: 
-        lgm_model: LGBMRegressor
-    """
-    model_training = ModelTraining(x_train, y_train, x_test, y_test)
-    mlflow.lightgbm.autolog()
-    lgm_model = model_training.lightgbm_model(fine_tuning=False)
-    logging.info("Light GBM model trained")
-    return lgm_model
+        model: RegressorMixin
+    """ 
+    try:  
+        model_training = ModelTraining(x_train, y_train, x_test, y_test)
+
+        if config.model_name == "lightgbm": 
+            mlflow.lightgbm.autolog()
+            lgm_model = model_training.lightgbm_trainer(fine_tuning = config.fine_tuning)
+            return lgm_model
+        elif config.model_name == "randomforest": 
+            mlflow.sklearn.autolog()
+            rf_model = model_training.random_forest_trainer(fine_tuning = config.fine_tuning)
+            return rf_model
+        elif config.model_name == "xgboost": 
+            mlflow.xgboost.autolog()
+            xgb_model = model_training.xgboost_trainer(fine_tuning = config.fine_tuning)
+            return xgb_model
+        else:
+            raise ValueError("Model name not supported") 
+    except Exception as e:
+        logging.error(e)
+        raise e 
+

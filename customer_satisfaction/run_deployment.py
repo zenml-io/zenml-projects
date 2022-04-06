@@ -1,3 +1,4 @@
+from email.policy import default
 import click 
 from pipelines.deployment_pipeline import (DeploymentTriggerConfig,
     MLFlowDeploymentLoaderStepConfig,
@@ -23,11 +24,11 @@ from zenml.integrations.mlflow.mlflow_environment import MLFLOW_ENVIRONMENT_NAME
 from zenml.integrations.mlflow.steps import MLFlowDeployerConfig
 from zenml.services import load_last_service_from_step
 
-@click.command() 
+@click.command()  
 @click.option(
     "--min-accuracy",
-    default=0.7,
-    help="Minimum R2 Score required to deploy the model",
+    default=1.8,
+    help="Minimum mse required to deploy the model",
 ) 
 @click.option(
     "--stop-service",
@@ -35,7 +36,6 @@ from zenml.services import load_last_service_from_step
     default=False,
     help="Stop the prediction service when done",
 )
-
 def main(min_accuracy: float, stop_service: bool): 
 
     '''Run the mlflow example pipeline''' 
