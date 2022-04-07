@@ -1,22 +1,23 @@
+import logging
+
 import numpy as np
 import pandas as pd
-import logging 
-
 from sklearn.model_selection import train_test_split
 
 
-class DataCleaning: 
-    ''' 
-    Data cleaning class which preprocesses the data and divides it into train and test data. 
+class DataCleaning:
+    """
+    Data cleaning class which preprocesses the data and divides it into train and test data.
+    """
 
-    '''
     def __init__(self, data: pd.DataFrame) -> None:
+        """Initializes the DataCleaning class."""
         self.df = data
 
     def preprocess_data(self) -> pd.DataFrame:
         """
         Removes columns which are not required, fills missing values with median average values, and converts the data type to float.
-        """ 
+        """
         try:
             self.df = self.df.drop(
                 [
@@ -28,18 +29,14 @@ class DataCleaning:
                 ],
                 axis=1,
             )
-            self.df["product_weight_g"].fillna(
-                self.df["product_weight_g"].median(), inplace=True
-            )
+            self.df["product_weight_g"].fillna(self.df["product_weight_g"].median(), inplace=True)
             self.df["product_length_cm"].fillna(
                 self.df["product_length_cm"].median(), inplace=True
             )
             self.df["product_height_cm"].fillna(
                 self.df["product_height_cm"].median(), inplace=True
             )
-            self.df["product_width_cm"].fillna(
-                self.df["product_width_cm"].median(), inplace=True
-            )
+            self.df["product_width_cm"].fillna(self.df["product_width_cm"].median(), inplace=True)
             # write "No review" in review_comment_message column
             self.df["review_comment_message"].fillna("No review", inplace=True)
 
@@ -55,10 +52,10 @@ class DataCleaning:
             logging.error(e)
             raise e
 
-    def divide_data(self, df: pd.DataFrame) -> pd.DataFrame: 
-        ''' 
-        It divides the data into train and test data.  
-        ''' 
+    def divide_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        It divides the data into train and test data.
+        """
         try:
             X = df.drop("review_score", axis=1)
             y = df["review_score"]
@@ -69,4 +66,3 @@ class DataCleaning:
         except Exception as e:
             logging.error(e)
             raise e
-            

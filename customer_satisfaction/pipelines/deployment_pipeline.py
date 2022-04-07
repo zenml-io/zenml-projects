@@ -1,8 +1,8 @@
-import os 
-import numpy as np  
-import pandas as pd  
-import json 
+import json
+import os
 
+import numpy as np
+import pandas as pd
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
 from zenml.integrations.mlflow.steps import mlflow_deployer_step
 from zenml.pipelines import pipeline
@@ -12,8 +12,11 @@ from zenml.steps import BaseStepConfig, Output, StepContext, step
 from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
+
+
 class DeploymentTriggerConfig(BaseStepConfig):
     """Parameters that are used to trigger the deployment"""
+
     min_accuracy: float
 
 
@@ -29,6 +32,7 @@ def deployment_trigger(
 
 
 model_deployer = mlflow_deployer_step(name="model_deployer")
+
 
 class MLFlowDeploymentLoaderStepConfig(BaseStepConfig):
     """MLflow deployment getter configuration
@@ -62,10 +66,10 @@ def prediction_service_loader(
             "No MLflow prediction service deployed by the "
             f"{config.step_name} step in the {config.pipeline_name} pipeline "
             "is currently running."
-
         )
 
     return service
+
 
 @step
 def predictor(
@@ -74,34 +78,45 @@ def predictor(
 ) -> Output(predictions=np.ndarray):
     """Run an inference request against a prediction service"""
 
-
-    service.start(timeout=10)  # should be a NOP if already started 
-    data = json.loads(data)  
-    data.pop("columns")   
+    service.start(timeout=10)  # should be a NOP if already started
+    data = json.loads(data)
+    data.pop("columns")
     data.pop("index")
-    columns_for_df = ["payment_sequential","payment_installments","payment_value","price","freight_value","product_name_lenght","product_description_lenght","product_photos_qty","product_weight_g","product_length_cm","product_height_cm","product_width_cm"]
-    df = pd.DataFrame(data["data"],  columns=columns_for_df) 
-    json_list = json.loads(json.dumps(list(df.T.to_dict().values()))) 
+    columns_for_df = [
+        "payment_sequential",
+        "payment_installments",
+        "payment_value",
+        "price",
+        "freight_value",
+        "product_name_lenght",
+        "product_description_lenght",
+        "product_photos_qty",
+        "product_weight_g",
+        "product_length_cm",
+        "product_height_cm",
+        "product_width_cm",
+    ]
+    df = pd.DataFrame(data["data"], columns=columns_for_df)
+    json_list = json.loads(json.dumps(list(df.T.to_dict().values())))
     data = np.array(json_list)
-    prediction = service.predict(data) 
-    return prediction  
+    prediction = service.predict(data)
+    return prediction
+
 
 @pipeline(enable_cache=True, requirements_file=requirements_file)
-def continuous_deployment_pipeline( 
-    ingest_data, 
-    clean_data, 
-    model_train, 
-    evaluation, 
+def continuous_deployment_pipeline(
+    ingest_data,
+    clean_data,
+    model_train,
+    evaluation,
     deployment_trigger,
     model_deployer,
-): 
+):
     # Link all the steps artifacts together
     df = ingest_data()
     x_train, x_test, y_train, y_test = clean_data(df)
-    model= model_train(
-        x_train, x_test, y_train, y_test
-    )
-    mse, rmse = evaluation(model, x_test, y_test) 
+    model = model_train(x_train, x_test, y_train, y_test)
+    mse, rmse = evaluation(model, x_test, y_test)
     deployment_decision = deployment_trigger(accuracy=mse)
     model_deployer(deployment_decision)
 
@@ -120,8 +135,6 @@ def inference_pipeline(
 
 @step(enable_cache=False)
 def dynamic_importer() -> Output(data=str):
-    """Downloads the latest data from a mock API.""" 
+    """Downloads the latest data from a mock API."""
     data = get_data_for_test()
     return data
-
-

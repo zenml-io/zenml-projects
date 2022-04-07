@@ -1,26 +1,24 @@
-from typing import Any, Type, Union, List
-import pickle
 import os
+import pickle
+from typing import Any, Type, Union
 
+import numpy as np
+import pandas as pd
 from catboost import CatBoostRegressor
+from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
-from lightgbm import LGBMRegressor
-
-import numpy as np 
-import pandas as pd
-
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 
-
-
 DEFAULT_FILENAME = "CustomerSatisfactionEnvironment"
 
+
 class cs_materializer(BaseMaterializer):
-    '''
-    Custom materializer for the Customer Satisfaction Zenfile 
-    '''
+    """
+    Custom materializer for the Customer Satisfaction Zenfile
+    """
+
     ASSOCIATED_TYPES = [
         str,
         np.ndarray,
@@ -45,9 +43,9 @@ class cs_materializer(BaseMaterializer):
         XGBRegressor,
     ]:
         """
-        It loads the model from the artifact and returns it. 
+        It loads the model from the artifact and returns it.
 
-        Args: 
+        Args:
             data_type: The type of the model to be loaded
         """
         super().handle_input(data_type)
@@ -58,7 +56,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[ 
+        obj: Union[
             str,
             np.ndarray,
             pd.Series,
@@ -71,7 +69,7 @@ class cs_materializer(BaseMaterializer):
     ) -> None:
         """
         It saves the model to the artifact store.
-        
+
         Args:
             model: The model to be saved
         """
