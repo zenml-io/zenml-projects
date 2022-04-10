@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -52,7 +53,7 @@ class DataCleaning:
             logging.error(e)
             raise e
 
-    def divide_data(self, df: pd.DataFrame) -> pd.DataFrame:
+    def divide_data(self, df: pd.DataFrame) -> Union[pd.DataFrame, pd.Series]:
         """
         It divides the data into train and test data.
         """
