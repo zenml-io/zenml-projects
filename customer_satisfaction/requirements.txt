@@ -1,0 +1,16 @@
+catboost==1.0.4
+click==8.0.4
+joblib==1.1.0
+lightgbm==3.3.2
+mlflow==1.24.0
+numpy==1.21.5
+optuna==2.10.0
+pandas==1.4.1
+requests==2.27.1
+rich==12.1.0
+scikit_learn==1.0.2
+streamlit==1.8.1
+tensorflow==2.8.0
+xgboost==1.5.2
+zenml==0.7.0
+scikit-learn==1.0.2
