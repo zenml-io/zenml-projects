@@ -1,4 +1,4 @@
-# End to End Customer Satisfaction Pipeline with ZenML
+# Predicting how a customer will feel about a product before he even ordered it
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
