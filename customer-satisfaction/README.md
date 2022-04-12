@@ -16,7 +16,7 @@ Let's jump into the Python packages you need. Within the Python environment of y
 
 ```bash
 git clone https://github.com/zenml-io/zenfiles.git
-cd customer-satisfaction
+cd zenfiles/customer-satisfaction
 pip install -r requirements.txt
 ```
 
