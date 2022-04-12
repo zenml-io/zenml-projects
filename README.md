@@ -16,7 +16,8 @@ Here is a list of updated and maintained ZenFiles:
 |     Name      |  Link                     | Tags                 |
 | ------------- | --------------------------|----------------------|
 | NBA Predictor |  [README](nba-pipeline)   | drift, predictions   |
-| Atari Games Reinforcement Learning |  [README](atari-game-play)   | reinforcementlearning |
+| Atari Games Reinforcement Learning |  [README](atari-game-play)   | reinforcementlearning | 
+| Customer Satifaction | [README](customer-satisfaction) | mlflowdeployment, continousdeployment |
 
 # Generate a project template
 
