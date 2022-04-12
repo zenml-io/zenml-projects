@@ -1,9 +1,12 @@
-import pickle
+import json
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 from inference.predict import predict
 from PIL import Image
+from zenml.repository import Repository
+from zenml.services import load_last_service_from_step
 
 
 def main():
@@ -61,26 +64,36 @@ def main():
 
     result = ""
     if st.button("Predict"):
-        with open("saved_model/model.pkl", "rb") as handle:
-            model = pickle.load(handle)
-        result = predict(
-            model,
-            payment_sequential,
-            payment_installments,
-            payment_value,
-            price,
-            freight_value,
-            product_name_length,
-            product_description_length,
-            product_photos_qty,
-            product_weight_g,
-            product_length_cm,
-            product_height_cm,
-            product_width_cm,
+        repo = Repository()
+        p = repo.get_pipeline("continuous_deployment_pipeline")
+        last_run = p.runs[-1]
+        service = load_last_service_from_step(
+            pipeline_name="continuous_deployment_pipeline",
+            step_name="model_deployer",
+            running=True,
         )
+        df = pd.DataFrame(
+            {
+                "payment_sequential": [payment_sequential],
+                "payment_installments": [payment_installments],
+                "payment_value": [payment_value],
+                "price": [price],
+                "freight_value": [freight_value],
+                "product_name_lenght": [product_name_length],
+                "product_description_lenght": [product_description_length],
+                "product_photos_qty": [product_photos_qty],
+                "product_weight_g": [product_weight_g],
+                "product_length_cm": [product_length_cm],
+                "product_height_cm": [product_height_cm],
+                "product_width_cm": [product_width_cm],
+            }
+        )
+        json_list = json.loads(json.dumps(list(df.T.to_dict().values())))
+        data = np.array(json_list)
+        pred = service.predict(data)
         st.success(
             "Your Customer Satisfactory rate(range between 0 - 5) with given product details is :-{}".format(
-                result
+                pred
             )
         )
     if st.button("Results"):
