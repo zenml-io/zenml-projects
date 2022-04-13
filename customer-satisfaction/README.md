@@ -69,7 +69,13 @@ python run_deployment.py
 
 ## 🕹 Demo App
 
-We also made a live demo of this project using [Streamlit](https://streamlit.io/) which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using our trained models.
+We also made a live demo of this project using [Streamlit](https://streamlit.io/) which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using our trained models. If you want to run this streamlit app in your local system, you can run the following command:-
+
+```bash
+streamlit run streamlit_app.py
+```
+
+In the inference part of this application, we are fetching our continuous deployment pipeline from the initialized repository and the pipeline trains the model and (re) deploys the model and this application make use of the latest model from the pipeline in order to predict the customer satisfaction score for the next order or purchase.
 
 ## :question: FAQ
 
