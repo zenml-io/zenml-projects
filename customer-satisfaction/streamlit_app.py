@@ -3,7 +3,6 @@ import json
 import numpy as np
 import pandas as pd
 import streamlit as st
-from inference.predict import predict
 from PIL import Image
 from zenml.repository import Repository
 from zenml.services import load_last_service_from_step
