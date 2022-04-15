@@ -19,9 +19,9 @@ def visualize_statistics(
 
 
 @step
-def visualize_whylabs_statistics(context: StepContext):
+def visualize_train_test_statistics(
+    context: StepContext,
+):
     pipe = context.metadata_store.get_pipeline("data_analysis_pipeline")
-    whylogs_train_outputs = pipe.runs[-1].get_step(name="train_data_profile")
-    whylogs_test_outputs = pipe.runs[-1].get_step(name="test_data_profile")
-    WhylogsVisualizer().visualize(whylogs_train_outputs)
-    WhylogsVisualizer().visualize(whylogs_test_outputs)
+    ingest_data_outputs = pipe.runs[-1].get_step(name="data_splitter")
+    FacetStatisticsVisualizer().visualize(ingest_data_outputs)

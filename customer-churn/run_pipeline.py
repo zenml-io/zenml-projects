@@ -1,14 +1,18 @@
 from pipelines.data_analysis_pipeline import data_analysis_pipeline
-from steps.ingest_data import data_splitter, ingest_data
-from steps.visualizer import visualize_statistics, visualize_whylabs_statistics
+from steps.data_splitter import data_splitter
+from steps.ingest_data import ingest_data
+from steps.visualizer import (
+    visualize_statistics,
+    visualize_train_test_statistics,
+)
 
 
 def main():
     analyze = data_analysis_pipeline(
         ingest_data(),
-        data_splitter(),
         visualize_statistics(),
-        visualize_whylabs_statistics(),
+        data_splitter(),
+        visualize_train_test_statistics(),
     )
     analyze.run()
 
