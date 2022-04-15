@@ -13,6 +13,12 @@ from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
+@step(enable_cache=False)
+def dynamic_importer() -> Output(data=str):
+    """Downloads the latest data from a mock API."""
+    data = get_data_for_test()
+    return data
+
 
 class DeploymentTriggerConfig(BaseStepConfig):
     """Parameters that are used to trigger the deployment"""
@@ -131,10 +137,3 @@ def inference_pipeline(
     batch_data = dynamic_importer()
     model_deployment_service = prediction_service_loader()
     predictor(model_deployment_service, batch_data)
-
-
-@step(enable_cache=False)
-def dynamic_importer() -> Output(data=str):
-    """Downloads the latest data from a mock API."""
-    data = get_data_for_test()
-    return data
