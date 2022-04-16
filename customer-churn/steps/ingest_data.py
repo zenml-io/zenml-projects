@@ -13,7 +13,7 @@ class DataIngestion:
     """Class for data Ingestion"""
 
     def __init__(self) -> None:
-        self.path = "customer-churn/data"
+        self.path = "data"
 
     def read_data(self) -> pd.DataFrame:
         """Reads data from csv files and merge the csv files into one dataframe"""
