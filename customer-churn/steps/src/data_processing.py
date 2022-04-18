@@ -73,7 +73,7 @@ class DataProcessor:
     def handle_imbalanced_data(
         self,
         data: pd.DataFrame,
-    ) -> Output(balanced_data=pd.DataFrame, pipeline=Pipeline):
+    ) -> Output(balanced_data=pd.DataFrame):
         """
         Handle imbalanced data by combining SMOTE with random undersampling of the majority class.
 
@@ -81,15 +81,15 @@ class DataProcessor:
             data (pd.DataFrame): DataFrame
         """
         try:
-            X = data.drop("y", axis=1)
-            y = data["y"]
-            over = SMOTE(sampling_strategy=0.1)
+            X = data.drop("Churn", axis=1)
+            y = data["Churn"]
+            over = SMOTE(sampling_strategy=0.5)
             under = RandomUnderSampler(sampling_strategy=0.5)
             steps = [("o", over), ("u", under)]
             pipeline = Pipeline(steps=steps)
             X_res, y_res = pipeline.fit_resample(X, y)
             balanced_data = pd.concat([X_res, y_res], axis=1)
-            return balanced_data, pipeline
+            return balanced_data
         except ValueError:
             logger.error(
                 "Imbalanced data handling failed due to not matching the type of the input data, Recheck the type of your input data."
@@ -99,7 +99,7 @@ class DataProcessor:
         except Exception as e:
             logger.error(e)
 
-    def drop_columns(self, data: pd.DataFrame) -> Output(data=pd.DataFrame):
+    def drop_columns(self, data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
         """
         Drop columns from the dataframe by using several methods.
 
@@ -110,8 +110,7 @@ class DataProcessor:
             if data.empty:
                 logging.error("Dataframe is empty.")
             data = self.single_value_column_remover(data)
-            if data.isnull.sum().sum() > 0:
-                data = self.handle_missing_values(data)
+            data = self.handle_missing_values(data)
             return data
 
         except ValueError:
@@ -123,7 +122,7 @@ class DataProcessor:
         except Exception as e:
             logger.error(e)
 
-    def single_value_column_remover(data: pd.DataFrame) -> pd.DataFrame:
+    def single_value_column_remover(self, data: pd.DataFrame) -> pd.DataFrame:
         """Removes columns with a single value.
 
         Args:
