@@ -1,7 +1,7 @@
 from zenml.steps import BaseStepConfig
 
 
-class PreTrainingConfigs(BaseStepConfig):
+class StackEnsembleConfig(BaseStepConfig):
     """Configuration for Training Stacked Models"""
 
     first_model_name: str = "xgb"

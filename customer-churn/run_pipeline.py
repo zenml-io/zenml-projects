@@ -1,6 +1,6 @@
 from materializer.customer_materializer import cs_materializer
 from pipelines.data_analysis_pipeline import data_analysis_pipeline
-from pipelines.data_process_pipeline import data_processing_pipeline
+from pipelines.training_pipelines import training_pipeline
 from steps.data_process import (
     drop_cols,
     encode_cat_cols,
@@ -26,9 +26,9 @@ def analyze_pipeline():
     visualize_train_test_statistics()
 
 
-def data_process_pipeline():
+def training_pipeline_run():
     """Pipeline for processing data."""
-    data_process = data_processing_pipeline(
+    data_process = training_pipeline(
         ingest_data(),
         encode_cat_cols(),
         handle_imbalanced_data(),
@@ -40,5 +40,5 @@ def data_process_pipeline():
 
 
 if __name__ == "__main__":
-    analyze_pipeline()
-    data_process_pipeline()
+    # analyze_pipeline()
+    training_pipeline_run()

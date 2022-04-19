@@ -38,7 +38,6 @@ class LogisticRegression:
             self.fit()
             if self.assumptions_test:
                 self.assumption_appropriate_outcome_type()
-                self.linearity_assumption_of_logodds()
             logger.info("Finished Training Logistic Regression model.")
         except Exception as e:
             logger.error(f"Logistic Regression model failed: {e}")
@@ -47,7 +46,7 @@ class LogisticRegression:
         """Fit the Logistic Regression model."""
         try:
             log_reg = sm.Logit(self.y_train, self.x_train)
-            log_reg = self.model.fit()
+            log_reg = log_reg.fit()
             rprint(log_reg.summary())
             return log_reg
         except Exception as e:
@@ -62,33 +61,3 @@ class LogisticRegression:
                 logger.error("Assumption for appropriate outcome type is not satisfied.")
         except Exception as e:
             logger.error(f"Assumptions test failed: {e}")
-
-    def linearity_assumption_of_logodds(self) -> None:
-        """Test assumptions for linearity of logodds."""
-        try:
-            continuous_var = ["SeniorCitizen"]
-            # Add logit transform interaction terms (natural log) for continuous variables e.g.. Age * Log(Age)
-            for var in continuous_var:
-                self.x_train[f"{var}:Log_{var}"] = self.x_train[var].apply(lambda x: x * np.log(x))
-            cols_to_keep = continuous_var + self.x_train.columns.tolist()[-len(continuous_var) :]
-            X_lt = self.x_train[cols_to_keep]
-            X_lt_constant = sm.add_constant(X_lt, prepend=False)
-            logit_results = GLM(
-                self.y_train.astype(float), X_lt_constant.astype(float), family=families.Binomial()
-            ).fit()
-            rprint(logit_results.summary())
-        except Exception as e:
-            logger.error(f"Assumptions test failed: {e}")
-
-
-if __name__ == "__main__":
-    data = pd.read_csv(
-        "/home/ayushsingh/Documents/zenfiles/customer-churn/data/customer-churn-data.csv"
-    )
-    from sklearn.model_selection import train_test_split
-
-    x_train, x_test, y_train, y_test = train_test_split(
-        data.drop("Churn", axis=1), data["Churn"], test_size=0.2, random_state=0
-    )
-    log_reg = LogisticRegression(x_train, x_test, y_train, y_test)
-    log_reg.main()
