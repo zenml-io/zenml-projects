@@ -3,10 +3,7 @@ import os
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from whylogs import DatasetProfile  # type: ignore
-from zenml.integrations.whylogs.whylogs_context import WhylogsContext
 from zenml.steps import Output, step
-from zenml.steps.step_context import StepContext
 
 
 class DataIngestion:

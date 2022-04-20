@@ -4,7 +4,7 @@ from zenml.pipelines import pipeline
 logger = get_logger(__name__)
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=False, requirements_file="requirements.txt")
 def training_pipeline(
     ingest_data, encode_cat_cols, handle_imbalanced_data, drop_cols, data_splitter, log_reg_trainer
 ):
