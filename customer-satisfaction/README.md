@@ -24,7 +24,15 @@ If you are running the `run_deployment.py` script, you will also need to install
 
 ```bash
 zenml integration install mlflow -f
+``` 
+The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
+```bash
+zenml integration install mlflow
+zenml model-deployer register mlflow --type=mlflow
+zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
+zenml stack set local_with_mlflow
 ```
+
 
 ## :thumbsup: The Solution
 
