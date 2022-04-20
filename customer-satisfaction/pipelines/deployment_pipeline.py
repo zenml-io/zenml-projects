@@ -13,6 +13,7 @@ from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
+
 @step(enable_cache=False)
 def dynamic_importer() -> Output(data=str):
     """Downloads the latest data from a mock API."""
@@ -124,7 +125,7 @@ def continuous_deployment_pipeline(
     model = model_train(x_train, x_test, y_train, y_test)
     mse, rmse = evaluation(model, x_test, y_test)
     deployment_decision = deployment_trigger(accuracy=mse)
-    model_deployer(deployment_decision)
+    model_deployer(deployment_decision, model)
 
 
 @pipeline(enable_cache=True, requirements_file=requirements_file)
