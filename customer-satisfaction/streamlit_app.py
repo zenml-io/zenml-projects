@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
-from zenml.repository import Repository
 from zenml.services import load_last_service_from_step
 
 
@@ -61,16 +60,17 @@ def main():
     product_height_cm = st.number_input("Product height (CMs)")
     product_width_cm = st.number_input("Product width (CMs)")
 
-    result = ""
     if st.button("Predict"):
-        repo = Repository()
-        p = repo.get_pipeline("continuous_deployment_pipeline")
-        last_run = p.runs[-1]
         service = load_last_service_from_step(
             pipeline_name="continuous_deployment_pipeline",
             step_name="model_deployer",
             running=True,
         )
+        if service is None:
+            # TODO [HIGH]: Print out that the service is not there, maybe run 
+            #  the pipeline first.
+            pass
+
         df = pd.DataFrame(
             {
                 "payment_sequential": [payment_sequential],
