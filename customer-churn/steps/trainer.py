@@ -1,29 +1,47 @@
-import numpy as np
+import mlflow
 import pandas as pd
+from sklearn.base import ClassifierMixin
 from sklearn.model_selection import train_test_split
-from zenml.steps import Output, step
+from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
+from zenml.logger import get_logger
+from zenml.steps import BaseStepConfig, Output, step
 
-from .src.configs import StackEnsembleConfig
-from .src.log_reg import LogisticRegression
-from .src.stacking_models import StackedEnsembles
+from .src.tree_based_models import TreeBasedModels
+
+logger = get_logger(__name__)
 
 
+class ModelNameConfig(BaseStepConfig):
+    """Model Configurations"""
+
+    model_name: str = "lightgbm"
+    fine_tuning: bool = False
+
+
+@enable_mlflow
 @step
-def log_reg_trainer(train: pd.DataFrame) -> LogisticRegression:
+def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(model=ClassifierMixin):
     """Train a logistic regression model."""
-    x_train, x_test, y_train, y_test = train_test_split(
-        train.drop("Churn", axis=1), train["Churn"], test_size=0.2
-    )
-    log_reg = LogisticRegression(x_train, x_test, y_train, y_test, assumptions_test=True)
-    log_reg.main()
-    return log_reg
+    try:
+        x_train, x_test, y_train, y_test = train_test_split(
+            train.drop("Churn", axis=1), train["Churn"], test_size=0.2
+        )
+        tree_based_model = TreeBasedModels(x_train, y_train, x_test, y_test)
 
-
-@step(enable_cache=True)
-def stacking_level1_trainer(
-    config: StackEnsembleConfig, train: pd.DataFrame, test: pd.DataFrame
-) -> Output(stack_x_train=np.ndarray, stack_x_test=np.ndarray):
-    """Train a stacked models model."""
-    stk = StackedEnsembles(config, train, test)
-    stack_x_train, stack_x_test = stk.stacking_model_builder()
-    return stack_x_train, stack_x_test
+        if config.model_name == "lightgbm":
+            mlflow.lightgbm.autolog()
+            lgm_model = tree_based_model.lightgbm_trainer(fine_tuning=config.fine_tuning)
+            return lgm_model
+        elif config.model_name == "randomforest":
+            mlflow.sklearn.autolog()
+            rf_model = tree_based_model.random_forest_trainer(fine_tuning=config.fine_tuning)
+            return rf_model
+        elif config.model_name == "xgboost":
+            mlflow.xgboost.autolog()
+            xgb_model = tree_based_model.xgboost_trainer(fine_tuning=config.fine_tuning)
+            return xgb_model
+        else:
+            raise ValueError("Model name not supported")
+    except Exception as e:
+        logger.error(e)
+        raise e

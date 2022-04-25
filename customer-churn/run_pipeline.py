@@ -7,8 +7,9 @@ from steps.data_process import (
     handle_imbalanced_data,
 )
 from steps.data_splitter import data_splitter
+from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
-from steps.trainer import log_reg_trainer
+from steps.trainer import model_trainer
 from steps.visualizer import (
     visualize_statistics,
     visualize_train_test_statistics,
@@ -28,17 +29,23 @@ def analyze_pipeline():
 
 def training_pipeline_run():
     """Pipeline for processing data."""
-    data_process = training_pipeline(
+    train_pipeline = training_pipeline(
         ingest_data(),
         encode_cat_cols(),
         handle_imbalanced_data(),
         drop_cols(),
         data_splitter(),
-        log_reg_trainer().with_return_materializers(cs_materializer),
+        model_trainer().with_return_materializers(cs_materializer),
+        evaluation().with_return_materializers(cs_materializer),
     )
-    data_process.run()
+    train_pipeline.run()
 
 
 if __name__ == "__main__":
-    # analyze_pipeline()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("pipeline", type=str, choices=["analyze", "train", "predict"])
+    # args = parser.parse_args()
+    # if args.pipeline == "analyze":
+    #     analyze_pipeline()
+    # elif args.pipeline == "train":
     training_pipeline_run()

@@ -4,7 +4,7 @@ from typing import Any, Type, Union
 
 import numpy as np
 import pandas as pd
-from statsmodels.genmod.generalized_linear_model import GLM
+from sklearn.base import ClassifierMixin
 from steps.src.log_reg import LogisticRegression
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
@@ -17,11 +17,11 @@ class cs_materializer(BaseMaterializer):
     Custom materializer for the Customer Satisfaction Zenfile
     """
 
-    ASSOCIATED_TYPES = [np.ndarray, pd.Series, pd.DataFrame, LogisticRegression]
+    ASSOCIATED_TYPES = [np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin]
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression]:
+    ) -> Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin]:
         """
         It loads the model from the artifact and returns it.
 
@@ -36,7 +36,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression],
+        obj: Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin],
     ) -> None:
         """
         It saves the model to the artifact store.

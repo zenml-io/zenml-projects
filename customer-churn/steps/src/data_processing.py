@@ -1,5 +1,6 @@
 import logging
 
+import joblib
 import pandas as pd
 from feature_engine.encoding import MeanEncoder
 from imblearn.over_sampling import SMOTE

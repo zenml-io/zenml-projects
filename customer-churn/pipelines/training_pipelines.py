@@ -4,9 +4,15 @@ from zenml.pipelines import pipeline
 logger = get_logger(__name__)
 
 
-@pipeline(enable_cache=False, requirements_file="requirements.txt")
+@pipeline(enable_cache=False, requirements_file="kubeflow_requirements.txt")
 def training_pipeline(
-    ingest_data, encode_cat_cols, handle_imbalanced_data, drop_cols, data_splitter, log_reg_trainer
+    ingest_data,
+    encode_cat_cols,
+    handle_imbalanced_data,
+    drop_cols,
+    data_splitter,
+    model_trainer,
+    evaluator,
 ):
     """Pipeline for Training."""
     try:
@@ -15,7 +21,8 @@ def training_pipeline(
         customer_churn_df = handle_imbalanced_data(customer_churn_df)
         customer_churn_df = drop_cols(customer_churn_df)
         train, test = data_splitter(customer_churn_df)
-        log_reg = log_reg_trainer(train)
+        model = model_trainer(train)
+        accuracy = evaluator(model, test)
     except Exception as e:
         logger.error(e)
         raise e
