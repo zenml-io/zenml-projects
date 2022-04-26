@@ -128,7 +128,11 @@ def continuous_deployment_pipeline(
     model_deployer(deployment_decision, model)
 
 
-@pipeline(enable_cache=True, required_integrations=[SELDON, SKLEARN])
+@pipeline(
+    enable_cache=True,
+    required_integrations=[SELDON, SKLEARN],
+    requirements_file="kubeflow_requirements.txt",
+)
 def inference_pipeline(
     dynamic_importer,
     prediction_service_loader,

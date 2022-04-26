@@ -1,6 +1,7 @@
 from typing import cast
 
 import click
+from materializer.customer_materializer import cs_materializer
 from pipelines.seldon_deployment_pipeline import (
     DeploymentTriggerConfig,
     SeldonDeploymentLoaderStepConfig,
@@ -118,9 +119,8 @@ def main(
                     model_name=model_name,
                 )
             ),
-            predictor=predictor(),
+            predictor=predictor().with_return_materializers(cs_materializer),
         )
-
         inference.run()
 
     services = model_deployer.find_model_server(
