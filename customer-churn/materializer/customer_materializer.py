@@ -17,11 +17,20 @@ class cs_materializer(BaseMaterializer):
     Custom materializer for the Customer Satisfaction Zenfile
     """
 
-    ASSOCIATED_TYPES = [np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin]
+    ASSOCIATED_TYPES = [
+        np.float64,
+        np.ndarray,
+        pd.Series,
+        pd.DataFrame,
+        LogisticRegression,
+        ClassifierMixin,
+    ]
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin]:
+    ) -> Union[
+        np.float64, np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin
+    ]:
         """
         It loads the model from the artifact and returns it.
 
@@ -36,7 +45,9 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin],
+        obj: Union[
+            np.float64, np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin
+        ],
     ) -> None:
         """
         It saves the model to the artifact store.

@@ -14,6 +14,7 @@ from steps.visualizer import (
     visualize_statistics,
     visualize_train_test_statistics,
 )
+from zenml.integrations.mlflow.mlflow_environment import global_mlflow_env
 
 
 def analyze_pipeline():
@@ -49,3 +50,11 @@ if __name__ == "__main__":
     #     analyze_pipeline()
     # elif args.pipeline == "train":
     training_pipeline_run()
+    with global_mlflow_env() as mlflow_env:
+        print(
+            "Now run \n "
+            f"    mlflow ui --backend-store-uri {mlflow_env.tracking_uri}\n"
+            "To inspect your experiment runs within the mlflow ui.\n"
+            "You can find your runs tracked within the `mlflow_example_pipeline`"
+            "experiment. Here you'll also be able to compare the two runs.)"
+        )

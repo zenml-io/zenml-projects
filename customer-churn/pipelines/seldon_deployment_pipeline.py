@@ -2,9 +2,7 @@ from typing import cast
 
 import numpy as np  # type: ignore [import]
 import pandas as pd
-import requests  # type: ignore [import]
-from sklearn.base import ClassifierMixin
-from zenml.integrations.constants import SELDON, SKLEARN, TENSORFLOW
+from zenml.integrations.constants import SELDON, SKLEARN
 from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService
 from zenml.logger import get_logger
@@ -12,6 +10,8 @@ from zenml.pipelines import pipeline
 from zenml.steps import BaseStepConfig, Output, step
 
 logger = get_logger(__name__)
+import json
+
 from .utils import get_data_for_test
 
 
@@ -22,7 +22,7 @@ class DeploymentTriggerConfig(BaseStepConfig):
 
 
 @step(enable_cache=False)
-def dynamic_importer() -> Output(data=str):
+def dynamic_importer() -> Output(data=pd.DataFrame):
     """Downloads the latest data from a mock API."""
     data = get_data_for_test()
     return data
@@ -89,15 +89,44 @@ def prediction_service_loader(
 @step
 def predictor(
     service: SeldonDeploymentService,
-    data: np.ndarray,
+    data: pd.DataFrame,
 ) -> Output(predictions=np.ndarray):
     """Run a inference request against a prediction service"""
 
     service.start(timeout=120)  # should be a NOP if already started
-    prediction = service.predict(data)
-    prediction = prediction.argmax(axis=-1)
-    print("Prediction: ", prediction)
-    return prediction
+    data = data.to_json(orient="split")
+    data = json.loads(data)
+    data.pop("columns")
+    data.pop("index")
+    columns_for_df = [
+        "customerID",
+        "gender",
+        "SeniorCitizen",
+        "Partner",
+        "Dependents",
+        "tenure",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod",
+        "MonthlyCharges",
+        "TotalCharges",
+    ]
+    df = pd.DataFrame(data["data"], columns=columns_for_df)
+    json_list = json.loads(json.dumps(list(df.T.to_dict().values())))
+    data = np.array(json_list)
+    predictions = service.predict(data)
+    predictions = predictions.argmax(axis=-1)
+    print("Prediction: ", predictions)
+    return predictions
 
 
 @pipeline(
