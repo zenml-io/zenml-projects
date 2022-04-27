@@ -33,6 +33,11 @@ zenml stack register local_with_mlflow -m default -a default -o default -d mlflo
 zenml stack set local_with_mlflow
 ```
 
+## 📙 Resources & References
+
+We had written a blog that explains this project in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
+
+If you'd like to watch the video that explains the project, you can watch the [video](https://youtu.be/L3_pFTlF9EQ).
 
 ## :thumbsup: The Solution
 
@@ -98,6 +103,7 @@ python run_pipeline.py
 ```bash
 python run_deployment.py
 ```
+
 
 ## 🕹 Demo Streamlit App
 
