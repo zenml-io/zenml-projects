@@ -137,13 +137,19 @@ zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_ar
 zenml stack set cloud_kubeflow_stack
 ```
 
-4. Do a pipeline run and check your Kubeflow UI to see it running there! 🚀
+4. Do a pipeline run
 
-```bash
+```shell
 python run_kubeflow_pipeline.py
 ```
 
-## Continuous model deployment with Seldon Core [WIP]
+5. Check the Kubeflow UI to see the model is deployed and running! 🚀
+
+```bash
+kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
+```
+
+## Continuous model deployment with Seldon Core
 
 While building the real-world workflow for predicting whether a customer will churn or not, you might not want to train the model once and deploy it to production. Instead, you might want to train the model and deploy it to production when something gets triggered. This is where one of our recent Integration comes in, [Seldon Core](#).
 
@@ -151,4 +157,102 @@ While building the real-world workflow for predicting whether a customer will ch
 
 It also comes equipped with a set of built-in model server implementations designed to work with standard formats for packaging ML models that greatly simplify the process of serving models for real-time inference.
 
-In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice.
+In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out the [ZenML Example](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment).
+
+Now, Let's get started with setting up our Full AWS stack to run the pipeline using Seldon Core.
+
+1. Install the Seldon Core Integration, which is a set of ZenML extensions that integrate with Seldon Core.
+
+```bash
+zenml integration install seldon
+```
+
+2. Register the stack components, The stack components consist of the following:
+
+- an AWS S3 artifact store
+- a Kubeflow orchestrator installed in an AWS EKS Kubernetes cluster
+- a metadata store that uses the same database as the Kubeflow deployment as
+  a backend
+- an AWS ECR container registry
+- an AWS secret manager used to store the credentials needed by Seldon Core to
+  access the AWS S3 artifact store
+- a Seldon Core model deployer pointing to the AWS EKS cluster
+
+To have access to the AWS S3 artifact store from your local workstation, the
+AWS client credentials needs to be properly set up locally as documented in
+[the official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+In addition to the stack components, Seldon Core must be installed in _the same_
+Kubernetes cluster as Kubeflow. The cluster must also be locally accessible
+through a Kubernetes configuration context. The reference used in this example
+is a Kubeflow and Seldon Core installation running in an EKS cluster, but any
+other type of Kubernetes cluster can be used, managed or otherwise.
+
+To configure EKS cluster access locally, run e.g:
+
+```bash
+aws eks --region us-east-1 update-kubeconfig --name zenml-cluster --alias zenml-eks
+```
+
+To configure ECR registry access locally, run e.g.:
+
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS \
+  --password-stdin 715803424590.dkr.ecr.us-east-1.amazonaws.com
+```
+
+Extract the URL where the Seldon Core model server exposes its prediction API, e.g.:
+
+```bash
+export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+```
+
+Configuring the stack can be done like this:
+
+```
+zenml integration install s3 aws kubeflow seldon
+
+zenml artifact-store register aws --type=s3 --path=s3://mybucket
+zenml model-deployer register seldon_aws --type=seldon \
+  --kubernetes_context=zenml-eks --kubernetes_namespace=kubeflow \
+  --base_url=http://$INGRESS_HOST \
+  --secret=s3-store
+zenml container-registry register aws --type=default --uri=715803424590.dkr.ecr.us-east-1.amazonaws.com
+zenml metadata-store register aws --type=kubeflow
+zenml orchestrator register aws --type=kubeflow --kubernetes_context=zenml-eks --synchronous=True
+zenml secrets-manager register aws -t aws
+zenml stack register aws -m aws -a aws -o aws -c aws -d seldon_aws -x aws
+zenml stack set aws
+```
+
+4. Do a pipeline run
+
+```shell
+python run_seldon_deployment_pipeline.py --deploy
+```
+
+You can control which pipeline to run by passing the --deploy and/or the --predict flag to the `run_seldon_deployment_pipeline.py` launcher. If you run the pipeline with the --deploy flag, the pipeline will train the model and deploy if iff the model meets the evaluation criteria and then the model will be served by Seldon Core for Inference. If you run the pipeline with the --predict flag, this tells the pipeline to only run the inference pipeline and not the training pipeline.
+
+You can also set the --min-accuracy to control the evaluation criteria.
+
+5. Check the Kubeflow UI to see the model is deployed and running! 🚀
+
+```bash
+kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
+```
+
+## 🕹 Demo App [WIP (To be updated)]
+
+**Ignore this section as of now**
+We also made a live demo of this project using [Streamlit](https://streamlit.io/) which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using our trained models. If you want to run this streamlit app in your local system, you can run the following command:-
+
+```bash
+streamlit run streamlit_app.py
+```
+
+In the inference part of this application, we are fetching our continuous deployment pipeline from the initialized repository and the pipeline trains the model and (re) deploys the model and this application make use of the latest model from the pipeline in order to predict the customer satisfaction score for the next order or purchase.
+
+## :question: FAQ [WIP]
+
+To be Updated

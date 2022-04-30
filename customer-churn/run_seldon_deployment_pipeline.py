@@ -49,7 +49,7 @@ from zenml.integrations.seldon.steps import (
 @click.option(
     "--min-accuracy",
     default=0.70,
-    help="Minimum accuracy required to deploy the model (default: 0.92)",
+    help="Minimum accuracy required to deploy the model (default: 0.70)",
 )
 @click.option(
     "--secret",
@@ -70,7 +70,7 @@ def main(
         python run.py --deploy --predict --model-flavor tensorflow \
              --min-accuracy 0.80 --secret seldon-init-container-secret
     """
-    model_name = "mnist"
+    model_name = "model"
     deployment_pipeline_name = "continuous_deployment_pipeline"
     deployer_step_name = "seldon_model_deployer_step"
 

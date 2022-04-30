@@ -1,3 +1,5 @@
+import argparse
+
 from materializer.customer_materializer import cs_materializer
 from pipelines.data_analysis_pipeline import data_analysis_pipeline
 from pipelines.training_pipelines import training_pipeline
@@ -43,17 +45,13 @@ def training_pipeline_run():
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("pipeline", type=str, choices=["analyze", "train", "predict"])
-    # args = parser.parse_args()
-    # if args.pipeline == "analyze":
-    #     analyze_pipeline()
-    # elif args.pipeline == "train":
-    training_pipeline_run()
-    # print(
-    #     "Now run \n "
-    #     f"    mlflow ui --backend-store-uri {get_tracking_uri()}\n"
-    #     "To inspect your experiment runs within the mlflow UI.\n"
-    #     "You can find your runs tracked within the `mlflow_example_pipeline`"
-    #     "experiment. Here you'll also be able to compare the two runs.)"
-    # )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pipeline", type=str, choices=["analyze", "train", "predict"])
+    args = parser.parse_args()
+    if args.pipeline == "analyze":
+        analyze_pipeline()
+    elif args.pipeline == "train":
+        training_pipeline_run()
+    elif args.pipeline == "predict":
+        # TODO: Implement prediction pipeline
+        pass

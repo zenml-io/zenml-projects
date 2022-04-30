@@ -9,4 +9,5 @@ zenml==0.7.3
 facets-overview
 mlflow>=1.2.0 
 sklearn 
-optuna 
+optuna  
+streamlit 
