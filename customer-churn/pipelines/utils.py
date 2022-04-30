@@ -6,6 +6,7 @@ logger = get_logger(__name__)
 
 
 def get_data_for_test() -> pd.DataFrame:
+    """Utility function for getting sample data for test"""
     try:
         df = pd.read_csv("./data/customer-churn-data.csv")
         df = df.sample(n=100)

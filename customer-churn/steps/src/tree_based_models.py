@@ -1,11 +1,11 @@
-import logging
-
-import numpy as np
 import optuna
 import pandas as pd
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
+from zenml.logger import get_logger
+
+logging = get_logger(__name__)
 
 
 class Hyperparameter_Optimization:
@@ -17,6 +17,14 @@ class Hyperparameter_Optimization:
     def __init__(
         self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series
     ) -> None:
+        """
+        Initialize the Hyperparameter_Optimization class.
+        Args:
+            x_train: Training data
+            y_train: Training labels
+            x_test: Test data
+            y_test: Test labels
+        """
         self.x_train = x_train
         self.y_train = y_train
         self.x_test = x_test
@@ -77,6 +85,14 @@ class TreeBasedModels:
     def __init__(
         self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series
     ) -> None:
+        """
+        Initialize the class TreeBasedModels  class.
+        Args:
+            x_train: Training data
+            y_train: Training labels
+            x_test: Test data
+            y_test: Test labels
+        """
         self.x_train = x_train
         self.y_train = y_train
         self.x_test = x_test
