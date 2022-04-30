@@ -18,7 +18,7 @@ class ModelNameConfig(BaseStepConfig):
     fine_tuning: bool = False
 
 
-@enable_mlflow
+# @enable_mlflow
 @step
 def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(model=ClassifierMixin):
     """Train a logistic regression model."""
@@ -29,15 +29,15 @@ def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(model=
         tree_based_model = TreeBasedModels(x_train, y_train, x_test, y_test)
 
         if config.model_name == "lightgbm":
-            mlflow.lightgbm.autolog()
+            # mlflow.lightgbm.autolog()
             lgm_model = tree_based_model.lightgbm_trainer(fine_tuning=config.fine_tuning)
             return lgm_model
         elif config.model_name == "randomforest":
-            mlflow.sklearn.autolog()
+            # mlflow.sklearn.autolog()
             rf_model = tree_based_model.random_forest_trainer(fine_tuning=config.fine_tuning)
             return rf_model
         elif config.model_name == "xgboost":
-            mlflow.xgboost.autolog()
+            # mlflow.xgboost.autolog()
             xgb_model = tree_based_model.xgboost_trainer(fine_tuning=config.fine_tuning)
             return xgb_model
         else:

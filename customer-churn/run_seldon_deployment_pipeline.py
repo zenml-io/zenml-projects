@@ -48,7 +48,7 @@ from zenml.integrations.seldon.steps import (
 )
 @click.option(
     "--min-accuracy",
-    default=0.92,
+    default=0.70,
     help="Minimum accuracy required to deploy the model (default: 0.92)",
 )
 @click.option(
@@ -76,7 +76,7 @@ def main(
 
     model_deployer = SeldonModelDeployer.get_active_model_deployer()
 
-    seldon_implementation = "TENSORFLOW_SERVER"
+    seldon_implementation = "SKLEARN_SERVER"
 
     if deploy:
         # Initialize a continuous deployment pipeline run

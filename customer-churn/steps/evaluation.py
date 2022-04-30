@@ -10,7 +10,6 @@ from .src.evaluator import Evaluation
 logger = get_logger(__name__)
 
 
-@enable_mlflow
 @step
 def evaluation(model: ClassifierMixin, test: pd.DataFrame) -> Output(accuracy=float):
     """
@@ -27,7 +26,6 @@ def evaluation(model: ClassifierMixin, test: pd.DataFrame) -> Output(accuracy=fl
         prediction = model.predict(X)
         evaluation = Evaluation(y, prediction)
         accuracy = evaluation.get_accuracy()
-        mlflow.log_metric("accuracy_score", accuracy)
         return accuracy
     except Exception as e:
         logger.error(e)
