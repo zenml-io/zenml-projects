@@ -111,7 +111,7 @@ We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS c
 
 If you want to run the pipeline on other cloud providers like GCP, and Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) to run the pipeline on that cloud provider. Specifically for this project, we will be using AWS but feel free to use any cloud provider you want.
 
-![cloudkubeflowstack](_assets/cloudstack.gif.png)
+![cloudkubeflowstack](_assets/cloudstack.gif)
 
 After you fulfill the prerequisites, now we need to Integrate with ZenML.
 
