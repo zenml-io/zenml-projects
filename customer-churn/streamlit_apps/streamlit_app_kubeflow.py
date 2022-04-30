@@ -1,12 +1,9 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
-from PIL import Image
 from zenml.repository import Repository
 
 
 def main():
-    st.title("End to End Customer Satisfaction Pipeline with ZenML")
+    st.title("Predicting whether the customer will churn or not before they even did it")
 
     # high_level_image = Image.open("_assets/high_level_overview.png")
     # st.image(high_level_image, caption="High Level Pipeline")
@@ -16,7 +13,15 @@ def main():
     st.markdown(
         """ 
     #### Problem Statement 
-     The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. I will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.    """
+    For a given customer's historical data, we are asked to predict whether a customer will churn a company or not. We will be using [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?datasetId=13996&sortBy=voteCount) dataset for building an end to end production-grade machine learning system that can predict whether the customer will churn or not. 
+    So, To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict whether a customer will churn or not before they even did it.
+    The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
+    
+    - By offering you a framework or template to develop within.
+    - By integrating with popular tools like Kubeflow, Seldon-core, facets, and more.
+    - By allowing you to build and deploy your machine learning pipelines easily using the modern MLOps Framework.
+
+    """
     )
     # st.image(whole_pipeline_image, caption="Whole Pipeline")
     st.markdown(
@@ -28,56 +33,14 @@ def main():
     st.markdown(
         """ 
     #### Description of Features 
-    This app is designed to predict the customer satisfaction score for a given customer. You can input the features of the product listed below and get the customer satisfaction score. 
-    | Models        | Description   | 
-    | ------------- | -     | 
-    | Payment Sequential | Customer may pay an order with more than one payment method. If he does so, a sequence will be created to accommodate all payments. | 
-    | Payment Installments   | Number of installments chosen by the customer. |  
-    | Payment Value |       Total amount paid by the customer. | 
-    | Price |       Price of the product. |
-    | Freight Value |    Freight value of the product.  | 
-    | Product Name length |    Length of the product name. |
-    | Product Description length |    Length of the product description. |
-    | Product photos Quantity |    Number of product published photos |
-    | Product weight measured in grams |    Weight of the product measured in grams. | 
-    | Product length (CMs) |    Length of the product measured in centimeters. |
-    | Product height (CMs) |    Height of the product measured in centimeters. |
-    | Product width (CMs) |    Width of the product measured in centimeters. |
+    This app is designed to predict whether customer will churn the company or not. You can input the features of the product listed below and get the prediction. 
+    - Customers who left within the last month:- the column is called Churn
+    - Services that each customer has signed up for:-  phone, multiple lines, internet, online security, online backup, device protection, tech support, and streaming TV and movies
+    - Customer account information:- how long they have been a customer, contract, payment method, paperless billing, monthly charges, and total charges
+    - Demographic info about customers:- gender, age range, and if they have partners and dependents
+
     """
     )
-    # payment_sequential = st.sidebar.slider("Payment Sequential")
-    # payment_installments = st.sidebar.slider("Payment Installments")
-    # payment_value = st.number_input("Payment Value")
-    # price = st.number_input("Price")
-    # freight_value = st.number_input("freight_value")
-    # product_name_length = st.number_input("Product name length")
-    # product_description_length = st.number_input("Product Description length")
-    # product_photos_qty = st.number_input("Product photos Quantity ")
-    # product_weight_g = st.number_input("Product weight measured in grams")
-    # product_length_cm = st.number_input("Product length (CMs)")
-    # product_height_cm = st.number_input("Product height (CMs)")
-    # product_width_cm = st.number_input("Product width (CMs)")
-    # "customerID",
-    # "gender",
-    # "SeniorCitizen",
-    # "Partner",
-    # "Dependents",
-    # "tenure",
-    # "PhoneService",
-    # "MultipleLines",
-    # "InternetService",
-    # "OnlineSecurity",
-    # "OnlineBackup",
-    # "DeviceProtection",
-    # "TechSupport",
-    # "StreamingTV",
-    # "StreamingMovies",
-    # "Contract",
-    # "PaperlessBilling",
-    # "PaymentMethod",
-    # "MonthlyCharges",
-    # "TotalCharges",
-    customer_id = st.number_input("Customer ID")
     gender = st.number_input("Gender")
     SeniorCitizen = st.number_input("Senior Citizen")
     Partner = st.number_input("Partner")
@@ -97,7 +60,6 @@ def main():
     PaymentMethod = st.number_input("PaymentMethod")
     MonthlyCharges = st.number_input("MonthlyCharges")
     TotalCharges = st.number_input("TotalCharges")
-    # make a list of all above created vars
 
     if st.button("Predict"):
         repo = Repository()
@@ -108,7 +70,6 @@ def main():
 
         pred = [
             [
-                customer_id,
                 gender,
                 SeniorCitizen,
                 Partner,
@@ -132,25 +93,6 @@ def main():
         ]
         pred = model.predict(pred)
         st.write(pred)
-    if st.button("Results"):
-        st.write(
-            "We have experimented with two ensemble and tree based models and compared the performance of each model. The results are as follows:"
-        )
-
-        df = pd.DataFrame(
-            {
-                "Models": ["LightGBM", "Xgboost"],
-                "MSE": [1.804, 1.781],
-                "RMSE": [1.343, 1.335],
-            }
-        )
-        st.dataframe(df)
-
-        st.write(
-            "Following figure shows how important each feature is in the model that contributes to the target variable or contributes in predicting customer satisfaction rate."
-        )
-        image = Image.open("_assets/feature_importance_gain.png")
-        st.image(image, caption="Feature Importance Gain")
 
 
 if __name__ == "__main__":
