@@ -111,6 +111,8 @@ We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS c
 
 If you want to run the pipeline on other cloud providers like GCP, and Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) to run the pipeline on that cloud provider. Specifically for this project, we will be using AWS but feel free to use any cloud provider you want.
 
+![cloudkubeflowstack](_assets/cloudstack.gif.png)
+
 After you fulfill the prerequisites, now we need to Integrate with ZenML.
 
 1. Install the cloud provider
@@ -167,28 +169,7 @@ Now, Let's get started with setting up our Full AWS stack to run the pipeline us
 zenml integration install seldon
 ```
 
-2. Register the stack components, The stack components consist of the following:
-
-- an AWS S3 artifact store
-- a Kubeflow orchestrator installed in an AWS EKS Kubernetes cluster
-- a metadata store that uses the same database as the Kubeflow deployment as
-  a backend
-- an AWS ECR container registry
-- an AWS secret manager used to store the credentials needed by Seldon Core to
-  access the AWS S3 artifact store
-- a Seldon Core model deployer pointing to the AWS EKS cluster
-
-To have access to the AWS S3 artifact store from your local workstation, the
-AWS client credentials needs to be properly set up locally as documented in
-[the official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
-
-In addition to the stack components, Seldon Core must be installed in _the same_
-Kubernetes cluster as Kubeflow. The cluster must also be locally accessible
-through a Kubernetes configuration context. The reference used in this example
-is a Kubeflow and Seldon Core installation running in an EKS cluster, but any
-other type of Kubernetes cluster can be used, managed or otherwise.
-
-To configure EKS cluster access locally, run e.g:
+2. Register the stack components
 
 ```bash
 aws eks --region us-east-1 update-kubeconfig --name zenml-cluster --alias zenml-eks
