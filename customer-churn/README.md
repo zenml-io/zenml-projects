@@ -6,7 +6,7 @@
 
 Customer churn is a tendency of customers to leave or churn a company and stop paying customers for a particular business. We can calculate a churn rate for a company by dividing the number of customers who churned by the total number of customers and then multiplying that number by 100 per cent. If you want to learn more about customer churn, you can read this[Wikipedia article](https://en.wikipedia.org/wiki/Churn_rate).
 
-So, To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict whether a customer will churn or not before they even do it.
+To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline that predicts whether a customer will churn or not ahead of time.
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
 
 - By offering you a framework or template to develop within.
