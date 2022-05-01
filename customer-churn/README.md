@@ -107,8 +107,7 @@ pipeline run [here](http://localhost:8080/#/runs).
 
 #### Run the same pipeline on Kubeflow Pipelines deployed to aws
 
-We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS; you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites), which will help you in 
-ling the requirement for running the pipeline on AWS.
+We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS; you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites), which will help you installing the requirements for running the pipeline on AWS.
 
 If you want to run the pipeline on other cloud providers like GCP, and Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) to run the pipeline on that cloud provider. We will be using AWS for this project, but feel free to use any cloud provider.
 
