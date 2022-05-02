@@ -130,7 +130,7 @@ def predictor(
 
 
 @pipeline(
-    enable_cache=True,
+    enable_cache=False,
     required_integrations=[SELDON, SKLEARN],
     requirements_file="kubeflow_requirements.txt",
 )
@@ -158,7 +158,7 @@ def continuous_deployment_pipeline(
 
 
 @pipeline(
-    enable_cache=True,
+    enable_cache=False,
     required_integrations=[SELDON, SKLEARN],
     requirements_file="kubeflow_requirements.txt",
 )
