@@ -41,6 +41,7 @@ def main():
 
     """
     )
+    customer_id = st.number_input("Customer ID")
     gender = st.number_input("Gender")
     SeniorCitizen = st.number_input("Senior Citizen")
     Partner = st.number_input("Partner")
@@ -66,10 +67,11 @@ def main():
         p = repo.get_pipeline("training_pipeline")
         last_run = p.runs[-1]
         trainer_step = last_run.get_step("model_trainer")
-        model = trainer_step.output
+        model = trainer_step.output.read()
 
         pred = [
             [
+                customer_id,
                 gender,
                 SeniorCitizen,
                 Partner,
