@@ -2,11 +2,11 @@
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
-**Problem statement**: For a given customer's historical data, we are asked to predict whether a customer will churn a company or not. We will be using [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?datasetId=13996&sortBy=voteCount) dataset for building an end to end production-grade machine learning system that can predict whether the customer will churn or not. Dataset has 20 input features and a target variable for 7043 customers.
+**Problem statement**: For a given customer's historical data, we are asked to predict whether a customer will stop using a companies product or not. We will be using [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?datasetId=13996&sortBy=voteCount) dataset for building an end to end production-grade machine learning system that can predict whether the customer will stay loyal or not. The dataset has 20 input features and a target variable for 7043 customers.
 
 Customer churn is a tendency of customers to leave or churn a company and stop paying customers for a particular business. We can calculate a churn rate for a company by dividing the number of customers who churned by the total number of customers and then multiplying that number by 100 per cent. If you want to learn more about customer churn, you can read this[Wikipedia article](https://en.wikipedia.org/wiki/Churn_rate).
 
-So, To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict whether a customer will churn or not before they even do it.
+To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline that predicts whether a customer will churn or not ahead of time.
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
 
 - By offering you a framework or template to develop within.
@@ -85,7 +85,7 @@ zenml stack register local_kubeflow_stack \
 zenml stack set local_kubeflow_stack
 ```
 
-Now, we need to startup the Kubeflow pipelines locally; all we need to do is run:
+Now, we need to start the Kubeflow pipelines locally; all we need to do is run:
 
 ```bash
 zenml stack up
@@ -107,13 +107,13 @@ pipeline run [here](http://localhost:8080/#/runs).
 
 #### Run the same pipeline on Kubeflow Pipelines deployed to aws
 
-We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS; you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites), which will help you in fulfilling the requirement for running the pipeline on AWS.
+We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS; you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites), which will help you installing the requirements for running the pipeline on AWS.
 
-If you want to run the pipeline on other cloud providers like GCP, and Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) to run the pipeline on that cloud provider. We will be using AWS for this project, but feel free to use any cloud provider.
+If you want to run the pipeline on other cloud providers like GCP, and Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) for execution on that cloud provider. We will be using AWS for this project, but feel free to use any cloud provider.
 
 ![cloudkubeflowstack](_assets/cloudstack.gif)
 
-After you fulfil the prerequisites, now we need to Integrate with ZenML.
+After you fulfill the prerequisites, now we need to Integrate with ZenML.
 
 1. Install the cloud provider
 
