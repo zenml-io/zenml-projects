@@ -56,7 +56,9 @@ def handle_imbalanced_data(data: pd.DataFrame) -> Output(output_data=pd.DataFram
         data = data_processor.handle_imbalanced_data(data)
         return data
     except ValueError:
-        logger.error("Handle imbalanced data failed, try rechecking the type of your input data.")
+        logger.error(
+            "Handle imbalanced data failed, try rechecking the type of your input data and ensure that the type of your input data is a Dataframe."
+        )
         raise ValueError
     except Exception as e:
         logger.error(e)
