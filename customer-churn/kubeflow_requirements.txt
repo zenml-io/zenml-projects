@@ -1,4 +1,3 @@
-catboost==1.0.5
 feature_engine==1.2.0
 imbalanced_learn==0.9.0
 imblearn==0.0
@@ -7,7 +6,6 @@ statsmodels
 xgboost
 zenml==0.7.3
 facets-overview
-mlflow>=1.2.0 
 sklearn 
 optuna  
 streamlit 
