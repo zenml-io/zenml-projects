@@ -121,8 +121,7 @@ def predictor(
         "TotalCharges",
     ]
     df = pd.DataFrame(data["data"], columns=columns_for_df)
-    json_list = json.loads(json.dumps(list(df.T.to_dict().values())))
-    data = np.array(json_list)
+    data = np.array(df)
     predictions = service.predict(data)
     predictions = predictions.argmax(axis=-1)
     print("Prediction: ", predictions)
