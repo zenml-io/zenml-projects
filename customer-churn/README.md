@@ -197,7 +197,7 @@ export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway \
 
 Configuring the stack can be done like this:
 
-```
+```shell
 zenml integration install s3 aws kubeflow Seldon
 
 zenml artifact-store register aws --type=s3 --path=s3://mybucket
