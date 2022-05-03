@@ -145,11 +145,13 @@ zenml stack set cloud_kubeflow_stack
 python run_kubeflow_pipeline.py
 ```
 
-5. Check the Kubeflow UI to see if the model is deployed and running! 🚀
+5. Configure Port Forwarding and Check the Kubeflow UI to see if the model is deployed and running! 🚀
 
 ```bash
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 ```
+
+Now, you can go to the localhost:8080 to see the UI.
 
 We can fetch the model from the kubeflow pipeline and use it in our Inference pipeline. Following diagram shows the flow of the whole pipeline:
 ![cloudkubeflowstack](_assets/wholekubeflowstack.gif)
@@ -221,11 +223,13 @@ You can control which pipeline to run by passing the --deploy and the --predict 
 
 You can also set the --min-accuracy to control the evaluation criteria.
 
-5. Check the Kubeflow UI to see if the model is deployed and running! 🚀
+5. Configure Port Forwarding and Check the Kubeflow UI to see if the model is deployed and running! 🚀
 
 ```bash
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 ```
+
+Now, you can go to the localhost:8080 to see the UI.
 
 ## 🕹 Demo App [WIP (To be updated)]
 
