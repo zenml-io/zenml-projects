@@ -2,7 +2,6 @@ import os
 import pickle
 from typing import Any, Type, Union
 
-import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from steps.src.log_reg import LogisticRegression
@@ -18,19 +17,14 @@ class cs_materializer(BaseMaterializer):
     """
 
     ASSOCIATED_TYPES = [
-        np.float64,
-        np.ndarray,
         pd.Series,
-        pd.DataFrame,
         LogisticRegression,
         ClassifierMixin,
     ]
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[
-        np.float64, np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin
-    ]:
+    ) -> Union[pd.Series, LogisticRegression, ClassifierMixin]:
         """
         It loads the model from the artifact and returns it.
 
@@ -45,9 +39,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[
-            np.float64, np.ndarray, pd.Series, pd.DataFrame, LogisticRegression, ClassifierMixin
-        ],
+        obj: Union[pd.Series, LogisticRegression, ClassifierMixin],
     ) -> None:
         """
         It saves the model to the artifact store.
