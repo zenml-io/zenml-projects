@@ -229,7 +229,7 @@ You can also set the `--min-accuracy` to control the evaluation criteria.
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 ```
 
-Now, you can go to the localhost:8080 to see the UI.
+Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the UI.
 
 ## 🕹 Demo App [WIP (To be updated)]
 
