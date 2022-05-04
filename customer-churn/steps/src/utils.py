@@ -15,5 +15,5 @@ def unique_data_detector(data: pd.DataFrame) -> pd.Series:
         return n_uniques
     except:
         raise ValueError(
-            "Data must be a dataframe or data has some issues, make sure you have checked your data."
+            "Data must be a dataframe or data has some issues. Make sure you have checked your data."
         )

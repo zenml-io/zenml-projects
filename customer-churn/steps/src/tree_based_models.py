@@ -180,10 +180,10 @@ class TreeBasedModels:
 
         Args:
             fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, defaults to True (optional)
+            parameters are used. Defaults to True (optional)
         """
 
-        logging.info("Entered for training XGBoost model")
+        logging.info("Started training XGBoost model")
         try:
             if fine_tuning:
                 hy_opt = Hyperparameter_Optimization(

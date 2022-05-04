@@ -26,7 +26,7 @@ def main():
     # st.image(whole_pipeline_image, caption="Whole Pipeline")
     st.markdown(
         """ 
-    Above is a figure of the whole pipeline, we first ingest the data, clean it, train the model, and evaluate the model, and if data source changes or any hyperparameter values changes, deployment will be triggered, and (re) trains the model and if the model meets minimum accuracy requirement, the model will be deployed.
+    Above is a diagram showing the whole pipeline. We first ingest the data, clean it, train the model, and evaluate the model, and if the data source changes or any hyperparameter values change then deployment will be triggered. It (re)trains the model and if the model meets the minimum accuracy requirement, the model will be deployed.
     """
     )
 

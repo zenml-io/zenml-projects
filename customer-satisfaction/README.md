@@ -25,7 +25,7 @@ If you are running the `run_deployment.py` script, you will also need to install
 ```bash
 zenml integration install mlflow -f
 ``` 
-The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
+The ZenFile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
 ```bash
 zenml integration install mlflow -f
 zenml model-deployer register mlflow --type=mlflow
@@ -35,7 +35,7 @@ zenml stack set local_with_mlflow
 
 ## 📙 Resources & References
 
-We had written a blog that explains this project in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
+We wrote up a blog that explains this project in detail: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
 
 If you'd like to watch the video that explains the project, you can watch the [video](https://youtu.be/L3_pFTlF9EQ).
 
@@ -80,7 +80,7 @@ service = load_last_service_from_step(
     running=True,
 )
 ...
-service.predict(...)  # Predict on incoming data from the application
+service.predict(...)  # Predict based on incoming data from the application
 ```
 
 While this ZenFile trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://github.com/zenml-io/zenml/tree/main/examples/) deployer can also be used in a similarly manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
