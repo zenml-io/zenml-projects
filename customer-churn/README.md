@@ -41,7 +41,7 @@ If you'd like to watch the video that explains the project, you can watch the [v
 We showcase two solutions to this problem:
 
 - `Deployment using Kubeflow Pipelines`: We will be using [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) to build and run our ZenML pipeline on the cloud and deploy it in a production environment.
-  `Continuous Deployment using Seldon Core`: We will be using Seldon Core, a production-grade open-source model serving platform, to build our continuous deployment pipeline that trains a model and then serves it with Seldon Core.
+  `Continuous Deployment using Seldon Core`: We will be using [Seldon Core](https://docs.seldon.io/projects/seldon-core/en/latest/index.html), a production-grade open-source model serving platform, to build our continuous deployment pipeline that trains a model and then serves it with Seldon Core.
 
 ## Deploy pipelines to production using Kubeflow pipelines
 
