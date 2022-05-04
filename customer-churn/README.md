@@ -11,7 +11,7 @@ The purpose of this repository is to demonstrate how [ZenML](https://github.com/
 
 - By offering you a framework or template to develop within.
 - By integrating with popular and useful tools like Kubeflow, Seldon Core, `facets`, and more.
-- By allowing you to build and deploy your machine learning pipelines easily using the modern MLOps Framework.
+- By allowing you to build and deploy your machine learning pipelines easily using a modern MLOps framework.
 
 ## :snake: Python Requirements [WIP]
 
