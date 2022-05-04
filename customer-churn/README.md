@@ -85,7 +85,7 @@ zenml stack register local_kubeflow_stack \
 zenml stack set local_kubeflow_stack
 ```
 
-Now, we need to start the Kubeflow pipelines locally; all we need to do is run:
+Now, we need to start the Kubeflow Pipelines stack locally; all we need to do is run:
 
 ```bash
 zenml stack up
