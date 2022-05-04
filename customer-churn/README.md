@@ -113,7 +113,7 @@ If you want to run the pipeline on other cloud providers like GCP or Azure, you 
 
 ![cloudkubeflowstack](_assets/cloudstack.gif)
 
-After you fulfill the prerequisites, now we need to Integrate with ZenML.
+After you fulfill the prerequisites, now we need to integrate with ZenML.
 
 1. Install the cloud provider
 
