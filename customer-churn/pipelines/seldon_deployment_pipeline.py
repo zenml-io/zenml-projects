@@ -91,7 +91,7 @@ def predictor(
     service: SeldonDeploymentService,
     data: pd.DataFrame,
 ) -> Output(predictions=np.ndarray):
-    """Run a inference request against a prediction service"""
+    """Run an inference request against a prediction service"""
 
     service.start(timeout=120)  # should be a NOP if already started
     data = data.to_json(orient="split")
