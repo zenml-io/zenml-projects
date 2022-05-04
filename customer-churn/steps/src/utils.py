@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def unique_data_detector(data: pd.DataFrame) -> pd.Series:
-    """Detects unique values in a dataframe.
+    """Detects unique values in a DataFrame.
 
     Args:
         data (pd.DataFrame): Dataframe to be analyzed.

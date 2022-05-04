@@ -23,7 +23,7 @@ class DataIngestion:
 
 @step
 def ingest_data() -> Output(data=pd.DataFrame):
-    """Data ingestion step which takes data from the source and returns a DataFrame.
+    """Reads data from csv files and merges the csv files into a single DataFrame
 
     Args:
         data: pd.DataFrame

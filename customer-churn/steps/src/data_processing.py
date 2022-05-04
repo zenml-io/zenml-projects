@@ -145,7 +145,7 @@ class DataProcessor:
                 return data
         except ValueError:
             logger.error(
-                "Data must be a dataframe, Ensure the data which you're passing is a dataframe."
+                "Data must be a DataFrame, Ensure the data which you're passing is a DataFrame."
             )
             raise ValueError
         except Exception as e:
@@ -167,7 +167,7 @@ class DataProcessor:
                 raise ValueError
         except ValueError:
             logger.error(
-                "data must be a dataframe, Ensure the data which you're passing is a dataframe."
+                "data must be a DataFrame, Ensure the data which you're passing is a DataFrame."
             )
             raise ValueError
         except Exception as e:
