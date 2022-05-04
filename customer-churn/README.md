@@ -32,7 +32,7 @@ zemml integration install kubeflow -f
 
 ## 📙 Resources & References
 
-We had written a blog that explains this project in-depth: [Predicting whether the customer will churn or not before they even did it](#).
+Make sure to read the blog that introduces this project in depth: [Predicting whether the customer will churn or not before they even did it](#).
 
 If you'd like to watch the video that explains the project, you can watch the [video](#).
 
