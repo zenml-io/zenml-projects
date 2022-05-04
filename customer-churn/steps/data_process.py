@@ -20,7 +20,7 @@ def encode_cat_cols(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
         return data
     except ValueError:
         logger.error(
-            "Categorical columns encoding failed due to not matching the type of the input data, Recheck the type of your input data."
+            "Categorical columns encoding failed due to not matching the type of the input data. Recheck the type of your input data."
         )
         raise ValueError
 
