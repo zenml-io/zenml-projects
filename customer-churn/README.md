@@ -105,7 +105,7 @@ files, push it to the local container registry and schedule a pipeline run in
 Kubeflow Pipelines. Once the script is finished, you should be able to see the
 pipeline run [here](http://localhost:8080/#/runs).
 
-#### Run the same pipeline on Kubeflow Pipelines deployed to aws
+#### Run the same pipeline on Kubeflow Pipelines deployed to AWS
 
 We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS; you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites), which will help you installing the requirements for running the pipeline on AWS.
 
