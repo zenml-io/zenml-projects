@@ -139,7 +139,7 @@ zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_ar
 zenml stack set cloud_kubeflow_stack
 ```
 
-4. Do a pipeline run
+4. Run the pipeline
 
 ```shell
 python run_kubeflow_pipeline.py
