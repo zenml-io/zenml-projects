@@ -66,7 +66,7 @@ With all the installation and initialization out of the way, all that's left to 
 - The **local artifact store** stores step outputs on your hard disk.
 - The **local metadata store** stores metadata like the pipeline name and step
   parameters inside a local SQLite database.
-- The docker images created to run your pipeline are stored in a local
+- The Docker images created to run your pipeline are stored in a local
   docker **container registry**.
 - The **Kubeflow orchestrator** is responsible for running your ZenML pipeline
   in Kubeflow Pipelines.
