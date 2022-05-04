@@ -7,7 +7,7 @@ from zenml.steps import Output, step
 
 
 class DataIngestion:
-    """Class for data Ingestion"""
+    """Class for data ingestion"""
 
     def __init__(self) -> None:
         self.path = "data"
