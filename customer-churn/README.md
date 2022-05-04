@@ -47,7 +47,7 @@ We showcase two solutions to this problem:
 
 To build a real-world workflow for predicting whether a customer will churn or not, you will probably develop your pipelines on your local machine initially, allowing for quick iteration and debugging. However, at a certain point, when you are finished with its design, you might want to transition to a more production-ready setting and deploy the pipeline to a more robust environment. This is where ZenML comes in.
 
-We will be using [Kubeflow](https://github.com/zenml-io/zenml/tree/main/examples/kubeflow) Integration of ZenML for deploying pipelines to production using Kubeflow pipelines on the cloud.
+We will be ZenML's [Kubeflow](https://github.com/zenml-io/zenml/tree/main/examples/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
 
 Our training pipeline `run_kubeflow_pipeline.py` will be built using the following steps:
 
