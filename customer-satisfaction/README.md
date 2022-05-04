@@ -2,7 +2,7 @@
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
-**Problem statement**: For a given customer's historical data, we are tasked with predicting the review score for the next order or purchase. We will be using the [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). This dataset has information on 100,000 orders from 2016 to 2018 made at multiple marketplaces in Brazil. Its features allow viewing charges from various dimensions: from order status, price, payment, freight performance to customer location, product attributes and finally, reviews written by customers. The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. In order to achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.
+**Problem statement**: For a given customer's historical data, we are tasked to predict the review score for the next order or purchase. We will be using the [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). This dataset has information on 100,000 orders from 2016 to 2018 made at multiple marketplaces in Brazil. Its features allow viewing charges from various dimensions: from order status, price, payment, freight performance to customer location, product attributes and finally, reviews written by customers. The objective here is to predict the customer satisfaction score for a given order based on features like order status, price, payment, etc. In order to achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict the customer satisfaction score for the next order or purchase.
 
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
 
@@ -25,7 +25,7 @@ If you are running the `run_deployment.py` script, you will also need to install
 ```bash
 zenml integration install mlflow -f
 ``` 
-The ZenFile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
+The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
 ```bash
 zenml integration install mlflow -f
 zenml model-deployer register mlflow --type=mlflow
@@ -35,7 +35,7 @@ zenml stack set local_with_mlflow
 
 ## 📙 Resources & References
 
-We wrote up a blog that explains this project in detail: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
+We had written a blog that explains this project in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
 
 If you'd like to watch the video that explains the project, you can watch the [video](https://youtu.be/L3_pFTlF9EQ).
 
@@ -80,7 +80,7 @@ service = load_last_service_from_step(
     running=True,
 )
 ...
-service.predict(...)  # Predict based on incoming data from the application
+service.predict(...)  # Predict on incoming data from the application
 ```
 
 While this ZenFile trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://github.com/zenml-io/zenml/tree/main/examples/) deployer can also be used in a similarly manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
