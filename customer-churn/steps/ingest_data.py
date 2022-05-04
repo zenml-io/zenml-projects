@@ -13,7 +13,7 @@ class DataIngestion:
         self.path = "data"
 
     def read_data(self) -> pd.DataFrame:
-        """Reads data from csv files and merge the csv files into one dataframe"""
+        """Reads data from csv files and merges the csv files into a single DataFrame"""
         try:
             customer_churn_df = pd.read_csv(os.path.join(self.path, "customer-churn-data.csv"))
             return customer_churn_df
