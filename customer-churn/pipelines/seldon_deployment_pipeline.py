@@ -144,7 +144,7 @@ def continuous_deployment_pipeline(
     deployment_trigger,
     model_deployer,
 ):
-    # Link all the steps artifacts together
+    # Link all the steps and artifacts together
     customer_churn_df = ingest_data()
     customer_churn_df = encode_cat_cols(customer_churn_df)
     customer_churn_df = handle_imbalanced_data(customer_churn_df)
