@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class DataIngestion:
-    """Class for data Ingestion"""
+    """Class for data ingestion"""
 
     def __init__(self) -> None:
         """Initialize the DataIngestion class."""
