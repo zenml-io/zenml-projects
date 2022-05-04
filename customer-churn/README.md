@@ -240,7 +240,7 @@ We also made a live demo of this project using [Streamlit](https://streamlit.io/
 streamlit run streamlit_app.py
 ```
 
-In the inference part of this application, we are fetching our continuous deployment pipeline from the initialized repository, and the pipeline trains the model and (re) deploys the model, and this application makes use of the latest model from the pipeline to predict the customer satisfaction score for the next order or purchase.
+In the inference part of this application, we are fetching our continuous deployment pipeline from the initialized repository. The pipeline trains the model and (re)deploys the model, and this application makes use of the latest model from the pipeline to predict the customer satisfaction score for the next order or purchase.
 
 ## :question: FAQ [WIP]
 
