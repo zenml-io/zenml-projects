@@ -13,7 +13,7 @@ The purpose of this repository is to demonstrate how [ZenML](https://github.com/
 - By integrating with popular and useful tools like Kubeflow, Seldon Core, `facets`, and more.
 - By allowing you to build and deploy your machine learning pipelines easily using a modern MLOps framework.
 
-## :snake: Python Requirements [WIP]
+## :snake: Python Requirements
 
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
@@ -51,13 +51,13 @@ We will be ZenML's [Kubeflow](https://github.com/zenml-io/zenml/tree/main/exampl
 
 Our training pipeline `run_kubeflow_pipeline.py` will be built using the following steps:
 
-- `ingest_data`: This step will be used to ingest the data from the source and create a DataFrame.
-- `encode_cat_cols`: This step will be used to encode categorical columns.
-- `handle_imbalanced_data`: This step will be used to handle imbalanced data.
-- `drop_cols`: This step will be used for irrelevant drop columns.
-- `data_splitter`: This step will be used to split the data into training and test sets.
-- `model_trainer`: This step will be used to train the model.
-- `evaluation`: This step will be used to evaluate the trained model.
+- `ingest_data`: Ingest the data from the source and create a DataFrame.
+- `encode_cat_cols`: Encode categorical columns.
+- `handle_imbalanced_data`: Handle imbalanced data.
+- `drop_cols`: Dropping irrelevant columns.
+- `data_splitter`: Split the data into training and test sets.
+- `model_trainer`: Train the model.
+- `evaluation`: Evaluate the trained model.
 
 #### Run the same pipeline on a local Kubeflow Pipelines deployment
 
@@ -223,7 +223,7 @@ You can control which pipeline to run by passing the `--deploy` and the `--predi
 
 You can also set the `--min-accuracy` to control the evaluation criteria.
 
-5. Configure Port Forwarding and Check the Kubeflow UI to see if the model is deployed and running! 🚀
+5. Configure port Forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
 
 ```bash
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
@@ -231,17 +231,18 @@ kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 
 Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the UI.
 
-## 🕹 Demo App [WIP (To be updated)]
+## 🕹 Demo App
 
-**Ignore this section as of now**
-We also made a live demo of this project using [Streamlit](https://streamlit.io/), which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). Using our trained models takes some input features for the product and predicts the customer satisfaction rate. If you want to run this Streamlit app in your local system, you can run the following command:
+We have made two Streamlit applications for our two different deployment solutions, one which fetches the pipeline from Kubeflow Pipelines and one which fetches the pipeline from seldon core model service.
+
+You can run the following command to run the Streamlit application for the Kubeflow deployment:
 
 ```bash
-streamlit run streamlit_app.py
+streamlit run streamlit_app_kubeflow.py
 ```
 
-In the inference part of this application, we are fetching our continuous deployment pipeline from the initialized repository. The pipeline trains the model and (re)deploys the model, and this application makes use of the latest model from the pipeline to predict the customer satisfaction score for the next order or purchase.
+You can run the following command to run the Streamlit application for the Seldon deployment:
 
-## :question: FAQ [WIP]
-
-To be Updated
+```bash
+streamlit run streamlit_app_seldon.py
+```
