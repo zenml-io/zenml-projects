@@ -219,7 +219,7 @@ zenml stack set aws
 python run_seldon_deployment_pipeline.py --deploy
 ```
 
-You can control which pipeline to run by passing the --deploy and the --predict flag to the `run_seldon_deployment_pipeline.py` launcher. If you run the pipeline with the --deploy flag, the pipeline will train the model and deploy if the model meets the evaluation criteria and then Seldon Core will serve the model for inference. If you run the pipeline with the --predict flag, this tells the pipeline only to run the inference pipeline and not the training pipeline.
+You can control which pipeline to run by passing the `--deploy` and the `--predict` flag to the `run_seldon_deployment_pipeline.py` launcher. If you run the pipeline with the `--deploy` flag, the pipeline will train the model and deploy if the model meets the evaluation criteria and then Seldon Core will serve the model for inference. If you run the pipeline with the `--predict` flag, this tells the pipeline only to run the inference pipeline and not the training pipeline.
 
 You can also set the --min-accuracy to control the evaluation criteria.
 
