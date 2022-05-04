@@ -10,7 +10,7 @@ To achieve this in a real-world scenario, we will be using [ZenML](https://zenml
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
 
 - By offering you a framework or template to develop within.
-- By integrating with popular tools like Kubeflow, Seldon-core, facets, and more.
+- By integrating with popular and useful tools like Kubeflow, Seldon Core, `facets`, and more.
 - By allowing you to build and deploy your machine learning pipelines easily using the modern MLOps Framework.
 
 ## :snake: Python Requirements [WIP]
