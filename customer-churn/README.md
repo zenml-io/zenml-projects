@@ -158,7 +158,7 @@ We can fetch the model from Kubeflow Pipelines and use it in our Inference pipel
 
 ## Continuous model deployment with Seldon Core
 
-While building the real-world workflow for predicting whether a customer will churn or not, you might not want to train the model once and deploy it to production. Instead, you might want to train the model and deploy it to production when something gets triggered. This is where one of our recent integration comes in, [Seldon Core](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment).
+While building the real-world workflow for predicting whether a customer will churn or not, you might not want to train the model once and deploy it to production. Instead, you might want to train the model and deploy it to production when something gets triggered. This is where one of our recent integrations is invaluable: [Seldon Core](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment).
 
 [Seldon Core](https://github.com/SeldonIO/seldon-core) is a production-grade open-source model serving platform. It packs a wide range of features built around deploying models to REST/GRPC microservices, including monitoring and logging, model explainers, outlier detectors, and various continuous deployment strategies such as A/B testing and canary deployments, and more.
 
