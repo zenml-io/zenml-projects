@@ -101,7 +101,7 @@ python run_kubeflow_pipeline.py
 ```
 
 This will build a docker image containing all the necessary python packages and
-files, push it to the local container registry and schedule a pipeline run-in
+files, push it to the local container registry and schedule a pipeline run in
 Kubeflow Pipelines. Once the script is finished, you should be able to see the
 pipeline run [here](http://localhost:8080/#/runs).
 
