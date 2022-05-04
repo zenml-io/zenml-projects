@@ -78,7 +78,7 @@ def drop_cols(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
         return data
     except ValueError:
         logger.error(
-            "Drop columns failed due to not matching the type of the input data, Recheck the type of your input data."
+            "Drop columns failed due to not matching the type of the input data. Recheck the type of your input data."
         )
         raise ValueError
     except Exception as e:
