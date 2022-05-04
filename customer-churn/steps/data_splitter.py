@@ -9,7 +9,7 @@ from zenml.steps import Output, step
 def data_splitter(
     data: pd.DataFrame,
 ) -> Output(train=pd.DataFrame, test=pd.DataFrame):
-    """Data Splitter step which splits the data into train and test data.
+    """Splits the data into train and test data.
 
     Args:
         data: pd.DataFrame
