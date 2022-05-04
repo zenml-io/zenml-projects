@@ -234,7 +234,7 @@ Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the
 ## 🕹 Demo App [WIP (To be updated)]
 
 **Ignore this section as of now**
-We also made a live demo of this project using [Streamlit](https://streamlit.io/), which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). Using our trained models takes some input features for the product and predicts the customer satisfaction rate. If you want to run this streamlit app in your local system, you can run the following command:-
+We also made a live demo of this project using [Streamlit](https://streamlit.io/), which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). Using our trained models takes some input features for the product and predicts the customer satisfaction rate. If you want to run this Streamlit app in your local system, you can run the following command:
 
 ```bash
 streamlit run streamlit_app.py
