@@ -164,7 +164,7 @@ While building the real-world workflow for predicting whether a customer will ch
 
 It also comes equipped with a set of built-in model server implementations designed to work with standard formats for packaging ML models that greatly simplify serving models for real-time inference.
 
-In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out the [ZenML Example](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment). Following diagram shows the flow of the whole pipeline:
+In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out the [ZenML example](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment). The following diagram shows the flow of the whole pipeline:
 ![seldondeployment](_assets/seldoncorecontinousdeployment.gif)
 
 Now, Let's start setting up our Full AWS stack to run the pipeline using Seldon Core.
