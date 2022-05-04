@@ -14,7 +14,7 @@ def training_pipeline(
     model_trainer,
     evaluator,
 ):
-    """Pipeline for Training."""
+    """Pipeline for training."""
     try:
         customer_churn_df = ingest_data()
         customer_churn_df = encode_cat_cols(customer_churn_df)
