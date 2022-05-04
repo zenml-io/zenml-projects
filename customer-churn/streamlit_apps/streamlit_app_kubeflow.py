@@ -5,28 +5,17 @@ from zenml.repository import Repository
 def main():
     st.title("Predicting whether the customer will churn or not before they even did it")
 
-    # high_level_image = Image.open("_assets/high_level_overview.png")
-    # st.image(high_level_image, caption="High Level Pipeline")
-
-    # whole_pipeline_image = Image.open("_assets/training_and_deployment_pipeline_updated.png")
-
     st.markdown(
         """ 
     #### Problem Statement 
-    For a given customer's historical data, we are asked to predict whether a customer will churn a company or not. We will be using [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?datasetId=13996&sortBy=voteCount) dataset for building an end to end production-grade machine learning system that can predict whether the customer will churn or not. 
-    So, To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline to predict whether a customer will churn or not before they even did it.
+    For a given customer's historical data, we are asked to predict whether a customer will stop using a company's product or not. We will be using the [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?datasetId=13996&sortBy=voteCount) dataset for building an end to end production-grade machine learning system that can predict whether the customer will stay loyal or not. 
+    To achieve this in a real-world scenario, we will be using [ZenML](https://zenml.io/) to build a production-ready pipeline that predicts whether a customer will churn or not ahead of time.
     The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers your business to build and deploy machine learning pipelines in a multitude of ways:
-    
-    - By offering you a framework or template to develop within.
-    - By integrating with popular tools like Kubeflow, Seldon-core, facets, and more.
-    - By allowing you to build and deploy your machine learning pipelines easily using the modern MLOps Framework.
 
-    """
-    )
-    # st.image(whole_pipeline_image, caption="Whole Pipeline")
-    st.markdown(
-        """ 
-    Above is a diagram showing the whole pipeline. We first ingest the data, clean it, train the model, and evaluate the model, and if the data source changes or any hyperparameter values change then deployment will be triggered. It (re)trains the model and if the model meets the minimum accuracy requirement, the model will be deployed.
+    - By offering you a framework or template to develop within.
+    - By integrating with popular and useful tools like Kubeflow, Seldon Core, `facets`, and more.
+    - By allowing you to build and deploy your machine learning pipelines easily using a modern MLOps framework.
+
     """
     )
 
