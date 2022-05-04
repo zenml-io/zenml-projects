@@ -169,7 +169,7 @@ In this project, we build a continuous deployment pipeline that trains a model a
 
 Let's start by setting up our full AWS stack to run the pipeline using Seldon Core.
 
-1. Install the Seldon Core Integration, a set of ZenML extensions that integrate with Seldon Core.
+1. Install the Seldon Core integration, a set of ZenML extensions that integrate with Seldon Core.
 
 ```bash
 zenml integration install Seldon
