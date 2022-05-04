@@ -151,7 +151,7 @@ python run_kubeflow_pipeline.py
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 ```
 
-Now, you can go to the localhost:8080 to see the UI.
+Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the UI.
 
 We can fetch the model from the kubeflow pipeline and use it in our Inference pipeline. Following diagram shows the flow of the whole pipeline:
 ![cloudkubeflowstack](_assets/wholekubeflowstack.gif)
