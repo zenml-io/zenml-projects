@@ -81,7 +81,7 @@ zenml stack register local_kubeflow_stack \
     -o kubeflow_orchestrator \
     -c local_registry
 
-# Activate the newly created stack
+# Activate the newly-created stack
 zenml stack set local_kubeflow_stack
 ```
 
