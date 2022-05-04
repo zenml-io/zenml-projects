@@ -23,7 +23,7 @@ class DataIngestion:
 
 @step
 def ingest_data() -> Output(data=pd.DataFrame):
-    """Data Ingestion step which ingests data from the source and returns a DataFrame.
+    """Data ingestion step which takes data from the source and returns a DataFrame.
 
     Args:
         data: pd.DataFrame
