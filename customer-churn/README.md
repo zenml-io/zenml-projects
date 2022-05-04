@@ -133,7 +133,7 @@ zenml artifact-store register cloud_artifact_store --type=s3 --path=$PATH_TO_YOU
 zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_artifact_store -o cloud_orchestrator -c cloud_registry
 ```
 
-3. Activate the newly created stack.
+3. Activate the newly-created stack
 
 ```bash
 zenml stack set cloud_kubeflow_stack
