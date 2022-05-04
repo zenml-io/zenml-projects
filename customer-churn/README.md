@@ -94,7 +94,7 @@ zenml stack up
 When the setup is finished, you should see a local URL that you can access in
 your browser and take a look at the Kubeflow Pipelines UI.
 
-We can now run the pipeline by simply executing the python script:
+We can now run the pipeline by simply executing the Python script:
 
 ```bash
 python run_kubeflow_pipeline.py
