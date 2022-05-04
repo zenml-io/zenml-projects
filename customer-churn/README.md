@@ -153,7 +153,7 @@ kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
 
 Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the UI.
 
-We can fetch the model from the kubeflow pipeline and use it in our Inference pipeline. Following diagram shows the flow of the whole pipeline:
+We can fetch the model from Kubeflow Pipelines and use it in our Inference pipeline. The following diagram shows the flow of the whole pipeline:
 ![cloudkubeflowstack](_assets/wholekubeflowstack.gif)
 
 ## Continuous model deployment with Seldon Core
