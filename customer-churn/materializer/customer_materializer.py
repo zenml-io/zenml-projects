@@ -10,6 +10,8 @@ from zenml.materializers.base_materializer import BaseMaterializer
 
 DEFAULT_FILENAME = "CustomerChurnEnvironment"
 
+import numpy as np
+
 
 class cs_materializer(BaseMaterializer):
     """
@@ -17,6 +19,7 @@ class cs_materializer(BaseMaterializer):
     """
 
     ASSOCIATED_TYPES = [
+        np.float64,
         pd.Series,
         LogisticRegression,
         ClassifierMixin,
@@ -24,7 +27,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[pd.Series, LogisticRegression, ClassifierMixin]:
+    ) -> Union[np.float64, pd.Series, LogisticRegression, ClassifierMixin]:
         """
         It loads the model from the artifact and returns it.
 
@@ -39,7 +42,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[pd.Series, LogisticRegression, ClassifierMixin],
+        obj: Union[np.float64, pd.Series, LogisticRegression, ClassifierMixin],
     ) -> None:
         """
         It saves the model to the artifact store.

@@ -13,7 +13,7 @@ def visualize_statistics():
     """
     try:
         repo = Repository()
-        pipe = repo.get_pipelines(pipeline_name="data_analysis_pipeline")
+        pipe = repo.get_pipelines()[-1]
         ingest_data = pipe.runs[-1].get_step(name="ingest_data")
         FacetStatisticsVisualizer().visualize(ingest_data)
     except Exception as e:
@@ -26,7 +26,7 @@ def visualize_train_test_statistics():
     """
     try:
         repo = Repository()
-        pipe = repo.get_pipelines(pipeline_name="data_analysis_pipeline")
+        pipe = repo.get_pipelines()[-1]
         data_splitter_output = pipe.runs[-1].get_step(name="data_splitter")
         FacetStatisticsVisualizer().visualize(data_splitter_output)
     except Exception as e:
