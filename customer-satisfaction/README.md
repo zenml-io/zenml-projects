@@ -24,13 +24,24 @@ If you are running the `run_deployment.py` script, you will also need to install
 
 ```bash
 zenml integration install mlflow -f
-``` 
+```
+
 The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
+
 ```bash
-zenml integration install mlflow -f
-zenml model-deployer register mlflow --type=mlflow
-zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
-zenml stack set local_with_mlflow
+# initialize
+zenml init
+
+# Create the stack with the mlflow experiment tracker component
+zenml experiment-tracker register mlflow_tracker --type=mlflow
+zenml stack register mlflow_stack \
+    -m default \
+    -a default \
+    -o default \
+    -e mlflow_tracker
+
+# Activate the newly created stack
+zenml stack set mlflow_stack
 ```
 
 ## 📙 Resources & References
@@ -62,10 +73,8 @@ Our standard training pipeline consists of several steps:
 
 We have another pipeline, the `deployment_pipeline.py`, that extends the training pipeline, and implements a continuous deployment workflow. It ingests and processes input data, trains a model and then (re)deploys the prediction server that serves the model if it meets our evaluation criteria. The criteria that we have chosen is a configurable threshold on the [MSE](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html) of the training. The first four steps of the pipeline are the same as above, but we have added the following additional ones:
 
-
 - `deployment_trigger`: The step checks whether the newly trained model meets the criteria set for deployment.
 - `model_deployer`: This step deploys the model as a service using MLflow (if deployment criteria is met).
-
 
 In the deployment pipeline, ZenML's MLflow tracking integration is used for logging the hyperparameter values and the trained model itself and the model evaluation metrics -- as MLflow experiment tracking artifacts -- into the local MLflow backend. This pipeline also launches a local MLflow deployment server to serve the latest MLflow model if its accuracy is above a configured threshold.
 
@@ -91,7 +100,7 @@ While this ZenFile trains and deploys a model locally, other ZenML integrations 
 
 You can run two pipelines as follows:
 
--  Training pipeline:
+- Training pipeline:
 
 ```bash
 python run_pipeline.py
@@ -99,11 +108,9 @@ python run_pipeline.py
 
 - The continuous deployment pipeline:
 
-
 ```bash
 python run_deployment.py
 ```
-
 
 ## 🕹 Demo Streamlit App
 

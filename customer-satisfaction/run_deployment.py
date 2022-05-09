@@ -16,10 +16,7 @@ from steps.clean_data import clean_data
 from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
 from steps.model_train import train_model
-from zenml.environment import Environment
-from zenml.integrations.mlflow.mlflow_environment import (
-    MLFLOW_ENVIRONMENT_NAME,
-)
+from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.steps import MLFlowDeployerConfig
 from zenml.services import load_last_service_from_step
 
@@ -75,13 +72,12 @@ def main(min_accuracy: float, stop_service: bool):
     )
     inference.run()
 
-    mlflow_env = Environment()[MLFLOW_ENVIRONMENT_NAME]
     print(
-        "You can run:\n "
-        f"[italic green]    mlflow ui --backend-store-uri {mlflow_env.tracking_uri}[/italic green]\n"
-        "...to inspect your experiment runs within the MLflow UI.\n"
+        "Now run \n "
+        f"    mlflow ui --backend-store-uri {get_tracking_uri()}\n"
+        "To inspect your experiment runs within the mlflow UI.\n"
         "You can find your runs tracked within the `mlflow_example_pipeline`"
-        "experiment. There you'll also be able to compare two or more runs.\n\n"
+        "experiment. Here you'll also be able to compare the two runs.)"
     )
 
     service = load_last_service_from_step(
