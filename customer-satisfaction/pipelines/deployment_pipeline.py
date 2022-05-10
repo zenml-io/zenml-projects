@@ -103,7 +103,7 @@ def predictor(
     return prediction
 
 
-@pipeline(enable_cache=True, requirements_file=requirements_file)
+@pipeline(enable_cache=False, requirements_file=requirements_file)
 def continuous_deployment_pipeline(
     ingest_data,
     clean_data,
@@ -118,7 +118,7 @@ def continuous_deployment_pipeline(
     model = model_train(x_train, x_test, y_train, y_test)
     mse, rmse = evaluation(model, x_test, y_test)
     deployment_decision = deployment_trigger(accuracy=mse)
-    model_deployer(deployment_decision)
+    model_deployer(deployment_decision, model)
 
 
 @pipeline(enable_cache=True, requirements_file=requirements_file)
