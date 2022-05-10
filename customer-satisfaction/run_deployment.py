@@ -89,7 +89,7 @@ def main(min_accuracy: float, stop_service: bool):
         print(
             f"The MLflow prediction server is running locally as a daemon process "
             f"and accepts inference requests at:\n"
-            f"    {service.prediction_uri}\n"
+            f"    {service.prediction_url}\n"
             f"To stop the service, re-run the same command and supply the "
             f"`--stop-service` argument."
         )
