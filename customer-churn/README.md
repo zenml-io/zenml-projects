@@ -32,7 +32,7 @@ zemml integration install kubeflow -f
 
 ## 📙 Resources & References
 
-Make sure to read the blog that introduces this project in depth: [Predicting whether the customer will churn or not before they even did it](#).
+Make sure to read the blog that introduces this project in-depth: [Predicting whether the customer will churn or not before they even did it](#).
 
 If you'd like to watch the video that explains the project, you can watch the [video](#).
 
@@ -168,7 +168,7 @@ While building the real-world workflow for predicting whether a customer will ch
 [Seldon Core](https://github.com/SeldonIO/seldon-core) is a production-grade open-source model serving platform. It packs a wide range of features built around deploying models to REST/GRPC microservices, including monitoring and logging, model explainers, outlier detectors, and various continuous deployment strategies such as A/B testing and canary deployments, and more.
 
 In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out the [ZenML example](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment). The following diagram shows the flow of the whole pipeline:
-![seldondeployment](_assets/seldoncorecontinousdeployment.gif)
+![seldondeployment](_assets/seldoncondeploy.gif)
 
 Let's start by setting up our full AWS stack to run the pipeline using Seldon Core.
 
