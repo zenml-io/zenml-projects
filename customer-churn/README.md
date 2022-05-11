@@ -1,4 +1,4 @@
-# Predicting whether the customer will churn or not before they even did it
+# Will they stay or will they go? Building a Customer Loyalty Predictor
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
@@ -56,6 +56,13 @@ Our training pipeline `run_kubeflow_pipeline.py` will be built using the followi
 - `data_splitter`: Split the data into training and test sets.
 - `model_trainer`: Train the model.
 - `evaluation`: Evaluate the trained model.
+
+Before going on next step, let's review some of the core concepts of ZenML:
+
+- **Artifact store**: Artifacts are the data that power your experimentation and model training. It is steps that produce artifacts; An artifact store is where artifacts are stored. The pipeline steps may have created these artifacts, or they may be the data first ingested into a pipeline via an ingestion step.
+- **Metadata store**: Metadata are the pieces of information tracked about the pipelines, experiments, and configurations that you are running with ZenML. Metadata are stored inside the metadata store.
+- **Container registry**: Some orchestrators will require you to containerize the steps of your pipeline. A container registry is a store for these (Docker) containers. A ZenML workflow involving a container registry will containerize your code and store the resulting container in the registry.
+- **Kubeflow orchestrator**: An orchestrator manages the running of each step of the pipeline, administering the actual pipeline runs. It controls how and where each step within a pipeline is executed.
 
 #### Run the same pipeline on a local Kubeflow Pipelines deployment
 
