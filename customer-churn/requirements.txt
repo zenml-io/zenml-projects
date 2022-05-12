@@ -5,5 +5,4 @@ lightgbm==3.3.2
 statsmodels
 xgboost
 zenml==0.7.3
-facets-overview
 optuna 
