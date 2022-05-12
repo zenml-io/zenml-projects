@@ -68,7 +68,7 @@ def main():
             running=True,
         )
         if service is None:
-            st.write("The service is not there, Running the pipeline first to create service.")
+            st.write("No service could be found. The pipeline will be run first to create a service.")
             run_main()
 
         df = pd.DataFrame(
