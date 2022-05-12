@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
+from run_deployment import run_main
 from zenml.services import load_last_service_from_step
 
 
@@ -67,9 +68,8 @@ def main():
             running=True,
         )
         if service is None:
-            # TODO [HIGH]: Print out that the service is not there, maybe run 
-            #  the pipeline first.
-            pass
+            st.write("The service is not there, Running the pipeline first to create service.")
+            run_main()
 
         df = pd.DataFrame(
             {
