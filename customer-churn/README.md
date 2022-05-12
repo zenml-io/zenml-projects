@@ -77,16 +77,15 @@ With all the installation and initialization out of the way, all that's left to 
   in Kubeflow Pipelines.
 
 ```bash
-# Make sure to create the local registry on port 5000 for it to work
 zenml container-registry register local_registry --type=default --uri=localhost:5000
 zenml orchestrator register kubeflow_orchestrator --type=kubeflow
 zenml stack register local_kubeflow_stack \
-    -m local_metadata_store \
-    -a local_artifact_store \
+    -m default \
+    -a default \
     -o kubeflow_orchestrator \
     -c local_registry
 
-# Activate the newly-created stack
+# Activate the newly created stack
 zenml stack set local_kubeflow_stack
 ```
 
