@@ -1,4 +1,5 @@
 import streamlit as st
+from run_kubeflow_pipeline import training_pipeline_run
 from zenml.repository import Repository
 
 
@@ -52,12 +53,12 @@ def main():
     TotalCharges = st.number_input("TotalCharges")
 
     if st.button("Predict"):
+        training_pipeline_run()
         repo = Repository()
         p = repo.get_pipeline("training_pipeline")
         last_run = p.runs[-1]
         trainer_step = last_run.get_step("model_trainer")
         model = trainer_step.output.read()
-
         pred = [
             [
                 customer_id,
