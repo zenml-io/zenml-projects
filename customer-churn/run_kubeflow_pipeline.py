@@ -46,12 +46,9 @@ def training_pipeline_run():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("pipeline", type=str, choices=["analyze", "train", "predict"])
+    parser.add_argument("pipeline", type=str, choices=["analyze", "train"])
     args = parser.parse_args()
     if args.pipeline == "analyze":
         analyze_pipeline()
     elif args.pipeline == "train":
         training_pipeline_run()
-    elif args.pipeline == "predict":
-        # TODO: Implement prediction pipeline
-        pass
