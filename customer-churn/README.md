@@ -32,7 +32,7 @@ zemml integration install kubeflow -f
 
 ## 📙 Resources & References
 
-Make sure to read the blog that introduces this project in-depth: [Predicting whether the customer will churn or not before they even did it](#).
+Make sure to read the blog that introduces this project in detail: [Predicting whether the customer will churn or not before they even did it](#).
 
 If you'd like to watch the video that explains the project, you can watch the [video](#).
 
@@ -45,7 +45,7 @@ We showcase two solutions to this problem:
 
 ## Deploy pipelines to production using Kubeflow Pipelines
 
-We will be ZenML's [Kubeflow](https://github.com/zenml-io/zenml/tree/main/examples/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
+We will be using ZenML's [Kubeflow](https://github.com/zenml-io/zenml/tree/main/examples/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
 
 Our training pipeline `run_kubeflow_pipeline.py` will be built using the following steps:
 
@@ -249,7 +249,7 @@ Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the
 
 ## 🕹 Demo App
 
-We have made two Streamlit applications for our two different deployment solutions, one which fetches the pipeline from Kubeflow Pipelines and one which fetches the pipeline from seldon core model service.
+We built two Streamlit applications for our two different deployment solutions: one which fetches the pipeline from Kubeflow Pipelines and one which fetches the pipeline from the Seldon Core model service.
 
 You can run the following command to run the Streamlit application for the Kubeflow deployment:
 
