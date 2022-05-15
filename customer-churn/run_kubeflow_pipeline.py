@@ -22,8 +22,8 @@ from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 def analyze_pipeline():
     """Pipeline for analyzing data."""
     analyze = data_analysis_pipeline(
-        ingest_data(),
-        data_splitter(),
+        ingest_data=ingest_data(),
+        data_splitter=data_splitter(),
     )
     analyze.run()
     visualize_statistics()
@@ -33,13 +33,13 @@ def analyze_pipeline():
 def training_pipeline_run():
     """Pipeline for processing data."""
     train_pipeline = training_pipeline(
-        ingest_data(),
-        encode_cat_cols(),
-        handle_imbalanced_data(),
-        drop_cols(),
-        data_splitter(),
-        model_trainer().with_return_materializers(cs_materializer),
-        evaluation().with_return_materializers(cs_materializer),
+        ingest_data=ingest_data(),
+        encode_cat_cols=encode_cat_cols(),
+        handle_imbalanced_data=handle_imbalanced_data(),
+        drop_cols=drop_cols(),
+        data_splitter=data_splitter(),
+        model_trainer=model_trainer().with_return_materializers(cs_materializer),
+        evaluator=evaluation().with_return_materializers(cs_materializer),
     )
     train_pipeline.run()
 
