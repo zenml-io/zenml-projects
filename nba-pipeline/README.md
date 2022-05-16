@@ -117,8 +117,8 @@ ZenML manages the configuration of the infrastructure where ZenML pipelines are 
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
 
 ```bash
-zenml container-registry register local_registry --type=default --uri=localhost:5000
-zenml orchestrator register kubeflow_orchestrator --type=kubeflow
+zenml container-registry register local_registry --flavor=default --uri=localhost:5000
+zenml orchestrator register kubeflow_orchestrator --flavor=kubeflow
 zenml stack register local_kubeflow_stack \
     -m local_metadata_store \
     -a local_artifact_store \

@@ -28,7 +28,7 @@ zenml integration install mlflow -f
 The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
 ```bash
 zenml integration install mlflow -f
-zenml model-deployer register mlflow --type=mlflow
+zenml model-deployer register mlflow --flavor=mlflow
 zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
 zenml stack set local_with_mlflow
 ```
