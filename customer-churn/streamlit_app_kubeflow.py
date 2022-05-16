@@ -55,7 +55,7 @@ def main():
     if st.button("Predict"):
         training_pipeline_run()
         repo = Repository()
-        p = repo.get_pipeline("training_pipeline")
+        p = repo.get_pipeline(pipeline_name="training_pipeline")
         last_run = p.runs[-1]
         trainer_step = last_run.get_step("model_trainer")
         model = trainer_step.output.read()
