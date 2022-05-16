@@ -239,7 +239,7 @@ You can control which pipeline to run by passing the `--deploy` and the `--predi
 
 You can also set the `--min-accuracy` to control the evaluation criteria.
 
-5. Configure port Forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
+5. Configure port forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
 
 ```bash
 kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
