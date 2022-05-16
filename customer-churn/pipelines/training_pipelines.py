@@ -4,7 +4,7 @@ from zenml.pipelines import pipeline
 logger = get_logger(__name__)
 
 
-@pipeline(enable_cache=True, requirements_file="kubeflow_requirements.txt")
+@pipeline(enable_cache=False, requirements_file="kubeflow_requirements.txt")
 def training_pipeline(
     ingest_data,
     encode_cat_cols,
