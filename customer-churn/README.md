@@ -201,7 +201,7 @@ export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway \
 Configuring the stack can be done like this:
 
 ```shell
-zenml integration install s3 aws kubeflow Seldon -y
+zenml integration install s3 aws kubeflow seldon -y
 
 # Register container registry
 zenml container-registry register ecr_registry  --flavor=default --uri={ECR_REGISTRY_NAME}
