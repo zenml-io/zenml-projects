@@ -78,7 +78,7 @@ Thunder back in 2016. Following that, we will build a training pipeline which wi
 the number of three-pointers made by a team in a single game, and ultimately, we will use these trained models and
 create an inference pipeline for the upcoming matches in the NBA.
 
-![Diagram depicting the Training and Inference pipelines](\_assets/Training and Inference Pipeline.png)
+![Diagram depicting the Training and Inference pipelines](_assets/Training and Inference Pipeline.png)
 
 ## :notebook: Diving into the code
 
