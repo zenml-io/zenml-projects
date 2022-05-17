@@ -249,7 +249,7 @@ Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the
 
 ## 🕹 Demo App
 
-We built two Streamlit applications for our two different deployment solutions: one which fetches the pipeline from Kubeflow Pipelines and one which fetches the pipeline from the Seldon Core model service. You can view the Streamlit web-app [here](https://share.streamlit.io/ayush714/zenfiles/customer-churn/customer-churn/streamlit_app_kubeflow.py).
+We built two Streamlit applications for our two different deployment solutions: one which fetches the pipeline from Kubeflow Pipelines and one which fetches the pipeline from the Seldon Core model service. You can view the Streamlit web application [here](https://share.streamlit.io/ayush714/zenfiles/customer-churn/customer-churn/streamlit_app_kubeflow.py).
 
 You can run the following command to run the Streamlit application for the Kubeflow deployment:
 
