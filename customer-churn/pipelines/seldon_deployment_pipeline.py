@@ -156,7 +156,7 @@ def continuous_deployment_pipeline(
 
 @pipeline(
     enable_cache=False,
-    required_integrations=[SELDON, SKLEARN],
+    required_integrations=[SELDON, SKLEARN, XGBOOST],
     requirements_file="kubeflow_requirements.txt",
 )
 def inference_pipeline(

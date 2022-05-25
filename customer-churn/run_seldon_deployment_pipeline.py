@@ -114,7 +114,7 @@ def main(
                     model_name=model_name,
                 )
             ),
-            predictor=predictor().with_return_materializers({"predictions": cs_materializer}),
+            predictor=predictor()#.with_return_materializers({"predictions": cs_materializer}),
         )
         inference.run()
 
