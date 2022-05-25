@@ -49,7 +49,7 @@ from zenml.integrations.seldon.steps import (
 @click.option(
     "--min-accuracy",
     default=0.50,
-    help="Minimum accuracy required to deploy the model (default: 0.70)",
+    help="Minimum accuracy required to deploy the model (default: 0.50)",
 )
 @click.option(
     "--secret",

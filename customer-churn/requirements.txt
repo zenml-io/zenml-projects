@@ -1,8 +1,7 @@
 feature_engine==1.2.0
-imbalanced_learn==0.9.0
 imblearn
 # lightgbm==3.3.2
 # statsmodels
-# xgboost
-zenml==0.8.0
+xgboost
+zenml==0.8.1rc0
 optuna 

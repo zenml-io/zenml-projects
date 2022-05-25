@@ -2,7 +2,7 @@ from typing import cast
 
 import numpy as np  # type: ignore [import]
 import pandas as pd
-from zenml.integrations.constants import SELDON, SKLEARN
+from zenml.integrations.constants import SELDON, SKLEARN, XGBOOST
 from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService
 from zenml.logger import get_logger
@@ -32,7 +32,7 @@ def dynamic_importer() -> Output(data=pd.DataFrame):
 def deployment_trigger(
     accuracy: float,
     config: DeploymentTriggerConfig,
-) -> bool:
+) -> np.bool:
     """Implements a simple model deployment trigger that looks at the
     input model accuracy and decides if it is good enough to deploy"""
 
@@ -130,8 +130,8 @@ def predictor(
 
 @pipeline(
     enable_cache=False,
-    required_integrations=[SELDON, SKLEARN],
-    requirements_file="kubeflow_requirements.txt",
+    required_integrations=[SELDON, SKLEARN, XGBOOST],
+    requirements="kubeflow_requirements.txt",
 )
 def continuous_deployment_pipeline(
     ingest_data,
