@@ -13,11 +13,7 @@ from pipelines.seldon_deployment_pipeline import (
     predictor,
 )
 from rich import print
-from steps.data_process import (
-    drop_cols,
-    encode_cat_cols,
-    handle_imbalanced_data,
-)
+from steps.data_process import drop_cols, encode_cat_cols
 from steps.data_splitter import data_splitter
 from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
@@ -83,7 +79,6 @@ def main(
         deployment = continuous_deployment_pipeline(
             ingest_data=ingest_data(),
             encode_cat_cols=encode_cat_cols(),
-            handle_imbalanced_data=handle_imbalanced_data(),
             drop_cols=drop_cols(),
             data_splitter=data_splitter(),
             model_trainer=model_trainer(),

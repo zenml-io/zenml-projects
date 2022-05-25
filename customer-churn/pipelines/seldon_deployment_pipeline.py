@@ -136,7 +136,6 @@ def predictor(
 def continuous_deployment_pipeline(
     ingest_data,
     encode_cat_cols,
-    handle_imbalanced_data,
     drop_cols,
     data_splitter,
     model_trainer,
@@ -147,7 +146,6 @@ def continuous_deployment_pipeline(
     # Link all the steps and artifacts together
     customer_churn_df = ingest_data()
     customer_churn_df = encode_cat_cols(customer_churn_df)
-    customer_churn_df = handle_imbalanced_data(customer_churn_df)
     customer_churn_df = drop_cols(customer_churn_df)
     train, test = data_splitter(customer_churn_df)
     model = model_trainer(train)

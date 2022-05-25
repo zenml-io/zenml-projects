@@ -51,7 +51,6 @@ Our training pipeline `run_kubeflow_pipeline.py` will be built using the followi
 
 - `ingest_data`: Ingest the data from the source and create a DataFrame.
 - `encode_cat_cols`: Encode categorical columns.
-- `handle_imbalanced_data`: Handle imbalanced data.
 - `drop_cols`: Dropping irrelevant columns.
 - `data_splitter`: Split the data into training and test sets.
 - `model_trainer`: Train the model.
