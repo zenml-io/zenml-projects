@@ -1,5 +1,4 @@
 feature_engine==1.2.0
-imblearn
 lightgbm==3.3.2
 xgboost
 zenml==0.8.1rc0

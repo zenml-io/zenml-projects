@@ -67,35 +67,6 @@ class DataProcessor:
         except Exception as e:
             logger.error(e)
 
-    # def handle_imbalanced_data(
-    #     self,
-    #     data: pd.DataFrame,
-    # ) -> Output(balanced_data=pd.DataFrame):
-    #     """
-    #     Handle imbalanced data by combining SMOTE with random undersampling of the majority class.
-
-    #     Args:
-    #         data (pd.DataFrame): DataFrame
-    #     """
-    #     try:
-    #         X = data.drop("Churn", axis=1)
-    #         y = data["Churn"]
-    #         over = SMOTE(sampling_strategy=0.5)
-    #         under = RandomUnderSampler(sampling_strategy=0.5)
-    #         steps = [("o", over), ("u", under)]
-    #         pipeline = Pipeline(steps=steps)
-    #         X_res, y_res = pipeline.fit_resample(X, y)
-    #         balanced_data = pd.concat([X_res, y_res], axis=1)
-    #         return balanced_data
-    #     except ValueError:
-    #         logger.error(
-    #             "Imbalanced data handling failed due to not matching the type of the input data, Recheck the type of your input data."
-    #         )
-    #         raise ValueError
-
-    #     except Exception as e:
-    #         logger.error(e)
-
     def drop_columns(self, data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
         """
         Drop columns from the dataframe by using several methods.
