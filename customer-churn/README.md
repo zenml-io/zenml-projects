@@ -23,18 +23,15 @@ cd zenfiles/customer-churn
 pip install -r requirements.txt
 ```
 
-We need to install the following integrations for this project:
+We also need to install the following ZenML integrations for this project:
 
 ```bash
-zemml integration install mlflow -y
-zemml integration install kubeflow -y
+zenml integration install -y facets sklearn xgboost lightgbm kubeflow
 ```
 
 ## 📙 Resources & References
 
-Make sure to read the blog that introduces this project in detail: [Predicting whether the customer will churn or not before they even did it](#).
-
-If you'd like to watch the video that explains the project, you can watch the [video](#).
+Make sure to read the blog that introduces this project in detail: [Predicting whether the customer will churn or not before they even did it](https://blog.zenml.io/customer-churn/).
 
 # :thumbsup: The Solution
 
@@ -51,7 +48,6 @@ Our training pipeline `run_kubeflow_pipeline.py` will be built using the followi
 
 - `ingest_data`: Ingest the data from the source and create a DataFrame.
 - `encode_cat_cols`: Encode categorical columns.
-- `handle_imbalanced_data`: Handle imbalanced data.
 - `drop_cols`: Dropping irrelevant columns.
 - `data_splitter`: Split the data into training and test sets.
 - `model_trainer`: Train the model.
@@ -64,7 +60,7 @@ Before going on next step, let's review some of the core concepts of ZenML:
 - **Container registry**: Some orchestrators will require you to containerize the steps of your pipeline. A container registry is a store for these (Docker) containers. A ZenML workflow involving a container registry will containerize your code and store the resulting container in the registry.
 - **Kubeflow orchestrator**: An orchestrator manages the running of each step of the pipeline, administering the actual pipeline runs. It controls how and where each step within a pipeline is executed.
 
-#### Run the same pipeline on a local Kubeflow Pipelines deployment
+### Run the pipeline on a local Kubeflow Pipelines deployment
 
 With all the installation and initialization out of the way, all that's left to do is configure our ZenML stack. For this example, the stack we create consists of the following four parts:
 
@@ -77,8 +73,8 @@ With all the installation and initialization out of the way, all that's left to 
   in Kubeflow Pipelines.
 
 ```bash
-zenml container-registry register local_registry  --flavor=default --uri=localhost:5000
-zenml orchestrator register kubeflow_orchestrator  --flavor=kubeflow
+zenml container-registry register local_registry --flavor=default --uri=localhost:5000
+zenml orchestrator register kubeflow_orchestrator --flavor=kubeflow --synchronous=true
 zenml stack register local_kubeflow_stack \
     -m default \
     -a default \
@@ -96,30 +92,39 @@ zenml stack up
 ```
 
 When the setup is finished, you should see a local URL that you can access in
-your browser and take a look at the Kubeflow Pipelines UI.
+your browser and take a look at the Kubeflow Pipelines UI (something like
+http://localhost:8080).
 
-We can now run the pipeline by simply executing the Python script:
+We can now run the pipelines by simply executing the Python script. To run the
+data analysis pipeline:
 
 ```bash
-python run_kubeflow_pipeline.py
+python run_kubeflow_pipeline.py analyze
+```
+
+To run the model training pipeline:
+
+```bash
+python run_kubeflow_pipeline.py train
 ```
 
 This will build a Docker image containing all the necessary Python packages and
 files, push it to the local container registry and schedule a pipeline run in
 Kubeflow Pipelines. Once the script is finished, you should be able to see the
-pipeline run [here](http://localhost:8080/#/runs).
+pipeline run [here](http://localhost:8080/#/runs). Note that your port value
+may differ.
 
 #### Run the same pipeline on Kubeflow Pipelines deployed to AWS
 
-We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS: you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites) which will help you get set up to run the pipeline on AWS.
+We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS: you can refer to our [documentation](https://docs.zenml.io/advanced-guide/guide-aws-gcp-azure#pre-requisites) which will help you get set up to run the pipeline on AWS.
 
-If you want to run the pipeline on other cloud providers like GCP or Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) for more information on those cloud providers. We will be using AWS for this project, but feel free to use any cloud provider.
+If you want to run the pipeline on other cloud providers like GCP or Azure, you can follow [the same guide](https://docs.zenml.io/advanced-guide/guide-aws-gcp-azure) for more information on those cloud providers. We will be using AWS for this project, but feel free to use any cloud provider.
 
 ![cloudkubeflowstack](_assets/cloudstack.gif)
 
 After you fulfill the prerequisites, now we need to integrate with ZenML.
 
-1. Install the cloud provider
+1. Install the cloud provider ZenML integration
 
 ```bash
 zenml integration install aws -y

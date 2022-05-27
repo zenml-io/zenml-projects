@@ -2,7 +2,7 @@ from typing import cast
 
 import numpy as np  # type: ignore [import]
 import pandas as pd
-from zenml.integrations.constants import SELDON, SKLEARN, XGBOOST
+from zenml.integrations.constants import SELDON, SKLEARN, XGBOOST, LIGHTGBM
 from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService
 from zenml.logger import get_logger
@@ -130,8 +130,8 @@ def predictor(
 
 @pipeline(
     enable_cache=False,
-    required_integrations=[SELDON, SKLEARN, XGBOOST],
-    requirements="kubeflow_requirements.txt",
+    required_integrations=[SELDON, LIGHTGBM, SKLEARN, XGBOOST],
+    requirements="requirements.txt",
 )
 def continuous_deployment_pipeline(
     ingest_data,
