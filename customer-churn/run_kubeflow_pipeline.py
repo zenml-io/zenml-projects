@@ -1,13 +1,8 @@
 import argparse
 
-from materializer.customer_materializer import cs_materializer
 from pipelines.data_analysis_pipeline import data_analysis_pipeline
 from pipelines.training_pipelines import training_pipeline
-from steps.data_process import (
-    drop_cols,
-    encode_cat_cols,
-    handle_imbalanced_data,
-)
+from steps.data_process import drop_cols, encode_cat_cols
 from steps.data_splitter import data_splitter
 from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
@@ -16,7 +11,6 @@ from steps.visualizer import (
     visualize_statistics,
     visualize_train_test_statistics,
 )
-from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
 
 def analyze_pipeline():
@@ -35,11 +29,10 @@ def training_pipeline_run():
     train_pipeline = training_pipeline(
         ingest_data=ingest_data(),
         encode_cat_cols=encode_cat_cols(),
-        handle_imbalanced_data=handle_imbalanced_data(),
         drop_cols=drop_cols(),
         data_splitter=data_splitter(),
-        model_trainer=model_trainer().with_return_materializers(cs_materializer),
-        evaluator=evaluation().with_return_materializers(cs_materializer),
+        model_trainer=model_trainer(),
+        evaluator=evaluation(),
     )
     train_pipeline.run()
 

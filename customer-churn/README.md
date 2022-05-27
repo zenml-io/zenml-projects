@@ -23,18 +23,15 @@ cd zenfiles/customer-churn
 pip install -r requirements.txt
 ```
 
-We need to install the following integrations for this project:
+We also need to install the following ZenML integrations for this project:
 
 ```bash
-zemml integration install mlflow -y
-zemml integration install kubeflow -y
+zenml integration install -y facets sklearn xgboost lightgbm kubeflow
 ```
 
 ## 📙 Resources & References
 
-Make sure to read the blog that introduces this project in detail: [Predicting whether the customer will churn or not before they even did it](#).
-
-If you'd like to watch the video that explains the project, you can watch the [video](#).
+Make sure to read the blog that introduces this project in detail: [Predicting whether the customer will churn or not before they even did it](https://blog.zenml.io/customer-churn/).
 
 # :thumbsup: The Solution
 
@@ -51,7 +48,6 @@ Our training pipeline `run_kubeflow_pipeline.py` will be built using the followi
 
 - `ingest_data`: Ingest the data from the source and create a DataFrame.
 - `encode_cat_cols`: Encode categorical columns.
-- `handle_imbalanced_data`: Handle imbalanced data.
 - `drop_cols`: Dropping irrelevant columns.
 - `data_splitter`: Split the data into training and test sets.
 - `model_trainer`: Train the model.
@@ -64,7 +60,7 @@ Before going on next step, let's review some of the core concepts of ZenML:
 - **Container registry**: Some orchestrators will require you to containerize the steps of your pipeline. A container registry is a store for these (Docker) containers. A ZenML workflow involving a container registry will containerize your code and store the resulting container in the registry.
 - **Kubeflow orchestrator**: An orchestrator manages the running of each step of the pipeline, administering the actual pipeline runs. It controls how and where each step within a pipeline is executed.
 
-#### Run the same pipeline on a local Kubeflow Pipelines deployment
+### Run the pipeline on a local Kubeflow Pipelines deployment
 
 With all the installation and initialization out of the way, all that's left to do is configure our ZenML stack. For this example, the stack we create consists of the following four parts:
 
@@ -77,8 +73,8 @@ With all the installation and initialization out of the way, all that's left to 
   in Kubeflow Pipelines.
 
 ```bash
-zenml container-registry register local_registry  --flavor=default --uri=localhost:5000
-zenml orchestrator register kubeflow_orchestrator  --flavor=kubeflow
+zenml container-registry register local_registry --flavor=default --uri=localhost:5000
+zenml orchestrator register kubeflow_orchestrator --flavor=kubeflow --synchronous=true
 zenml stack register local_kubeflow_stack \
     -m default \
     -a default \
@@ -96,68 +92,115 @@ zenml stack up
 ```
 
 When the setup is finished, you should see a local URL that you can access in
-your browser and take a look at the Kubeflow Pipelines UI.
+your browser and take a look at the Kubeflow Pipelines UI (something like
+http://localhost:8080).
 
-We can now run the pipeline by simply executing the Python script:
+We can now run the pipelines by simply executing the Python script. To run the
+data analysis pipeline:
 
 ```bash
-python run_kubeflow_pipeline.py
+python run_kubeflow_pipeline.py analyze
+```
+
+To run the model training pipeline:
+
+```bash
+python run_kubeflow_pipeline.py train
 ```
 
 This will build a Docker image containing all the necessary Python packages and
 files, push it to the local container registry and schedule a pipeline run in
 Kubeflow Pipelines. Once the script is finished, you should be able to see the
-pipeline run [here](http://localhost:8080/#/runs).
+pipeline run [here](http://localhost:8080/#/runs). Note that your port value
+may differ.
 
-#### Run the same pipeline on Kubeflow Pipelines deployed to AWS
+### Run the same pipeline on Kubeflow Pipelines deployed to AWS
 
-We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS: you can refer to our [documentation](https://docs.zenml.io/features/guide-aws-gcp-azure#pre-requisites) which will help you get set up to run the pipeline on AWS.
+We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS: you can refer to our [documentation](https://docs.zenml.io/advanced-guide/guide-aws-gcp-azure#pre-requisites) which will help you get set up to run the pipeline on AWS.
 
-If you want to run the pipeline on other cloud providers like GCP or Azure, you can follow [this guide](https://docs.zenml.io/features/guide-aws-gcp-azure) for more information on those cloud providers. We will be using AWS for this project, but feel free to use any cloud provider.
+If you want to run the pipeline on other cloud providers like GCP or Azure, you can follow [the same guide](https://docs.zenml.io/advanced-guide/guide-aws-gcp-azure) for more information on those cloud providers. We will be using AWS for this project, but feel free to use any cloud provider.
 
 ![cloudkubeflowstack](_assets/cloudstack.gif)
 
-After you fulfill the prerequisites, now we need to integrate with ZenML.
+After you fulfill the prerequisites, we can configure ZenML.
 
-1. Install the cloud provider
+Let's begin by setting up some environment variables to be used in the next steps:
 
 ```bash
-zenml integration install aws -y
+# AWS region
+export AWS_REGION=<your aws region>
+# the name of the EKS cluster running in AWS
+export EKS_CLUSTER_NAME=<your EKS cluster name>
+# a name for the local kubernetes configuration context
+export EKS_KUBE_CONTEXT=zenml-eks
+# the hostname of the ECR registry (e.g. ID.dkr.ecr.us-east-1.amazonaws.com)
+export ECR_REGISTRY_NAME=<your ECR registry name>
+# the S3 bucket name
+export S3_BUCKET_NAME=<your S3 bucket name>
+# the namespace where Kubeflow is installed in the remote cluster
+export KUBEFLOW_NAMESPACE=kubeflow
+```
+
+1. Install the cloud provider ZenML integrations
+
+```bash
+zenml integration install s3 aws -y
 ```
 
 2. Register the stack components
 
 ```bash
-zenml container-registry register cloud_registry  --flavor=default --uri=$PATH_TO_YOUR_CONTAINER_REGISTRY
-zenml orchestrator register cloud_orchestrator  --flavor=kubeflow --custom_docker_base_image_name=YOUR_IMAGE
-zenml metadata-store register kubeflow_metadata_store  --flavor=kubeflow
-zenml artifact-store register cloud_artifact_store  --flavor=s3 --path=$PATH_TO_YOUR_BUCKET
-
-# Register the cloud stack
-zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_artifact_store -o cloud_orchestrator -c cloud_registry
+# Create a Kubernetes configuration context that points to the EKS cluster
+aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME --alias $EKS_KUBE_CONTEXT
 ```
 
-3. Activate the newly-created stack
+To configure ECR registry access locally, follow these [instructions](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html), or simply type the following with the right container registry address:
+
+```bash
+# Point Docker to the ECR registry
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY_NAME
+```
+
+```bash
+zenml container-registry register cloud_registry --flavor=aws \
+  --uri=$ECR_REGISTRY_NAME
+zenml orchestrator register cloud_orchestrator --flavor=kubeflow \
+  --kubernetes_context=$EKS_KUBE_CONTEXT --synchronous=true
+zenml metadata-store register kubeflow_metadata_store --flavor=kubeflow
+zenml artifact-store register cloud_artifact_store --flavor=s3 \
+  --path=s3://$S3_BUCKET_NAME
+
+# Register the cloud stack
+zenml stack register cloud_kubeflow_stack \
+  -m kubeflow_metadata_store \
+  -a cloud_artifact_store \
+  -o cloud_orchestrator \
+  -c cloud_registry
+```
+
+3. Activate and provision the newly-created stack
 
 ```bash
 zenml stack set cloud_kubeflow_stack
+zenml stack up
 ```
+
+When the setup is finished, you should see a new local URL that you can access
+in your browser and take a look at the remote Kubeflow Pipelines UI (something
+like http://localhost:8080).
 
 4. Run the pipeline
 
-```shell
-python run_kubeflow_pipeline.py
-```
-
-5. Configure port forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
-
 ```bash
-kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
+python run_kubeflow_pipeline.py train
 ```
 
-Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the UI.
+Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the
+UI (note that your port value may differ).
 
-We can fetch the model from Kubeflow Pipelines and use it in our Inference pipeline. The following diagram shows the flow of the whole pipeline:
+We can fetch the model from Kubeflow Pipelines and use it in our Inference pipeline.
+We'll do a variation of this in the next chapter that also serves the model with
+Seldon Core. The following diagram shows the flow of the whole pipeline:
 ![cloudkubeflowstack](_assets/wholekubeflowstack.gif)
 
 ## Continuous model deployment with Seldon Core
@@ -169,6 +212,10 @@ While building the real-world workflow for predicting whether a customer will ch
 In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out the [ZenML example](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment). The following diagram shows the flow of the whole pipeline:
 ![seldondeployment](_assets/seldoncondeploy.gif)
 
+For this, you will need Seldon Core to be installed in the same cluster as the Kubeflow Pipelines cluster. Please follow the
+[official Seldon Core installation instructions](https://docs.seldon.io/projects/seldon-core/en/latest/nav/installation.html)
+applied to the type of Kubernetes cluster that you are using.
+
 Let's start by setting up our full AWS stack to run the pipeline using Seldon Core.
 
 1. Install the Seldon Core integration, a set of ZenML extensions that integrate with Seldon Core.
@@ -179,18 +226,6 @@ zenml integration install seldon -y
 
 2. Register the stack components
 
-```bash
-# Create a Kubernetes configuration context that points to the EKS cluster
-aws eks --region {AWS_REGION} update-kubeconfig --name {AWS_EKS_CLUSTER} --alias {KUBE_CONTEXT}
-```
-
-To configure ECR registry access locally, follow these [instructions](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html), or simply type the following with the right container registry address:
-
-```bash
-# Point Docker to the ECR registry
-aws ecr get-login-password --region {AWS_REGION} | docker login --username AWS --password-stdin {ECR_REGISTRY_NAME}
-```
-
 Extract the URL where the Seldon Core model server exposes its prediction API, e.g.:
 
 ```bash
@@ -198,54 +233,104 @@ export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway \
   -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 ```
 
-Configuring the stack can be done like this:
+Updating the stack used at the previous step to include seldon can be done like this:
 
 ```shell
-zenml integration install s3 aws kubeflow seldon -y
-
-# Register container registry
-zenml container-registry register ecr_registry  --flavor=default --uri={ECR_REGISTRY_NAME}
-
-# Register orchestrator (Kubeflow on AWS)
-zenml orchestrator register eks_orchestrator  --flavor=kubeflow --kubernetes_context={KUBE_CONTEXT} --synchronous=True
-
-# Register metadata store and artifact store
-zenml metadata-store register kubeflow_metadata_store  --flavor=kubeflow
-zenml artifact-store register s3_store  --flavor=s3 --path={S3_BUCKET_NAME}
-
 # Register the Seldon Core model deployer (Seldon on AWS)
-zenml model-deployer register eks_seldon  --flavor=seldon --kubernetes_context={KUBE_CONTEXT} --kubernetes_namespace={KUBEFLOW_NAMESPACE} --base_url=http://{INGRESS_HOST[0]} --secret=s3_store
+zenml model-deployer register eks_seldon --flavor=seldon \
+  --kubernetes_context=$EKS_KUBE_CONTEXT \
+  --kubernetes_namespace=$KUBEFLOW_NAMESPACE \
+  --base_url=http://$INGRESS_HOST --secret=aws_store
 
 # Register a secret manager
-zenml secrets-manager register aws_secret_manager  --flavor=aws
+zenml secrets-manager register aws_secret_manager --flavor=aws
 
-# Register the aws_kubeflow_stack
-zenml stack register aws_kubeflow_stack -m kubeflow_metadata_store -a s3_store -o eks_orchestrator -c ecr_registry -d eks_seldon -x aws_secret_manager
+# Update the cloud_kubeflow_stack to include Seldon Core as the model deployer
+# and the secrets manager
+zenml stack update cloud_kubeflow_stack -d eks_seldon -x aws_secret_manager
 ```
 
-3. Activate the newly-created stack
+3. Activate the stack (if not already active)
 
 ```bash
-zenml stack set aws_kubeflow_stack
+zenml stack set cloud_kubeflow_stack
 ```
 
-4. Do a pipeline run
+4. Create the ZenML secret that was referenced in the Seldon Core model deployer
+that holds credentials for accessing the S3 bucket. If the EKS cluster is already
+associated with the proper I.A.M. role and policies to access the S3 bucket, you can
+use in-cluster authentication:
+
+```bash
+zenml secret register -s seldon_s3 aws_store --rclone_config_s3_env_auth=True
+```
+
+If you need explicit credentials, you can a command like the following:
+
+```bash
+zenml secret register -s seldon_s3 aws_store \
+    --rclone_config_s3_env_auth=False \
+    --rclone_config_s3_access_key_id=<aws-key-id> \
+    --rclone_config_s3_secret_access_key=<aws-secret-key> \
+    --rclone_config_s3_session_token=@./aws_session_token.txt \
+    --rclone_config_s3_region=us-east-1
+```
+
+Please look up the variables relevant to your use-case in the
+[official Seldon Core documentation](https://docs.seldon.io/projects/seldon-core/en/latest/servers/overview.html#handling-credentials).
+
+5. Do a pipeline run
 
 ```shell
-python run_seldon_deployment_pipeline.py --secret seldon-init-container-secret --deploy
+python run_seldon_deployment_pipeline.py --deploy
 ```
 
 You can control which pipeline to run by passing the `--deploy` and the `--predict` flag to the `run_seldon_deployment_pipeline.py` launcher. If you run the pipeline with the `--deploy` flag, the pipeline will train the model and deploy if the model meets the evaluation criteria and then Seldon Core will serve the model for inference. If you run the pipeline with the `--predict` flag, this tells the pipeline only to run the inference pipeline and not the training pipeline.
 
 You can also set the `--min-accuracy` to control the evaluation criteria.
 
-5. Configure port forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
+Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the
+UI (same as the previous step, your port value may differ).
+
+You can also list the list of models served with Seldon Core by running
+`zenml served-models list` and inspect them with `zenml served-models describe`.
+For example:
 
 ```bash
-kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
-```
+$ zenml served-models list
+┏━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━┓
+┃ STATUS │ UUID                                 │ PIPELINE_NAME                  │ PIPELINE_STEP_NAME         │ MODEL_NAME ┃
+┠────────┼──────────────────────────────────────┼────────────────────────────────┼────────────────────────────┼────────────┨
+┃   ✅   │ 3ef6c58b-793d-4f85-8edd-aad961717f90 │ continuous_deployment_pipeline │ seldon_model_deployer_step │ model      ┃
+┗━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━┛
 
-Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the UI.
+$ zenml served-models describe 3ef6c58b-793d-4f85-8edd-aad961717f90
+                                                             Properties of Served Model 3ef6c58b-793d-4f85-8edd-aad961717f90                                                              
+┏━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ MODEL SERVICE PROPERTY │ VALUE                                                                                                                                                         ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ MODEL_NAME             │ model                                                                                                                                                         ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ MODEL_URI              │ s3://zenfiles/seldon_model_deployer_step/output/2517/seldon                                                                                                   ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ PIPELINE_NAME          │ continuous_deployment_pipeline                                                                                                                                ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ PIPELINE_RUN_ID        │ continuous_deployment_pipeline-27_May_22-12_47_38_918889                                                                                                      ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ PIPELINE_STEP_NAME     │ seldon_model_deployer_step                                                                                                                                    ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ PREDICTION_URL         │ http://abb84c444c7804aa98fc8c097896479d-377673393.us-east-1.elb.amazonaws.com/seldon/kubeflow/zenml-3ef6c58b-793d-4f85-8edd-aad961717f90/api/v0.1/predictions ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ SELDON_DEPLOYMENT      │ zenml-3ef6c58b-793d-4f85-8edd-aad961717f90                                                                                                                    ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ STATUS                 │ ✅                                                                                                                                                            ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ STATUS_MESSAGE         │ Seldon Core deployment 'zenml-3ef6c58b-793d-4f85-8edd-aad961717f90' is available                                                                              ┃
+┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
+┃ UUID                   │ 3ef6c58b-793d-4f85-8edd-aad961717f90                                                                                                                          ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+```
 
 ## 🕹 Demo App
 

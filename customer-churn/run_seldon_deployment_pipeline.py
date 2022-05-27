@@ -1,7 +1,6 @@
 from typing import cast
 
 import click
-from materializer.customer_materializer import cs_materializer
 from pipelines.seldon_deployment_pipeline import (
     DeploymentTriggerConfig,
     SeldonDeploymentLoaderStepConfig,
@@ -13,11 +12,7 @@ from pipelines.seldon_deployment_pipeline import (
     predictor,
 )
 from rich import print
-from steps.data_process import (
-    drop_cols,
-    encode_cat_cols,
-    handle_imbalanced_data,
-)
+from steps.data_process import drop_cols, encode_cat_cols
 from steps.data_splitter import data_splitter
 from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
@@ -49,26 +44,16 @@ from zenml.integrations.seldon.steps import (
 @click.option(
     "--min-accuracy",
     default=0.50,
-    help="Minimum accuracy required to deploy the model (default: 0.70)",
-)
-@click.option(
-    "--secret",
-    "-x",
-    type=str,
-    required=True,
-    help="Specify the name of a Kubernetes secret to be passed to Seldon Core "
-    "deployments to authenticate to the Artifact Store",
+    help="Minimum accuracy required to deploy the model (default: 0.50)",
 )
 def main(
     deploy: bool,
     predict: bool,
     min_accuracy: float,
-    secret: str,
 ):
     """Run the Seldon example continuous deployment or inference pipeline
     Example usage:
-        python run.py --deploy --predict --model-flavor tensorflow \
-             --min-accuracy 0.80 --secret seldon-init-container-secret
+        python run.py --deploy --predict --min-accuracy 0.50
     """
     model_name = "model"
     deployment_pipeline_name = "continuous_deployment_pipeline"
@@ -83,7 +68,6 @@ def main(
         deployment = continuous_deployment_pipeline(
             ingest_data=ingest_data(),
             encode_cat_cols=encode_cat_cols(),
-            handle_imbalanced_data=handle_imbalanced_data(),
             drop_cols=drop_cols(),
             data_splitter=data_splitter(),
             model_trainer=model_trainer(),
@@ -99,7 +83,6 @@ def main(
                         model_name=model_name,
                         replicas=1,
                         implementation=seldon_implementation,
-                        secret_name=secret,
                     ),
                     timeout=120,
                 )
@@ -119,7 +102,7 @@ def main(
                     model_name=model_name,
                 )
             ),
-            predictor=predictor().with_return_materializers({"predictions": cs_materializer}),
+            predictor=predictor(),
         )
         inference.run()
 

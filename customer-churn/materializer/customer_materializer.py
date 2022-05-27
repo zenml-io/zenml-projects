@@ -3,7 +3,6 @@ import pickle
 from typing import Any, Type, Union
 
 import pandas as pd
-from sklearn.base import ClassifierMixin
 from steps.src.log_reg import LogisticRegression
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
@@ -22,12 +21,11 @@ class cs_materializer(BaseMaterializer):
         np.float64,
         pd.Series,
         LogisticRegression,
-        ClassifierMixin,
     ]
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[np.float64, pd.Series, LogisticRegression, ClassifierMixin]:
+    ) -> Union[np.float64, pd.Series, LogisticRegression]:
         """
         It loads the model from the artifact and returns it.
 
@@ -42,7 +40,7 @@ class cs_materializer(BaseMaterializer):
 
     def handle_return(
         self,
-        obj: Union[np.float64, pd.Series, LogisticRegression, ClassifierMixin],
+        obj: Union[np.float64, pd.Series, LogisticRegression],
     ) -> None:
         """
         It saves the model to the artifact store.
