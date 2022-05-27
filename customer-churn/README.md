@@ -258,7 +258,7 @@ zenml stack set cloud_kubeflow_stack
 
 4. Create the ZenML secret that was referenced in the Seldon Core model deployer
 that holds credentials for accessing the S3 bucket. If the EKS cluster is already
-associated with the proper IAM role and policies to access the S3 bucket, you can
+associated with the proper I.A.M. role and policies to access the S3 bucket, you can
 use in-cluster authentication:
 
 ```bash
