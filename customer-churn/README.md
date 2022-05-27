@@ -114,7 +114,7 @@ Kubeflow Pipelines. Once the script is finished, you should be able to see the
 pipeline run [here](http://localhost:8080/#/runs). Note that your port value
 may differ.
 
-#### Run the same pipeline on Kubeflow Pipelines deployed to AWS
+### Run the same pipeline on Kubeflow Pipelines deployed to AWS
 
 We will now run the same pipeline in Kubeflow Pipelines deployed to an AWS EKS cluster. Before running this, you need some additional setup or prerequisites to run the pipeline on AWS: you can refer to our [documentation](https://docs.zenml.io/advanced-guide/guide-aws-gcp-azure#pre-requisites) which will help you get set up to run the pipeline on AWS.
 
@@ -122,47 +122,83 @@ If you want to run the pipeline on other cloud providers like GCP or Azure, you 
 
 ![cloudkubeflowstack](_assets/cloudstack.gif)
 
-After you fulfill the prerequisites, now we need to integrate with ZenML.
+After you fulfill the prerequisites, we can configure ZenML.
 
-1. Install the cloud provider ZenML integration
+Let's begin by setting up some environment variables to be used in the next steps:
 
 ```bash
-zenml integration install aws -y
+# AWS region
+export AWS_REGION=<your aws region>
+# the name of the EKS cluster running in AWS
+export EKS_CLUSTER_NAME=<your EKS cluster name>
+# a name for the local kubernetes configuration context
+export EKS_KUBE_CONTEXT=zenml-eks
+# the hostname of the ECR registry (e.g. ID.dkr.ecr.us-east-1.amazonaws.com)
+export ECR_REGISTRY_NAME=<your ECR registry name>
+# the S3 bucket name
+export S3_BUCKET_NAME=<your S3 bucket name>
+```
+
+1. Install the cloud provider ZenML integrations
+
+```bash
+zenml integration install s3 aws -y
 ```
 
 2. Register the stack components
 
 ```bash
-zenml container-registry register cloud_registry  --flavor=default --uri=$PATH_TO_YOUR_CONTAINER_REGISTRY
-zenml orchestrator register cloud_orchestrator  --flavor=kubeflow --custom_docker_base_image_name=YOUR_IMAGE
-zenml metadata-store register kubeflow_metadata_store  --flavor=kubeflow
-zenml artifact-store register cloud_artifact_store  --flavor=s3 --path=$PATH_TO_YOUR_BUCKET
-
-# Register the cloud stack
-zenml stack register cloud_kubeflow_stack -m kubeflow_metadata_store -a cloud_artifact_store -o cloud_orchestrator -c cloud_registry
+# Create a Kubernetes configuration context that points to the EKS cluster
+aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME --alias $EKS_KUBE_CONTEXT
 ```
 
-3. Activate the newly-created stack
+To configure ECR registry access locally, follow these [instructions](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html), or simply type the following with the right container registry address:
+
+```bash
+# Point Docker to the ECR registry
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY_NAME
+```
+
+```bash
+zenml container-registry register cloud_registry --flavor=aws \
+  --uri=$ECR_REGISTRY_NAME
+zenml orchestrator register cloud_orchestrator --flavor=kubeflow \
+  --kubernetes_context=$EKS_KUBE_CONTEXT --synchronous=true
+zenml metadata-store register kubeflow_metadata_store --flavor=kubeflow
+zenml artifact-store register cloud_artifact_store --flavor=s3 \
+  --path=s3://$S3_BUCKET_NAME
+
+# Register the cloud stack
+zenml stack register cloud_kubeflow_stack \
+  -m kubeflow_metadata_store \
+  -a cloud_artifact_store \
+  -o cloud_orchestrator \
+  -c cloud_registry
+```
+
+3. Activate and provision the newly-created stack
 
 ```bash
 zenml stack set cloud_kubeflow_stack
+zenml stack up
 ```
+
+When the setup is finished, you should see a new local URL that you can access
+in your browser and take a look at the remote Kubeflow Pipelines UI (something
+like http://localhost:8080).
 
 4. Run the pipeline
 
-```shell
-python run_kubeflow_pipeline.py
-```
-
-5. Configure port forwarding and check the Kubeflow UI to see if the model is deployed and running! 🚀
-
 ```bash
-kubectl --namespace kubeflow port-forward svc/ml-pipeline-ui 8080:80
+python run_kubeflow_pipeline.py train
 ```
 
-Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the UI.
+Now, you can go to [the localhost URL](http://localhost:8080/#/runs) to see the
+UI (note that your port value may differ).
 
-We can fetch the model from Kubeflow Pipelines and use it in our Inference pipeline. The following diagram shows the flow of the whole pipeline:
+We can fetch the model from Kubeflow Pipelines and use it in our Inference pipeline.
+We'll do a variation of this in the next chapter that also serves the model with
+Seldon Core. The following diagram shows the flow of the whole pipeline:
 ![cloudkubeflowstack](_assets/wholekubeflowstack.gif)
 
 ## Continuous model deployment with Seldon Core
