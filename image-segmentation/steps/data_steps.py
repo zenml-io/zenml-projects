@@ -1,5 +1,9 @@
 import pandas as pd
+from src.configs import PreTrainingConfigs
+from src.data.data_loader import CustomDataLoader
+from src.data.data_process import ProcessData
 from src.data.prepare_data import PrepareDataFrame
+from torch.utils.data import DataLoader
 from zenml.logger import get_logger
 from zenml.steps import Output, step
 
@@ -15,6 +19,22 @@ def prepare_data() -> Output(processed_dataframe=pd.DataFrame):
         prep_df = PrepareDataFrame("./data/archive/train.csv")
         processed_dataframe = prep_df.prepare_data()
         return processed_dataframe
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+@step
+def create_stratified_fold(
+    df: pd.DataFrame, config: PreTrainingConfigs
+) -> Output(fold_dfs=pd.DataFrame):
+    """
+    TODO:
+    """
+    try:
+        process_data = ProcessData()
+        fold_dfs = process_data.create_folds(df, config)
+        return fold_dfs
     except Exception as e:
         logger.error(e)
         raise e
