@@ -38,3 +38,33 @@ def create_stratified_fold(
     except Exception as e:
         logger.error(e)
         raise e
+
+
+@step
+def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=dict):
+    """
+    TODO:
+    """
+    try:
+        process_data = ProcessData()
+        data_transforms = process_data.augment_data(config)
+        return data_transforms
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+@step
+def prepare_dataloaders(
+    config: PreTrainingConfigs,
+) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
+    """
+    TODO:
+    """
+    try:
+        custom_data_loader = CustomDataLoader(config.n_fold, config)
+        train_loader, valid_loader = custom_data_loader.apply_loaders()
+        return train_loader, valid_loader
+    except Exception as e:
+        logger.error(e)
+        raise e
