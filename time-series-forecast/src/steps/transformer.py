@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 @step
 def transformer(data: pd.DataFrame) -> Output(
-    X_train=np.ndarray, X_test=np.ndarray, y_train=np.ndarray, y_test=np.ndarray #df = pd.DataFrame
+    X_train=np.ndarray, X_test=np.ndarray, y_train=np.ndarray, y_test=np.ndarray
 ):
     df = data.copy()
     cardinal_directions = {'N': 0.0,
