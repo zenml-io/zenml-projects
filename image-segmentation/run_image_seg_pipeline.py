@@ -12,7 +12,7 @@ def run_img_seg_pipe():
     TODO:
     """
     image_seg_pipe = image_segmentation_pipeline(
-        prepare_df(), create_stratified_fold(), apply_augmentations(), prepare_dataloaders()
+        prepare_df(), create_stratified_fold(), prepare_dataloaders()
     )
     image_seg_pipe.run()
 
