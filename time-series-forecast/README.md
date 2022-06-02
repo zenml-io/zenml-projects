@@ -1,10 +1,5 @@
-# Playground for time-series-forecast
+# 🍃 :arrow_right: 🔌 Predict electricity power generation based on wind forecast in Orkney, Scotland 
 
-## Installation
-```
-cd time-series-forecast
-poetry install
-```
 # <FITTING EMOJI] <NAME OF THE INTEGRATION AND WHAT IT DOES>
 
 <MOTIVATION OF WHY THIS IS RELEVANT>
