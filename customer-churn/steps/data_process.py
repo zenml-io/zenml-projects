@@ -45,27 +45,6 @@ def mean_encoding(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
 
 
 @step
-def handle_imbalanced_data(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
-    """Handle imbalanced data.
-
-    Args:
-        data: pd.DataFrame
-    """
-    try:
-        data_processor = DataProcessor()
-        data = data_processor.handle_imbalanced_data(data)
-        return data
-    except ValueError:
-        logger.error(
-            "Handling imbalanced data failed. Try rechecking the type of your input data and ensure that the type of your input data is a DataFrame."
-        )
-        raise ValueError
-    except Exception as e:
-        logger.error(e)
-        raise e
-
-
-@step
 def drop_cols(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
     """Drop columns.
 

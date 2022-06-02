@@ -2,9 +2,6 @@ import logging
 
 import pandas as pd
 from feature_engine.encoding import MeanEncoder
-from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline
-from imblearn.under_sampling import RandomUnderSampler
 from sklearn.preprocessing import LabelEncoder
 from zenml.logger import get_logger
 
@@ -64,35 +61,6 @@ class DataProcessor:
         except ValueError:
             logger.error(
                 "Mean encoding failed due to not matching the type of the input data, Recheck the type of your input data."
-            )
-            raise ValueError
-
-        except Exception as e:
-            logger.error(e)
-
-    def handle_imbalanced_data(
-        self,
-        data: pd.DataFrame,
-    ) -> Output(balanced_data=pd.DataFrame):
-        """
-        Handle imbalanced data by combining SMOTE with random undersampling of the majority class.
-
-        Args:
-            data (pd.DataFrame): DataFrame
-        """
-        try:
-            X = data.drop("Churn", axis=1)
-            y = data["Churn"]
-            over = SMOTE(sampling_strategy=0.5)
-            under = RandomUnderSampler(sampling_strategy=0.5)
-            steps = [("o", over), ("u", under)]
-            pipeline = Pipeline(steps=steps)
-            X_res, y_res = pipeline.fit_resample(X, y)
-            balanced_data = pd.concat([X_res, y_res], axis=1)
-            return balanced_data
-        except ValueError:
-            logger.error(
-                "Imbalanced data handling failed due to not matching the type of the input data, Recheck the type of your input data."
             )
             raise ValueError
 
