@@ -6,7 +6,7 @@ By its nature, renewable energy is highly weather-dependent, and the ongoing exp
 In this repository I showcase how to:
 - Build a retrainable `zenml` pipeline
 - Feature engineering - build numerical 2-dimensional vectors from the corresponding wind cardinal directions 
-- Load data from Google Cloud Bigquery as a part of a `zenml` pipeline
+- Load data from Google Cloud BigQuery as a part of a `zenml` pipeline
 - In the pipeline train your model remotely in Google Cloud Vertex AI
 
 
