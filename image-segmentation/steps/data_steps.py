@@ -3,10 +3,10 @@ from torch.utils.data import DataLoader
 from zenml.logger import get_logger
 from zenml.steps import Output, step
 
-from ..core_src.configs import PreTrainingConfigs
-from ..core_src.data.data_loader import CustomDataLoader
-from ..core_src.data.data_process import ProcessData
-from ..core_src.data.prepare_data import PrepareDataFrame
+from .core_src.configs import PreTrainingConfigs
+from .core_src.data.data_loader import CustomDataLoader
+from .core_src.data.data_process import ProcessData
+from .core_src.data.prepare_data import PrepareDataFrame
 
 logger = get_logger(__name__)
 
@@ -57,13 +57,14 @@ def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=di
 
 @step
 def prepare_dataloaders(
+    df: pd.DataFrame,
     config: PreTrainingConfigs,
 ) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
     """
     TODO:
     """
     try:
-        custom_data_loader = CustomDataLoader(config.n_fold, config)
+        custom_data_loader = CustomDataLoader(config.n_fold, df, config)
         train_loader, valid_loader = custom_data_loader.apply_loaders()
         return train_loader, valid_loader
     except Exception as e:
