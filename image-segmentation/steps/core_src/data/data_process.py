@@ -16,11 +16,11 @@ class ProcessData:
             df.loc[val_idx, "fold"] = fold
         return df
 
-    def augment_data(self, config: PreTrainingConfigs):
+    def augment_data(self, config: PreTrainingConfigs) -> dict:
         data_transforms = {
             "train": A.Compose(
                 [
-                    A.Resize(config.img_size, interpolation=cv2.INTER_NEAREST),
+                    A.Resize(224, 224, interpolation=cv2.INTER_NEAREST),
                     A.HorizontalFlip(p=0.5),
                     #         A.VerticalFlip(p=0.5),
                     A.ShiftScaleRotate(
@@ -48,7 +48,7 @@ class ProcessData:
             ),
             "valid": A.Compose(
                 [
-                    A.Resize(config.img_size, interpolation=cv2.INTER_NEAREST),
+                    A.Resize(224, 224, interpolation=cv2.INTER_NEAREST),
                 ],
                 p=1.0,
             ),

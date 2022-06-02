@@ -8,10 +8,10 @@ process_data = ProcessData()
 
 
 class CustomDataLoader:
-    def __init__(self, fold, df):
+    def __init__(self, fold, df, config):
         self.fold = fold
         self.df = df
-        self.config = PreTrainingConfigs
+        self.config = config
 
     def apply_loaders(self):
         train_loader, valid_loader = self.prepare_loaders(self.fold, self.config, debug=True)
@@ -23,8 +23,8 @@ class CustomDataLoader:
         if debug:
             train_df = train_df.head(32 * 5).query("empty==0")
             valid_df = valid_df.head(32 * 3).query("empty==0")
-        train_dataset = BuildDataset(train_df, transforms=process_data.augment_data["train"])
-        valid_dataset = BuildDataset(valid_df, transforms=process_data.augment_data["valid"])
+        train_dataset = BuildDataset(train_df)
+        valid_dataset = BuildDataset(valid_df)
 
         train_loader = DataLoader(
             train_dataset,
