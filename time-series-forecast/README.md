@@ -1,8 +1,12 @@
 # 🍃 :arrow_right: 🔌 Predict electricity power generation based on wind forecast in Orkney, Scotland 
 
-# <FITTING EMOJI] <NAME OF THE INTEGRATION AND WHAT IT DOES>
+By its nature, renewable energy is highly weather-dependent, and the ongoing expansion of renewables is making our global power supply more vulnerable to changing weather conditions. To be able to predict how much power will be generated based on the weather forecast might be very crucial especially for areas such as Orkney in Scotland.
 
-<MOTIVATION OF WHY THIS IS RELEVANT>
+
+In this repository I showcase how to:
+- Build a retrainable `zenml` pipeline
+- Load data from Google Cloud Bigquery as a part of a `zenml` pipeline
+- In the pipeline train your model remotely in Google Cloud Vertex AI
 
 ## 🗺 Overview
 
@@ -17,15 +21,6 @@
 <OPTIONALLY SHOW INTERESTING GRAPHICS OF WHAT OUTPUT TO EXPECT>
 
 <IN CASE OF HIGH COMPLEXITY: AN ARCHITECTURE DIAGRAM>
-
-# ☁️ Run in Colab
-
-<ONLY WRITE THIS IF A NOTEBOOK IS SUPPLIED>
-
-If you have a Google account, you can get started directly with Google Colab
-
-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zenml-io/zenml/blob/feature/main/examples/<INSERT
-  THE PATH TO THE NOTEBOOK HERE>)
 
 # 🖥 Run it locally
 
