@@ -8,53 +8,168 @@ In this repository I showcase how to:
 - Load data from Google Cloud Bigquery as a part of a `zenml` pipeline
 - In the pipeline train your model remotely in Google Cloud Vertex AI
 
-## 🗺 Overview
 
-<HOW THIS INTERFACES WITH ZENML>
+## 🐍 Python Requirements
 
-## 🧰 How the example is implemented
-
-<WHAT SHOULD THE USER EXPECT WHEN GOING THROUGH THE EXAMPLE>
-
-<HIGHLIGHT INTERESTING CODE SNIPPETS>
-
-<OPTIONALLY SHOW INTERESTING GRAPHICS OF WHAT OUTPUT TO EXPECT>
-
-<IN CASE OF HIGH COMPLEXITY: AN ARCHITECTURE DIAGRAM>
-
-# 🖥 Run it locally
-
-## ⏩ SuperQuick `<EXAMPLE_NAME>` run
-
-<ONLY ADD THIS SECTION IF A setup.sh FILE IS INCLUDED IN THE EXAMPLE>
-
-If you're really in a hurry and just want to see this example pipeline run
-without wanting to fiddle around with all the individual installation and
-configuration steps, just run the following:
-
-```shell
-zenml example run <NAME OF EXAMPLE>
+Python dependencies:
+```
+git clone https://github.com/zenml-io/zenfiles.git
+cd zenfiles/time-series-forecast
+poetry install
 ```
 
-## 👣 Step-by-Step
+`ZenML` integrations:
+```
+zenml integration install sklearn vertex gcp
+```
 
-### 📄 Prerequisites
-
-In order to run this example, you need to install and initialize ZenML:
-
-```shell
-# install CLI
-pip install zenml
-
-# install ZenML integrations
-zenml integration install <NAMES OF THE INTEGRATIONS>
-
-# pull example
-zenml example pull <NAME OF THE EXAMPLE>
-cd zenml_examples/<NAME OF THE EXAMPLE>
-
-# Initialize ZenML repo
+Initialize zenml repository:
+```
 zenml init
+```
+
+## 👣  Step-by-Step on how to run the pipeline or reproduce this repository
+
+I will show how to create google cloud resources for this project using `gcloud cli`, [follow this](https://cloud.google.com/sdk/docs/install) if you don't have it set up.
+
+1. Make sure you are in the correct GCP project
+
+```
+gcloud config list
+```
+
+2. Set permissions to create and manage `Vertex AI` custom jobs and to access data from `BigQuery`
+
+Create a service account
+```
+gcloud iam service-accounts create <NAME>
+
+#EXAMPLE
+gcloud iam service-accounts create zenml-sa
+```
+
+Grant permission to the service account ([list](https://cloud.google.com/bigquery/docs/access-control) of BQ roles)
+```
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:<SA-NAME>@<PROJECT_ID>.iam.gserviceaccount.com" --role=<ROLE>
+
+#EXAMPLE
+gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/storage.admin
+gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/aiplatform.admin
+gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/bigquery.admin
+
+```
+Generate a key file
+```
+gcloud iam service-accounts keys create <FILE-NAME>.json --iam-account=<SA-NAME>@<PROJECT_ID>.iam.gserviceaccount.com
+
+EXAMPLE
+gcloud iam service-accounts keys create credentials.json --iam-account=zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com
+```
+Set the environment variable:
+
+To use service accounts with the Google Cloud CLI, you need to set an environment variable where your code runs
+```
+export GOOGLE_APPLICATION_CREDENTIALS=<KEY-FILE-LOCATION>
+```
+For the bigquery step you also need to point to the same file
+```python
+
+@step
+def bigquery_importer(config: BigQueryImporterConfig) -> pd.DataFrame:
+    credentials = service_account.Credentials.from_service_account_file('credentials.json')
+    return pandas_gbq.read_gbq(config.query, project_id = config.project_id, credentials = credentials)
+```
+
+3. Create a GCP bucket
+
+Vertex AI and zenml will use this bucket for output of any artifacts from the training run
+
+```
+gsutil mb -l <REGION> gs://bucket-name
+
+#EXAMPLE
+gsutil mb -l europe-west1 gs://zenml-bucket
+```
+
+4. Configure and enable container registry in GCP
+
+This registry will be used by ZenML to push your job images that Vertex will use.
+
+a) [Enable](https://cloud.google.com/container-registry/docs) Container Registry
+
+
+b) [Authenticate](https://cloud.google.com/container-registry/docs/advanced-authentication) your local `docker` cli with your GCP container registry 
+
+```
+docker pull busybox
+docker tag busybox gcr.io/<PROJECT-ID/busybox
+docker push gcr.io/<PROJECT-ID>/busybox
+```
+
+5. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
+
+6. Build a custom image from `zenml` that will be used in the vertex step operator
+
+```
+cd src
+docker build --tag zenmlcustom:0.1
+```
+
+7. Set up the components required for `zenml` stack
+
+Set the bucket created earlier
+```
+zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
+
+# EXAMPLE
+zenml artifact-store register gcp-store --type=gcp --path=gs://zenml-bucket
+```
+
+Create the vertex step operator
+
+```
+zenml step-operator register <NAME> \
+    --type=vertex \
+    --project=<PROJECT-ID> \
+    --region=<REGION> \
+    --machine_type=<MACHINE-TYPE> \
+    --base_image=<CUSTOM_BASE_IMAGE> #this can be left out if you wish to use zenml's default image
+
+# EXAMPLE
+zenml step-operator register vertex \
+    --type=vertex \
+    --project=zenml-vertex-ai \
+    --region=europe-west1 \
+    --machine_type=n1-standard-4 \
+    --base_image=zenmlcustom:0.1
+```
+
+List of [available machines](https://cloud.google.com/vertex-ai/docs/training/configure-compute#machine-types)
+
+Register the container registry
+
+```
+zenml container-registry register <NAME> --type=default --uri=gcr.io/<PROJECT-ID>/<IMAGE>
+
+#EXAMPLE
+zenml container-registry register gcr_registry --type=default --uri=gcr.io/zenml-vertex-ai/busybox
+```
+
+Register the gcp stack (change names accordingly)
+```
+zenml stack register vertex_training_stack \
+    -m default \
+    -o default \
+    -c gcr_registry \
+    -a gcp-store \
+    -s vertex
+```
+
+View all your stacks: `zenml stack list`
+
+Activate the stack
+```
+zenml stack set vertex_training_stack
 ```
 
 ### ▶️ Run the Code
@@ -62,22 +177,17 @@ zenml init
 Now we're ready. Execute:
 
 ```bash
-python run.py
+python main.py
 ```
 
-### 🧽 Clean up
+# 📜 Useful links
 
-In order to clean up, delete the remaining ZenML references.
+https://docs.zenml.io/features/step-operators
 
-```shell
-rm -rf zenml_examples
-```
+https://docs.zenml.io/features/guide-aws-gcp-azure
 
-# 📜 Learn more
+https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud
 
-Our docs regarding the <NAME OF THE INTEGRATION> integration can be
-found [here](<LINK TO THE DOCS>).
+https://apidocs.zenml.io/0.7.3/cli/
 
-If you want to learn more about <EXAMPLE_TYPE> in general or about how to build
-your own <TYPE OF THE INTEGRATION> in ZenML
-check out our [docs](<LINK TO THE DOCS>).
+https://blog.zenml.io/step-operators-training/
