@@ -5,6 +5,7 @@ from steps.data_steps import (
     prepare_dataloaders,
     prepare_df,
 )
+from steps.model_steps import initiate_model_and_optimizer, train_model
 
 
 def run_img_seg_pipe():
@@ -12,7 +13,11 @@ def run_img_seg_pipe():
     TODO:
     """
     image_seg_pipe = image_segmentation_pipeline(
-        prepare_df(), create_stratified_fold(), prepare_dataloaders()
+        prepare_df(),
+        create_stratified_fold(),
+        prepare_dataloaders(),
+        initiate_model_and_optimizer(),
+        train_model(),
     )
     image_seg_pipe.run()
 
