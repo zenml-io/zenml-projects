@@ -3,11 +3,13 @@ from typing import Union
 import segmentation_models_pytorch as smp
 import torch.optim as optim
 from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
 from zenml.logger import get_logger
 from zenml.steps import Output, step
 
-from ..core_src.configs import PreTrainingConfigs
-from ..core_src.model.build_model import ImageSegModel
+from .core_src.configs import PreTrainingConfigs
+from .core_src.model.build_model import ImageSegModel
+from .core_src.model.run_training import TrainModel
 
 logger = get_logger(__name__)
 
@@ -30,8 +32,42 @@ def initiate_model_and_optimizer(
     """
     try:
         image_seg_model = ImageSegModel(config)
-        model, optimizer, scheduler = image_seg_model.initiate_model_and_optimizer()
-        return model, optimizer, scheduler
+        model, optimizer, schedulers = image_seg_model.initiate_model_and_optimizer()
+        return model, optimizer, schedulers
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+@step
+def train_model(
+    model: smp.Unet,
+    optimizer: optim.Adam,
+    scheduler: Union[
+        lr_scheduler.CosineAnnealingLR,
+        lr_scheduler.CosineAnnealingWarmRestarts,
+        lr_scheduler.ReduceLROnPlateau,
+        lr_scheduler.ExponentialLR,
+    ],
+    train_loader: DataLoader,
+    valid_loader: DataLoader,
+    config: PreTrainingConfigs,
+):
+    """ """
+    try:
+        train_model = TrainModel()
+        model, history = train_model.run_training(
+            0,
+            model,
+            optimizer,
+            scheduler,
+            config.device,
+            config.epochs,
+            train_loader,
+            valid_loader,
+            config,
+        )
+        return model, history
     except Exception as e:
         logger.error(e)
         raise e

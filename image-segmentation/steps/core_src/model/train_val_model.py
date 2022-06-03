@@ -8,9 +8,9 @@ tqdm.pandas()
 import gc
 
 import numpy as np
-from loss_func import LossFunctions
 
 from ..configs import PreTrainingConfigs
+from .loss_func import LossFunctions
 
 loss_fn = LossFunctions()
 

@@ -6,7 +6,8 @@ from collections import defaultdict
 import numpy as np
 import torch
 import wandb
-from train_val_model import TrainValModel
+
+from .train_val_model import TrainValModel
 
 train_val_obj = TrainValModel()
 from zenml.logger import get_logger
@@ -22,6 +23,7 @@ class TrainModel:
 
     def run_training(
         self,
+        fold,
         model,
         optimizer,
         scheduler,
@@ -42,7 +44,6 @@ class TrainModel:
         best_dice = -np.inf
         best_epoch = -1
         history = defaultdict(list)
-
         for epoch in range(1, num_epochs + 1):
             gc.collect()
             print(f"Epoch {epoch}/{num_epochs}", end="")
