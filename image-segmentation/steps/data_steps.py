@@ -13,9 +13,7 @@ logger = get_logger(__name__)
 
 @step
 def prepare_df() -> Output(processed_dataframe=pd.DataFrame):
-    """
-    TODO:
-    """
+    """It processes and manipulates the masked df."""
     try:
         prep_df = PrepareDataFrame("./data/archive/train.csv")
         processed_dataframe = prep_df.prepare_data()
@@ -30,7 +28,11 @@ def create_stratified_fold(
     df: pd.DataFrame, config: PreTrainingConfigs
 ) -> Output(fold_dfs=pd.DataFrame):
     """
-    TODO:
+    It's a cross validation technique which returns stratified folds from your df.
+
+    Args:
+        df: DataFrame.
+        config: Pre training config file.
     """
     try:
         process_data = ProcessData()

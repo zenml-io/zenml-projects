@@ -138,4 +138,7 @@ mlruns/
 .vscode/
 
 # Pycharm
-.idea/
+.idea/ 
+
+# image-segmentation/data 
+image-segmentation/data

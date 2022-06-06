@@ -2,7 +2,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+
+# Importing the tensorflow library.
+# import tensorflow as tf
 from matplotlib.patches import Rectangle
 
 

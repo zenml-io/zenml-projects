@@ -16,11 +16,11 @@ logger = get_logger(__name__)
 
 @step
 def initiate_model_and_optimizer(
-    config: PreTrainingConfigs,
+    cfg: PreTrainingConfigs,
 ) -> Output(
     model=smp.Unet,
     optimizer=optim.Adam,
-    scheduler=Union[
+    sch=Union[
         lr_scheduler.CosineAnnealingLR,
         lr_scheduler.CosineAnnealingWarmRestarts,
         lr_scheduler.ReduceLROnPlateau,
@@ -28,12 +28,17 @@ def initiate_model_and_optimizer(
     ],
 ):
     """
-    TODO:
+    It initializes the U-Net model, Optimizer, and Scheduler.
+
+    Args:
+        model: U-Net Image Segmentation model
+        optimizer: Adam optimizer from torch
+        scheduler: It fetches the scheduler
     """
     try:
-        image_seg_model = ImageSegModel(config)
-        model, optimizer, schedulers = image_seg_model.initiate_model_and_optimizer()
-        return model, optimizer, schedulers
+        image_seg_model = ImageSegModel(cfg)
+        models, optimizers, schedulers = image_seg_model.initiate_model_and_optimizer()
+        return models, optimizers, schedulers
     except Exception as e:
         logger.error(e)
         raise e
