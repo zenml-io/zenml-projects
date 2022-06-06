@@ -1,6 +1,6 @@
 # 🍃 :arrow_right: 🔌 Predict electricity power generation based on wind forecast in Orkney, Scotland 
 
-By its nature, renewable energy is highly weather-dependent, and the ongoing expansion of renewables is making our global power supply more vulnerable to changing weather conditions. To be able to predict how much power will be generated based on the weather forecast might be very crucial especially for areas such as Orkney in Scotland.
+By its nature, renewable energy is highly weather-dependent, and the ongoing expansion of renewables is making our global power supply more vulnerable to changing weather conditions. Predicting how much power will be generated based on the weather forecast might be crucial, especially for areas such as Orkney in Scotland.
 
 
 In this repository I showcase how to:
