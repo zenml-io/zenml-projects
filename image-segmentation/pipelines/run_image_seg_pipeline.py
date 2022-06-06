@@ -15,5 +15,5 @@ def image_segmentation_pipeline(
     df = prepare_df()
     fold_dfs = create_stratified_fold(df)
     train_loader, valid_loader = prepare_dataloaders(fold_dfs)
-    model, optimizer, scheduler = initiate_model_and_optimizer()
-    model, history = train_model(model, optimizer, scheduler, train_loader, valid_loader)
+    models, optimizers, schedulers = initiate_model_and_optimizer()
+    model, history = train_model(model, optimizers, schedulers, train_loader, valid_loader)
