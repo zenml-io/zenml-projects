@@ -17,6 +17,9 @@ We wish to create a pipeline that can load electricity power production and wind
   <img width="460" height="300" src="./_assets/sigmoid.png">
 </p>
 
+The figure above explains the data that we are going to work with. We can see that with increasing wind speed the el. power production follows a sigmoid curve as expected.
+ 
+ 
 🪜 Steps of the pipeline:
 - `importer.py`: Imports weather forecast and electricity power production from Google BigQuery
 - `preparator.py`: Cleans and prepares the dataset
