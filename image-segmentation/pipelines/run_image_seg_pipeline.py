@@ -1,7 +1,8 @@
+from zenml.integrations.constants import WANDB
 from zenml.pipelines import pipeline
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=True, required_integrations=[WANDB])
 def image_segmentation_pipeline(
     prepare_df,
     create_stratified_fold,
@@ -16,4 +17,4 @@ def image_segmentation_pipeline(
     fold_dfs = create_stratified_fold(df)
     train_loader, valid_loader = prepare_dataloaders(fold_dfs)
     models, optimizers, schedulers = initiate_model_and_optimizer()
-    model, history = train_model(model, optimizers, schedulers, train_loader, valid_loader)
+    model, history = train_model(models, optimizers, schedulers, train_loader, valid_loader)
