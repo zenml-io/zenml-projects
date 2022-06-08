@@ -45,7 +45,7 @@ Create a service account
 ```
 gcloud iam service-accounts create <NAME>
 
-#EXAMPLE
+# Example:- 
 gcloud iam service-accounts create zenml-sa
 ```
 
