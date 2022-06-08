@@ -4,9 +4,9 @@ By its nature, renewable energy is highly weather-dependent, and the ongoing exp
 
 
 In this repository I showcase how to:
-- Build a retrainable `zenml` pipeline
+- Build a retrainable ZenML pipeline
 - Feature engineering - build numerical 2-dimensional vectors from the corresponding wind cardinal directions 
-- Load data from Google Cloud BigQuery as a part of a `zenml` pipeline
+- Load data from Google Cloud BigQuery as a part of a ZenML pipeline
 - In the pipeline train your model remotely in Google Cloud Vertex AI
 
 
@@ -19,7 +19,7 @@ cd zenfiles/time-series-forecast
 poetry install
 ```
 
-`ZenML` integrations:
+ZenML integrations:
 ```
 zenml integration install -y sklearn vertex gcp
 ```
@@ -88,7 +88,7 @@ NOTE: You also need to change the query and your project ID accordingly.
 
 ### 3. Create a GCP bucket
 
-Vertex AI and zenml will use this bucket for output of any artifacts from the training run
+Vertex AI and ZenML will use this bucket for output of any artifacts from the training run
 
 ```
 gsutil mb -l <REGION> gs://bucket-name
@@ -114,14 +114,14 @@ docker push gcr.io/<PROJECT-ID>/busybox
 
 ### 5. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
 
-### 6. Build a custom image from `zenml` that will be used in the vertex step operator
+### 6. Build a custom image from ZenML that will be used in the vertex step operator
 
 ```
 cd src
 docker build --tag zenmlcustom:0.1
 ```
 
-### 7. Set up the components required for `zenml` stack
+### 7. Set up the components required for ZenML stack
 
 Set the bucket created earlier
 ```
