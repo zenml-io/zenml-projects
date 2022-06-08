@@ -1,3 +1,4 @@
+from materializers.custom_materializer import ImageCustomerMaterializer
 from pipelines.run_image_seg_pipeline import image_segmentation_pipeline
 from steps.data_steps import (
     apply_augmentations,
@@ -16,7 +17,7 @@ def run_img_seg_pipe():
         prepare_df(),
         create_stratified_fold(),
         prepare_dataloaders(),
-        initiate_model_and_optimizer(),
+        initiate_model_and_optimizer().with_return_materializers(ImageCustomerMaterializer),
         train_model(),
     )
     image_seg_pipe.run()
