@@ -5,7 +5,7 @@ from steps.transformer import transformer
 from steps.trainer import trainer
 from steps.evaluator import evaluator
 
-@pipeline
+@pipeline(enable_cache=False)
 def time_series_pipeline(
     bigquery_importer,
     preparator,
