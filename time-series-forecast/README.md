@@ -21,7 +21,7 @@ poetry install
 
 `ZenML` integrations:
 ```
-zenml integration install sklearn vertex gcp
+zenml integration install -y sklearn vertex gcp
 ```
 
 Initialize zenml repository:
