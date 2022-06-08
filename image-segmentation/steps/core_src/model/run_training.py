@@ -54,6 +54,7 @@ class TrainModel:
                 dataloader=train_loader,
                 device=config.device,
                 epoch=epoch,
+                config=config,
             )
 
             val_loss, val_scores = train_val_obj.valid_one_epoch(
