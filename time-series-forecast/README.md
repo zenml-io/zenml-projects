@@ -35,9 +35,17 @@ I will show how to create google cloud resources for this project using `gcloud 
 
 ### 1. Make sure you are in the correct GCP project
 
+List the current configurations and check that `project_id` is set to your GCP project  
+
 ```
 gcloud config list
 ```
+
+if not, use:
+```
+gcloud config set project <PROJECT_ID>
+```
+
 
 ### 2. Set permissions to create and manage `Vertex AI` custom jobs and to access data from `BigQuery`
 
