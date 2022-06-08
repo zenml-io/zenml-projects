@@ -12,11 +12,18 @@ In this repository I showcase how to:
 
 ## 🐍 Python Requirements
 
-Python dependencies:
+Using `poetry` ([install](https://python-poetry.org/docs/))
 ```
 git clone https://github.com/zenml-io/zenfiles.git
 cd zenfiles/time-series-forecast
 poetry install
+```
+
+Using `requirements.txt`
+```
+git clone https://github.com/zenml-io/zenfiles.git
+cd zenfiles/time-series-forecast
+pip install -r requirements.txt
 ```
 
 ZenML integrations:
