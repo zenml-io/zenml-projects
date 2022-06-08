@@ -35,9 +35,17 @@ I will show how to create google cloud resources for this project using `gcloud 
 
 ### 1. Make sure you are in the correct GCP project
 
+List the current configurations and check that `project_id` is set to your GCP project  
+
 ```
 gcloud config list
 ```
+
+if not, use:
+```
+gcloud config set project <PROJECT_ID>
+```
+
 
 ### 2. Set permissions to create and manage `Vertex AI` custom jobs and to access data from `BigQuery`
 
@@ -114,6 +122,8 @@ docker push gcr.io/<PROJECT-ID>/busybox
 
 ### 5. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
 
+To be able to use custom Vertex AI jobs, you first need to enable their API inside google cloud console.
+
 ### 6. Build a custom image from ZenML that will be used in the vertex step operator
 
 ```
@@ -186,14 +196,14 @@ Now we're ready. Execute:
 python main.py
 ```
 
-# 📜 Useful links
+# 📜 References
 
-https://docs.zenml.io/features/step-operators
+Documentation on [step operators](https://docs.zenml.io/extending-zenml/step-operator)
 
-https://docs.zenml.io/features/guide-aws-gcp-azure
+Example of [step operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 
-https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud
+More on [step operators](https://blog.zenml.io/step-operators-training/)
 
-https://apidocs.zenml.io/0.7.3/cli/
+Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
 
-https://blog.zenml.io/step-operators-training/
+ZenML CLI [documentation](https://apidocs.zenml.io/0.7.3/cli/)
