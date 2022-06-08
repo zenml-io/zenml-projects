@@ -4,6 +4,8 @@ import segmentation_models_pytorch as smp
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
+from zenml.integrations.constants import WANDB
+from zenml.integrations.wandb.wandb_step_decorator import enable_wandb
 from zenml.logger import get_logger
 from zenml.steps import Output, step
 
@@ -17,16 +19,7 @@ logger = get_logger(__name__)
 @step
 def initiate_model_and_optimizer(
     cfg: PreTrainingConfigs,
-) -> Output(
-    model=smp.Unet,
-    optimizer=optim.Adam,
-    sch=Union[
-        lr_scheduler.CosineAnnealingLR,
-        lr_scheduler.CosineAnnealingWarmRestarts,
-        lr_scheduler.ReduceLROnPlateau,
-        lr_scheduler.ExponentialLR,
-    ],
-):
+) -> Output(model=smp.Unet, optimizer=optim.Adam, sch=lr_scheduler.CosineAnnealingLR,):
     """
     It initializes the U-Net model, Optimizer, and Scheduler.
 
@@ -44,35 +37,23 @@ def initiate_model_and_optimizer(
         raise e
 
 
+@enable_wandb
 @step
 def train_model(
     model: smp.Unet,
     optimizer: optim.Adam,
-    scheduler: Union[
-        lr_scheduler.CosineAnnealingLR,
-        lr_scheduler.CosineAnnealingWarmRestarts,
-        lr_scheduler.ReduceLROnPlateau,
-        lr_scheduler.ExponentialLR,
-    ],
+    schedule: lr_scheduler.CosineAnnealingLR,
     train_loader: DataLoader,
     valid_loader: DataLoader,
     config: PreTrainingConfigs,
-):
+) -> Output(unet_model=smp.Unet, history=list):
     """ """
     try:
         train_model = TrainModel()
-        model, history = train_model.run_training(
-            0,
-            model,
-            optimizer,
-            scheduler,
-            config.device,
-            config.epochs,
-            train_loader,
-            valid_loader,
-            config,
+        unet_model, history = train_model.run_training(
+            0, model, optimizer, schedule, "cpu", 15, train_loader, valid_loader, config
         )
-        return model, history
+        return unet_model, history
     except Exception as e:
         logger.error(e)
         raise e
