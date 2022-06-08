@@ -38,7 +38,7 @@ class ImageUtils:
     def __init__(self) -> None:
         pass
 
-    def load_img(path):
+    def load_img(self, path):
         img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         img = np.tile(img[..., None], [1, 1, 3])  # gray to rgb
         img = img.astype("float32")  # original is uint16
@@ -47,13 +47,13 @@ class ImageUtils:
             img /= mx  # scale image to [0, 1]
         return img
 
-    def load_msk(path):
+    def load_msk(self, path):
         msk = np.load(path)
         msk = msk.astype("float32")
         msk /= 255.0
         return msk
 
-    def show_img(img, mask=None):
+    def show_img(self, img, mask=None):
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         plt.imshow(img, cmap="bone")
 
