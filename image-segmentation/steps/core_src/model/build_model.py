@@ -10,8 +10,8 @@ from ..configs import PreTrainingConfigs
 
 
 class ImageSegModel:
-    def __init__(self) -> None:
-        self.config = PreTrainingConfigs
+    def __init__(self, config) -> None:
+        self.config = config
 
     def initiate_model_and_optimizer(
         self,
