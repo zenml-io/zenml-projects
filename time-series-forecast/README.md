@@ -53,7 +53,7 @@ Grant permission to the service account ([list](https://cloud.google.com/bigquer
 ```
 gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:<SA-NAME>@<PROJECT_ID>.iam.gserviceaccount.com" --role=<ROLE>
 
-#EXAMPLE
+# Example:- 
 gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/storage.admin
 gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/aiplatform.admin
 gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/bigquery.admin
@@ -63,7 +63,7 @@ Generate a key file
 ```
 gcloud iam service-accounts keys create <FILE-NAME>.json --iam-account=<SA-NAME>@<PROJECT_ID>.iam.gserviceaccount.com
 
-EXAMPLE
+# Example:- 
 gcloud iam service-accounts keys create credentials.json --iam-account=zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com
 ```
 Set the environment variable:
@@ -93,7 +93,7 @@ Vertex AI and zenml will use this bucket for output of any artifacts from the tr
 ```
 gsutil mb -l <REGION> gs://bucket-name
 
-#EXAMPLE
+# Example:-
 gsutil mb -l europe-west1 gs://zenml-bucket
 ```
 
@@ -127,7 +127,7 @@ Set the bucket created earlier
 ```
 zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
 
-# EXAMPLE
+# Example:-
 zenml artifact-store register gcp-store --type=gcp --path=gs://zenml-bucket
 ```
 
@@ -141,7 +141,7 @@ zenml step-operator register <NAME> \
     --machine_type=<MACHINE-TYPE> \
     --base_image=<CUSTOM_BASE_IMAGE> #this can be left out if you wish to use zenml's default image
 
-# EXAMPLE
+# Example:-
 zenml step-operator register vertex \
     --type=vertex \
     --project=zenml-vertex-ai \
@@ -157,7 +157,7 @@ Register the container registry
 ```
 zenml container-registry register <NAME> --type=default --uri=gcr.io/<PROJECT-ID>/<IMAGE>
 
-#EXAMPLE
+# Example:-
 zenml container-registry register gcr_registry --type=default --uri=gcr.io/zenml-vertex-ai/busybox
 ```
 
