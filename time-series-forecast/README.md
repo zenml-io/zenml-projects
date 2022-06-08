@@ -12,7 +12,7 @@ In this repository I showcase how to:
 
 ## 🐍 Python Requirements
 
-Using poetry ([install](https://python-poetry.org/docs/) poetry)
+Using `poetry` ([install](https://python-poetry.org/docs/))
 ```
 git clone https://github.com/zenml-io/zenfiles.git
 cd zenfiles/time-series-forecast
