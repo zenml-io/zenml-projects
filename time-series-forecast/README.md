@@ -13,7 +13,9 @@ In this repository I showcase how to:
 
 We wish to create a pipeline that can load electricity power production and wind forecast data from Google BigQuery. We then wish to prepare and transform this data for a suitable model. The model will be trained to predict how much electricity power will be generated based on wind weather forecast (wind speed and its direction).
 
-![plot](./_assets/sigmoid.png)
+<p align="center">
+  <img width="460" height="300" src="./_assets/sigmoid.png">
+</p>
 
 🪜 Steps of the pipeline:
 - `importer.py`: Imports weather forecast and electricity power production from Google BigQuery
