@@ -10,6 +10,16 @@ def trainer(
     X_train: np.ndarray,
     y_train: np.ndarray,
 ) -> RandomForestRegressor:
+    """Trains a random forest.
+
+    Args:
+        X_train: DataFrame with training feature data.
+        y_train: DataFrame with training target data.
+
+    Returns:
+        RegressorMixin: [description]
+    """
+
     model = RandomForestRegressor()
     model.fit(X_train, y_train)
     return model
