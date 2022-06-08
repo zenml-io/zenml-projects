@@ -9,6 +9,21 @@ In this repository I showcase how to:
 - Load data from Google Cloud BigQuery as a part of a ZenML pipeline
 - In the pipeline train your model remotely in Google Cloud Vertex AI
 
+## :notebook: Explanation of code 
+
+We wish to create a pipeline that can load electricity power production and wind forecast data from Google BigQuery. We then wish to prepare and transform this data for a suitable model. The model will be trained to predict how much electricity power will be generated based on wind weather forecast (wind speed and its direction).
+
+![plot](./_assets/sigmoid.png)
+
+🪜 Steps of the pipeline:
+- `importer.py`: Imports weather forecast and electricity power production from Google BigQuery
+- `preparator.py`: Cleans and prepares the dataset
+- `transformer.py`: Transforms cardinal directions (North, South...) into 2-dimensional feature vectors
+- `trainer.py`: Trains a Random Forest Regressor
+- `evaluator.py` Evaluates the regressor on test data
+
+
+*Note: The data is included in this repository, you can therefore upload it to your own GCP project's BigQuery and follow the rest of this tutorial* 
 
 ## 🐍 Python Requirements
 
