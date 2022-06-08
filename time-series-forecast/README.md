@@ -99,7 +99,7 @@ gsutil mb -l europe-west1 gs://zenml-bucket
 
 ### 4. Configure and enable container registry in GCP
 
-This registry will be used by ZenML to push your job images that Vertex will use.
+ZenML will use this registry to push your job images that Vertex will use.
 
 a) [Enable](https://cloud.google.com/container-registry/docs) Container Registry
 
