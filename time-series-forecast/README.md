@@ -202,8 +202,8 @@ Documentation on [step operators](https://docs.zenml.io/extending-zenml/step-ope
 
 Example of [step operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 
-Documentation on how to create a [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
+More on [step operators](https://blog.zenml.io/step-operators-training/)
+
+Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
 
 ZenML CLI [documentation](https://apidocs.zenml.io/0.7.3/cli/)
-
-More on [step operators](https://blog.zenml.io/step-operators-training/)
