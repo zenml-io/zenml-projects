@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 def prepare_df() -> Output(processed_dataframe=pd.DataFrame):
     """It processes and manipulates the masked df."""
     try:
-        prep_df = PrepareDataFrame("./data/archive/updated_file.csv")
+        prep_df = PrepareDataFrame("./data/archive/updated_files.csv")
         processed_dataframe = prep_df.prepare_data()
         return processed_dataframe
     except Exception as e:
