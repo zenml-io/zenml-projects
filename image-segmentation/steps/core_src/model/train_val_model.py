@@ -76,8 +76,11 @@ class TrainValModel:
 
         val_scores = []
 
-        pbar = tqdm(enumerate(dataloader), total=len(dataloader), desc="Valid ")
+        pbar = tqdm(enumerate(dataloader), total=len(dataloader), desc="Valid")
+        print("\nValidating...")
+        print(dataloader)
         for step, (images, masks) in pbar:
+            print("I came here.")
             images = images.to(device, dtype=torch.float)
             masks = masks.to(device, dtype=torch.float)
 
@@ -106,5 +109,5 @@ class TrainValModel:
         val_scores = np.mean(val_scores, axis=0)
         torch.cuda.empty_cache()
         gc.collect()
-
+        print(epoch_loss)
         return epoch_loss, val_scores

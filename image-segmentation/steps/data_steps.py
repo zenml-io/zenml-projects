@@ -60,13 +60,14 @@ def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=di
 @step
 def prepare_dataloaders(
     df: pd.DataFrame,
+    data_transforms: dict,
     config: PreTrainingConfigs,
 ) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
     """
     TODO:
     """
     try:
-        custom_data_loader = CustomDataLoader(config.n_fold, df, config)
+        custom_data_loader = CustomDataLoader(config.n_fold, df, data_transforms, config)
         train_loader, valid_loader = custom_data_loader.apply_loaders()
         return train_loader, valid_loader
     except Exception as e:
