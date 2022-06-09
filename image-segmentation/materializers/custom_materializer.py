@@ -2,6 +2,7 @@ import os
 import pickle
 from typing import Any, Type, Union
 
+import albumentations as A
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from zenml.io import fileio
@@ -16,11 +17,11 @@ class ImageCustomerMaterializer(BaseMaterializer):
     Custom materializer for the Image Segmentation ZenFile
     """
 
-    ASSOCIATED_TYPES = [optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet]
+    ASSOCIATED_TYPES = [optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet, A.Compose, dict]
 
     def handle_input(
         self, data_type: Type[Any]
-    ) -> Union[optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet]:
+    ) -> Union[optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet, A.Compose, dict]:
         """
         It loads the model from the artifact and returns it.
 
@@ -34,7 +35,7 @@ class ImageCustomerMaterializer(BaseMaterializer):
         return obj
 
     def handle_return(
-        self, obj: Union[optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet]
+        self, obj: Union[optim.Adam, lr_scheduler.CosineAnnealingLR, smp.Unet, A.Compose, dict]
     ) -> None:
         """
         It saves the model to the artifact store.
