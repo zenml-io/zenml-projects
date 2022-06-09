@@ -16,6 +16,7 @@ def run_img_seg_pipe():
     image_seg_pipe = image_segmentation_pipeline(
         prepare_df(),
         create_stratified_fold(),
+        apply_augmentations().with_return_materializers(ImageCustomerMaterializer),
         prepare_dataloaders(),
         initiate_model_and_optimizer().with_return_materializers(ImageCustomerMaterializer),
         train_model(),
