@@ -21,8 +21,8 @@ class CustomDataLoader:
         train_df = self.df.query("fold!=@fold").reset_index(drop=True)
         valid_df = self.df.query("fold==@fold").reset_index(drop=True)
         if debug:
-            train_df = train_df.head(32 * 5).query("empty==0")
-            valid_df = valid_df.head(32 * 3).query("empty==0")
+            train_df = train_df.head(31 * 5).query("empty==0")
+            valid_df = valid_df.head(31 * 3).query("empty==0")
         train_dataset = BuildDataset(train_df)
         valid_dataset = BuildDataset(valid_df)
 
