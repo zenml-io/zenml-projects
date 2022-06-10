@@ -1,3 +1,4 @@
+import pandas as pd
 from torch.utils.data import DataLoader
 
 from ..configs import PreTrainingConfigs
@@ -5,20 +6,36 @@ from .build_dataset import BuildDataset
 from .data_process import ProcessData
 
 process_data = ProcessData()
+from zenml.steps import Output
 
 
 class CustomDataLoader:
-    def __init__(self, fold, df, data_transform, config):
+    """Custom Data Loader that uses PyTorch DataLoader Module to load data."""
+
+    def __init__(
+        self, fold: int, df: pd.DataFrame, data_transform: dict, config: PreTrainingConfigs
+    ) -> None:
+        """Initializes the class."""
         self.fold = fold
         self.df = df
         self.data_transform = data_transform
         self.config = config
 
-    def apply_loaders(self):
+    def apply_loaders(self) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
+        """It prepares the data loaders and returns the train and valid loaders."""
         train_loader, valid_loader = self.prepare_loaders(self.fold, self.config, debug=True)
         return train_loader, valid_loader
 
-    def prepare_loaders(self, fold: int, config: PreTrainingConfigs, debug: bool = False):
+    def prepare_loaders(
+        self, fold: int, config: PreTrainingConfigs, debug: bool = False
+    ) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
+        """It prepares the data loaders and returns the train and valid loaders.
+
+        Args:
+            fold: int
+            config: PreTrainingConfigs
+            debug: bool
+        """
         train_df = self.df.query("fold!=@fold").reset_index(drop=True)
         valid_df = self.df.query("fold==@fold").reset_index(drop=True)
         if debug:

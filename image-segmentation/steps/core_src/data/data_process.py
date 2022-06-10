@@ -11,12 +11,24 @@ class ProcessData:
         pass
 
     def create_folds(self, df: pd.DataFrame, config: PreTrainingConfigs) -> pd.DataFrame:
+        """
+        `StratifiedGroupKFold` is a class that splits the data into train and validation sets, and the
+        `split` function of this class returns the indices of the train and validation sets.
+
+        df: the dataframe that contains the data
+        config: PreTrainingConfigs
+        """
         skf = StratifiedGroupKFold(n_splits=config.n_fold, shuffle=True, random_state=config.seed)
         for fold, (train_idx, val_idx) in enumerate(skf.split(df, df["empty"], groups=df["case"])):
             df.loc[val_idx, "fold"] = fold
         return df
 
     def augment_data(self, config: PreTrainingConfigs) -> dict:
+        """
+        It takes in a config object and returns a dictionary of data transforms for training and validation
+
+        config: PreTrainingConfigs
+        """
         data_transforms = {
             "train": A.Compose(
                 [

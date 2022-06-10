@@ -5,7 +5,10 @@ logger = get_logger(__name__)
 
 
 class PrepareDataFrame:
-    def __init__(self, df_path):
+    """Prepare data for data loaders."""
+
+    def __init__(self, df_path: str):
+        """Initialize the class."""
         self.df_path = df_path
 
     def prepare_data(self) -> pd.DataFrame:
