@@ -11,8 +11,19 @@ def image_segmentation_pipeline(
     initiate_model_and_optimizer,
     train_model,
 ):
-    """
-    TODO
+    """We have a pipeline which prepares the dataframe, create stratified folds, augment the dataframe, prepare the dataloaders,
+    initiate the model and optimizer, and train the model
+
+    Args:
+        prepare_df: This step will read the data and prepare it for the pipeline.
+        create_stratified_fold: This step creates stratified k folds.
+        augment_df: This is a step that returns a dictionary of data transforms.
+        prepare_dataloaders: This step takes in the dataframe and the data transforms and returns
+        the train and validation dataloaders.
+        initiate_model_and_optimizer: This is a step that returns a tuple of (model, optimizer,
+        scheduler).
+        train_model: a step that takes in the model, optimizer, scheduler, train_loader, and
+        valid_loader and returns the trained model and history.
     """
     df = prepare_df()
     fold_dfs = create_stratified_fold(df)
