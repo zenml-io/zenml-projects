@@ -2,13 +2,14 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-# Importing the tensorflow library.
-# import tensorflow as tf
 from matplotlib.patches import Rectangle
 
 
 class MassUtility:
+    """
+    TODO: Add docs and fix some error in this.
+    """
+
     def __init__(self, df) -> None:
         self.df = df
 

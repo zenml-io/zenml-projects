@@ -1,6 +1,7 @@
 import pandas as pd
 from torch.utils.data import DataLoader
 from zenml.logger import get_logger
+from zenml.repository import Repository
 from zenml.steps import Output, step
 
 from .core_src.configs import PreTrainingConfigs
@@ -8,12 +9,16 @@ from .core_src.data.data_loader import CustomDataLoader
 from .core_src.data.data_process import ProcessData
 from .core_src.data.prepare_data import PrepareDataFrame
 
+step_operator = Repository().active_stack.step_operator
+
 logger = get_logger(__name__)
 
 
 @step
 def prepare_df() -> Output(processed_dataframe=pd.DataFrame):
-    """It processes and manipulates the masked df."""
+    """
+    It processes and manipulates the masked df.
+    """
     try:
         prep_df = PrepareDataFrame("./data/archive/updated_files.csv")
         processed_dataframe = prep_df.prepare_data()
@@ -46,7 +51,10 @@ def create_stratified_fold(
 @step
 def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=dict):
     """
-    TODO:
+    It takes in a config object and returns a dictionary of data transforms.
+
+    Args:
+        config: PreTrainingConfigs
     """
     try:
         process_data = ProcessData()
@@ -57,14 +65,20 @@ def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=di
         raise e
 
 
-@step
+@step(custom_step_operator=step_operator.name)
 def prepare_dataloaders(
     df: pd.DataFrame,
     data_transforms: dict,
     config: PreTrainingConfigs,
 ) -> Output(train_loader=DataLoader, valid_loader=DataLoader):
     """
-    TODO:
+    This step takes a dataframe, a dictionary of data transforms, and a config object, and
+    returns a train and validation dataloader.
+
+    Args:
+        df: pd.DataFrame
+        data_transforms: dict
+        config: PreTrainingConfigs
     """
     try:
         custom_data_loader = CustomDataLoader(config.n_fold, df, data_transforms, config)

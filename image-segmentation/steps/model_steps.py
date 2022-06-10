@@ -1,5 +1,3 @@
-from typing import Union
-
 import segmentation_models_pytorch as smp
 import torch.optim as optim
 from torch.optim import lr_scheduler
@@ -18,7 +16,7 @@ logger = get_logger(__name__)
 
 @step
 def initiate_model_and_optimizer(
-    cfg: PreTrainingConfigs,
+    config: PreTrainingConfigs,
 ) -> Output(model=smp.Unet, optimizer=optim.Adam, sch=lr_scheduler.CosineAnnealingLR,):
     """
     It initializes the U-Net model, Optimizer, and Scheduler.
@@ -29,7 +27,7 @@ def initiate_model_and_optimizer(
         scheduler: It fetches the scheduler
     """
     try:
-        image_seg_model = ImageSegModel(cfg)
+        image_seg_model = ImageSegModel(config)
         models, optimizers, schedulers = image_seg_model.initiate_model_and_optimizer()
         return models, optimizers, schedulers
     except Exception as e:
@@ -47,7 +45,18 @@ def train_model(
     valid_loader: DataLoader,
     config: PreTrainingConfigs,
 ) -> Output(unet_model=smp.Unet, history=list):
-    """ """
+    """
+    `train_model` trains a model using the `TrainModel` class.
+
+    Args:
+        model: smp.Unet - The model to train
+        optimizer: optim.Adam
+        schedule: lr_scheduler.CosineAnnealingLR
+        train_loader: DataLoader
+        valid_loader: DataLoader
+        config: PreTrainingConfigs
+    """
+
     try:
         train_model = TrainModel()
         unet_model, history = train_model.run_training(
