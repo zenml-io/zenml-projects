@@ -10,7 +10,10 @@ from ..configs import PreTrainingConfigs
 
 
 class ImageSegModel:
-    def __init__(self, config) -> None:
+    """Image Segmentation Model"""
+
+    def __init__(self, config: PreTrainingConfigs) -> None:
+        """Initializes the class."""
         self.config = config
 
     def initiate_model_and_optimizer(
@@ -25,12 +28,28 @@ class ImageSegModel:
             lr_scheduler.ExponentialLR,
         ],
     ):
+        """
+        It creates a model, optimizer and scheduler.
+        """
         model = self.build_model()
         optimizer = optim.Adam(model.parameters(), lr=self.config.lr, weight_decay=self.config.wd)
         scheduler = self.fetch_scheduler(optimizer)
         return model, optimizer, scheduler
 
     def build_model(self):
+        """
+        `model = smp.Unet(encoder_name=self.config.backbone, encoder_weights="imagenet", in_channels=3,
+        classes=self.config.num_classes, activation=None)`
+
+        The `smp.Unet` function is a function from the `segmentation_models_pytorch` library. It takes in a
+        number of arguments, which are explained below:
+
+        - `encoder_name`: This is the name of the encoder that you want to use. In this case, we're using
+        the `efficientnet-b7` encoder.
+        - `encoder_weights`: This is the pre-trained weights that you want to use for the encoder. In this
+        case, we're using the `imagenet` weights.
+        - `in_channels`: This is the number of channels in the input image.
+        """
         model = smp.Unet(
             encoder_name=self.config.backbone,  # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
             encoder_weights="imagenet",  # use `imagenet` pre-trained weights for encoder initialization
@@ -41,13 +60,34 @@ class ImageSegModel:
         model.to(self.config.device)
         return model
 
-    def load_model(self, path):
+    def load_model(self, path: str):
+        """
+        It loads the model from the path and returns the model.
+
+        Args:
+            path: the path to the model you want to load
+        """
         model = self.build_model()
         model.load_state_dict(torch.load(path))
         model.eval()
         return model
 
-    def fetch_scheduler(self, optimizer):
+    def fetch_scheduler(
+        self, optimizer: optim.Adam
+    ) -> Output(
+        Union[
+            lr_scheduler.CosineAnnealingLR,
+            lr_scheduler.CosineAnnealingWarmRestarts,
+            lr_scheduler.ExponentialLR,
+        ]
+    ):
+        """
+        It returns a scheduler object based on the config.scheduler parameter.
+
+        Args:
+            optimizer: The optimizer to use
+        """
+
         if self.config.scheduler == "CosineAnnealingLR":
             scheduler = lr_scheduler.CosineAnnealingLR(
                 optimizer, T_max=self.config.T_max, eta_min=self.config.min_lr

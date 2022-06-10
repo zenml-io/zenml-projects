@@ -1,6 +1,10 @@
+import segmentation_models_pytorch as smp
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from torch.cuda import amp
+from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 tqdm.pandas()
@@ -13,15 +17,36 @@ from ..configs import PreTrainingConfigs
 from .loss_func import LossFunctions
 
 loss_fn = LossFunctions()
+from typing import Union
+
+from zenml.steps import Output
 
 
 class TrainValModel:
+    """This class is used to train the model."""
+
     def __init__(self) -> None:
+        """Initialize the class."""
         pass
 
     def train_one_epoch(
-        self, model, optimizer, scheduler, dataloader, device, epoch, config: PreTrainingConfigs
-    ):
+        self,
+        model: smp.Unet,
+        optimizer: optim.Adam,
+        scheduler: Union[
+            lr_scheduler.CosineAnnealingLR,
+            lr_scheduler.CosineAnnealingWarmRestarts,
+            lr_scheduler.ReduceLROnPlateau,
+            lr_scheduler.ExponentialLR,
+        ],
+        dataloader: DataLoader,
+        device: str,
+        config: PreTrainingConfigs,
+    ) -> float:
+        """
+        Run Training for one epoch, and return the training loss.
+        """
+
         model.train()
         scaler = amp.GradScaler()
 
@@ -68,7 +93,12 @@ class TrainValModel:
         return epoch_loss
 
     @torch.no_grad()
-    def valid_one_epoch(self, model, optimizer, dataloader, device, epoch):
+    def valid_one_epoch(
+        self, model: smp.Unet, optimizer: optim.Adam, dataloader: DataLoader, device: str
+    ) -> Output(epoch_loss=float, val_scores=float):
+        """
+        It validates the model per epoch.
+        """
         model.eval()
 
         dataset_size = 0
@@ -77,10 +107,8 @@ class TrainValModel:
         val_scores = []
 
         pbar = tqdm(enumerate(dataloader), total=len(dataloader), desc="Valid")
-        print("\nValidating...")
         print(dataloader)
         for step, (images, masks) in pbar:
-            print("I came here.")
             images = images.to(device, dtype=torch.float)
             masks = masks.to(device, dtype=torch.float)
 
@@ -109,5 +137,4 @@ class TrainValModel:
         val_scores = np.mean(val_scores, axis=0)
         torch.cuda.empty_cache()
         gc.collect()
-        print(epoch_loss)
         return epoch_loss, val_scores

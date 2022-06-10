@@ -2,10 +2,15 @@ import copy
 import gc
 import time
 from collections import defaultdict
+from typing import Union
 
 import numpy as np
+import segmentation_models_pytorch as smp
 import torch
+import torch.optim as optim
 import wandb
+from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
 
 from .train_val_model import TrainValModel
 
@@ -16,23 +21,46 @@ from ..configs import PreTrainingConfigs
 
 logger = get_logger(__name__)
 
+from zenml.steps import Output
+
 
 class TrainModel:
+    """This class is used to train the model."""
+
     def __init__(self) -> None:
         pass
 
     def run_training(
         self,
-        fold,
-        model,
-        optimizer,
-        scheduler,
-        device,
-        num_epochs,
-        train_loader,
-        valid_loader,
+        fold: int,
+        model: smp.Unet,
+        optimizer: optim.Adam,
+        scheduler: Union[
+            lr_scheduler.CosineAnnealingLR,
+            lr_scheduler.CosineAnnealingWarmRestarts,
+            lr_scheduler.ReduceLROnPlateau,
+            lr_scheduler.ExponentialLR,
+        ],
+        num_epochs: int,
+        train_loader: DataLoader,
+        valid_loader: DataLoader,
         config: PreTrainingConfigs,
-    ):
+    ) -> Output(model=smp.Unet, history=list):
+        """
+        It trains the model for a given number of epochs, and returns the best model and the training
+        history.
+
+        fold: The fold number
+        model: The model to train
+        optimizer: The optimizer used to train the model
+        scheduler: The scheduler object that will be used to adjust the learning rate
+        device: The device to run the training on
+        num_epochs: Number of epochs to train for
+        train_loader: The training data loader
+        valid_loader: The validation data loader
+        config: PreTrainingConfigs
+        """
+
         # To automatically log gradients
         wandb.watch(model, log_freq=100)
 
