@@ -75,7 +75,7 @@ class ImageSegModel:
     def fetch_scheduler(
         self, optimizer: optim.Adam
     ) -> Output(
-        Union[
+        scheduler=Union[
             lr_scheduler.CosineAnnealingLR,
             lr_scheduler.CosineAnnealingWarmRestarts,
             lr_scheduler.ExponentialLR,
