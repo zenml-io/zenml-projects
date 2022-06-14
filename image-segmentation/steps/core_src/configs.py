@@ -17,7 +17,7 @@ class PreTrainingConfigs(BaseStepConfig):
     img_size: list = [224, 224]
     epochs: int = 15
     lr: float = 2e-3
-    scheduler: int = "CosineAnnealingLR"
+    scheduler: str = "CosineAnnealingLR"
     min_lr: float = 1e-6
     T_max: float = int(30000 / train_bs * epochs) + 50
     T_0: int = 25
