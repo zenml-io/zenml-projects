@@ -142,3 +142,6 @@ mlruns/
 
 # image-segmentation/data 
 image-segmentation/data
+
+# wandb
+image-segmentation/wandb
