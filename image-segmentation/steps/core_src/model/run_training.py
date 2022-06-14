@@ -81,38 +81,32 @@ class TrainModel:
                 scheduler,
                 dataloader=train_loader,
                 device=config.device,
-                epoch=epoch,
                 config=config,
             )
 
-            val_loss, val_scores = train_val_obj.valid_one_epoch(
-                model, optimizer, valid_loader, device=config.device, epoch=epoch
+            val_scores = train_val_obj.valid_one_epoch(
+                model, optimizer, valid_loader, device=config.device
             )
-            val_dice, val_jaccard = val_scores
+            val_dice = val_scores
 
             history["Train Loss"].append(train_loss)
-            history["Valid Loss"].append(val_loss)
             history["Valid Dice"].append(val_dice)
-            history["Valid Jaccard"].append(val_jaccard)
 
             # Log the metrics
             wandb.log(
                 {
                     "Train Loss": train_loss,
-                    "Valid Loss": val_loss,
                     "Valid Dice": val_dice,
-                    "Valid Jaccard": val_jaccard,
                     "LR": scheduler.get_last_lr()[0],
                 }
             )
 
-            logger.info(f"Valid Dice: {val_dice:0.4f} | Valid Jaccard: {val_jaccard:0.4f}")
+            logger.info(f"Valid Dice: {val_dice:0.4f}")
 
             # deep copy the model
             if val_dice >= best_dice:
                 print(f"Valid Score Improved ({best_dice:0.4f} ---> {val_dice:0.4f})")
                 best_dice = val_dice
-                best_jaccard = val_jaccard
                 best_epoch = epoch
                 best_model_wts = copy.deepcopy(model.state_dict())
                 PATH = f"best_epoch-{fold:02d}.bin"
@@ -133,7 +127,7 @@ class TrainModel:
                 time_elapsed // 3600, (time_elapsed % 3600) // 60, (time_elapsed % 3600) % 60
             )
         )
-        logger.info("Best Score: {:.4f}".format(best_jaccard))
+        # logger.info("Best Score: {:.4f}".format(best_jaccard))
 
         # load best model weights
         model.load_state_dict(best_model_wts)
