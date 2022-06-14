@@ -137,4 +137,4 @@ class TrainValModel:
         val_scores = np.mean(val_scores, axis=0)
         torch.cuda.empty_cache()
         gc.collect()
-        return epoch_loss, val_scores
+        return val_scores
