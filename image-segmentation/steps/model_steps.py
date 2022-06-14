@@ -60,7 +60,7 @@ def train_model(
     try:
         train_model = TrainModel()
         unet_model, history = train_model.run_training(
-            0, model, optimizer, schedule, "cpu", 15, train_loader, valid_loader, config
+            0, model, optimizer, schedule, 15, train_loader, valid_loader, config
         )
         return unet_model, history
     except Exception as e:
