@@ -56,7 +56,7 @@ Initialize zenml repository:
 zenml init
 ```
 
-## 👣  Step-by-Step on how to run the pipeline or reproduce this repository
+## 👣  Step-by-Step on how to set up your GCP project 
 
 I will show how to create google cloud resources for this project using `gcloud cli`, [follow this](https://cloud.google.com/sdk/docs/install) if you don't have it set up.
 
@@ -73,8 +73,42 @@ if not, use:
 gcloud config set project <PROJECT_ID>
 ```
 
+### 2. Import data to BigQuery
 
-### 2. Set permissions to create and manage `Vertex AI` custom jobs and to access data from `BigQuery`
+Create a bucket
+
+```
+gsutil mb -p PROJECT ID gs://BUCKET_NAME
+
+# Example:- 
+gsutil mb -p zenml-vertex-ai gs://time-series-bucket
+```
+
+Upload the data set
+
+```
+gsutil cp data/wind_forecast.csv gs://time-series-bucket
+```
+
+Create a dataset in BQ
+```
+bq mk --dataset <PROJECT-ID>:<DATASET-NAME>
+
+# Example:- 
+bq mk --dataset computas-project-345810:zenml_dataset
+```
+
+Import data from Cloud Storage into BQ
+```
+ bq load \
+    --autodetect \
+    --source_format=CSV \
+    zenml_dataset.windforecast \
+    gs://time-series-bucket/wind_forecast.csv
+```
+
+
+### 3. Set permissions to create and manage `Vertex AI` custom jobs and to access data from `BigQuery`
 
 Create a service account
 ```
@@ -111,7 +145,7 @@ For the bigquery step you also need to point to the same file
 ```python
 
 class BigQueryImporterConfig(BaseStepConfig):
-    query: str = 'SELECT * FROM `computas_dataset.wind_forecast`'
+    query: str = 'SELECT * FROM `computas_dataset.windforecast`'
     project_id: str = 'computas-project-345810'
 
 @step
@@ -119,9 +153,10 @@ def bigquery_importer(config: BigQueryImporterConfig) -> pd.DataFrame:
     credentials = service_account.Credentials.from_service_account_file('credentials.json')
     return pandas_gbq.read_gbq(config.query, project_id = config.project_id, credentials = credentials)
 ```
-NOTE: You also need to change the query and your project ID accordingly.
 
-### 3. Create a GCP bucket
+*NOTE*: You also need to change the `query` and your `project_id` accordingly.
+
+### 4. Create a GCP bucket
 
 Vertex AI and ZenML will use this bucket for output of any artifacts from the training run
 
@@ -132,7 +167,7 @@ gsutil mb -l <REGION> gs://bucket-name
 gsutil mb -l europe-west1 gs://zenml-bucket
 ```
 
-### 4. Configure and enable container registry in GCP
+### 5. Configure and enable container registry in GCP
 
 ZenML will use this registry to push your job images that Vertex will use.
 
@@ -147,20 +182,20 @@ docker tag busybox gcr.io/<PROJECT-ID/busybox
 docker push gcr.io/<PROJECT-ID>/busybox
 ```
 
-### 5. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
+### 6. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
 
 To be able to use custom Vertex AI jobs, you first need to enable their API inside google cloud console.
 
-### 6. Build a custom image from ZenML that will be used in the vertex step operator
+### 7. Build a custom image from ZenML that will be used in the vertex step operator
 
 ```
 cd src
 docker build --tag zenmlcustom:0.1
 ```
 
-### 7. Set up the components required for ZenML stack
+## 👣  Step-by-Step on how to set up the components required for ZenML stack
 
-Set the bucket created earlier
+Set a gcp bucket as your artifact store
 ```
 zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
 
@@ -168,7 +203,7 @@ zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
 zenml artifact-store register gcp-store --type=gcp --path=gs://zenml-bucket
 ```
 
-Create the vertex step operator
+Create a vertex step operator
 
 ```
 zenml step-operator register <NAME> \
@@ -189,7 +224,7 @@ zenml step-operator register vertex \
 
 List of [available machines](https://cloud.google.com/vertex-ai/docs/training/configure-compute#machine-types)
 
-Register the container registry
+Register a container registry
 
 ```
 zenml container-registry register <NAME> --type=default --uri=gcr.io/<PROJECT-ID>/<IMAGE>
