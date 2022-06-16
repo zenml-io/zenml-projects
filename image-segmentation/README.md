@@ -105,8 +105,8 @@ zenml stack register sagemaker_stack_with_wandb \
 
 We created a stack named `sagemaker_stack_with_wandb` which has `StepOperator` component as sagemaker, and `wandb` as experiment tracker.
 
-Now you can run the `run_image_seg_pipeline.py` by the following command: 
+Now you can run the `run_image_seg_pipeline.py` by the following command:
 
-```bash 
+```bash
 python run_image_seg_pipeline.py
-``` 
+```
