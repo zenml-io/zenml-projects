@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from zenml.integrations.constants import WANDB
 from zenml.integrations.wandb.wandb_step_decorator import enable_wandb
 from zenml.logger import get_logger
+from zenml.repository import Repository
 from zenml.steps import Output, step
 
 from .core_src.configs import PreTrainingConfigs
@@ -12,6 +13,8 @@ from .core_src.model.build_model import ImageSegModel
 from .core_src.model.run_training import TrainModel
 
 logger = get_logger(__name__)
+
+step_operator = Repository().active_stack.step_operator
 
 
 @step
@@ -36,7 +39,7 @@ def initiate_model_and_optimizer(
 
 
 @enable_wandb
-@step
+@step(custom_step_operator=step_operator.name)
 def train_model(
     model: smp.Unet,
     optimizer: optim.Adam,
