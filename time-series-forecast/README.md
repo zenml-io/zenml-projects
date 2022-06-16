@@ -190,7 +190,7 @@ To be able to use custom Vertex AI jobs, you first need to enable their API insi
 
 ```
 cd src
-docker build --tag zenmlcustom:0.1
+docker build --tag zenmlcustom:0.1 .
 ```
 
 ## 👣  Step-by-Step on how to set up the components required for ZenML stack
