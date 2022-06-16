@@ -1,7 +1,6 @@
 import pandas as pd
 from torch.utils.data import DataLoader
 from zenml.logger import get_logger
-from zenml.repository import Repository
 from zenml.steps import Output, step
 
 from .core_src.configs import PreTrainingConfigs
@@ -9,7 +8,6 @@ from .core_src.data.data_loader import CustomDataLoader
 from .core_src.data.data_process import ProcessData
 from .core_src.data.prepare_data import PrepareDataFrame
 
-# step_operator = Repository().active_stack.step_operator
 
 logger = get_logger(__name__)
 
@@ -65,8 +63,6 @@ def apply_augmentations(config: PreTrainingConfigs) -> Output(data_transforms=di
         raise e
 
 
-# @step(custom_step_operator=step_operator.name)
-@step
 def prepare_dataloaders(
     df: pd.DataFrame,
     data_transforms: dict,
