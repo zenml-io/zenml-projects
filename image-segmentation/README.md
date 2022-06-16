@@ -33,3 +33,8 @@ zenml integration install -y wandb
 Make sure to read the blog that introduces this project in detail: [Segmenting stomach and Intestines in MRI Scan](#).
 
 # :thumbsup: The Solution
+
+In order to build a model which will segment stomach and intestine from MRI scans & setting this in real-world workflow, we will build a reproducible pipeline using ZenML for this task, we will be using step operators for training on cloud (I will be using AWS but feel free to choose your favorite cloud provider.), we will also make use of ZenML's wandb integration for experiment tracking.
+
+Our training pipeline `run_image_seg_pipeline.py` will be built using the following steps:- 
+
