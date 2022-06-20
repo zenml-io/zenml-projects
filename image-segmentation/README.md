@@ -4,7 +4,7 @@
 
 **Problem statement**: We will create a model to automatically segment the stomach and intestines on Magnetic resonance imaging (MRI) scans. We will be using data from [UW-Madison GI Tract Image Segmentation Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data) to build our model. This competition asks us to segment organ cells in images of the stomach and intestines. If you'd like to know more about the problem statement, please visit the [competiton page](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation).
 
-The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with a different set of annotations.
+The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with different annotations.
 
 Our aim is not to win this competition but to show you the power of the ZenML and how it can ease the whole process with its amazing features like caching, easily switching stacks, training on different cloud service providers, and so on. The purpose of this repository is to demonstrate how ZenML empowers your business to build and deploy machine learning pipelines even on computer vision tasks in a multitude of ways:
 
@@ -30,7 +30,7 @@ zenml integration install -y wandb
 
 ## 📙 Resources & References
 
-Please read the blog that introduces this project in detail: [Segmenting stomach and Intestines in MRI Scan](#).
+Please read the blog introducing this project in detail: [Segmenting stomach and Intestines in MRI Scan](#).
 
 # :thumbsup: The Solution
 
@@ -40,7 +40,7 @@ Our training pipeline `run_image_seg_pipeline.py` will be built using the follow
 
 - `prepare_df`: This step will read the data and prepare it for the pipeline.
 - `create_stratified_fold`: This step creates stratified k folds.
-- `augment_df`: This is a step that returns a dictionary of data transforms( the transformation we need to apply to our data).
+- `augment_df`: This step returns a dictionary of data transforms( the transformation we need to apply to our data).
 - `prepare_dataloaders`: This step takes in the dataframe, and the data transforms and returns the train and validation dataloaders.
 - `initiate_model_and_optimizer`: This step returns (U-Net model, Adam optimizer, Configured scheduler).
 - `train_model`: a step that takes the model, optimizer, scheduler, train_loader, and valid_loader and returns the trained model and history.
