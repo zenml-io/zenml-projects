@@ -40,16 +40,16 @@ def transformer(data: pd.DataFrame) -> Output(
 
     for direction in cardinal_directions:
         df.loc[df["Direction"] == direction, "Direction"] = cardinal_directions[direction]
-    
+
     df['Direction'] = df['Direction'].astype(float)
     df["v1"] =  df['Speed'] * np.cos(np.deg2rad(np.array(df["Direction"])))
     df["v2"] =  df['Speed'] * np.sin(np.deg2rad(np.array(df["Direction"])))
-    
+
     df = df.drop(['Direction', 'Speed'], axis=1)
 
     X = np.array(df[['v1','v2']])
     y = np.array(df['Total'])
 
     X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
-    
-    return X_train, X_test, y_train, y_test 
+
+    return X_train, X_test, y_train, y_test
