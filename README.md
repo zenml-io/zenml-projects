@@ -13,13 +13,13 @@ A collection of `ZenFiles`: Production-grade ML use-cases powered by [ZenML](htt
 
 Here is a list of updated and maintained ZenFiles:
 
-| Name                               | Link                            | Tags                                       |
-| ---------------------------------- | ------------------------------- | ------------------------------------------ |
-| Atari Games Reinforcement Learning | [README](atari-game-play)       | reinforcement-learning                     |
-| Customer Churn                     | [README](customer-churn)        | kubeflow-deployment, seldon-deployment     |
-| Customer Satisfaction              | [README](customer-satisfaction) | continuous-deployment                      |
-| NBA Predictor                      | [README](nba-pipeline)          | drift, predictions                         |
-| Time Series Forecasting            | [README](time-series-forecast)  | predictions, feature-engineering, vertexai |
+|     Name      |  Link                     | Tags                 |
+| ------------- | --------------------------|----------------------|
+| Atari Games Reinforcement Learning |  [README](atari-game-play)   | reinforcement-learning | 
+| Customer Churn | [README](customer-churn) | kubeflow-deployment, seldon-deployment |
+| Customer Satisfaction | [README](customer-satisfaction) | continuous-deployment |
+| NBA Predictor |  [README](nba-pipeline)   | drift, predictions   |
+| Time Series Forecasting |  [README](time-series-forecast)   | predictions, feature-engineering, vertexai   |
 
 # Generate a project template
 
