@@ -18,7 +18,7 @@ Here is a list of updated and maintained ZenFiles:
 | Atari Games Reinforcement Learning | [README](atari-game-play)       | reinforcement-learning                     | default                                |
 | Customer Churn                     | [README](customer-churn)        | kubeflow-deployment, seldon-deployment     | kubeflow_orchestrator, seldon_deployer |
 | Customer Satisfaction              | [README](customer-satisfaction) | continuous-deployment                      | mlflow_deployer                        |
-| NBA Predictor                      | [README](nba-pipeline)          | drift, predictions                         | local_kubeflow_orchestrator            |
+| NBA Predictor                      | [README](nba-pipeline)          | drift, predictions                         | kubeflow_orchestrator, evidently            |
 | Time Series Forecasting            | [README](time-series-forecast)  | predictions, feature-engineering, vertexai | step_operator, vertex_stack |
 
 # Generate a project template
