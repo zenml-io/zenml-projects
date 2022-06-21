@@ -24,7 +24,7 @@ def evaluator(
     try:
         y_pred = model.predict(X_test)
     except:
-        logger.info("Error occured when predicting on test data")
+        logger.info("Error occurred when predicting on test data")
 
     score = r2_score(y_test,y_pred)
     logger.info(f"R2 score: {score}")
