@@ -138,10 +138,4 @@ mlruns/
 .vscode/
 
 # Pycharm
-.idea/ 
-
-# image-segmentation/data 
-image-segmentation/data
-
-# wandb
-image-segmentation/wandb
+.idea/
