@@ -139,3 +139,6 @@ mlruns/
 
 # Pycharm
 .idea/
+
+# Poetry Lock File
+poetry.lock
