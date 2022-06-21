@@ -51,6 +51,10 @@ pip install -r requirements.txt
 ZenML integrations:
 
 ```shell
+# if using ZenML v0.8.1
+zenml integration install -y sklearn gcp vertex
+
+# if using ZenML >0.9
 zenml integration install -y sklearn gcp
 ```
 
