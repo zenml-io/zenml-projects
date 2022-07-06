@@ -4,4 +4,4 @@ lightgbm==3.3.2
 optuna==2.10.0
 streamlit==1.8.1
 xgboost==1.5.2
-zenml==0.8.0
+zenml==0.10.0

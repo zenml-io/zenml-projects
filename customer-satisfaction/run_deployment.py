@@ -7,7 +7,6 @@ from pipelines.deployment_pipeline import (
     deployment_trigger,
     dynamic_importer,
     inference_pipeline,
-    model_deployer,
     prediction_service_loader,
     predictor,
 )
@@ -20,6 +19,8 @@ from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.steps import MLFlowDeployerConfig
 from zenml.services import load_last_service_from_step
 
+
+from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 
 @click.command()
 @click.option(
@@ -56,7 +57,7 @@ def run_main(min_accuracy: float, stop_service: bool):
                 min_accuracy=min_accuracy,
             )
         ),
-        model_deployer=model_deployer(config=MLFlowDeployerConfig(workers=3)),
+        model_deployer=mlflow_model_deployer_step(config=MLFlowDeployerConfig(workers=3)),
     )
     deployment.run()
 
@@ -95,5 +96,5 @@ def run_main(min_accuracy: float, stop_service: bool):
         )
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    run_main()
