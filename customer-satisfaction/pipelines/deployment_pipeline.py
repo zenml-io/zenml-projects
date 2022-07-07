@@ -1,14 +1,11 @@
 import json
 import os
-
 import numpy as np
 import pandas as pd
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
-from zenml.integrations.mlflow.steps import mlflow_deployer_step
 from zenml.pipelines import pipeline
 from zenml.services import load_last_service_from_step
 from zenml.steps import BaseStepConfig, Output, StepContext, step
-
 from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
@@ -36,9 +33,6 @@ def deployment_trigger(
     input model accuracy and decides if it is good enough to deploy"""
 
     return accuracy > config.min_accuracy
-
-
-model_deployer = mlflow_deployer_step(name="model_deployer")
 
 
 class MLFlowDeploymentLoaderStepConfig(BaseStepConfig):
