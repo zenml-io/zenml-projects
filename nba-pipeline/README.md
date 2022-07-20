@@ -125,7 +125,7 @@ zenml stack register local_kubeflow_stack \
     -c local_registry
 ```
 
-To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/guides/functional-api/deploy-to-production#run-the-same-pipeline-on-kubeflow-pipelines-deployed-to-gcp).
+To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/mlops-stacks/orchestrators/kubeflow#how-to-deploy-it).
 
 For the local setup, our kubeflow stack keeps the existing `local_metadata_store` and `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
 

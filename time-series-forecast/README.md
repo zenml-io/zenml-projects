@@ -277,7 +277,7 @@ python main.py
 
 # 📜 References
 
-Documentation on [Step Operators](https://docs.zenml.io/extending-zenml/step-operator)
+Documentation on [Step Operators](https://docs.zenml.io/mlops-stacks/step-operators)
 
 Example of [Step Operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 
@@ -285,4 +285,4 @@ More on [Step Operators](https://blog.zenml.io/step-operators-training/)
 
 Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
 
-ZenML CLI [documentation](https://apidocs.zenml.io/0.7.3/cli/)
+ZenML CLI [documentation](https://apidocs.zenml.io/latest/cli/)
