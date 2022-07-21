@@ -23,14 +23,16 @@ pip install -r requirements.txt
 If you are running the `run_deployment.py` script, you will also need to install some integrations using ZenML:
 
 ```bash
-zenml integration install mlflow -f
+zenml integration install mlflow -y
 ``` 
-The zenfile can only be executed with a ZenML stack that has an MLflow model deployer as a component. Configuring a new stack with a MLflow model deployer could look like this:
+The zenfile can only be executed with a ZenML stack that has an MLflow experiment tracker and model deployer as a component. Configuring a new stack with the two components are as follows:
+
 ```bash
-zenml integration install mlflow -f
+zenml integration install mlflow -y
+zenml stack set default
+zenml experiment-tracker register mlflow_tracker --flavor=mlflow
 zenml model-deployer register mlflow --flavor=mlflow
-zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
-zenml stack set local_with_mlflow
+zenml stack update default -d mlflow -e mlflow_tracker
 ```
 
 ## 📙 Resources & References
@@ -55,7 +57,7 @@ Our standard training pipeline consists of several steps:
 
 - `ingest_data`: This step will ingest the data and create a `DataFrame`.
 - `clean_data`: This step will clean the data and remove the unwanted columns.
-- `model_train`: This step will train the model and save the model using [MLflow autologging](https://www.mlflow.org/docs/latest/tracking.html).
+- `train_model`: This step will train the model and save the model using [MLflow autologging](https://www.mlflow.org/docs/latest/tracking.html).
 - `evaluation`: This step will evaluate the model and save the metrics -- using MLflow autologging -- into the artifact store.
 
 ### Deployment Pipeline
@@ -136,5 +138,5 @@ rm -rf PATH
 Solution: You forgot to install the MLflow integration in your ZenML environment. So, you need to install the MLflow integration by running the following command:
 
 ```bash
-zenml integration install mlflow -f
+zenml integration install mlflow -y
 ```
