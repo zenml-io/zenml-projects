@@ -99,12 +99,12 @@ Depending on the infrastructure of choice, we will use different stacks and comp
 
 In this example, we will run all steps locally, except for the training step which will run on the Sagemaker cloud provider.
 
-ZenML make this possible with the `StepOperator` stack component. 
+This possible with the `StepOperator` stack component. 
 The `StepOperator` component allows us to run individual `steps` on a specialized environment not available locally.
 With this, you can run the `pipeline` on a local CPU but offload only the training `step` to a cloud GPU and return the results locally when training completes.
 More on `StepOperator` [here](https://docs.zenml.io/v/docs/mlops-stacks/step-operators).
 
-In this example we will use Sagemaker as our cloud provider of choice for the training job.
+In this example we will use Sagemaker as our cloud provider for the training job.
 
 But before we can use them, we must install the `aws` integrations by
 
@@ -166,18 +166,19 @@ zenml experiment-tracker register wandb_tracker --type=wandb \
 Finally, we can register and activate our stack.
 
 ```
-zenml stack register sagemaker_stack \
+zenml stack register sagemaker_stack_with_wandb \
     -m default \
     -o default \
     -c ecr_registry \
     -a s3_store \
     -s sagemaker \
+    -e wandb_tracker
     --set
 ```
 
 <!-- If you have other cloud service providers like Azure or GCP, feel free to visit [this example](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training) for setting up the stack for the different remote backend. -->
 
-We created a stack named `sagemaker_stack_with_wandb` with the `StepOperator` component as sagemaker, and `wandb` as experiment tracker.
+We created a stack named `sagemaker_stack_with_wandb` with the `StepOperator` component as Sagemaker, and `wandb` as experiment tracker.
 
 Now you can run the `run_image_seg_pipeline.py` by the following command:
 
