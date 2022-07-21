@@ -5,38 +5,40 @@
 ## 🎯 Purpose
 The aim of this ZenFile is to show you how to use some of ZenML's features to build and deploy production ready machine-learning pipeline. 
 
-By the end you'll learn how to:
+By the end, you'll learn how to:
 - Use ZenML as a framework to develop and ship an image segmentation model.
-- Integrating third-party tools like wandb into ZenML.
-- Utilizing other features like caching, step operators to speed up your workflow.
+- Integrate third-party tools like `wandb` into ZenML.
+- Utilize other features like caching and step operators to speed up your workflow.
 
-## 💡 Introduction
+## 💡 The Big Picture
 In 2019, an estimated 5 million people were diagnosed with a cancer of the gastro-intestinal tract worldwide.
 One of the most common treatments for this type of cancer is by radiation therapy which involves delivering high doses of X-ray beams pointed to the tumors while avoiding the stomach and intestines.
 
 With technologies like MRI, doctors are now able to visualize the position of the tumors, stomach and intestines precisely to deliver the radiation.
-But, existing method requires the doctor to manually outline the position of stomach and intestines. 
 
-The image below shows the outlined position of the tumor and stomach.
+But here comes the tricky part.
+Before the radiation can be administered, doctors must manually outline the position of tumors, stomach and intestines.
+The outlining procedure is time-consuming and can delay treatment anywhere from 15 minutes to 1 hour daily.
+
+The image below shows an example of a manually outlined position of the tumor and stomach.
 
 ![mri](sample_image.jpg)
 
 The tumor is outlined in thick pink line and the stomach in thick red line.
 The radiation doses are represented by the rainbow of outlines, with higher doses represented by red and lower doses represented by green.
 
-The outlining procedure is time-consuming and can delay treatment anywhere from 15 minutes to 1 hour every day.
-Well, unless we can automate it, with deep learning.
 
-Cancer takes enough of a toll. If successful, we'll enable radiation oncologists to safely deliver higher doses of radiation to tumors while avoiding the stomach and intestines. This will make cancer patients' daily treatments faster and allow them to get more effective treatment with less side effects and better long-term cancer control.
+Cancer takes enough of a toll. If successful, we'll enable doctors to safely deliver higher doses of radiation to tumors while avoiding the stomach and intestines. 
+
+This accelerates the procedure and allows patients to get more effective treatment with less side effects and better long-term cancer control.
 
 ## 🖼 Dataset
-We will be segmenting organs cells in images. For that, we'll be using data from [UW-Madison GI Tract Image Segmentation Kaggle Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data).
+We will be segmenting organs cells in images. For that, we'll be using data from [UW-Madison GI Tract Image Segmentation Kaggle Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data). 
 
-The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with different annotations.
-
+The training examples consist of image-mask pair. The images are in 16-bit grayscale PNG format and the masks are in RLE-encoded format.
 
 ## ⚙ Installation
-Let's begin setting up by installling necessary Python packages. 
+Let's begin setting up by installing necessary Python packages. 
 
 In your terminal, run
 
@@ -46,7 +48,7 @@ cd zenfiles/image-segmentation
 pip install -r requirements.txt
 ```
 
-Let's also install the wandb integration
+Since we will be using [wandb](https://github.com/wandb/client) to monitor our experiments, let's also install the `wandb` integration
 
 ```bash
 zenml integration install -y wandb
