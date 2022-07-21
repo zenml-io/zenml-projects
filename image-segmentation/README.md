@@ -2,32 +2,43 @@
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
+## 🎯 Purpose
+The aim of this ZenFile is to show you how to use some of ZenML's features to build and deploy production ready machine-learning pipeline. 
+
+By the end you'll learn how to:
+- Use ZenML as a framework to develop and ship an image segmentation model.
+- Integrating third-party tools like wandb into ZenML.
+- Utilizing other features like caching, step operators to speed up your workflow.
+
 ## 💡 Introduction
 In 2019, an estimated 5 million people were diagnosed with a cancer of the gastro-intestinal tract worldwide.
 One of the most common treatments for this type of cancer is by radiation therapy which involves delivering high doses of X-ray beams pointed to the tumors while avoiding the stomach and intestines.
 
 With technologies like MRI, doctors are now able to visualize the position of the tumors, stomach and intestines precisely to deliver the radiation.
-But, existing method requires the doctor to manually outline the position of stomach and intestines as shown below.
+But, existing method requires the doctor to manually outline the position of stomach and intestines. 
+
+The image below shows the outlined position of the tumor and stomach.
 
 ![mri](sample_image.jpg)
 
-In the figure above the tumor is outlined in pink thick line and the stomach in red thick line.
-The radiation dose levels are represented by the rainbow of outlines, with higher doses represented by red and lower doses represented by green.
+The tumor is outlined in thick pink line and the stomach in thick red line.
+The radiation doses are represented by the rainbow of outlines, with higher doses represented by red and lower doses represented by green.
 
+The outlining procedure is time-consuming and can delay treatment anywhere from 15 minutes to 1 hour every day.
+Well, unless we can automate it, with deep learning.
 
-**Problem statement**: We will create a model to automatically segment the stomach and intestines on Magnetic resonance imaging (MRI) scans. We will be using data from [UW-Madison GI Tract Image Segmentation Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data) to build our model. This competition asks us to segment organ cells in images of the stomach and intestines. If you'd like to know more about the problem statement, please visit the [competiton page](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation).
+Cancer takes enough of a toll. If successful, we'll enable radiation oncologists to safely deliver higher doses of radiation to tumors while avoiding the stomach and intestines. This will make cancer patients' daily treatments faster and allow them to get more effective treatment with less side effects and better long-term cancer control.
+
+## 🖼 Dataset
+We will be segmenting organs cells in images. For that, we'll be using data from [UW-Madison GI Tract Image Segmentation Kaggle Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data).
 
 The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with different annotations.
 
-The aim is not to win this competition but to show you the power of the ZenML and how it can ease the whole process with its amazing features like caching, easily switching stacks, training on different cloud service providers, and so on. The purpose of this repository is to demonstrate how ZenML empowers your business to build and deploy machine learning pipelines even on computer vision tasks in a multitude of ways:
 
-- By offering you a framework or template to develop within.
-- By Integrating with popular tools like `wandb` for experiment tracking.
-- By using amazing features of ZenML like caching, training on cloud using step operators, and so on.
+## ⚙ Installation
+Let's begin setting up by installling necessary Python packages. 
 
-## :snake: Python Requirements
-
-Let's jump into the Python packages you need. Within the Python environment of your choice, run:
+In your terminal, run
 
 ```bash
 git clone https://github.com/zenml-io/zenfiles.git
@@ -35,7 +46,7 @@ cd zenfiles/image-segmentation
 pip install -r requirements.txt
 ```
 
-We also need to install the following ZenML integrations for this project:
+Let's also install the wandb integration
 
 ```bash
 zenml integration install -y wandb
