@@ -93,7 +93,7 @@ class RLEUtils:
     def rle_encode(img):
         """
         img: numpy array, 1 - mask, 0 - background
-        Returns run length as string formated
+        Returns run length as string formatted
         """
         pixels = img.flatten()
         pixels = np.concatenate([[0], pixels, [0]])
