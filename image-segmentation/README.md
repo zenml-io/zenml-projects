@@ -54,36 +54,67 @@ Since we will be using [wandb](https://github.com/wandb/client) to monitor our e
 zenml integration install -y wandb
 ```
 
-## 📙 Resources & References
+## 🛠 Defining Pipeline and Steps
+First let's define our `pipeline` and the `steps` in it.
 
-Please read the blog introducing this project in detail: [Segmenting stomach and Intestines in MRI Scan](#).
+To do that, let's create a file in `pipelines/` folder and name it `image_seg_pipeline.py`.
+In this file we define a simple function `image_segmentation_pipeline` and put the `@pipeline` decorator above the function. This tells ZenML that the function is a pipeline.
 
-# :thumbsup: The Solution
+```python
+@pipeline(enable_cache=True, required_integrations=[WANDB])
+def image_segmentation_pipeline(
+    prepare_df,
+    create_stratified_fold,
+    augment_df,
+    ..
+): 
 
-To build a model which will segment stomach and intestine from MRI scans & setting this in real-world workflow, we will build a reproducible pipeline using ZenML for this task; we will be using step operators for training on the cloud (I will be using AWS but feel free to choose your favorite cloud provider.), we will also make use of ZenML's wandb integration for experiment tracking.
+    df = prepare_df() # Step 1
+    fold_dfs = create_stratified_fold(df) # Step 2
+    data_transforms = augment_df() # Step 3
+    ..
+    ..
+    ..
+```
 
-Our training pipeline `run_image_seg_pipeline.py` will be built using the following steps:-
+The argument `enable_cache=True` will enable caching for all the runs in the pipeline.
+The `required_integrations` argument specifies the ZenML integration required to run the pipeline.
+In this example, we will be using the `wandb` integration to track our experiments. 
 
-- `prepare_df`: This step will read the data and prepare it for the pipeline.
-- `create_stratified_fold`: This step creates stratified k folds.
-- `augment_df`: This step returns a dictionary of data transforms( the transformation we need to apply to our data).
+See the full pipeline function definition [here](./pipelines/run_image_seg_pipeline.py).
+
+We can then define all the `steps` within the function -
+
+- `prepare_df`: Reads and pre-processes data into the right format.
+- `create_stratified_fold`: Creates stratified K-folds.
+- `augment_df`: This step returns a dictionary of data transforms (the transformation we need to apply to our data).
 - `prepare_dataloaders`: This step takes in the dataframe, and the data transforms and returns the train and validation dataloaders.
-- `initiate_model_and_optimizer`: This step returns (U-Net model, Adam optimizer, Configured scheduler).
-- `train_model`: a step that takes the model, optimizer, scheduler, train_loader, and valid_loader and returns the trained model and history.
+- `initialize_model_and_optimizer`: This step initializes the U-Net model, Adam optimizer, scheduler.
+- `train_model`: Starts training and returns the trained model and history.
 
-We need to train the models in a remote environment, so we need to use `StepOperator` to run your training jobs on remote backends. For this project, we will be using sagemaker as our remote backend to run our training jobs. We have several types of `StepOperator,` and each step operator has its own prerequisites. Before running this project, you must set up the individual cloud providers in a certain way. The complete guide for `StepOperators` in the [docs](https://docs.zenml.io/advanced-guide/cloud/step-operators).
 
-Let's first create a sagemaker stack; you can create it by following commands:-
+## 🏋️‍♀️ Running the Pipeline
+With a defined pipeline, we can choose to run them locally or on the cloud.
+Depending on the infrastructure of choice, we will use different stacks and components to run the pipeline.
+
+In this example, we will run all steps locally, except for the training step which will run on the Sagemaker cloud provider.
+
+ZenML make this possible with the `StepOperator` stack component. 
+The `StepOperator` component allows us to run individual `steps` on a specialized environment not available locally.
+With this, you can run the `pipeline` on a local CPU but offload only the training `step` to a cloud GPU and return the results locally when training completes.
+More on `StepOperator` [here](https://docs.zenml.io/v/docs/mlops-stacks/step-operators).
+
+In this example we will use Sagemaker as our cloud provider of choice for the training job.
+
+But before we can use them, we must install the `aws` integrations by
 
 ```bash
-# install ZenML integrations
-zenml integration install aws s3
+zenml integration install aws -y
+```
 
-zenml artifact-store register s3_store \
-    --flavor=s3 \
-    --path=<S3_BUCKET_PATH>
+and register the Sagemaker `StepOperator` with
 
-# create the sagemaker step operator
+```
 zenml step-operator register sagemaker \
     --flavor=sagemaker \
     --role=<SAGEMAKER_ROLE> \
@@ -91,11 +122,50 @@ zenml step-operator register sagemaker \
     --base_image=<CUSTOM_BASE_IMAGE>
     --bucket_name=<S3_BUCKET_NAME>
     --experiment_name=<SAGEMAKER_EXPERIMENT_NAME>
+```
 
-# register the container registry
+
+In ZenML all data that pass through a pipeline is cached and stored. The stored data are called artifacts.
+By default, artifacts are stored locally. But in this example we'd like to store them on an Amazon S3 bucket.
+
+To do that, we must install the `s3` ZenML integration
+
+```
+zenml integration install s3 -y
+```
+
+And register the artifact store
+
+```
+zenml artifact-store register s3_store \
+    --flavor=s3 \
+    --path=<S3_BUCKET_PATH>
+```
+
+And the container registry
+
+```
 zenml container-registry register ecr_registry --flavor=aws --uri=<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
+```
 
-# register and activate the sagemaker stack
+To use wandb let's install the `wandb` integration
+
+```
+zenml integration install wandb -y
+```
+
+and register it
+
+```bash
+zenml experiment-tracker register wandb_tracker --type=wandb \
+    --api_key=<WANDB_API_KEY> \
+    --entity=<WANDB_ENTITY> \
+    --project_name=<WANDB_PROJECT_NAME>
+```
+
+Finally, we can register and activate our stack.
+
+```
 zenml stack register sagemaker_stack \
     -m default \
     -o default \
@@ -105,29 +175,7 @@ zenml stack register sagemaker_stack \
     --set
 ```
 
-If you have other cloud service providers like Azure or GCP, feel free to visit [this example](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training) for setting up the stack for the different remote backend.
-
-We also need to integrate Weights & Biases tracking into our pipeline; we can create the stack with the wandb experiment tracker component by the following command:
-
-```bash
-zenml experiment-tracker register wandb_tracker --type=wandb \
-    --api_key=<WANDB_API_KEY> \
-    --entity=<WANDB_ENTITY> \
-    --project_name=<WANDB_PROJECT_NAME>
-```
-
-Now we can register a new stack with our experiment tracker component using the following command:
-
-```bash
-zenml stack register sagemaker_stack_with_wandb \
-    -m default \
-    -o default \
-    -c ecr_registry \
-    -a s3_store \
-    -s sagemaker \
-    -e wandb_tracker \
-    --set
-```
+<!-- If you have other cloud service providers like Azure or GCP, feel free to visit [this example](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training) for setting up the stack for the different remote backend. -->
 
 We created a stack named `sagemaker_stack_with_wandb` with the `StepOperator` component as sagemaker, and `wandb` as experiment tracker.
 
