@@ -75,7 +75,7 @@ class RLEUtils:
 
     def rle_decode(mask_rle, shape):
         """
-        mask_rle: run-length as string formated (start length)
+        mask_rle: run-length as string formatted (start length)
         shape: (height,width) of array to return
         Returns numpy array, 1 - mask, 0 - background
 
