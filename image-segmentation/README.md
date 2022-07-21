@@ -6,7 +6,7 @@
 
 The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with different annotations.
 
-Our aim is not to win this competition but to show you the power of the ZenML and how it can ease the whole process with its amazing features like caching, easily switching stacks, training on different cloud service providers, and so on. The purpose of this repository is to demonstrate how ZenML empowers your business to build and deploy machine learning pipelines even on computer vision tasks in a multitude of ways:
+The aim is not to win this competition but to show you the power of the ZenML and how it can ease the whole process with its amazing features like caching, easily switching stacks, training on different cloud service providers, and so on. The purpose of this repository is to demonstrate how ZenML empowers your business to build and deploy machine learning pipelines even on computer vision tasks in a multitude of ways:
 
 - By offering you a framework or template to develop within.
 - By Integrating with popular tools like `wandb` for experiment tracking.
