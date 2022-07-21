@@ -5,10 +5,12 @@
 ## 🎯 Purpose
 The aim of this ZenFile is to show you how to use some of ZenML's features to build and deploy production ready machine-learning pipeline. 
 
-By the end, you'll learn how to:
-- Use ZenML as a framework to develop and ship an image segmentation model.
+By the end, you'll learn how to -
+- Use ZenML as a framework to develop and a PyTorch image segmentation model.
 - Integrate third-party tools like `wandb` into ZenML.
-- Utilize other features like caching and step operators to speed up your workflow.
+- Use step operator to offload a training job to a cloud provider.
+- Utilize other features like caching to speed up your workflow. 
+
 
 ## 💡 The Big Picture
 In 2019, an estimated 5 million people were diagnosed with a cancer of the gastro-intestinal tract worldwide.
