@@ -2,6 +2,19 @@
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zenml)](https://pypi.org/project/zenml/)
 
+## 💡 Introduction
+In 2019, an estimated 5 million people were diagnosed with a cancer of the gastro-intestinal tract worldwide.
+One of the most common treatments for this type of cancer is by radiation therapy which involves delivering high doses of X-ray beams pointed to the tumors while avoiding the stomach and intestines.
+
+With technologies like MRI, doctors are now able to visualize the position of the tumors, stomach and intestines precisely to deliver the radiation.
+But, existing method requires the doctor to manually outline the position of stomach and intestines as shown below.
+
+![mri](sample_image.jpg)
+
+In the figure above the tumor is outlined in pink thick line and the stomach in red thick line.
+The radiation dose levels are represented by the rainbow of outlines, with higher doses represented by red and lower doses represented by green.
+
+
 **Problem statement**: We will create a model to automatically segment the stomach and intestines on Magnetic resonance imaging (MRI) scans. We will be using data from [UW-Madison GI Tract Image Segmentation Competiton](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation/data) to build our model. This competition asks us to segment organ cells in images of the stomach and intestines. If you'd like to know more about the problem statement, please visit the [competiton page](https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation).
 
 The training annotations are provided as RLE-encoded masks, and the images are in 16-bit grayscale PNG format. Training data has several cases for each image, each with different annotations.
