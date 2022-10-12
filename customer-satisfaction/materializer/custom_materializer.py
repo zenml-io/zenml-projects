@@ -2,7 +2,7 @@ import os
 import pickle
 from typing import Any, Type, Union
 
-import numpy as np
+import numpy
 import pandas as pd
 from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
@@ -19,22 +19,22 @@ class cs_materializer(BaseMaterializer):
     Custom materializer for the Customer Satisfaction Zenfile
     """
 
-    ASSOCIATED_TYPES = [
+    ASSOCIATED_TYPES = (
         str,
-        np.ndarray,
+        numpy.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
         RandomForestRegressor,
         LGBMRegressor,
         XGBRegressor,
-    ]
+    )
 
     def handle_input(
         self, data_type: Type[Any]
     ) -> Union[
         str,
-        np.ndarray,
+        numpy.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
@@ -58,7 +58,7 @@ class cs_materializer(BaseMaterializer):
         self,
         obj: Union[
             str,
-            np.ndarray,
+            numpy.ndarray,
             pd.Series,
             pd.DataFrame,
             CatBoostRegressor,

@@ -4,14 +4,15 @@ import mlflow
 import pandas as pd
 from model.model_dev import ModelTraining
 from sklearn.base import RegressorMixin
-from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
+from zenml.client import Client
 from zenml.steps import Output, step
 
 from .config import ModelNameConfig
 
 
-@enable_mlflow
-@step
+experiment_tracker = Client().active_stack.experiment_tracker
+
+@step(experiment_tracker=experiment_tracker.name)
 def train_model(
     x_train: pd.DataFrame,
     x_test: pd.DataFrame,
