@@ -20,7 +20,7 @@ cd zenfiles/customer-satisfaction
 pip install -r requirements.txt
 ```
 
-Starting from ZenML 0.20 ZenML comes bundled with React-based dashboard. This has dashboard will allow you 
+Starting from ZenML 0.20.0 ZenML comes bundled with React-based dashboard. This has dashboard will allow you 
 to observe the stacks, stack components and pipelines DAG's in UI based interface. 
 you need to [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml).
 For this, you need to install the optional dependencies for the ZenML Server:

@@ -2,7 +2,7 @@ import os
 import pickle
 from typing import Any, Type, Union
 
-import numpy
+import numpy as np
 import pandas as pd
 from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
@@ -21,7 +21,7 @@ class cs_materializer(BaseMaterializer):
 
     ASSOCIATED_TYPES = (
         str,
-        numpy.ndarray,
+        np.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
@@ -34,7 +34,7 @@ class cs_materializer(BaseMaterializer):
         self, data_type: Type[Any]
     ) -> Union[
         str,
-        numpy.ndarray,
+        np.ndarray,
         pd.Series,
         pd.DataFrame,
         CatBoostRegressor,
@@ -58,7 +58,7 @@ class cs_materializer(BaseMaterializer):
         self,
         obj: Union[
             str,
-            numpy.ndarray,
+            np.ndarray,
             pd.Series,
             pd.DataFrame,
             CatBoostRegressor,

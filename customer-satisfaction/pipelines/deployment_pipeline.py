@@ -116,9 +116,8 @@ def predictor(
     prediction = service.predict(data)
     return prediction
 
-docker_setting = DockerSettings(required_integrations=[MLFLOW])
 
-@pipeline(enable_cache=True, settings={'docker': docker_setting})
+@pipeline
 def continuous_deployment_pipeline(
     ingest_data,
     clean_data,
@@ -137,7 +136,7 @@ def continuous_deployment_pipeline(
 
 
 
-@pipeline(enable_cache=True, settings={'docker': docker_setting})
+@pipeline
 def inference_pipeline(
     dynamic_importer,
     prediction_service_loader,

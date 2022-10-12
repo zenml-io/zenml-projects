@@ -8,10 +8,7 @@ from sklearn.base import RegressorMixin
 from zenml.steps import Output, step
 from zenml.client import Client
 
-
-experiment_tracker = Client().active_stack.experiment_tracker
-
-@step(experiment_tracker=experiment_tracker.name)
+@step()
 def evaluation(
     model: RegressorMixin, x_test: pd.DataFrame, y_test: pd.Series
 ) -> Output(r2_score=float, rmse=float):

@@ -19,7 +19,9 @@ from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.steps import MLFlowDeployerParameters
 from zenml.services import load_last_service_from_step
 from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
-
+from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
+    MLFlowModelDeployer,
+)
 
 @click.command()
 @click.option(
@@ -60,7 +62,7 @@ def run_main(min_accuracy: float, stop_service: bool):
             params=MLFlowDeployerParameters(workers=3)
         ),
     )
-    deployment.run()
+    deployment.run(config_path='config.yaml')
 
     inference = inference_pipeline(
         dynamic_importer=dynamic_importer(),
@@ -82,16 +84,20 @@ def run_main(min_accuracy: float, stop_service: bool):
         "experiment. Here you'll also be able to compare the two runs.)"
     )
 
-    service = load_last_service_from_step(
+    model_deployer = MLFlowModelDeployer.get_active_model_deployer()
+
+    # fetch existing services with same pipeline name, step name and model name
+    service = model_deployer.find_model_server(
         pipeline_name="continuous_deployment_pipeline",
-        step_name="model_deployer",
+        pipeline_step_name="mlflow_model_deployer_step",
         running=True,
     )
-    if service:
+
+    if service[0]:
         print(
             f"The MLflow prediction server is running locally as a daemon process "
             f"and accepts inference requests at:\n"
-            f"    {service.prediction_url}\n"
+            f"    {service[0].prediction_url}\n"
             f"To stop the service, re-run the same command and supply the "
             f"`--stop-service` argument."
         )
