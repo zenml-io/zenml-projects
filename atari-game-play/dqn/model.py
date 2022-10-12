@@ -43,15 +43,12 @@ def process_frame(
     Returns:
         The processed frame
     """
-    frame = frame.astype(
-        np.uint8
-    )  # cv2 requires np.uint8, other dtypes will not work
-
+    
+    frame = frame.astype(np.uint8)  # cv2 requires np.uint8, other dtypes will not work
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     frame = frame[34 : 34 + 160, :160]  # crop image
     frame = cv2.resize(frame, shape, interpolation=cv2.INTER_NEAREST)
     frame = frame.reshape((*shape, 1))
-
     return frame
 
 
@@ -163,7 +160,7 @@ class GameWrapper:
 
         # For the initial state, we stack the first frame four times
         self.state = np.repeat(
-            process_frame(self.frame), self.history_length, axis=2
+            process_frame(self.frame[0]), self.history_length, axis=2
         )
 
     def step(
@@ -197,7 +194,7 @@ class GameWrapper:
             life_lost = terminal
         self.last_lives = info["lives"]
 
-        processed_frame = process_frame(new_frame)
+        processed_frame = process_frame(new_frame[0])
         self.state = np.append(self.state[:, :, 1:], processed_frame, axis=2)
 
         if render_mode == "rgb_array":

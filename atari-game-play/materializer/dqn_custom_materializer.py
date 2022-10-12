@@ -9,7 +9,7 @@ from dqn.model import Agent, GameWrapper, ReplayBuffer
 DEFAULT_FILENAME = "PyEnvironment"
 
 class dqn_materializer(BaseMaterializer):
-    ASSOCIATED_TYPES = [Agent, GameWrapper, ReplayBuffer]
+    ASSOCIATED_TYPES = (Agent, GameWrapper, ReplayBuffer)
 
     def handle_input(
         self, data_type: Type[Any]
