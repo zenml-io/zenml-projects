@@ -6,6 +6,3 @@ settings:
     required_integrations:
       - gcp
       - sklearn
-steps:
-  trainer:
-    step_operator: Optional[str]
