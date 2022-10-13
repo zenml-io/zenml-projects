@@ -19,7 +19,7 @@ def analyze_pipeline():
         ingest_data=ingest_data(),
         data_splitter=data_splitter(),
     )
-    analyze.run()
+    analyze.run(config_path="analysis_pipeline_config.yaml")
     visualize_statistics()
     visualize_train_test_statistics()
 
@@ -34,7 +34,7 @@ def training_pipeline_run():
         model_trainer=model_trainer(),
         evaluator=evaluation(),
     )
-    train_pipeline.run()
+    train_pipeline.run(config_path="training_pipeline_config.yaml")
 
 
 if __name__ == "__main__":

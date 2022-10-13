@@ -7,7 +7,7 @@ from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService
 from zenml.logger import get_logger
 from zenml.pipelines import pipeline
-from zenml.steps import BaseStepConfig, Output, step
+from zenml.steps import BaseParameters, Output, step
 
 logger = get_logger(__name__)
 import json
@@ -15,7 +15,7 @@ import json
 from .utils import get_data_for_test
 
 
-class DeploymentTriggerConfig(BaseStepConfig):
+class DeploymentTriggerConfig(BaseParameters):
     """Parameters that are used to trigger the deployment"""
 
     min_accuracy: float
@@ -31,15 +31,15 @@ def dynamic_importer() -> Output(data=pd.DataFrame):
 @step
 def deployment_trigger(
     accuracy: float,
-    config: DeploymentTriggerConfig,
+    params: DeploymentTriggerConfig,
 ) -> np.bool:
     """Implements a simple model deployment trigger that looks at the
     input model accuracy and decides if it is good enough to deploy"""
 
-    return accuracy > config.min_accuracy
+    return accuracy > params.min_accuracy
 
 
-class SeldonDeploymentLoaderStepConfig(BaseStepConfig):
+class SeldonDeploymentLoaderStepConfig(BaseParameters):
     """Seldon deployment loader configuration
     Attributes:
         pipeline_name: name of the pipeline that deployed the Seldon prediction
@@ -56,30 +56,30 @@ class SeldonDeploymentLoaderStepConfig(BaseStepConfig):
 
 @step(enable_cache=False)
 def prediction_service_loader(
-    config: SeldonDeploymentLoaderStepConfig,
+    params: SeldonDeploymentLoaderStepConfig,
 ) -> SeldonDeploymentService:
     """Get the prediction service started by the deployment pipeline"""
 
     model_deployer = SeldonModelDeployer.get_active_model_deployer()
 
     services = model_deployer.find_model_server(
-        pipeline_name=config.pipeline_name,
-        pipeline_step_name=config.step_name,
-        model_name=config.model_name,
+        pipeline_name=params.pipeline_name,
+        pipeline_step_name=params.step_name,
+        model_name=params.model_name,
     )
     if not services:
         raise RuntimeError(
             f"No Seldon Core prediction server deployed by the "
-            f"'{config.step_name}' step in the '{config.pipeline_name}' "
-            f"pipeline for the '{config.model_name}' model is currently "
+            f"'{params.step_name}' step in the '{params.pipeline_name}' "
+            f"pipeline for the '{params.model_name}' model is currently "
             f"running."
         )
 
     if not services[0].is_running:
         raise RuntimeError(
             f"The Seldon Core prediction server last deployed by the "
-            f"'{config.step_name}' step in the '{config.pipeline_name}' "
-            f"pipeline for the '{config.model_name}' model is not currently "
+            f"'{params.step_name}' step in the '{params.pipeline_name}' "
+            f"pipeline for the '{params.model_name}' model is not currently "
             f"running."
         )
 
@@ -128,11 +128,7 @@ def predictor(
     return predictions
 
 
-@pipeline(
-    enable_cache=False,
-    required_integrations=[SELDON, LIGHTGBM, SKLEARN, XGBOOST],
-    requirements="requirements.txt",
-)
+@pipeline
 def continuous_deployment_pipeline(
     ingest_data,
     encode_cat_cols,
@@ -154,11 +150,7 @@ def continuous_deployment_pipeline(
     model_deployer(deployment_decision, model)
 
 
-@pipeline(
-    enable_cache=False,
-    required_integrations=[SELDON, LIGHTGBM, SKLEARN, XGBOOST],
-    requirements_file="requirements.txt",
-)
+@pipeline
 def inference_pipeline(
     dynamic_importer,
     prediction_service_loader,

@@ -23,7 +23,7 @@ from zenml.integrations.seldon.services import (
     SeldonDeploymentService,
 )
 from zenml.integrations.seldon.steps import (
-    SeldonDeployerStepConfig,
+    SeldonDeployerStepParameters,
     seldon_model_deployer_step,
 )
 
@@ -73,12 +73,12 @@ def main(
             model_trainer=model_trainer(),
             evaluator=evaluation(),
             deployment_trigger=deployment_trigger(
-                config=DeploymentTriggerConfig(
+                params=DeploymentTriggerConfig(
                     min_accuracy=min_accuracy,
                 )
             ),
             model_deployer=seldon_model_deployer_step(
-                config=SeldonDeployerStepConfig(
+                params=SeldonDeployerStepParameters(
                     service_config=SeldonDeploymentConfig(
                         model_name=model_name,
                         replicas=1,
@@ -89,7 +89,7 @@ def main(
             ),
         )
 
-        deployment.run()
+        deployment.run(config_path="continuous_pipeline_config.yaml")
 
     if predict:
         # Initialize an inference pipeline run
@@ -104,7 +104,7 @@ def main(
             ),
             predictor=predictor(),
         )
-        inference.run()
+        inference.run(config_path="continuous_pipeline_config.yaml")
 
     services = model_deployer.find_model_server(
         pipeline_name=deployment_pipeline_name,
