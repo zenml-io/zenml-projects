@@ -1,4 +1,4 @@
-FROM zenmldocker/zenml:0.8.1
+FROM zenmldocker/zenml:0.20.2
 
 WORKDIR /app
 

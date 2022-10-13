@@ -51,16 +51,13 @@ pip install -r requirements.txt
 ZenML integrations:
 
 ```shell
-# if using ZenML v0.8.1
-zenml integration install -y sklearn gcp vertex
-
-# if using ZenML >0.9
 zenml integration install -y sklearn gcp
 ```
 
 Initialize ZenML repository:
 
 ```shell
+zenml up
 zenml init
 ```
 
@@ -231,7 +228,7 @@ zenml step-operator register <NAME> \
 # Example:
 zenml step-operator register vertex \
     --type=vertex \
-    --project=zenml-vertex-ai \
+    --project=zenml-core \
     --region=europe-west1 \
     --machine_type=n1-standard-4 \
     --base_image=zenmlcustom:0.1
@@ -252,7 +249,6 @@ Register the new stack (change names accordingly):
 
 ```shell
 zenml stack register vertex_training_stack \
-    -m default \
     -o default \
     -c gcr_registry \
     -a gcp-store \

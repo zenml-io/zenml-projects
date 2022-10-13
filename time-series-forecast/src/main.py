@@ -13,7 +13,7 @@ def pipeline_run():
         trainer=trainer(),
         evaluator=evaluator(),
     )
-    pipeline.run() 
+    pipeline.run(config_path="config.yaml") 
 
 if __name__ == "__main__":
     pipeline_run()
