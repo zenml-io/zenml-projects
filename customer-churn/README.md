@@ -40,7 +40,7 @@ We showcase two solutions to this problem:
 - `Deployment using Kubeflow Pipelines`: We will be using [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) to build and run our ZenML pipeline on the cloud and deploy it in a production environment.
 - `Continuous Deployment using Seldon Core`: We will be using [Seldon Core](https://docs.seldon.io/projects/seldon-core/en/latest/index.html), a production-grade open-source model serving platform, to build our continuous deployment pipeline that trains a model and then serves it with Seldon Core.
 
-## Deploy pipelines to production using Kubeflow Pipelines
+## Deploy pipelines to production using orchestrator Pipelines
 
 We will be using ZenML's [Kubeflow](https://github.com/zenml-io/zenml/tree/main/examples/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
 
@@ -60,7 +60,7 @@ Before going on next step, let's review some of the core concepts of ZenML:
 - **Container registry**: Some orchestrators will require you to containerize the steps of your pipeline. A container registry is a store for these (Docker) containers. A ZenML workflow involving a container registry will containerize your code and store the resulting container in the registry.
 - **Kubeflow orchestrator**: An orchestrator manages the running of each step of the pipeline, administering the actual pipeline runs. It controls how and where each step within a pipeline is executed.
 
-### Run the pipeline on a local orchestrator Pipelines deployment
+### Run the pipeline on a local orchestrator
 
 With all the installation and initialization out of the way, all that's left to do is configure our ZenML stack. For this example, the stack we create consists of the following four parts:
 
@@ -105,6 +105,7 @@ The flow to get started for this example can be the following:
     zenml stack recipe pull aws_minimal
     ```
 2. (Optional) 🎨 Customize your deployment by editing the default values in the `locals.tf` file.
+    This file contains all the variables that you can customize to your needs such as the AWS region, the Kubernetes cluster name, the S3 bucket name, etc.
 
 3. 🚀 Deploy the recipe with this simple command.
 
