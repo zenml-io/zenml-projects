@@ -1,0 +1,16 @@
+enable_cache: False
+extra:
+  tags: zenfile
+settings:
+  docker:
+    required_integrations:
+      - aws
+      - sklearn
+      - mlflow
+      - evidently
+      - kubeflow
+    requirements:
+      - nba-api
+steps:
+  trainer:
+      experiment_tracker: mlflow_tracker
