@@ -1,9 +1,9 @@
 from google.oauth2 import service_account
-from zenml.steps import step, BaseStepConfig
+from zenml.steps import step, BaseParameters
 import pandas_gbq
 import pandas as pd
 
-class BigQueryImporterConfig(BaseStepConfig):
+class BigQueryImporterConfig(BaseParameters):
     """Config class for Google BigQuery.
 
     Attributes:
