@@ -2,13 +2,15 @@ import pandas as pd
 import numpy as np
 from sklearn.base import RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
-from zenml.integrations.mlflow.mlflow_step_decorator import enable_mlflow
 from zenml.steps import step
-from zenml.steps.base_step_config import BaseStepConfig
+from zenml.steps import BaseParameters
+from zenml.client import Client
 import mlflow
 
+experiment_tracker = Client().active_stack.experiment_tracker
 
-class RandomForestTrainerConfig(BaseStepConfig):
+
+class RandomForestTrainerConfig(BaseParameters):
     """Config class for the sklearn trainer.
     
     Attributes:
@@ -19,9 +21,7 @@ class RandomForestTrainerConfig(BaseStepConfig):
     max_depth: int = 10000
     target_col: str = "FG3M"
 
-
-@enable_mlflow
-@step(enable_cache=False)
+@step(enable_cache=False, experiment_tracker=experiment_tracker.name)
 def random_forest_trainer(
     train_df_x: pd.DataFrame,
     train_df_y: pd.DataFrame,

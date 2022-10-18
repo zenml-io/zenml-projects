@@ -2,7 +2,7 @@ from sklearn.base import RegressorMixin
 
 from zenml.steps import step, StepContext
 from zenml.steps.step_output import Output
-
+from zenml.post_execution import get_pipeline
 
 @step
 def model_picker(
@@ -18,36 +18,35 @@ def model_picker(
         associated_run_id: The associated run ID of the training pipeline that 
         produced that mode.
     """
-    training_pipeline = context.metadata_store.get_pipeline(
-        pipeline_name="training_pipeline")
+    training_pipeline = get_pipeline(pipeline_name="training_pipeline")
+    last_run = training_pipeline.runs[-1]
 
     best_score = None
     best_model = None
     best_run = None
+    model = None
+    mae = None
 
-    for run in training_pipeline.runs:
-        model = None
-        mae = None
-        try:
-            mae = run.get_step(name="tester").output.read()
-            print(f"Run {run.name} yielded a model with mae={mae}")
-        except KeyError:
-            print(
-                f"Skipping {run.name} as it does not contain the tester step"
-            )
+    try:
+        mae = last_run.get_step(name="tester").output.read()
+        print(f"Run {last_run.name} yielded a model with mae={mae}")
+    except KeyError:
+        print(
+            f"Skipping {last_run.name} as it does not contain the tester step"
+        )
 
-        try:
-            model = run.get_step(name="trainer").output.read()
-        except KeyError:
-            print(
-                f"Skipping {run.name} as it does not contain the trainer step"
-            )
+    try:
+        model = last_run.get_step(name="trainer").output.read()
+    except KeyError:
+        print(
+            f"Skipping {last_run.name} as it does not contain the trainer step"
+        )
 
-        if mae and model:
-            if not best_score or (best_score and mae <= best_score):
-                best_model = model
-                best_score = mae
-                best_run = run.name
+    if mae and model:
+        if not best_score or (best_score and mae <= best_score):
+            best_model = model
+            best_score = mae
+            best_run = last_run.name
 
     print(
         f"Choosing model from pipeline run: {best_run} with mae of "

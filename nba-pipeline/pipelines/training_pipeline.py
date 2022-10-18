@@ -1,9 +1,11 @@
 from zenml.pipelines import pipeline
-from zenml.integrations.constants import AWS, KUBEFLOW, MLFLOW, EVIDENTLY, SKLEARN
+from zenml.integrations.constants import EVIDENTLY, SKLEARN, AWS, KUBEFLOW,MLFLOW
+from zenml.config import DockerSettings
 
 
-@pipeline(enable_cache=False, requirements_file='requirements_kubeflow.txt',
-          required_integrations=[AWS, KUBEFLOW, MLFLOW, EVIDENTLY, SKLEARN])
+docker_settings = DockerSettings(required_integrations=[EVIDENTLY, SKLEARN, AWS, KUBEFLOW, MLFLOW])
+
+@pipeline(enable_cache=False, settings={"docker": docker_settings})
 def training_pipeline(
     importer,
     feature_engineer,

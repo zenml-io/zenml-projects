@@ -38,7 +38,7 @@ from pipelines.prediction_pipeline import inference_pipeline
 
 
 last_week = date.today() - timedelta(days=7)
-ONE_WEEK_AGO = last_week.strftime("%Y-%m-%d")
+LAST_DATA_DATE = "2022-04-10"
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
 
@@ -54,13 +54,13 @@ def run_analysis():
         drift_analyzer=analyze_drift(),
     )
 
-    eda_pipeline.run()
+    eda_pipeline.run(config_path="data_analysis_config.yaml")
 
 
 def run_training():
     """Create a training pipeline run."""
     # Initialize the pipeline
-    train_pipe = training_pipeline(
+    training_pipeline(
         importer=game_data_importer(),
         # Train Model
         feature_engineer=feature_engineer(),
@@ -75,7 +75,7 @@ def run_training():
         # Drift detection
         drift_splitter=reference_data_splitter(
             TrainingSplitConfig(
-                new_data_split_date=ONE_WEEK_AGO,
+                new_data_split_date=LAST_DATA_DATE,
                 start_reference_time_frame=CURRY_FROM_DOWNTOWN,
                 end_reference_time_frame="2019-02-27",
                 columns=["FG3M"],
@@ -83,12 +83,9 @@ def run_training():
         ),
         drift_detector=evidently_drift_detector,
         drift_alert=discord_alert(),
+    ).run(
+        schedule=Schedule(start_time=datetime.now(), interval_second=600),
     )
-
-    train_pipe.run(
-        schedule=Schedule(start_time=datetime.now(), interval_second=600)
-    )
-
 
 def run_inference():
     """Create an inference pipeline run."""
