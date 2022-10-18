@@ -57,8 +57,8 @@ zenml integration install -y sklearn gcp
 Initialize ZenML repository:
 
 ```shell
-zenml up
 zenml init
+zenml up
 ```
 
 ## 👣  Step-by-Step on how to set up your GCP project
@@ -223,7 +223,6 @@ zenml step-operator register <NAME> \
     --project=<PROJECT-ID> \
     --region=<REGION> \
     --machine_type=<MACHINE-TYPE> \
-    --base_image=<CUSTOM_BASE_IMAGE> #this can be left out if you wish to use zenml's default image
 
 # Example:
 zenml step-operator register vertex \
@@ -231,7 +230,6 @@ zenml step-operator register vertex \
     --project=zenml-core \
     --region=europe-west1 \
     --machine_type=n1-standard-4 \
-    --base_image=zenmlcustom:0.1
 ```
 
 List of [available machines](https://cloud.google.com/vertex-ai/docs/training/configure-compute#machine-types)
