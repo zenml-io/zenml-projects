@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn import preprocessing
 
 from zenml.steps import StepContext
+from zenml.post_execution import get_pipeline
 
 
 def get_label_encoder(
@@ -22,7 +23,7 @@ def get_label_encoder(
     Return:
         label_encoder: The LabelEncoder used during training
     """
-    training_pipeline = context.metadata_store.get_pipeline(
+    training_pipeline = get_pipeline(
         pipeline_name=pipeline_name)
     return (
         training_pipeline.runs[-1]

@@ -2,11 +2,11 @@ import pandas as pd
 from nba_api.stats.endpoints import leaguegamelog
 
 from zenml.steps import step
-from zenml.steps.base_step_config import BaseStepConfig
+from zenml.steps import BaseParameters
 import time
 
 
-class ImporterConfig(BaseStepConfig):
+class ImporterConfig(BaseParameters):
     """Parameters for the `importer` step.
 
     Attributes:
@@ -61,7 +61,7 @@ def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
 import urllib.request, json
 
 
-class SeasonScheduleConfig(BaseStepConfig):
+class SeasonScheduleConfig(BaseParameters):
     """Config for the `import_season_schedule` step.
 
     Attributes:

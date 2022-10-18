@@ -1,8 +1,6 @@
 from zenml.pipelines import pipeline
-from zenml.integrations.constants import SKLEARN
 
-
-@pipeline(enable_cache=False, required_integrations=SKLEARN)
+@pipeline
 def inference_pipeline(
     importer,
     preprocessor,

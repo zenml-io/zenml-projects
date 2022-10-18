@@ -1,10 +1,11 @@
+from zenml.config import DockerSettings
+from zenml.integrations.constants import EVIDENTLY, SKLEARN
 from zenml.pipelines import pipeline
-from zenml.integrations.constants import SKLEARN
-
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
+docker_settings = DockerSettings(required_integrations=[EVIDENTLY, SKLEARN])
 
-@pipeline(required_integrations=SKLEARN)
+@pipeline(enable_cache=False, settings={"docker": docker_settings})
 def data_analysis_pipeline(
     importer, drift_splitter, drift_detector, drift_analyzer
 ):
@@ -20,22 +21,3 @@ def data_analysis_pipeline(
     reference_dataset, comparison_dataset = drift_splitter(raw_data)
     drift_report, _ = drift_detector(reference_dataset, comparison_dataset)
     drift_analyzer(drift_report)
-
-
-if __name__ == "__main__":
-    from steps.importer import game_data_importer
-    from steps.splitter import date_based_splitter, SplitConfig
-    from steps.analyzer import analyze_drift
-    from steps.profiler import evidently_drift_detector
-
-    # Initialize the pipeline
-    eda_pipeline = data_analysis_pipeline(
-        importer=game_data_importer(),
-        drift_splitter=date_based_splitter(
-            SplitConfig(date_split=CURRY_FROM_DOWNTOWN, columns=["FG3M"])
-        ),
-        drift_detector=evidently_drift_detector,
-        drift_analyzer=analyze_drift(),
-    )
-
-    eda_pipeline.run()

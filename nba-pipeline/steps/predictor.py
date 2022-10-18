@@ -27,9 +27,7 @@ def predictor(
     feature_cols = model.feature_names_in_
 
     data = data[feature_cols]
-
     predicted_y = model.predict(data)
-
     data["PREDICTION"] = predicted_y
 
     data["SEASON_ID"] = le_seasons.inverse_transform(data["SEASON_ID"])
