@@ -3,10 +3,10 @@ import pandas as pd
 from typing import List
 
 from zenml.steps import step
-from zenml.steps.base_step_config import BaseStepConfig
+from zenml.steps import BaseParameters
 
 
-class FeatureEngineererConfig(BaseStepConfig):
+class FeatureEngineererConfig(BaseParameters):
     """Config class for the sklearn splitter.
     
     Attributes:

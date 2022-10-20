@@ -1,7 +1,7 @@
-from zenml.steps import BaseStepConfig
+from zenml.steps import BaseParameters
 
 
-class PreTrainingConfigs(BaseStepConfig):
+class PreTrainingConfigs(BaseParameters):
     # The configuration for the pre-training of the agent
     ENV_NAME: str = "BreakoutDeterministic-v4"
 

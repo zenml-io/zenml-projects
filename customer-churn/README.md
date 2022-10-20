@@ -262,13 +262,13 @@ associated with the proper I.A.M. role and policies to access the S3 bucket, you
 use in-cluster authentication:
 
 ```bash
-zenml secret register -s seldon_s3 aws_store --rclone_config_s3_env_auth=True
+zenml secrets-manager secret register -s seldon_s3 aws_store --rclone_config_s3_env_auth=True
 ```
 
 If you need explicit credentials, you can a command like the following:
 
 ```bash
-zenml secret register -s seldon_s3 aws_store \
+zenml secrets-manager secret register -s seldon_s3 aws_store \
     --rclone_config_s3_env_auth=False \
     --rclone_config_s3_access_key_id=<aws-key-id> \
     --rclone_config_s3_secret_access_key=<aws-secret-key> \
@@ -293,18 +293,18 @@ Now, you can go to the [localhost:8080](http://localhost:8080/#/runs) to see the
 UI (same as the previous step, your port value may differ).
 
 You can also list the list of models served with Seldon Core by running
-`zenml served-models list` and inspect them with `zenml served-models describe`.
+`zenml model-deployer models list` and inspect them with `zenml model-deployer models describe`.
 For example:
 
 ```bash
-$ zenml served-models list
+$ zenml model-deployer models list
 ┏━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━┓
 ┃ STATUS │ UUID                                 │ PIPELINE_NAME                  │ PIPELINE_STEP_NAME         │ MODEL_NAME ┃
 ┠────────┼──────────────────────────────────────┼────────────────────────────────┼────────────────────────────┼────────────┨
 ┃   ✅   │ 3ef6c58b-793d-4f85-8edd-aad961717f90 │ continuous_deployment_pipeline │ seldon_model_deployer_step │ model      ┃
 ┗━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━┛
 
-$ zenml served-models describe 3ef6c58b-793d-4f85-8edd-aad961717f90
+$ zenml model-deployer models describe 3ef6c58b-793d-4f85-8edd-aad961717f90
                                                              Properties of Served Model 3ef6c58b-793d-4f85-8edd-aad961717f90                                                              
 ┏━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ MODEL SERVICE PROPERTY │ VALUE                                                                                                                                                         ┃
