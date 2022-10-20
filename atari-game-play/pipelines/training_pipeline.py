@@ -1,7 +1,12 @@
+from zenml.config import DockerSettings
+from zenml.integrations.constants import TENSORFLOW
 from zenml.pipelines import pipeline
 
 
-@pipeline
+docker_settings = DockerSettings(required_integrations=[TENSORFLOW])
+
+
+@pipeline(settings={"docker": docker_settings})
 def train_pipeline(
     game_wrap, build_dqn, replay_buffer, agent, get_information_meta, train
 ):
