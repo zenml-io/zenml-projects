@@ -1,0 +1,7 @@
+enable_cache: False
+extra:
+  tags: zenfile
+settings:
+  docker:
+    required_integrations:
+      - sklearn

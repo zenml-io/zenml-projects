@@ -16,7 +16,7 @@ def train(
     rewards: list,
     frame_number: int,
     agent: Agent,
-):
+) -> None:
     """
     We initialize the agent, the game environment, and the TensorBoard writer. Then, we train the agent
     until the game is over.

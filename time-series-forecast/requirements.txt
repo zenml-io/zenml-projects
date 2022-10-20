@@ -1,3 +1,3 @@
-zenml==0.8.1
+zenml==0.20.2
 pandas-gbq==0.17.5
 tqdm

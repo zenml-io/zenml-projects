@@ -1,7 +1,6 @@
 from zenml.pipelines import pipeline
-from zenml.integrations.constants import GCP, VERTEX, SKLEARN
 
-@pipeline(enable_cache=False, required_integrations=[GCP,VERTEX,SKLEARN])
+@pipeline
 def time_series_pipeline(
     bigquery_importer,
     preparator,
