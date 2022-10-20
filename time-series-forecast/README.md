@@ -271,7 +271,7 @@ python main.py
 
 # 📜 References
 
-Documentation on [Step Operators](https://docs.zenml.io/mlops-stacks/step-operators)
+Documentation on [Step Operators](https://docs.zenml.io/component-gallery/step-operators)
 
 Example of [Step Operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 
