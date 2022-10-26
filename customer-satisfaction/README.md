@@ -20,6 +20,14 @@ cd zenfiles/customer-satisfaction
 pip install -r requirements.txt
 ```
 
+Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you 
+to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml), but first you must install the optional dependencies for the ZenML server:
+
+```bash
+pip install zenml["server"]
+zenml up
+```
+
 If you are running the `run_deployment.py` script, you will also need to install some integrations using ZenML:
 
 ```bash
@@ -29,10 +37,9 @@ The zenfile can only be executed with a ZenML stack that has an MLflow experimen
 
 ```bash
 zenml integration install mlflow -y
-zenml stack set default
 zenml experiment-tracker register mlflow_tracker --flavor=mlflow
 zenml model-deployer register mlflow --flavor=mlflow
-zenml stack update default -d mlflow -e mlflow_tracker
+zenml stack register mlflow_stack -a default -o default -d mlflow -e mlflow_tracker --set
 ```
 
 ## 📙 Resources & References

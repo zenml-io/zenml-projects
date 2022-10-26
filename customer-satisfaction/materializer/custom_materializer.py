@@ -19,7 +19,7 @@ class cs_materializer(BaseMaterializer):
     Custom materializer for the Customer Satisfaction Zenfile
     """
 
-    ASSOCIATED_TYPES = [
+    ASSOCIATED_TYPES = (
         str,
         np.ndarray,
         pd.Series,
@@ -28,7 +28,7 @@ class cs_materializer(BaseMaterializer):
         RandomForestRegressor,
         LGBMRegressor,
         XGBRegressor,
-    ]
+    )
 
     def handle_input(
         self, data_type: Type[Any]
