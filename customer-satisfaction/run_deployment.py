@@ -2,7 +2,7 @@ import click
 from materializer.custom_materializer import cs_materializer
 from pipelines.deployment_pipeline import (
     DeploymentTriggerConfig,
-    MLFlowDeploymentLoaderStepConfig,
+    MLFlowDeploymentLoaderStepParameters,
     continuous_deployment_pipeline,
     deployment_trigger,
     dynamic_importer,
@@ -16,10 +16,12 @@ from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
 from steps.model_train import train_model
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
-from zenml.integrations.mlflow.steps import MLFlowDeployerConfig
+from zenml.integrations.mlflow.steps import MLFlowDeployerParameters
 from zenml.services import load_last_service_from_step
 from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
-
+from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
+    MLFlowModelDeployer,
+)
 
 @click.command()
 @click.option(
@@ -39,7 +41,7 @@ def run_main(min_accuracy: float, stop_service: bool):
     if stop_service:
         service = load_last_service_from_step(
             pipeline_name="continuous_deployment_pipeline",
-            step_name="model_deployer",
+            step_name="mlflow_model_deployer_step",
             running=True,
         )
         if service:
@@ -47,29 +49,27 @@ def run_main(min_accuracy: float, stop_service: bool):
         return
 
     deployment = continuous_deployment_pipeline(
-        ingest_data(),
-        clean_data().with_return_materializers(cs_materializer),
-        train_model(),
-        evaluation(),
+        ingest_data = ingest_data(),
+        clean_data = clean_data(),
+        model_train = train_model(),
+        evaluation = evaluation(),
         deployment_trigger=deployment_trigger(
             config=DeploymentTriggerConfig(
                 min_accuracy=min_accuracy,
             )
         ),
         model_deployer=mlflow_model_deployer_step(
-            config=MLFlowDeployerConfig(workers=3)
+            params=MLFlowDeployerParameters(workers=3)
         ),
     )
-    deployment.run()
+    deployment.run(config_path='config.yaml')
 
     inference = inference_pipeline(
-        dynamic_importer=dynamic_importer().with_return_materializers(
-            cs_materializer
-        ),
+        dynamic_importer=dynamic_importer(),
         prediction_service_loader=prediction_service_loader(
-            MLFlowDeploymentLoaderStepConfig(
+            MLFlowDeploymentLoaderStepParameters(
                 pipeline_name="continuous_deployment_pipeline",
-                step_name="model_deployer",
+                step_name="mlflow_model_deployer_step",
             )
         ),
         predictor=predictor(),
@@ -84,16 +84,20 @@ def run_main(min_accuracy: float, stop_service: bool):
         "experiment. Here you'll also be able to compare the two runs.)"
     )
 
-    service = load_last_service_from_step(
+    model_deployer = MLFlowModelDeployer.get_active_model_deployer()
+
+    # fetch existing services with same pipeline name, step name and model name
+    service = model_deployer.find_model_server(
         pipeline_name="continuous_deployment_pipeline",
-        step_name="model_deployer",
+        pipeline_step_name="mlflow_model_deployer_step",
         running=True,
     )
-    if service:
+
+    if service[0]:
         print(
             f"The MLflow prediction server is running locally as a daemon process "
             f"and accepts inference requests at:\n"
-            f"    {service.prediction_url}\n"
+            f"    {service[0].prediction_url}\n"
             f"To stop the service, re-run the same command and supply the "
             f"`--stop-service` argument."
         )

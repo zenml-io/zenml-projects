@@ -20,6 +20,14 @@ cd zenfiles/customer-satisfaction
 pip install -r requirements.txt
 ```
 
+Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you 
+to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml), but first you must install the optional dependencies for the ZenML server:
+
+```bash
+pip install zenml["server"]
+zenml up
+```
+
 If you are running the `run_deployment.py` script, you will also need to install some integrations using ZenML:
 
 ```bash
@@ -29,10 +37,9 @@ The zenfile can only be executed with a ZenML stack that has an MLflow experimen
 
 ```bash
 zenml integration install mlflow -y
-zenml stack set default
 zenml experiment-tracker register mlflow_tracker --flavor=mlflow
 zenml model-deployer register mlflow --flavor=mlflow
-zenml stack update default -d mlflow -e mlflow_tracker
+zenml stack register mlflow_stack -a default -o default -d mlflow -e mlflow_tracker --set
 ```
 
 ## 📙 Resources & References
@@ -85,7 +92,7 @@ service = load_last_service_from_step(
 service.predict(...)  # Predict on incoming data from the application
 ```
 
-While this ZenFile trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://github.com/zenml-io/zenml/tree/main/examples/) deployer can also be used in a similarly manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
+While this ZenFile trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment) deployer can also be used in a similarly manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
 
 ![training_and_deployment_pipeline](_assets/training_and_deployment_pipeline_updated.png)
 

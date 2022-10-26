@@ -7,19 +7,16 @@ from steps.model_train import train_model
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
 
-def run_training():
+if __name__ == "__main__":
+    
     training = train_pipeline(
         ingest_data(),
-        clean_data().with_return_materializers(cs_materializer),
+        clean_data(),
         train_model(),
         evaluation(),
     )
 
     training.run()
-
-
-if __name__ == "__main__":
-    run_training()
 
     print(
         "Now run \n "

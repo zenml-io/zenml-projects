@@ -1,0 +1,12 @@
+enable_cache: True
+extra:
+  tags: zenfile
+settings:
+  docker:
+    required_integrations:
+      - mlflow
+steps: 
+  model_train:
+    experiment_tracker: mlflow_tracker
+  evaluation:
+    experiment_tracker: mlflow_tracker

@@ -1,7 +1,7 @@
-from zenml.steps import BaseStepConfig
+from zenml.steps import BaseParameters
 
 
-class ModelNameConfig(BaseStepConfig):
+class ModelNameConfig(BaseParameters):
     """Model Configurations"""
 
     model_name: str = "lightgbm"
