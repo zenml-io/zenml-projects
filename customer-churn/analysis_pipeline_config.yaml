@@ -1,0 +1,14 @@
+enable_cache: True
+extra:
+  tags: zenfile
+settings:
+  docker:
+    required_integrations:
+      - facets
+      - lightgbm
+      - xgboost
+    requirements:
+      - statsmodels
+      - optuna
+      - statsmodels
+      - feature_engine

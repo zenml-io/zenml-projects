@@ -1,15 +1,10 @@
-from zenml.integrations.constants import FACETS, LIGHTGBM, XGBOOST
 from zenml.logger import get_logger
 from zenml.pipelines import pipeline
 
 logger = get_logger(__name__)
 
 
-@pipeline(
-    enable_cache=False,
-    required_integrations=[FACETS, LIGHTGBM, XGBOOST],
-    requirements="requirements.txt",
-)
+@pipeline
 def training_pipeline(
     ingest_data,
     encode_cat_cols,

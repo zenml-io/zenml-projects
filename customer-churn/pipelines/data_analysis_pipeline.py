@@ -1,12 +1,7 @@
-from zenml.integrations.constants import FACETS, LIGHTGBM, XGBOOST
 from zenml.pipelines import pipeline
 
 
-@pipeline(
-    enable_cache=False,
-    required_integrations=[FACETS, LIGHTGBM, XGBOOST],
-    requirements="requirements.txt"
-)
+@pipeline
 def data_analysis_pipeline(ingest_data, data_splitter):
     """Pipeline for analyzing data.
 

@@ -2,14 +2,14 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.model_selection import train_test_split
 from zenml.logger import get_logger
-from zenml.steps import BaseStepConfig, Output, step
+from zenml.steps import BaseParameters, Output, step
 
 from .src.tree_based_models import TreeBasedModels
 
 logger = get_logger(__name__)
 
 
-class ModelNameConfig(BaseStepConfig):
+class ModelNameConfig(BaseParameters):
     """Model Configurations"""
 
     model_name: str = "randomforest"

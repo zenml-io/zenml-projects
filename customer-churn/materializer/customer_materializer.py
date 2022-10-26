@@ -3,13 +3,14 @@ import pickle
 from typing import Any, Type, Union
 
 import pandas as pd
+import numpy as np
 from steps.src.log_reg import LogisticRegression
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 
 DEFAULT_FILENAME = "CustomerChurnEnvironment"
 
-import numpy as np
+
 
 
 class cs_materializer(BaseMaterializer):
@@ -17,11 +18,11 @@ class cs_materializer(BaseMaterializer):
     Custom materializer for the Customer Satisfaction Zenfile
     """
 
-    ASSOCIATED_TYPES = [
+    ASSOCIATED_TYPES = (
         np.float64,
         pd.Series,
         LogisticRegression,
-    ]
+    )
 
     def handle_input(
         self, data_type: Type[Any]

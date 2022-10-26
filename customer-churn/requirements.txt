@@ -1,4 +1,4 @@
 feature_engine==1.2.0
 statsmodels
-zenml==0.8.1
+zenml==0.20.5
 optuna
