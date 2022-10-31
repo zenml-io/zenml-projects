@@ -8,7 +8,7 @@ In the real world, building reinforcement learning applications can be challengi
 
 A fully trained agent that plays Atari Breakout, will look like this: ```
 
-![](/_assets/demo.gif)
+![](../_assets/demo.gif)
 
 ## 🐍 Python Requirements
 
