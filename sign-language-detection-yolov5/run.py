@@ -21,7 +21,7 @@ if __name__ == "__main__":
         data_loader=data_loader(),
         train_augmenter=train_augmenter(),
         valid_augmenter=valid_augmenter(),
-        trainer=trainer(),
+        trainer=trainer(), # .configure(output_materializers=Yolov5ModelMaterializer),
         detector=detector(),
     )
     pipeline_instance.run()

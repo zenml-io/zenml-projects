@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 import numpy as np
 from roboflow import Roboflow
 from zenml.steps import step, BaseParameters, Output
+#from zenml.materializers import BuiltInContainerMaterializer
 import cv2
 
 
@@ -22,6 +23,7 @@ def roboflow_download(api_key:str, workspace:str, project:str, annotation_type:s
     dataset = project.version(6).download(annotation_type)
     return dataset.location
 
+#@step(output_materializers={"train_images": BuiltInContainerMaterializer, "val_images": BuiltInContainerMaterializer, "test_images": BuiltInContainerMaterializer})
 @step
 def data_loader(
     params: TrainerParameters,

@@ -7,6 +7,7 @@ import os
 import albumentations as A
 
 from zenml.steps import step, BaseParameters, Output
+#from zenml.materializers import BuiltInContainerMaterializer
 
 
 class AugmenterParameters(BaseParameters):
@@ -16,6 +17,7 @@ class AugmenterParameters(BaseParameters):
 
 
  
+#@step(output_materializers={"augmented_images": BuiltInContainerMaterializer})
 @step
 def valid_augmenter(
     #params:AugmenterParameters,

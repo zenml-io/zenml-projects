@@ -14,9 +14,24 @@
 
 
 from zenml.pipelines import pipeline
+from zenml.config import DockerSettings
+from zenml.integrations.constants import MLFLOW
 
+docker_settings = DockerSettings(parent_image="ultralytics/yolov5:latest", requirements="./requirements.txt",required_integrations=[MLFLOW])
 
-@pipeline(enable_cache=True)
+@pipeline(enable_cache=True, 
+    settings={
+        "docker": docker_settings,
+        "orchestrator.local_docker": {
+            "run_args": {
+                "device_requests": [{ "device_ids": ["0"], "capabilities": [['gpu']] }],
+                "shm_size": 18446744073692774399,
+                "ipc_mode": "host",
+                "ulimit": [{ "name": "memlock", "soft": -1 },{ "name": "stack", "soft": -1 }],
+                }
+            }
+        }
+    )
 def yolov5_pipeline(
     data_loader,
     train_augmenter,
@@ -29,4 +44,3 @@ def yolov5_pipeline(
     augmented_validset = valid_augmenter(valid)
     model = trainer(augmented_trainset,augmented_validset)
     detector = detector(test,model)
-

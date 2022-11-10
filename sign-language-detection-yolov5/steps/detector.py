@@ -61,5 +61,5 @@ def image_saver(image_set:Dict):
         resized_image = cv2.resize(value[0], dim, interpolation = cv2.INTER_AREA)
         cv2.imwrite(f'inference/images/{key}', resized_image)
 
-def model_saver(model:torch.nn.Module):
+def model_saver(model:Dict):
     torch.save(model, "./inference/model/best.pt")

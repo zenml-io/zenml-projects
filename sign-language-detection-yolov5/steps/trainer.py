@@ -20,9 +20,11 @@ import cv2
 import os
 import subprocess
 import torch
+from torch.nn import Module
 from zenml.logger import get_logger
 from zenml.client import Client
-from zenml.steps import BaseParameters, step
+from zenml.steps import BaseParameters, step, Output
+from materializer.yolo_model_materializer import Yolov5ModelMaterializer
 from yolov5.train import main, parse_opt
 import argparse
 
@@ -34,16 +36,15 @@ class TrainerParameters(BaseParameters):
     """Trainer params"""
 
     imgsz: int = 1024
-    batch_size:int = 8
+    batch_size:int = 4
     epochs: int = 2
 
-
-@step(enable_cache=True,experiment_tracker=experiment_tracker.name)
+@step(enable_cache=True,experiment_tracker=experiment_tracker.name,output_materializers={"model": Yolov5ModelMaterializer})
 def trainer(
     training_set: Dict,
     validation_set: Dict,
     params: TrainerParameters,
-) -> Dict:
+) -> Output(model=dict):
     """Train a neural net from scratch to recognize MNIST digits return our
     model or the learner"""
 
@@ -70,7 +71,6 @@ def trainer(
 
     # Load the best model and return it
     model = torch.load(os.path.join("yolov5","runs","train",opt.name,"weights","best.pt")) 
-    breakpoint()
     return model
 
 
