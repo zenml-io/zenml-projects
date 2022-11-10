@@ -14,7 +14,7 @@
 
 import os
 import torch
-from typing import Dict
+from typing import Dict, Set
 import numpy as np
 import cv2
 import os
@@ -25,7 +25,7 @@ import argparse
 class DetectParameters(BaseParameters):
     """Trainer params"""
 
-    imgsz: int = 1024
+    imgsz: Set = (768, 1024)
     conf:float = 0.5
     weights: str = "./inference/model/best.pt"
     source: str = "./inference/images/"
@@ -59,7 +59,7 @@ def image_saver(image_set:Dict):
     for key, value  in image_set.items():
         dim = (768, 1024)
         resized_image = cv2.resize(value[0], dim, interpolation = cv2.INTER_AREA)
-        cv2.imwrite(f'inference/images/{key}', resized_image)
+        cv2.imwrite(f'inference/images/{key.rsplit("/",1)[1]}', resized_image)
 
 def model_saver(model:Dict):
     torch.save(model, "./inference/model/best.pt")

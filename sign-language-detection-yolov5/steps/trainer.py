@@ -31,15 +31,22 @@ import argparse
 logger = get_logger(__name__)
 experiment_tracker = Client().active_stack.experiment_tracker
 
+step_operator = Client().active_stack.step_operator
+if not step_operator:
+    raise RuntimeError(
+        "Your active stack needs to contain a step operator for this "
+        "example "
+        "to work."
+    )
 
 class TrainerParameters(BaseParameters):
     """Trainer params"""
 
     imgsz: int = 1024
-    batch_size:int = 4
-    epochs: int = 2
+    batch_size:int = 8
+    epochs: int = 16
 
-@step(enable_cache=True,experiment_tracker=experiment_tracker.name,output_materializers={"model": Yolov5ModelMaterializer})
+@step(enable_cache=True,step_operator=step_operator.name,experiment_tracker=experiment_tracker.name,output_materializers={"model": Yolov5ModelMaterializer})
 def trainer(
     training_set: Dict,
     validation_set: Dict,
@@ -63,6 +70,7 @@ def trainer(
     opt.imgsz = params.imgsz
     opt.batch_size = params.batch_size
     opt.epochs = params.epochs
+    opt.workers = 0
     opt.data = './yolov5/asl.yaml'
     opt.cfg = './yolov5/models/yolov5m.yaml'
     opt.name = "ZenmlYolo"

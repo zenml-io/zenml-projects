@@ -19,7 +19,7 @@ from zenml.integrations.constants import MLFLOW
 
 docker_settings = DockerSettings(parent_image="ultralytics/yolov5:latest", requirements="./requirements.txt",required_integrations=[MLFLOW])
 
-@pipeline(enable_cache=True, 
+@pipeline(enable_cache=False, 
     settings={
         "docker": docker_settings,
         "orchestrator.local_docker": {

@@ -6,7 +6,15 @@ from roboflow import Roboflow
 from zenml.steps import step, BaseParameters, Output
 #from zenml.materializers import BuiltInContainerMaterializer
 import cv2
+from zenml.client import Client
 
+step_operator = Client().active_stack.step_operator
+if not step_operator:
+    raise RuntimeError(
+        "Your active stack needs to contain a step operator for this "
+        "example "
+        "to work."
+    )
 
 class TrainerParameters(BaseParameters):
     """Trainer params"""
@@ -24,7 +32,7 @@ def roboflow_download(api_key:str, workspace:str, project:str, annotation_type:s
     return dataset.location
 
 #@step(output_materializers={"train_images": BuiltInContainerMaterializer, "val_images": BuiltInContainerMaterializer, "test_images": BuiltInContainerMaterializer})
-@step
+@step(step_operator=step_operator.name)
 def data_loader(
     params: TrainerParameters,
 ) ->  Output(train_images=Dict,val_images=Dict,test_images=Dict):

@@ -8,7 +8,15 @@ import albumentations as A
 
 from zenml.steps import step, BaseParameters, Output
 #from zenml.materializers import BuiltInContainerMaterializer
+from zenml.client import Client
 
+step_operator = Client().active_stack.step_operator
+if not step_operator:
+    raise RuntimeError(
+        "Your active stack needs to contain a step operator for this "
+        "example "
+        "to work."
+    )
 
 class AugmenterParameters(BaseParameters):
     """Trainer params"""
@@ -18,7 +26,7 @@ class AugmenterParameters(BaseParameters):
 
  
 #@step(output_materializers={"augmented_images": BuiltInContainerMaterializer})
-@step
+@step(step_operator=step_operator.name)
 def train_augmenter(
     #params:AugmenterParameters,
     images: Dict,
