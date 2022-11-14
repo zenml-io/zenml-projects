@@ -24,3 +24,5 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Check spelling with codespell
         run: codespell -c -I .codespell-ignore-words -f -i 0 --builtin clear,rare,en-GB_to_en-US,names,code . --skip="*.csv,*.sample" || exit 1
+  markdown-link-check:
+    uses: ./.github/workflows/markdown-link-check.yml
