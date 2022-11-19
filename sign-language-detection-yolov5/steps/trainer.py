@@ -15,18 +15,14 @@
 import os
 from typing import Dict
 import numpy as np
-from pathlib import Path
 import cv2
 import os
-import subprocess
 import torch
-from torch.nn import Module
 from zenml.logger import get_logger
 from zenml.client import Client
 from zenml.steps import BaseParameters, step, Output
 from materializer.yolo_model_materializer import Yolov5ModelMaterializer
 from yolov5.train import main, parse_opt
-import argparse
 
 logger = get_logger(__name__)
 experiment_tracker = Client().active_stack.experiment_tracker
@@ -43,8 +39,8 @@ class TrainerParameters(BaseParameters):
     """Trainer params"""
 
     imgsz: int = 1024
-    batch_size:int = 8
-    epochs: int = 16
+    batch_size:int = 16
+    epochs: int = 200
 
 @step(enable_cache=True,step_operator=step_operator.name,experiment_tracker=experiment_tracker.name,output_materializers={"model": Yolov5ModelMaterializer})
 def trainer(
@@ -70,10 +66,10 @@ def trainer(
     opt.imgsz = params.imgsz
     opt.batch_size = params.batch_size
     opt.epochs = params.epochs
-    opt.workers = 0
+    opt.exist_ok = True
     opt.data = './yolov5/asl.yaml'
-    opt.cfg = './yolov5/models/yolov5m.yaml'
     opt.name = "ZenmlYolo"
+    opt.weights = "yolov5m.pt"
     
     main(opt)
 
@@ -91,3 +87,4 @@ def image_saver(image_set:Dict):
                 np.array(value[1]),
                 fmt=["%d", "%f", "%f", "%f","%f"]
             )
+

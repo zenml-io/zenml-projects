@@ -1,26 +1,17 @@
 from genericpath import isdir
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict
 import numpy as np
 from roboflow import Roboflow
 from zenml.steps import step, BaseParameters, Output
-#from zenml.materializers import BuiltInContainerMaterializer
 import cv2
-from zenml.client import Client
-
-step_operator = Client().active_stack.step_operator
-if not step_operator:
-    raise RuntimeError(
-        "Your active stack needs to contain a step operator for this "
-        "example "
-        "to work."
-    )
+from materializer.dataset_materializer import DatasetMaterializer
 
 class TrainerParameters(BaseParameters):
     """Trainer params"""
 
-    api_key: str = "0flk2gqI3PPo1qEbw9tr"
-    workspace: str = "david-lee-d0rhs"
+    api_key: str = "YOUR_API_KEY"
+    workspace: str = "WORKSPACE"
     project: str = "american-sign-language-letters"
     annotation_type: str = "yolov5"
 
@@ -31,8 +22,7 @@ def roboflow_download(api_key:str, workspace:str, project:str, annotation_type:s
     dataset = project.version(6).download(annotation_type)
     return dataset.location
 
-#@step(output_materializers={"train_images": BuiltInContainerMaterializer, "val_images": BuiltInContainerMaterializer, "test_images": BuiltInContainerMaterializer})
-@step(step_operator=step_operator.name)
+@step(output_materializers={"train_images": DatasetMaterializer, "val_images": DatasetMaterializer, "test_images": DatasetMaterializer})
 def data_loader(
     params: TrainerParameters,
 ) ->  Output(train_images=Dict,val_images=Dict,test_images=Dict):

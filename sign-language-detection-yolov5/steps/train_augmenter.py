@@ -1,39 +1,19 @@
-from typing import Any, Dict, List
+from typing import Dict
 import albumentations as A
 import pandas as pd
 import numpy as np
-import cv2
-import os
 import albumentations as A
 
-from zenml.steps import step, BaseParameters, Output
-#from zenml.materializers import BuiltInContainerMaterializer
-from zenml.client import Client
-
-step_operator = Client().active_stack.step_operator
-if not step_operator:
-    raise RuntimeError(
-        "Your active stack needs to contain a step operator for this "
-        "example "
-        "to work."
-    )
-
-class AugmenterParameters(BaseParameters):
-    """Trainer params"""
-
-    set_type = "train"
+from zenml.steps import step, Output
+from materializer.dataset_materializer import DatasetMaterializer
 
 
- 
-#@step(output_materializers={"augmented_images": BuiltInContainerMaterializer})
-@step(step_operator=step_operator.name)
+@step(output_materializers={"augmented_images": DatasetMaterializer,})
 def train_augmenter(
-    #params:AugmenterParameters,
     images: Dict,
 ) -> Output(augmented_images=Dict):
     """Loads data from Roboflow"""
 
-    #rows = []
     augmented_images : dict(str,list(np.ndarray,list)) = {}
     for key, value  in images.items():
         image = value[0]
@@ -52,10 +32,8 @@ def train_augmenter(
 
         # Creating 25 augmented images to compensate for the small dataset
         for i in range(25):
-            #class_name = bbox_cat
             augmented = aug(image=image, bboxes=[new_bboxes], class_name=[bbox_cat])
             image_name = f'{key[:-4]}_{i}.jpg'
-            #text_name = f'{key[:-4]}_{i}.txt'
             boxes = []
             for bbox in augmented['bboxes']:
                 x_min, y_min, x_max, y_max = map(lambda v: int(v), bbox)
@@ -68,20 +46,9 @@ def train_augmenter(
                 h = (y_max - y_min) /1024
                 new_bbox = [bbox_cat, x_center, y_center, w, h]
                 boxes.append(new_bbox)  
-                #rows.append({
-                #    'image_id': f'{params.augment}/{params.img}/{image_name}',
-                #    'bbox': new_bbox
-                #})
         if len(boxes) == 0:
             continue
         augmented_images[image_name] = [augmented['image'],boxes]
-        #cv2.imwrite(f'{params.augment}/{params.img}/{image_name}', augmented['image'])
-        #np.savetxt(
-        #        # Outputting .txt file to appropriate train/validation folders
-        #        os.path.join(f'{params.augment}/{params.labels}/{text_name}'),
-        #        np.array(boxes),
-        #        fmt=["%d", "%f", "%f", "%f","%f"]
-        #    )
     return augmented_images
 
 

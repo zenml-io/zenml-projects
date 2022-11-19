@@ -13,3 +13,4 @@
 #  permissions and limitations under the License.
 
 from materializer.yolo_model_materializer import Yolov5ModelMaterializer
+from materializer.dataset_materializer import DatasetMaterializer

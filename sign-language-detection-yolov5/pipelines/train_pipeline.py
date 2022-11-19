@@ -17,19 +17,11 @@ from zenml.pipelines import pipeline
 from zenml.config import DockerSettings
 from zenml.integrations.constants import MLFLOW
 
-docker_settings = DockerSettings(parent_image="ultralytics/yolov5:latest", requirements="./requirements.txt",required_integrations=[MLFLOW])
+docker_settings = DockerSettings(parent_image="ultralytics/yolov5:latest", requirements="./requirements.txt",dockerignore=".dockerignore")
 
-@pipeline(enable_cache=False, 
+@pipeline(enable_cache=True, 
     settings={
         "docker": docker_settings,
-        "orchestrator.local_docker": {
-            "run_args": {
-                "device_requests": [{ "device_ids": ["0"], "capabilities": [['gpu']] }],
-                "shm_size": 18446744073692774399,
-                "ipc_mode": "host",
-                "ulimit": [{ "name": "memlock", "soft": -1 },{ "name": "stack", "soft": -1 }],
-                }
-            }
         }
     )
 def yolov5_pipeline(
