@@ -13,15 +13,12 @@
 #  permissions and limitations under the License.
 import os
 from typing import Dict
-
+import sys
 import torch
 from zenml.post_execution import get_pipeline
 from zenml.steps import Output, step
 
-from model import wrapped_model
-
-
-@step
+@step(enable_cache=False)
 def model_loader() -> Output(model_path=str, model=torch.nn.Module):
     """Loads the trained models from previous training pipeline runs."""
     training_pipeline = get_pipeline("yolov5_pipeline")
@@ -35,6 +32,11 @@ def model_loader() -> Output(model_path=str, model=torch.nn.Module):
             f"Skipping {last_run.name} as it does not contain the trainer step"
         )
     model_saver(model, model_path)
+    try:
+        sys.path.insert(0, 'yolov5')
+        from model import wrapped_model
+    except Exception as e:
+        print(e)
     return model_path, wrapped_model(model_path)
 
 

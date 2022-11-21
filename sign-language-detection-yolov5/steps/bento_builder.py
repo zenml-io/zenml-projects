@@ -27,5 +27,8 @@ bento_builder = bento_builder_step(
             "zenml_version": "0.22.0",
         },
         exclude=["American-Sign-Language-Letters-6", "augment"],
+        python={
+            "requirements_txt": "./yolov5/requirements.txt",
+        }
     )
 )
