@@ -18,7 +18,7 @@ import torch
 from zenml.post_execution import get_pipeline
 from zenml.steps import Output, step
 
-@step(enable_cache=False)
+@step
 def model_loader() -> Output(model_path=str, model=torch.nn.Module):
     """Loads the trained models from previous training pipeline runs."""
     training_pipeline = get_pipeline("yolov5_pipeline")
