@@ -11,8 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+import os
 
-from materializer.dataset_materializer import DatasetMaterializer
-from materializer.yolo_model_materializer import Yolov5ModelMaterializer
+from zenml.steps import step
 
-__all__ = ["DatasetMaterializer", "Yolov5ModelMaterializer"]
+
+@step
+def deployment_trigger(
+    model_path: str,
+) -> bool:
+    """Implements a simple model deployment strigger that looks
+    if the model checkpoint is saved in the model directory."""
+    if os.path.isfile(model_path):
+        return True
+    return False

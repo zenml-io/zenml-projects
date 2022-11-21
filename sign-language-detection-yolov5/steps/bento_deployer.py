@@ -11,8 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from zenml.integrations.bentoml.steps import (
+    BentoMLDeployerParameters,
+    bentoml_model_deployer_step,
+)
 
-from materializer.dataset_materializer import DatasetMaterializer
-from materializer.yolo_model_materializer import Yolov5ModelMaterializer
-
-__all__ = ["DatasetMaterializer", "Yolov5ModelMaterializer"]
+bentoml_model_deployer = bentoml_model_deployer_step(
+    params=BentoMLDeployerParameters(
+        model_name="sign_language_yolov5",
+        port=3001,
+        production=True,
+        timeout=30,
+    )
+)

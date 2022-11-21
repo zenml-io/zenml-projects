@@ -126,7 +126,7 @@ gcloud iam service-accounts create <NAME>
 gcloud iam service-accounts create zenml-sa
 ```
 
-Grant permission to the service account ([list](https://cloud.google.com/bigquery/docs/access-control) of BQ roles):
+Grant permission to the service account:
 
 ```shell
 gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:<SA-NAME>@<PROJECT_ID>.iam.gserviceaccount.com" --role=<ROLE>
@@ -134,7 +134,6 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:<SA
 # Example:
 gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/storage.admin
 gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/aiplatform.admin
-gcloud projects add-iam-policy-binding zenml-vertex-ai --member="serviceAccount:zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com" --role=roles/bigquery.admin
 ```
 
 Generate a key file:

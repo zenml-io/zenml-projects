@@ -14,19 +14,18 @@
 """Materializer for Yolov5 Trained Model."""
 
 import os
-from typing import Dict, Any
+import pickle
 import tempfile
 from typing import Type
-import torch 
+
 import cloudpickle
-import pickle
 from zenml.artifacts import DataArtifact
 from zenml.io import fileio
 from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.utils import io_utils
+
 logger = get_logger(__name__)
-import datetime
 
 DEFAULT_FILENAME = "data.pkl"
 
@@ -59,30 +58,23 @@ class DatasetMaterializer(BaseMaterializer):
         ) as f:
             return pickle.load(f)
 
-
-
     def handle_return(self, ckpt: dict) -> None:
         """Write to artifact store.
 
         Args:
             ckpt: A Dict contains informations regarding yolov5 model.
         """
-        print(datetime.datetime.now(),self.artifact.uri)
-
         super().handle_return(ckpt)
 
         # Create a temporary directory to store the model
         temp_dir = tempfile.TemporaryDirectory(prefix="zenml-temp-")
         temp_data_path = os.path.join(temp_dir.name, DEFAULT_FILENAME)
 
-        with fileio.open(
-            os.path.join(temp_data_path), "wb"
-        ) as f:
-            cloudpickle.dump(ckpt,f)
+        with fileio.open(os.path.join(temp_data_path), "wb") as f:
+            cloudpickle.dump(ckpt, f)
 
         # copy the saved image to the artifact store
         io_utils.copy_dir(temp_dir.name, self.artifact.uri)
 
         # Remove the temporary directory
         fileio.rmtree(temp_dir.name)
-        print(datetime.datetime.now())

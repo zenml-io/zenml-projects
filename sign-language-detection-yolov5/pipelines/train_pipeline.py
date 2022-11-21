@@ -13,26 +13,31 @@
 #  permissions and limitations under the License.
 
 
-from zenml.pipelines import pipeline
 from zenml.config import DockerSettings
-from zenml.integrations.constants import MLFLOW
+from zenml.integrations.constants import GCP, MLFLOW
+from zenml.pipelines import pipeline
 
-docker_settings = DockerSettings(parent_image="ultralytics/yolov5:latest", requirements="./requirements.txt",dockerignore=".dockerignore")
+docker_settings = DockerSettings(
+    parent_image="ultralytics/yolov5:latest",
+    required_integrations=[MLFLOW, GCP],
+    requirements="./requirements.txt",
+    dockerignore=".dockerignore",
+)
 
-@pipeline(enable_cache=True, 
+
+@pipeline(
+    enable_cache=True,
     settings={
         "docker": docker_settings,
-        }
-    )
+    },
+)
 def yolov5_pipeline(
     data_loader,
     train_augmenter,
     valid_augmenter,
     trainer,
-    detector,
 ):
-    train,valid,test = data_loader()
+    train, valid, test = data_loader()
     augmented_trainset = train_augmenter(train)
     augmented_validset = valid_augmenter(valid)
-    model = trainer(augmented_trainset,augmented_validset)
-    detector = detector(test,model)
+    trainer(augmented_trainset, augmented_validset)

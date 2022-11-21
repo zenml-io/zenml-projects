@@ -11,8 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from zenml.pipelines import pipeline
 
-from materializer.dataset_materializer import DatasetMaterializer
-from materializer.yolo_model_materializer import Yolov5ModelMaterializer
 
-__all__ = ["DatasetMaterializer", "Yolov5ModelMaterializer"]
+@pipeline(enable_cache=True)
+def yolov5_deployment_pipeline(
+    model_loader,
+    deployment_trigger,
+    bento_builder,
+    deployer,
+):
+    model_path, model = model_loader()
+    decision = deployment_trigger(model_path)
+    bento = bento_builder(model=model)
+    deployer(deploy_decision=decision, bento=bento)

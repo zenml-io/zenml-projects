@@ -12,8 +12,33 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from steps.train_augmenter import train_augmenter
+from steps.bento_builder import bento_builder
+from steps.bento_deployer import bentoml_model_deployer
 from steps.data_loader import data_loader
-from steps.valid_augmenter import valid_augmenter
+from steps.deployment_trigger import deployment_trigger
+from steps.inference_loader import inference_loader
+from steps.model_loader import model_loader
+from steps.prediction_service_loader import (
+    PredictionServiceLoaderStepParameters,
+    bentoml_prediction_service_loader,
+)
+from steps.predictor import predictor
+from steps.train_augmenter import train_augmenter
 from steps.trainer import trainer
-from steps.detector import detector
+from steps.valid_augmenter import valid_augmenter
+
+__all__ = [
+    "camera_detector",
+    "data_loader",
+    "model_loader",
+    "train_augmenter",
+    "trainer",
+    "valid_augmenter",
+    "bento_builder",
+    "bentoml_model_deployer",
+    "deployment_trigger",
+    "inference_loader",
+    "PredictionServiceLoaderStepParameters",
+    "bentoml_prediction_service_loader",
+    "predictor",
+]
