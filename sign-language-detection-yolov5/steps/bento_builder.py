@@ -29,6 +29,9 @@ bento_builder = bento_builder_step(
         exclude=["American-Sign-Language-Letters-6", "augment"],
         python={
             "requirements_txt": "./yolov5/requirements.txt",
-        }
+        },
+        docker={
+            "system_packages" : ["ffmpeg",'libsm6',"libxext6"],
+        },
     )
 )
