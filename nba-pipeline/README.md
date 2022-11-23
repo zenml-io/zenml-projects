@@ -94,7 +94,31 @@ jupyter notebook
 
 ### Script
 
-You can also directly run the code, using the `run_pipeline.py` script.
+You can also directly run the code. First, set up the stack:
+
+```shell
+# You register an experiment tracker
+zenml experiment-tracker register local_mlflow_tracker --flavor=mlflow
+
+# You register a data validator
+zenml data-validator register local_evidently --flavor=evidently
+
+# Now it all is combined into the local_kubeflow_stack
+!zenml stack register local_stack \
+    -a default \
+    -o default \
+    -e local_mlflow_tracker \
+    -dv local_evidently
+
+# And we activate the new stack, now all pipelines will be run within this stack
+!zenml stack set local_stack
+
+# Check it out, your new stack is registered
+!zenml stack list
+```
+
+
+Then, run the pipelines using `run_pipeline.py` script:
 
 ```python
 python run_pipeline.py drift  # Run one-shot drift pipeline
@@ -104,30 +128,33 @@ python run_pipeline.py infer  # Run inference pipeline
 
 ## :rocket: Going from local orchestration to kubeflow pipelines
 
-ZenML manages the configuration of the infrastructure where ZenML pipelines are run using ZenML `Stacks`. For now, a Stack consists of:
+ZenML manages the configuration of the infrastructure where ZenML pipelines are run using ZenML `Stacks`. At the minimum, a Stack consists of:
 
-- A metadata store: To store metadata like parameters and artifact URIs
 - An artifact store: To store interim data step output.
 - An orchestrator: A service that actually kicks off and runs each step of the pipeline.
-- An optional container registry: To store Docker images that are created to run your pipeline.
 
 ![Local ZenML stack](_assets/localstack.png)
 
-To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
+To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack with some more stack components:
 
 ```bash
-zenml container-registry register local_registry  --flavor=default --uri=localhost:5000
-zenml orchestrator register kubeflow_orchestrator  --flavor=kubeflow
-zenml stack register local_kubeflow_stack \
-    -m local_metadata_store \
-    -a local_artifact_store \
+# You register an orchestrator with zenml
+!zenml orchestrator register kubeflow_orchestrator  --flavor=kubeflow
+
+# You register a container registry with zenml
+!zenml container-registry register local_registry  --flavor=default --uri=localhost:5000
+
+!zenml stack register local_kubeflow_stack \
+    -a default \
     -o kubeflow_orchestrator \
-    -c local_registry
+    -c local_registry \
+    -e local_mlflow_tracker \
+    -dv local_evidently
 ```
 
 To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/component-gallery/orchestrators/kubeflow#how-to-use-it).
 
-For the local setup, our kubeflow stack keeps the existing `local_metadata_store` and `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
+For the local setup, our kubeflow stack keeps the `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
 
 Once the stack is registered we can activate it and provision resources for the local Kubeflow Pipelines deployment:
 
@@ -137,6 +164,14 @@ zenml stack up
 ```
 
 ![ZenML stack for running pipelines on a local Kubeflow Pipelines deployment](_assets/localstack-with-kubeflow-orchestrator.png)
+
+Then, as before, you can run the pipelines using `run_pipeline.py` script:
+
+```python
+python run_pipeline.py drift  # Run one-shot drift pipeline
+python run_pipeline.py train  # Run training pipeline
+python run_pipeline.py infer  # Run inference pipeline
+```
 
 ## :checkered_flag: Cleaning up when you're done
 
