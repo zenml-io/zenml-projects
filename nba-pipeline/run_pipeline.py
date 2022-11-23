@@ -57,10 +57,14 @@ def run_analysis():
     eda_pipeline.run(config_path="data_analysis_config.yaml")
 
 
-def run_training():
-    """Create a training pipeline run."""
+def run_training(schedule: bool):
+    """Create a training pipeline run.
+    
+    Args:
+        schedule: If true, then run on the schedule.
+    """
     # Initialize the pipeline
-    training_pipeline(
+    p = training_pipeline(
         importer=game_data_importer(),
         # Train Model
         feature_engineer=feature_engineer(),
@@ -83,9 +87,15 @@ def run_training():
         ),
         drift_detector=evidently_drift_detector,
         drift_alert=discord_alert(),
-    ).run(
-        schedule=Schedule(start_time=datetime.now(), interval_second=600),
     )
+
+    if schedule:
+        # Run with schedule
+        p.run(
+            schedule=Schedule(start_time=datetime.now(), interval_second=600),
+        )
+    else:
+        p.run()
 
 def run_inference():
     """Create an inference pipeline run."""
@@ -112,11 +122,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "pipeline", type=str, choices=["drift", "train", "predict"]
     )
+    parser.add_argument(
+        "-s", "schedule", type=bool
+    )
     args = parser.parse_args()
 
     if args.pipeline == "drift":
         run_analysis()
     elif args.pipeline == "train":
-        run_training()
+        run_training(args.schedule)
     elif args.pipeline == "predict":
         run_inference()
