@@ -74,7 +74,7 @@ class Yolov5ModelMaterializer(BaseMaterializer):
         """Write to artifact store.
 
         Args:
-            ckpt: A Dict contains informations regarding yolov5 model.
+            ckpt: A Dict contains information regarding yolov5 model.
         """
         super().handle_return(ckpt)
 

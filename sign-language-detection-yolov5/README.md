@@ -1,6 +1,6 @@
 # Detect and recognize the American Sign Language alphabet on real-time image using Yolov5 and ZenML
 
-**Problem statement**: One of the most anticipated capibilities of Machine Learning and AI is to help people with disabilities. The deaf community cannot do what most of the population take for granted and are often placed in degrading situations due to these challenges they face every day, in this Zenfile (project) will see how computer vision can be utilized to create a model that can bridge the gap for the deaf and hard of hearing by learning American Sign Language and be able to understand the meaning of each sign.
+**Problem statement**: One of the most anticipated capabilities of Machine Learning and AI is to help people with disabilities. The deaf community cannot do what most of the population take for granted and are often placed in degrading situations due to these challenges they face every day, in this Zenfile (project) will see how computer vision can be utilized to create a model that can bridge the gap for the deaf and hard of hearing by learning American Sign Language and be able to understand the meaning of each sign.
 To so This project will use ZenML to create a pipeline that will train a model to detect and recognize the American Sign Language alphabet on real-time image using Yolov5 MLFlow and Vertex AI Platform.
 
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers the build, track and deploy a computer vision pipeline using some of the most popular tools in the industry.
@@ -19,7 +19,7 @@ In order to build a model that can detect and recognize the American Sign Langua
 
 1. Download the dataset from [Roboflow](https://public.roboflow.com/object-detection/american-sign-language-alphabet)
 2. Augment the training and valdiation sets using [Albumentations](https://albumentations.ai/)
-3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow) within a GPU environement by laverging [Google Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/gcloud-vertexai) stack component.
+3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow) within a GPU environment by laverging [Google Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/gcloud-vertexai) stack component.
 4. Load model in a different pipeline that deploys the model using [BentoML]() and provided ZenML integration.
 5. Create an inference pipeline that will use the deployed model to detect and recognize the American Sign Language alphabet on test images from the first pipeline.
 
@@ -36,11 +36,11 @@ installed on your local machine:
 ### :rocket: Remote ZenML Server
 
 For Advanced use cases where we have a remote orchestrator or step operators such as Vertex AI
-or to share stacks and pipeline informations with team we need to have a seperated non local remote ZenML Server that it can be accessible from your
+or to share stacks and pipeline information with team we need to have a separated non local remote ZenML Server that it can be accessible from your
 machine as well as all stack components that may need access to the server.
 [Read more information about the use case here](https://docs.zenml.io/getting-started/deploying-zenml)
 
-In order to acheive this there are two different ways to get access to a remote ZenML Server.
+In order to achieve this there are two different ways to get access to a remote ZenML Server.
 
 1. Deploy and manage the server manually on [your own cloud](https://docs.zenml.io/getting-started/deploying-zenml)/
 2. Sign up for [ZenML Cloud](https://zenml.io/cloud-signup) and get access to a hosted

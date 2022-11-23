@@ -14,7 +14,7 @@
 from zenml.pipelines import pipeline
 
 
-@pipeline(enable_cache=True)
+@pipeline(enable_cache=False)
 def yolov5_deployment_pipeline(
     model_loader,
     deployment_trigger,
