@@ -14,16 +14,16 @@
 """Materializer for Yolov5 Trained Model."""
 
 import os
-from typing import Dict, Any
+import sys
 import tempfile
 from typing import Type
-import torch 
 
+import torch
 from zenml.artifacts import ModelArtifact
 from zenml.io import fileio
 from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
-from zenml.utils import io_utils
+from zenml.utils import io_utils, source_utils
 
 logger = get_logger(__name__)
 
@@ -53,21 +53,36 @@ class Yolov5ModelMaterializer(BaseMaterializer):
         # Copy from artifact store to temporary directory
         io_utils.copy_dir(self.artifact.uri, temp_dir.name)
 
-        # Load the Bento from the temporary directory
-        yolov5_model = torch.load(os.path.join(temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME))
+        # Load YoloV5 modules from the local repository
+        yolov5_module_path = os.path.join(
+            source_utils.get_source_root_path(), "yolov5"
+        )
+        if os.path.isdir(yolov5_module_path):
+            sys.path.insert(0, yolov5_module_path)
+        else:
+            raise FileNotFoundError(
+                f"Could not find yolov5 module at {yolov5_module_path}"
+            )
+
+        # Load the model from the temporary directory
+        yolov5_model = torch.load(
+            os.path.join(temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME)
+        )
         return yolov5_model
 
     def handle_return(self, ckpt: dict) -> None:
         """Write to artifact store.
 
         Args:
-            ckpt: A Dict contains informations regarding yolov5 model.
+            ckpt: A Dict contains information regarding yolov5 model.
         """
         super().handle_return(ckpt)
 
         # Create a temporary directory to store the model
         temp_dir = tempfile.TemporaryDirectory(prefix="zenml-temp-")
-        temp_ckpt_path = os.path.join(temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME)
+        temp_ckpt_path = os.path.join(
+            temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME
+        )
 
         # save the image in a temporary directory
         torch.save(ckpt, temp_ckpt_path)

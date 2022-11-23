@@ -1,4 +1,8 @@
-zenml==0.21.1
+zenml==0.22.0
 roboflow==0.2.18
 albumentations==1.3.0
 albumentations[imgaug]
+mlflow==1.28.0
+mlflow[extras]
+itsdangerous==2.0.1
+Werkzeug==2.0.3
