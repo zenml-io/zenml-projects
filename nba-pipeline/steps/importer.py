@@ -5,6 +5,7 @@ from zenml.steps import step
 from zenml.steps import BaseParameters
 import time
 
+from urllib3.exceptions import NewConnectionError
 
 class ImporterConfig(BaseParameters):
     """Parameters for the `importer` step.
@@ -47,12 +48,15 @@ def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
     """
     dataframes = []
     for season in config.seasons:
-        print(f"Fetching data for season: {season}")
-        dataframes.append(
-            leaguegamelog.LeagueGameLog(
-                season=season, timeout=180
-            ).get_data_frames()[0]
-        )
+        try:
+            print(f"Fetching data for season: {season}")
+            dataframes.append(
+                leaguegamelog.LeagueGameLog(
+                    season=season, timeout=180
+                ).get_data_frames()[0]
+            )
+        except (ConnectionError, NewConnectionError) as e:
+            pass
         # sleep so as not to bomb api server :-)
         time.sleep(2)
     return pd.concat(dataframes)
