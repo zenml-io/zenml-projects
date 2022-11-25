@@ -1,15 +1,12 @@
 import os
 import sys
 
-from steps.post_processor import data_post_processor
-
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
-
 from datetime import date, datetime, timedelta
-from zenml.pipelines import Schedule
 
+from steps.post_processor import data_post_processor
 from steps.splitter import date_based_splitter, SplitConfig
 from steps.analyzer import analyze_drift
 from steps.discord_bot import discord_alert, discord_post_prediction
@@ -26,16 +23,19 @@ from steps.splitter import (
 )
 from steps.trainer import random_forest_trainer
 from steps.encoder import encode_columns_and_clean
-from steps.importer import import_season_schedule, SeasonScheduleConfig, import_season_schedule_offline
+from steps.importer import (
+    import_season_schedule,
+    SeasonScheduleConfig,
+    import_season_schedule_offline,
+)
 from steps.model_picker import model_picker
 from steps.predictor import predictor
 from steps.splitter import get_coming_week_data, TimeWindowConfig
 
-
+from zenml.pipelines import Schedule
 from pipelines.data_analysis_pipeline import data_analysis_pipeline
 from pipelines.training_pipeline import training_pipeline
 from pipelines.prediction_pipeline import inference_pipeline
-
 
 from zenml.integrations.constants import (
     EVIDENTLY,
