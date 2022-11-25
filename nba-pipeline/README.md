@@ -53,12 +53,14 @@ cd nba-pipeline
 pip install -r requirements.txt
 ```
 
-If you are running the `run_pipeline.py` script, you will also need to install some integrations using zenml:
+If you are running the `run_pipeline.py` script, install the following integrations by running the following commands in your terminal:
 
 ```bash
-zenml integration install evidently -f
-zenml integration install mlflow -f
-zenml integration install kubeflow -f
+zenml integration install sklearn -y
+zenml integration install aws -y
+zenml integration install evidently -y
+zenml integration install mlflow -y
+zenml integration install kubeflow -y
 ```
 
 ## :basketball: The Task
@@ -102,15 +104,16 @@ python run_pipeline.py train  # Run training pipeline
 python run_pipeline.py infer  # Run inference pipeline
 ```
 
-## :rocket: Going from local orchestration to kubeflow pipelines
+## :rocket: From Local to Cloud Stack
+In ZenML you can choose to run your pipeline on any infrastructure of your choice.
+The configurations of the infrastructure is called a [Stack](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components). 
+By switching the Stack, you can choose to run your pipeline locally or in the cloud.
 
-ZenML manages the configuration of the infrastructure where ZenML pipelines are run using ZenML `Stacks`. For now, a Stack consists of:
+In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components): 
+* [Orchestrator](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Coordinates all the steps to run in a pipeline.
+* [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) Stores all data that pass through the pipeline. 
 
-- A metadata store: To store metadata like parameters and artifact URIs
-- An artifact store: To store interim data step output.
-- An orchestrator: A service that actually kicks off and runs each step of the pipeline.
-- An optional container registry: To store Docker images that are created to run your pipeline.
-
+The following illustrates an example of a local stack to run the pipeline on a local machine.
 ![Local ZenML stack](_assets/localstack.png)
 
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
