@@ -7,12 +7,14 @@ import time
 
 from urllib3.exceptions import NewConnectionError
 
+
 class ImporterConfig(BaseParameters):
     """Parameters for the `importer` step.
 
     Attributes:
         seasons: List of seasons to query NBA API historically.
     """
+
     seasons = [
         "2000-01",
         "2001-02",
@@ -40,10 +42,22 @@ class ImporterConfig(BaseParameters):
 
 
 @step
+def game_data_importer_offline() -> pd.DataFrame:
+    """Reads an offline season data downloaded from NBA API and returns a pd.DataFrame. The
+    pd.Dataframe contains the following columns:
+
+    |SEASON_ID|...|TEAM_ABBREVIATION|...|GAME_ID|GAME_DATE|...|FG3M|
+    """
+    print("Using offline data from the NBA API.")
+    df = pd.read_csv("season_data.csv")
+    return df
+
+
+@step
 def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
-    """Downloads season data from NBA API and returns a pd.DataFrame. The 
-    pd.Dataframe contains the following columns: 
-    
+    """Downloads season data from NBA API and returns a pd.DataFrame. The
+    pd.Dataframe contains the following columns:
+
     |SEASON_ID|...|TEAM_ABBREVIATION|...|GAME_ID|GAME_DATE|...|FG3M|
     """
     dataframes = []
@@ -59,6 +73,7 @@ def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
             pass
         # sleep so as not to bomb api server :-)
         time.sleep(2)
+
     return pd.concat(dataframes)
 
 
@@ -69,9 +84,19 @@ class SeasonScheduleConfig(BaseParameters):
     """Config for the `import_season_schedule` step.
 
     Attributes:
-        current_season: The current season as a string, e.g. `2021-22`. 
+        current_season: The current season as a string, e.g. `2021-22`.
     """
+
     current_season: str
+
+
+@step
+def import_season_schedule_offline() -> pd.DataFrame:
+    """Reads an offline season data of the current season (2021-22) downloaded from NBA API and returns a pd.DataFrame.
+    """
+    print("Using offline data from the NBA API.")
+    df = pd.read_csv("current_season.csv")
+    return df
 
 
 @step(enable_cache=False)
