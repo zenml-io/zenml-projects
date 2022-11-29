@@ -106,29 +106,132 @@ python run_pipeline.py infer  # Run inference pipeline
 
 ## :rocket: From Local to Cloud Stack
 In ZenML you can choose to run your pipeline on any infrastructure of your choice.
-The configurations of the infrastructure is called a [Stack](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components). 
+The configuration of the infrastructure is called a [Stack](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components). 
 By switching the Stack, you can choose to run your pipeline locally or in the cloud.
 
 In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components): 
 * [Orchestrator](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Coordinates all the steps to run in a pipeline.
-* [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) Stores all data that pass through the pipeline. 
+* [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Stores all data that pass through the pipeline. 
 
-The following illustrates an example of a local stack to run the pipeline on a local machine.
-![Local ZenML stack](_assets/localstack.png)
+ZenML comes with a default local stack with a local orchestrator and local artifact store.
+![local](_assets/local_stack.png)
 
-To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack:
 
-```bash
+Let's first run the pipeline locally. 
+
+
+There are limited things we can do running pipelines locally. Now, let's run the same pipeline on a remote Kubeflow orchestrator, with the MLflow experiment tracker, secrets manager and container registry hosted on AWS.
+
+First authenticate your credentials by with:
+
+```shell
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 715803424590.dkr.ecr.us-east-1.amazonaws.com
+aws eks --region us-east-1 update-kubeconfig --name zenhacks-cluster --alias zenml-eks
+```
+
+Set the following environment variables with your namespace, username and password.
+```
+export KUBEFLOW_NAMESPACE="your-namespace"
+export KUBEFLOW_USERNAME="yourusername@yours.io"
+export KUBEFLOW_PASSWORD="yourpassword"
+```
+
+Now let's register each stack component
+
+Secrets Manager
+```
+zenml secrets-manager register aws_secrets_manager --flavor=aws --region_name=eu-central-1
+```
+
+
+MLflow Experiment Tracker on AWS
+```
+zenml experiment-tracker register aws_mlflow_tracker  --flavor=mlflow --tracking_insecure_tls=true --tracking_uri="https://ac8e6c63af207436194ab675ee71d85a-1399000870.us-east-1.elb.amazonaws.com/mlflow" --tracking_username="{{mlflow_secret.tracking_username}}" --tracking_password="{{mlflow_secret.tracking_password}}" 
+```
+
+Evidently Data Validator
+```
+zenml data-validator register evidently --flavor=evidently
+```
+
+Kubeflow Orchestrator - make sure to pass in your own `kubernetes_context` and `kubeflow_hostname`:
+```
+zenml orchestrator register multi_tenant_kubeflow \
+  --flavor=kubeflow \
+  --kubernetes_context=zenml-eks \
+  --kubeflow_hostname=https://www.kubeflowshowcase.zenml.io/pipeline
+```
+
+Artifact store on S3 bucket
+```
+zenml artifact-store register s3_store -f s3 --path=s3://zenfiles
+```
+
+Container registry on ECR
+```
+zenml container-registry register ecr_registry --flavor=aws --uri=715803424590.dkr.ecr.us-east-1.amazonaws.com 
+```
+
+We should register the stack
+
+```
+zenml stack register kubeflow_gitflow_stack \
+    -a s3_store \
+    -c ecr_registry \
+    -o multi_tenant_kubeflow \
+    -x aws_secrets_manager \
+    -e aws_mlflow_tracker \
+    -dv evidently
+```
+
+Set the active stack
+```
+zenml stack set kubeflow_gitflow_stack
+```
+
+Let's register our secrets to the secrets manager
+
+```
+zenml secrets-manager secret register mlflow_secret -i
+```
+
+Provision the infra
+
+```
+zenml stack up
+```
+
+You'll be prompted to enter the username and password.
+
+
+You are now ready to run the pipeline!
+
+```
+python run_pipeline.py drift
+```
+
+And head over to your [Kubeflow central dashboard](https://www.kubeflow.org/docs/components/central-dash/overview/).
+
+
+
+<!-- The following illustrates an example of a local stack to run the pipeline on a local machine.
+![Local ZenML stack](_assets/localstack.png) -->
+
+<!-- To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack: -->
+
+
+
+
+<!-- ```bash
 zenml container-registry register local_registry  --flavor=default --uri=localhost:5000
 zenml orchestrator register kubeflow_orchestrator  --flavor=kubeflow
 zenml stack register local_kubeflow_stack \
-    -m local_metadata_store \
     -a local_artifact_store \
     -o kubeflow_orchestrator \
     -c local_registry
-```
+``` -->
 
-To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/component-gallery/orchestrators/kubeflow#how-to-use-it).
+<!-- To reduce the amount of manual setup steps, we decided to work with a local Kubeflow Pipelines deployment in this repository (if you're interested in running your ZenML pipelines remotely, check out [our docs](https://docs.zenml.io/component-gallery/orchestrators/kubeflow#how-to-use-it).
 
 For the local setup, our kubeflow stack keeps the existing `local_metadata_store` and `local_artifact_store` but replaces the orchestrator and adds a local container registry (see diagram below).
 
@@ -157,4 +260,4 @@ zenml stack down -f
    `OSError: [Errno 48] Address already in use`
 
 Solution: In order for Kubeflow to run, the docker container registry currently needs to be at port 5000. MacOS, however, uses
-port 5000 for the Airplay receiver. Here is a guide on how to fix this [Freeing up port 5000](https://12ft.io/proxy?q=https%3A%2F%2Fanandtripathi5.medium.com%2Fport-5000-already-in-use-macos-monterey-issue-d86b02edd36c).
+port 5000 for the Airplay receiver. Here is a guide on how to fix this [Freeing up port 5000](https://12ft.io/proxy?q=https%3A%2F%2Fanandtripathi5.medium.com%2Fport-5000-already-in-use-macos-monterey-issue-d86b02edd36c). -->
