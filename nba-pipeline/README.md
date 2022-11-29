@@ -119,7 +119,6 @@ zenml data-validator register local_evidently --flavor=evidently
 !zenml stack list
 ```
 
-
 Then, run the pipelines using `run_pipeline.py` script:
 
 ```python
@@ -149,6 +148,7 @@ First, authenticate your credentials with:
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 715803424590.dkr.ecr.us-east-1.amazonaws.com
 aws eks --region us-east-1 update-kubeconfig --name zenhacks-cluster --alias zenml-eks
 ```
+Replace the `--region`, `--username`, `--password-stdin`, `--region`, `--name`, and `--alias` with your own.
 
 Set the following environment variables with your namespace, username and password.
 ```
@@ -157,43 +157,45 @@ export KUBEFLOW_USERNAME="yourusername@yours.io"
 export KUBEFLOW_PASSWORD="yourpassword"
 ```
 
-Now let's register each stack component
+Now let's register all the stack components that we will be using.
 
-Secrets Manager
+Secrets Manager:
 ```
 zenml secrets-manager register aws_secrets_manager --flavor=aws --region_name=eu-central-1
 ```
 
-
-MLflow Experiment Tracker on AWS
+MLflow Experiment Tracker:
 ```
 zenml experiment-tracker register aws_mlflow_tracker  --flavor=mlflow --tracking_insecure_tls=true --tracking_uri="https://ac8e6c63af207436194ab675ee71d85a-1399000870.us-east-1.elb.amazonaws.com/mlflow" --tracking_username="{{mlflow_secret.tracking_username}}" --tracking_password="{{mlflow_secret.tracking_password}}" 
 ```
 
-Evidently Data Validator
+Evidently Data Validator:
 ```
 zenml data-validator register evidently --flavor=evidently
 ```
 
-Kubeflow Orchestrator - make sure to pass in your own `kubernetes_context` and `kubeflow_hostname`:
+Kubeflow Orchestrator::
 ```
 zenml orchestrator register multi_tenant_kubeflow \
   --flavor=kubeflow \
   --kubernetes_context=zenml-eks \
   --kubeflow_hostname=https://www.kubeflowshowcase.zenml.io/pipeline
 ```
+Make sure to pass in your own `--kubernetes_context` and `--kubeflow_hostname`.
 
-Artifact store on S3 bucket
+Artifact Store on Amazon S3:
 ```
 zenml artifact-store register s3_store -f s3 --path=s3://zenfiles
 ```
+Include your own `--path` on S3.
 
-Container registry on ECR
+Container registry on ECR:
 ```
 zenml container-registry register ecr_registry --flavor=aws --uri=715803424590.dkr.ecr.us-east-1.amazonaws.com 
 ```
+Include your own `--uri` on ECR.
 
-We should register the stack
+Finally, with all the stack components set up, let's register the stack:
 
 ```
 zenml stack register kubeflow_gitflow_stack \
@@ -205,7 +207,7 @@ zenml stack register kubeflow_gitflow_stack \
     -dv evidently
 ```
 
-Set the active stack
+Set the registered stack as the active stack
 ```
 zenml stack set kubeflow_gitflow_stack
 ```
