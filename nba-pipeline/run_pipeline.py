@@ -156,7 +156,7 @@ def run_inference():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "pipeline", type=str, choices=["drift", "train", "predict"]
+        "pipeline", type=str, choices=["drift", "train", "infer"]
     )
     parser.add_argument("-s", "--schedule", type=bool)
     args = parser.parse_args()
@@ -165,5 +165,5 @@ if __name__ == "__main__":
         run_analysis()
     elif args.pipeline == "train":
         run_training(args.schedule)
-    elif args.pipeline == "predict":
+    elif args.pipeline == "infer":
         run_inference()

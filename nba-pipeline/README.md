@@ -117,10 +117,9 @@ ZenML comes with a default local stack with a local orchestrator and local artif
 ![local](_assets/local_stack.png)
 
 
-Let's first run the pipeline locally. 
+There are limited things we can do running pipelines locally. 
 
-
-There are limited things we can do running pipelines locally. Now, let's run the same pipeline on a remote Kubeflow orchestrator, with the MLflow experiment tracker, secrets manager and container registry hosted on AWS.
+We will run the pipeline on a remote Kubeflow orchestrator hosted on AWS.
 
 First authenticate your credentials by with:
 
@@ -206,13 +205,34 @@ You'll be prompted to enter the username and password.
 
 You are now ready to run the pipeline!
 
-```
-python run_pipeline.py drift
+```python
+python run_pipeline.py drift  # Run drift detection pipeline
+python run_pipeline.py train  # Run training pipeline
+python run_pipeline.py infer  # Run inference pipeline
 ```
 
 And head over to your [Kubeflow central dashboard](https://www.kubeflow.org/docs/components/central-dash/overview/).
 
 
+The drift detection pipeline looks like the following.
+![kubeflow_dash](_assets/kubeflow_run_drift.png)
+
+
+The training pipeline looks like the following.
+![kubeflow_dash](_assets/kubeflow_run.png)
+
+The inference pipeline looks like the following.
+![kubeflow_dash](_assets/kubeflow_run_infer.png)
+
+## :checkered_flag: Cleaning up when you're done
+
+Once you are done running this notebook you might want to stop all running processes. For this, run the following command.
+(This will tear down your `k3d` cluster and the local docker registry.)
+
+```shell
+zenml stack set kubeflow_gitflow_stack
+zenml stack down -f
+```
 
 <!-- The following illustrates an example of a local stack to run the pipeline on a local machine.
 ![Local ZenML stack](_assets/localstack.png) -->
