@@ -174,7 +174,7 @@ Evidently Data Validator:
 zenml data-validator register evidently --flavor=evidently
 ```
 
-Kubeflow Orchestrator::
+Kubeflow Orchestrator:
 ```
 zenml orchestrator register multi_tenant_kubeflow \
   --flavor=kubeflow \
@@ -224,9 +224,6 @@ Once all the configurations are done, you can provision the stack by:
 ```
 zenml stack up
 ```
-
-You'll be prompted to enter the username and password.
-
 
 You are now ready to run the pipeline!
 
