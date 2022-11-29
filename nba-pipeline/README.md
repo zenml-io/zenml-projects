@@ -246,13 +246,6 @@ The training pipeline looks like the following.
 The inference pipeline looks like the following.
 ![kubeflow_dash](_assets/kubeflow_run_infer.png)
 
-Then, as before, you can run the pipelines using `run_pipeline.py` script:
-
-```python
-python run_pipeline.py drift  # Run one-shot drift pipeline
-python run_pipeline.py train  # Run training pipeline
-python run_pipeline.py infer  # Run inference pipeline
-```
 
 ## :checkered_flag: Cleaning up when you're done
 
