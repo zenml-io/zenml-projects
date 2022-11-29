@@ -138,7 +138,7 @@ In any Stack, there must be at least two basic [Stack Components](https://docs.z
 * [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Stores all data that pass through the pipeline. 
 
 ZenML comes with a default local stack with a local orchestrator and local artifact store.
-![local](_assets/local_stack.png)
+![local](_assets/local_and_cloud.png)
 
 
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack with some more stack components:
@@ -246,6 +246,14 @@ The training pipeline looks like the following.
 
 The inference pipeline looks like the following.
 ![kubeflow_dash](_assets/kubeflow_run_infer.png)
+
+Then, as before, you can run the pipelines using `run_pipeline.py` script:
+
+```python
+python run_pipeline.py drift  # Run one-shot drift pipeline
+python run_pipeline.py train  # Run training pipeline
+python run_pipeline.py infer  # Run inference pipeline
+```
 
 ## :checkered_flag: Cleaning up when you're done
 
