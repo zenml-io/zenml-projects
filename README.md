@@ -135,7 +135,7 @@ before every community gathering.
 # 🔥 About ZenML
 ZenML is an extensible, open-source MLOps framework for creating production-ready ML pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
 
-If you enjoy these courses and want to learn more:
+If you like these projects and want to learn more:
 - Give the <a href="https://github.com/zenml-io/zenml/stargazers" target="_blank">
     <img width="25" src="https://cdn.iconscout.com/icon/free/png-256/github-153-675523.png" alt="GitHub"/>
     <b>ZenML Repo</b>
