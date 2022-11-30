@@ -1,27 +1,25 @@
-# ZenML Project
-
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://zenml.io">
-    <img src="_assets/zenml_project.gif" alt="Logo" width="400">
+    <img src="_assets/zenml_project.gif" alt="Logo" width="600">
   </a>
 
-  <h3 align="center">A home for machine learning projects built using <a href="https://github.com/zenml-io/zenml/">ZenML</a> and various integrations.</h3>
+  <h3 align="center">A home for machine learning projects built with <a href="https://github.com/zenml-io/zenml/">ZenML</a> and various integrations.</h3>
 
   <p align="center">
     Get everything you need to start a project - demo, video, blog, and code.
     <br />
-    <a href="https://zenml.io/projects"><strong>ZenML Project Home Page »</strong></a>
+    <a href="https://zenml.io/projects"><strong>ZenML Projects Home Page »</strong></a>
     <br />
     <!-- <div align="center">
       Join our <a href="https://zenml.io/slack" target="_blank">
       <img width="25" src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack"/>
     <b>Slack Community</b> </a> and be part of the ZenML family.
     </div> -->
-    <!-- <br /> -->
-    <!-- <a href="https://zenml.io/features">Features</a>
+    <!-- <br />
+    <a href="https://zenml.io/features">Features</a>
     ·
     <a href="https://zenml.io/roadmap">Roadmap</a>
     ·
@@ -31,9 +29,9 @@
     ·
     <a href="https://blog.zenml.io/">Read Blog</a>
     ·
-    <a href="#-meet-the-team">Meet the Team</a> -->
-    <!-- <br /> -->
-    <br />
+    <a href="#-meet-the-team">Meet the Team</a>
+    <br /> -->
+    <br /> 
     <a href="https://www.linkedin.com/company/zenml/">
     <img src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Logo">
     </a>
@@ -49,18 +47,18 @@
   </p>
 </div>
 
-# 🧱 Projects List
+# 🧱 Project List
 
-Here is the list of updated and maintained Projects by the ZenML team and the community:
+A list of updated and maintained Projects by the ZenML team and the community:
 
-| Name                               | Link                                      | Tags                                       | Stack Components                       |
-| ---------------------------------- | ------------------------------------------| ------------------------------------------ | ------------------------------ |
-| Atari Games Reinforcement Learning | [README](atari-game-play)                 | reinforcement-learning                     | default                                |
-| Customer Churn                     | [README](customer-churn)                  | kubeflow-deployment, seldon-deployment     | kubeflow_orchestrator, seldon_deployer |
-| Customer Satisfaction              | [README](customer-satisfaction)           | continuous-deployment                      | mlflow_deployer, kubeflow_orchestrator |
-| NBA Predictor                      | [README](nba-pipeline)                    | drift, predictions                         | kubeflow_orchestrator, evidently |
-| Time Series Forecasting            | [README](time-series-forecast)            | predictions, feature-engineering, vertexai | step_operator, vertex_stack |
-| YOLOv5 Object Detection            | [README](sign-language-detection-yolov5)  | mlflow, computer-vision, vertexai          | step_operator, vertex_stack |
+| Project                            	| Webpage 	| Code   	| Video   	| Tags                   	| Stack Components                              	|
+|------------------------------------	|---------	|--------	|---------	|------------------------	|-----------------------------------------------	|
+| NBA Three-Pointer Predictor        	| LINK    	| README 	| YOUTUBE 	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
+| Atari Games Reinforcement Learning 	| LINK    	| README 	| YOUTUBE 	| Reinforcement-learning 	| local                                         	|
+| Time Series Forecasting            	| LINK    	| README 	| YOUTUBE 	| Time-series            	| vertex                                        	|
+| Customer Satisfaction              	| LINK    	| README 	| YOUTUBE 	| Tabular                	| mlflow kubeflow                               	|
+| Customer Churn                     	| LINK    	| README 	| YOUTUBE 	| Tabular                	| kubeflow seldon                               	|
+| YOLOv5 Object Detection            	| LINK    	| README 	| YOUTUBE 	| Computer-vision        	| mlflow vertex                                 	|
 
 # 💻 System Requirements
 - Linux or MacOS
