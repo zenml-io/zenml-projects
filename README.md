@@ -88,18 +88,18 @@
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-| Project                            	| Resources                                                                                                                                                          	| Tags                   	| Stack Components                              	|
-|------------------------------------	|--------------------------------------------------------------------------------------------------------------------------------------------------------------------	|------------------------	|-----------------------------------------------	|
-| NBA Three-Pointer Predictor        	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                            	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
-| Atari Games Reinforcement Learning 	| [![project][zenmlproject-shield]][zenmlproject-atari-url] [![yt][youtube-shield]][youtube-atari-url] [![yt][github-shield]][github-atari-url]                      	| Reinforcement-learning 	| local                                         	|
-| Time Series Forecasting            	| [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][youtube-shield]][youtube-timeseries-url] [![yt][github-shield]][github-timeseries-url]       	| Time-series            	| vertex                                        	|
-| Customer Satisfaction              	| [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url] 	| Tabular                	| mlflow kubeflow                               	|
-| Customer Churn                     	| [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][youtube-shield]][youtube-churn-url] [![yt][github-shield]][github-churn-url]                      	| Tabular                	| kubeflow seldon                               	|
-| YOLOv5 Object Detection            	| [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][youtube-shield]][youtube-yolov5-url] [![yt][github-shield]][github-yolov5-url]                   	| Computer-vision        	| mlflow vertex                                 	|
+| Project                               | Resources                                                                                                                                                             | Tags                      | Stack Components                                  |
+|------------------------------------   |--------------------------------------------------------------------------------------------------------------------------------------------------------------------   |------------------------   |-----------------------------------------------    |
+| NBA Three-Pointer Predictor           | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                               | Time-series               | mlflow kubeflow evidently sklearn aws discord     |
+| Atari Games Reinforcement Learning    | [![project][zenmlproject-shield]][zenmlproject-atari-url] [![yt][youtube-shield]][youtube-atari-url] [![yt][github-shield]][github-atari-url]                         | Reinforcement-learning    | local                                             |
+| Time Series Forecasting               | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][youtube-shield]][youtube-timeseries-url] [![yt][github-shield]][github-timeseries-url]          | Time-series               | vertex                                            |
+| Customer Satisfaction                 | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url]    | Tabular                   | mlflow kubeflow                                   |
+| Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][youtube-shield]][youtube-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | kubeflow seldon                                   |
+| YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][youtube-shield]][youtube-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | mlflow vertex                                     |
 
 
 # 💻 System Requirements
-- Linux or MacOS
+- Linux or macOS
 - Python 3.7, 3.8 or 3.9
 
 
@@ -165,8 +165,8 @@ the Apache License Version 2.0.
 | 📒 **[API Reference]** | Detailed reference on ZenML's API. |
 | 🍰 **[ZenBytes]** | A guided and in-depth tutorial on MLOps and ZenML. |
 | 🗂️️ **[ZenML Projects]** | A collection of projects built with ZenML. |
-| 👨‍🍳 **[MLOps Stacks]** | Terraform based infrastructure recipes for pre-made ZenML stacks. |
-| ⚽️ **[Examples]** | Learn best through examples where ZenML is used? We've got you covered. |
+| 👨‍🍳 **[MLOps Stacks]** | Terraform-based infrastructure recipes for pre-made ZenML stacks. |
+| ⚽️ **[Examples]** | Learn best through examples where ZenML is used. We've got you covered. |
 | 📬 **[Blog]** | Use cases of ZenML and technical deep dives on how we built it. |
 | 🔈 **[Podcast]** | Conversations with leaders in ML, released every 2 weeks. |
 | 📣 **[Newsletter]** | We build ZenML in public. Subscribe to learn how we work. |
