@@ -112,6 +112,13 @@ To generate a Project folder we recommend running:
 python generate_zenml_project.py PROJECT_NAME  # no requirements needed
 ```
 
+# 🆘 Getting Help
+By far the easiest and fastest way to get a response is to:
+
+* Ask your questions in [our Slack group](https://zenml.io/slack/).
+* [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose) on our GitHub repo.
+* Meet the team.
+
 # 👩‍👩‍👧‍👦 Meet the Team
 
 ![Meet the Team](./_assets/community_meetup.png)
@@ -124,12 +131,6 @@ Sometimes we'll be presenting a feature, other times we'll take questions and ha
 Or subscribe to our [public events calendar](https://calendar.google.com/calendar/u/0/r?cid=Y19iaDJ0Zm44ZzdodXBlbnBzaWplY3UwMmNjZ0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) to get notified 
 before every community gathering.
 
-# 🆘 Getting Help
-By far the easiest and fastest way to get a response is to:
-
-* Ask your questions in [our Slack group](https://zenml.io/slack-invite/).
-* [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose) on our GitHub repo.
-
 
 # 🔥 About ZenML
 ZenML is an extensible, open-source MLOps framework for creating production-ready ML pipelines. Built for data scientists, it has a simple, flexible syntax, is cloud- and tool-agnostic, and has interfaces/abstractions that are catered towards ML workflows.
@@ -139,7 +140,7 @@ If you enjoy these courses and want to learn more:
     <img width="25" src="https://cdn.iconscout.com/icon/free/png-256/github-153-675523.png" alt="GitHub"/>
     <b>ZenML Repo</b>
 </a> a <b>GitHub Star</b> :star: to show your love!
-- Join our <a href="https://zenml.io/slack-invite" target="_blank">
+- Join our <a href="https://zenml.io/slack" target="_blank">
     <img width="25" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
     <b>Slack Community</b> 
 </a> and become part of the ZenML family!
@@ -163,7 +164,7 @@ the Apache License Version 2.0.
 | 📓 **[Docs]** | Full documentation for creating your own ZenML pipelines. |
 | 📒 **[API Reference]** | Detailed reference on ZenML's API. |
 | 🍰 **[ZenBytes]** | A guided and in-depth tutorial on MLOps and ZenML. |
-| 🗂️️ **[ZenFiles]** | End-to-end projects using ZenML. |
+| 🗂️️ **[ZenML Projects]** | A collection of projects built with ZenML. |
 | 👨‍🍳 **[MLOps Stacks]** | Terraform based infrastructure recipes for pre-made ZenML stacks. |
 | ⚽️ **[Examples]** | Learn best through examples where ZenML is used? We've got you covered. |
 | 📬 **[Blog]** | Use cases of ZenML and technical deep dives on how we built it. |
@@ -181,7 +182,7 @@ the Apache License Version 2.0.
 [Docs]: https://docs.zenml.io/
 [API Reference]: https://apidocs.zenml.io/
 [ZenBytes]: https://github.com/zenml-io/zenbytes
-[ZenFiles]: https://github.com/zenml-io/zenfiles
+[ZenML Projects]: https://github.com/zenml-io/zenfiles
 [MLOps Stacks]: https://github.com/zenml-io/mlops-stacks
 [Examples]: https://github.com/zenml-io/zenml/tree/main/examples
 [Blog]: https://blog.zenml.io/
