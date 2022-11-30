@@ -49,28 +49,53 @@
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+<!-- SHIELDS -->
 [zenmlproject-shield]: https://img.shields.io/badge/ZenML%20Project-Webpage-purple?style=for-the-badge
-[zenmlproject-nba-url]: https://zenml.io/blog/nba-three-pointer-predictor
-
 [youtube-shield]: https://img.shields.io/badge/-YouTube-black.svg?style=for-the-badge&logo=youtube&colorB=red
-[youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
-
 [github-shield]: https://img.shields.io/badge/-Github-black.svg?style=for-the-badge&logo=github&colorB=black
-[github-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
+
+<!-- NBA -->
+[zenmlproject-nba-url]: https://zenml.io/blog/nba-three-pointer-predictor
+[youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
+[github-nba-url]: https://github.com/zenml-io/zenfiles/tree/doc/rename-zenml-project/nba-pipeline
+
+<!-- Atari -->
+[zenmlproject-atari-url]: https://zenml.io/blog/playing-atari-games
+[youtube-atari-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
+[github-atari-url]: https://github.com/zenml-io/zenfiles/tree/main/atari-game-play
+
+<!-- Time Series -->
+[zenmlproject-timeseries-url]: https://zenml.io/blog/power-forecast
+[youtube-timeseries-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
+[github-timeseries-url]: https://github.com/zenml-io/zenfiles/tree/main/time-series-forecast
+
+<!-- Customer Satisfaction -->
+[zenmlproject-satisfaction-url]: https://zenml.io/blog/customer-satisfaction
+[youtube-satisfaction-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
+[github-satisfaction-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-satisfaction
+
+<!-- Customer Churn -->
+[zenmlproject-churn-url]: https://zenml.io/blog/customer-churn
+[youtube-churn-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
+[github-churn-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-churn
+
+<!-- Yolov5 -->
+[zenmlproject-yolov5-url]: https://zenml.io/blog/sign-language-yolov5
+[youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
+[github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
 
 # 🧱 Project List
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-| Project                            	| Resources                                                                                                                               	| Tags                   	| Stack Components                              	|
-|------------------------------------	|-----------------------------------------------------------------------------------------------------------------------------------------	|------------------------	|-----------------------------------------------	|
-| NBA Three-Pointer Predictor        	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
-| Atari Games Reinforcement Learning 	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Reinforcement-learning 	| local                                         	|
-| Time Series Forecasting            	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Time-series            	| vertex                                        	|
-| Customer Satisfaction              	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Tabular                	| mlflow kubeflow                               	|
-| Customer Churn                     	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Tabular                	| kubeflow seldon                               	|
-| YOLOv5 Object Detection            	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Computer-vision        	| mlflow vertex                                 	|
-
+| Project                            	| Resources                                                                                                                                                          	| Tags                   	| Stack Components                              	|
+|------------------------------------	|--------------------------------------------------------------------------------------------------------------------------------------------------------------------	|------------------------	|-----------------------------------------------	|
+| NBA Three-Pointer Predictor        	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                            	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
+| Atari Games Reinforcement Learning 	| [![project][zenmlproject-shield]][zenmlproject-atari-url] [![yt][youtube-shield]][youtube-atari-url] [![yt][github-shield]][github-atari-url]                      	| Reinforcement-learning 	| local                                         	|
+| Time Series Forecasting            	| [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][youtube-shield]][youtube-timeseries-url] [![yt][github-shield]][github-timeseries-url]       	| Time-series            	| vertex                                        	|
+| Customer Satisfaction              	| [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url] 	| Tabular                	| mlflow kubeflow                               	|
+| Customer Churn                     	| [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][youtube-shield]][youtube-churn-url] [![yt][github-shield]][github-churn-url]                      	| Tabular                	| kubeflow seldon                               	|
+| YOLOv5 Object Detection            	| [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][youtube-shield]][youtube-yolov5-url] [![yt][github-shield]][github-yolov5-url]                   	| Computer-vision        	| mlflow vertex                                 	|
 
 
 # 💻 System Requirements
