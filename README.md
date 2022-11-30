@@ -109,7 +109,7 @@ We welcome contributions from anyone to showcase your project built using ZenML.
 To generate a Project folder we recommend running:
 
 ```python
-python generate_zenfile.py ZENFILE_NAME  # no requirements needed
+python generate_zenml_project.py PROJECT_NAME  # no requirements needed
 ```
 
 # 👩‍👩‍👧‍👦 Meet the Team
