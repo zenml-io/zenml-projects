@@ -143,3 +143,50 @@ If you enjoy these courses and want to learn more:
     <img width="25" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
     <b>Slack Community</b> 
 </a> and become part of the ZenML family!
+
+
+# 📜 License
+
+ZenML is distributed under the terms of the Apache License Version 2.0. 
+A complete version of the license is available in the [LICENSE](LICENSE) file in
+this repository. Any contribution made to this project will be licensed under
+the Apache License Version 2.0.
+
+# 📖 Learn More
+
+| ZenML Resources | Description |
+| ------------- | - |
+| 🧘‍♀️ **[ZenML 101]** | New to ZenML? Here's everything you need to know! |
+| ⚛️ **[Core Concepts]** | Some key terms and concepts we use. |
+| 🚀 **[Our latest release]** | New features, bug fixes. |
+| 🗳 **[Vote for Features]** | Pick what we work on next! |
+| 📓 **[Docs]** | Full documentation for creating your own ZenML pipelines. |
+| 📒 **[API Reference]** | Detailed reference on ZenML's API. |
+| 🍰 **[ZenBytes]** | A guided and in-depth tutorial on MLOps and ZenML. |
+| 🗂️️ **[ZenFiles]** | End-to-end projects using ZenML. |
+| 👨‍🍳 **[MLOps Stacks]** | Terraform based infrastructure recipes for pre-made ZenML stacks. |
+| ⚽️ **[Examples]** | Learn best through examples where ZenML is used? We've got you covered. |
+| 📬 **[Blog]** | Use cases of ZenML and technical deep dives on how we built it. |
+| 🔈 **[Podcast]** | Conversations with leaders in ML, released every 2 weeks. |
+| 📣 **[Newsletter]** | We build ZenML in public. Subscribe to learn how we work. |
+| 💬 **[Join Slack]** | Need help with your specific use case? Say hi on Slack! |
+| 🗺 **[Roadmap]** | See where ZenML is working to build new features. |
+| 🙋‍♀️ **[Contribute]** | How to contribute to the ZenML project and code base. |
+
+[ZenML 101]: https://docs.zenml.io/
+[Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
+[Deployment Guide]: TBD
+[Our latest release]: https://github.com/zenml-io/zenml/releases
+[Vote for Features]: https://zenml.io/discussion
+[Docs]: https://docs.zenml.io/
+[API Reference]: https://apidocs.zenml.io/
+[ZenBytes]: https://github.com/zenml-io/zenbytes
+[ZenFiles]: https://github.com/zenml-io/zenfiles
+[MLOps Stacks]: https://github.com/zenml-io/mlops-stacks
+[Examples]: https://github.com/zenml-io/zenml/tree/main/examples
+[Blog]: https://blog.zenml.io/
+[Podcast]: https://podcast.zenml.io/
+[Newsletter]: https://zenml.io/newsletter/
+[Join Slack]: https://zenml.io/slack-invite/
+[Roadmap]: https://zenml.io/roadmap
+[Contribute]: https://github.com/zenml-io/zenml/blob/main/CONTRIBUTING.md
