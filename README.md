@@ -47,18 +47,31 @@
   </p>
 </div>
 
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[zenmlproject-shield]: https://img.shields.io/badge/ZenML%20Project-Webpage-purple?style=for-the-badge
+[zenmlproject-nba-url]: https://zenml.io/blog/nba-three-pointer-predictor
+
+[youtube-shield]: https://img.shields.io/badge/-YouTube-black.svg?style=for-the-badge&logo=youtube&colorB=red
+[youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
+
+[github-shield]: https://img.shields.io/badge/-Github-black.svg?style=for-the-badge&logo=github&colorB=black
+[github-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
+
 # 🧱 Project List
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-| Project                            	| Webpage 	| Code   	| Video   	| Tags                   	| Stack Components                                          	|
-|------------------------------------	|---------	|--------	|---------	|------------------------	|-----------------------------------------------------------	|
-| NBA Three-Pointer Predictor        	| LINK    	| README 	| YOUTUBE 	| Time-series            	| `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord` 	|
-| Atari Games Reinforcement Learning 	| LINK    	| README 	| YOUTUBE 	| Reinforcement-learning 	| `local`                                         	            |
-| Time Series Forecasting            	| LINK    	| README 	| YOUTUBE 	| Time-series            	| `vertex`                                        	            |
-| Customer Satisfaction              	| LINK    	| README 	| YOUTUBE 	| Tabular                	| `mlflow` `kubeflow`                               	        |
-| Customer Churn                     	| LINK    	| README 	| YOUTUBE 	| Tabular                	| `kubeflow` `seldon`                               	        |
-| YOLOv5 Object Detection            	| LINK    	| README 	| YOUTUBE 	| Computer-vision        	| `mlflow` `vertex`                                 	        |
+| Project                            	| Resources                                                                                                                               	| Tags                   	| Stack Components                              	|
+|------------------------------------	|-----------------------------------------------------------------------------------------------------------------------------------------	|------------------------	|-----------------------------------------------	|
+| NBA Three-Pointer Predictor        	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
+| Atari Games Reinforcement Learning 	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Reinforcement-learning 	| local                                         	|
+| Time Series Forecasting            	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Time-series            	| vertex                                        	|
+| Customer Satisfaction              	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Tabular                	| mlflow kubeflow                               	|
+| Customer Churn                     	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Tabular                	| kubeflow seldon                               	|
+| YOLOv5 Object Detection            	| [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url] 	| Computer-vision        	| mlflow vertex                                 	|
+
+
 
 # 💻 System Requirements
 - Linux or MacOS
