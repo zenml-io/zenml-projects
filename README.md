@@ -51,14 +51,14 @@
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-| Project                            	| Webpage 	| Code   	| Video   	| Tags                   	| Stack Components                              	|
-|------------------------------------	|---------	|--------	|---------	|------------------------	|-----------------------------------------------	|
-| NBA Three-Pointer Predictor        	| LINK    	| README 	| YOUTUBE 	| Time-series            	| mlflow kubeflow evidently sklearn aws discord 	|
-| Atari Games Reinforcement Learning 	| LINK    	| README 	| YOUTUBE 	| Reinforcement-learning 	| local                                         	|
-| Time Series Forecasting            	| LINK    	| README 	| YOUTUBE 	| Time-series            	| vertex                                        	|
-| Customer Satisfaction              	| LINK    	| README 	| YOUTUBE 	| Tabular                	| mlflow kubeflow                               	|
-| Customer Churn                     	| LINK    	| README 	| YOUTUBE 	| Tabular                	| kubeflow seldon                               	|
-| YOLOv5 Object Detection            	| LINK    	| README 	| YOUTUBE 	| Computer-vision        	| mlflow vertex                                 	|
+| Project                            	| Webpage 	| Code   	| Video   	| Tags                   	| Stack Components                                          	|
+|------------------------------------	|---------	|--------	|---------	|------------------------	|-----------------------------------------------------------	|
+| NBA Three-Pointer Predictor        	| LINK    	| README 	| YOUTUBE 	| Time-series            	| `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord` 	|
+| Atari Games Reinforcement Learning 	| LINK    	| README 	| YOUTUBE 	| Reinforcement-learning 	| `local`                                         	            |
+| Time Series Forecasting            	| LINK    	| README 	| YOUTUBE 	| Time-series            	| `vertex`                                        	            |
+| Customer Satisfaction              	| LINK    	| README 	| YOUTUBE 	| Tabular                	| `mlflow` `kubeflow`                               	        |
+| Customer Churn                     	| LINK    	| README 	| YOUTUBE 	| Tabular                	| `kubeflow` `seldon`                               	        |
+| YOLOv5 Object Detection            	| LINK    	| README 	| YOUTUBE 	| Computer-vision        	| `mlflow` `vertex`                                 	        |
 
 # 💻 System Requirements
 - Linux or MacOS
