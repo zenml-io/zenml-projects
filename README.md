@@ -1,7 +1,53 @@
 # ZenML Project
 
-A home for machine learning projects built using [ZenML](https://github.com/zenml-io/zenml/) and various integrations.
-Get everything you need to start a project - demo, video, blog, and code.
+
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://zenml.io">
+    <img src="_assets/zenml_project.gif" alt="Logo" width="400">
+  </a>
+
+  <h3 align="center">A home for machine learning projects built using <a href="https://github.com/zenml-io/zenml/">ZenML</a> and various integrations.</h3>
+
+  <p align="center">
+    Get everything you need to start a project - demo, video, blog, and code.
+    <br />
+    <a href="https://zenml.io/projects"><strong>ZenML Project Home Page »</strong></a>
+    <br />
+    <!-- <div align="center">
+      Join our <a href="https://zenml.io/slack" target="_blank">
+      <img width="25" src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack"/>
+    <b>Slack Community</b> </a> and be part of the ZenML family.
+    </div> -->
+    <!-- <br /> -->
+    <!-- <a href="https://zenml.io/features">Features</a>
+    ·
+    <a href="https://zenml.io/roadmap">Roadmap</a>
+    ·
+    <a href="https://github.com/zenml-io/zenml/issues">Report Bug</a>
+    ·
+    <a href="https://zenml.io/discussion">Vote New Features</a>
+    ·
+    <a href="https://blog.zenml.io/">Read Blog</a>
+    ·
+    <a href="#-meet-the-team">Meet the Team</a> -->
+    <!-- <br /> -->
+    <br />
+    <a href="https://www.linkedin.com/company/zenml/">
+    <img src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Logo">
+    </a>
+    <a href="https://www.linkedin.com/company/zenml/">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="Logo">
+    </a>
+    <a href="https://twitter.com/zenml_io">
+    <img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Logo">
+    </a>
+    <a href="https://www.youtube.com/c/ZenML">
+    <img src="https://img.shields.io/badge/-YouTube-black.svg?style=for-the-badge&logo=youtube&colorB=red" alt="Logo">
+    </a>
+  </p>
+</div>
 
 # 🧱 Projects List
 
