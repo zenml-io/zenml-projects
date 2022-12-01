@@ -109,7 +109,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 
 # 🪃 Contributing
 We welcome contributions from anyone to showcase your project built using ZenML.
-See our contributing guide to start.
+See our [contributing guide](./CONTRIBUTING.md) to start.
 
 # 🆘 Getting Help
 By far the easiest and fastest way to get help is to:
