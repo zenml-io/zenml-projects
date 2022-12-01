@@ -100,7 +100,7 @@ the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
 3. Clone the project to your machine.
 4. Checkout the **main** branch <- `git checkout main`.
 5. Create a branch locally off the **main** branch with a succinct but descriptive name.
-6. Commit changes to the branch
+6. Commit changes to the branch.
 7. Push changes to your fork.
 8. Open a PR in our repository to the `main` branch and
    follow the PR template so that we can efficiently review the changes.
