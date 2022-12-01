@@ -84,6 +84,10 @@
 [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
 
+# ☀️ Introduction
+This repository hosts production grade ML use-cases built with ZenML.
+
+
 # 🧱 Project List
 
 A list of updated and maintained Projects by the ZenML team and the community:
@@ -105,6 +109,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 
 # 🪃 Contributing
 We welcome contributions from anyone to showcase your project built using ZenML.
+The projects are contributed by the ZenML team and we welcome community contribution.
 
 To generate a Project folder we recommend running:
 
@@ -148,7 +153,7 @@ If you like these projects and want to learn more:
 
 # 📜 License
 
-ZenML is distributed under the terms of the Apache License Version 2.0. 
+ZenML Projects is distributed under the terms of the Apache License Version 2.0. 
 A complete version of the license is available in the [LICENSE](LICENSE) file in
 this repository. Any contribution made to this project will be licensed under
 the Apache License Version 2.0.
