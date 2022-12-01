@@ -103,8 +103,8 @@ A list of updated and maintained Projects by the ZenML team and the community:
 
 
 # 💻 System Requirements
-- Linux or macOS
-- Python 3.7, 3.8 or 3.9
+- Linux or macOS.
+- Python 3.7, 3.8 or 3.9.
 
 
 # 🪃 Contributing
@@ -118,23 +118,11 @@ python generate_zenml_project.py PROJECT_NAME  # no requirements needed
 ```
 
 # 🆘 Getting Help
-By far the easiest and fastest way to get a response is to:
+By far the easiest and fastest way to get help is to:
 
 * Ask your questions in [our Slack group](https://zenml.io/slack/).
 * [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose) on our GitHub repo.
-* Meet the team.
-
-# 👩‍👩‍👧‍👦 Meet the Team
-
-![Meet the Team](./_assets/community_meetup.png)
-
-Every week, the ZenML [core team](https://zenml.io/company#CompanyTeam) will pop in for 30 minutes to interact directly with the community. 
-Sometimes we'll be presenting a feature, other times we'll take questions and have fun. 
-
-[Register now](https://zenml.io/meet) for the ZenML Meet the Community session. It's free and open to everyone.
-
-Or subscribe to our [public events calendar](https://calendar.google.com/calendar/u/0/r?cid=Y19iaDJ0Zm44ZzdodXBlbnBzaWplY3UwMmNjZ0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) to get notified 
-before every community gathering.
+* [Meet the team](https://zenml.io/meet) every week during our community meetup.
 
 
 # 🔥 About ZenML
