@@ -85,7 +85,7 @@
 [github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
 
 # ☀️ Introduction
-This repository hosts production grade ML use-cases built with ZenML.
+This repository showcases production grade ML use-cases built with ZenML.
 
 
 # 🧱 Project List
@@ -109,13 +109,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 
 # 🪃 Contributing
 We welcome contributions from anyone to showcase your project built using ZenML.
-The projects are contributed by the ZenML team and we welcome community contribution.
-
-To generate a Project folder we recommend running:
-
-```python
-python generate_zenml_project.py PROJECT_NAME  # no requirements needed
-```
+See our contributing guide to start.
 
 # 🆘 Getting Help
 By far the easiest and fastest way to get help is to:
