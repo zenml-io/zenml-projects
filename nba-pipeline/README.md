@@ -23,7 +23,7 @@ Within this repo, we will use ZenML to build pipelines that seamlessly use [Evid
 [MLFlow](https://mlflow.org/), [Kubeflow Pipelines](https://www.kubeflow.org/) and post
 results to our [Discord](https://discord.com/).
 
-![](_assets/evidently+mlflow+discord+kubeflow.png)
+![img](./_assets/nba.png)
 
 [![](https://img.youtube.com/vi/Ne-dt9tu11g/0.jpg)](https://www.youtube.com/watch?v=Ne-dt9tu11g)
 
@@ -137,7 +137,7 @@ In any Stack, there must be at least two basic [Stack Components](https://docs.z
 * [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Stores all data that pass through the pipeline. 
 
 ZenML comes with a default local stack with a local orchestrator and local artifact store.
-![local](_assets/local_and_cloud.png)
+![local](_assets/local_cloud.png)
 
 
 To transition from running our pipelines locally (see diagram above) to running them on Kubeflow Pipelines, we only need to register a new stack with some more stack components:
