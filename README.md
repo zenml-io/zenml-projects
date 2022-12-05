@@ -18,19 +18,19 @@
       <img width="25" src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack"/>
     <b>Slack Community</b> </a> and be part of the ZenML family.
     </div> -->
-    <!-- <br />
+    <br />
     <a href="https://zenml.io/features">Features</a>
     ·
-    <a href="https://zenml.io/roadmap">Roadmap</a>
+    <a href="https://zenml.io/roadmap"">Roadmap</a>
     ·
-    <a href="https://github.com/zenml-io/zenml/issues">Report Bug</a>
+    <a href="https://github.com/zenml-io/zenml-projects/issues">Report Bug</a>
     ·
     <a href="https://zenml.io/discussion">Vote New Features</a>
     ·
     <a href="https://blog.zenml.io/">Read Blog</a>
     ·
-    <a href="#-meet-the-team">Meet the Team</a>
-    <br /> -->
+    <a href="https://zenml.io/meet">Meet the Team</a>
+    <br />
     <br /> 
     <a href="https://www.linkedin.com/company/zenml/">
     <img src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Logo">
