@@ -25,7 +25,7 @@ pip install -r requirements.txt
 We're ready to go now. You can run the code, using the `run_pipeline.py` script.
 
 ```
-python run_pipeline.py
+python run.py
 ```
 
 ## 📓 Explanation of Code
