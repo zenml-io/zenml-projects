@@ -1,4 +1,0 @@
-opencv_python==4.5.5.62
-tensorflow==2.8.0
-ale-py
-zenml
