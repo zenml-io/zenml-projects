@@ -8,7 +8,7 @@ Reading and following these guidelines will help us make the contribution
 process easy and effective for everyone
 involved. It also communicates that you agree to respect the developers' time
 management and develop these open-source projects. In return, we will reciprocate that respect by reading your
-issue, assessing changes, and helping
+issue(s), assessing changes, and helping
 you finalize your pull requests.
 
 ## ⚡️ Quicklinks
