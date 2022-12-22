@@ -1,4 +1,4 @@
-"""Generate a zenfile project for a tool"""
+"""Generate a ZenML project for a tool"""
 import os
 import shutil
 import logging
