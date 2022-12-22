@@ -55,32 +55,32 @@
 [github-shield]: https://img.shields.io/badge/-Github-black.svg?style=for-the-badge&logo=github&colorB=black
 
 <!-- NBA -->
-[zenmlproject-nba-url]: https://zenml.io/blog/nba-three-pointer-predictor
+[zenmlproject-nba-url]: https://zenml.io/project/nba-three-pointer-predictor
 [youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
 [github-nba-url]: https://github.com/zenml-io/zenfiles/tree/doc/rename-zenml-project/nba-pipeline
 
 <!-- Atari -->
-[zenmlproject-atari-url]: https://zenml.io/blog/playing-atari-games
+[zenmlproject-atari-url]: https://zenml.io/project/playing-atari-games
 [youtube-atari-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-atari-url]: https://github.com/zenml-io/zenfiles/tree/main/atari-game-play
 
 <!-- Time Series -->
-[zenmlproject-timeseries-url]: https://zenml.io/blog/power-forecast
+[zenmlproject-timeseries-url]: https://zenml.io/project/power-forecast
 [youtube-timeseries-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-timeseries-url]: https://github.com/zenml-io/zenfiles/tree/main/time-series-forecast
 
 <!-- Customer Satisfaction -->
-[zenmlproject-satisfaction-url]: https://zenml.io/blog/customer-satisfaction
+[zenmlproject-satisfaction-url]: https://zenml.io/project/customer-satisfaction
 [youtube-satisfaction-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-satisfaction-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-satisfaction
 
 <!-- Customer Churn -->
-[zenmlproject-churn-url]: https://zenml.io/blog/customer-churn
+[zenmlproject-churn-url]: https://zenml.io/project/customer-churn
 [youtube-churn-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-churn-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-churn
 
 <!-- Yolov5 -->
-[zenmlproject-yolov5-url]: https://zenml.io/blog/sign-language-yolov5
+[zenmlproject-yolov5-url]: https://zenml.io/project/sign-language-yolov5
 [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
 
