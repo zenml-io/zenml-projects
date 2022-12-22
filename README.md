@@ -84,7 +84,7 @@
 [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
 [github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
 
-# ☀️ Introduction
+# ☀️ Introduction ZenML Projects (Formerly ZenFiles)
 This repository showcases production-grade ML use cases built with ZenML. 
 The goal of this repository is to provide you a ready-to-use MLOps workflow that you can adapt for your application.
 We maintain a growing list of projects from various ML domains including time-series, tabular data, computer vision, etc. 
