@@ -57,34 +57,30 @@
 <!-- NBA -->
 [zenmlproject-nba-url]: https://zenml.io/project/nba-three-pointer-predictor
 [youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
-[github-nba-url]: https://github.com/zenml-io/zenfiles/tree/doc/rename-zenml-project/nba-pipeline
+[github-nba-url]: hhttps://github.com/zenml-io/zenml-projects/tree/main/nba-pipeline
 
-<!-- Atari -->
-[zenmlproject-atari-url]: https://zenml.io/project/playing-atari-games
-[youtube-atari-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
-[github-atari-url]: https://github.com/zenml-io/zenfiles/tree/main/atari-game-play
 
 <!-- Time Series -->
-[zenmlproject-timeseries-url]: https://zenml.io/project/power-forecast
-[youtube-timeseries-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
-[github-timeseries-url]: https://github.com/zenml-io/zenfiles/tree/main/time-series-forecast
+[zenmlproject-timeseries-url]: https://zenml.io/project/forecasting-wind-power-generation
+<!-- [youtube-timeseries-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
+[github-timeseries-url]: https://github.com/zenml-io/zenml-projects/tree/main/time-series-forecast
 
 <!-- Customer Satisfaction -->
 [zenmlproject-satisfaction-url]: https://zenml.io/project/customer-satisfaction
-[youtube-satisfaction-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
-[github-satisfaction-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-satisfaction
+[youtube-satisfaction-url]: https://youtu.be/L3_pFTlF9EQ
+[github-satisfaction-url]: https://github.com/zenml-io/zenml-projects/tree/main/customer-satisfaction
 
 <!-- Customer Churn -->
 [zenmlproject-churn-url]: https://zenml.io/project/customer-churn
-[youtube-churn-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
-[github-churn-url]: https://github.com/zenml-io/zenfiles/tree/main/customer-churn
+<!-- [youtube-churn-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
+[github-churn-url]: https://zenml.io/project/customer-churn
 
 <!-- Yolov5 -->
 [zenmlproject-yolov5-url]: https://zenml.io/project/sign-language-yolov5
-[youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML
-[github-yolov5-url]: https://github.com/zenml-io/zenfiles/tree/main/sign-language-detection-yolov5
+<!-- [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
+[github-yolov5-url]: https://github.com/zenml-io/zenml-projects/tree/main/sign-language-detection-yolov5
 
-# ☀️ Introduction ZenML Projects (Formerly ZenFiles)
+# ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 This repository showcases production-grade ML use cases built with ZenML. 
 The goal of this repository is to provide you a ready-to-use MLOps workflow that you can adapt for your application.
 We maintain a growing list of projects from various ML domains including time-series, tabular data, computer vision, etc. 
@@ -97,10 +93,10 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | Project                               | Resources                                                                                                                                                             | Tags                      | Stack Components                                  |
 |------------------------------------   |--------------------------------------------------------------------------------------------------------------------------------------------------------------------   |------------------------   |-----------------------------------------------    |
 | NBA Three-Pointer Predictor           | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                               | Time-series               | `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord`     |
-| Time Series Forecasting               | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][youtube-shield]][youtube-timeseries-url] [![yt][github-shield]][github-timeseries-url]          | Time-series               | `vertex`                                            |
+| Time Series Forecasting               | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][github-shield]][github-timeseries-url]          | Time-series               | `vertex`                                            |
 | Customer Satisfaction                 | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url]    | Tabular                   | `mlflow` `kubeflow`                                   |
-| Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][youtube-shield]][youtube-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | `kubeflow` `seldon`                                   |
-| YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][youtube-shield]][youtube-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | `mlflow` `vertex`                                     |
+| Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | `kubeflow` `seldon`                                   |
+| YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | `mlflow` `vertex`                                     |
 
 
 # 💻 System Requirements
@@ -172,7 +168,6 @@ the Apache License Version 2.0.
 [Docs]: https://docs.zenml.io/
 [API Reference]: https://apidocs.zenml.io/
 [ZenBytes]: https://github.com/zenml-io/zenbytes
-[ZenML Projects]: https://github.com/zenml-io/zenfiles
 [MLOps Stacks]: https://github.com/zenml-io/mlops-stacks
 [Examples]: https://github.com/zenml-io/zenml/tree/main/examples
 [Blog]: https://blog.zenml.io/
