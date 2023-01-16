@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "zenfiles"
+name = "zenml-projects"
 version = "1.0.0"
 description = "Explore MLOps production use-cases with ZenML."
 authors = ["ZenML CodeMonkey <codemonkey@zenml.io>"]

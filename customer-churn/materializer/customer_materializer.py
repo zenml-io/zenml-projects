@@ -15,7 +15,7 @@ DEFAULT_FILENAME = "CustomerChurnEnvironment"
 
 class cs_materializer(BaseMaterializer):
     """
-    Custom materializer for the Customer Satisfaction Zenfile
+    Custom materializer for the Customer Satisfaction Project
     """
 
     ASSOCIATED_TYPES = (

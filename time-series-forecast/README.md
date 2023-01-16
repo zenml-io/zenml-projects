@@ -35,16 +35,16 @@ The figure above explains the data that we are going to work with. We can see th
 Using `poetry` ([install](https://python-poetry.org/docs/)):
 
 ```shell
-git clone https://github.com/zenml-io/zenfiles.git
-cd zenfiles/time-series-forecast
+git clone https://github.com/zenml-io/zenml-projects.git
+cd zenml-projects/time-series-forecast
 poetry install
 ```
 
 Using `requirements.txt`:
 
 ```shell
-git clone https://github.com/zenml-io/zenfiles.git
-cd zenfiles/time-series-forecast
+git clone https://github.com/zenml-io/zenml-projects.git
+cd zenml-projects/time-series-forecast
 pip install -r requirements.txt
 ```
 

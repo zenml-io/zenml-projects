@@ -13,7 +13,7 @@ zenml orchestrator register multi_tenant_kubeflow \
   --kubernetes_context=kubeflowmultitenant \
   --kubeflow_hostname=https://www.kubeflowshowcase.zenml.io/pipeline
 
-zenml artifact-store register s3_store -f s3 --path=s3://zenfiles
+zenml artifact-store register s3_store -f s3 --path=s3://zenml-projects
 
 zenml container-registry register ecr_registry --flavor=aws --uri=715803424590.dkr.ecr.us-east-1.amazonaws.com 
 
