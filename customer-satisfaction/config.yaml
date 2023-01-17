@@ -5,8 +5,8 @@ settings:
   docker:
     required_integrations:
       - mlflow
-steps: 
+steps:
   model_train:
-    experiment_tracker: mlflow_tracker_satisfaction
+    experiment_tracker: mlflow_tracker
   evaluation:
-    experiment_tracker: mlflow_tracker_satisfaction
+    experiment_tracker: mlflow_tracker
