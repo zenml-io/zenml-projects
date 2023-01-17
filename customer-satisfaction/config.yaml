@@ -1,6 +1,6 @@
-enable_cache: True
+enable_cache: False
 extra:
-  tags: zenfile
+  tags: zenml-projects
 settings:
   docker:
     required_integrations:
