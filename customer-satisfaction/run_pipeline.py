@@ -8,7 +8,6 @@ from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
 
 if __name__ == "__main__":
-    
     training = train_pipeline(
         ingest_data(),
         clean_data(),
