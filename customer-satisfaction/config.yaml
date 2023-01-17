@@ -7,6 +7,6 @@ settings:
       - mlflow
 steps: 
   model_train:
-    experiment_tracker: mlflow_tracker
+    experiment_tracker: mlflow_tracker_satisfaction
   evaluation:
-    experiment_tracker: mlflow_tracker
+    experiment_tracker: mlflow_tracker_satisfaction
