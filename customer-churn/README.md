@@ -18,8 +18,8 @@ The purpose of this repository is to demonstrate how [ZenML](https://github.com/
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/zenfiles.git
-cd zenfiles/customer-churn
+git clone https://github.com/zenml-io/zenml-projects.git
+cd zenml-projects/customer-churn
 pip install -r requirements.txt
 ```
 
@@ -201,7 +201,7 @@ $ zenml model-deployer models describe 3ef6c58b-793d-4f85-8edd-aad961717f90
 ┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
 ┃ MODEL_NAME             │ model                                                                                                                                                         ┃
 ┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
-┃ MODEL_URI              │ s3://zenfiles/seldon_model_deployer_step/output/2517/seldon                                                                                                   ┃
+┃ MODEL_URI              │ s3://zenml-projects/seldon_model_deployer_step/output/2517/seldon                                                                                                   ┃
 ┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨
 ┃ PIPELINE_NAME          │ continuous_deployment_pipeline                                                                                                                                ┃
 ┠────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┨

@@ -48,8 +48,8 @@ Once you've got the system requirements figured out, let's jump into the Python 
 Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/zenfiles
-cd nba-pipeline
+git clone https://github.com/zenml-io/zenml-projects
+cd zenml-projects/nba-pipeline
 pip install -r requirements.txt
 ```
 
@@ -185,7 +185,7 @@ Make sure to pass in your own `--kubernetes_context` and `--kubeflow_hostname`.
 
 Artifact Store on Amazon S3:
 ```
-zenml artifact-store register s3_store -f s3 --path=s3://zenfiles
+zenml artifact-store register s3_store -f s3 --path=s3://zenml-projects
 ```
 Include your own `--path` on S3.
 

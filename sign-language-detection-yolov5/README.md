@@ -51,9 +51,9 @@ In order to achieve this there are two different ways to get access to a remote 
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/zenfiles.git
+git clone https://github.com/zenml-io/zenml-projects.git
 git submodule update --init --recursive
-cd zenfiles/sign-language-detection-yolov5
+cd zenml-projects/sign-language-detection-yolov5
 pip install -r requirements.txt
 pip install -r yolov5/requirements.txt
 ```
