@@ -15,7 +15,7 @@
 from zenml.pipelines import pipeline
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def community_analysis_pipeline(
     booming,
     churned,
