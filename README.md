@@ -80,6 +80,10 @@
 <!-- [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
 [github-yolov5-url]: https://github.com/zenml-io/zenml-projects/tree/main/sign-language-detection-yolov5
 
+<!-- GitHub Workflows -->
+[github-gitflow-url]: https://github.com/zenml-io/zenml-gitflow
+
+
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 This repository showcases production-grade ML use cases built with ZenML. 
 The goal of this repository is to provide you a ready-to-use MLOps workflow that you can adapt for your application.
@@ -97,13 +101,14 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | Customer Satisfaction                 | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url]    | Tabular                   | `mlflow` `kubeflow`                                   |
 | Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | `kubeflow` `seldon`                                   |
 | YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | `mlflow` `vertex`                                     |
+| GitFlow ZenML Project                 | [![yt][github-shield]][github-gitflow-url]                      | MLOps with ZenML and GitHub Workflows          | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`   |
 
 
 # 💻 System Requirements
 To run any of the projects listed, you have to install ZenML on your machine. Read [our docs](https://docs.zenml.io/getting-started/installation) for installation details.
 
 - Linux or macOS.
-- Python 3.7, 3.8 or 3.9.
+- Python 3.7, 3.8, 3.9 or 3.10
 
 
 # 🪃 Contributing
