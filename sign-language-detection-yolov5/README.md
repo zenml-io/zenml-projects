@@ -1,8 +1,8 @@
 # Detect and recognize the American Sign Language alphabet in real-time images using Yolov5 and ZenML
 
-**Problem statement**: One of the most anticipated capabilities of Machine Learning and AI is to help people with disabilities. The deaf community cannot do what most of the population take for granted and are often placed in degrading situations due to these challenges they face every day. In this ZenML Project you will see how computer vision can be utilized to create a model that can bridge the gap for the deaf and hard of hearing by learning American Sign Language and be able to understand the meaning of each sign.
+**Problem statement**: One of the most anticipated capabilities of machine learning and AI is to help people with disabilities. The deaf community cannot do what most of the population takes for granted and are often placed in degrading situations due to these challenges they face every day. In this ZenML Project you will see how computer vision can be used to create a model that can bridge the gap for the deaf and hard of hearing by learning American Sign Language and be able to understand the meaning of each sign.
 
-This project will use ZenML to create a pipeline that will train a model to detect and recognize the American Sign Language alphabet in real-time images using Yolov5, MLFlow and the Vertex AI Platform.
+This project uses ZenML to create a pipeline that will train a model to detect and recognize the American Sign Language alphabet in real-time images using Yolov5, MLFlow and the Vertex AI Platform.
 
 The purpose of this repository is to demonstrate how [ZenML](https://github.com/zenml-io/zenml) empowers you to build, track and deploy a computer vision pipeline using some of the most popular tools in the industry:
 
@@ -31,6 +31,7 @@ installed on your local machine:
 * [Python](https://www.python.org/) (version 3.7-3.9)
 * [Docker](https://www.docker.com/)
 * [GCloud CLI](https://cloud.google.com/sdk/docs/install) (authenticated)
+* [MLFlow Tracking Server](https://mlflow.org/docs/latest/tracking.html#mlflow-tracking-servers) (deployed remotely)
 * [Remote ZenML Server](https://docs.zenml.io/getting-started/deploying-zenml#deploying-zenml-in-the-cloud-remote-deployment-of-the-http-server-and-database): a Remote Deployment of the ZenML HTTP server and database
 
 ### :rocket: Remote ZenML Server
@@ -51,15 +52,14 @@ In order to achieve this there are two different ways to get access to a remote 
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/zenfiles.git
+git clone https://github.com/zenml-io/zenml-projects.git
 git submodule update --init --recursive
-cd zenfiles/sign-language-detection-yolov5
+cd zenml-projects/sign-language-detection-yolov5
 pip install -r requirements.txt
 pip install -r yolov5/requirements.txt
 ```
 
-Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you 
-to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml), but first you must install the optional dependencies for the ZenML server:
+Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml), but first you must install the optional dependencies for the ZenML server:
 
 ```bash
 zenml connect --url=$ZENML_SERVER_URL
@@ -114,6 +114,13 @@ gcloud iam service-accounts keys create <FILE-NAME>.json --iam-account=<SA-NAME>
 gcloud iam service-accounts keys create credentials.json --iam-account=zenml-sa@zenml-vertex-ai.iam.gserviceaccount.com
 ```
 
+Make sure that these credentials are available in your environment so that the
+relevant permissions are picked up for GCP authentication:
+
+```shell
+export GOOGLE_APPLICATION_CREDENTIALS="<PATH_TO_JSON_KEY_FILE>"
+```
+
 #### 3. Create a GCP bucket
 
 Vertex AI and ZenML will use this bucket for output of any artifacts from the training run:
@@ -149,17 +156,17 @@ To be able to use custom Vertex AI jobs, you first need to enable their API insi
 Set a GCP bucket as your artifact store:
 
 ```shell
-zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
+zenml artifact-store register <NAME> --flavor=gcp --path=<GCS_BUCKET_PATH>
 
 # Example:
-zenml artifact-store register gcp-store --type=gcp --path=gs://zenml-bucket
+zenml artifact-store register gcp-store --flavor=gcp --path=gs://zenml-bucket
 ```
 
 Create a Vertex step operator:
 
 ```shell
 zenml step-operator register <NAME> \
-    --type=vertex \
+    --flavor=vertex \
     --project=<PROJECT-ID> \
     --region=<REGION> \
     --machine_type=<MACHINE-TYPE> \
@@ -169,7 +176,7 @@ zenml step-operator register <NAME> \
 
 # Example:
 zenml step-operator register vertex \
-    --type=vertex \
+    --flavor=vertex \
     --project=zenml-core \
     --region=europe-west1 \
     --machine_type=n1-standard-4 \
@@ -192,10 +199,10 @@ zenml container-registry register gcr_registry --type=default --uri=gcr.io/zenml
 Register a remote MLFlow tracking server:
 
 ```shell
-zenml tracking-server register <NAME> --type=mlflow --uri=<MLFLOW-TRACKING-SERVER-URI> --tracking_username=<USERNAME> --tracking_password=<PASSWORD>
+zenml experiment-tracker register <NAME> --flavor=mlflow --tracking_uri=<MLFLOW-TRACKING-SERVER-URI> --tracking_username=<USERNAME> --tracking_password=<PASSWORD>
 
 # Example:
-zenml tracking-server register mlflow --type=mlflow --uri=http://mlflow_zenml_yolo:5000 --tracking_username=admin --tracking_password=admin
+zenml experiment-tracker register mlflow --flavor=mlflow --tracking_uri=http://mlflow_zenml_yolo:5000 --tracking_username=admin --tracking_password=admin
 ```
 
 Register the new stack (change names accordingly):
@@ -216,6 +223,19 @@ Activate the stack:
 ```shell
 zenml stack set vertex_training_stack
 ```
+
+Install relevant integrations:
+
+```shell
+zenml integration install bentoml gcp -y
+```
+
+In order to run the project, simply run:
+
+```shell
+python run.py -c train_and_deploy_and_predict
+```
+
 ## 📙 Resources & References
 
 A blog explaining this project in depth is forthcoming!
