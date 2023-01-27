@@ -12,34 +12,30 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from transformers import pipeline
-from zenml.steps import step, BaseParameters
 from typing import List
-from pydantic import BaseModel
 
+from transformers import pipeline
+from zenml.steps import step
 
-class Article(BaseModel):
-    url: str
-    text: str
-    summary: str
-
-
-class BartLargeCNNSamSumParameters(BaseParameters):
-    """"""
+from models import Article, Summary
 
 
 @step
-def bart_large_cnn_samsum_parameters(
-    articles: List[Article],
-)->List[str]:
-    """ """
+def bart_large_cnn_samsum_parameters(articles: List[Article]) -> List[Summary]:
+    """Step that generates summaries of the given list of news articles."""
+    # Create the torch summarizer pipeline
     summarizer = pipeline(
         task="summarization",
         model="philschmid/bart-large-cnn-samsum"
     )
 
+    # Use it for each given article to create summaries
     summarizations = []
     for a in articles:
-        summarizations.append(summarizer(a))
+        summarizations.append(Summary(
+            text=summarizer(a),
+            url=a.url,
+            section=a.section,
+        ))
 
     return summarizations

@@ -15,6 +15,8 @@
 import os
 import click
 
+from steps.sources.bbc import BBCParameters
+
 APP_NAME = 'zennews'
 PROFILES_FOLDER_NAME = 'profiles'
 CONFIG_FILE_NAME = 'config.yaml'
@@ -22,8 +24,6 @@ CONFIG_FILE_NAME = 'config.yaml'
 APP_DIR = click.get_app_dir(APP_NAME)
 PROFILES_PATH = os.path.join(APP_DIR, PROFILES_FOLDER_NAME)
 CONFIG_PATH = os.path.join(APP_DIR, CONFIG_FILE_NAME)
-
-from steps.sources.bbc import BBCParameters
 
 SUPPORTED_SOURCES = {
     'bbc': BBCParameters

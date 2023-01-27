@@ -12,26 +12,32 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import logging
-
-from zenml.steps import step
-from zenml.client import Client
-
-
 from typing import List
+
+from zenml.client import Client
+from zenml.steps import step
+
+from models import Summary
+
+
+def generate_final_report(summaries: List[Summary]):
+    # TODO: Improve the final report
+    return "".join([s.text for s in summaries])
 
 
 @step
-def post_summaries(summaries: List[str]) -> None:
-    """"""
-    client = Client()
+def post_summaries(summaries: List[Summary]) -> str:
+    """Step that reports the summaries through an alerter (if registered)"""
+    final_report = generate_final_report(summaries=summaries)
 
-    message = 'aasdf'
+    # Fetch the alerter if defined and use it to send the final report
+    client = Client()
     if client.active_stack.alerter:
-        client.active_stack.alerter.post(message)
+        client.active_stack.alerter.post(final_report)
     else:
-        logging.warning('YO yo no alerter')
-        raise RuntimeError(
-            "Step `slack_alerter_post_step` requires an alerter component of "
-            "flavor `slack`, but the currently active alerter is of type "
-            f", which is not a subclass of `SlackAlerter`."
+        logging.warning(
+            'There is no alerter defined in your stack. The result will still'
+            'be saved as an artifact in your artifact store.'
         )
+
+    return final_report

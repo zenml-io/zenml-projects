@@ -22,5 +22,23 @@ from cli.constants import APP_NAME
 def cli(ctx):
     """CLI base command for ZenML."""
     if not ctx.invoked_subcommand:
-        click.echo('This is where we get the news.')
-        # TODO: get the last pipeline
+        click.echo(
+            r"""
+                     ______          _   _                   
+                    |___  /         | \ | |                  
+                       / / ___ _ __ |  \| | _____      _____ 
+                      / / / _ \ '_ \| . ` |/ _ \ \ /\ / / __|
+                     / /_|  __/ | | | |\  |  __/\ V  V /\__ \
+                    /_____\___|_| |_|_| \_|\___| \_/\_/ |___/
+                                                                                   
+                          This is where you get the news.
+             """
+        )
+        # TODO: If there is no invoked subcommands, figure out the latest
+        #   pipeline and utilize its final artifact to display summaries
+
+
+@click.command("test")
+def test():
+    """CLI command to test the news summarization on the default stack."""
+    # TODO: Run the pipeline on the default stack for showcasing purposes

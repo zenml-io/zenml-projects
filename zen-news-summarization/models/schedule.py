@@ -12,20 +12,13 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-
 from typing import Dict
 
 from pydantic import BaseModel
 
 
-class Profile(BaseModel):
-    """Base model for ZenNews profiles."""
-    name: str
-    source: str
-    schedule: str
+class Schedule(BaseModel):
     stack: str
-    args: Dict[str, str]
-
-    def revalidate(self):
-        pass
-
+    profile: str
+    frequency: str
+    parameters: Dict[str, str]
