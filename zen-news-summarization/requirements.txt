@@ -1,0 +1,6 @@
+zenml
+bbc-feeds
+transformers
+torch
+pydantic
+click
