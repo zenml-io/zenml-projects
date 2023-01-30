@@ -13,27 +13,58 @@
 #  permissions and limitations under the License.
 import json
 import os.path
-from typing import List
+from typing import List, Dict
 
 from rich import box, table, console
 
-from cli.constants import SUPPORTED_SOURCES, PROFILES_PATH
-from models import Profile, Schedule
+from cli.constants import PROFILES_PATH
+from models import Profile
 
 
 def save_profile(profile: Profile) -> None:
-    """Store the given profile."""
+    """Store the given profile.
+
+    Args:
+        profile: the profile object to store.
+
+    Raises:
+        ValueError, if a profile with the same name already exists.
+    """
     filename = os.path.join(PROFILES_PATH, f'{profile.name}.json')
 
-    if not os.path.exists(PROFILES_PATH):
-        os.makedirs(PROFILES_PATH)
+    if os.path.exists(filename):
+        raise ValueError(
+            f"A profile with the name '{profile.name}' already exists."
+        )
 
     with open(filename, 'w') as f:
         json.dump(profile.json(), f)
 
 
+def load_profile(name: str) -> Profile:
+    """Fetches a single profile.
+
+    Args:
+        name: the name of the profile to load.
+
+    Raises:
+        ValueError, if there are no profiles with the given name.
+    """
+    filepath = os.path.join(PROFILES_PATH, f'{name}.json')
+
+    if not os.path.exists(filepath):
+        raise ValueError(f"No profiles exists with the name {name}")
+
+    with open(filepath, 'r') as f:
+        return Profile.parse_raw(json.load(f))
+
+
 def load_profiles() -> List[Profile]:
-    """Fetches all the defined profiles."""
+    """Fetches all the defined profiles.
+
+    Returns:
+        a list of all defined profiles.
+    """
 
     profiles = []
 
@@ -46,7 +77,14 @@ def load_profiles() -> List[Profile]:
 
 
 def delete_profile(name: str) -> None:
-    """Deletes the profile with the given name."""
+    """Deletes the profile with the given name.
+
+    Args:
+        name: the name of the profile to delete.
+
+    Raises:
+        ValueError, if there are no profiles with the given name.
+    """
     filename = os.path.join(PROFILES_PATH, f'{name}.json')
 
     if os.path.exists(filename):
@@ -56,7 +94,11 @@ def delete_profile(name: str) -> None:
 
 
 def display_profiles(profiles: List[Profile]) -> None:
-    """Displays the defined profiles."""
+    """Displays the defined profiles in a table.
+
+    Args:
+        profiles: the list of profiles to display in the table.
+    """
 
     rich_table = table.Table(
         box=box.HEAVY_EDGE,
@@ -64,29 +106,27 @@ def display_profiles(profiles: List[Profile]) -> None:
         caption="List of defined ZenNews profiles.",
         show_lines=True,
     )
+    rich_table.add_column("ACTIVE", overflow="fold")
     rich_table.add_column("NAME", overflow="fold")
     rich_table.add_column("SOURCE", overflow="fold")
+    rich_table.add_column("STACK", overflow="fold")
+    rich_table.add_column("FREQUENCY", overflow="fold")
     rich_table.add_column("ARGS", overflow="fold")
 
     for profile in profiles:
         rich_table.add_row(
+            "",  # TODO: Add active status
             profile.name,
             profile.source,
+            profile.stack,
+            profile.frequency,
             '\n'.join([f"{k} = {v}" for k, v in profile.args.items()]),
         )
 
     console.Console(markup=True).print(rich_table)
 
 
-def save_schedule() -> None:
-    """Saves a schedule of an activated profile."""
-
-
-def load_schedule(name: str) -> Schedule:
-    """Fetches a schedule by name."""
-
-
-def parse_args(source: str, args: List[str]):
+def parse_args(args: List[str]) -> Dict[str, str]:
     """Auxiliary function to parse the additional arguments.
 
     Some examples:
@@ -96,14 +136,13 @@ def parse_args(source: str, args: List[str]):
     args  ["3", "--b", "4"] -> result: ValueError
 
     Arguments:
-        source: str that denotes the news source
         args: list of additional arguments
 
     Raises:
         ValueError: if the additional arguments have an unsupported format.
 
     Returns:
-        the "Parameters" for the selected new source
+        the dict of parsed arguments
     """
     results = {}
 
@@ -131,5 +170,4 @@ def parse_args(source: str, args: List[str]):
     if last is not None:
         results[last] = True
 
-    # TODO: Investigate whether we should create the params here
-    return SUPPORTED_SOURCES.get(source)(**results)
+    return results
