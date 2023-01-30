@@ -11,23 +11,71 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-
+import json
+import os.path
 from typing import List
 
-from constants import SUPPORTED_SOURCES
-from models import Profile
+from rich import box, table, console
+
+from cli.constants import SUPPORTED_SOURCES, PROFILES_PATH
+from models import Profile, Schedule
 
 
 def save_profile(profile: Profile) -> None:
     """Store the given profile."""
+    filename = os.path.join(PROFILES_PATH, f'{profile.name}.json')
 
+    if not os.path.exists(PROFILES_PATH):
+        os.makedirs(PROFILES_PATH)
 
-def load_profile(name: str) -> Profile:
-    """Fetches a single profile by name."""
+    with open(filename, 'w') as f:
+        json.dump(profile.json(), f)
 
 
 def load_profiles() -> List[Profile]:
     """Fetches all the defined profiles."""
+
+    profiles = []
+
+    for filename in os.listdir(PROFILES_PATH):
+        filepath = os.path.join(PROFILES_PATH, filename)
+        with open(filepath, 'r') as f:
+            profiles.append(Profile.parse_raw(json.load(f)))
+
+    return profiles
+
+
+def delete_profile(name: str) -> None:
+    """Deletes the profile with the given name."""
+    filename = os.path.join(PROFILES_PATH, f'{name}.json')
+
+    if os.path.exists(filename):
+        os.remove(filename)
+    else:
+        raise ValueError("The profile does not exist.")
+
+
+def display_profiles(profiles: List[Profile]) -> None:
+    """Displays the defined profiles."""
+
+    rich_table = table.Table(
+        box=box.HEAVY_EDGE,
+        title="ZenNews Profiles",
+        caption="List of defined ZenNews profiles.",
+        show_lines=True,
+    )
+    rich_table.add_column("NAME", overflow="fold")
+    rich_table.add_column("SOURCE", overflow="fold")
+    rich_table.add_column("ARGS", overflow="fold")
+
+    for profile in profiles:
+        rich_table.add_row(
+            profile.name,
+            profile.source,
+            '\n'.join([f"{k} = {v}" for k, v in profile.args.items()]),
+        )
+
+    console.Console(markup=True).print(rich_table)
 
 
 def save_schedule() -> None:
@@ -36,10 +84,6 @@ def save_schedule() -> None:
 
 def load_schedule(name: str) -> Schedule:
     """Fetches a schedule by name."""
-
-
-def display_profiles(profiles: List[Profile]) -> None:
-    """Displays the defined profiles."""
 
 
 def parse_args(source: str, args: List[str]):
