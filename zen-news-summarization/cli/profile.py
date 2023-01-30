@@ -12,7 +12,6 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-# TODO: Error handling
 
 from typing import List
 
@@ -25,7 +24,10 @@ from cli.utils import (
     save_profile,
     load_profiles,
     delete_profile,
-    display_profiles
+    display_profiles,
+    load_config,
+    save_config,
+    load_profile,
 )
 from models.profile import Profile
 
@@ -86,17 +88,23 @@ def create_profile(
     # Parse the arguments
     parsed_args = parse_args(args=args)
 
+    # TODO: Handle the validation errors here
     source_args = SUPPORTED_SOURCES.get(source)(**parsed_args)
 
-    save_profile(
-        Profile(
-            name=name,
-            source=source,
-            args=source_args,
-            stack=stack,
-            frequency=frequency,
+    try:
+        save_profile(
+            Profile(
+                name=name,
+                source=source,
+                args=source_args,
+                stack=stack,
+                frequency=frequency,
+            )
         )
-    )
+    except ValueError as e:
+        raise click.ClickException(message=click.style(e, fg="red", bold=True))
+
+    click.secho(f"Successfully created profile: '{name}'!", fg='green')
 
 
 @profile.command('remove')
@@ -104,7 +112,12 @@ def create_profile(
 def remove_profile(name) -> None:
     """Removes a ZenNews profile."""
     # TODO: Check whether the profile is active first
-    delete_profile(name=name)
+    try:
+        delete_profile(name=name)
+    except ValueError as e:
+        raise click.ClickException(message=click.style(e, fg="red", bold=True))
+
+    click.secho(f"Successfully removed profile: '{name}'!", fg='green')
 
 
 @profile.command('list')
@@ -116,12 +129,6 @@ def list_profiles() -> None:
 
 @profile.command("update")
 @click.argument("name")
-@click.option(
-    "--new_name",
-    "-n",
-    type=str,
-    help="The name of the profile"
-)
 @click.option(
     "--source",
     "-s",
@@ -143,7 +150,6 @@ def list_profiles() -> None:
 @click.argument("args", nargs=-1, type=click.UNPROCESSED)
 def update_profile(
     name,
-    new_name,
     source,
     stack,
     frequency,
@@ -151,6 +157,40 @@ def update_profile(
 ) -> None:
     """Updates a ZenNews profile."""
 
+    config = load_config()
+    if name in config.active_profiles:
+        raise click.ClickException(
+            message=click.style(
+                text="Active profiles can not be updated. Please deactivate "
+                     "your profile before making any changes.",
+                fg="red",
+                bold=True,
+            )
+        )
+    profile_obj = load_profile(name)
+
+    if source:
+        profile_obj.source = source
+
+    if stack:
+        profile_obj.stack = stack
+
+    if frequency:
+        profile_obj.frequency = frequency
+
+    if args:
+        if profile_obj.args:
+            profile_obj.args.update(args)
+        else:
+            profile_obj.args = args
+
+    try:
+        delete_profile(name=name)
+        save_profile(profile=profile_obj)
+    except ValueError as e:
+        raise click.ClickException(message=click.style(e, fg="red", bold=True))
+
+    click.secho(f"Successfully updated profile: '{name}'!", fg='green')
 
 
 @profile.command("activate")
@@ -161,9 +201,24 @@ def activate_profile(name) -> None:
     # TODO: Check whether stack has an orchestrator with schedule support
     # TODO: Check whether stack has an alerter
     # TODO: Check whether frequency is correctly formatted.
+    config = load_config()
+    config.active_profiles.add(name)
+    save_config(config)
+    click.secho(f"Successfully activated profile: '{name}'!", fg='green')
 
 
 @profile.command("deactivate")
 @click.argument("name")
-def deactivate_profile(name) -> None:
+def deactivate_profile(name: str) -> None:
     """Removes a ZenNews profile."""
+    config = load_config()
+
+    try:
+        config.active_profiles.remove(name)
+        # TODO: Cancel the schedules
+    except KeyError:
+        pass
+
+    save_config(config)
+
+    click.secho(f"Successfully deactivated profile: '{name}'!", fg='green')

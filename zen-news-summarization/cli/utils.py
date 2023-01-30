@@ -17,8 +17,8 @@ from typing import List, Dict
 
 from rich import box, table, console
 
-from cli.constants import PROFILES_PATH
-from models import Profile
+from cli.constants import PROFILES_PATH, CONFIG_PATH
+from models import Profile, Config
 
 
 def save_profile(profile: Profile) -> None:
@@ -90,7 +90,7 @@ def delete_profile(name: str) -> None:
     if os.path.exists(filename):
         os.remove(filename)
     else:
-        raise ValueError("The profile does not exist.")
+        raise ValueError(f"There are no profile with the name '{name}'.")
 
 
 def display_profiles(profiles: List[Profile]) -> None:
@@ -99,6 +99,7 @@ def display_profiles(profiles: List[Profile]) -> None:
     Args:
         profiles: the list of profiles to display in the table.
     """
+    config = load_config()
 
     rich_table = table.Table(
         box=box.HEAVY_EDGE,
@@ -115,7 +116,7 @@ def display_profiles(profiles: List[Profile]) -> None:
 
     for profile in profiles:
         rich_table.add_row(
-            "",  # TODO: Add active status
+            "*" if profile.name in config.active_profiles else "",
             profile.name,
             profile.source,
             profile.stack,
@@ -171,3 +172,23 @@ def parse_args(args: List[str]) -> Dict[str, str]:
         results[last] = True
 
     return results
+
+
+def load_config() -> Config:
+    """Loads the ZenNews config.
+
+    Returns:
+        the global config object.
+    """
+    with open(CONFIG_PATH, 'r') as f:
+        return Config.parse_raw(json.load(f))
+
+
+def save_config(config: Config) -> None:
+    """Saves the ZenNews config.
+
+    Args:
+        config: the config object to store.
+    """
+    with open(CONFIG_PATH, 'w') as f:
+        json.dump(config.json(), f)
