@@ -18,5 +18,6 @@ setup(
         "torch==1.13.1",
         "pydantic==1.9.2",
         "click==8.1.3",
+        "rich==12.6.0"
     ]
 )
