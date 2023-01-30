@@ -11,10 +11,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from typing import Set
+from pydantic import BaseModel
 
-from models.article import Article
-from models.profile import Profile
-from models.summary import Summary
-from models.config import Config
 
-__all__ = ["Article", "Config", "Profile", "Summary"]
+class Config(BaseModel):
+    active_profiles: Set[str] = set()
+

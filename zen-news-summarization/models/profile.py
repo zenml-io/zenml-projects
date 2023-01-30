@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 
 
-from typing import Dict
+from typing import Dict, Optional
 
 from pydantic import BaseModel
 
@@ -22,10 +22,7 @@ class Profile(BaseModel):
     """Base model for ZenNews profiles."""
     name: str
     source: str
-    schedule: str
-    stack: str
+    frequency: Optional[str]
+    stack: Optional[str]
     args: Dict[str, str]
-
-    def revalidate(self):
-        pass
 
