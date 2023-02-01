@@ -1,11 +1,11 @@
-enable_cache: True
+enable_cache: False
 extra:
   tags: zenml-projects
 settings:
   docker:
     required_integrations:
       - mlflow
-steps: 
+steps:
   model_train:
     experiment_tracker: mlflow_tracker
   evaluation:

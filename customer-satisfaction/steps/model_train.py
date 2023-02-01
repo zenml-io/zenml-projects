@@ -9,8 +9,10 @@ from zenml.steps import Output, step
 
 from .config import ModelNameConfig
 
+experiment_tracker = Client().active_stack.experiment_tracker
 
-@step()
+
+@step(experiment_tracker=experiment_tracker.name)
 def train_model(
     x_train: pd.DataFrame,
     x_test: pd.DataFrame,
@@ -32,15 +34,18 @@ def train_model(
 
         if config.model_name == "lightgbm":
             mlflow.lightgbm.autolog()
-            lgm_model = model_training.lightgbm_trainer(fine_tuning=config.fine_tuning)
+            lgm_model = model_training.lightgbm_trainer(
+                fine_tuning=config.fine_tuning)
             return lgm_model
         elif config.model_name == "randomforest":
             mlflow.sklearn.autolog()
-            rf_model = model_training.random_forest_trainer(fine_tuning=config.fine_tuning)
+            rf_model = model_training.random_forest_trainer(
+                fine_tuning=config.fine_tuning)
             return rf_model
         elif config.model_name == "xgboost":
             mlflow.xgboost.autolog()
-            xgb_model = model_training.xgboost_trainer(fine_tuning=config.fine_tuning)
+            xgb_model = model_training.xgboost_trainer(
+                fine_tuning=config.fine_tuning)
             return xgb_model
         else:
             raise ValueError("Model name not supported")

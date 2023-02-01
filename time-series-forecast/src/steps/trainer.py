@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 step_operator = Repository().active_stack.step_operator
 
-@step(custom_step_operator=step_operator.name)
+@step(step_operator=step_operator.name)
 def trainer(
     X_train: np.ndarray,
     y_train: np.ndarray,

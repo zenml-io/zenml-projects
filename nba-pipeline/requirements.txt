@@ -1,3 +1,3 @@
 nba-api
 notebook
-zenml==0.22.0
+zenml==0.31.1
