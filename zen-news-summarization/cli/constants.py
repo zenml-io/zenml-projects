@@ -12,21 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import os
-import click
-
-from steps.sources.bbc import BBCParameters
 APP_NAME = 'zennews'
-PROFILES_FOLDER_NAME = 'profiles'
-CONFIG_FILE_NAME = 'config.json'
-
-APP_DIR = click.get_app_dir(APP_NAME)
-PROFILES_PATH = os.path.join(APP_DIR, PROFILES_FOLDER_NAME)
-CONFIG_PATH = os.path.join(APP_DIR, CONFIG_FILE_NAME)
-
-SUPPORTED_SOURCES = {
-    'bbc': BBCParameters
-}
 
 SUPPORTED_ORCHESTRATORS = [
     'kubernetes',

@@ -13,6 +13,4 @@
 #  permissions and limitations under the License.
 
 
-from cli.profile import *
 from cli.sources import *
-from materializers.article_materializer import ArticleMaterializer  # noqa

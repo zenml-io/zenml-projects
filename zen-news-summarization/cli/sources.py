@@ -16,11 +16,11 @@ import click
 from zenml.config.schedule import Schedule
 from zenml.enums import StackComponentType
 
-from cli import SUPPORTED_ORCHESTRATORS
+from cli.constants import SUPPORTED_ORCHESTRATORS
 from steps import SOURCE_STEP_MAPPING
 from cli.base import cli
 from typing import Dict, Any
-from cli.utils import warning, error, stack_handler, display_articles
+from cli.utils import warning, error, stack_handler, display_articles, title
 from datetime import datetime
 
 from zenml.client import Client
@@ -81,7 +81,9 @@ def generate_single_source_command(
             with stack_handler(stack_name):
                 active_stack = client.active_stack_model
                 active_components = active_stack.components
-                orchestrator = active_components[StackComponentType.ORCHESTRATOR][0]
+                orchestrator = active_components[
+                    StackComponentType.ORCHESTRATOR
+                ][0]
 
                 if orchestrator.flavor not in SUPPORTED_ORCHESTRATORS:
                     error('Does not work.')
@@ -103,8 +105,6 @@ def generate_single_source_command(
 
                 pipeline.run(run_name=run_name, schedule=schedule_obj)
 
-
-
         else:
             # If there is no schedule, RUN the pipeline locally
             if not force:
@@ -118,6 +118,7 @@ def generate_single_source_command(
                     error('Stopped the process.')
 
             # Build and run the pipeline
+            title("building and running the pipeline")
             from pipelines import zen_news_pipeline
             from steps import bart_large_cnn_samsum, post_summaries
 
@@ -133,6 +134,7 @@ def generate_single_source_command(
                 pipeline.run(run_name=run_name)
 
             # Get the run view of the pipeline and showcase the results
+            title("pipeline results")
             from zenml.post_execution import get_run
 
             run_view = get_run(run_name)
