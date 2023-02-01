@@ -16,9 +16,10 @@
 from typing import List
 
 import click
+from zenml.enums import StackComponentType
 
 from cli.base import cli
-from cli.constants import SUPPORTED_SOURCES
+from cli.constants import SUPPORTED_SOURCES, SUPPORTED_ORCHESTRATORS
 from cli.utils import (
     parse_args,
     save_profile,
@@ -28,6 +29,8 @@ from cli.utils import (
     load_config,
     save_config,
     load_profile,
+warning,
+error,
 )
 from models.profile import Profile
 
@@ -202,23 +205,28 @@ def activate_profile(name) -> None:
     # TODO: Check whether stack has an alerter
     # TODO: Check whether frequency is correctly formatted.
     config = load_config()
+
+    profile = load_profile(name)
+
+    from zenml.client import Client
+    client = Client()
+
+    stack = client.get_stack(name)
+    components = stack.components
+
+    orchestrator = components[StackComponentType.ORCHESTRATOR][0]
+
+    if orchestrator.flavor not in SUPPORTED_ORCHESTRATORS:
+        error('Does not work.')
+
+    if StackComponentType.ALERTER not in components:
+        warning('There is no alerter!')
+
     config.active_profiles.add(name)
     save_config(config)
     click.secho(f"Successfully activated profile: '{name}'!", fg='green')
+    from zenml.config.schedule import Schedule
 
 
-@profile.command("deactivate")
-@click.argument("name")
-def deactivate_profile(name: str) -> None:
-    """Removes a ZenNews profile."""
-    config = load_config()
 
-    try:
-        config.active_profiles.remove(name)
-        # TODO: Cancel the schedules
-    except KeyError:
-        pass
 
-    save_config(config)
-
-    click.secho(f"Successfully deactivated profile: '{name}'!", fg='green')

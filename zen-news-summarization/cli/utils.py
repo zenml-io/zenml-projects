@@ -22,7 +22,7 @@ from cli.constants import PROFILES_PATH, CONFIG_PATH
 from models import Profile, Config, Article
 
 from zenml.client import Client
-
+from zenml.config.schedule import Schedule
 if TYPE_CHECKING:
     from zenml.steps import BaseStep, BaseParameters
 
@@ -282,7 +282,27 @@ class stack_handler(object):
         client.activate_stack(self.active_stack_name)
 
 
+def generate_schedule(frequency: str, flavor: str) -> Schedule:
+    """Create a schedule object that can be used by the orchestrator flavor.
+
+    Args:
+        frequency: str, the frequency set for that profile
+        flavor: str, the flavor of the orchestrator
+
+    Returns:
+         the proper Schedule object
+    """
+
+
+    if flavor in ['vertex']:
+        pass
+    else:
+        pass
+
 def display_articles(articles: List[Article]) -> None:
     """Display the articles on the CLI."""
     # TODO: Implement a pretty print for the articles
     click.echo(articles)
+
+
+

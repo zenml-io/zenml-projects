@@ -28,3 +28,10 @@ SUPPORTED_SOURCES = {
     'bbc': BBCParameters
 }
 
+SUPPORTED_ORCHESTRATORS = [
+    'kubernetes',
+    'kubeflow',
+    'vertex',
+    'airflow',
+    'github',
+]
