@@ -12,7 +12,7 @@ setup(
         {APP_NAME}=cli.base:cli
     ''',
     requires=[
-        "zenml[server]==0.32.0",
+        "zenml[server]==0.32.1",
         "bbc-feeds==2.1",
         "transformers==4.26.0",
         "torch==1.13.1",
