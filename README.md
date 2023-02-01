@@ -82,6 +82,7 @@
 
 <!-- GitHub Workflows -->
 [github-gitflow-url]: https://github.com/zenml-io/zenml-gitflow
+[zenmlproject-gitflow-url]: https://zenml.io/project/github-gitflow-workflow
 
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
@@ -101,7 +102,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | Customer Satisfaction                 | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url]    | Tabular                   | `mlflow` `kubeflow`                                   |
 | Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | `kubeflow` `seldon`                                   |
 | YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | `mlflow` `vertex`                                     |
-| GitFlow ZenML Project                 | [![yt][github-shield]][github-gitflow-url]                      | MLOps with ZenML and GitHub Workflows          | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`   |
+| GitFlow ZenML Project                 | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                      | MLOps with ZenML and GitHub Workflows          | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`   |
 
 
 # 💻 System Requirements
