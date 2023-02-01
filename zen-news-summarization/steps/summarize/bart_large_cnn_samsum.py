@@ -14,28 +14,52 @@
 
 from typing import List
 
-from transformers import pipeline
 from zenml.steps import step
 
-from models import Article, Summary
+from models import Article
 
 
 @step
-def bart_large_cnn_samsum_parameters(articles: List[Article]) -> List[Summary]:
+def bart_large_cnn_samsum(articles: List[Article]) -> List[Article]:
     """Step that generates summaries of the given list of news articles."""
-    # Create the torch summarizer pipeline
-    summarizer = pipeline(
-        task="summarization",
-        model="philschmid/bart-large-cnn-samsum"
+    from transformers import AutoTokenizer, BartForConditionalGeneration
+
+    model = BartForConditionalGeneration.from_pretrained(
+        "facebook/bart-large-cnn"
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        "facebook/bart-large-cnn"
     )
 
-    # Use it for each given article to create summaries
     summarizations = []
     for a in articles:
-        summarizations.append(Summary(
-            text=summarizer(a),
-            url=a.url,
-            section=a.section,
-        ))
+        inputs = tokenizer(
+            [a.text],
+            max_length=1024,
+            truncation=True,
+            return_tensors="pt"
+        )
+
+        # Generate Summary
+        summary_ids = model.generate(
+            inputs["input_ids"],
+            num_beams=2,
+            min_length=0,
+            max_length=256,
+        )
+
+        summary = tokenizer.batch_decode(
+            summary_ids,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False
+        )[0]
+
+        summarizations.append(
+            Article(
+                section=a.section,
+                url=a.url,
+                text=summary,
+            )
+        )
 
     return summarizations

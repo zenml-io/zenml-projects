@@ -17,16 +17,16 @@ from typing import List
 from zenml.client import Client
 from zenml.steps import step
 
-from models import Summary
+from models import Article
 
 
-def generate_final_report(summaries: List[Summary]):
+def generate_final_report(summaries: List[Article]):
     # TODO: Improve the final report
     return "".join([s.text for s in summaries])
 
 
 @step
-def post_summaries(summaries: List[Summary]) -> str:
+def post_summaries(summaries: List[Article]) -> str:
     """Step that reports the summaries through an alerter (if registered)"""
     final_report = generate_final_report(summaries=summaries)
 
