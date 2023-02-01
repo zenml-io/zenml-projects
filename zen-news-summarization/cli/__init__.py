@@ -14,3 +14,5 @@
 
 
 from cli.profile import *
+
+from materializers.article_materializer import ArticleMaterializer  # noqa

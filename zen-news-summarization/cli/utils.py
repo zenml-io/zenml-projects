@@ -13,12 +13,18 @@
 #  permissions and limitations under the License.
 import json
 import os.path
-from typing import List, Dict
+from typing import List, Dict, Tuple, TYPE_CHECKING, Optional, Any
 
+import click
 from rich import box, table, console
 
 from cli.constants import PROFILES_PATH, CONFIG_PATH
-from models import Profile, Config
+from models import Profile, Config, Article
+
+from zenml.client import Client
+
+if TYPE_CHECKING:
+    from zenml.steps import BaseStep, BaseParameters
 
 
 def save_profile(profile: Profile) -> None:
@@ -192,3 +198,91 @@ def save_config(config: Config) -> None:
     """
     with open(CONFIG_PATH, 'w') as f:
         json.dump(config.json(), f)
+
+
+def load_step_and_parameters(profile) -> Tuple["BaseStep", "BaseParameters"]:
+    """Fetches the source step and the related parameters class of a profile.
+
+    Args:
+        profile: the profile object.
+    """
+
+    from steps import SOURCE_STEP_MAPPING
+
+    step_dict = SOURCE_STEP_MAPPING[profile.source]
+
+    return step_dict['step'], step_dict['parameters']
+
+
+def error(text: str) -> None:
+    """Wrapper around the click.ClickException.
+
+    Args:
+        text, str, the exception text.
+
+    Raises:
+        click.ClickException with the defined style.
+    """
+    raise click.ClickException(message=click.style(text, fg="red", bold=True))
+
+
+def warning(text: str) -> None:
+    """Wrapper around the 'click.echo' for warning messages.
+
+    Args:
+        text, str, the warning message.
+    """
+    click.secho(text, fg='yellow', bold=True)
+
+
+class stack_handler(object):
+    """Context manager that switches the active stack temporarily."""
+
+    def __init__(self, target_stack_name: str = 'default') -> None:
+        """Initialization of the stack handler.
+
+        Args:
+            target_stack_name: str, the name of the target stack
+        """
+        self.active_stack_name = None
+        self.target_stack_name = target_stack_name
+
+    def __enter__(self) -> "stack_handler":
+        """Enter function of the stack handler.
+
+        Saves the name of the current active stack and activates the temporary
+        target stack.
+
+        Returns:
+            the handler instance.
+        """
+        client = Client()
+
+        self.active_stack_name = client.active_stack_model.name
+        client.activate_stack(self.target_stack_name)
+        return self
+
+    def __exit__(
+        self,
+        type_: Optional[Any],
+        value: Optional[Any],
+        traceback: Optional[Any],
+    ) -> Any:
+        """Exit function of the stack handler.
+
+        Sets the previous stack as the active stack again.
+
+        Args:
+            type_: The class of the exception
+            value: The instance of the exception
+            traceback: The traceback of the exception
+        """
+
+        client = Client()
+        client.activate_stack(self.active_stack_name)
+
+
+def display_articles(articles: List[Article]) -> None:
+    """Display the articles on the CLI."""
+    # TODO: Implement a pretty print for the articles
+    click.echo(articles)
