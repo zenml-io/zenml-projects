@@ -14,7 +14,6 @@
 
 from models.article import Article
 from models.profile import Profile
-from models.summary import Summary
 from models.config import Config
 
-__all__ = ["Article", "Config", "Profile", "Summary"]
+__all__ = ["Article", "Config", "Profile"]
