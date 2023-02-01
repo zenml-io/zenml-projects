@@ -17,12 +17,12 @@ from typing import List, Dict, Tuple, TYPE_CHECKING, Optional, Any
 
 import click
 from rich import box, table, console
+from zenml.client import Client
+from zenml.config.schedule import Schedule
 
 from cli.constants import PROFILES_PATH, CONFIG_PATH
 from models import Profile, Config, Article
 
-from zenml.client import Client
-from zenml.config.schedule import Schedule
 if TYPE_CHECKING:
     from zenml.steps import BaseStep, BaseParameters
 
@@ -259,6 +259,13 @@ class stack_handler(object):
         client = Client()
 
         self.active_stack_name = client.active_stack_model.name
+
+        if self.active_stack_name != self.target_stack_name:
+            warning(
+                "Temporarily changing the active stack from "
+                f"{self.active_stack_name} to {self.target_stack_name}!"
+            )
+
         client.activate_stack(self.target_stack_name)
         return self
 
@@ -279,10 +286,17 @@ class stack_handler(object):
         """
 
         client = Client()
+
+        if self.active_stack_name != self.target_stack_name:
+            warning(
+                "Changing the active stack back from "
+                f"{self.active_stack_name} to {self.target_stack_name}!"
+            )
+
         client.activate_stack(self.active_stack_name)
 
 
-def generate_schedule(frequency: str, flavor: str) -> Schedule:
+def parse_schedule(frequency: str, flavor: str) -> Schedule:
     """Create a schedule object that can be used by the orchestrator flavor.
 
     Args:
@@ -292,17 +306,10 @@ def generate_schedule(frequency: str, flavor: str) -> Schedule:
     Returns:
          the proper Schedule object
     """
+    raise NotImplementedError('Not yet implemented!')
 
-
-    if flavor in ['vertex']:
-        pass
-    else:
-        pass
 
 def display_articles(articles: List[Article]) -> None:
     """Display the articles on the CLI."""
     # TODO: Implement a pretty print for the articles
     click.echo(articles)
-
-
-

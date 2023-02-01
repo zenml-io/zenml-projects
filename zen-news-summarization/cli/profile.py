@@ -29,8 +29,8 @@ from cli.utils import (
     load_config,
     save_config,
     load_profile,
-warning,
-error,
+    warning,
+    error,
 )
 from models.profile import Profile
 
@@ -226,7 +226,3 @@ def activate_profile(name) -> None:
     save_config(config)
     click.secho(f"Successfully activated profile: '{name}'!", fg='green')
     from zenml.config.schedule import Schedule
-
-
-
-
