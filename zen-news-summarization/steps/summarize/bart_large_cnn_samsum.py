@@ -56,6 +56,7 @@ def bart_large_cnn_samsum(articles: List[Article]) -> List[Article]:
 
         summarizations.append(
             Article(
+                source=a.source,
                 section=a.section,
                 url=a.url,
                 text=summary,

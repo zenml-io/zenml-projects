@@ -19,16 +19,28 @@ from zenml.steps import step
 
 from models import Article
 
+from mdutils import MdUtils
+from datetime import datetime
 
-def generate_final_report(summaries: List[Article]):
-    # TODO: Improve the final report
-    return "".join([s.text for s in summaries])
+
+def generate_final_report(articles: List[Article]):
+    md_file = MdUtils(file_name='report', title='ZenNews Summaries')
+    md_file.new_header(
+        title=f'From {articles[0].source.upper()} generated at '
+              f'{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}',
+        level=1,
+    )
+
+    for a in articles:
+        md_file.new_paragraph(f"**[{a.section}]** {a.text} [Link]({a.url})")
+
+    return md_file.file_data_text
 
 
 @step
-def post_summaries(summaries: List[Article]) -> str:
+def post_summaries(articles: List[Article]) -> str:
     """Step that reports the summaries through an alerter (if registered)"""
-    final_report = generate_final_report(summaries=summaries)
+    final_report = generate_final_report(articles=articles)
 
     # Fetch the alerter if defined and use it to send the final report
     client = Client()

@@ -141,7 +141,7 @@ def generate_single_source_command(
             step_view = run_view.get_step("report")
             artifact_view = step_view.outputs['output']
             summaries = artifact_view.read()
-            display_articles(summaries)
+            print(summaries) # TODO: Improve
 
     # Extract and add the step parameters to the Click command
     properties = source_params.schema()['properties']

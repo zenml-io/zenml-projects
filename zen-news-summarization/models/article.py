@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 class Article(BaseModel):
     """Base model for articles with full text."""
+    source: str
     section: str
     url: str
     text: str

@@ -111,6 +111,7 @@ def bbc_news_source(params: BBCParameters) -> List[Article]:
 
                 # Create an "Article" from the result and add it to the list
                 articles.append(Article(
+                    source="bbc",
                     section=f"{source}_{section_name}",
                     url=str(story.link),
                     text=article_text,
