@@ -24,6 +24,7 @@ from cli.utils import warning, error, stack_handler, display_articles, title
 from datetime import datetime
 
 from zenml.client import Client
+from rich.markdown import Markdown
 
 
 def generate_single_source_command(
@@ -36,7 +37,7 @@ def generate_single_source_command(
 
     @click.command(
         name=source_name,
-        help=f'Run/Schedule ZenNews pipelines for articles '
+        help=f'Run or schedule ZenNews pipelines for articles '
              f'from {source_name.upper()}.'
     )
     @click.option(
@@ -141,7 +142,8 @@ def generate_single_source_command(
             step_view = run_view.get_step("report")
             artifact_view = step_view.outputs['output']
             summaries = artifact_view.read()
-            print(summaries) # TODO: Improve
+
+            click.echo(summaries)
 
     # Extract and add the step parameters to the Click command
     properties = source_params.schema()['properties']

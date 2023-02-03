@@ -33,7 +33,7 @@ class BBCParameters(BaseParameters):
     news_science: bool = False
     news_world: bool = False
 
-    sports_all: bool = True
+    sports_all: bool = False
     sports_golf: bool = False
     sports_tennis: bool = False
     sports_boxing: bool = False
