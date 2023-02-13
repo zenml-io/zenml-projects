@@ -45,7 +45,7 @@ def post_summaries(articles: List[Article]) -> str:
     # Fetch the alerter if defined and use it to send the final report
     client = Client()
     if client.active_stack.alerter:
-        client.active_stack.alerter.post(final_report)
+        client.active_stack.alerter.post(message=articles, params=None) # noqa
     else:
         logging.warning(
             'There is no alerter defined in your stack. The result will still'
