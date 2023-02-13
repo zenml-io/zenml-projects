@@ -16,6 +16,8 @@ from steps.report.report import post_summaries
 from steps.sources.bbc import bbc_news_source, BBCParameters
 from steps.summarize.bart_large_cnn_samsum import bart_large_cnn_samsum
 
+from materializers.article_materializer import ArticleMaterializer  # noqa
+
 SOURCE_STEP_MAPPING = {
     "bbc": {"step": bbc_news_source, "parameters": BBCParameters}
 }

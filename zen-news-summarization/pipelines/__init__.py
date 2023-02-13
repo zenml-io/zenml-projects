@@ -12,7 +12,6 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from materializers.article_materializer import ArticleMaterializer  # noqa
 from pipelines.zen_news_pipeline import zen_news_pipeline
 
 __all__ = ["zen_news_pipeline"]
