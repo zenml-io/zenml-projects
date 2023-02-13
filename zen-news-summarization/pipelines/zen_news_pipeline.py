@@ -11,12 +11,26 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-
-
+from zenml.config import DockerSettings
 from zenml.pipelines import pipeline
 
+# TODO: Remove it once the package is published and exclude_user_files = True
+#   and set the zennews package as the single source.
+docker_settings = DockerSettings(
+    requirements=[
+        "bbc-feeds==2.1",
+        "transformers==4.26.0",
+        "torch==1.13.1",
+        "pydantic==1.9.2",
+        "click==8.1.3",
+        "rich==12.6.0",
+        "discord.py==2.1.0",
+        "mdutils==1.4.0",
+    ]
+)
 
-@pipeline(enable_cache=False)
+
+@pipeline(enable_cache=False, settings={"docker": docker_settings})
 def zen_news_pipeline(collect, summarize, report) -> None:
     """Defines an inference pipeline that summarizes a set of collected news.
 
