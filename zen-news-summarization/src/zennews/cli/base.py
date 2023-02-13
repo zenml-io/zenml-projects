@@ -15,7 +15,7 @@ import os
 
 import click
 
-from cli.constants import APP_NAME
+from zennews.cli.constants import APP_NAME
 
 
 @click.group(APP_NAME)

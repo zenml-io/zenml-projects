@@ -11,22 +11,3 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-
-from steps.report.report import post_summaries
-from steps.sources.bbc import bbc_news_source, BBCParameters
-from steps.summarize.bart_large_cnn_samsum import bart_large_cnn_samsum
-
-from materializers.article_materializer import ArticleMaterializer  # noqa
-
-SOURCE_STEP_MAPPING = {
-    "bbc": {"step": bbc_news_source, "parameters": BBCParameters}
-}
-
-
-__all__ = [
-    "post_summaries",
-    "bbc_news_source",
-    "bart_large_cnn_samsum",
-    "SOURCE_STEP_MAPPING"
-]
-

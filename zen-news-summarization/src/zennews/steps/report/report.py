@@ -17,7 +17,7 @@ from typing import List
 from zenml.client import Client
 from zenml.steps import step
 
-from models import Article
+from zennews.models import Article
 
 from mdutils import MdUtils
 from datetime import datetime

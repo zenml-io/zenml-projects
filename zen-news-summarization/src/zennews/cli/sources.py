@@ -12,18 +12,25 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+from datetime import datetime
+from typing import Dict, Any
+
 import click
+from zenml.client import Client
 from zenml.config.schedule import Schedule
 from zenml.enums import StackComponentType
 
-from cli.constants import SUPPORTED_ORCHESTRATORS
-from steps import SOURCE_STEP_MAPPING
-from cli.base import cli
-from typing import Dict, Any
-from cli.utils import warning, error, stack_handler, title, build_pipeline
-from datetime import datetime
-
-from zenml.client import Client
+from zennews.cli.base import cli
+from zennews.cli.constants import SUPPORTED_ORCHESTRATORS
+from zennews.cli.utils import (
+    warning,
+    error,
+    stack_handler,
+    title,
+    build_pipeline,
+    display_summaries,
+)
+from zennews.steps import SOURCE_STEP_MAPPING
 
 
 def generate_single_source_command(
@@ -140,7 +147,7 @@ def generate_single_source_command(
             artifact_view = step_view.outputs['output']
             summaries = artifact_view.read()
 
-            click.echo(summaries)
+            display_summaries(summaries)
 
     # Extract and add the step parameters to the Click command
     properties = source_params.schema()['properties']

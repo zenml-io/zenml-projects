@@ -59,6 +59,6 @@ class DiscordAlerterFlavor(BaseAlerterFlavor):
         Returns:
             The alerter class.
         """
-        from alerter.discord_alerter import DiscordAlerter
+        from zennews.alerter.discord_alerter import DiscordAlerter
 
         return DiscordAlerter

@@ -16,7 +16,7 @@ from typing import List
 
 from zenml.steps import step
 
-from models import Article
+from zennews.models import Article
 
 
 @step

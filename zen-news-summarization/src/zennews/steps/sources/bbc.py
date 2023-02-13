@@ -15,9 +15,10 @@ from typing import List
 
 import bbc_feeds
 import requests
-from zenml.steps import step, BaseParameters
 from bs4 import BeautifulSoup
-from models.article import Article
+from zenml.steps import step, BaseParameters
+
+from zennews.models.article import Article
 
 EXCLUDED_CLASS_IDENTIFIERS = ["PromoHeadline"]
 
@@ -92,8 +93,10 @@ def bbc_news_source(params: BBCParameters) -> List[Article]:
                 for p in all_paragraphs:
                     if p.get("class", None):
                         class_identifier = "-".join(p['class'])
-                        if any([h not in class_identifier for h in
-                                EXCLUDED_CLASS_IDENTIFIERS]):
+                        if any(
+                            [h not in class_identifier for h in
+                             EXCLUDED_CLASS_IDENTIFIERS]
+                            ):
                             if class_identifier not in paragraphs:
                                 paragraphs[class_identifier] = {
                                     "len": 0,
@@ -110,11 +113,13 @@ def bbc_news_source(params: BBCParameters) -> List[Article]:
                     )]["text"]
 
                 # Create an "Article" from the result and add it to the list
-                articles.append(Article(
-                    source="bbc",
-                    section=f"{source}_{section_name}",
-                    url=str(story.link),
-                    text=article_text,
-                ))
+                articles.append(
+                    Article(
+                        source="bbc",
+                        section=f"{source}_{section_name}",
+                        url=str(story.link),
+                        text=article_text,
+                    )
+                )
 
     return articles

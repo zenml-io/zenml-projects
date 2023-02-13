@@ -21,9 +21,6 @@ docker_settings = DockerSettings(
         "bbc-feeds==2.1",
         "transformers==4.26.0",
         "torch==1.13.1",
-        "pydantic==1.9.2",
-        "click==8.1.3",
-        "rich==12.6.0",
         "discord.py==2.1.0",
         "mdutils==1.4.0",
     ]

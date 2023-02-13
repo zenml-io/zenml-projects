@@ -19,7 +19,7 @@ from zenml.alerter import BaseAlerter
 from zenml.client import Client
 from zenml.steps import BaseParameters
 
-from alerter.discord_alerter_flavor import DiscordAlerterConfig
+from zennews.alerter.discord_alerter_flavor import DiscordAlerterConfig
 
 
 class DiscordAlerter(BaseAlerter):

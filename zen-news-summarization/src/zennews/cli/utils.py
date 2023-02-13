@@ -17,7 +17,7 @@ import click
 from zenml.client import Client
 from zenml.config.schedule import Schedule
 
-from models import Article
+from zennews.models import Article
 
 
 def error(text: str) -> None:
@@ -118,8 +118,8 @@ def build_pipeline(source_step, source_params, **kwargs):
         an instance of a zennews pipeline
     """
 
-    from pipelines import zen_news_pipeline
-    from steps import bart_large_cnn_samsum, post_summaries
+    from zennews.pipelines import zen_news_pipeline
+    from zennews.steps import bart_large_cnn_samsum, post_summaries
 
     pipeline = zen_news_pipeline(
         collect=source_step(source_params.parse_obj(kwargs)),
@@ -143,6 +143,10 @@ def parse_schedule(frequency: str, flavor: str) -> Schedule:
     raise NotImplementedError('Not yet implemented!')
 
 
-def display_articles(articles: List[Article]) -> None:
+def display_summaries(summaries: str) -> None:
     """Display the articles on the CLI."""
-    raise NotImplementedError('Not yet implemented!')
+    from rich.markdown import Markdown
+    from rich.console import Console
+
+    md = Markdown(summaries)
+    Console().print(md)
