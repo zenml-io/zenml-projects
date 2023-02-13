@@ -13,7 +13,5 @@
 #  permissions and limitations under the License.
 
 from models.article import Article
-from models.profile import Profile
-from models.config import Config
 
-__all__ = ["Article", "Config", "Profile"]
+__all__ = ["Article"]

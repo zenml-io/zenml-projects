@@ -17,7 +17,14 @@ from pydantic import BaseModel
 
 
 class Article(BaseModel):
-    """Base model for articles with full text."""
+    """Base model for articles with full text.
+
+    Attributes:
+        source: the name of the source,, e.g. BBC.
+        section: a tag to give the article, e.g. a category.
+        url: the url of the original article.
+        text: the text which represents the article.
+    """
     source: str
     section: str
     url: str
