@@ -180,5 +180,3 @@ def generate_all_source_commands():
 
 
 generate_all_source_commands()
-
-
