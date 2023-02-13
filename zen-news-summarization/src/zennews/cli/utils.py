@@ -140,7 +140,22 @@ def parse_schedule(frequency: str, flavor: str) -> Schedule:
     Returns:
          the proper Schedule object
     """
-    raise NotImplementedError('Not yet implemented!')
+    if flavor == "vertex":
+        if frequency == 'debug':
+            return Schedule(cron_expression="*/5 * * * *")
+        elif frequency == 'hourly':
+            return Schedule(cron_expression="0 * * * *")
+        elif frequency == 'daily':
+            return Schedule(cron_expression="0 9 * * *")
+        elif frequency == 'weekly':
+            return Schedule(cron_expression="0 9 * * MON")
+        else:
+            raise ValueError('Please use one of the supported values.')
+
+    else:
+        raise NotImplementedError(
+            'The schedule parser can only be used by the Vertex orchestrator!'
+        )
 
 
 def display_summaries(summaries: str) -> None:

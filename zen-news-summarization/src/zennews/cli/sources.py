@@ -17,7 +17,6 @@ from typing import Dict, Any
 
 import click
 from zenml.client import Client
-from zenml.config.schedule import Schedule
 from zenml.enums import StackComponentType
 
 from zennews.cli.base import cli
@@ -29,6 +28,7 @@ from zennews.cli.utils import (
     title,
     build_pipeline,
     display_summaries,
+    parse_schedule,
 )
 from zennews.steps import SOURCE_STEP_MAPPING
 
@@ -48,7 +48,9 @@ def generate_single_source_command(
     )
     @click.option(
         '--schedule',
-        type=int,
+        type=click.Choice(
+            ['debug', 'hourly', 'daily', 'weekly'], case_sensitive=False
+        ),
         default=None,
         help="The amount of minutes to set as the frequency while scheduling."
     )
@@ -106,9 +108,7 @@ def generate_single_source_command(
 
                 run_name = f'news_{source_name}_{{date}}_{{time}}'
 
-                # TODO: Implement a proper parser
-                # schedule_obj = parse_schedule(schedule, orchestrator.flavor)
-                schedule_obj = Schedule(cron_expression='*/5 * * * *')
+                schedule_obj = parse_schedule(schedule, orchestrator.flavor)
 
                 pipeline.run(run_name=run_name, schedule=schedule_obj)
 
