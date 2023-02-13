@@ -106,6 +106,30 @@ class stack_handler(object):
         client.activate_stack(self.active_stack_name)
 
 
+def build_pipeline(source_step, source_params, **kwargs):
+    """Create an instance of a zennews pipeline with the given steps.
+
+    Args:
+        source_step: the step class for the source
+        source_params: the parameters class for the source
+        kwargs: the parameters
+
+    Returns:
+        an instance of a zennews pipeline
+    """
+
+    from pipelines import zen_news_pipeline
+    from steps import bart_large_cnn_samsum, post_summaries
+
+    pipeline = zen_news_pipeline(
+        collect=source_step(source_params.parse_obj(kwargs)),
+        summarize=bart_large_cnn_samsum(),
+        report=post_summaries(),
+    )
+
+    return pipeline
+
+
 def parse_schedule(frequency: str, flavor: str) -> Schedule:
     """Create a schedule object that can be used by the orchestrator flavor.
 

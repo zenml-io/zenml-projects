@@ -20,11 +20,10 @@ from cli.constants import SUPPORTED_ORCHESTRATORS
 from steps import SOURCE_STEP_MAPPING
 from cli.base import cli
 from typing import Dict, Any
-from cli.utils import warning, error, stack_handler, display_articles, title
+from cli.utils import warning, error, stack_handler, title, build_pipeline
 from datetime import datetime
 
 from zenml.client import Client
-from rich.markdown import Markdown
 
 
 def generate_single_source_command(
@@ -102,7 +101,7 @@ def generate_single_source_command(
 
                 # TODO: Implement a proper parser
                 # schedule_obj = parse_schedule(schedule, orchestrator.flavor)
-                schedule_obj = Schedule(cron_expression='*/15 * * * *')
+                schedule_obj = Schedule(cron_expression='*/5 * * * *')
 
                 pipeline.run(run_name=run_name, schedule=schedule_obj)
 
@@ -110,32 +109,30 @@ def generate_single_source_command(
             # If there is no schedule, RUN the pipeline locally
             if not force:
                 warning(
-                    'Testing a profile will temporarily change your active '
-                    'stack to the default stack and run the pipeline '
-                    'locally. This also means that the pipeline will '
-                    'download and utilize the model locally.'
+                    'This will change your active ZenML stack to the default '
+                    'stack and run the pipeline locally. This also means that '
+                    'the pipeline will download and utilize the model locally.'
                 )
                 if not click.confirm('Would you like to continue?'):
                     error('Stopped the process.')
 
             # Build and run the pipeline
-            title("building and running the pipeline")
-            from pipelines import zen_news_pipeline
-            from steps import bart_large_cnn_samsum, post_summaries
+            title("Building and running the pipeline")
 
             with stack_handler("default"):
-                pipeline = zen_news_pipeline(
-                    collect=source_step(source_params.parse_obj(kwargs)),
-                    summarize=bart_large_cnn_samsum(),
-                    report=post_summaries(),
+                pipeline = build_pipeline(
+                    source_step=source_step,
+                    source_params=source_params,
+                    **kwargs
                 )
+
                 run_name = f'test_{source_name}' \
                            f'{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}'
-
                 pipeline.run(run_name=run_name)
 
             # Get the run view of the pipeline and showcase the results
             title("pipeline results")
+
             from zenml.post_execution import get_run
 
             run_view = get_run(run_name)
@@ -175,6 +172,7 @@ def generate_single_source_command(
 
 
 def generate_all_source_commands():
+    """Function to generate CLI commands for all defined news sources."""
     # Iterate over all the sources available/implemented
     for s_name, s_dict in SOURCE_STEP_MAPPING.items():
         # Create all the subcommands
@@ -184,14 +182,3 @@ def generate_all_source_commands():
 generate_all_source_commands()
 
 
-def build_pipeline(source_step, source_params, **kwargs):
-    from pipelines import zen_news_pipeline
-    from steps import bart_large_cnn_samsum, post_summaries
-
-    pipeline = zen_news_pipeline(
-        collect=source_step(source_params.parse_obj(kwargs)),
-        summarize=bart_large_cnn_samsum(),
-        report=post_summaries(),
-    )
-
-    return pipeline
