@@ -14,17 +14,7 @@
 from zenml.config import DockerSettings
 from zenml.pipelines import pipeline
 
-# TODO: Remove it once the package is published and exclude_user_files = True
-#   and set the zennews package as the single source.
-docker_settings = DockerSettings(
-    requirements=[
-        "bbc-feeds==2.1",
-        "transformers==4.26.0",
-        "torch==1.13.1",
-        "discord.py==2.1.0",
-        "mdutils==1.4.0",
-    ]
-)
+docker_settings = DockerSettings(requirements=["zennews"], copy_files=False)
 
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})

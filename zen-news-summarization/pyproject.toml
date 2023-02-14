@@ -1,12 +1,9 @@
 [tool.poetry]
 name = "zennews"
-version = "0.1.0"
+version = "0.1.1"
 description = "ZenNews: Get summarized news on a schedule."
 license = "Apache-2.0"
-authors = [
-    "ZenML GmbH <info@zenml.io>",
-    "Baris Can Durak <baris@zenml.io>",
-]
+authors = ["ZenML GmbH <info@zenml.io>"]
 readme = "README.md"
 homepage = "https://zenml.io/project/zen-news-summarization"
 repository = "https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization"
