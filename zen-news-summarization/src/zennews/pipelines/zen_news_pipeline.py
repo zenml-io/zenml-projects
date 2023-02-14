@@ -14,7 +14,7 @@
 from zenml.config import DockerSettings
 from zenml.pipelines import pipeline
 
-docker_settings = DockerSettings(requirements=["zennews"], copy_files=False)
+docker_settings = DockerSettings(requirements=["zennews"])
 
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})

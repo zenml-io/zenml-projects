@@ -42,6 +42,10 @@ Remote GCP zenml server
 
 ### Requirements
 
+```bash
+zenml integration install gcp
+```
+
 - Service account
 - GCS artifact store
 - Vertex Orchestrator
