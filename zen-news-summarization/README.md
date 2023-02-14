@@ -46,11 +46,10 @@ that ZenML can help you streamline your workflows and accelerate your
 development process. However, it barely scratches the surface of how you can 
 improve it even further. For more information, check this section.
 
-# Walkthrough
+# Base installation
 
-## Base installation
-
-The `ZenNews` project is designed as a [PyPI package](https://pypi.org/project/zennews/)
+The **ZenNews** project is designed as a 
+[PyPI package](https://pypi.org/project/zennews/)
 that you can install it through `pip`:
 
 ```bash
@@ -62,7 +61,7 @@ The package comes equipped with the following set of key pieces:
 - **The pipeline**: The `zen_news_pipeline` is the main pipeline in this 
 workflow. In total, it features three separate steps, namely `collect`, 
 `summarize` and `report`. The first step is responsible for collecting 
-data, the second step summarizes them and the last step creates a report and 
+articles, the second step summarizes them and the last step creates a report and 
 posts it.
 - **The steps**: There is a concrete implementation for each step defined above.
   - For the `collect` step, we have the `bbc_news_source` which (on default) 
@@ -84,11 +83,12 @@ stack components and implemented a `DiscordAlerter`.
 - **The CLI application**: The example also includes a Click CLI application. 
 It utilizes how easily you can use our Python SDK to build your application 
 around your ZenML workflows. In order to see it action simply execute:
+
   ```bash
   zennews --help 
-  ```
+   ```
 
-## Test it locally right away
+# Test it locally right away
 
 Once you installed the `zennews` package, you are ready to test it out locally 
 right away. The following command will get the top five articles from the BBC
@@ -111,20 +111,20 @@ parameters, please use:
 zennews bbc --help
 ```
 
-## Switching to scheduled pipelines with Vertex
+# Switching to scheduled pipelines with Vertex
 
 The potential of an application like `ZenNews` can be only unlocked by scheduling 
 summarization pipelines instead of manually triggering them. In order to showcase it, we 
 will set up a fully remote GCP stack and use the `VertexOrchestrator` to 
 schedule the pipeline.
 
-### Deploy ZenML on GCP
+## Deploy ZenML on GCP
 
 Before you start building the stack, you need to deploy ZenML. For more 
 information on how you can achieve do that on GCP, please check 
 [the corresponding docs page](https://docs.zenml.io/getting-started/deploying-zenml).
 
-### ZenNews Stack
+## ZenNews Stack
 
 Once the ZenML is deployed, we can start to build up our stack. Our stack will 
 consist of the following components:
@@ -141,7 +141,7 @@ The first step is to install the `gcp` integration:
 zenml integration install gcp
 ```
 
-#### Secrets Manager
+### Secrets Manager
 
 ```bash
 zenml secrets-manager register <NAME> \
@@ -149,7 +149,7 @@ zenml secrets-manager register <NAME> \
     --project_id=<PROJECT_ID>
 ```
 
-#### Container Registry
+### Container Registry
 
 ```bash
 zenml container-registry register <NAME> \
@@ -157,7 +157,7 @@ zenml container-registry register <NAME> \
     --uri=<REGISTRY_URI>
 ```
 
-#### Artifact Store
+### Artifact Store
 
 ```bash
 zenml secrets-manager secret register <SECRET_NAME> \
@@ -172,7 +172,7 @@ zenml artifact-store register <NAME> \
     --authentication_secret=<SECRET_NAME>
 ```
 
-#### Orchestrator
+### Orchestrator
 
 ```bash
 zenml orchestrator register <NAME> \
@@ -181,12 +181,10 @@ zenml orchestrator register <NAME> \
     --location=<GCP_LOCATION>
 ```
 
-#### Alerter 
+### Alerter 
 
-```bash
-zenml secrets-manager secret register <SECRET_NAME> \
-    --web_hook_url=<WEBHOOK_URL>
-```
+#### Registering the custom flavor
+
 ```bash
 zenml alerter flavor register zennews.alerter.discord_alerter_flavor.DiscordAlerterFlavor
 ```
@@ -195,13 +193,20 @@ zenml alerter flavor register zennews.alerter.discord_alerter_flavor.DiscordAler
 zenml alerter flavor list
 ```
 
+#### Registering the alerter
+
+```bash
+zenml secrets-manager secret register <SECRET_NAME> \
+    --web_hook_url=<WEBHOOK_URL>
+```
+
 ```bash
 zenml alerter register <NAME> \
     --flavor discord-webhook \
     --webhook_url_secret=<SECRET_NAME>
 ```
 
-### Using the `zennews` CLI
+## Using the `zennews` CLI
 
 Now the stack is set up, you can use the `--schedule` option when you run your 
 `zennews` pipeline. There are three possible values that you can use for the 
@@ -212,7 +217,7 @@ Monday at 9 AM).
 zennews bbc --schedule daily
 ```
 
-## Limitations
+# Limitations
 
 - One source
 - Schedule cancelling
