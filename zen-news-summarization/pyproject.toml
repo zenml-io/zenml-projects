@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zennews"
-version = "0.1.3"
+version = "0.1.4"
 description = "ZenNews: Get summarized news on a schedule."
 license = "Apache-2.0"
 authors = ["ZenML GmbH <info@zenml.io>"]
@@ -9,7 +9,7 @@ homepage = "https://zenml.io/project/zen-news-summarization"
 repository = "https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization"
 keywords = ["zenml"]
 packages = [
-    { include = "zennews", from= "src"}
+    { include = "zennews", from = "src" }
 ]
 
 [tool.poetry.scripts]
