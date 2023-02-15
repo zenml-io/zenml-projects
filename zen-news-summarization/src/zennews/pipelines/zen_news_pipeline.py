@@ -13,8 +13,10 @@
 #  permissions and limitations under the License.
 from zenml.config import DockerSettings
 from zenml.pipelines import pipeline
+
 from zennews import __version__
-docker_settings = DockerSettings(requirements=[f"zennews={__version__}"])
+
+docker_settings = DockerSettings(requirements=[f"zennews=={__version__}"])
 
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
