@@ -16,7 +16,6 @@ from typing import Optional, cast, Any
 
 from discord import SyncWebhook
 from zenml.alerter import BaseAlerter
-from zenml.client import Client
 from zenml.steps import BaseParameters
 
 from zennews.alerter.discord_alerter_flavor import DiscordAlerterConfig
@@ -33,21 +32,6 @@ class DiscordAlerter(BaseAlerter):
         """
         return cast(DiscordAlerterConfig, self._config)
 
-    def _get_webhook(self) -> SyncWebhook:
-        """Create and return the discord webhook.
-
-        Returns:
-            the discord webhook object.
-        """
-
-        secret_manager = Client().active_stack.secrets_manager
-
-        webhook_url = secret_manager.get_secret(
-            self.config.webhook_url_secret
-        ).content["WEBHOOK_URL"]
-
-        return SyncWebhook.from_url(webhook_url)
-
     def post(
         self, message: Any, params: Optional[BaseParameters]
     ) -> bool:
@@ -61,7 +45,7 @@ class DiscordAlerter(BaseAlerter):
             True if operation succeeded, else False.
         """
 
-        webhook = self._get_webhook()
+        webhook = SyncWebhook.from_url(self.config.webhook_url)
 
         # For the context of this project, the following implementation of the
         # discord alerter is very custom tailored to ZenNews. In order to

@@ -25,10 +25,9 @@ class DiscordAlerterConfig(BaseAlerterConfig):
     """Configuration for the discord webhook alerter.
 
     Attributes:
-        webhook_url_secret: str, the name of the secret which holds the
-            url of the webhook.
+        webhook_url: str, the url of the webhook.
     """
-    webhook_url_secret: str
+    webhook_url: str
 
 
 class DiscordAlerterFlavor(BaseAlerterFlavor):
