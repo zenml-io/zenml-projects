@@ -56,13 +56,13 @@ that you can install it through `pip`:
 pip install zennews
 ```
 
-The package comes equipped with the following set of key pieces:
+The package comes equipped with the following set of **key** pieces:
 
 - **The pipeline**: The `zen_news_pipeline` is the main pipeline in this 
-workflow. In total, it features three separate steps, namely `collect`, 
+workflow. In total, it features three steps, namely `collect`, 
 `summarize` and `report`. The first step is responsible for collecting 
-articles, the second step summarizes them and the last step creates a report and 
-posts it.
+articles, the second step summarizes them, and the last step creates a 
+report and posts it.
 - **The steps**: There is a concrete implementation for each step defined above.
   - For the `collect` step, we have the `bbc_news_source` which (on default) 
   collects the top stories off of the BBC news feed and prepares `Article` 
@@ -80,7 +80,8 @@ comes a data type that is not a built-in.
 `ZenNews` is to display to outcomes to the user directly. With this project, 
 we have used this as a chance to show the extensibility of ZenML in terms of the
 stack components and implemented a `DiscordAlerter`.
-- **The CLI application**: The example also includes a Click CLI application. 
+- **The CLI application**: The example also includes a 
+- [Click](https://click.palletsprojects.com/en/8.1.x/) CLI application. 
 It utilizes how easily you can use our Python SDK to build your application 
 around your ZenML workflows. In order to see it action simply execute:
 
@@ -98,8 +99,6 @@ news feed, summarize them and present the results to you.
 > **default** stack and when the pipeline runs, you will download the model 
 > to your local machine.
 
-In order to execute it, simply do:
-
 ```bash
 zennews bbc
 ```
@@ -113,15 +112,15 @@ zennews bbc --help
 
 # Switching to scheduled pipelines with Vertex
 
-The potential of an application like `ZenNews` can be only unlocked by scheduling 
-summarization pipelines instead of manually triggering them. In order to showcase it, we 
-will set up a fully remote GCP stack and use the `VertexOrchestrator` to 
-schedule the pipeline.
+The potential of an application like `ZenNews` can be only unlocked by 
+scheduling summarization pipelines instead of manually triggering them 
+yourself. In order to showcase it, we will set up a fully remote GCP stack 
+and use the `VertexOrchestrator` to schedule the pipeline.
 
 ## Deploy ZenML on GCP
 
-Before you start building the stack, you need to deploy ZenML. For more 
-information on how you can achieve do that on GCP, please check 
+Before you start building the stack, you need to deploy ZenML on GCP. For more 
+information on how you can achieve do that, please check 
 [the corresponding docs page](https://docs.zenml.io/getting-started/deploying-zenml).
 
 ## ZenNews Stack
@@ -133,9 +132,9 @@ consist of the following components:
 - [GCP Container Registry](https://docs.zenml.io/component-gallery/container-registries/gcloud)
 - [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs)
 - [Vertex Orchestrator](https://docs.zenml.io/component-gallery/orchestrators/gcloud-vertexai)
-- [Discord Alerter (part of the zennews package)](src/zennews/alerter/discord_alerter.py)
+- [Discord Alerter (part of the `zennews` package)](src/zennews/alerter/discord_alerter.py)
  
-The first step is to install the `gcp` integration:
+Let's start by installing the `gcp` integration:
 
 ```bash
 zenml integration install gcp
@@ -143,51 +142,95 @@ zenml integration install gcp
 
 ### Secrets Manager
 
+The first component to register is a
+[GCP secrets manager](https://docs.zenml.io/component-gallery/secrets-managers/gcp). 
+The command is quite straightforward. You just have to give it a name and 
+provide the ID of your project on GCP.
+
 ```bash
-zenml secrets-manager register <NAME> \
+zenml secrets-manager register <SECRETS_MANAGER_NAME> \
     --flavor=gcp \
     --project_id=<PROJECT_ID>
 ```
 
 ### Container Registry
 
+The second component is a 
+[GCP container registry](https://docs.zenml.io/component-gallery/container-registries/gcloud). 
+Similar to the previous component, you just need to provide a name and the 
+URI to your container registry on GCP.
+
 ```bash
-zenml container-registry register <NAME> \
+zenml container-registry register <CONTAINER_REGISTERY_NAME> \
     --flavor=gcp \
     --uri=<REGISTRY_URI>
 ```
 
 ### Artifact Store
 
-```bash
-zenml secrets-manager secret register <SECRET_NAME> \
-    -s gcp \
-    --token=@path/to/token/file.json
-```
+The next component on the list is a 
+[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs). 
+In order to register it, all you have to do is to provide the path to your GCS
+bucket:
 
 ```bash 
-zenml artifact-store register <NAME> \
+zenml artifact-store register <ARTIFACT_STORE_NAME> \
     --flavor=gcp \
-    --path=<PATH_TO_BUCKET> \
-    --authentication_secret=<SECRET_NAME>
+    --path=<PATH_TO_BUCKET> 
 ```
 
 ### Orchestrator
 
+Following the artifact store, we will register a
+[Vertex AI orchestrator.](https://docs.zenml.io/component-gallery/orchestrators/gcloud-vertexai)
+
 ```bash
-zenml orchestrator register <NAME> \
+zenml orchestrator register <ORCHESTRATOR_NAME> \
     --flavor=vertex \
     --project=<PROJECT_ID> \
     --location=<GCP_LOCATION>
 ```
 
+You need to simply provide the id of your project and the name of your GCP 
+region.
+
+### GCP Stack
+
+With these four components, we are ready to establish and activate the base 
+version of our GCP stack.
+
+```bash
+zenml stack register <STACK_NAME> \
+    -x <SECRETS_MANAGER_NAME> \
+    -c <CONTAINER_REGISTERY_NAME> \
+    -a <ARTIFACT_STORE_NAME> \
+    -o <ORCHESTRATOR_NAME> \
+    --set
+```
+
 ### Alerter 
 
+The last component in our stack is a special case. As mentioned before
+the `zennews` package already comes equipped with a custom stack component 
+implementation, namely the `DiscordAlerter`. In a nutshell, it uses the 
+[**discord.py**](https://discordpy.readthedocs.io/en/stable/index.html) package
+to send messages via a webhook to a discord text channel. You can find the 
+implementation right [here](src/zennews/alerter/discord_alerter.py).
+
+The following sections show how we can register `DiscordAlerter` as a custom 
+flavor , create an instance of it and update our stack.
+
 #### Registering the custom flavor
+
+ All you 
+have to do to register such custom flavor is to provide the corresponding
+source path to the flavor class.
 
 ```bash
 zenml alerter flavor register zennews.alerter.discord_alerter_flavor.DiscordAlerterFlavor
 ```
+
+ZenML will import and add that to the list of available alerter flavors.
 
 ```bash 
 zenml alerter flavor list
@@ -195,18 +238,36 @@ zenml alerter flavor list
 
 #### Registering the alerter
 
+Now that the flavor is registered, you can create an alerter with the flavor
+`discord-webhook`. Through this example, you will also see how you can use 
+secret references to handle sensitive information during the registration of 
+stack components.
+
+Let's start by registering the secret:
+
 ```bash
 zenml secrets-manager secret register <SECRET_NAME> \
-    --web_hook_url=<WEBHOOK_URL>
+    --webhook_url=<ACTUAL_URL_OF_THE_WEBHOOK>
 ```
+
+This will use the secrets manager in our active GCP stack. Once the secret 
+registration is complete, you can register your alerter as follows:
 
 ```bash
-zenml alerter register <NAME> \
+zenml alerter register <ALERTER_NAME> \
     --flavor discord-webhook \
-    --webhook_url_secret=<SECRET_NAME>
+    --webhook_url=<SECRET_REFERENCE>  # formatted as {{SECRET_NAME:WEBHOOK_URL}}
 ```
 
-## Using the `zennews` CLI
+#### Updating the stack
+
+The last step is to update our stack with our new alerter:
+
+```bash
+zenml stack update <STACK_NAME> -al <ALERTER_NAME>
+```
+
+## Scheduling pipelines through the `zennews` CLI
 
 Now the stack is set up, you can use the `--schedule` option when you run your 
 `zennews` pipeline. There are three possible values that you can use for the 
@@ -217,14 +278,15 @@ Monday at 9 AM).
 zennews bbc --schedule daily
 ```
 
-# Limitations
+This will use your active stack (the GCP stack) and schedule your ZenNews 
+pipeline.
+
+## Limitations, future improvements and upcoming changes
 
 - One source
 - Schedule cancelling
 - Vertex - Schedule
 - Alerter (base interface)
+- Secrets management
 
 # How to contribute?
-
-# Future improvements and upcoming changes
-
