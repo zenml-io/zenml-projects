@@ -1,4 +1,4 @@
-# ZenNews: Generate summarized news on a schedule
+# 📜 ZenNews: Generate summarized news on a schedule
 
 In today's information age, we are bombarded with a constant stream of news 
 and media from a variety of sources. Summarizing tasks, particularly when it 
@@ -15,7 +15,7 @@ providing them with the information they need. This can be particularly valuable
 for busy professionals or anyone who wants to keep up with the news but doesn't 
 have the time to read every article in full.
 
-# The goal of the project
+# 🎯 The goal of the project
 
 The definition of the concrete use case aside, this project aims to showcase 
 some of the advantages that ZenML brings to the table. Some major points we 
@@ -46,7 +46,7 @@ that ZenML can help you streamline your workflows and accelerate your
 development process. However, it barely scratches the surface of how you can 
 improve it even further. For more information, check this section.
 
-# Base installation
+# 🐍 Base installation
 
 The **ZenNews** project is designed as a 
 [PyPI package](https://pypi.org/project/zennews/)
@@ -89,7 +89,7 @@ around your ZenML workflows. In order to see it in action simply execute:
   zennews --help 
    ```
 
-# Test it locally right away
+# 🕹 Test it locally right away
 
 Once you installed the `zennews` package, you are ready to test it out locally 
 right away. The following command will get the top five articles from the BBC
@@ -110,7 +110,7 @@ parameters, please use:
 zennews bbc --help
 ```
 
-# Switching to scheduled pipelines with Vertex
+# 🚀 Switching to scheduled pipelines with Vertex
 
 The potential of an application like `ZenNews` can be only unlocked by 
 scheduling summarization pipelines instead of manually triggering them 
@@ -281,7 +281,7 @@ zennews bbc --schedule daily
 This will use your active stack (the GCP stack) and schedule your ZenNews 
 pipeline.
 
-## Limitations, future improvements and upcoming changes
+# 📙 Limitations, future improvements and upcoming changes
 
 Before we end this project, it is also important to talk about the limitations
 we faced, the possible future improvements, and changes that are already in 
