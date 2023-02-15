@@ -283,10 +283,28 @@ pipeline.
 
 ## Limitations, future improvements and upcoming changes
 
-- One source
-- Schedule cancelling
-- Vertex - Schedule
-- Alerter (base interface)
-- Secrets management
+Before we end this project, it is also important to talk about the limitations
+we faced, the possible future improvements, and changes which are already in 
+motion:
 
-# How to contribute?
+- The first limitation of the ZenNews is the number of supported news sources.
+As this project was initially designed as a PoC, the only supported news 
+source is BBC. However, thanks to our design, it is really easy to expand this 
+list by adding additional steps, which consume data and create `Article` 
+objects.
+- The ability to schedule pipelines through ZenML played a critical role 
+within the context of this project. However, this feature has its own 
+limitations. While you can create scheduled pipelines, once the pipeline and 
+its schedule is created, you can not cancel or modify the behaviour of this 
+scheduled pipeline. This means, if you want to cancel it, you have to do it 
+over the orchestrator yourself.
+- The other limitation regarding the schedules is the format. As of now, the 
+CLI application takes the user input and converts it into a cron expression.
+Any orchestrator which does not support these expressions will not applicable.
+- As the ZenML team, we have been looking for ways to improve the interface 
+of our base alerters. You might see some changes in the upcoming releases. 
+- Similar to the alerters, we are working on improving the management of our 
+secrets. 
+ 
+Tune in to [our slack](https://zenml.io/slack-invite/) to stay updated about 
+the upcoming changes and ask any questions you might have.
