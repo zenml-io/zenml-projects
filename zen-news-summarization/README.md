@@ -2,14 +2,14 @@
 
 In today's information age, we are bombarded with a constant stream of news 
 and media from a variety of sources. Summarizing tasks, particularly when it 
-comes to news sources, can be a powerful tool for efficient consumption of 
+comes to news sources, can be a powerful tool for the efficient consumption of 
 information. They distill complex or lengthy content into easily 
 digestible chunks that can be scanned and absorbed quickly, allowing us to 
 keep up with the news without being overwhelmed. They can also help us separate 
 the signal from the noise, highlighting the most important details and helping 
 us identify what's worth further investigation. 
 
-This is where **ZenNews** come into the play. It offers a tool which can 
+This is where **ZenNews** come into play. It offers a tool that can 
 automate the summarization process and save users time and effort while 
 providing them with the information they need. This can be particularly valuable 
 for busy professionals or anyone who wants to keep up with the news but doesn't 
@@ -17,7 +17,7 @@ have the time to read every article in full.
 
 # The goal of the project
 
-The definition of the concrete use-case aside, this project aims to showcase 
+The definition of the concrete use case aside, this project aims to showcase 
 some of the advantages that ZenML brings to the table. Some major points we 
 would like to highlight include:
 
@@ -28,7 +28,7 @@ interact with along the way. This makes it significantly easier for our users
 to build their applications around ZenML.
 
 - **The extensibility**: ZenML is an extendable framework. ML projects often 
-require custom-tailored solutions and what you get out-of-the-box may not be 
+require custom-tailored solutions and what you get out of the box may not be 
 what you need. This is why ZenML is using base abstractions to allow you 
 to create your own solutions without reinventing the whole wheel. You can find 
 great examples of this feature by taking a look at the custom materializer 
@@ -41,7 +41,7 @@ complete separation between the code and the infrastructure that the pipeline
 is running on. In fact, by utilizing just one flag, it is possible to switch 
 from a local default stack to a remote deployment with scheduled pipelines.
 
-- **The scalability**: This is a small PoC-like example which aims to prove 
+- **The scalability**: This is a small PoC-like example that aims to prove 
 that ZenML can help you streamline your workflows and accelerate your 
 development process. However, it barely scratches the surface of how you can 
 improve it even further. For more information, check this section.
@@ -50,7 +50,7 @@ improve it even further. For more information, check this section.
 
 The **ZenNews** project is designed as a 
 [PyPI package](https://pypi.org/project/zennews/)
-that you can install it through `pip`:
+that you can install through `pip`:
 
 ```bash
 pip install zennews
@@ -65,7 +65,7 @@ articles, the second step summarizes them, and the last step creates a
 report and posts it.
 - **The steps**: There is a concrete implementation for each step defined above.
   - For the `collect` step, we have the `bbc_news_source` which (on default) 
-  collects the top stories off of the BBC news feed and prepares `Article` 
+  collects the top stories from the BBC news feed and prepares `Article` 
   objects. 
   - For the `summarize` step, we have implemented `bart_large_cnn_samsum`
   step. As the name suggests, it uses bart model to generate summaries. 
@@ -75,15 +75,15 @@ report and posts it.
 - **The materializer**: As mentioned above, the steps within our pipeline are 
 using the concept of `Article`s to define their input and output space. Through
 this, we can show how to handle the materialization of these artifacts when it 
-comes a data type that is not a built-in.
+comes to a data type that is not built-in.
 - **The custom stack component**: The ultimate goal of an application such as 
-`ZenNews` is to display to outcomes to the user directly. With this project, 
+`ZenNews` is to display the outcomes to the user directly. With this project, 
 we have used this as a chance to show the extensibility of ZenML in terms of the
 stack components and implemented a `DiscordAlerter`.
 - **The CLI application**: The example also includes a 
 - [Click](https://click.palletsprojects.com/en/8.1.x/) CLI application. 
 It utilizes how easily you can use our Python SDK to build your application 
-around your ZenML workflows. In order to see it action simply execute:
+around your ZenML workflows. In order to see it in action simply execute:
 
   ```bash
   zennews --help 
@@ -218,7 +218,7 @@ to send messages via a webhook to a discord text channel. You can find the
 implementation right [here](src/zennews/alerter/discord_alerter.py).
 
 The following sections show how we can register `DiscordAlerter` as a custom 
-flavor , create an instance of it and update our stack.
+flavor , create an instance of it, and update our stack.
 
 #### Registering the custom flavor
 
@@ -271,7 +271,7 @@ zenml stack update <STACK_NAME> -al <ALERTER_NAME>
 
 Now the stack is set up, you can use the `--schedule` option when you run your 
 `zennews` pipeline. There are three possible values that you can use for the 
-`schedule` option: `hourly`, `daily` (every day at 9 AM) or `weekly` (every
+`schedule` option: `hourly`, `daily` (every day at 9 AM), or `weekly` (every
 Monday at 9 AM).
 
 ```bash
@@ -284,10 +284,10 @@ pipeline.
 ## Limitations, future improvements and upcoming changes
 
 Before we end this project, it is also important to talk about the limitations
-we faced, the possible future improvements, and changes which are already in 
+we faced, the possible future improvements, and changes that are already in 
 motion:
 
-- The first limitation of the ZenNews is the number of supported news sources.
+- The first limitation of ZenNews is the number of supported news sources.
 As this project was initially designed as a PoC, the only supported news 
 source is BBC. However, thanks to our design, it is really easy to expand this 
 list by adding additional steps, which consume data and create `Article` 
