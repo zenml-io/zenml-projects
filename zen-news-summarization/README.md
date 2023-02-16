@@ -21,7 +21,8 @@ The definition of the concrete use case aside, this project aims to showcase
 some of the advantages that ZenML brings to the table. Some major points we 
 would like to highlight include:
 
-- **The ease of use**: ZenML features a simple and clean Python SDK. As you can 
+- **The ease of use**: ZenML features [a simple and clean Python 
+SDK](https://docs.zenml.io/starter-guide/pipelines). As you can 
 observe in this example, it is not only used to define your steps and 
 pipelines but also to access/manage the resources and artifacts that you 
 interact with along the way. This makes it significantly easier for our users 
@@ -32,7 +33,9 @@ require custom-tailored solutions and what you get out of the box may not be
 what you need. This is why ZenML is using base abstractions to allow you 
 to create your own solutions without reinventing the whole wheel. You can find 
 great examples of this feature by taking a look at the custom materializer 
-(ArticleMaterializer) and the custom stack component (DiscordAlerter) 
+([ArticleMaterializer](src/zennews/materializers/article_materializer.py)) 
+and the custom stack component 
+([DiscordAlerter](src/zennews/alerter/discord_alerter.py)) 
 implemented within the context of this project.
 
 - **Stack vs Code**: One of the main features of ZenML is rooted within the 
@@ -44,7 +47,8 @@ from a local default stack to a remote deployment with scheduled pipelines.
 - **The scalability**: This is a small PoC-like example that aims to prove 
 that ZenML can help you streamline your workflows and accelerate your 
 development process. However, it barely scratches the surface of how you can 
-improve it even further. For more information, check this section.
+improve it even further. For more information, check 
+[this section](#-limitations-future-improvements-and-upcoming-changes).
 
 # 🐍 Base installation
 
@@ -58,28 +62,30 @@ pip install zennews
 
 The package comes equipped with the following set of **key** pieces:
 
-- **The pipeline**: The `zen_news_pipeline` is the main pipeline in this 
-workflow. In total, it features three steps, namely `collect`, 
-`summarize` and `report`. The first step is responsible for collecting 
-articles, the second step summarizes them, and the last step creates a 
-report and posts it.
+- **The pipeline**: The [`zen_news_pipeline`](src/zennews/pipelines/zen_news_pipeline.py) 
+is the main pipeline in this workflow. In total, it features three steps, 
+namely `collect`, `summarize` and `report`. The first step is responsible 
+for collecting articles, the second step summarizes them, and the last step 
+creates a report and posts it.
 - **The steps**: There is a concrete implementation for each step defined above.
-  - For the `collect` step, we have the `bbc_news_source` which (on default) 
-  collects the top stories from the BBC news feed and prepares `Article` 
-  objects. 
-  - For the `summarize` step, we have implemented `bart_large_cnn_samsum`
+  - For the `collect` step, we have the [`bbc_news_source`](src/zennews/steps/sources/bbc.py)
+  which (on default) collects the top stories from the BBC news feed and 
+  prepares [`Article`](src/zennews/models/article.py) objects. 
+  - For the `summarize` step, we have implemented [`bart_large_cnn_samsum`](src/zennews/steps/summarize/bart_large_cnn_samsum.py)
   step. As the name suggests, it uses bart model to generate summaries. 
-  - Ultimately, for the `report` step, we have implemented the `post_summaries` 
+  - Ultimately, for the `report` step, we have implemented the 
+  [`post_summaries`](src/zennews/steps/report/report.py) 
   step. It showcases how a generalized step can function within a ZenML 
   pipeline and uses an alerter to share the results.
 - **The materializer**: As mentioned above, the steps within our pipeline are 
-using the concept of `Article`s to define their input and output space. Through
-this, we can show how to handle the materialization of these artifacts when it 
-comes to a data type that is not built-in.
-- **The custom stack component**: The ultimate goal of an application such as 
-`ZenNews` is to display the outcomes to the user directly. With this project, 
-we have used this as a chance to show the extensibility of ZenML in terms of the
-stack components and implemented a `DiscordAlerter`.
+using the concept of `Article`s to define their input and output space. Using 
+the [`ArticleMaterializer`](src/zennews/materializers/article_materializer.py), 
+we can show how to handle the materialization of these artifacts 
+when it comes to a data type that is not built-in.
+- **The custom stack component**: The ultimate goal of `ZenNews` is to 
+serve the use the direct outcomes of the pipeline. That is why we have used it
+as a chance to show the extensibility of ZenML in terms of the stack components 
+and implemented a [`DiscordAlerter`](src/zennews/alerter/discord_alerter.py).
 - **The CLI application**: The example also includes a 
 - [Click](https://click.palletsprojects.com/en/8.1.x/) CLI application. 
 It utilizes how easily you can use our Python SDK to build your application 
@@ -188,11 +194,22 @@ Following the artifact store, we will register a
 zenml orchestrator register <ORCHESTRATOR_NAME> \
     --flavor=vertex \
     --project=<PROJECT_ID> \
-    --location=<GCP_LOCATION>
+    --location=<GCP_LOCATION> \
+    --workload_service_account=<EMAIL_OF_YOUR_SERVICE_ACCOUNT> \
+    --service_account_path=<PATH_TO_YOUR_SERVICE_ACCOUNT_KEY>
 ```
 
-You need to simply provide the id of your project and the name of your GCP 
-region.
+You need to simply provide the id of your project, the name of your GCP 
+region and the service account you would like to use.
+
+> Warning: As of now, you have to provide both the email of the service account 
+> and the path to a key.json file. This interaction will be improved with the 
+> upcoming releases.
+
+Make sure that the service account has the proper roles for the following 
+services: Cloud Functions, Cloud Scheduler, Secret Manager, Service Account,
+Storage, and Vertex AI,
+
 
 ### GCP Stack
 
