@@ -22,7 +22,7 @@ from zennews.cli.constants import APP_NAME
 def cli():
     """CLI base command for ZenML."""
 
-    # Supress warning messages during client initializations
+    # Suppress warning messages during client initializations
     os.environ["ZENML_ENABLE_REPO_INIT_WARNINGS"] = "false"
 
     click.secho(

@@ -312,7 +312,7 @@ objects.
 - The ability to schedule pipelines through ZenML played a critical role 
 within the context of this project. However, this feature has its own 
 limitations. While you can create scheduled pipelines, once the pipeline and 
-its schedule is created, you can not cancel or modify the behaviour of this 
+its schedule is created, you can not cancel or modify the behavior of this 
 scheduled pipeline. This means, if you want to cancel it, you have to do it 
 over the orchestrator yourself.
 - The other limitation regarding the schedules is the format. As of now, the 
