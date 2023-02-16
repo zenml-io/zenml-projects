@@ -87,7 +87,7 @@ serve the use the direct outcomes of the pipeline. That is why we have used it
 as a chance to show the extensibility of ZenML in terms of the stack components 
 and implemented a [`DiscordAlerter`](src/zennews/alerter/discord_alerter.py).
 - **The CLI application**: The example also includes a 
-- [Click](https://click.palletsprojects.com/en/8.1.x/) CLI application. 
+[Click](https://click.palletsprojects.com/en/8.1.x/) CLI application. 
 It utilizes how easily you can use our Python SDK to build your application 
 around your ZenML workflows. In order to see it in action simply execute:
 
