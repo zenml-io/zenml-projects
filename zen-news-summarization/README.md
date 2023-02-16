@@ -118,7 +118,7 @@ zennews bbc --help
 
 # 🚀 Switching to scheduled pipelines with Vertex
 
-The potential of an application like `ZenNews` can be only unlocked by 
+The potential of an application like `zennews` can be only unlocked by 
 scheduling summarization pipelines instead of manually triggering them 
 yourself. In order to showcase it, we will set up a fully remote GCP stack 
 and use the `VertexOrchestrator` to schedule the pipeline.
@@ -202,9 +202,9 @@ zenml orchestrator register <ORCHESTRATOR_NAME> \
 You need to simply provide the id of your project, the name of your GCP 
 region and the service account you would like to use.
 
-> Warning: As of now, you have to provide both the email of the service account 
-> and the path to a key.json file. This interaction will be improved with the 
-> upcoming releases.
+> Warning: In this version, you have to provide both the email of the service 
+> account and the path to a key.json file. This interaction will be improved 
+> with the upcoming releases.
 
 Make sure that the service account has the proper roles for the following 
 services: Cloud Functions, Cloud Scheduler, Secret Manager, Service Account,
