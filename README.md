@@ -97,7 +97,6 @@ integrations.</h3>
 <!-- [youtube-zennews-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
 [github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
 
-
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 
 This repository showcases production-grade ML use cases built with ZenML.
@@ -110,7 +109,6 @@ time-series, tabular data, computer vision, etc.
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-
 | Project                      | Resources                                                                                                                                                          | Tags                                  | Stack Components                                                         |
 |------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
 | NBA Three-Pointer Predictor  | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord`                |
@@ -120,8 +118,6 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | YOLOv5 Object Detection      | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                                                               | Computer-vision                       | `mlflow` `vertex`                                                        |
 | GitFlow ZenML Project        | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                                                             | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | ZenNews                      | [![yt][github-shield]][github-zennews-url]                                                                                                                         | Text                                  | `gcp` `vertex` `discord`                                                 |
-
->>>>>>> origin/main
 
 # 💻 System Requirements
 
