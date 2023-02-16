@@ -14,7 +14,7 @@ from steps.encoder import data_encoder
 from steps.evaluator import tester
 from steps.feature_engineer import feature_engineer
 from steps.importer import game_data_importer, game_data_importer_offline
-from steps.profiler import evidently_drift_detector
+from steps.drift_reporter import evidently_drift_detector
 from steps.splitter import (
     sklearn_splitter,
     SklearnSplitterConfig,

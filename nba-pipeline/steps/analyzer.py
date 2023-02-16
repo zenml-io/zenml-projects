@@ -1,10 +1,10 @@
 from zenml.steps import step
-from evidently.model_profile import Profile  # type: ignore
-
+from evidently.report import Report  # type: ignore
+import json
 
 @step
 def analyze_drift(
-    datadrift: Profile,
+    datadrift: str,
 ) -> bool:
     """Analyze the Evidently drift report and return a true/false value indicating
     whether data drift was detected.
@@ -12,6 +12,7 @@ def analyze_drift(
     Args:
         datadrift: datadrift dictionary created by evidently
     """
-    drift = datadrift.object()["data_drift"]["data"]["metrics"]["dataset_drift"]
+    drift = json.loads(datadrift)["metrics"][0]["result"]["dataset_drift"]
+
     print("Drift detected" if drift else "No drift detected")
     return drift
