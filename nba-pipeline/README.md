@@ -106,17 +106,13 @@ zenml experiment-tracker register local_mlflow_tracker --flavor=mlflow
 zenml data-validator register local_evidently --flavor=evidently
 
 # Now it all is combined into the local_kubeflow_stack
-!zenml stack register local_stack \
-    -a default \
-    -o default \
-    -e local_mlflow_tracker \
-    -dv local_evidently
+zenml stack register local_stack -a default -o default -e local_mlflow_tracker -dv local_evidently
 
 # And we activate the new stack, now all pipelines will be run within this stack
-!zenml stack set local_stack
+zenml stack set local_stack
 
 # Check it out, your new stack is registered
-!zenml stack list
+zenml stack describe
 ```
 
 Then, run the pipelines using `run_pipeline.py` script:

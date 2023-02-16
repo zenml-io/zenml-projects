@@ -1,3 +1,5 @@
+from .utils import get_data_for_test
+import json
 from typing import cast
 
 import numpy as np  # type: ignore [import]
@@ -10,9 +12,6 @@ from zenml.pipelines import pipeline
 from zenml.steps import BaseParameters, Output, step
 
 logger = get_logger(__name__)
-import json
-
-from .utils import get_data_for_test
 
 
 class DeploymentTriggerConfig(BaseParameters):
@@ -32,7 +31,7 @@ def dynamic_importer() -> Output(data=pd.DataFrame):
 def deployment_trigger(
     accuracy: float,
     params: DeploymentTriggerConfig,
-) -> np.bool:
+) -> bool:
     """Implements a simple model deployment trigger that looks at the
     input model accuracy and decides if it is good enough to deploy"""
 
