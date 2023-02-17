@@ -1,5 +1,7 @@
 
 <!-- PROJECT LOGO -->
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
+
 <br />
 <div align="center">
   <a href="https://zenml.io">
