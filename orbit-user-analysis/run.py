@@ -14,14 +14,12 @@
 
 
 from pipelines import community_analysis_pipeline
-from steps import churned, booming, prepare_report
+from steps import churned, booming, report
 
-# from zenml.integrations.slack.steps import slack_alerter_post_step
 
 if __name__ == "__main__":
     community_analysis_pipeline(
         churned=churned(),
         booming=booming(),
-        prepare_report=prepare_report(),
-        # alerter=slack_alerter_post_step(),
+        report=report(),
     ).run()
