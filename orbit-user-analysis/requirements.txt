@@ -1,1 +1,2 @@
 zenml[server]==0.33.0
+discord.py==2.1.1
