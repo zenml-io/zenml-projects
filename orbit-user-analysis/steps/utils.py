@@ -12,37 +12,56 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+from typing import List, Dict, Any, Tuple
 
-from zenml.client import Client
 import requests
+from zenml.client import Client
 
 
-def list_users(days: int = None, tags: str = None, **kwargs):
+def get_discord_secret() -> str:
+    """Function to get the Discord secret to retrieve the webhook url."""
+    secret_manager = Client().active_stack.secrets_manager
+
+    webhook_url = secret_manager.get_secret("discord").content["webhook_url"]
+
+    return webhook_url
+
+
+def get_orbit_secrets() -> Tuple[str, str]:
+    """Function to get the Orbit secret to retrieve the workspace and token.
+
+    Returns:
+        tuple, workspace name and API token
+    """
+    secret_manager = Client().active_stack.secrets_manager
+
+    workspace = secret_manager.get_secret("orbit").content["workspace"]
+    token = secret_manager.get_secret("orbit").content["api_token"]
+
+    return workspace, token
+
+
+def list_members(
+    days: int = None,
+    tags: str = None,
+    **kwargs
+) -> List[Dict[Any, Any]]:
     """Function to list all members within the number of specified days.
 
-    Attributes:
+    Args:
         days: int, the last number of days to take into consideration
         tags: str, the tags to filter with separated by a ','
 
     Returns:
         the list of users
     """
-    # Start with an empty user list
-    users = []
+    workspace, token = get_orbit_secrets()
 
     # Set the params
-    query_args = {
-        "affiliation": "member",
-        "items": "100",
-    }
+    query_args = {"affiliation": "member", "items": "100"}
     query_args.update(kwargs)
 
-    # Create the header and the URL
-    secret_manager = Client().active_stack.secrets_manager
-
-    workspace = secret_manager.get_secret("orbit").content["ORBIT_WORKSPACE"]
-    token = secret_manager.get_secret("orbit").content["ORBIT_API_TOKEN"]
-
+    # Create the headers and the URL
     headers = {
         "accept": "application/json",
         "authorization": f"Bearer {token}"
@@ -55,10 +74,36 @@ def list_users(days: int = None, tags: str = None, **kwargs):
 
     # Go through the pages and add to the list
     page = requests.get(url, headers=headers).json()
+
+    users = []
     while True:
         users.extend(page['data'])
         if page["links"]["next"] is not None:
             page = requests.get(page["links"]["next"], headers=headers).json()
         else:
             break
+
     return users
+
+
+def update_member_tags(member: str, tags: List[str]) -> None:
+    """Function to update a user.
+
+    Args:
+        member: str, the member slug
+        tags: list of new tags for the user
+    """
+    workspace, token = get_orbit_secrets()
+
+    # Create the headers and the url
+    headers = {
+        "content-type": "application/json",
+        "authorization": f"Bearer {token}"
+    }
+
+    url = f"https://app.orbit.love/api/v1/{workspace}/members/{member}"
+
+    # Create the payload
+    payload = {"tags": ", ".join(tags)}
+
+    requests.put(url, json=payload, headers=headers)

@@ -14,10 +14,6 @@
 
 from steps.booming import booming
 from steps.churned import churned
-from steps.prepare_report import prepare_report
+from steps.report import report
 
-__all__ = [
-    "booming",
-    "churned",
-    "prepare_report",
-]
+__all__ = ["booming", "churned", "report"]

@@ -12,16 +12,18 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 from datetime import datetime, timezone, timedelta
-from dateutil import parser
-from zenml.steps import step, BaseParameters
-from pydantic import validator
 
-from steps.utils import list_users
+from dateutil import parser
+from pydantic import validator
+from zenml.steps import step, BaseParameters
+
+from constants import CHURNED_TAG
+from steps.utils import list_members, update_member_tags
 
 
 class ChurnedParameters(BaseParameters):
-    check_days: int = 30
-    inactive_days: int = 7
+    check_days: int = 42
+    inactive_days: int = 14
 
     @validator('inactive_days', always=True)
     def inactive_days_must_be_smaller(cls, v, values):
@@ -36,30 +38,45 @@ class ChurnedParameters(BaseParameters):
 
 @step
 def churned(params: ChurnedParameters) -> None:
-    """ """
+    """Step that detects churned users and tags them accordingly.
+
+    Args:
+        params: parameters for the steps
+
+    Returns:
+        json string representing the list of user and their metadata
+    """
 
     # The first section is about the clean-up
-    churned_users = list_users(tags='churned')
+    existing_churned_members = list_members(tags=CHURNED_TAG)
 
-    for user in churned_users:
-        last_activity = user["attributes"]["last_activity_occurred_at"]
+    for member in existing_churned_members:
+        last_activity = member["attributes"]["last_activity_occurred_at"]
         last_activity_t = parser.isoparse(last_activity)
         last_activity_delta = datetime.now(timezone.utc) - last_activity_t
 
         if last_activity_delta > timedelta(days=params.inactive_days):
-            # TODO: Remove tag
-            print('Churned user came back.')
-            print("-----")
+            tags = member["attributes"]["tags"] or []
+
+            if CHURNED_TAG in tags:
+                tags.remove(CHURNED_TAG)
+
+                member_slug = member["attributes"]["slug"]
+                update_member_tags(member_slug, tags)
 
     # The second section is about detection new churned users
-    users = list_users(days=params.check_days)
+    recent_members = list_members(days=params.check_days)
 
-    for user in users:
-        last_activity = user["attributes"]["last_activity_occurred_at"]
+    for member in recent_members:
+        last_activity = member["attributes"]["last_activity_occurred_at"]
         last_activity_t = parser.isoparse(last_activity)
         last_activity_delta = datetime.now(timezone.utc) - last_activity_t
 
         if last_activity_delta > timedelta(days=params.inactive_days):
-            # TODO: Add tag
-            print(f'Churned user: {user["attributes"]["name"]}')
-            print("-----")
+            tags = member["attributes"]["tags"] or []
+
+            if CHURNED_TAG not in tags:
+                tags.append(CHURNED_TAG)
+
+                member_slug = member["attributes"]["slug"]
+                update_member_tags(member_slug, tags)
