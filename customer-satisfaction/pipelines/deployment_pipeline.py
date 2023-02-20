@@ -20,7 +20,7 @@ from materializer.custom_materializer import cs_materializer
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
 
-@step(enable_cache=False,output_materializers=cs_materializer)
+@step(enable_cache=False, output_materializers=cs_materializer)
 def dynamic_importer() -> Output(data=str):
     """Downloads the latest data from a mock API."""
     data = get_data_for_test()
@@ -43,6 +43,7 @@ def deployment_trigger(
 
     return accuracy > config.min_accuracy
 
+
 class MLFlowDeploymentLoaderStepParameters(BaseParameters):
     """MLflow deployment getter parameters
 
@@ -58,6 +59,7 @@ class MLFlowDeploymentLoaderStepParameters(BaseParameters):
     pipeline_name: str
     step_name: str
     running: bool = True
+
 
 @step(enable_cache=False)
 def prediction_service_loader(
@@ -84,6 +86,7 @@ def prediction_service_loader(
         )
 
     return existing_services[0]
+
 
 @step()
 def predictor(
@@ -117,7 +120,7 @@ def predictor(
     return prediction
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def continuous_deployment_pipeline(
     ingest_data,
     clean_data,
@@ -133,7 +136,6 @@ def continuous_deployment_pipeline(
     mse, rmse = evaluation(model, x_test, y_test)
     deployment_decision = deployment_trigger(accuracy=mse)
     model_deployer(deployment_decision, model)
-
 
 
 @pipeline

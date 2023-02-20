@@ -93,7 +93,7 @@ gsutil mb -p zenml-vertex-ai gs://time-series-bucket
 Upload the data set:
 
 ```shell
-gsutil cp data/wind_forecast.csv gs://time-series-bucket
+gsutil cp src/data/wind_forecast.csv gs://time-series-bucket
 ```
 
 Create a dataset in BigQuery (BQ):
@@ -192,6 +192,12 @@ docker tag busybox gcr.io/<PROJECT-ID/busybox
 docker push gcr.io/<PROJECT-ID>/busybox
 ```
 
+Note that you may need to run `gcloud auth configure-docker` in order to
+authenticate your local `docker` cli with your GCP container registry and in
+order for the `docker push...` command to work. [See our
+documentation](https://docs.zenml.io/component-gallery/container-registries/gcloud)
+for more information on making this work.
+
 ### 6. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
 
 To be able to use custom Vertex AI jobs, you first need to enable their API inside Google Cloud console.
@@ -208,24 +214,24 @@ docker build --tag zenmlcustom:0.1 .
 Set a GCP bucket as your artifact store:
 
 ```shell
-zenml artifact-store register <NAME> --type=gcp --path=<GCS_BUCKET_PATH>
+zenml artifact-store register <NAME> --flavor=gcp --path=<GCS_BUCKET_PATH>
 
 # Example:
-zenml artifact-store register gcp-store --type=gcp --path=gs://zenml-bucket
+zenml artifact-store register gcp-store --flavor=gcp --path=gs://zenml-bucket
 ```
 
 Create a Vertex step operator:
 
 ```shell
 zenml step-operator register <NAME> \
-    --type=vertex \
+    --flavor=vertex \
     --project=<PROJECT-ID> \
     --region=<REGION> \
     --machine_type=<MACHINE-TYPE> \
 
 # Example:
 zenml step-operator register vertex \
-    --type=vertex \
+    --flavor=vertex \
     --project=zenml-core \
     --region=europe-west1 \
     --machine_type=n1-standard-4 \
@@ -236,10 +242,10 @@ List of [available machines](https://cloud.google.com/vertex-ai/docs/training/co
 Register a container registry:
 
 ```shell
-zenml container-registry register <NAME> --type=default --uri=gcr.io/<PROJECT-ID>/<IMAGE>
+zenml container-registry register <NAME> --flavor=default --uri=gcr.io/<PROJECT-ID>/<IMAGE>
 
 # Example:
-zenml container-registry register gcr_registry --type=default --uri=gcr.io/zenml-vertex-ai/busybox
+zenml container-registry register gcr_registry --flavor=default --uri=gcr.io/zenml-vertex-ai/busybox
 ```
 
 Register the new stack (change names accordingly):
