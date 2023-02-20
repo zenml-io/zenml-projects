@@ -86,6 +86,9 @@
 [github-gitflow-url]: https://github.com/zenml-io/zenml-gitflow
 [zenmlproject-gitflow-url]: https://zenml.io/project/github-gitflow-workflow
 
+<!-- Orbit -->
+[github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
+
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 This repository showcases production-grade ML use cases built with ZenML. 
@@ -97,14 +100,15 @@ We maintain a growing list of projects from various ML domains including time-se
 
 A list of updated and maintained Projects by the ZenML team and the community:
 
-| Project                               | Resources                                                                                                                                                             | Tags                      | Stack Components                                  |
-|------------------------------------   |--------------------------------------------------------------------------------------------------------------------------------------------------------------------   |------------------------   |-----------------------------------------------    |
-| NBA Three-Pointer Predictor           | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                               | Time-series               | `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord`     |
-| Time Series Forecasting               | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][github-shield]][github-timeseries-url]          | Time-series               | `vertex`                                            |
-| Customer Satisfaction                 | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url]    | Tabular                   | `mlflow` `kubeflow`                                   |
-| Customer Churn                        | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                         | Tabular                   | `kubeflow` `seldon`                                   |
-| YOLOv5 Object Detection               | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                      | Computer-vision           | `mlflow` `vertex`                                     |
-| GitFlow ZenML Project                 | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                      | MLOps with ZenML and GitHub Workflows          | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`   |
+| Project                     | Resources                                                                                                                                                          | Tags                                  | Stack Components                                                         |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
+| NBA Three-Pointer Predictor | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord`                |
+| Time Series Forecasting     | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][github-shield]][github-timeseries-url]                                                       | Time-series                           | `vertex`                                                                 |
+| Customer Satisfaction       | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url] | Tabular                               | `mlflow` `kubeflow`                                                      |
+| Customer Churn              | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                                                                 | Tabular                               | `kubeflow` `seldon`                                                      |
+| YOLOv5 Object Detection     | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                                                               | Computer-vision                       | `mlflow` `vertex`                                                        |
+| GitFlow ZenML Project       | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                                                             | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
+| Orbit User Analysis         | [![yt][github-shield]][github-orbit-url]                                                                                                                           | Data Analysis                         | -                                                                        |
 
 
 # 💻 System Requirements
