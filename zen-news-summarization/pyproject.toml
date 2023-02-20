@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zennews"
-version = "0.1.7"
+version = "0.1.8"
 description = "ZenNews: Get summarized news on a schedule."
 license = "Apache-2.0"
 authors = ["ZenML GmbH <info@zenml.io>"]

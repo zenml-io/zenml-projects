@@ -25,10 +25,10 @@ would like to highlight include:
 SDK](https://docs.zenml.io/starter-guide/pipelines). As you can 
 observe in this example, it is not only used to define your steps and 
 pipelines but also to access/manage the resources and artifacts that you 
-interact with along the way. This makes it significantly easier for our users 
+interact with along the way. This makes it significantly easier for you 
 to build their applications around ZenML.
 
-- **The extensibility**: ZenML is an extendable framework. ML projects often 
+- **The extensibility**: ZenML is an extensible framework. ML projects often 
 require custom-tailored solutions and what you get out of the box may not be 
 what you need. This is why ZenML is using base abstractions to allow you 
 to create your own solutions without reinventing the whole wheel. You can find 
@@ -69,10 +69,10 @@ for collecting articles, the second step summarizes them, and the last step
 creates a report and posts it.
 - **The steps**: There is a concrete implementation for each step defined above.
   - For the `collect` step, we have the [`bbc_news_source`](src/zennews/steps/sources/bbc.py)
-  which (on default) collects the top stories from the BBC news feed and 
+  which (by default) collects the top stories from the BBC news feed and 
   prepares [`Article`](src/zennews/models/article.py) objects. 
   - For the `summarize` step, we have implemented [`bart_large_cnn_samsum`](src/zennews/steps/summarize/bart_large_cnn_samsum.py)
-  step. As the name suggests, it uses bart model to generate summaries. 
+  step. As the name suggests, it uses the BART model to generate summaries. 
   - Ultimately, for the `report` step, we have implemented the 
   [`post_summaries`](src/zennews/steps/report/report.py) 
   step. It showcases how a generalized step can function within a ZenML 
@@ -97,7 +97,7 @@ around your ZenML workflows. In order to see it in action simply execute:
 
 # 🕹 Test it locally right away
 
-Once you installed the `zennews` package, you are ready to test it out locally 
+After installing the `zennews` package, you are ready to test it out locally 
 right away. The following command will get the top five articles from the BBC
 news feed, summarize them and present the results to you. 
 
@@ -204,11 +204,11 @@ region and the service account you would like to use.
 
 > Warning: In this version, you have to provide both the email of the service 
 > account and the path to a key.json file. This interaction will be improved 
-> with the upcoming releases.
+> in the upcoming releases.
 
 Make sure that the service account has the proper roles for the following 
 services: Cloud Functions, Cloud Scheduler, Secret Manager, Service Account,
-Storage, and Vertex AI,
+Storage, and Vertex AI.
 
 
 ### GCP Stack
@@ -235,13 +235,12 @@ to send messages via a webhook to a discord text channel. You can find the
 implementation right [here](src/zennews/alerter/discord_alerter.py).
 
 The following sections show how we can register `DiscordAlerter` as a custom 
-flavor , create an instance of it, and update our stack.
+flavor, create an instance of it, and update our stack.
 
 #### Registering the custom flavor
 
- All you 
-have to do to register such custom flavor is to provide the corresponding
-source path to the flavor class.
+All you have to do to register such a custom flavor is to provide the 
+corresponding source path to the flavor class.
 
 ```bash
 zenml alerter flavor register zennews.alerter.discord_alerter_flavor.DiscordAlerterFlavor
@@ -313,13 +312,13 @@ objects.
 within the context of this project. However, this feature has its own 
 limitations. While you can create scheduled pipelines, once the pipeline and 
 its schedule is created, you can not cancel or modify the behavior of this 
-scheduled pipeline. This means, if you want to cancel it, you have to do it 
-over the orchestrator yourself.
+scheduled pipeline. This means that if you want to cancel it, you have to do it 
+via the orchestrator UI or interface yourself and not from within ZenML.
 - The other limitation regarding the schedules is the format. As of now, the 
 CLI application takes the user input and converts it into a cron expression.
-Any orchestrator which does not support these expressions will not applicable.
+Any orchestrator which does not support these expressions is not supported.
 - As the ZenML team, we have been looking for ways to improve the interface 
-of our base alerters. You might see some changes in the upcoming releases. 
+of our base alerters. You might see some changes in upcoming releases. 
 - Similar to the alerters, we are working on improving the management of our 
 secrets. 
  
