@@ -16,25 +16,18 @@ from zenml.pipelines import pipeline
 
 
 @pipeline(enable_cache=False)
-def community_analysis_pipeline(
-    booming,
-    churned,
-    prepare_report,
-    # alerter,
-):
-    """Defines pipeline to analyze the community on Orbit
+def community_analysis_pipeline(booming, churned, report) -> None:
+    """Defines a pipeline to analyze the community on Orbit
 
     Args:
-        booming::
-        churned:
-        prepare_report:
-        # alerter:
+        booming: step that manages booming users
+        churned: step that manages churned users
+        report: step that creates a report from the results
     """
-    prepare_report.after(booming)
-    prepare_report.after(churned)
-
     booming()
     churned()
 
-    report = prepare_report()
-    # alerter(report)
+    report.after(booming)
+    report.after(churned)
+
+    report()
