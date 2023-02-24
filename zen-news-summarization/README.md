@@ -162,7 +162,7 @@ zenml secrets-manager register <SECRETS_MANAGER_NAME> \
 ### Container Registry
 
 The second component is a 
-[GCP container registry](https://docs.zenml.io/component-gallery/container-registries/gcloud). 
+[GCP container registry](https://docs.zenml.io/component-gallery/container-registries/gcp). 
 Similar to the previous component, you just need to provide a name and the 
 URI to your container registry on GCP.
 
@@ -188,7 +188,7 @@ zenml artifact-store register <ARTIFACT_STORE_NAME> \
 ### Orchestrator
 
 Following the artifact store, we will register a
-[Vertex AI orchestrator.](https://docs.zenml.io/component-gallery/orchestrators/gcloud-vertexai)
+[Vertex AI orchestrator.](https://docs.zenml.io/component-gallery/orchestrators/vertex)
 
 ```bash
 zenml orchestrator register <ORCHESTRATOR_NAME> \
