@@ -93,7 +93,7 @@ integrations.</h3>
 
 <!-- ZenNews -->
 
-<!-- [zenmlproject-zennews-url]: https://zenml.io/project/zennews -->
+[zenmlproject-zennews-url]: https://zenml.io/project/zennews
 <!-- [youtube-zennews-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
 [github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
 
@@ -117,7 +117,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | Customer Churn               | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                                                                 | Tabular                               | `kubeflow` `seldon`                                                      |
 | YOLOv5 Object Detection      | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                                                               | Computer-vision                       | `mlflow` `vertex`                                                        |
 | GitFlow ZenML Project        | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                                                             | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
-| ZenNews                      | [![yt][github-shield]][github-zennews-url]                                                                                                                         | Text                                  | `gcp` `vertex` `discord`                                                 |
+| ZenNews                      | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url]                                                             | NLP                                   | `gcp` `vertex` `discord`                                                 |
 
 # 💻 System Requirements
 
