@@ -19,7 +19,7 @@ def model_picker(
         produced that mode.
     """
     training_pipeline = get_pipeline(pipeline_name="training_pipeline")
-    last_run = training_pipeline.runs[-1]
+    last_run = training_pipeline.runs[0]
 
     best_score = None
     best_model = None
