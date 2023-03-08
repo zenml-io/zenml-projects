@@ -15,7 +15,11 @@ class Hyperparameter_Optimization:
     """
 
     def __init__(
-        self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
     ) -> None:
         """
         Initialize the Hyperparameter_Optimization class.
@@ -68,7 +72,9 @@ class Hyperparameter_Optimization:
         """
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-7, 10.0),
+            "learning_rate": trial.suggest_loguniform(
+                "learning_rate", 1e-7, 10.0
+            ),
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
         }
         reg = XGBClassifier(**param)
@@ -83,7 +89,11 @@ class TreeBasedModels:
     """
 
     def __init__(
-        self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
     ) -> None:
         """
         Initialize the class TreeBasedModels  class.
@@ -166,7 +176,9 @@ class TreeBasedModels:
                 reg.fit(self.x_train, self.y_train)
                 return reg
             else:
-                model = LGBMClassifier(n_estimators=200, learning_rate=0.01, max_depth=20)
+                model = LGBMClassifier(
+                    n_estimators=200, learning_rate=0.01, max_depth=20
+                )
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:
@@ -204,7 +216,9 @@ class TreeBasedModels:
                 return reg
 
             else:
-                model = XGBClassifier(n_estimators=200, learning_rate=0.01, max_depth=20)
+                model = XGBClassifier(
+                    n_estimators=200, learning_rate=0.01, max_depth=20
+                )
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:

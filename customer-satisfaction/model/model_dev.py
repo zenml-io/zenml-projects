@@ -68,7 +68,9 @@ class Hyperparameter_Optimization:
         """
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-7, 10.0),
+            "learning_rate": trial.suggest_loguniform(
+                "learning_rate", 1e-7, 10.0
+            ),
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
         }
         reg = xgb.XGBRegressor(**param)
@@ -125,7 +127,9 @@ class ModelTraining:
                 reg.fit(self.x_train, self.y_train)
                 return reg
             else:
-                model = RandomForestRegressor(n_estimators=152, max_depth=20, min_samples_split=17)
+                model = RandomForestRegressor(
+                    n_estimators=152, max_depth=20, min_samples_split=17
+                )
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:
@@ -162,7 +166,9 @@ class ModelTraining:
                 reg.fit(self.x_train, self.y_train)
                 return reg
             else:
-                model = LGBMRegressor(n_estimators=200, learning_rate=0.01, max_depth=20)
+                model = LGBMRegressor(
+                    n_estimators=200, learning_rate=0.01, max_depth=20
+                )
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:
@@ -200,7 +206,9 @@ class ModelTraining:
                 return reg
 
             else:
-                model = xgb.XGBRegressor(n_estimators=200, learning_rate=0.01, max_depth=20)
+                model = xgb.XGBRegressor(
+                    n_estimators=200, learning_rate=0.01, max_depth=20
+                )
                 model.fit(self.x_train, self.y_train)
                 return model
         except Exception as e:

@@ -1,17 +1,17 @@
 import os
-import pandas as pd
-import numpy as np
-from typing import Any, Type, Union, List
 import pickle
+from typing import Any, Type, Union
+
+import numpy as np
+import pandas as pd
 from sklearn import preprocessing
-
-from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.artifacts import ModelArtifact
-from zenml.steps.step_output import Output
 from zenml.io import fileio
-from zenml.steps import step, StepContext
+from zenml.materializers.base_materializer import BaseMaterializer
+from zenml.steps import StepContext, step
+from zenml.steps.step_output import Output
 
-from .utils import get_label_encoder, apply_encoder
+from .utils import apply_encoder, get_label_encoder
 
 DEFAULT_FILENAME = "label_encoder"
 
@@ -89,8 +89,8 @@ def data_encoder(
 
 @step
 def encode_columns_and_clean(
-        context: StepContext,
-        pandas_df: pd.DataFrame,
+    context: StepContext,
+    pandas_df: pd.DataFrame,
 ) -> Output(encoded_data=pd.DataFrame, le_season=preprocessing.LabelEncoder):
     """Encode columns with label encoder/ one hot encoder. Remove games that
     do not have a set game date yet.

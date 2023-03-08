@@ -1,12 +1,12 @@
 from sklearn.base import RegressorMixin
-
-from zenml.steps import step, StepContext
-from zenml.steps.step_output import Output
 from zenml.post_execution import get_pipeline
+from zenml.steps import StepContext, step
+from zenml.steps.step_output import Output
+
 
 @step
 def model_picker(
-        context: StepContext
+    context: StepContext,
 ) -> Output(model=RegressorMixin, associated_run_id=str):
     """Picks the best models from all previous training pipeline runs.
 
@@ -15,7 +15,7 @@ def model_picker(
 
     Returns:
         model: The best model based on previous metrics.
-        associated_run_id: The associated run ID of the training pipeline that 
+        associated_run_id: The associated run ID of the training pipeline that
         produced that mode.
     """
     training_pipeline = get_pipeline(pipeline_name="training_pipeline")

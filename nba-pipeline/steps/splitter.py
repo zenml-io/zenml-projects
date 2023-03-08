@@ -1,17 +1,16 @@
-import pandas as pd
-from typing import Dict, List, Tuple
-from sklearn.model_selection import train_test_split
+from typing import Dict, List
 
-from datetime import date, timedelta
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from zenml.steps import BaseParameters, step
 from zenml.steps.step_output import Output
-from zenml.steps import step, BaseParameters
 
 
 class SklearnSplitterConfig(BaseParameters):
     """Config class for the sklearn splitter.
-    
+
     Attributes:
-        ratios: Dicts representing split ratios 
+        ratios: Dicts representing split ratios
         (e.g `{"eval": 0.3, "train": 0.5, "test": 0.2`})
         target_col: The name of the target column.
         shuffle: Whether to shuffle or not.
@@ -121,13 +120,14 @@ def date_based_splitter(
 
 class TrainingSplitConfig(BaseParameters):
     """Split config for reference_data_splitter.
-    
+
     Attributes:
         new_data_split_date: Date to split on.
         start_reference_time_frame: Reference time to start from.
         end_reference_time_frame: Reference time to end on.
         columns: optional list of column names to use, empty means all.
     """
+
     new_data_split_date: str
     start_reference_time_frame: str
     end_reference_time_frame: str
@@ -162,10 +162,11 @@ def reference_data_splitter(
 
 class TimeWindowConfig(BaseParameters):
     """Config class for data splitter for the upcoming time window.
-    
+
     Attributes:
         time_window: Number of days to calculate the window with.
     """
+
     time_window: int
 
 
@@ -185,6 +186,11 @@ def get_coming_week_data(
     initial_date = "2022-01-01"
     next_week = "2022-01-08"
     format = "%Y-%m-%d %H:%M:%S"
-    dataset["DATETIME"] = pd.to_datetime(dataset["GAME_DAY"] + " " + dataset["GAME_TIME"] + ":00", format=format)
+    dataset["DATETIME"] = pd.to_datetime(
+        dataset["GAME_DAY"] + " " + dataset["GAME_TIME"] + ":00", format=format
+    )
     dataset = dataset.set_index(pd.DatetimeIndex(dataset["DATETIME"]))
-    return dataset[(dataset["GAME_DAY"] > initial_date) & (dataset["GAME_DAY"] < next_week)]
+    return dataset[
+        (dataset["GAME_DAY"] > initial_date)
+        & (dataset["GAME_DAY"] < next_week)
+    ]

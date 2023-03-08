@@ -1,9 +1,11 @@
 from zenml.config import DockerSettings
 from zenml.integrations.constants import EVIDENTLY, SKLEARN
 from zenml.pipelines import pipeline
+
 CURRY_FROM_DOWNTOWN = "2016-02-27"
 
 docker_settings = DockerSettings(required_integrations=[EVIDENTLY, SKLEARN])
+
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
 def data_analysis_pipeline(

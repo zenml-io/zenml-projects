@@ -2,15 +2,13 @@ import os
 import pickle
 from typing import Any, Type, Union
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from steps.src.log_reg import LogisticRegression
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 
 DEFAULT_FILENAME = "CustomerChurnEnvironment"
-
-
 
 
 class cs_materializer(BaseMaterializer):

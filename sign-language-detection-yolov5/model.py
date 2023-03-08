@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import torch
 from yolov5.models.common import DetectMultiBackend
 from yolov5.utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages
@@ -13,6 +14,7 @@ from yolov5.utils.torch_utils import select_device, time_sync
 
 # Model
 device = select_device("")
+
 
 class WrapperModel(torch.nn.Module):
     def __init__(self, model):
@@ -89,7 +91,7 @@ class WrapperModel(torch.nn.Module):
                 )  # mypy: ignore
                 p = Path(p)  # to Path
                 s += "%gx%g " % im.shape[2:]  # print string
-                gn = torch.tensor(im0.shape)[  # mypy: ignore
+                torch.tensor(im0.shape)[  # mypy: ignore
                     [1, 0, 1, 0]
                 ]  # mypy: ignore
                 annotator = Annotator(im0, line_width=1, example=str(names))
@@ -103,13 +105,15 @@ class WrapperModel(torch.nn.Module):
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "
-                    
-                                    # Write results
+
+                        # Write results
                     for *xyxy, conf, cls in reversed(det):
                         c = int(cls)  # integer class
-                        label =  (f'{names[c]} {conf:.2f}')
+                        label = f"{names[c]} {conf:.2f}"
                         annotator.box_label(xyxy, label, color=colors(c, True))
-                        im_crop = save_one_box(xyxy, im0, gain=1.1, pad=12,BGR=True, save=False)
+                        im_crop = save_one_box(
+                            xyxy, im0, gain=1.1, pad=12, BGR=True, save=False
+                        )
                         imgs_res.append(im_crop.tolist())
         return (s, imgs_res)
 

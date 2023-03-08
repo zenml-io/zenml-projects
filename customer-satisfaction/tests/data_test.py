@@ -16,10 +16,20 @@ def data_test_prep_step():
         df = data_cleaning.preprocess_data()
         X_train, X_test, y_train, y_test = data_cleaning.divide_data(df)
 
-        assert X_train.shape == (92487, 12), "The shape of the training set is not correct."
-        assert y_train.shape == (92487,), "The shape of labels of training set is not correct."
-        assert X_test.shape == (23122, 12), "The shape of the testing set is not correct."
-        assert y_test.shape == (23122,), "The shape of labels of testing set is not correct."
+        assert X_train.shape == (
+            92487,
+            12,
+        ), "The shape of the training set is not correct."
+        assert y_train.shape == (
+            92487,
+        ), "The shape of labels of training set is not correct."
+        assert X_test.shape == (
+            23122,
+            12,
+        ), "The shape of the testing set is not correct."
+        assert y_test.shape == (
+            23122,
+        ), "The shape of labels of testing set is not correct."
         logging.info("Data Shape Assertion test passed.")
     except Exception as e:
         pytest.fail(e)
@@ -29,7 +39,9 @@ def data_test_prep_step():
 def check_data_leakage(X_train, X_test):
     """Test if there is any data leakage."""
     try:
-        assert len(X_train.index.intersection(X_test.index)) == 0, "There is data leakage."
+        assert (
+            len(X_train.index.intersection(X_test.index)) == 0
+        ), "There is data leakage."
         logging.info("Data Leakage test passed.")
     except Exception as e:
         pytest.fail(e)

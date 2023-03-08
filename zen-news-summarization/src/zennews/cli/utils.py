@@ -11,13 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-from typing import List, Optional, Any
+from typing import Any, Optional
 
 import click
 from zenml.client import Client
 from zenml.config.schedule import Schedule
-
-from zennews.models import Article
 
 
 def error(text: str) -> None:
@@ -38,17 +36,17 @@ def warning(text: str) -> None:
     Args:
         text, str, the warning message.
     """
-    click.secho(text, fg='yellow', bold=True)
+    click.secho(text, fg="yellow", bold=True)
 
 
 def title(text: str) -> None:
-    click.secho(f"\n ----- {text.upper()} ----- \n", fg='cyan', bold=True)
+    click.secho(f"\n ----- {text.upper()} ----- \n", fg="cyan", bold=True)
 
 
 class stack_handler(object):
     """Context manager that switches the active stack temporarily."""
 
-    def __init__(self, target_stack_name: str = 'default') -> None:
+    def __init__(self, target_stack_name: str = "default") -> None:
         """Initialization of the stack handler.
 
         Args:
@@ -141,27 +139,27 @@ def parse_schedule(frequency: str, flavor: str) -> Schedule:
          the proper Schedule object
     """
     if flavor == "vertex":
-        if frequency == 'debug':
+        if frequency == "debug":
             return Schedule(cron_expression="*/5 * * * *")
-        elif frequency == 'hourly':
+        elif frequency == "hourly":
             return Schedule(cron_expression="0 * * * *")
-        elif frequency == 'daily':
+        elif frequency == "daily":
             return Schedule(cron_expression="0 9 * * *")
-        elif frequency == 'weekly':
+        elif frequency == "weekly":
             return Schedule(cron_expression="0 9 * * MON")
         else:
-            raise ValueError('Please use one of the supported values.')
+            raise ValueError("Please use one of the supported values.")
 
     else:
         raise NotImplementedError(
-            'The schedule parser can only be used by the Vertex orchestrator!'
+            "The schedule parser can only be used by the Vertex orchestrator!"
         )
 
 
 def display_summaries(summaries: str) -> None:
     """Display the articles on the CLI."""
-    from rich.markdown import Markdown
     from rich.console import Console
+    from rich.markdown import Markdown
 
     md = Markdown(summaries)
     Console().print(md)

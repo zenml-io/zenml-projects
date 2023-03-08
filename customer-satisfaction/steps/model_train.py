@@ -35,17 +35,20 @@ def train_model(
         if config.model_name == "lightgbm":
             mlflow.lightgbm.autolog()
             lgm_model = model_training.lightgbm_trainer(
-                fine_tuning=config.fine_tuning)
+                fine_tuning=config.fine_tuning
+            )
             return lgm_model
         elif config.model_name == "randomforest":
             mlflow.sklearn.autolog()
             rf_model = model_training.random_forest_trainer(
-                fine_tuning=config.fine_tuning)
+                fine_tuning=config.fine_tuning
+            )
             return rf_model
         elif config.model_name == "xgboost":
             mlflow.xgboost.autolog()
             xgb_model = model_training.xgboost_trainer(
-                fine_tuning=config.fine_tuning)
+                fine_tuning=config.fine_tuning
+            )
             return xgb_model
         else:
             raise ValueError("Model name not supported")

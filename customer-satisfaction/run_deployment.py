@@ -1,5 +1,4 @@
 import click
-from materializer.custom_materializer import cs_materializer
 from pipelines.deployment_pipeline import (
     DeploymentTriggerConfig,
     MLFlowDeploymentLoaderStepParameters,
@@ -16,12 +15,15 @@ from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
 from steps.model_train import train_model
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
-from zenml.integrations.mlflow.steps import MLFlowDeployerParameters
-from zenml.services import load_last_service_from_step
-from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
+from zenml.integrations.mlflow.steps import (
+    MLFlowDeployerParameters,
+    mlflow_model_deployer_step,
+)
+from zenml.services import load_last_service_from_step
+
 
 @click.command()
 @click.option(
@@ -49,10 +51,10 @@ def run_main(min_accuracy: float, stop_service: bool):
         return
 
     deployment = continuous_deployment_pipeline(
-        ingest_data = ingest_data(),
-        clean_data = clean_data(),
-        model_train = train_model(),
-        evaluation = evaluation(),
+        ingest_data=ingest_data(),
+        clean_data=clean_data(),
+        model_train=train_model(),
+        evaluation=evaluation(),
         deployment_trigger=deployment_trigger(
             config=DeploymentTriggerConfig(
                 min_accuracy=min_accuracy,
@@ -62,7 +64,7 @@ def run_main(min_accuracy: float, stop_service: bool):
             params=MLFlowDeployerParameters(workers=3)
         ),
     )
-    deployment.run(config_path='config.yaml')
+    deployment.run(config_path="config.yaml")
 
     inference = inference_pipeline(
         dynamic_importer=dynamic_importer(),

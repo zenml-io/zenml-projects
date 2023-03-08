@@ -14,7 +14,7 @@
 import sys
 
 import bentoml
-from bentoml.io import NumpyNdarray, Text, JSON
+from bentoml.io import JSON, Text
 
 sys.path.insert(0, "yolov5")
 

@@ -4,7 +4,9 @@ from zenml.repository import Repository
 
 
 def main():
-    st.title("Predicting whether the customer will churn or not before they even did it")
+    st.title(
+        "Predicting whether the customer will churn or not before they even did it"
+    )
 
     st.markdown(
         """ 

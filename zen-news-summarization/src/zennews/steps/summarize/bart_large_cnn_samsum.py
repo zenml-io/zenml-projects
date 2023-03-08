@@ -27,17 +27,12 @@ def bart_large_cnn_samsum(articles: List[Article]) -> List[Article]:
     model = BartForConditionalGeneration.from_pretrained(
         "facebook/bart-large-cnn"
     )
-    tokenizer = AutoTokenizer.from_pretrained(
-        "facebook/bart-large-cnn"
-    )
+    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
     summarizations = []
     for a in articles:
         inputs = tokenizer(
-            [a.text],
-            max_length=1024,
-            truncation=True,
-            return_tensors="pt"
+            [a.text], max_length=1024, truncation=True, return_tensors="pt"
         )
 
         # Generate Summary
@@ -51,7 +46,7 @@ def bart_large_cnn_samsum(articles: List[Article]) -> List[Article]:
         summary = tokenizer.batch_decode(
             summary_ids,
             skip_special_tokens=True,
-            clean_up_tokenization_spaces=False
+            clean_up_tokenization_spaces=False,
         )[0]
 
         summarizations.append(
