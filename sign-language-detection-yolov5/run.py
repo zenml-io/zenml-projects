@@ -78,7 +78,7 @@ def main(
                 params=PredictionServiceLoaderStepParameters(
                     model_name="sign_language_yolov5",
                     pipeline_name="yolov5_deployment_pipeline",
-                    step_name="bentoml_model_deployer_step",
+                    step_name="deployer",
                 )
             ),
             predictor=predictor(),
