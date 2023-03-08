@@ -107,19 +107,6 @@ def post_exec_llama_index():
     print(response)
 
 
-def post_exec():
-    from zenml.post_execution import get_pipeline
-
-    pipeline = get_pipeline("docs_to_index_pipeline")
-    runs = pipeline.runs
-    run = runs[0]  # TODO: -1 should be the latest run
-    steps = run.steps
-    last_step = steps[-1]
-    index = last_step.output.read()
-    response = index.query("What did the author do growing up?")
-    print(response)
-
-
 if __name__ == "__main__":
     logging.basicConfig(level="INFO")
-    post_exec_llama_index()
+    main()

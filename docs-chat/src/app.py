@@ -19,12 +19,13 @@ vectorstore: Optional[VectorStore] = None
 
 @app.on_event("startup")
 async def startup_event():
-    logging.info("loading vectorstore")
-    if not Path("vectorstore.pkl").exists():
-        raise ValueError("vectorstore.pkl does not exist, please run ingest.py first")
-    with open("vectorstore.pkl", "rb") as f:
-        global vectorstore
-        vectorstore = pickle.load(f)
+    from zenml.post_execution import get_pipeline
+
+    pipeline = get_pipeline("docs_to_index_pipeline")
+    run = pipeline.runs[0]
+    last_step = run.steps[-1]
+    global vectorstore
+    vectorstore = last_step.output.read()
 
 
 @app.get("/")
