@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "docs-chat"
+version = "1.0.0"
+description = "docs-chat"
+authors = ["Author <author@gmail.com>"]
+license = "Apache 2.0"
+
+[tool.poetry.dependencies]
+python = ">=3.7.0,<3.11"
+zenml = { extras = ["server"], version = "0.35.1" }
+langchain = ">=0.0.103"
+llama-index = ">=0.4.23"
+openai = ">=0.27.0"
+
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+isort = "^5.9.3"
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+known_third_party = []
+skip_glob = []
+line_length = 79
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+| \.hg
+| \.mypy_cache
+| \.tox
+| \.venv
+| _build
+| buck-out
+| build
+)/
+'''
