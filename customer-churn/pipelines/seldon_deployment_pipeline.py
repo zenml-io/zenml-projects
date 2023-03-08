@@ -1,15 +1,15 @@
-from .utils import get_data_for_test
 import json
 from typing import cast
 
 import numpy as np  # type: ignore [import]
 import pandas as pd
-from zenml.integrations.constants import SELDON, SKLEARN, XGBOOST, LIGHTGBM
 from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService
 from zenml.logger import get_logger
 from zenml.pipelines import pipeline
 from zenml.steps import BaseParameters, Output, step
+
+from .utils import get_data_for_test
 
 logger = get_logger(__name__)
 

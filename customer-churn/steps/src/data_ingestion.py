@@ -14,7 +14,9 @@ class DataIngestion:
     def read_data(self) -> pd.DataFrame:
         """Reads data from csv files and merge the csv files into one dataframe"""
         try:
-            customer_churn_df = pd.read_csv(os.path.join(self.path, "customer-churn-data.csv"))
+            customer_churn_df = pd.read_csv(
+                os.path.join(self.path, "customer-churn-data.csv")
+            )
             return customer_churn_df
         except Exception as e:
             logging.error(e)

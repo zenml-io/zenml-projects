@@ -1,11 +1,9 @@
-import pandas as pd
-from nba_api.stats.endpoints import leaguegamelog
-
-from zenml.steps import step
-from zenml.steps import BaseParameters
 import time
 
+import pandas as pd
+from nba_api.stats.endpoints import leaguegamelog
 from urllib3.exceptions import NewConnectionError
+from zenml.steps import BaseParameters, step
 
 
 class ImporterConfig(BaseParameters):
@@ -69,7 +67,7 @@ def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
                     season=season, timeout=180
                 ).get_data_frames()[0]
             )
-        except (ConnectionError, NewConnectionError) as e:
+        except (ConnectionError, NewConnectionError):
             pass
         # sleep so as not to bomb api server :-)
         time.sleep(2)
@@ -77,7 +75,8 @@ def game_data_importer(config: ImporterConfig) -> pd.DataFrame:
     return pd.concat(dataframes)
 
 
-import urllib.request, json
+import json
+import urllib.request
 
 
 class SeasonScheduleConfig(BaseParameters):
@@ -92,8 +91,7 @@ class SeasonScheduleConfig(BaseParameters):
 
 @step
 def import_season_schedule_offline() -> pd.DataFrame:
-    """Reads an offline season data of the current season (2021-22) downloaded from NBA API and returns a pd.DataFrame.
-    """
+    """Reads an offline season data of the current season (2021-22) downloaded from NBA API and returns a pd.DataFrame."""
     print("Using offline data from the NBA API.")
     df = pd.read_csv("current_season.csv")
     return df
@@ -107,7 +105,6 @@ def import_season_schedule(config: SeasonScheduleConfig) -> pd.DataFrame:
     with urllib.request.urlopen(current_season_schedule_endpoint) as url:
         current_season_schedule = json.loads(url.read().decode())
     games = []
-    current_season = "2021-22"
     for season in current_season_schedule["lscd"]:
         for game in season["mscd"]["g"]:
             games.append(

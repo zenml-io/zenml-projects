@@ -1,9 +1,17 @@
-from zenml.pipelines import pipeline
-from zenml.integrations.constants import EVIDENTLY, SKLEARN, AWS, KUBEFLOW,MLFLOW
 from zenml.config import DockerSettings
+from zenml.integrations.constants import (
+    AWS,
+    EVIDENTLY,
+    KUBEFLOW,
+    MLFLOW,
+    SKLEARN,
+)
+from zenml.pipelines import pipeline
 
+docker_settings = DockerSettings(
+    required_integrations=[EVIDENTLY, SKLEARN, AWS, KUBEFLOW, MLFLOW]
+)
 
-docker_settings = DockerSettings(required_integrations=[EVIDENTLY, SKLEARN, AWS, KUBEFLOW, MLFLOW])
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
 def training_pipeline(
@@ -43,7 +51,7 @@ def training_pipeline(
         eval_df_y,
     ) = ml_splitter(encoded_data)
     model = trainer(train_df_x, train_df_y, eval_df_x, eval_df_y)
-    test_results = tester(model, test_df_x, test_df_y)
+    tester(model, test_df_x, test_df_y)
 
     # drift
     reference_dataset, comparison_dataset = drift_splitter(raw_data)

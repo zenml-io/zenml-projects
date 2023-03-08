@@ -30,14 +30,18 @@ class DataCleaning:
                 ],
                 axis=1,
             )
-            self.df["product_weight_g"].fillna(self.df["product_weight_g"].median(), inplace=True)
+            self.df["product_weight_g"].fillna(
+                self.df["product_weight_g"].median(), inplace=True
+            )
             self.df["product_length_cm"].fillna(
                 self.df["product_length_cm"].median(), inplace=True
             )
             self.df["product_height_cm"].fillna(
                 self.df["product_height_cm"].median(), inplace=True
             )
-            self.df["product_width_cm"].fillna(self.df["product_width_cm"].median(), inplace=True)
+            self.df["product_width_cm"].fillna(
+                self.df["product_width_cm"].median(), inplace=True
+            )
             # write "No review" in review_comment_message column
             self.df["review_comment_message"].fillna("No review", inplace=True)
 

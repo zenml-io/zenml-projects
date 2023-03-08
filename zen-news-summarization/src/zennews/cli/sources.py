@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 import click
 from zenml.client import Client
@@ -22,13 +22,13 @@ from zenml.enums import StackComponentType
 from zennews.cli.base import cli
 from zennews.cli.constants import SUPPORTED_ORCHESTRATORS
 from zennews.cli.utils import (
-    warning,
-    error,
-    stack_handler,
-    title,
     build_pipeline,
     display_summaries,
+    error,
     parse_schedule,
+    stack_handler,
+    title,
+    warning,
 )
 from zennews.steps import SOURCE_STEP_MAPPING
 
@@ -38,34 +38,34 @@ def generate_single_source_command(
 ):
     """Function to generate dynamic Click commands for the ZenNews CLI."""
 
-    source_step = source_dict['step']
-    source_params = source_dict['parameters']
+    source_step = source_dict["step"]
+    source_params = source_dict["parameters"]
 
     @click.command(
         name=source_name,
-        help=f'Run or schedule ZenNews pipelines for articles '
-             f'from {source_name.upper()}.'
+        help=f"Run or schedule ZenNews pipelines for articles "
+        f"from {source_name.upper()}.",
     )
     @click.option(
-        '--schedule',
+        "--schedule",
         type=click.Choice(
-            ['debug', 'hourly', 'daily', 'weekly'], case_sensitive=False
+            ["debug", "hourly", "daily", "weekly"], case_sensitive=False
         ),
         default=None,
-        help="The amount of minutes to set as the frequency while scheduling."
+        help="The amount of minutes to set as the frequency while scheduling.",
     )
     @click.option(
-        '--stack',
+        "--stack",
         type=str,
         default=None,
-        help="The stack to use when scheduling the pipeline."
+        help="The stack to use when scheduling the pipeline.",
     )
     @click.option(
-        '--force',
-        '-f',
+        "--force",
+        "-f",
         is_flag=True,
         default=False,
-        help="Flag to skip the confirmation."
+        help="Flag to skip the confirmation.",
     )
     def source_command(
         schedule: str,
@@ -95,18 +95,18 @@ def generate_single_source_command(
                 ][0]
 
                 if orchestrator.flavor not in SUPPORTED_ORCHESTRATORS:
-                    error('Does not work.')
+                    error("Does not work.")
 
                 if StackComponentType.ALERTER not in active_components:
-                    warning('There is no alerter!')
+                    warning("There is no alerter!")
 
                 pipeline = build_pipeline(
                     source_step=source_step,
                     source_params=source_params,
-                    **kwargs
+                    **kwargs,
                 )
 
-                run_name = f'news_{source_name}_{{date}}_{{time}}'
+                run_name = f"news_{source_name}_{{date}}_{{time}}"
 
                 schedule_obj = parse_schedule(schedule, orchestrator.flavor)
 
@@ -116,12 +116,12 @@ def generate_single_source_command(
             # If there is no schedule, RUN the pipeline locally
             if not force:
                 warning(
-                    'This will change your active ZenML stack to the default '
-                    'stack and run the pipeline locally. This also means that '
-                    'the pipeline will download and utilize the model locally.'
+                    "This will change your active ZenML stack to the default "
+                    "stack and run the pipeline locally. This also means that "
+                    "the pipeline will download and utilize the model locally."
                 )
-                if not click.confirm('Would you like to continue?'):
-                    error('Stopped the process.')
+                if not click.confirm("Would you like to continue?"):
+                    error("Stopped the process.")
 
             # Build and run the pipeline
             title("Building and running the pipeline")
@@ -130,11 +130,13 @@ def generate_single_source_command(
                 pipeline = build_pipeline(
                     source_step=source_step,
                     source_params=source_params,
-                    **kwargs
+                    **kwargs,
                 )
 
-                run_name = f'test_{source_name}' \
-                           f'{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}'
+                run_name = (
+                    f"test_{source_name}"
+                    f'{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}'
+                )
                 pipeline.run(run_name=run_name)
 
             # Get the run view of the pipeline and showcase the results
@@ -144,20 +146,20 @@ def generate_single_source_command(
 
             run_view = get_run(run_name)
             step_view = run_view.get_step("report")
-            artifact_view = step_view.outputs['output']
+            artifact_view = step_view.outputs["output"]
             summaries = artifact_view.read()
 
             display_summaries(summaries)
 
     # Extract and add the step parameters to the Click command
-    properties = source_params.schema()['properties']
+    properties = source_params.schema()["properties"]
     for property_name, property_values in properties.items():
 
-        property_type = property_values.get('type', None)
-        property_default = property_values.get('default', None)
-        property_description = property_values.get('description', '')
+        property_type = property_values.get("type", None)
+        property_default = property_values.get("default", None)
+        property_description = property_values.get("description", "")
 
-        if property_type == 'boolean':
+        if property_type == "boolean":
             option = click.option(
                 f"--{property_name}",
                 is_flag=True,

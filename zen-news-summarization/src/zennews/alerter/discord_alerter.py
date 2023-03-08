@@ -12,7 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Optional, cast, Any
+from typing import Any, Optional, cast
 
 from discord import SyncWebhook
 from zenml.alerter import BaseAlerter
@@ -32,9 +32,7 @@ class DiscordAlerter(BaseAlerter):
         """
         return cast(DiscordAlerterConfig, self._config)
 
-    def post(
-        self, message: Any, params: Optional[BaseParameters]
-    ) -> bool:
+    def post(self, message: Any, params: Optional[BaseParameters]) -> bool:
         """Post a message to a Discord channel using a webhook.
 
         Args:
@@ -53,9 +51,13 @@ class DiscordAlerter(BaseAlerter):
         # and change the implementation.
 
         from datetime import datetime
+
         from discord import Embed
-        content = f'**From {message[0].source.upper()} generated ' \
-                  f'at {datetime.now().strftime("%m/%d/%Y %H:%M:%S")}**'
+
+        content = (
+            f"**From {message[0].source.upper()} generated "
+            f'at {datetime.now().strftime("%m/%d/%Y %H:%M:%S")}**'
+        )
 
         embeds = []
         for article in message:
@@ -71,9 +73,7 @@ class DiscordAlerter(BaseAlerter):
 
         return True
 
-    def ask(
-        self, message: Any, params: Optional[BaseParameters]
-    ) -> bool:
+    def ask(self, message: Any, params: Optional[BaseParameters]) -> bool:
         """Post a message to a Discord channel and wait for approval.
 
         Args:

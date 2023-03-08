@@ -12,11 +12,13 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import os
-from typing import Dict
 import sys
+from typing import Dict
+
 import torch
 from zenml.post_execution import get_pipeline
 from zenml.steps import Output, step
+
 
 @step
 def model_loader() -> Output(model_path=str, model=torch.nn.Module):
@@ -33,7 +35,7 @@ def model_loader() -> Output(model_path=str, model=torch.nn.Module):
         )
     model_saver(model, model_path)
     try:
-        sys.path.insert(0, 'yolov5')
+        sys.path.insert(0, "yolov5")
         from model import wrapped_model
     except Exception as e:
         print(e)

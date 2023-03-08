@@ -25,6 +25,7 @@ class Article(BaseModel):
         url: the url of the original article.
         text: the text which represents the article.
     """
+
     source: str
     section: str
     url: str

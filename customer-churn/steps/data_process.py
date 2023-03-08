@@ -37,7 +37,9 @@ def mean_encoding(data: pd.DataFrame) -> Output(output_data=pd.DataFrame):
         data = data_processor.mean_encoding(data)
         return data
     except ValueError:
-        logger.error("Mean encoding failed. Try rechecking the type of your input data.")
+        logger.error(
+            "Mean encoding failed. Try rechecking the type of your input data."
+        )
         raise ValueError
     except Exception as e:
         logger.error(e)

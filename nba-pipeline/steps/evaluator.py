@@ -1,10 +1,8 @@
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from sklearn.base import RegressorMixin
-
-from zenml.steps.step_output import Output
 from zenml.steps import step
+from zenml.steps.step_output import Output
 
 
 @step(enable_cache=False)

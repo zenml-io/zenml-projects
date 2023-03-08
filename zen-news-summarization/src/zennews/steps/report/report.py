@@ -12,22 +12,21 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import logging
+from datetime import datetime
 from typing import List
 
+from mdutils import MdUtils
 from zenml.client import Client
 from zenml.steps import step
 
 from zennews.models import Article
 
-from mdutils import MdUtils
-from datetime import datetime
-
 
 def generate_final_report(articles: List[Article]):
-    md_file = MdUtils(file_name='report', title='ZenNews Summaries')
+    md_file = MdUtils(file_name="report", title="ZenNews Summaries")
     md_file.new_header(
-        title=f'From {articles[0].source.upper()} generated at '
-              f'{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}',
+        title=f"From {articles[0].source.upper()} generated at "
+        f'{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}',
         level=1,
     )
 
@@ -45,11 +44,11 @@ def post_summaries(articles: List[Article]) -> str:
     # Fetch the alerter if defined and use it to send the final report
     client = Client()
     if client.active_stack.alerter:
-        client.active_stack.alerter.post(message=articles, params=None) # noqa
+        client.active_stack.alerter.post(message=articles, params=None)  # noqa
     else:
         logging.warning(
-            'There is no alerter defined in your stack. The result will still'
-            'be saved as an artifact in your artifact store.'
+            "There is no alerter defined in your stack. The result will still"
+            "be saved as an artifact in your artifact store."
         )
 
     return final_report

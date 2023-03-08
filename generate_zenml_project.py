@@ -1,8 +1,8 @@
 """Generate a ZenML project for a tool"""
+import argparse
+import logging
 import os
 import shutil
-import logging
-import argparse
 from textwrap import dedent
 
 

@@ -39,7 +39,8 @@ from zenml.integrations.seldon.steps import (
     "--predict",
     "-p",
     is_flag=True,
-    help="Run the inference pipeline to send a prediction request " "to the deployed model",
+    help="Run the inference pipeline to send a prediction request "
+    "to the deployed model",
 )
 @click.option(
     "--min-accuracy",
