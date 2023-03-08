@@ -1,25 +1,25 @@
-import pandas as pd
+import mlflow
 import numpy as np
+import pandas as pd
 from sklearn.base import RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
-from zenml.steps import step
-from zenml.steps import BaseParameters
 from zenml.client import Client
-import mlflow
+from zenml.steps import BaseParameters, step
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
 
 class RandomForestTrainerConfig(BaseParameters):
     """Config class for the sklearn trainer.
-    
+
     Attributes:
         max_depth: Maximum depth of the tree during training.
-        target_col: Target column name.    
+        target_col: Target column name.
     """
 
     max_depth: int = 10000
     target_col: str = "FG3M"
+
 
 @step(enable_cache=False, experiment_tracker=experiment_tracker.name)
 def random_forest_trainer(
@@ -36,7 +36,7 @@ def random_forest_trainer(
         train_df_y: DataFrame with training label data.
         eval_df_x: DataFrame with eval feature data.
         eval_df_y: DataFrame with eval label data.
-        config: Runtime parameters of the training process. 
+        config: Runtime parameters of the training process.
 
     Returns:
         RegressorMixin: [description]

@@ -1,9 +1,10 @@
-from zenml.steps import step
-from zenml.repository import Repository
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
+from zenml.repository import Repository
+from zenml.steps import step
 
 step_operator = Repository().active_stack.step_operator
+
 
 @step(step_operator=step_operator.name)
 def trainer(

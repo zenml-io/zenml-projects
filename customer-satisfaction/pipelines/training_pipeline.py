@@ -1,9 +1,9 @@
-from zenml.integrations.constants import MLFLOW
 from zenml.config import DockerSettings
+from zenml.integrations.constants import MLFLOW
 from zenml.pipelines import pipeline
 
-
 docker_settings = DockerSettings(required_integrations=[MLFLOW])
+
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
 def train_pipeline(ingest_data, clean_data, model_train, evaluation):

@@ -12,12 +12,12 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-APP_NAME = 'zennews'
+APP_NAME = "zennews"
 
 SUPPORTED_ORCHESTRATORS = [
-    'kubernetes',
-    'kubeflow',
-    'vertex',
-    'airflow',
-    'github',
+    "kubernetes",
+    "kubeflow",
+    "vertex",
+    "airflow",
+    "github",
 ]

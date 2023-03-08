@@ -2,7 +2,6 @@ import logging
 import os
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from zenml.steps import Output, step
 
 
@@ -15,7 +14,9 @@ class DataIngestion:
     def read_data(self) -> pd.DataFrame:
         """Reads data from csv files and merges the csv files into a single DataFrame"""
         try:
-            customer_churn_df = pd.read_csv(os.path.join(self.path, "customer-churn-data.csv"))
+            customer_churn_df = pd.read_csv(
+                os.path.join(self.path, "customer-churn-data.csv")
+            )
             return customer_churn_df
         except Exception as e:
             logging.error(e)

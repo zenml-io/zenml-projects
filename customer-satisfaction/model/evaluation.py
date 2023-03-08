@@ -13,7 +13,9 @@ class Evaluation:
         """Initializes the Evaluation class."""
         pass
 
-    def mean_squared_error(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    def mean_squared_error(
+        self, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> float:
         """
         Mean Squared Error (MSE) is the mean of the squared errors.
         Args:
@@ -76,7 +78,9 @@ class Evaluation:
             )
             raise Exception()
 
-    def root_mean_squared_error(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    def root_mean_squared_error(
+        self, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> float:
 
         """
         Root Mean Squared Error (RMSE) is the square root of the mean of the

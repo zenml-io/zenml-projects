@@ -15,9 +15,9 @@
 from typing import Type
 
 from zenml.alerter.base_alerter import (
+    BaseAlerter,
     BaseAlerterConfig,
     BaseAlerterFlavor,
-    BaseAlerter,
 )
 
 
@@ -27,6 +27,7 @@ class DiscordAlerterConfig(BaseAlerterConfig):
     Attributes:
         webhook_url: str, the url of the webhook.
     """
+
     webhook_url: str
 
 

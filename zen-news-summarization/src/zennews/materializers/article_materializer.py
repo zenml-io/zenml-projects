@@ -25,17 +25,18 @@ from zennews.models import Article
 
 class ArticleMaterializer(BaseMaterializer):
     """Custom materializer implementation for articles."""
+
     ASSOCIATED_TYPES = (Article,)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
 
     def load(self, data_type: Type[Article]) -> Article:
         """Read an article from the artifact store"""
         super().load(data_type)
-        with fileio.open(os.path.join(self.uri, 'article.json'), 'r') as f:
+        with fileio.open(os.path.join(self.uri, "article.json"), "r") as f:
             return Article.parse_raw(json.load(f))
 
     def save(self, my_obj: Article) -> None:
         """Write an article to artifact store"""
         super().save(my_obj)
-        with fileio.open(os.path.join(self.uri, 'article.json'), 'w') as f:
+        with fileio.open(os.path.join(self.uri, "article.json"), "w") as f:
             json.dump(my_obj.json(), f)

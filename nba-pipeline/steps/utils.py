@@ -1,15 +1,14 @@
 import pandas as pd
 from sklearn import preprocessing
-
-from zenml.steps import StepContext
 from zenml.post_execution import get_pipeline
+from zenml.steps import StepContext
 
 
 def get_label_encoder(
-        context: StepContext,
-        name: str,
-        pipeline_name: str = "training_pipeline",
-        step_name: str = "encoder",
+    context: StepContext,
+    name: str,
+    pipeline_name: str = "training_pipeline",
+    step_name: str = "encoder",
 ) -> preprocessing.LabelEncoder:
     """Returns the label encoder from a given pipeline's latest run.
 
@@ -23,20 +22,19 @@ def get_label_encoder(
     Return:
         label_encoder: The LabelEncoder used during training
     """
-    training_pipeline = get_pipeline(
-        pipeline_name=pipeline_name)
+    training_pipeline = get_pipeline(pipeline_name=pipeline_name)
     return (
         training_pipeline.runs[-1]
-            .get_step(name=step_name)
-            .outputs[name]
-            .read()
+        .get_step(name=step_name)
+        .outputs[name]
+        .read()
     )
 
 
 def apply_encoder(
-        label_encoder: preprocessing.LabelEncoder,
-        one_hot_encoder: preprocessing.OneHotEncoder,
-        dataframe: pd.DataFrame,
+    label_encoder: preprocessing.LabelEncoder,
+    one_hot_encoder: preprocessing.OneHotEncoder,
+    dataframe: pd.DataFrame,
 ) -> pd.DataFrame:
     """Use Encoders to turn the categorical columns into LabelEncoded/
     OneHotEncoded columns.
@@ -47,7 +45,7 @@ def apply_encoder(
         dataframe: Initial dataset
 
     Returns:
-        new_df: With Season ID and Team Abbreviations replaced by encoded 
+        new_df: With Season ID and Team Abbreviations replaced by encoded
         columns
 
     """

@@ -8,7 +8,12 @@ from zenml.steps import Output, step
 @step
 def clean_data(
     data: pd.DataFrame,
-) -> Output(x_train=pd.DataFrame, x_test=pd.DataFrame, y_train=pd.Series, y_test=pd.Series,):
+) -> Output(
+    x_train=pd.DataFrame,
+    x_test=pd.DataFrame,
+    y_train=pd.Series,
+    y_test=pd.Series,
+):
     """Data cleaning class which preprocesses the data and divides it into train and test data.
 
     Args:

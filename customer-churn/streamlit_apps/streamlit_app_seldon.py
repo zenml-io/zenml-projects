@@ -1,11 +1,12 @@
 import numpy as np
 import streamlit as st
-from zenml.repository import Repository
 from zenml.services import load_last_service_from_step
 
 
 def main():
-    st.title("Predicting whether the customer will churn or not before they even did it")
+    st.title(
+        "Predicting whether the customer will churn or not before they even did it"
+    )
 
     st.markdown(
         """ 
@@ -86,7 +87,11 @@ def main():
         ]
         data = np.array(pred)
         pred = service.predict(data)
-        st.success("Given the customer's historical data, model says:- {}".format(pred))
+        st.success(
+            "Given the customer's historical data, model says:- {}".format(
+                pred
+            )
+        )
 
 
 if __name__ == "__main__":

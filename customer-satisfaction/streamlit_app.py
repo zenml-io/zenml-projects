@@ -14,7 +14,9 @@ def main():
     high_level_image = Image.open("_assets/high_level_overview.png")
     st.image(high_level_image, caption="High Level Pipeline")
 
-    whole_pipeline_image = Image.open("_assets/training_and_deployment_pipeline_updated.png")
+    whole_pipeline_image = Image.open(
+        "_assets/training_and_deployment_pipeline_updated.png"
+    )
 
     st.markdown(
         """ 
@@ -68,7 +70,9 @@ def main():
             running=True,
         )
         if service is None:
-            st.write("No service could be found. The pipeline will be run first to create a service.")
+            st.write(
+                "No service could be found. The pipeline will be run first to create a service."
+            )
             run_main()
 
         df = pd.DataFrame(
