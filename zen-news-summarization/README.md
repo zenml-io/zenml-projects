@@ -135,7 +135,7 @@ Once the ZenML is deployed, we can start to build up our stack. Our stack will
 consist of the following components:
 
 - [GCP Container Registry](https://docs.zenml.io/component-gallery/container-registries/gcp)
-- [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs)
+- [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcp)
 - [Vertex Orchestrator](https://docs.zenml.io/component-gallery/orchestrators/vertex)
 - [Discord Alerter (part of the `zennews` package)](src/zennews/alerter/discord_alerter.py)
  
