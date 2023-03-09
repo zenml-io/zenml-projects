@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List
 
 import faiss
@@ -9,10 +10,32 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS, VectorStore
 from llama_index import Document as LlamaDocument
 from llama_index import GPTFaissIndex, download_loader
+from slack_sdk import WebClient
 from zenml.integrations.registry import integration_registry
 from zenml.pipelines import pipeline
 from zenml.post_execution import get_pipeline
 from zenml.steps import BaseParameters, step
+
+
+def get_channel_id_from_name(name: str) -> str:
+    """Gets a channel ID from a Slack channel name.
+
+    Args:
+        name: Name of the channel.
+
+    Returns:
+        Channel ID.
+    """
+    client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+    response = client.conversations_list()
+    conversations = response["channels"]
+    if id := [c["id"] for c in conversations if c["name"] == name][0]:
+        return id
+    else:
+        raise ValueError(f"Channel {name} not found.")
+
+
+SLACK_CHANNEL_IDS = [get_channel_id_from_name("general")]
 
 
 @pipeline
@@ -40,13 +63,13 @@ def docs_loader(params: DocsLoaderParameters) -> List[Document]:
 
 
 class SlackLoaderParameters(BaseParameters):
-    channel_ids: List[str] = ["general"]
+    channel_ids: List[str] = SLACK_CHANNEL_IDS
 
 
 @step
 def slack_loader(params: SlackLoaderParameters) -> List[Document]:
     SlackReader = download_loader("SlackReader")
-    loader = SlackReader()
+    loader = SlackReader(slack_token=os.environ["SLACK_BOT_TOKEN"])
     documents = loader.load_data(channel_ids=params.channel_ids)
     [d.to_langchain_format() for d in documents]
     return documents
