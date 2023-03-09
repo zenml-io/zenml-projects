@@ -1,10 +1,12 @@
 """Main entrypoint for the app."""
 import logging
-from typing import Optional
+from typing import Dict, List, Optional
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from langchain.vectorstores import VectorStore
+from zenml.enums import ExecutionStatus
 
 from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
@@ -12,23 +14,83 @@ from schemas import ChatResponse
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+versions: List[str] = []
+versions_to_index: Dict[str, VectorStore] = {}
+active_version: Optional[str] = None
 vectorstore: Optional[VectorStore] = None
+
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
 async def startup_event():
     from zenml.post_execution import get_pipeline
 
-    pipeline = get_pipeline("docs_to_index_pipeline")
-    run = pipeline.runs[0]
-    last_step = run.steps[-1]
+    global versions
+    global versions_to_index
     global vectorstore
-    vectorstore = last_step.output.read()
+    global active_version
+
+    pipeline = get_pipeline("zenml_docs_index_generation")
+    for run_ in pipeline.runs:
+        if run_.status != ExecutionStatus.COMPLETED:
+            continue
+        version = run_.name.split("_")[-1]
+        if len(version.split(".")) != 3:
+            continue
+        vectorstore = run_.steps[-1].output.read()
+        versions_to_index[version] = vectorstore
+        versions.append(version)
+
+    if not versions:
+        raise Exception(
+            "No index versions found. Please run `python run.py` first."
+        )
+
+    versions = sorted(
+        versions, key=lambda x: [int(y) for y in x.split(".")], reverse=True
+    )
+    print(f"Found versions: {versions}")
+    active_version = versions[0]
+    vectorstore = versions_to_index[versions[0]]
 
 
 @app.get("/")
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/versions", response_model=List[str])
+async def get_versions():
+    global versions
+    return versions
+
+
+@app.get("/versions/active", response_model=str)
+async def get_active_version():
+    global active_version
+    return active_version
+
+
+@app.post("/versions/{version}", response_model=str)
+async def set_active_version(version: str):
+    global versions_to_index
+    global vectorstore
+    global active_version
+    if not version in versions_to_index:
+        raise Exception(f"Version '{version}' not found.")
+    vectorstore = versions_to_index[version]
+    active_version = version
+    return "success"
 
 
 @app.websocket("/chat")
