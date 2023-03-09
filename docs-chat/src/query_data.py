@@ -8,11 +8,11 @@ from langchain.chains.chat_vector_db.prompts import (
 )
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI, HuggingFaceHub
 from langchain.vectorstores.base import VectorStore
 
 
-def get_chain(
+def get_openai_chain(
     vectorstore: VectorStore,
     question_handler,
     stream_handler,
@@ -55,10 +55,9 @@ def get_chain(
         callback_manager=manager,
     )
 
-    qa = ChatVectorDBChain(
+    return ChatVectorDBChain(
         vectorstore=vectorstore,
         combine_docs_chain=doc_chain,
         question_generator=question_generator,
         callback_manager=manager,
     )
-    return qa
