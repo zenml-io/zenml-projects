@@ -53,16 +53,18 @@ def slack_loader(params: SlackLoaderParameters) -> List[Document]:
 
 
 @step
-def index_generator(documents: List[Document], slack_documents: List[Document]) -> VectorStore:
+def index_generator(documents: List[Document]) -> VectorStore:
     embeddings = OpenAIEmbeddings()
-    documents.extend(slack_documents)
     vectorstore = FAISS.from_documents(documents, embeddings)
     return vectorstore
 
 
 @step
-def llama_index_generator(documents: List[Document]) -> GPTFaissIndex:
+def llama_index_generator(
+    documents: List[Document], slack_documents: List[Document]
+) -> GPTFaissIndex:
     documents = [LlamaDocument.from_langchain_format(d) for d in documents]
+    documents.extend(slack_documents)
     faiss_index = faiss.IndexFlatL2(1536)
     return GPTFaissIndex(documents, faiss_index=faiss_index)
 
