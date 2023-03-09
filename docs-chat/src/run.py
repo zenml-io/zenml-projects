@@ -21,19 +21,19 @@ from zenml.steps import BaseParameters, step
 
 
 @pipeline
-def docs_to_index_pipeline(document_loader, index_generator):
+def docs_to_index_pipeline(document_loader, slack_loader, index_generator):
+    slack_docs = slack_loader()
     documents = document_loader()
-    index_generator(documents)
+    index_generator(documents, slack_docs)
 
 
-class IndexGeneratorParameters(BaseParameters):
-
+class DocsLoaderParameters(BaseParameters):
     docs_uri: str = "https://docs.zenml.io"
     docs_base_url: str = "https://docs.zenml.io"
 
 
 @step
-def docs_loader(params: IndexGeneratorParameters) -> List[Document]:
+def docs_loader(params: DocsLoaderParameters) -> List[Document]:
     loader = GitbookLoader(
         web_page=params.docs_uri,
         base_url=params.docs_base_url,
@@ -44,13 +44,11 @@ def docs_loader(params: IndexGeneratorParameters) -> List[Document]:
         chunk_size=1000,
         chunk_overlap=200,
     )
-    documents = text_splitter.split_documents(all_pages_data)
-    return documents
+    return text_splitter.split_documents(all_pages_data)
 
 
 class SlackLoaderParameters(BaseParameters):
-
-    channel_ids: List[str] = []
+    channel_ids: List[str] = ["general"]
 
 
 @step
@@ -70,11 +68,13 @@ def index_generator(documents: List[Document]) -> VectorStore:
 
 
 @step
-def llama_index_generator(documents: List[Document]) -> GPTFaissIndex:
+def llama_index_generator(
+    documents: List[Document], slack_documents: List[Document]
+) -> GPTFaissIndex:
     documents = [LlamaDocument.from_langchain_format(d) for d in documents]
+    documents.extend(slack_documents)
     faiss_index = faiss.IndexFlatL2(1536)
-    index = GPTFaissIndex(documents, faiss_index=faiss_index)
-    return index
+    return GPTFaissIndex(documents, faiss_index=faiss_index)
 
 
 def run_langchain():
@@ -89,6 +89,7 @@ def run_langchain():
 def run_llama():
     pipeline = docs_to_index_pipeline(
         document_loader=docs_loader(),
+        slack_loader=slack_loader(),
         index_generator=llama_index_generator(),
     )
     # pipeline.configure(enable_cache=False)
@@ -157,7 +158,7 @@ def build_indices_for_zenml_versions(
         print(f"Building index for zenml docs of version '{version}'...")
         pip = docs_to_index_pipeline(
             document_loader=docs_loader(
-                params=IndexGeneratorParameters(
+                params=DocsLoaderParameters(
                     docs_uri=docs_url, base_url=base_url
                 )
             ),
