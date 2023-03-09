@@ -53,8 +53,9 @@ def slack_loader(params: SlackLoaderParameters) -> List[Document]:
 
 
 @step
-def index_generator(documents: List[Document]) -> VectorStore:
+def index_generator(documents: List[Document], slack_documents: List[Document]) -> VectorStore:
     embeddings = OpenAIEmbeddings()
+    documents.extend(slack_documents)
     vectorstore = FAISS.from_documents(documents, embeddings)
     return vectorstore
 
@@ -78,6 +79,7 @@ def run_langchain():
 def run_llama():
     pipeline = docs_to_index_pipeline(
         document_loader=docs_loader(),
+        slack_loader=slack_loader(),
         index_generator=llama_index_generator(),
     )
     pipeline.configure(enable_cache=False)
