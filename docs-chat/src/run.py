@@ -49,10 +49,8 @@ class DocsLoaderParameters(BaseParameters):
     docs_uri: str = "https://docs.zenml.io"
 
 
-@step
+@step(enable_cache=True)
 def docs_loader(params: DocsLoaderParameters) -> List[Document]:
-    # loader = GitbookLoader(params.docs_uri)
-    # page_data = loader.load()
     loader = GitbookLoader(params.docs_uri, load_all_paths=True)
     all_pages_data = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
@@ -97,7 +95,7 @@ def run_langchain():
         document_loader=docs_loader(),
         index_generator=index_generator(),
     )
-    pipeline.configure(enable_cache=False)
+    # pipeline.configure(enable_cache=False)
     pipeline.run()
 
 
