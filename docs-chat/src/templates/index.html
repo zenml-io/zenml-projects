@@ -76,8 +76,9 @@
     <script>
         var endpoint = "ws://0.0.0.0:9000/chat";
         var ws = new WebSocket(endpoint);
+
         // Receive message from server word by word. Display the words as they are received.
-        ws.onmessage = function (event) {
+        function handleMessage(event) {
             var messages = document.getElementById('messages');
             var data = JSON.parse(event.data);
             if (data.sender === "bot") {
@@ -129,6 +130,8 @@
             // Scroll to the bottom of the chat
             messages.scrollTop = messages.scrollHeight;
         };
+        ws.onmessage = handleMessage;
+
         // Send message to server
         function sendMessage(event) {
             event.preventDefault();
@@ -177,6 +180,16 @@
                 var error = await response.text();
                 alert(error);
             } else {
+                var messages = document.getElementById('messages');
+                messages.innerHTML = "";
+                var header = document.getElementById('header');
+                header.innerHTML = "Ask a question";
+                var button = document.getElementById('send');
+                button.innerHTML = "Send";
+                button.disabled = false;
+                ws.close();
+                ws = new WebSocket(endpoint);
+                ws.onmessage = handleMessage;
                 var dropdownBtn = document.getElementById('dropdownBtn');
                 dropdownBtn.textContent = `${version}`;
             }
