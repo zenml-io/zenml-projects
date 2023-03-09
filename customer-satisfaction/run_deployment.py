@@ -43,7 +43,7 @@ def run_main(min_accuracy: float, stop_service: bool):
     if stop_service:
         service = load_last_service_from_step(
             pipeline_name="continuous_deployment_pipeline",
-            step_name="mlflow_model_deployer_step",
+            step_name="model_deployer",
             running=True,
         )
         if service:
@@ -71,7 +71,7 @@ def run_main(min_accuracy: float, stop_service: bool):
         prediction_service_loader=prediction_service_loader(
             MLFlowDeploymentLoaderStepParameters(
                 pipeline_name="continuous_deployment_pipeline",
-                step_name="mlflow_model_deployer_step",
+                step_name="model_deployer",
             )
         ),
         predictor=predictor(),
@@ -91,7 +91,7 @@ def run_main(min_accuracy: float, stop_service: bool):
     # fetch existing services with same pipeline name, step name and model name
     service = model_deployer.find_model_server(
         pipeline_name="continuous_deployment_pipeline",
-        pipeline_step_name="mlflow_model_deployer_step",
+        pipeline_step_name="model_deployer",
         running=True,
     )
 

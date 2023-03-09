@@ -89,8 +89,6 @@ This stack has all components running in the AWS cloud:
 * a metadata store that uses the same database as the Kubeflow deployment as
 a backend
 * an AWS ECR container registry
-* an AWS secret manager used to store the credentials needed by Seldon Core to
-access the AWS S3 artifact store
 * a Seldon Core model deployer pointing to the AWS EKS cluster
 
 ### Setup Infrastructure with ZenML Stack recipes:

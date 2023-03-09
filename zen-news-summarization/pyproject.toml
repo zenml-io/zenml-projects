@@ -17,7 +17,7 @@ zennews = "zennews.cli.base:cli"
 
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.11"
-zenml = { extras = ["server"], version = "0.32.1" }
+zenml = { extras = ["server"], version = "0.35.1" }
 bbc-feeds = "2.1"
 transformers = "4.26.0"
 torch = "1.13.1"

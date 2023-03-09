@@ -134,9 +134,8 @@ information on how you can achieve do that, please check
 Once the ZenML is deployed, we can start to build up our stack. Our stack will 
 consist of the following components:
 
-- [GCP Secrets Manager](https://docs.zenml.io/component-gallery/secrets-managers/gcp)
 - [GCP Container Registry](https://docs.zenml.io/component-gallery/container-registries/gcp)
-- [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs)
+- [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcp)
 - [Vertex Orchestrator](https://docs.zenml.io/component-gallery/orchestrators/vertex)
 - [Discord Alerter (part of the `zennews` package)](src/zennews/alerter/discord_alerter.py)
  
@@ -146,22 +145,9 @@ Let's start by installing the `gcp` integration:
 zenml integration install gcp
 ```
 
-### Secrets Manager
-
-The first component to register is a
-[GCP secrets manager](https://docs.zenml.io/component-gallery/secrets-managers/gcp). 
-The command is quite straightforward. You just have to give it a name and 
-provide the ID of your project on GCP.
-
-```bash
-zenml secrets-manager register <SECRETS_MANAGER_NAME> \
-    --flavor=gcp \
-    --project_id=<PROJECT_ID>
-```
-
 ### Container Registry
 
-The second component is a 
+The first component is a 
 [GCP container registry](https://docs.zenml.io/component-gallery/container-registries/gcp). 
 Similar to the previous component, you just need to provide a name and the 
 URI to your container registry on GCP.
@@ -175,7 +161,7 @@ zenml container-registry register <CONTAINER_REGISTERY_NAME> \
 ### Artifact Store
 
 The next component on the list is a 
-[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs). 
+[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcp). 
 In order to register it, all you have to do is to provide the path to your GCS
 bucket:
 
@@ -207,9 +193,8 @@ region and the service account you would like to use.
 > in the upcoming releases.
 
 Make sure that the service account has the proper roles for the following 
-services: Cloud Functions, Cloud Scheduler, Secret Manager, Service Account,
-Storage, and Vertex AI.
-
+services: Cloud Functions, Cloud Scheduler, Service Account, Storage, and
+Vertex AI.
 
 ### GCP Stack
 
@@ -218,7 +203,6 @@ version of our GCP stack.
 
 ```bash
 zenml stack register <STACK_NAME> \
-    -x <SECRETS_MANAGER_NAME> \
     -c <CONTAINER_REGISTERY_NAME> \
     -a <ARTIFACT_STORE_NAME> \
     -o <ORCHESTRATOR_NAME> \
@@ -259,15 +243,15 @@ Now that the flavor is registered, you can create an alerter with the flavor
 secret references to handle sensitive information during the registration of 
 stack components.
 
-Let's start by registering the secret:
+Let's start by creating the secret:
 
 ```bash
-zenml secrets-manager secret register <SECRET_NAME> \
+zenml secret create <SECRET_NAME> \
     --webhook_url=<ACTUAL_URL_OF_THE_WEBHOOK>
 ```
 
-This will use the secrets manager in our active GCP stack. Once the secret 
-registration is complete, you can register your alerter as follows:
+This will store the secret values in the ZenML server. Once the secret 
+creation is complete, you can register your alerter as follows:
 
 ```bash
 zenml alerter register <ALERTER_NAME> \
