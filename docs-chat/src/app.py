@@ -1,14 +1,11 @@
 """Main entrypoint for the app."""
 import logging
-import pickle
-from pathlib import Path
 from typing import Optional
 
+from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from langchain.vectorstores import VectorStore
-
-from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
 from schemas import ChatResponse
 

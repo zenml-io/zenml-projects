@@ -12,12 +12,9 @@ from zenml.steps import BaseParameters, step
 
 
 @pipeline
-def docs_to_index_pipeline(
-    document_loader, embedding_model_loader, index_generator
-):
+def docs_to_index_pipeline(document_loader, index_generator):
     documents = document_loader()
-    embeddings = embedding_model_loader()
-    index_generator(documents, embeddings)
+    index_generator(documents)
 
 
 class IndexGeneratorParameters(BaseParameters):
@@ -46,7 +43,6 @@ class SlackLoaderParameters(BaseParameters):
 
 @step
 def slack_loader(params: SlackLoaderParameters) -> List[Document]:
-
     SlackReader = download_loader("SlackReader")
     loader = SlackReader()
     documents = loader.load_data(channel_ids=params.channel_ids)
@@ -54,14 +50,8 @@ def slack_loader(params: SlackLoaderParameters) -> List[Document]:
 
 
 @step
-def embedding_model_loader() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings()
-
-
-@step
-def index_generator(
-    documents: List[Document], embeddings: OpenAIEmbeddings
-) -> VectorStore:
+def index_generator(documents: List[Document]) -> VectorStore:
+    embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(documents, embeddings)
     return vectorstore
 
@@ -73,10 +63,9 @@ def index_generator(
 def main():
     pipeline = docs_to_index_pipeline(
         document_loader=docs_loader(),
-        embedding_model_loader=embedding_model_loader(),
         index_generator=index_generator(),
     )
-    # pipeline.configure(enable_cache=False)
+    pipeline.configure(enable_cache=False)
     pipeline.run()
 
 
