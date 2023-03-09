@@ -161,7 +161,7 @@ zenml container-registry register <CONTAINER_REGISTERY_NAME> \
 ### Artifact Store
 
 The next component on the list is a 
-[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcloud-gcs). 
+[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcp). 
 In order to register it, all you have to do is to provide the path to your GCS
 bucket:
 
