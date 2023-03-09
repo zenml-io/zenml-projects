@@ -22,7 +22,6 @@ def docs_to_index_pipeline(document_loader, index_generator):
 
 
 class IndexGeneratorParameters(BaseParameters):
-
     docs_uri: str = "https://docs.zenml.io"
 
 
@@ -41,7 +40,6 @@ def docs_loader(params: IndexGeneratorParameters) -> List[Document]:
 
 
 class SlackLoaderParameters(BaseParameters):
-
     channel_ids: List[str] = []
 
 
