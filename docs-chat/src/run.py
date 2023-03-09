@@ -16,17 +16,18 @@ from zenml.steps import BaseParameters, step
 
 
 @pipeline
-def docs_to_index_pipeline(document_loader, index_generator):
+def docs_to_index_pipeline(document_loader, slack_loader, index_generator):
+    slack_docs = slack_loader()
     documents = document_loader()
-    index_generator(documents)
+    index_generator(documents, slack_docs)
 
 
-class IndexGeneratorParameters(BaseParameters):
+class DocsLoaderParameters(BaseParameters):
     docs_uri: str = "https://docs.zenml.io"
 
 
 @step
-def docs_loader(params: IndexGeneratorParameters) -> List[Document]:
+def docs_loader(params: DocsLoaderParameters) -> List[Document]:
     # loader = GitbookLoader(params.docs_uri)
     # page_data = loader.load()
     loader = GitbookLoader(params.docs_uri, load_all_paths=True)
@@ -35,12 +36,11 @@ def docs_loader(params: IndexGeneratorParameters) -> List[Document]:
         chunk_size=1000,
         chunk_overlap=200,
     )
-    documents = text_splitter.split_documents(all_pages_data)
-    return documents
+    return text_splitter.split_documents(all_pages_data)
 
 
 class SlackLoaderParameters(BaseParameters):
-    channel_ids: List[str] = []
+    channel_ids: List[str] = ["general"]
 
 
 @step
@@ -63,8 +63,7 @@ def index_generator(documents: List[Document]) -> VectorStore:
 def llama_index_generator(documents: List[Document]) -> GPTFaissIndex:
     documents = [LlamaDocument.from_langchain_format(d) for d in documents]
     faiss_index = faiss.IndexFlatL2(1536)
-    index = GPTFaissIndex(documents, faiss_index=faiss_index)
-    return index
+    return GPTFaissIndex(documents, faiss_index=faiss_index)
 
 
 def run_langchain():
