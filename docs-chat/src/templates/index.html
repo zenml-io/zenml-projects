@@ -49,9 +49,32 @@
         .form-message {
           margin-top: 10px;
         }
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        z-index: 1;
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      .dropdown-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f1f1f1;
+      }
     </style>
     <script>
-        var endpoint = "ws://localhost:9000/chat";
+        var endpoint = "ws://0.0.0.0:9000/chat";
         var ws = new WebSocket(endpoint);
         // Receive message from server word by word. Display the words as they are received.
         ws.onmessage = function (event) {
@@ -64,12 +87,12 @@
                     var div = document.createElement('div');
                     div.className = 'server-message';
                     var p = document.createElement('p');
-                    p.innerHTML = "<strong>" + "Chatbot: " + "</strong>";
+                    p.innerHTML = "<strong>" + "@schustmi: " + "</strong>";
                     div.appendChild(p);
                     messages.appendChild(div);
                 } else if (data.type === "stream") {
                     var header = document.getElementById('header');
-                    header.innerHTML = "Chatbot is typing...";
+                    header.innerHTML = "@schustmi is typing...";
                     var p = messages.lastChild.lastChild;
                     if (data.message === "\n") {
                         p.innerHTML += "<br>";
@@ -121,11 +144,61 @@
             button.innerHTML = "Loading...";
             button.disabled = true;
         }
+
+        // Function to fetch versions from server and populate dropdown
+        async function getVersions() {
+            var response = await fetch('http://0.0.0.0:9000/versions');
+            var versions = await response.json();
+            versions.forEach(version => {
+                var item = document.createElement('div');
+                item.classList.add('dropdown-item');
+                item.textContent = version;
+                item.addEventListener('click', async () => {
+                    await setVersion(version);
+                    var dropdownBtn = document.getElementById('dropdownBtn');
+                    dropdownBtn.textContent = `${version}`;
+                });
+                var dropdownContent = document.getElementById('dropdownContent');
+                dropdownContent.appendChild(item);
+            });
+        }
+
+        // Function to fetch active version from server and set as default dropdown text
+        async function getActiveVersion() {
+            var response = await fetch('http://0.0.0.0:9000/versions/active');
+            var activeVersion = await response.json();
+            var dropdownBtn = document.getElementById('dropdownBtn');
+            dropdownBtn.textContent = `${activeVersion}`;
+        }
+
+        async function setVersion(version) {
+            var response = await fetch(`http://0.0.0.0:9000/versions/${version}`, { method: 'POST' });
+            if (!response.ok) {
+                var error = await response.text();
+                alert(error);
+            } else {
+                var dropdownBtn = document.getElementById('dropdownBtn');
+                dropdownBtn.textContent = `${version}`;
+            }
+        }
+
+        // Populate dropdown on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            getVersions();
+            getActiveVersion();
+        });
     </script>
 </head>
 <body class="bg-black">
     <div class="chat-body card">
         <div class="card-body p-5">
+            <div class="dropdown" id="dropdown">
+                <button class="dropdown-btn" id="dropdownBtn" onclick="getActiveVersion()">
+                  Loading...
+                </button>
+                <div class="dropdown-content" id="dropdownContent">
+                </div>
+              </div>
             <h4 class="card-title text-center text-xl font-medium"> Chat Your Data </h4>
             <p class="card-text text-center text-sm" id="header"> Ask a question </p>
             <hr class="border-gray-500 mb-5" style="margin-top: 20px;">
