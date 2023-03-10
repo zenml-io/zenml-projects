@@ -204,11 +204,16 @@ def get_release_date(
         raise ValueError(
             f"Version {version} not found for package {package_name}."
         )
-    release_upload_time = data["releases"][version][0]["upload_time"]
+    release_upload_time = datetime.datetime.strptime(
+        data["releases"][version][0]["upload_time"], "%Y-%m-%dT%H:%M:%S"
+    )
+
     two_weeks_later = release_upload_time + datetime.timedelta(weeks=2)
+    if two_weeks_later > datetime.datetime.now():
+        two_weeks_later = datetime.datetime.now()
 
     return (
-        datetime.datetime.strptime(release_upload_time, "%Y-%m-%dT%H:%M:%S"),
+        release_upload_time,
         two_weeks_later,
     )
 
@@ -259,8 +264,7 @@ def build_indices_for_zenml_versions(
 def main():
     print("Fetching zenml versions...")
     # versions = get_zenml_versions()  # all release versions
-    # versions = ["0.10.0", "0.35.1"]
-    versions = ["0.35.1"]
+    versions = ["0.10.0", "0.35.1"]
     print(f"Found {len(versions)} versions.")
     print("Building indices for zenml versions...")
     build_indices_for_zenml_versions(versions)
