@@ -18,10 +18,10 @@ from steps.importer import (
     game_data_importer_offline,
     import_season_schedule_offline,
 )
+from steps.drift_reporter import evidently_drift_detector
 from steps.model_picker import model_picker
 from steps.post_processor import data_post_processor
 from steps.predictor import predictor
-from steps.profiler import evidently_drift_detector
 from steps.splitter import (
     SklearnSplitterConfig,
     SplitConfig,
