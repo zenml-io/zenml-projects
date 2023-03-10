@@ -9,7 +9,7 @@ from langchain.vectorstores import VectorStore
 from zenml.enums import ExecutionStatus
 
 from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
-from query_data import get_chain
+from query_data import get_openai_chain
 from schemas import ChatResponse
 
 app = FastAPI()
@@ -99,7 +99,7 @@ async def websocket_endpoint(websocket: WebSocket):
     question_handler = QuestionGenCallbackHandler(websocket)
     stream_handler = StreamingLLMCallbackHandler(websocket)
     chat_history = []
-    qa_chain = get_chain(vectorstore, question_handler, stream_handler)
+    qa_chain = get_openai_chain(vectorstore, question_handler, stream_handler)
     # Use the below line instead of the above line to enable tracing
     # Ensure `langchain-server` is running
     # qa_chain = get_chain(vectorstore, question_handler, stream_handler, tracing=True)
