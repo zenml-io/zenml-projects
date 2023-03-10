@@ -1,10 +1,11 @@
 import logging
 import os
 import shutil
-from datetime import datetime
+import datetime
 from typing import List, Optional
 from uuid import uuid4
 
+import requests
 import git
 from langchain.docstore.document import Document
 from langchain.document_loaders import GitbookLoader
@@ -75,10 +76,12 @@ def docs_loader(params: DocsLoaderParameters) -> List[Document]:
 
 class SlackLoaderParameters(BaseParameters):
     channel_ids: List[str] = []
-    earliest_date: Optional[datetime] = datetime(2023, 3, 10, 0, 0)
+    earliest_date: Optional[datetime.datetime] = datetime.datetime(
+        2023, 3, 10, 0, 0
+    )
 
 
-@step(enable_cache=True)
+@step(enable_cache=False)
 def slack_loader(params: SlackLoaderParameters) -> List[Document]:
     # slack loader; returns langchain documents
     # SlackReader = download_loader("SlackReader")
@@ -175,14 +178,29 @@ def _page_exists(url: str) -> bool:
     return False
 
 
-def get_release_date(package_name: str, version: str) -> datetime:
+def get_release_date(package_name: str, version: str) -> datetime.datetime:
     """Get the release date of a package version.
 
     Args:
         package_name: Name of the package.
         version: Version of the package.
     """
-    return datetime(2023, 3, 8)
+    # Get the package's release information from the PyPI API
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+
+    # Parse the JSON data
+    data = response.json()
+
+    # Get a list of the package's release versions
+    release_info = data["releases"].get(version)
+
+    if not release_info:
+        raise ValueError(
+            f"Version {version} not found for package {package_name}."
+        )
+    release_upload_time = data["releases"][version][0]["upload_time"]
+
+    return datetime.datetime.strptime(release_upload_time, "%Y-%m-%dT%H:%M:%S")
 
 
 def build_indices_for_zenml_versions(
@@ -211,7 +229,7 @@ def build_indices_for_zenml_versions(
             slack_loader=slack_loader(
                 params=SlackLoaderParameters(
                     channel_ids=SLACK_CHANNEL_IDS,
-                    earliest_date=get_release_date(version),
+                    earliest_date=get_release_date("zenml", version),
                 )
             ),
         )

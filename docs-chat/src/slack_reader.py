@@ -13,18 +13,26 @@ logger = logging.getLogger(__name__)
 
 class SlackReader(BaseReader):
     """Slack reader.
-    Reads conversations from channels.
+
+    Reads conversations from channels. If an earliest_date is provided, an
+    optional latest_date can also be provided. If no latest_date is provided,
+    we assume the latest date is the current timestamp.
+
     Args:
         slack_token (Optional[str]): Slack token. If not provided, we
             assume the environment variable `SLACK_BOT_TOKEN` is set.
         earliest_date (Optional[datetime]): Earliest date from which
             to read conversations. If not provided, we read all messages.
+        latest_date (Optional[datetime]): Latest date from which to
+            read conversations. If not provided, defaults to current timestamp
+            in combination with earliest_date.
     """
 
     def __init__(
         self,
         slack_token: Optional[str] = None,
         earliest_date: Optional[datetime] = None,
+        latest_date: Optional[datetime] = None,
     ) -> None:
         """Initialize with parameters."""
         from slack_sdk import WebClient
@@ -37,7 +45,12 @@ class SlackReader(BaseReader):
                 "variable `SLACK_BOT_TOKEN`."
             )
         self.client = WebClient(token=slack_token)
-        self.earliest_date_timestamp = earliest_date.timestamp()
+        if earliest_date is not None:
+            self.earliest_date_timestamp = earliest_date.timestamp()
+            if latest_date is not None:
+                self.latest_date_timestamp = latest_date.timestamp()
+            else:
+                self.latest_date_timestamp = datetime.now().timestamp()
         res = self.client.api_test()
         if not res["ok"]:
             raise ValueError(f"Error initializing Slack API: {res['error']}")
@@ -53,7 +66,7 @@ class SlackReader(BaseReader):
             try:
                 # https://slack.com/api/conversations.replies
                 # List all replies to a message, including the message itself.
-                if self.earliest_date is None:
+                if self.earliest_date_timestamp is None:
                     result = self.client.conversations_replies(
                         channel=channel_id, ts=message_ts, cursor=next_cursor
                     )
@@ -63,6 +76,7 @@ class SlackReader(BaseReader):
                         ts=message_ts,
                         cursor=next_cursor,
                         oldest=self.earliest_date_timestamp,
+                        latest=self.latest_date_timestamp,
                     )
                 messages = result["messages"]
                 messages_text.extend(message["text"] for message in messages)
