@@ -74,7 +74,7 @@
       }
     </style>
     <script>
-        var endpoint = "ws://0.0.0.0:9000/chat";
+        var endpoint = "ws://0.0.0.0:8242/chat";
         var ws = new WebSocket(endpoint);
 
         // Receive message from server word by word. Display the words as they are received.
@@ -150,7 +150,7 @@
 
         // Function to fetch versions from server and populate dropdown
         async function getVersions() {
-            var response = await fetch('http://0.0.0.0:9000/versions');
+            var response = await fetch('http://0.0.0.0:8242/versions');
             var versions = await response.json();
             versions.forEach(version => {
                 var item = document.createElement('div');
@@ -168,14 +168,14 @@
 
         // Function to fetch active version from server and set as default dropdown text
         async function getActiveVersion() {
-            var response = await fetch('http://0.0.0.0:9000/versions/active');
+            var response = await fetch('http://0.0.0.0:8242/versions/active');
             var activeVersion = await response.json();
             var dropdownBtn = document.getElementById('dropdownBtn');
             dropdownBtn.textContent = `${activeVersion}`;
         }
 
         async function setVersion(version) {
-            var response = await fetch(`http://0.0.0.0:9000/versions/${version}`, { method: 'POST' });
+            var response = await fetch(`http://0.0.0.0:8242/versions/${version}`, { method: 'POST' });
             if (!response.ok) {
                 var error = await response.text();
                 alert(error);
