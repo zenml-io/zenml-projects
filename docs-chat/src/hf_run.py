@@ -15,12 +15,11 @@ from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
 )
 from langchain.vectorstores import FAISS, VectorStore
+from slack_reader import SlackReader
 from slack_sdk import WebClient
 from tqdm import tqdm
 from zenml.pipelines import pipeline
 from zenml.steps import BaseParameters, step
-
-from slack_reader import SlackReader
 
 # from langchain.vectorstores import Chroma
 
