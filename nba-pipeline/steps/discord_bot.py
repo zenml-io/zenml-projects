@@ -1,11 +1,12 @@
 import pandas as pd
 import requests
+from evidently.model_profile import Profile  # type: ignore
 from zenml.steps import step
 import json
 
-# This is a private ZenML Discord channel. We will get notified if you use 
-# this, but you won't be able to see it. Feel free to create a new Discord 
-# [webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) 
+# This is a private ZenML Discord channel. We will get notified if you use
+# this, but you won't be able to see it. Feel free to create a new Discord
+# [webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
 # and replace this one!
 DISCORD_URL = (
     "https://discord.com/api/webhooks/935835443826659339/Q32jTwmqc"

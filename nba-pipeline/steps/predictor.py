@@ -1,11 +1,7 @@
 import pandas as pd
-from typing import List
 from sklearn import preprocessing
-
-from zenml.steps import step
 from sklearn.base import RegressorMixin
-
-from .utils import get_label_encoder
+from zenml.steps import step
 
 
 @step

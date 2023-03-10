@@ -19,7 +19,7 @@ In order to build a model that can detect and recognize the American Sign Langua
 
 1. Download the dataset from [Roboflow](https://public.roboflow.com/object-detection/american-sign-language-alphabet)
 2. Augment the training and valdiation sets using [Albumentations](https://albumentations.ai/)
-3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/gcloud-vertexai) stack component.
+3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/vertex) stack component.
 4. Load the model in a different pipeline that deploys the model using [BentoML](https://www.bentoml.com/) and the provided ZenML integration.
 5. Create an inference pipeline that will use the deployed model to detect and recognize the American Sign Language alphabet in test images from the first pipeline.
 

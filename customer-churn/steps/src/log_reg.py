@@ -1,8 +1,5 @@
-import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-from statsmodels.genmod import families
-from statsmodels.genmod.generalized_linear_model import GLM
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -56,8 +53,12 @@ class LogisticRegression:
         """Test assumptions for appropriate outcome type."""
         try:
             if self.y_train.nunique() == 2:
-                logger.info("Assumption for appropriate outcome type is satisfied.")
+                logger.info(
+                    "Assumption for appropriate outcome type is satisfied."
+                )
             else:
-                logger.error("Assumption for appropriate outcome type is not satisfied.")
+                logger.error(
+                    "Assumption for appropriate outcome type is not satisfied."
+                )
         except Exception as e:
             logger.error(f"Assumptions test failed: {e}")

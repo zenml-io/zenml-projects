@@ -13,10 +13,10 @@
 #  permissions and limitations under the License.
 
 import requests
+from zenml.client import Client
 from zenml.integrations.kubeflow.flavors.kubeflow_orchestrator_flavor import (
     KubeflowOrchestratorSettings,
 )
-from zenml.client import Client
 
 
 def get_kubeflow_settings() -> dict:
@@ -25,9 +25,16 @@ def get_kubeflow_settings() -> dict:
 
     if orchestrator.flavor == "kubeflow":
         import os
-        NAMESPACE = os.getenv("KUBEFLOW_NAMESPACE")  # This is the user namespace for the profile you want to use
-        USERNAME = os.getenv("KUBEFLOW_USERNAME")  # This is the username for the profile you want to use
-        PASSWORD = os.getenv("KUBEFLOW_PASSWORD")  # This is the password for the profile you want to use
+
+        NAMESPACE = os.getenv(
+            "KUBEFLOW_NAMESPACE"
+        )  # This is the user namespace for the profile you want to use
+        USERNAME = os.getenv(
+            "KUBEFLOW_USERNAME"
+        )  # This is the username for the profile you want to use
+        PASSWORD = os.getenv(
+            "KUBEFLOW_PASSWORD"
+        )  # This is the password for the profile you want to use
 
         def get_kfp_token(username: str, password: str) -> str:
             """Get token for kubeflow authentication."""
@@ -56,7 +63,6 @@ def get_kubeflow_settings() -> dict:
             session_cookie = session.cookies.get_dict()["authservice_session"]
             return session_cookie
 
-
         token = get_kfp_token(USERNAME, PASSWORD)
         session_cookie = "authservice_session=" + token
         kubeflow_settings = KubeflowOrchestratorSettings(
@@ -64,5 +70,5 @@ def get_kubeflow_settings() -> dict:
         )
     else:
         kubeflow_settings = {}
-        
+
     return kubeflow_settings

@@ -1,8 +1,9 @@
-from zenml.steps import step, Output
 import numpy as np
-from sklearn.metrics import r2_score
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
 from zenml.logger import get_logger
+from zenml.steps import step
+
 
 @step
 def evaluator(
@@ -26,7 +27,7 @@ def evaluator(
     except:
         logger.info("Error occurred when predicting on test data")
 
-    score = r2_score(y_test,y_pred)
+    score = r2_score(y_test, y_pred)
     logger.info(f"R2 score: {score}")
 
     return score

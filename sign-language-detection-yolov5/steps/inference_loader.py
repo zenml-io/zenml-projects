@@ -23,7 +23,7 @@ from zenml.steps import Output, step
 def inference_loader() -> Output(images_path=List):
     """Loads the trained models from previous training pipeline runs."""
     training_pipeline = get_pipeline("yolov5_pipeline")
-    last_run = training_pipeline.runs[-1]
+    last_run = training_pipeline.runs[0]
 
     try:
         inference_data: Dict = (

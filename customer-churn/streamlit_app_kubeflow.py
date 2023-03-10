@@ -4,7 +4,9 @@ from zenml.repository import Repository
 
 
 def main():
-    st.title("Predicting whether the customer will churn or not before they even did it")
+    st.title(
+        "Predicting whether the customer will churn or not before they even did it"
+    )
 
     st.markdown(
         """ 
@@ -56,7 +58,7 @@ def main():
         training_pipeline_run()
         repo = Repository()
         p = repo.get_pipeline(pipeline_name="training_pipeline")
-        last_run = p.runs[-1]
+        last_run = p.runs[0]
         trainer_step = last_run.get_step("model_trainer")
         model = trainer_step.output.read()
         pred = [

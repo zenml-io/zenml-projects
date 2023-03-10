@@ -6,46 +6,43 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import argparse
 from datetime import date, datetime, timedelta
 
-from steps.post_processor import data_post_processor
-from steps.splitter import date_based_splitter, SplitConfig
+from pipelines.data_analysis_pipeline import data_analysis_pipeline
+from pipelines.prediction_pipeline import inference_pipeline
+from pipelines.training_pipeline import training_pipeline
 from steps.analyzer import analyze_drift
 from steps.discord_bot import discord_alert, discord_post_prediction
-from steps.encoder import data_encoder
+from steps.encoder import data_encoder, encode_columns_and_clean
 from steps.evaluator import tester
 from steps.feature_engineer import feature_engineer
-from steps.importer import game_data_importer, game_data_importer_offline
-from steps.drift_reporter import evidently_drift_detector
-from steps.splitter import (
-    sklearn_splitter,
-    SklearnSplitterConfig,
-    reference_data_splitter,
-    TrainingSplitConfig,
-)
-from steps.trainer import random_forest_trainer
-from steps.encoder import encode_columns_and_clean
 from steps.importer import (
-    import_season_schedule,
-    SeasonScheduleConfig,
+    game_data_importer_offline,
     import_season_schedule_offline,
 )
+from steps.drift_reporter import evidently_drift_detector
 from steps.model_picker import model_picker
+from steps.post_processor import data_post_processor
 from steps.predictor import predictor
-from steps.splitter import get_coming_week_data, TimeWindowConfig
-
-from zenml.pipelines import Schedule
-from pipelines.data_analysis_pipeline import data_analysis_pipeline
-from pipelines.training_pipeline import training_pipeline
-from pipelines.prediction_pipeline import inference_pipeline
-
+from steps.splitter import (
+    SklearnSplitterConfig,
+    SplitConfig,
+    TimeWindowConfig,
+    TrainingSplitConfig,
+    date_based_splitter,
+    get_coming_week_data,
+    reference_data_splitter,
+    sklearn_splitter,
+)
+from steps.trainer import random_forest_trainer
+from utils.kubeflow_helper import get_kubeflow_settings
+from zenml.config import DockerSettings
 from zenml.integrations.constants import (
-    EVIDENTLY,
-    SKLEARN,
     AWS,
+    EVIDENTLY,
     KUBEFLOW,
     MLFLOW,
+    SKLEARN,
 )
-from zenml.config import DockerSettings
-from utils.kubeflow_helper import get_kubeflow_settings
+from zenml.pipelines import Schedule
 
 last_week = date.today() - timedelta(days=7)
 LAST_DATA_DATE = "2022-04-10"
