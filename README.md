@@ -93,13 +93,15 @@ integrations.</h3>
 [github-gitflow-url]: https://github.com/zenml-io/zenml-gitflow
 [zenmlproject-gitflow-url]: https://zenml.io/project/github-gitflow-workflow
 
-<!-- Orbit -->
-[github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
-
 <!-- ZenNews -->
 
 [zenmlproject-zennews-url]: https://zenml.io/project/zennews
 [github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
+
+<!-- Orbit -->
+[github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
+[zenmlproject-orbit-url]: https://https://zenml.io/project/orbitcommunity
+
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 
@@ -123,7 +125,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | YOLOv5 Object Detection     | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                                                               | Computer-vision                       | `mlflow` `vertex`                                                        |
 | GitFlow ZenML Project       | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                                                             | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | ZenNews                     | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url]                                                             | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| Orbit User Analysis         | [![yt][github-shield]][github-orbit-url]                                                                                                                           | Data Analysis                         | -                                                                        |
+| Orbit User Analysis         | [![project][zenmlproject-shield]][zenmlproject-orbit-url] [![yt][github-shield]][github-orbit-url]                                                                 | Data Analysis                         | -                                                                        |
 
 
 # 💻 System Requirements
