@@ -1,6 +1,6 @@
 import os
 
-from langchain import OpenAI, PromptTemplate
+from langchain import OpenAI, PromptTemplate, HuggingFaceHub
 from langchain.chains import ChatVectorDBChain, SequentialChain
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -40,9 +40,14 @@ prompt = PromptTemplate(
 )
 
 vector_store = get_vector_store("0.35.1")
+openai_llm = OpenAI(temperature=0, max_tokens=500)
+huggingface_llm = HuggingFaceHub(
+    repo_id="google/flan-t5-xl",
+    model_kwargs={"temperature": 0, "max_length": 64},
+)
 
 chatgpt_chain = ChatVectorDBChain.from_llm(
-    llm=OpenAI(temperature=0, max_tokens=500), vectorstore=vector_store
+    llm=openai_llm, vectorstore=vector_store
 )
 
 
