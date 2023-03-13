@@ -100,7 +100,7 @@ integrations.</h3>
 
 <!-- Orbit -->
 [github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
-[zenmlproject-orbit-url]: https://https://zenml.io/project/orbitcommunity
+[zenmlproject-orbit-url]: https://zenml.io/project/orbitcommunity
 
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
