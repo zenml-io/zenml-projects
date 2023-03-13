@@ -1,21 +1,17 @@
 import json
-from operator import truediv
 import os
-from urllib.parse import non_hierarchical
+
 import numpy as np
 import pandas as pd
+from materializer.custom_materializer import cs_materializer
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
-
 from zenml.pipelines import pipeline
-from zenml.steps import BaseParameters, Output, StepContext, step
-from zenml.config import DockerSettings
-from .utils import get_data_for_test
-from zenml.integrations.constants import MLFLOW
-from materializer.custom_materializer import cs_materializer
+from zenml.steps import BaseParameters, Output, step
 
+from .utils import get_data_for_test
 
 requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 

@@ -5,7 +5,7 @@ from zenml.steps import step
 @step
 def data_post_processor(df: pd.DataFrame) -> pd.DataFrame:
     """Go from one hot encoded teams to team columns.
-    
+
     Args:
         df: Pandas DataFrame with raw predictions from predictor step.
     """

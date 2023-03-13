@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "zennews"
+version = "0.1.8"
+description = "ZenNews: Get summarized news on a schedule."
+license = "Apache-2.0"
+authors = ["ZenML GmbH <info@zenml.io>"]
+readme = "README.md"
+homepage = "https://zenml.io/project/zen-news-summarization"
+repository = "https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization"
+keywords = ["zenml"]
+packages = [
+    { include = "zennews", from = "src" }
+]
+
+[tool.poetry.scripts]
+zennews = "zennews.cli.base:cli"
+
+[tool.poetry.dependencies]
+python = ">=3.8.0,<3.11"
+zenml = { extras = ["server"], version = "0.35.1" }
+bbc-feeds = "2.1"
+transformers = "4.26.0"
+torch = "1.13.1"
+mdutils = "1.4.0"
+"discord.py" = "2.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

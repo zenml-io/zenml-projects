@@ -31,7 +31,7 @@ bento_builder = bento_builder_step(
             "requirements_txt": "./yolov5/requirements.txt",
         },
         docker={
-            "system_packages" : ["ffmpeg",'libsm6',"libxext6"],
+            "system_packages": ["ffmpeg", "libsm6", "libxext6"],
         },
     )
 )

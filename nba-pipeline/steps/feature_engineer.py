@@ -1,14 +1,13 @@
 from datetime import date
-import pandas as pd
 from typing import List
 
-from zenml.steps import step
-from zenml.steps import BaseParameters
+import pandas as pd
+from zenml.steps import BaseParameters, step
 
 
 class FeatureEngineererConfig(BaseParameters):
     """Config class for the sklearn splitter.
-    
+
     Attributes:
       history_length: Amount of years of data to look at during training
       select_features: Features to use as input during training

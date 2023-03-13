@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from model.evaluation import Evaluation
 from sklearn.base import RegressorMixin
-from zenml.steps import Output, step
 from zenml.client import Client
+from zenml.steps import Output, step
 
 experiment_tracker = Client().active_stack.experiment_tracker
 

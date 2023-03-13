@@ -1,7 +1,8 @@
-from google.oauth2 import service_account
-from zenml.steps import step, BaseParameters
-import pandas_gbq
 import pandas as pd
+import pandas_gbq
+from google.oauth2 import service_account
+from zenml.steps import BaseParameters, step
+
 
 class BigQueryImporterConfig(BaseParameters):
     """Config class for Google BigQuery.
@@ -11,8 +12,9 @@ class BigQueryImporterConfig(BaseParameters):
         project_id: GCP Project ID that contains the data.
     """
 
-    query: str = 'SELECT * FROM `computas_dataset.wind_forecast`'
-    project_id: str = 'computas-project-345810'
+    query: str = "SELECT * FROM `computas_dataset.wind_forecast`"
+    project_id: str = "computas-project-345810"
+
 
 @step
 def bigquery_importer(config: BigQueryImporterConfig) -> pd.DataFrame:
@@ -24,6 +26,9 @@ def bigquery_importer(config: BigQueryImporterConfig) -> pd.DataFrame:
     Returns:
         pd.DataFrame
     """
-    credentials = service_account.Credentials.from_service_account_file('credentials.json')
-    return pandas_gbq.read_gbq(config.query, project_id = config.project_id, credentials = credentials)
-
+    credentials = service_account.Credentials.from_service_account_file(
+        "credentials.json"
+    )
+    return pandas_gbq.read_gbq(
+        config.query, project_id=config.project_id, credentials=credentials
+    )

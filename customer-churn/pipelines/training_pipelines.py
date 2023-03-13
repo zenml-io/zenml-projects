@@ -20,7 +20,7 @@ def training_pipeline(
         customer_churn_df = drop_cols(customer_churn_df)
         train, test = data_splitter(customer_churn_df)
         model = model_trainer(train)
-        accuracy = evaluator(model, test)
+        evaluator(model, test)
     except Exception as e:
         logger.error(e)
         raise e
