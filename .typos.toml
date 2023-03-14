@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["*.csv", "sign-language-detection-yolov5/*"]
+extend-exclude = ["*.csv", "sign-language-detection-yolov5/*", "orbit-user-analysis/steps/report.py", "customer-satisfaction/pipelines/deployment_pipeline.py", "customer-satisfaction/streamlit_app.py", "nba-pipeline/Building and Using An MLOPs Stack With ZenML.ipynb", "customer-satisfaction/tests/data_test.py"]
 
 [default.extend-identifiers]
 #  HashiCorp = "HashiCorp"
