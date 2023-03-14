@@ -5,24 +5,21 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  codespell:
-    name: Check spelling with codespell
+  spell-check:
+    name: spell-check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
+    env:
+      ZENML_DEBUG: 1
+      ZENML_ANALYTICS_OPT_IN: false
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install codespell
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Check spelling with codespell
-        run: codespell -c -I .codespell-ignore-words -f -i 0 --builtin clear,rare,en-GB_to_en-US,names,code . --skip="*.csv,*.sample" || exit 1
+    - name: Checkout Actions Repository
+      uses: actions/checkout@v2
+
+    - name: Spelling checker
+      uses: crate-ci/typos@master
+      with:
+        files: "."
+        config: ./.typos.toml
+
   markdown-link-check:
     uses: ./.github/workflows/markdown-link-check.yml
