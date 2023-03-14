@@ -153,7 +153,7 @@ Similar to the previous component, you just need to provide a name and the
 URI to your container registry on GCP.
 
 ```bash
-zenml container-registry register <CONTAINER_REGISTERY_NAME> \
+zenml container-registry register <CONTAINER_REGISTRY_NAME> \
     --flavor=gcp \
     --uri=<REGISTRY_URI>
 ```
@@ -203,7 +203,7 @@ version of our GCP stack.
 
 ```bash
 zenml stack register <STACK_NAME> \
-    -c <CONTAINER_REGISTERY_NAME> \
+    -c <CONTAINER_REGISTRY_NAME> \
     -a <ARTIFACT_STORE_NAME> \
     -o <ORCHESTRATOR_NAME> \
     --set
