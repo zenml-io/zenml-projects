@@ -1,6 +1,6 @@
 import os
 
-from langchain import OpenAI, PromptTemplate, HuggingFaceHub
+from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from langchain.chains import ChatVectorDBChain, SequentialChain
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
