@@ -15,13 +15,12 @@ from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
 )
 from langchain.vectorstores import FAISS, VectorStore
-from slack_reader import SlackReader
 from slack_sdk import WebClient
 from tqdm import tqdm
 from zenml.pipelines import pipeline
 from zenml.steps import BaseParameters, step
 
-# from langchain.vectorstores import Chroma
+from slack_reader import SlackReader
 
 
 def get_channel_id_from_name(name: str) -> str:
@@ -43,13 +42,6 @@ def get_channel_id_from_name(name: str) -> str:
 
 
 SLACK_CHANNEL_IDS = [get_channel_id_from_name("general")]
-
-
-# @pipeline
-# def docs_to_index_pipeline(document_loader, slack_loader, index_generator):
-#     slack_docs = slack_loader()
-#     documents = document_loader()
-#     index_generator(documents, slack_docs)
 
 
 class DocsLoaderParameters(BaseParameters):
@@ -79,7 +71,7 @@ class SlackLoaderParameters(BaseParameters):
     latest_date: Optional[datetime.datetime] = None
 
 
-@step(enable_cache=False)
+@step(enable_cache=True)
 def slack_loader(params: SlackLoaderParameters) -> List[Document]:
     # slack loader; returns langchain documents
     # SlackReader = download_loader("SlackReader")
@@ -92,7 +84,7 @@ def slack_loader(params: SlackLoaderParameters) -> List[Document]:
     return [d.to_langchain_format() for d in documents]
 
 
-@step(enable_cache=False)
+@step(enable_cache=True)
 def index_generator(
     documents: List[Document], slack_documents: List[Document]
 ) -> VectorStore:
@@ -100,48 +92,7 @@ def index_generator(
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(slack_documents)
     documents.extend(texts)  # merges the two document lists
-    vectorstore = FAISS.from_documents(documents, embeddings)
-    return vectorstore
-
-
-# @step
-# def llama_index_generator(
-#     documents: List[Document], slack_documents: List[Document]
-# ) -> GPTFaissIndex:
-#     documents = [LlamaDocument.from_langchain_format(d) for d in documents]
-#     documents.extend(slack_documents)
-#     faiss_index = faiss.IndexFlatL2(1536)
-#     return GPTFaissIndex(documents, faiss_index=faiss_index)
-
-
-# def run_langchain():
-#     pipeline = docs_to_index_pipeline(
-#         document_loader=docs_loader(),
-#         index_generator=index_generator(),
-#     )
-#     pipeline.configure(enable_cache=False)
-#     pipeline.run()
-
-
-# def run_llama():
-#     pipeline = docs_to_index_pipeline(
-#         document_loader=docs_loader(),
-#         slack_loader=slack_loader(),
-#         index_generator=llama_index_generator(),
-#     )
-#     # pipeline.configure(enable_cache=False)
-#     pipeline.run()
-
-
-# def post_exec_llama_index():
-#     integration_registry.activate_integrations()
-#     pipeline = get_pipeline("docs_to_index_pipeline")
-#     last_run = pipeline.runs[0]
-#     index = last_run.get_step("index_generator").output.read()
-#     response = index.query(
-#         "Are materializers loaded automatically during the post execution workflow?"
-#     )
-#     print(response)
+    return FAISS.from_documents(documents, embeddings)
 
 
 def get_zenml_versions():
@@ -172,9 +123,7 @@ def _page_exists(url: str) -> bool:
     import requests
 
     r = requests.get(url)
-    if r.status_code == 200:
-        return True
-    return False
+    return r.status_code == 200
 
 
 def get_release_date(
@@ -264,6 +213,7 @@ def main():
     print("Fetching zenml versions...")
     # versions = get_zenml_versions()  # all release versions
     versions = ["0.10.0", "0.35.1"]
+
     print(f"Found {len(versions)} versions.")
     print("Building indices for zenml versions...")
     build_indices_for_zenml_versions(versions)
@@ -271,6 +221,4 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level="INFO")
-    # run_llama()
-    # post_exec_llama_index()
     main()
