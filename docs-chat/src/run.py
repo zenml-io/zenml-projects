@@ -130,7 +130,6 @@ def post_exec_llama_index():
 
 
 def get_zenml_versions():
-
     # Clone zenml repo to random dir in CWD
     random_repo_name = f"_{uuid4()}"
     repo_dir = os.path.join(os.getcwd(), random_repo_name)
