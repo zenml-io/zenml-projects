@@ -1,3 +1,7 @@
+# Adapted from the `MrsStax` repo
+# https://github.com/normandmickey/MrsStax
+
+import argparse
 import os
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
@@ -7,9 +11,30 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from zenml.enums import ExecutionStatus
 from zenml.post_execution import get_pipeline
 
+# TODO: These should be saved in the Secret Store
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
 OPENAI_API_TOKEN = os.getenv("OPENAI_API_TOKEN")
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--model", default="openai", choices=["openai", "huggingface"]
+)
+args = parser.parse_args()
+
+openai_llm = OpenAI(temperature=0, max_tokens=500)
+huggingface_llm = HuggingFaceHub(
+    repo_id="google/flan-t5-xl",
+    model_kwargs={"temperature": 0, "max_length": 64},
+)
+
+if args.model == "openai":
+    llm = openai_llm
+elif args.model == "huggingface":
+    llm = huggingface_llm
+else:
+    raise ValueError(f"Invalid model argument: {args.model}")
 
 
 def get_vector_store(version: str):
@@ -20,7 +45,7 @@ def get_vector_store(version: str):
             continue
         if run_.name.split("_")[-1] == version:
             return run_.steps[-1].output.read()
-    raise Exception(
+    raise RuntimeError(
         "No index versions found. Please run `python run.py` first."
     )
 
@@ -40,15 +65,8 @@ prompt = PromptTemplate(
 )
 
 vector_store = get_vector_store("0.35.1")
-openai_llm = OpenAI(temperature=0, max_tokens=500)
-huggingface_llm = HuggingFaceHub(
-    repo_id="google/flan-t5-xl",
-    model_kwargs={"temperature": 0, "max_length": 64},
-)
 
-chatgpt_chain = ChatVectorDBChain.from_llm(
-    llm=openai_llm, vectorstore=vector_store
-)
+chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 
 
 seq_chain = SequentialChain(
