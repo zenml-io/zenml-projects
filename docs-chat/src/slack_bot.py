@@ -1,5 +1,9 @@
-# Adapted from the `MrsStax` repo
-# https://github.com/normandmickey/MrsStax
+# Adapted from the `MrsStax` repo https://github.com/normandmickey/MrsStax
+
+# To run this slackblot, execute `python run.py`. If you want to use a model
+# from the HuggingFaceHub instead of OpenAI, you can pass in an argument via the
+# command line as in `python run.py --model huggingface` and customise the code
+# as appropriate.
 
 import argparse
 import os
@@ -74,7 +78,6 @@ seq_chain = SequentialChain(
 )
 
 
-# Message handler for Slack
 @app.message(".*")
 def message_handler(message, say, logger):
     print(message)
@@ -85,6 +88,5 @@ def message_handler(message, say, logger):
     say(output)
 
 
-# Start your app
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
