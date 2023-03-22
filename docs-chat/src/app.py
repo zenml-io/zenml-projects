@@ -1,16 +1,18 @@
-"""Main entrypoint for the app."""
+# Mostly taken from the `chat-langchain` demo application
+# https://github.com/hwchase17/chat-langchain
+
+"""Main entrypoint for the web chat app."""
 import logging
 from typing import Dict, List, Optional
 
+from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from langchain.vectorstores import VectorStore
-from zenml.enums import ExecutionStatus
-
-from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_openai_chain
 from schemas import ChatResponse
+from zenml.enums import ExecutionStatus
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
