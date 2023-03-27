@@ -5,8 +5,8 @@
 # command line as in `python run.py --model huggingface` and customise the code
 # as appropriate.
 
-import logging
 import argparse
+import logging
 import os
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
@@ -15,7 +15,6 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from zenml.enums import ExecutionStatus
 from zenml.post_execution import get_pipeline
-
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
@@ -47,8 +46,9 @@ def get_vector_store():
     """Returns a vector store from latest pipeline run."""
     pipeline = get_pipeline(PIPELINE_NAME)
     for run_ in pipeline.runs:
-        if (run_.status == ExecutionStatus.COMPLETED) \
-            and run_.status != ExecutionStatus.FAILED:
+        if (
+            run_.status == ExecutionStatus.COMPLETED
+        ) and run_.status != ExecutionStatus.FAILED:
             # The last step returns the index
             return run_.steps[-1].output.read()
 
@@ -71,13 +71,16 @@ prompt = PromptTemplate(
     input_variables=["chat_history", "question"], template=template
 )
 
+
 @app.message(".*")
 def message_handler(message, say, logger):
     logging.info(message)
 
     vector_store = get_vector_store()
 
-    chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
+    chatgpt_chain = ChatVectorDBChain.from_llm(
+        llm=llm, vectorstore=vector_store
+    )
 
     seq_chain = SequentialChain(
         chains=[chatgpt_chain], input_variables=["chat_history", "question"]

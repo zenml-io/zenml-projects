@@ -20,6 +20,9 @@ from uuid import uuid4
 
 import git
 import requests
+from tqdm import tqdm
+from zenml.pipelines import pipeline
+
 from steps.gitbook_docs_loader import DocsLoaderParameters, docs_loader
 from steps.index_generator import index_generator
 from steps.slack_loader import (
@@ -27,8 +30,6 @@ from steps.slack_loader import (
     SlackLoaderParameters,
     slack_loader,
 )
-from tqdm import tqdm
-from zenml.pipelines import pipeline
 
 
 def get_zenml_versions():
