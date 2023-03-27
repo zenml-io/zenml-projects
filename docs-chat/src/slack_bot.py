@@ -46,9 +46,7 @@ def get_vector_store():
     """Returns a vector store from latest pipeline run."""
     pipeline = get_pipeline(PIPELINE_NAME)
     for run_ in pipeline.runs:
-        if (
-            run_.status == ExecutionStatus.COMPLETED
-        ) and run_.status != ExecutionStatus.FAILED:
+        if run_.status == ExecutionStatus.COMPLETED:
             # The last step returns the index
             return run_.steps[-1].output.read()
 
