@@ -6,7 +6,6 @@
 # as appropriate.
 
 import argparse
-import logging
 import os
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
@@ -61,33 +60,42 @@ app = App(token=SLACK_BOT_TOKEN)
 # Langchain implementation
 template = """
     Using only the following context answer the question at the end. If you can't find the answer in the context below, just say that you don't know. Do not make up an answer.
-    {chat_history}
-    Human: {question}
+    CHAT HISTORY AND CONTEXT: {chat_history}
+    {question}
     Assistant:"""
 
 prompt = PromptTemplate(
     input_variables=["chat_history", "question"], template=template
 )
 
+vector_store = get_vector_store()
 
-@app.message(".*")
-def message_handler(message, say, logger):
-    logging.info(message)
+chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 
-    vector_store = get_vector_store()
 
-    chatgpt_chain = ChatVectorDBChain.from_llm(
-        llm=llm, vectorstore=vector_store
-    )
+@app.event({"type": "message", "subtype": None})
+def reply_in_thread(body: dict, say, context):
+    event = body["event"]
+    thread_ts = event.get("thread_ts", None) or event["ts"]
+    if event.get("thread_ts", None):
+        full_thread = [
+            f"MESSAGE: {msg['text']}"
+            for msg in context.client.conversations_replies(
+                channel=context["channel_id"], ts=event["thread_ts"]
+            ).data["messages"]
+        ]
+    else:
+        full_thread = []
 
     seq_chain = SequentialChain(
         chains=[chatgpt_chain], input_variables=["chat_history", "question"]
     )
-
     output = seq_chain.run(
-        chat_history="", question=message["text"], verbose=True
+        chat_history="",
+        question=f"{' '.join(full_thread)} \n Human: {event['text']}",
+        verbose=True,
     )
-    say(output)
+    say(text=output, thread_ts=thread_ts)
 
 
 if __name__ == "__main__":
