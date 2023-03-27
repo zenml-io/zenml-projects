@@ -1,0 +1,3 @@
+# Modify this Procfile to fit your needs
+bot: zenml connect --url $ZENML_SERVER_URL --username $ZENML_USERNAME --password $ZENML_PASSWORD \
+python slack_bot.py

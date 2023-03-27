@@ -37,3 +37,4 @@ urllib3==1.26.14
 validators==0.19.0
 weaviate-client==3.11.0
 yarl==1.8.2
+zenml==0.36.1
