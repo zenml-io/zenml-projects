@@ -155,11 +155,6 @@ export KUBEFLOW_PASSWORD="yourpassword"
 
 Now let's register all the stack components that we will be using.
 
-Secrets Manager:
-```
-zenml secrets-manager register aws_secrets_manager --flavor=aws --region_name=eu-central-1
-```
-
 MLflow Experiment Tracker:
 ```
 zenml experiment-tracker register aws_mlflow_tracker  --flavor=mlflow --tracking_insecure_tls=true --tracking_uri="https://ac8e6c63af207436194ab675ee71d85a-1399000870.us-east-1.elb.amazonaws.com/mlflow" --tracking_username="{{mlflow_secret.tracking_username}}" --tracking_password="{{mlflow_secret.tracking_password}}" 
@@ -198,7 +193,6 @@ zenml stack register kubeflow_gitflow_stack \
     -a s3_store \
     -c ecr_registry \
     -o multi_tenant_kubeflow \
-    -x aws_secrets_manager \
     -e aws_mlflow_tracker \
     -dv evidently
 ```
@@ -208,10 +202,10 @@ Set the registered stack as the active stack
 zenml stack set kubeflow_gitflow_stack
 ```
 
-Let's register our secrets to the secrets manager
+Let's register our secrets to the secrets store
 
 ```
-zenml secrets-manager secret register mlflow_secret -i
+zenml secret create mlflow_secret -i
 ```
 You will be prompted to key in the `tracking_username` and `tracking_password` for MLflow.
 

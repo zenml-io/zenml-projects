@@ -96,7 +96,6 @@ integrations.</h3>
 <!-- ZenNews -->
 
 [zenmlproject-zennews-url]: https://zenml.io/project/zennews
-<!-- [youtube-zennews-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
 [github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
 
 <!-- Langchain Slackbot -->
@@ -104,6 +103,11 @@ integrations.</h3>
 [zenmlproject-slackbot-url]: https://zenml.io/project/langchain-llamaindex-slackbot
 <!-- [youtube-slackbot-url]: TKTKTKTK -->
 [github-slackbot-url]: https://github.com/zenml-io/zenml-projects/tree/main/langchain-llamaindex-slackbot
+
+
+<!-- Orbit -->
+[github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
+[zenmlproject-orbit-url]: https://zenml.io/project/orbitcommunity
 
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
@@ -128,6 +132,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | GitFlow ZenML Project | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url] | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | ZenNews | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url] | NLP | `gcp` `vertex` `discord` |
 | Langchain Slackbot | [![project][zenmlproject-shield]][zenmlproject-slackbot-url] [![yt][github-shield]][github-slackbot-url] | NLP, LLMs | `slack` `langchain` `llama_index` |
+| Orbit User Analysis | [![project][zenmlproject-shield]][zenmlproject-orbit-url] [![yt][github-shield]][github-orbit-url] | Data Analysis, Tabular |   |
 
 # 💻 System Requirements
 

@@ -13,7 +13,7 @@ def visualize_statistics():
     """
     try:
         pipe = get_pipeline("data_analysis_pipeline")
-        ingest_data = pipe.runs[-1].get_step(step="ingest_data")
+        ingest_data = pipe.runs[0].get_step(step="ingest_data")
         FacetStatisticsVisualizer().visualize(ingest_data)
     except Exception as e:
         logging.error(e)
@@ -25,7 +25,7 @@ def visualize_train_test_statistics():
     """
     try:
         pipe = get_pipeline("data_analysis_pipeline")
-        data_splitter_output = pipe.runs[-1].get_step(step="data_splitter")
+        data_splitter_output = pipe.runs[0].get_step(step="data_splitter")
         FacetStatisticsVisualizer().visualize(data_splitter_output)
     except Exception as e:
         logging.error(e)

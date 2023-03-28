@@ -24,7 +24,7 @@ from zenml.steps import Output, step
 def model_loader() -> Output(model_path=str, model=torch.nn.Module):
     """Loads the trained models from previous training pipeline runs."""
     training_pipeline = get_pipeline("yolov5_pipeline")
-    last_run = training_pipeline.runs[-1]
+    last_run = training_pipeline.runs[0]
     model_path = "./inference/model/best.pt"
 
     try:
