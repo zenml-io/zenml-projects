@@ -77,25 +77,29 @@ chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 def reply_in_thread(body: dict, say, context):
     event = body["event"]
     thread_ts = event.get("thread_ts", None) or event["ts"]
-    if event.get("thread_ts", None):
-        full_thread = [
-            f"MESSAGE: {msg['text']}"
-            for msg in context.client.conversations_replies(
-                channel=context["channel_id"], ts=event["thread_ts"]
-            ).data["messages"]
-        ]
-    else:
-        full_thread = []
+    print(context)
 
-    seq_chain = SequentialChain(
-        chains=[chatgpt_chain], input_variables=["chat_history", "question"]
-    )
-    output = seq_chain.run(
-        chat_history="",
-        question=f"{' '.join(full_thread)} \n Human: {event['text']}",
-        verbose=True,
-    )
-    say(text=output, thread_ts=thread_ts)
+    if context["bot_user_id"] in event["text"]:
+        if event.get("thread_ts", None):
+            full_thread = [
+                f"MESSAGE: {msg['text']}"
+                for msg in context.client.conversations_replies(
+                    channel=context["channel_id"], ts=event["thread_ts"]
+                ).data["messages"]
+            ]
+        else:
+            full_thread = []
+
+        seq_chain = SequentialChain(
+            chains=[chatgpt_chain],
+            input_variables=["chat_history", "question"],
+        )
+        output = seq_chain.run(
+            chat_history="",
+            question=f"{' '.join(full_thread)} \n Human: {event['text']}",
+            verbose=True,
+        )
+        say(text=output, thread_ts=thread_ts)
 
 
 if __name__ == "__main__":
