@@ -78,6 +78,13 @@ chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 
 @app.event({"type": "message", "subtype": None})
 def reply_in_thread(body: dict, say, context):
+    """Listens to messages and replies in a thread.
+
+    Args:
+        body (dict): Slack event body
+        say (function): Slack say function
+        context (dict): Slack context
+    """
     event = body["event"]
     thread_ts = event.get("thread_ts", None) or event["ts"]
 
