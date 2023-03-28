@@ -99,6 +99,13 @@ integrations.</h3>
 <!-- [youtube-zennews-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
 [github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
 
+<!-- Langchain Slackbot -->
+
+[zenmlproject-slackbot-url]: https://zenml.io/project/langchain-llamaindex-slackbot
+<!-- [youtube-slackbot-url]: TKTKTKTK -->
+[github-slackbot-url]: https://github.com/zenml-io/zenml-projects/tree/main/langchain-llamaindex-slackbot
+
+
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 
 This repository showcases production-grade ML use cases built with ZenML.
@@ -120,7 +127,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | YOLOv5 Object Detection | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url] | Computer-vision | `mlflow` `vertex` |
 | GitFlow ZenML Project | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url] | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | ZenNews | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url] | NLP | `gcp` `vertex` `discord` |
-| Langchain Slackbot | [![project][zenmlproject-shield]][slackbot-url] [![yt][github-shield]][slackbot-url] | NLP, LLMs | `slack` `langchain` `llama_index` |
+| Langchain Slackbot | [![project][zenmlproject-shield]][zenmlproject-slackbot-url] [![yt][github-shield]][github-slackbot-url] | NLP, LLMs | `slack` `langchain` `llama_index` |
 
 # 💻 System Requirements
 
