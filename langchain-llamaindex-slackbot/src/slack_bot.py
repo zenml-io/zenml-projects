@@ -2,7 +2,7 @@
 
 # To run this slackblot, execute `python run.py`. If you want to use a model
 # from the HuggingFaceHub instead of OpenAI, you can pass in an argument via the
-# command line as in `python run.py --model huggingface` and customise the code
+# command line as in `python run.py --model huggingface` and customize the code
 # as appropriate.
 
 import argparse
