@@ -20,6 +20,9 @@ SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
 OPENAI_API_TOKEN = os.getenv("OPENAI_API_TOKEN")
 PIPELINE_NAME = os.getenv("PIPELINE_NAME", "zenml_docs_index_generation")
 
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -79,6 +82,7 @@ def reply_in_thread(body: dict, say, context):
     thread_ts = event.get("thread_ts", None) or event["ts"]
 
     if context["bot_user_id"] in event["text"]:
+        logger.debug(f"Received message: {event['text']}")
         if event.get("thread_ts", None):
             full_thread = [
                 f"MESSAGE: {msg['text']}"
