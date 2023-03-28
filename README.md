@@ -201,7 +201,6 @@ the Apache License Version 2.0.
 
 [ZenML 101]: https://docs.zenml.io/
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
-[Deployment Guide]: TBD
 [Our latest release]: https://github.com/zenml-io/zenml/releases
 [Vote for Features]: https://zenml.io/discussion
 [Docs]: https://docs.zenml.io/
