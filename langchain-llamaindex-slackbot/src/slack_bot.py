@@ -77,7 +77,6 @@ chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 def reply_in_thread(body: dict, say, context):
     event = body["event"]
     thread_ts = event.get("thread_ts", None) or event["ts"]
-    print(context)
 
     if context["bot_user_id"] in event["text"]:
         if event.get("thread_ts", None):
