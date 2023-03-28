@@ -23,7 +23,7 @@ from pipelines.build_indices import (
 def main():
     print("Fetching zenml versions...")
     # versions = get_zenml_versions()  # all release versions
-    versions = ["0.10.0", "0.35.1"]
+    versions = ["0.36.1"]
 
     print(f"Found {len(versions)} versions.")
     print("Building indices for zenml versions...")
