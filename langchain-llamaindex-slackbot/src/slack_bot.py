@@ -99,7 +99,7 @@ def reply_in_thread(body: dict, say, context):
         )
         output = seq_chain.run(
             chat_history="",
-            question=f"{' '.join(full_thread)} \n Human: {event['text']}",
+            question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
             verbose=True,
         )
         say(text=output, thread_ts=thread_ts)
