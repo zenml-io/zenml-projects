@@ -5,57 +5,84 @@
 # command line as in `python run.py --model huggingface` and customize the code
 # as appropriate.
 
-import argparse
 import os
+from threading import Thread
+from fastapi import FastAPI
+import uvicorn
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from langchain.chains import ChatVectorDBChain, SequentialChain
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+
 from zenml.enums import ExecutionStatus
 from zenml.post_execution import get_pipeline
+from zenml.logger import get_logger
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-OPENAI_API_TOKEN = os.getenv("OPENAI_API_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PIPELINE_NAME = os.getenv("PIPELINE_NAME", "zenml_docs_index_generation")
-
-from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--model", default="openai", choices=["openai", "huggingface"]
-)
-args = parser.parse_args()
+model = "openai"
 
-
-if args.model == "openai":
+if model == "openai":
     openai_llm = OpenAI(temperature=0, max_tokens=500)
     llm = openai_llm
-elif args.model == "huggingface":
+elif model == "huggingface":
     huggingface_llm = HuggingFaceHub(
         repo_id="google/flan-t5-xl",
         model_kwargs={"temperature": 0, "max_length": 64},
     )
     llm = huggingface_llm
 else:
-    raise ValueError(f"Invalid model argument: {args.model}")
+    raise ValueError(f"Invalid model argument: {model}")
+
+
+def connect_to_zenml_server():
+    from zenml.zen_stores.base_zen_store import BaseZenStore
+    from zenml.config.global_config import GlobalConfiguration
+    from zenml.exceptions import IllegalOperationError
+
+    zenml_server_url = os.getenv("ZENML_SERVER_URL")
+    zenml_username = os.getenv("ZENML_USERNAME")
+    zenml_password = os.getenv("ZENML_PASSWORD")
+
+    store_dict = {
+        "url": zenml_server_url,
+        "username": zenml_username,
+        "password": zenml_password
+    }
+
+    store_type = BaseZenStore.get_store_type(zenml_server_url)
+    store_config_class = BaseZenStore.get_store_config_class(store_type)
+    assert store_config_class is not None
+
+    store_config = store_config_class.parse_obj(store_dict)
+    try:
+        GlobalConfiguration().set_store(store_config)
+    except IllegalOperationError as e:
+        logger.warning(
+            f"User '{zenml_username}' does not have sufficient permissions to "
+            f"to access the server at '{zenml_server_url}'. Please ask the server "
+            f"administrator to assign a role with permissions to your "
+            f"username: {str(e)}"
+        )
+
+connect_to_zenml_server()
 
 
 def get_vector_store():
-    """Returns a vector store from latest pipeline run."""
     pipeline = get_pipeline(PIPELINE_NAME)
     for run_ in pipeline.runs:
         if run_.status == ExecutionStatus.COMPLETED:
-            # The last step returns the index
             return run_.steps[-1].output.read()
 
     raise RuntimeError(
         "No index versions found. Please run the pipeline first."
     )
-
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
@@ -111,6 +138,16 @@ def reply_in_thread(body: dict, say, context):
         )
         say(text=output, thread_ts=thread_ts)
 
+fast_api_app = FastAPI()
+
+@fast_api_app.get("/health")
+def health_check():
+    return {"status": "OK"}
+
+def run_fastapi():
+    uvicorn.run(fast_api_app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
+    fastapi_thread = Thread(target=run_fastapi)
+    fastapi_thread.start()
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
