@@ -1,5 +1,8 @@
 [tool.poetry]
 name = "langchain-llamaindex-slackbot"
+version = "0.0.1"
+description = "A slackbot for ZenML documentation"
+authors = ["ZenML"]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<3.11"
