@@ -24,12 +24,10 @@ from zenml.steps import step
 
 
 @step(enable_cache=False)
-def index_generator(
-    documents: List[Document], slack_documents: List[Document]
-) -> VectorStore:
+def index_generator(documents: List[Document]) -> VectorStore:
     embeddings = OpenAIEmbeddings()
+
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    slack_texts = text_splitter.split_documents(slack_documents)
     compiled_texts = text_splitter.split_documents(documents)
-    compiled_texts.extend(slack_texts)  # merges the two document lists
+
     return FAISS.from_documents(compiled_texts, embeddings)
