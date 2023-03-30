@@ -15,7 +15,7 @@ from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipelines
+from zenml.post_execution import get_pipeline
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
@@ -42,7 +42,7 @@ else:
 
 
 def get_vector_store():
-    pipeline = get_pipelines()[0]
+    pipeline = get_pipeline(pipeline=PIPELINE_NAME, version=8)
     our_run = pipeline.runs[0]
     print("Using pipeline: ", pipeline.model.name, "v", pipeline.model.version)
     print("Created on: ", pipeline.model.updated)
