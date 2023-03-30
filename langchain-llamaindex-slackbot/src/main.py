@@ -6,9 +6,7 @@
 # as appropriate.
 
 import os
-from itertools import zip_longest
 from threading import Thread
-from typing import List
 
 import uvicorn
 from fastapi import FastAPI
@@ -17,13 +15,18 @@ from langchain.chains import ChatVectorDBChain, SequentialChain
 from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slackbot_utils import (
+    connect_to_zenml_server,
+    convert_to_chat_history,
+    get_last_n_messages,
+    get_vector_store,
+)
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipeline
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-PIPELINE_NAME = os.getenv("PIPELINE_NAME", "zenml_docs_index_generation")
+
 
 logger = get_logger(__name__)
 
@@ -44,46 +47,7 @@ else:
     raise ValueError(f"Invalid model argument: {model}")
 
 
-def connect_to_zenml_server():
-    from zenml.config.global_config import GlobalConfiguration
-    from zenml.exceptions import IllegalOperationError
-    from zenml.zen_stores.base_zen_store import BaseZenStore
-
-    zenml_server_url = os.getenv("ZENML_SERVER_URL")
-    zenml_username = os.getenv("ZENML_USERNAME")
-    zenml_password = os.getenv("ZENML_PASSWORD")
-
-    store_dict = {
-        "url": zenml_server_url,
-        "username": zenml_username,
-        "password": zenml_password,
-    }
-
-    store_type = BaseZenStore.get_store_type(zenml_server_url)
-    store_config_class = BaseZenStore.get_store_config_class(store_type)
-    assert store_config_class is not None
-
-    store_config = store_config_class.parse_obj(store_dict)
-    try:
-        GlobalConfiguration().set_store(store_config)
-    except IllegalOperationError as e:
-        logger.warning(
-            f"User '{zenml_username}' does not have sufficient permissions to "
-            f"to access the server at '{zenml_server_url}'. Please ask the server "
-            f"administrator to assign a role with permissions to your "
-            f"username: {str(e)}"
-        )
-
-
 connect_to_zenml_server()
-
-
-def get_vector_store():
-    pipeline = get_pipeline(pipeline=PIPELINE_NAME, version=8)
-    our_run = pipeline.runs[0]
-    print("Using pipeline: ", pipeline.model.name, "v", pipeline.model.version)
-    print("Created on: ", pipeline.model.updated)
-    return our_run.steps[-1].output.read()
 
 
 # Initializes your app with your bot token and socket mode handler
@@ -103,36 +67,6 @@ prompt = PromptTemplate(
 vector_store = get_vector_store()
 
 chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
-
-
-def get_last_n_messages(full_thread: List[List[str]], n: int = 5):
-    """Get the last n messages from a thread.
-
-    Args:
-        full_thread (list): List of messages in a thread
-        n (int): Number of messages to return
-
-    Returns:
-        list: Last n messages in a thread (or the full thread if less than n)
-    """
-    return full_thread[-n:] if len(full_thread) >= n else full_thread
-
-
-def convert_to_chat_history(messages: List[str]):
-    """Convert a list of messages to a chat history.
-
-    Args:
-        messages (list): List of messages in a thread
-
-    Returns:
-        list: Chat history as a list of pairs of messages
-    """
-    paired_list = [
-        list(filter(None, pair)) for pair in zip_longest(*[iter(messages)] * 2)
-    ]
-    if len(messages) % 2 == 1:
-        paired_list[-1].append("")
-    return paired_list
 
 
 @app.event({"type": "message", "subtype": None})

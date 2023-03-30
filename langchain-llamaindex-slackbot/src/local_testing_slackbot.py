@@ -6,16 +6,18 @@
 # as appropriate.
 
 import os
-from itertools import zip_longest
-from typing import List
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from langchain.chains import ChatVectorDBChain, SequentialChain
 from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slackbot_utils import (
+    convert_to_chat_history,
+    get_last_n_messages,
+    get_vector_store,
+)
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipeline
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
@@ -41,14 +43,6 @@ else:
     raise ValueError(f"Invalid model argument: {model}")
 
 
-def get_vector_store():
-    pipeline = get_pipeline(pipeline=PIPELINE_NAME, version=8)
-    our_run = pipeline.runs[0]
-    print("Using pipeline: ", pipeline.model.name, "v", pipeline.model.version)
-    print("Created on: ", pipeline.model.updated)
-    return our_run.steps[-1].output.read()
-
-
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
 
@@ -68,36 +62,6 @@ vector_store = get_vector_store()
 chatgpt_chain = ChatVectorDBChain.from_llm(
     llm=llm, vectorstore=vector_store, top_k_docs_for_context=10
 )
-
-
-def get_last_n_messages(full_thread: List[List[str]], n: int = 5):
-    """Get the last n messages from a thread.
-
-    Args:
-        full_thread (list): List of messages in a thread
-        n (int): Number of messages to return
-
-    Returns:
-        list: Last n messages in a thread (or the full thread if less than n)
-    """
-    return full_thread[-n:] if len(full_thread) >= n else full_thread
-
-
-def convert_to_chat_history(messages: List[str]):
-    """Convert a list of messages to a chat history.
-
-    Args:
-        messages (list): List of messages in a thread
-
-    Returns:
-        list: Chat history as a list of pairs of messages
-    """
-    paired_list = [
-        list(filter(None, pair)) for pair in zip_longest(*[iter(messages)] * 2)
-    ]
-    if len(messages) % 2 == 1:
-        paired_list[-1].append("")
-    return paired_list
 
 
 @app.event({"type": "message", "subtype": None})
