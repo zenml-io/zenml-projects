@@ -37,6 +37,6 @@ def docs_loader(params: DocsLoaderParameters) -> List[Document]:
     all_pages_data = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=200,
+        chunk_overlap=100,
     )
     return text_splitter.split_documents(all_pages_data)
