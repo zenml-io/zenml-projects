@@ -6,9 +6,11 @@
 # as appropriate.
 
 import os
+from typing import List
 
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from langchain.chains import ChatVectorDBChain, SequentialChain
+from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from zenml.enums import ExecutionStatus
@@ -70,6 +72,19 @@ vector_store = get_vector_store()
 chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 
 
+def get_last_n_messages(full_thread: List[str], n: int = 5):
+    """Get the last n messages from a thread.
+
+    Args:
+        full_thread (list): List of messages in a thread
+        n (int): Number of messages to return
+
+    Returns:
+        list: Last n messages in a thread (or the full thread if less than n)
+    """
+    return full_thread[-n:] if len(full_thread) >= n else full_thread
+
+
 @app.event({"type": "message", "subtype": None})
 def reply_in_thread(body: dict, say, context):
     """Listens to messages and replies in a thread.
@@ -98,11 +113,19 @@ def reply_in_thread(body: dict, say, context):
             chains=[chatgpt_chain],
             input_variables=["chat_history", "question"],
         )
-        output = seq_chain.run(
-            chat_history="",
-            question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
-            verbose=True,
-        )
+        try:
+            output = seq_chain.run(
+                chat_history="",
+                question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
+                verbose=True,
+            )
+        except InvalidRequestError as e:
+            logger.warning(e)
+            output = seq_chain.run(
+                chat_history="",
+                question=f"{'MESSAGE: '.join(get_last_n_messages(full_thread))} \n Human: {event['text']}",
+                verbose=True,
+            )
         say(text=output, thread_ts=thread_ts)
 
 
