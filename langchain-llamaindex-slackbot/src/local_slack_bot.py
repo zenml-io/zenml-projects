@@ -6,10 +6,7 @@
 # as appropriate.
 
 import os
-from threading import Thread
 
-import uvicorn
-from fastapi import FastAPI
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from langchain.chains import ChatVectorDBChain, SequentialChain
 from slack_bolt import App
@@ -40,40 +37,6 @@ else:
     raise ValueError(f"Invalid model argument: {model}")
 
 
-def connect_to_zenml_server():
-    from zenml.config.global_config import GlobalConfiguration
-    from zenml.exceptions import IllegalOperationError
-    from zenml.zen_stores.base_zen_store import BaseZenStore
-
-    zenml_server_url = os.getenv("ZENML_SERVER_URL")
-    zenml_username = os.getenv("ZENML_USERNAME")
-    zenml_password = os.getenv("ZENML_PASSWORD")
-
-    store_dict = {
-        "url": zenml_server_url,
-        "username": zenml_username,
-        "password": zenml_password,
-    }
-
-    store_type = BaseZenStore.get_store_type(zenml_server_url)
-    store_config_class = BaseZenStore.get_store_config_class(store_type)
-    assert store_config_class is not None
-
-    store_config = store_config_class.parse_obj(store_dict)
-    try:
-        GlobalConfiguration().set_store(store_config)
-    except IllegalOperationError as e:
-        logger.warning(
-            f"User '{zenml_username}' does not have sufficient permissions to "
-            f"to access the server at '{zenml_server_url}'. Please ask the server "
-            f"administrator to assign a role with permissions to your "
-            f"username: {str(e)}"
-        )
-
-
-connect_to_zenml_server()
-
-
 def get_vector_store():
     pipeline = get_pipeline(PIPELINE_NAME)
     for run_ in pipeline.runs:
@@ -90,7 +53,10 @@ app = App(token=SLACK_BOT_TOKEN)
 
 # Langchain implementation
 template = """
-    Using only the following context answer the question at the end. If you can't find the answer in the context below, just say that you don't know. Do not make up an answer.
+    Using only the following context answer the question at the end. If you
+    can't find the answer in the context below, just say that you don't know. Do
+    not make up an answer. Also, please be respectful and kind in your replies
+    to users.
     CHAT HISTORY AND CONTEXT: {chat_history}
     {question}
     Assistant:"""
@@ -140,19 +106,5 @@ def reply_in_thread(body: dict, say, context):
         say(text=output, thread_ts=thread_ts)
 
 
-fast_api_app = FastAPI()
-
-
-@fast_api_app.get("/health")
-def health_check():
-    return {"status": "OK"}
-
-
-def run_fastapi():
-    uvicorn.run(fast_api_app, host="0.0.0.0", port=8080)
-
-
 if __name__ == "__main__":
-    fastapi_thread = Thread(target=run_fastapi)
-    fastapi_thread.start()
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
