@@ -34,7 +34,7 @@ if model == "openai":
 elif model == "huggingface":
     huggingface_llm = HuggingFaceHub(
         repo_id="google/flan-t5-xl",
-        model_kwargs={"temperature": 0, "max_length": 64},
+        model_kwargs={"temperature": 0, "max_length": 500},
     )
     llm = huggingface_llm
 else:
