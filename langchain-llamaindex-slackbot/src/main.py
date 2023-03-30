@@ -6,6 +6,7 @@
 # as appropriate.
 
 import os
+from itertools import zip_longest
 from threading import Thread
 from typing import List
 
@@ -16,7 +17,6 @@ from langchain.chains import ChatVectorDBChain, SequentialChain
 from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from zenml.enums import ExecutionStatus
 from zenml.logger import get_logger
 from zenml.post_execution import get_pipeline
 
@@ -30,12 +30,14 @@ logger = get_logger(__name__)
 model = "openai"
 
 if model == "openai":
-    openai_llm = OpenAI(temperature=0, max_tokens=500)
+    openai_llm = OpenAI(
+        temperature=0, max_tokens=1000, model_name="gpt-3.5-turbo"
+    )
     llm = openai_llm
 elif model == "huggingface":
     huggingface_llm = HuggingFaceHub(
         repo_id="google/flan-t5-xl",
-        model_kwargs={"temperature": 0, "max_length": 64},
+        model_kwargs={"temperature": 0, "max_length": 500},
     )
     llm = huggingface_llm
 else:
@@ -77,14 +79,11 @@ connect_to_zenml_server()
 
 
 def get_vector_store():
-    pipeline = get_pipeline(PIPELINE_NAME)
-    for run_ in pipeline.runs:
-        if run_.status == ExecutionStatus.COMPLETED:
-            return run_.steps[-1].output.read()
-
-    raise RuntimeError(
-        "No index versions found. Please run the pipeline first."
-    )
+    pipeline = get_pipeline(pipeline=PIPELINE_NAME, version=8)
+    our_run = pipeline.runs[0]
+    print("Using pipeline: ", pipeline.model.name, "v", pipeline.model.version)
+    print("Created on: ", pipeline.model.updated)
+    return our_run.steps[-1].output.read()
 
 
 # Initializes your app with your bot token and socket mode handler
@@ -92,12 +91,9 @@ app = App(token=SLACK_BOT_TOKEN)
 
 # Langchain implementation
 template = """
-    Using only the following context answer the question at the end. If you
-    can't find the answer in the context below, just say that you don't know. Do
-    not make up an answer. Also, please be respectful and kind in your replies
-    to users.
-    CHAT HISTORY AND CONTEXT: {chat_history}
-    {question}
+    Using only the following context answer the question at the end. If you can't find the answer in the context below, just say that you don't know. Do not make up an answer.
+    {chat_history}
+    Human: {question}
     Assistant:"""
 
 prompt = PromptTemplate(
@@ -109,7 +105,7 @@ vector_store = get_vector_store()
 chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
 
 
-def get_last_n_messages(full_thread: List[str], n: int = 5):
+def get_last_n_messages(full_thread: List[List[str]], n: int = 5):
     """Get the last n messages from a thread.
 
     Args:
@@ -120,6 +116,23 @@ def get_last_n_messages(full_thread: List[str], n: int = 5):
         list: Last n messages in a thread (or the full thread if less than n)
     """
     return full_thread[-n:] if len(full_thread) >= n else full_thread
+
+
+def convert_to_chat_history(messages: List[str]):
+    """Convert a list of messages to a chat history.
+
+    Args:
+        messages (list): List of messages in a thread
+
+    Returns:
+        list: Chat history as a list of pairs of messages
+    """
+    paired_list = [
+        list(filter(None, pair)) for pair in zip_longest(*[iter(messages)] * 2)
+    ]
+    if len(messages) % 2 == 1:
+        paired_list[-1].append("")
+    return paired_list
 
 
 @app.event({"type": "message", "subtype": None})
@@ -138,7 +151,7 @@ def reply_in_thread(body: dict, say, context):
         logger.debug(f"Received message: {event['text']}")
         if event.get("thread_ts", None):
             full_thread = [
-                f"MESSAGE: {msg['text']}"
+                f"{msg['text']}"
                 for msg in context.client.conversations_replies(
                     channel=context["channel_id"], ts=event["thread_ts"]
                 ).data["messages"]
@@ -152,15 +165,17 @@ def reply_in_thread(body: dict, say, context):
         )
         try:
             output = seq_chain.run(
-                chat_history="",
-                question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
+                chat_history=convert_to_chat_history(full_thread),
+                question=event["text"],
                 verbose=True,
             )
         except InvalidRequestError as e:
             logger.warning(e)
             output = seq_chain.run(
-                chat_history="",
-                question=f"{'MESSAGE: '.join(get_last_n_messages(full_thread))} \n Human: {event['text']}",
+                chat_history=get_last_n_messages(
+                    convert_to_chat_history(full_thread)
+                ),
+                question=event["text"],
                 verbose=True,
             )
         say(text=output, thread_ts=thread_ts)
