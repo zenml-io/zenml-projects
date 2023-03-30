@@ -14,22 +14,36 @@
 
 import logging
 
-from pipelines.build_indices import (
-    build_indices_for_zenml_versions,
-    get_zenml_versions,  # noqa
-)
+from pipelines.index_builder import docs_to_index_pipeline
+from steps.index_generator import index_generator
+from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
+from steps.web_url_loader import WebLoaderParameters, web_url_loader
 
 
 def main():
-    print("Fetching zenml versions...")
-    # versions = get_zenml_versions()  # all release versions
-    versions = ["0.36.1"]
+    base_url = "https://docs.zenml.io"
+    repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
+    release_notes_url = (
+        "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
+    )
+    examples_readme_urls = get_nested_readme_urls(repo_url)
+    docs_urls = get_all_pages(base_url)
 
-    print(f"Found {len(versions)} versions.")
-    print("Building indices for zenml versions...")
-    build_indices_for_zenml_versions(versions)
+    slackbot_pipeline = docs_to_index_pipeline(
+        index_generator=index_generator(),
+        web_loader=web_url_loader(
+            params=WebLoaderParameters(
+                docs_urls=docs_urls,
+                examples_readme_urls=examples_readme_urls,
+                release_notes_url=release_notes_url,
+            )
+        ),
+    )
+
+    slackbot_pipeline.run()
 
 
 if __name__ == "__main__":
     logging.basicConfig(level="INFO")
+    logging.getLogger().setLevel(logging.INFO)
     main()
