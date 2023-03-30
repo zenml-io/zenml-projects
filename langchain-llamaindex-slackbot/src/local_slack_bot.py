@@ -15,7 +15,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from zenml.enums import ExecutionStatus
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipeline
+from zenml.post_execution import get_pipelines, get_pipeline
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
@@ -40,14 +40,22 @@ else:
 
 
 def get_vector_store():
-    pipeline = get_pipeline(PIPELINE_NAME)
-    for run_ in pipeline.runs:
-        if run_.status == ExecutionStatus.COMPLETED:
-            return run_.steps[-1].output.read()
+    # USING OLD VERSION
+    # pipeline = get_pipelines()[-1]
+    # our_run = pipeline.runs[0]
+    # print(f"Using pipeline: {pipeline.model.name} v{pipeline.model.version}")
+    # print(f"Created on: {pipeline.model.updated}")
 
-    raise RuntimeError(
-        "No index versions found. Please run the pipeline first."
-    )
+    pipeline = get_pipelines()[0]
+    our_run = pipeline.runs[0]
+    return our_run.steps[-1].output.read()
+    # for run_ in pipeline.runs:
+    #     if run_.status == ExecutionStatus.COMPLETED:
+    #         return run_.steps[-1].output.read()
+
+    # raise RuntimeError(
+    #     "No index versions found. Please run the pipeline first."
+    # )
 
 
 # Initializes your app with your bot token and socket mode handler
@@ -114,18 +122,23 @@ def reply_in_thread(body: dict, say, context):
             input_variables=["chat_history", "question"],
         )
         try:
+            # output = seq_chain.run(
+            #     chat_history="",
+            #     question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
+            #     verbose=True,
+            # )
             output = seq_chain.run(
                 chat_history="",
-                question=f"{'MESSAGE: '.join(full_thread)} \n Human: {event['text']}",
+                question=f"Human: {event['text']}",
                 verbose=True,
             )
         except InvalidRequestError as e:
             logger.warning(e)
-            output = seq_chain.run(
-                chat_history="",
-                question=f"{'MESSAGE: '.join(get_last_n_messages(full_thread))} \n Human: {event['text']}",
-                verbose=True,
-            )
+            # output = seq_chain.run(
+            #     chat_history="",
+            #     question=f"{'MESSAGE: '.join(get_last_n_messages(full_thread))} \n Human: {event['text']}",
+            #     verbose=True,
+            # )
         say(text=output, thread_ts=thread_ts)
 
 
