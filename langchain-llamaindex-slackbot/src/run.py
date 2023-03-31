@@ -16,6 +16,7 @@ import logging
 
 from pipelines.index_builder import docs_to_index_pipeline
 from steps.index_generator import index_generator
+from steps.url_scraper import url_scraper
 from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
 from steps.web_url_loader import WebLoaderParameters, web_url_loader
 
@@ -30,7 +31,7 @@ def main():
     docs_urls = get_all_pages(base_url)
 
     slackbot_pipeline = docs_to_index_pipeline(
-        index_generator=index_generator(),
+        url_scraper=url_scraper,
         web_loader=web_url_loader(
             params=WebLoaderParameters(
                 docs_urls=docs_urls,
@@ -38,6 +39,7 @@ def main():
                 release_notes_url=release_notes_url,
             )
         ),
+        index_generator=index_generator(),
     )
 
     slackbot_pipeline.run()

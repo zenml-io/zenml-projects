@@ -16,24 +16,19 @@ from typing import List
 
 from langchain.docstore.document import Document
 from langchain.document_loaders import UnstructuredURLLoader
-from zenml.steps import BaseParameters, step
-
-
-class WebLoaderParameters(BaseParameters):
-    docs_urls: List[str] = []
-    examples_readme_urls: List[str] = []
-    release_notes_url: str = ""
+from zenml.steps import step
 
 
 @step(enable_cache=True)
-def web_url_loader(params: WebLoaderParameters) -> List[Document]:
-    docs_urls = params.docs_urls
-    examples_readme_urls = params.examples_readme_urls
-    release_notes_url = params.release_notes_url
+def web_url_loader(urls: List[str]) -> List[Document]:
+    """Loads documents from a list of URLs.
 
-    # combine all urls into a single list
-    urls = docs_urls + examples_readme_urls + [release_notes_url]
+    Args:
+        urls: List of URLs to load documents from.
 
+    Returns:
+        List of langchain documents.
+    """
     loader = UnstructuredURLLoader(
         urls=urls,
     )
