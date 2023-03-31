@@ -16,29 +16,26 @@ import logging
 
 from pipelines.index_builder import docs_to_index_pipeline
 from steps.index_generator import index_generator
-from steps.url_scraper import url_scraper
-from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from steps.web_url_loader import WebLoaderParameters, web_url_loader
+from steps.url_scraper import UrlScraperParameters, url_scraper
+from steps.web_url_loader import web_url_loader
 
 
 def main():
-    base_url = "https://docs.zenml.io"
+    docs_url = "https://docs.zenml.io"
     repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
     release_notes_url = (
         "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
     )
-    examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(base_url)
 
     slackbot_pipeline = docs_to_index_pipeline(
-        url_scraper=url_scraper,
-        web_loader=web_url_loader(
-            params=WebLoaderParameters(
-                docs_urls=docs_urls,
-                examples_readme_urls=examples_readme_urls,
+        url_scraper=url_scraper(
+            params=UrlScraperParameters(
+                docs_url=docs_url,
+                repo_url=repo_url,
                 release_notes_url=release_notes_url,
             )
         ),
+        web_loader=web_url_loader(),
         index_generator=index_generator(),
     )
 
