@@ -54,7 +54,7 @@ qa_pipeline(
 
 This will fetch data from the specified URLs, create an index, and answer a different question based on the custom data.
 
-For a more thorough walkthrough, see the [Jupyter Notebook version](./hub-example.ipynb) of this example.
+For a more thorough walkthrough, see the [Jupyter Notebook version](./langchain-qa-hub.ipynb) of this example.
 
 ## Conclusion
 
