@@ -59,3 +59,12 @@ For a more thorough walkthrough, see the [Jupyter Notebook version](./langchain-
 ## Conclusion
 
 The ZenML Hub provides a central location for users to discover, share, and utilize integrations, plugins, and community-contributed code. This example demonstrates how to leverage the `langchain_qa_example` plugin to build a QA bot. Try it out and explore other plugins available in the ZenML Hub to enhance your ML projects!
+
+## Next Steps
+
+The ZenML Hub is open for community contributions and anyone with a GitHub
+account can submit plugins. To find out how, check out the
+[ZenML Hub Plugin Template](https://github.com/zenml-io/zenml-hub-plugin-template).
+
+If you would like to learn more about the ZenML Hub in general, check out the
+[ZenML Hub Documentation](https://docs.zenml.io/collaboration/zenml-hub) or the [ZenML Hub Launch Blog Post](https://blog.zenml.io/zenml-hub-launch).
