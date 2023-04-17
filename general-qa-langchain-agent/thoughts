@@ -1,0 +1,4 @@
+1. replace FAISS with Chroma (to use offline embeddings)
+2. add step to create agent which takes in the vector store as input
+
+use the retrieval QA agent for it

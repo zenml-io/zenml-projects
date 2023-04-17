@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "langchain-llamaindex-slackbot"
+version = "0.0.1"
+description = "A slackbot for ZenML documentation"
+authors = ["ZenML"]
+
+[tool.poetry.dependencies]
+python = ">=3.8.1,<3.11"
+zenml = { extras = ["server"], version = "0.36.1" }
+faiss-cpu = ">=1.7.3"
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+isort = "^5.9.3"
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+known_third_party = []
+skip_glob = []
+line_length = 79
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+| \.hg
+| \.mypy_cache
+| \.tox
+| \.venv
+| _build
+| buck-out
+| build
+)/
+'''
