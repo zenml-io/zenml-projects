@@ -27,27 +27,31 @@ class SupabaseReaderParams(BaseParameters):
     summary_column: str = "video_title"  # the column to summarize
     limit: int = 300  # limit the number of rows to read
 
+
 @step(enable_cache=False)
 def supabase_reader(
     params: SupabaseReaderParams,
 ) -> List[str]:
     """Reads from supabase and returns a list of dicts."""
     supabase_secret = Client().get_secret("supabase")
-    
+
     supabase: SupabaseClient = create_client(
-        supabase_secret.secret_values["supabase_url"], 
-        supabase_secret.secret_values["supabase_key"], 
+        supabase_secret.secret_values["supabase_url"],
+        supabase_secret.secret_values["supabase_key"],
     )
 
-    interval = datetime.now(timezone.utc) - timedelta(hours=params.filter_interval_hours)
+    interval = datetime.now(timezone.utc) - timedelta(
+        hours=params.filter_interval_hours
+    )
 
     # Create a supabase query to filter for the last 24 hours
-    response = \
-        supabase.table(params.table_name)\
-            .select(params.summary_column)\
-            .filter(params.filter_date_column, "gte", interval)\
-            .order(params.filter_date_column, desc=True)\
-            .limit(params.limit)\
-            .execute()
+    response = (
+        supabase.table(params.table_name)
+        .select(params.summary_column)
+        .filter(params.filter_date_column, "gte", interval)
+        .order(params.filter_date_column, desc=True)
+        .limit(params.limit)
+        .execute()
+    )
 
     return [d[params.summary_column] for d in response.data]

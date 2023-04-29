@@ -15,31 +15,60 @@
 from typing import List
 import openai
 
-from zenml.steps import step, BaseParameters
+from zenml.steps import step, BaseParameters, StepContext
 from zenml.client import Client
+from zenml.post_execution import get_pipeline
+
 
 class SummarizerParams(BaseParameters):
     """Prompts for the summarizer."""
+
     system_content: str = "Act like a data analytics expert."
-    prompt_preamble: str = "Summarize the latest data from the database. The data is YouTube videos and we are keen to understand what sort of videos users have input, the trends, and similarities between them."
-    prompt_example: str = "The latest data indicates the following key insights: 1. The number of users has increased by 10% in the last 24 hours. 2. The number of users has increased by 10% in the last 24 hours. 3..."
+    prompt_preamble: str = "Summarize the latest data from the database. The data is YouTube videos and we are keen to understand what sort of videos users have input, the trends, and similarities between them. We also have the analysis from last time that we will give to you as input"
+    prompt_example: str = "The latest data indicates the following key insights: 1. The number of users has increased by 10% in the last 24 hours. 2. The number of users has increased by 10% in the last 24 hours. 3... Compared to our last summary, it seems our users are starting to watch more videos about cats."
 
 
 @step(enable_cache=True)
-def gpt_4_summarizer(params: SummarizerParams, documents: List[str]) -> str:
+def gpt_4_summarizer(
+    params: SummarizerParams, documents: List[str], context: StepContext
+) -> str:
+    """Summarizes the data using GPT-4."""
     openai_secret = Client().get_secret("openai")
+    last_step = (
+        get_pipeline(context.pipeline_name)
+        .runs[0]
+        .get_step("generate_summary")
+    )
+    if len(last_step.outputs) == 0:
+        last_analysis = "No previous analysis found."
+    else:
+        last_analysis = last_step.output.read()
+
     openai.api_key = openai_secret.secret_values["api_key"]
 
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": params.system_content},
-            {"role": "user", "content": params.prompt_preamble + "\n" + "Here is an example output:" + "\n" + params.prompt_example + "\n" + "Here is the data: " + str(documents)},
+            {
+                "role": "user",
+                "content": params.prompt_preamble
+                + "\n"
+                + "Here is an example output:"
+                + "\n"
+                + params.prompt_example
+                + "\n"
+                + "Here is the data: "
+                + str(documents)
+                + "\n"
+                + "And here is the previous analysis: "
+                + last_analysis,
+            },
         ],
         temperature=0,
-        max_tokens=1028,
+        max_tokens=256,
         top_p=1.0,
         frequency_penalty=0.0,
-        presence_penalty=0.0
+        presence_penalty=0.0,
     )
     return response.choices[0].message.content

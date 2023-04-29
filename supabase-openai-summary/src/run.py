@@ -20,20 +20,23 @@ from steps.alerters import print_alerter
 from steps.summarizers import gpt_4_summarizer
 from zenml.client import Client
 
-def main():
 
+def main():
     if Client().active_stack.alerter is None:
         # we use a print step
         alerter = print_alerter()
     else:
         # We assume its a slack alerter
-        from zenml.integrations.slack.steps.slack_alerter_ask_step import slack_alerter_post_step
+        from zenml.integrations.slack.steps.slack_alerter_ask_step import (
+            slack_alerter_post_step,
+        )
+
         alerter = slack_alerter_post_step()
 
     daily_supabase_summary(
         get_latest_data=supabase_reader(),
         generate_summary=gpt_4_summarizer(),
-        report_summary=alerter
+        report_summary=alerter,
     ).run()
 
 

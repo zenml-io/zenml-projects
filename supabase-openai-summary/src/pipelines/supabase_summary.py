@@ -25,7 +25,7 @@ def daily_supabase_summary(get_latest_data, generate_summary, report_summary):
     Args:
         get_latest_data (step): Get the latest data from Supabase.
         generate_summary (step): Generate a summary of the data.
-        report_summary (step): Report the summary. 
+        report_summary (step): Report the summary.
     """
     data = get_latest_data()
     summary = generate_summary(data)
