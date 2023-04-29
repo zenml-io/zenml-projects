@@ -1,4 +1,4 @@
-name: Summarize Supabase with GPT-4
+name: Summarize Supabase with
 
 on:
   push:
@@ -13,15 +13,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-    - uses: 'actions/checkout@v3'
+      uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
 
-    - id: 'auth'
-      name: 'Authenticate to Google Cloud'
+    - name: Log into GCP
       uses: 'google-github-actions/auth@v1'
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
