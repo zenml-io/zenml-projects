@@ -2,6 +2,10 @@
 
 This project demonstrates how to create a daily summary of a Supabase database using OpenAI GPT-4 and ZenML. We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a deployed ZenML instance in Hugging Face Spaces.
 
+The output of the pipeline posts the summary to a Slack channel:
+
+![The summary in Slack](assets/youtldr_summarizer_slack.png)
+
 ## Installation
 
 Install the required packages using the `requirements.txt` file in the `/src` directory:
