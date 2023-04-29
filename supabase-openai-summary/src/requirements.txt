@@ -2,5 +2,5 @@ openai
 zenml==0.38.0
 slack-sdk>=3.16.1
 aiohttp>=3.8.1
-supabase-py>=0.5.0
+supabase>=0.5.0
 gcsfs
