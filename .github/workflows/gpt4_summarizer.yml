@@ -32,5 +32,5 @@ jobs:
         zenml init
         zenml integration install gcp slack -y
         zenml connect --url ${{ secrets.ZENML_URL }} --username ${{ secrets.ZENML_USERNAME }} --password ${{ secrets.ZENML_PASSWORD }}
-        zenml stack set $ZENML_STACK
+        zenml stack set ${{ secrets.ZENML_URL }}
         python run.py
