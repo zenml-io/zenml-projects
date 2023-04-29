@@ -1,13 +1,17 @@
 [tool.poetry]
-name = "langchain-llamaindex-slackbot"
+name = "supabase-openai-summary"
 version = "0.0.1"
-description = "A slackbot for ZenML documentation"
+description = "A Supabase summary pipeline for OpenAI's GPT-4 model."
 authors = ["ZenML"]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<3.11"
-zenml = { extras = ["server"], version = "0.36.1" }
-faiss-cpu = ">=1.7.3"
+zenml = { extras = ["server"], version = "0.38.0" }
+openai = ">=0.27.5"
+slack-sdk = ">=3.16.1"
+aiohttp = ">=3.8.1"
+supabase = ">=0.5.0"
+gcsfs = ">=2023.4.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"
