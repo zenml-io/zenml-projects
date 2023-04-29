@@ -42,7 +42,9 @@ Once the installation is complete, you can run the pipeline locally:
 python run.py
 ```
 
-Note that the pipeline generates artifacts related to ZenML's documentation and examples by default.
+Note that the pipeline uses parameters for a private supabase database for a particular use-case for you-tldr. However, you can easily modify or send different parameters to the [`importer` step](src/steps/importers.py) for your own database needs.
+
+You can also modify the preset prompts and system inputs in the [`generate_summary` step](src/steps/summarizers.py)
 
 ## Run the Pipeline on a Remote Stack with Alerter
 
