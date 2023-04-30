@@ -36,7 +36,7 @@ def gpt_4_summarizer(
     openai_secret = Client().get_secret("openai")
     last_step = (
         get_pipeline(context.pipeline_name)
-        .runs[0]
+        .runs[1]  # Index 0 is the current step, so we go to index 1
         .get_step("generate_summary")
     )
     if len(last_step.outputs) == 0:
