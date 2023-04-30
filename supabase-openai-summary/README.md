@@ -6,6 +6,15 @@ The output of the pipeline posts the summary to a Slack channel:
 
 ![The summary in Slack](assets/youtldr_summarizer_slack.png)
 
+An example report might be:
+
+1. There is a significant interest in technology and software development, with topics such as data analytics, programming languages, software tools, and game development being popular among users.
+
+2. Users are also interested in educational and informative content, including tutorials, lectures, and discussions on various subjects such as ethics, philosophy, and economics.
+
+3. There is a noticeable trend in content related to personal development and self-improvement, with videos on productivity, decision-making, and life advice.
+
+
 ## Installation
 
 Install the required packages using the `requirements.txt` file in the `/src` directory:

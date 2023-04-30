@@ -17,7 +17,7 @@ import openai
 
 from zenml.steps import step, BaseParameters, StepContext
 from zenml.client import Client
-from zenml.post_execution import get_pipeline
+from zenml.post_execution import get_pipeline, PipelineRunView
 
 
 class SummarizerParams(BaseParameters):
@@ -34,11 +34,12 @@ def gpt_4_summarizer(
 ) -> str:
     """Summarizes the data using GPT-4."""
     openai_secret = Client().get_secret("openai")
-    last_step = (
-        get_pipeline(context.pipeline_name)
-        .runs[1]  # Index 0 is the current step, so we go to index 1
-        .get_step("generate_summary")
-    )
+
+    p = get_pipeline(context.pipeline_name)
+
+    last_step = PipelineRunView(
+        Client().list_runs(size=5, pipeline_id=p.id)[1]
+    ).get_step("generate_summary")
     if len(last_step.outputs) == 0:
         last_analysis = "No previous analysis found."
     else:
