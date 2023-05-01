@@ -1,6 +1,6 @@
 # Generate Daily Summary of Supabase Database using GPT-4 and ZenML
 
-This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a deployed ZenML instance in Hugging Face Spaces.
+This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a [a deployed ZenML instance in Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-sdks-docker-zenml).
 
 The output of the pipeline posts the summary to a Slack channel:
 
@@ -57,13 +57,13 @@ Once the installation is complete, you can run the pipeline locally:
 python run.py
 ```
 
-Note that the pipeline uses parameters for a private supabase database for a particular use-case for you-tldr. However, you can easily modify or send different parameters to the [`importer` step](src/steps/importers.py) for your own database needs.
+Note that the pipeline uses parameters for a private Supabase database for a particular use-case for you-tldr.com. However, you can easily modify or send different parameters to the [`importer` step](src/steps/importers.py) for your own database needs.
 
 You can also modify the preset prompts and system inputs in the [`generate_summary` step](src/steps/summarizers.py)
 
 ## Run the Pipeline on a Remote Stack with Alerter
 
-To run the pipeline on a remote stack with an artifact store and a Slack alerter, follow these steps:
+To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/component-gallery/artifact-stores) and [a Slack alerter](https://docs.zenml.io/component-gallery/alerters/slack), follow these steps:
 
 1. Install the GCP and Slack integrations for ZenML:
 
@@ -80,7 +80,7 @@ zenml artifact-store register gcp_store -f gcp --path=gs://PATH_TO_STORE
 3. Register the Slack alerter:
 
 ```bash
-zenml alerter register slack_alerter -f slack --slack_token=xoxb-252073111237684-3578623123400484-eeHtdsdfdfacK8ZJk20pHhamV --default_slack_channel_id=C03EDA8X0X
+zenml alerter register slack_alerter -f slack --slack_token=<YOUR_SLACK_TOKEN> --default_slack_channel_id=<YOUR_SLACK_CHANNEL_ID>
 ```
 
 4. Register the stack with the GCP artifact store and Slack alerter:
@@ -93,7 +93,7 @@ Once the stack is registered and set active, the pipeline will run on the remote
 
 ## Automate Pipeline Execution with GitHub Actions
 
-To automate the pipeline execution every day, you can use GitHub Actions. First, store your secrets in the GitHub repository's secrets settings. Add the following secrets:
+To automate the pipeline execution every day, you can use GitHub Actions. First, store your secrets [in the GitHub repository's secrets settings](https://docs.github.com/en/codespaces/managing-codespaces-for-your-organization/managing-encrypted-secrets-for-your-repository-and-organization-for-github-codespaces). Add the following secrets:
 
 - `GCP_SA_KEY`: Your GCP service account key in JSON format.
 - `ZENML_URL`: The URL of your deployed ZenML instance.
