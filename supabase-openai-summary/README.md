@@ -1,6 +1,6 @@
 # Generate Daily Summary of Supabase Database using GPT-4 and ZenML
 
-This project demonstrates how to create a daily summary of a Supabase database using OpenAI GPT-4 and ZenML. We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a deployed ZenML instance in Hugging Face Spaces.
+This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a deployed ZenML instance in Hugging Face Spaces.
 
 The output of the pipeline posts the summary to a Slack channel:
 
@@ -14,6 +14,9 @@ An example report might be:
 
 3. There is a noticeable trend in content related to personal development and self-improvement, with videos on productivity, decision-making, and life advice.
 
+The true power of this project lies in its ability to read from an enterprise dataset and generate summaries over time, which can be applied to a wide range of use cases, such as personalized marketing or monitoring and analyzing trends in your data. While this case study focuses on Supabase and OpenAI, the approach can be easily adapted to work with other databases and LLMs, providing flexibility and versatility for your specific needs. By leveraging the power of ZenML, GPT-4, and Supabase (or your preferred database and LLM), you can unlock the full potential of your enterprise data and gain a competitive edge in your industry.
+
+You can easily modify or send different parameters to your database by modifying the [`importer` step](src/steps/importers.py) and change the preset prompts and system inputs, or even the LLM service used in the [`generate_summary` step](src/steps/summarizers.py)
 
 ## Installation
 
@@ -36,10 +39,13 @@ zenml connect --url https://*** --username *** --password ***
 Create the necessary secrets for Supabase and OpenAI:
 
 ```bash
+# These are supplied when you create a new project in your project dashboard.
 zenml secret create supabase \
     --supabase_url=$SUPABASE_URL \
     --supabase_key=$SUPABASE_KEY
 
+# Make sure to have access to GPT-4 (https://openai.com/gpt4)
+# You can get your keys at https://platform.openai.com/account/api-keys
 zenml secret create openai --api_key=$OPENAPI_API_KEY   
 ```
 
