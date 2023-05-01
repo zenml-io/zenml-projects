@@ -14,7 +14,7 @@ An example report might be:
 
 3. There is a noticeable trend in content related to personal development and self-improvement, with videos on productivity, decision-making, and life advice.
 
-The true power of this project lies in its ability to read from an enterprise dataset and generate summaries over time, which can be applied to a wide range of use cases, such as personalized marketing or monitoring and analyzing trends in your data. While this case study focuses on Supabase and OpenAI, the approach can be easily adapted to work with other databases and LLMs, providing flexibility and versatility for your specific needs. By leveraging the power of ZenML, GPT-4, and Supabase (or your preferred database and LLM), you can unlock the full potential of your enterprise data and gain a competitive edge in your industry.
+The key advantage of this project is its ability to analyze enterprise datasets and generate summaries over time. By integrating ZenML, GPT-4, and Supabase, we can create a versatile system applicable to various use cases. For example, one compelling application is in customer support. Imagine using this pipeline to analyze and summarize customer feedback, support tickets, or product reviews. The summaries could help identify common pain points, trends, or areas for improvement, providing valuable insights for product development teams to prioritize features and enhancements based on real customer feedback.
 
 You can easily modify or send different parameters to your database by modifying the [`importer` step](src/steps/importers.py) and change the preset prompts and system inputs, or even the LLM service used in the [`generate_summary` step](src/steps/summarizers.py)
 
@@ -91,7 +91,11 @@ zenml stack register -a gcp_store -o default --alerter=slack_alerter --active
 
 Once the stack is registered and set active, the pipeline will run on the remote stack with the GCP artifact store and send alerts to the specified Slack channel.
 
-## Automate Pipeline Execution with GitHub Actions
+## Running in production: Choose your MLOps stack
+
+ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/component-gallery/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/component-gallery/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/starter-guide/pipelines/parameters-and-caching) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
+
+## Example: Automate Pipeline Execution with GitHub Actions
 
 To automate the pipeline execution every day, you can use GitHub Actions. First, store your secrets [in the GitHub repository's secrets settings](https://docs.github.com/en/codespaces/managing-codespaces-for-your-organization/managing-encrypted-secrets-for-your-repository-and-organization-for-github-codespaces). Add the following secrets:
 
