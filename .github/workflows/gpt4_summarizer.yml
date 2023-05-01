@@ -1,4 +1,4 @@
-name: Summarize Supabase with
+name: Summarize Supabase with GPT-4 and ZenML
 
 on:
   schedule:

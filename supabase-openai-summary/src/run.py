@@ -23,7 +23,7 @@ from zenml.client import Client
 
 def main():
     if Client().active_stack.alerter is None:
-        # we use a print step
+        # we use a print alerter
         alerter = print_alerter()
     else:
         # We assume its a slack alerter

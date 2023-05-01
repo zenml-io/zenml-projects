@@ -24,7 +24,7 @@ class SummarizerParams(BaseParameters):
     """Prompts for the summarizer."""
 
     system_content: str = "Act like a data analytics expert."
-    prompt_preamble: str = "Summarize the latest data from the database. The data is YouTube videos and we are keen to understand what sort of videos users have input, the trends, and similarities between them. We also have the analysis from last time that we will give to you as input"
+    prompt_preamble: str = "Summarize the latest data from the database. The data is YouTube video titles and we are keen to understand what sort of videos users are accessing, the trends, and similarities between them. We also have the analysis from last time that we will give to you as input."
     prompt_example: str = "The latest data indicates the following key insights: 1. The number of users has increased by 10% in the last 24 hours. 2. The number of users has increased by 10% in the last 24 hours. 3... Compared to our last summary, it seems our users are starting to watch more videos about cats."
 
 
