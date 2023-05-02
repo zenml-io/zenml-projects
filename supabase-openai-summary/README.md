@@ -28,7 +28,11 @@ pip install -r src/requirements.txt
 
 ## Connect to Your Deployed ZenML
 
-Establish a connection with your deployed ZenML instance:
+In order to run a ZenML pipeline remotely (e.g. on the cloud), we first need to
+[deploy ZenML](https://docs.zenml.io/getting-started/deploying-zenml). One of the
+easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/getting-started/deploying-zenml/huggingface).
+
+Afterwards, establish a connection with your deployed ZenML instance:
 
 ```bash
 zenml connect --url https://*** --username *** --password ***
