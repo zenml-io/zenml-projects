@@ -101,6 +101,11 @@ integrations.</h3>
 <!-- Langchain Slackbot -->
 
 [zenmlproject-slackbot-url]: https://zenml.io/project/langchain-llamaindex-slackbot
+
+<!-- Supabase Open GPT-4 -->
+[github-supabase-url]: https://github.com/zenml-io/zenml-projects/tree/main/supabase-openai-summary
+[zenmlproject-slackbot-url]: https://zenml.io/project/supabase-openai-summary
+
 <!-- [youtube-slackbot-url]: TKTKTKTK -->
 [github-slackbot-url]: https://github.com/zenml-io/zenml-projects/tree/main/langchain-llamaindex-slackbot
 
@@ -129,6 +134,7 @@ A list of updated and maintained Projects by the ZenML team and the community:
 | Customer Satisfaction | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url] | Tabular | `mlflow` `kubeflow` |
 | Customer Churn | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url] | Tabular | `kubeflow` `seldon` |
 | YOLOv5 Object Detection | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url] | Computer-vision | `mlflow` `vertex` |
+| LLMs To Analyze Databases | [![project][zenmlproject-shield]][zenmlproject-supabase-url] [![yt][github-shield]][github-supabase-url] | NLP, LLMs | `supabase` `openai` `gpt-4` |
 | GitFlow ZenML Project | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url] | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | ZenNews | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url] | NLP | `gcp` `vertex` `discord` |
 | Langchain Slackbot | [![project][zenmlproject-shield]][zenmlproject-slackbot-url] [![yt][github-shield]][github-slackbot-url] | NLP, LLMs | `slack` `langchain` `llama_index` |
