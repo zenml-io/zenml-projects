@@ -104,7 +104,7 @@ integrations.</h3>
 
 <!-- Supabase Open GPT-4 -->
 [github-supabase-url]: https://github.com/zenml-io/zenml-projects/tree/main/supabase-openai-summary
-[zenmlproject-slackbot-url]: https://zenml.io/project/supabase-openai-summary
+[zenmlproject-supabase-url]: https://zenml.io/project/supabase-openai-summary
 
 <!-- [youtube-slackbot-url]: TKTKTKTK -->
 [github-slackbot-url]: https://github.com/zenml-io/zenml-projects/tree/main/langchain-llamaindex-slackbot
