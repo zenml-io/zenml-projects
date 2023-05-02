@@ -1,0 +1,38 @@
+name: Summarize Supabase with GPT-4 and ZenML
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  push:
+    branches:
+      - project/new-summary-project
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ZENML_ANALYTICS_OPT_IN: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Log into GCP
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Run ZenML Pipeline
+      run: |
+        cd supabase-openai-summary/src
+        pip install -r requirements.txt
+        zenml init
+        zenml integration install gcp slack -y
+        zenml connect --url ${{ secrets.ZENML_URL }} --username ${{ secrets.ZENML_USERNAME }} --password ${{ secrets.ZENML_PASSWORD }}
+        zenml stack set ${{ secrets.ZENML_STACK }}
+        python run.py
