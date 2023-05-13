@@ -35,15 +35,16 @@ def gpt_4_summarizer(
     """Summarizes the data using GPT-4."""
     openai_secret = Client().get_secret("openai")
 
-    p = get_pipeline(context.pipeline_name)
+    p: PipelineRunView = get_pipeline(context.pipeline_name)
 
-    last_step = PipelineRunView(
-        Client().list_runs(size=5, pipeline_id=p.id)[1]
-    ).get_step("generate_summary")
-    if len(last_step.outputs) == 0:
+    try:
+        last_step = p.runs[1].get_step("generate_summary")
+        if len(last_step.outputs) == 0:
+            last_analysis = "No previous analysis found."
+        else:
+            last_analysis = last_step.output.read()
+    except KeyError:
         last_analysis = "No previous analysis found."
-    else:
-        last_analysis = last_step.output.read()
 
     openai.api_key = openai_secret.secret_values["api_key"]
 
