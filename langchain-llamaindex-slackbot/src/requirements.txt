@@ -2,7 +2,7 @@ langchain==0.0.125
 openai==0.27.2
 slack-bolt==1.16.2
 slack-sdk==3.20.0
--e  git+https://github.com/zenml-io/zenml.git@develop#egg=zenml
+zenml==0.40.1
 fastapi
 flask
 uvicorn
