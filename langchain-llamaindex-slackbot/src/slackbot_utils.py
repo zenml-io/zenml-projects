@@ -58,11 +58,9 @@ def connect_to_zenml_server():
 
 def get_vector_store():
     """Get the vector store from the pipeline."""
-    # gets the most recent pipeline version
-    pipeline = get_pipeline(pipeline=PIPELINE_NAME).versions[0]
+    pipeline = get_pipeline(pipeline=PIPELINE_NAME)
     our_run = pipeline.runs[0]
-    print("Using pipeline: ", pipeline.model.name, "v", pipeline.model.version)
-    print("Created on: ", pipeline.model.updated)
+    print("Using pipeline: ", pipeline.name)
     return our_run.steps[-1].output.read()
 
 
