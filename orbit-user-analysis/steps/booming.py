@@ -24,7 +24,7 @@ from steps.utils import list_members, update_member_tags
 def booming(
         check_days: int = 14,
         booming_threshold: int = 150
-) -> str:
+) -> None:
     """Step that detects users with activity above a certain threshold.
 
     Args:
@@ -64,5 +64,3 @@ def booming(
 
             member_slug = member["attributes"]["slug"]
             update_member_tags(member_slug, tags)
-
-    return json.dumps(new_booming_members)
