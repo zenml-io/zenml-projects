@@ -55,7 +55,7 @@ def churned(params: ChurnedParameters) -> None:
         last_activity_t = parser.isoparse(last_activity)
         last_activity_delta = datetime.now(timezone.utc) - last_activity_t
 
-        if last_activity_delta > timedelta(days=params.inactive_days):
+        if last_activity_delta < timedelta(days=params.inactive_days):
             tags = member["attributes"]["tags"] or []
 
             if CHURNED_TAG in tags:
