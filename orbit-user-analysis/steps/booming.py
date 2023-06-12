@@ -14,29 +14,23 @@
 
 import json
 
-from zenml.steps import step, BaseParameters
+from zenml import step
 
 from constants import BOOMING_TAG
 from steps.utils import list_members, update_member_tags
 
 
-class BoomingParameters(BaseParameters):
-    """Parameters for the 'booming' step. 
-    
-    Attributes:
-        check_days: the number of days     
-        
-    """
-    check_days: int = 14
-    booming_threshold: int = 150
-
-
 @step
-def booming(params: BoomingParameters) -> str:
+def booming(
+        check_days: int = 14,
+        booming_threshold: int = 150
+) -> str:
     """Step that detects users with activity above a certain threshold.
 
-     Args:
-         params: parameters for the step
+    Args:
+        check_days: the number of days to check in the past
+        booming_threshold: the minimum number of events someone has to conduct
+            to be tagged with the booming tag.
 
      Returns:
          json string representing the list of users and their metadata
@@ -58,8 +52,8 @@ def booming(params: BoomingParameters) -> str:
 
     # The second section is about detection new booming users
     new_booming_members = list_members(
-        days=params.check_days,
-        activities_count_min=params.booming_threshold,
+        days=check_days,
+        activities_count_min=booming_threshold,
     )
 
     for member in new_booming_members:
