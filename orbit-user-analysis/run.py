@@ -14,7 +14,6 @@
 
 
 from pipelines import community_analysis_pipeline
-from steps import churned, booming, report
 
 import argparse
 
@@ -38,6 +37,6 @@ if __name__ == "__main__":
         schedule = None
 
     community_analysis_pipeline = community_analysis_pipeline.with_options(
-        schedule=Schedule
+        schedule=schedule
     )
     community_analysis_pipeline()
