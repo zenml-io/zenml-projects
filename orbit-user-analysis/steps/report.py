@@ -12,19 +12,10 @@ from datetime import datetime
 from typing import Tuple, List, Any
 
 from discord import SyncWebhook, Embed
-from zenml.steps import step, BaseParameters
+from zenml import step
 
 from constants import BOOMING_TAG, CHURNED_TAG
 from steps.utils import list_members, get_orbit_secrets, get_discord_secret
-
-
-class ReportParameters(BaseParameters):
-    """Parameters for the report step.
-
-    Attributes:
-        check_days: the amount of days to go back while creating the link.
-    """
-    check_days: int = 180
 
 
 def generate_link(tag: str, days: int) -> str:
@@ -48,8 +39,13 @@ def generate_link(tag: str, days: int) -> str:
 
 
 @step
-def report(params: ReportParameters) -> Tuple[List[Any], List[Any]]:
-    """Step that sends Discord messages and saves the results."""
+def report(check_days: int = 180) -> Tuple[List[Any], List[Any]]:
+    """Step that sends Discord messages and saves the results.
+
+    Attributes:
+        check_days: the amount of days to go back while creating the link.
+
+    """
 
     discord_webhook = SyncWebhook.from_url(get_discord_secret())
 
@@ -64,8 +60,8 @@ def report(params: ReportParameters) -> Tuple[List[Any], List[Any]]:
                 description=f"Link to the Orbit members page, which is "
                             f"prefiltered to include members with the `{tag}` "
                             f"tag and who have been active at least once "
-                            f"in the last {params.check_days} days!",
-                url=generate_link(tag=tag, days=params.check_days),
+                            f"in the last {check_days} days!",
+                url=generate_link(tag=tag, days=check_days),
                 colour=12745742,
             )
         )

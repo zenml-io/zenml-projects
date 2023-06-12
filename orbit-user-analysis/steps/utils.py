@@ -20,9 +20,7 @@ from zenml.client import Client
 
 def get_discord_secret() -> str:
     """Function to get the Discord secret to retrieve the webhook url."""
-    secret_manager = Client().active_stack.secrets_manager
-
-    webhook_url = secret_manager.get_secret("discord").content["webhook_url"]
+    webhook_url = Client().get_secret("discord").secret_values["webhook_url"]
 
     return webhook_url
 
@@ -33,10 +31,10 @@ def get_orbit_secrets() -> Tuple[str, str]:
     Returns:
         tuple, workspace name and API token
     """
-    secret_manager = Client().active_stack.secrets_manager
+    client = Client()
 
-    workspace = secret_manager.get_secret("orbit").content["workspace"]
-    token = secret_manager.get_secret("orbit").content["api_token"]
+    workspace = client.get_secret("orbit").secret_values["workspace"]
+    token = client.get_secret("orbit").secret_values["api_token"]
 
     return workspace, token
 
