@@ -13,20 +13,15 @@
 #  permissions and limitations under the License.
 
 from zenml.config import DockerSettings
-from zenml.pipelines import pipeline
+from zenml import pipeline
+from steps import booming, churned, report
 
 docker_settings = DockerSettings(requirements="requirements.txt")
 
 
-@pipeline(enable_cache=False)
-def community_analysis_pipeline(booming, churned, report) -> None:
-    """Defines a pipeline to analyze the community on Orbit
-
-    Args:
-        booming: step that manages booming users
-        churned: step that manages churned users
-        report: step that creates a report from the results
-    """
+@pipeline(enable_cache=False, settings={'docker': docker_settings})
+def community_analysis_pipeline() -> None:
+    """Defines a pipeline to analyze the community on Orbit."""
     booming()
     churned()
 
