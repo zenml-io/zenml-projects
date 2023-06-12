@@ -12,7 +12,10 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+from zenml.config import DockerSettings
 from zenml.pipelines import pipeline
+
+docker_settings = DockerSettings(requirements="requirements.txt")
 
 
 @pipeline(enable_cache=False)
