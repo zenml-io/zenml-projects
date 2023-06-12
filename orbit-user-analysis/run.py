@@ -30,9 +30,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.daily:
-        schedule = Schedule(cron_expression="0 9 * * * *")
+        schedule = Schedule(cron_expression="0 9 * * *")
     elif args.weekly:
-        schedule = Schedule(cron_expression="0 9 * * * MON")
+        schedule = Schedule(cron_expression="0 9 * * MON")
     else:
         schedule = None
 
