@@ -16,10 +16,28 @@
 from pipelines import community_analysis_pipeline
 from steps import churned, booming, report
 
+import argparse
+
+from zenml.config.schedule import Schedule
 
 if __name__ == "__main__":
-    community_analysis_pipeline(
-        churned=churned(),
-        booming=booming(),
-        report=report(),
-    ).run()
+
+    parser = argparse.ArgumentParser()
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-w", "--weekly", action="store_true")
+    group.add_argument("-d", "--daily", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.daily:
+        schedule = Schedule(cron_expression="0 9 * * * *")
+    elif args.weekly:
+        schedule = Schedule(cron_expression="0 9 * * * MON")
+    else:
+        schedule = None
+
+    community_analysis_pipeline = community_analysis_pipeline.with_options(
+        schedule=Schedule
+    )
+    community_analysis_pipeline()
