@@ -19,6 +19,7 @@ from langchain.text_splitter import (
     CharacterTextSplitter,
 )
 from langchain.vectorstores import Weaviate
+from langchain.embeddings import HuggingFaceEmbeddings
 from zenml.steps import step, BaseParameters
 
 
@@ -37,8 +38,11 @@ def index_generator(
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)
 
+    embedding = HuggingFaceEmbeddings()
+
     return Weaviate.from_documents(
         index_name="documents",
         documents=compiled_texts,
+        embedding=embedding,
         weaviate_url=config.weaviate_settings["url"],
     )
