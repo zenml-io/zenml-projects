@@ -18,13 +18,27 @@ from langchain.docstore.document import Document
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
-from langchain.vectorstores import Chroma
-from zenml.steps import step
+from langchain.vectorstores import Weaviate
+from zenml.steps import step, BaseParameters
+
+
+class IndexParameters(BaseParameters):
+    """Parameters for the agent."""
+
+    weaviate_settings: dict = {
+        "url": "",
+    }
 
 
 @step(enable_cache=True)
-def index_generator(documents: List[Document]) -> Chroma:
+def index_generator(
+    documents: List[Document], config: IndexParameters
+) -> Weaviate:
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)
 
-    return Chroma.from_documents(compiled_texts)
+    return Weaviate.from_documents(
+        index_name="documents",
+        documents=compiled_texts,
+        weaviate_url=config.weaviate_settings["url"],
+    )

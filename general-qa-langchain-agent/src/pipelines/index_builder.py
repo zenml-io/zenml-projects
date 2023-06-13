@@ -19,7 +19,11 @@ pipeline_name = "zenml_docs_index_generation"
 
 
 @pipeline(name=pipeline_name)
-def docs_to_index_pipeline(url_scraper, web_loader, index_generator):
+def docs_to_index_pipeline(
+    url_scraper, web_loader, index_generator, agent_creator
+):
     urls = url_scraper()
     documents = web_loader(urls)
-    index_generator(documents)
+    vector_store = index_generator(documents)
+    agent = agent_creator(vector_store)
+    # deploy_agent(agent)
