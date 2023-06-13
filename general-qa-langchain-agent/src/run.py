@@ -45,11 +45,6 @@ def main():
         ),
         agent_creator=agent_creator(
             config=AgentParameters(
-                llm=HuggingFaceHub(
-                    repo_id="google/flan-t5-xl",
-                    # huggingfacehub_api_token="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",
-                    model_kwargs={"temperature": 0, "max_length": 500},
-                ),
                 weaviate_settings=weaviate_settings,
             )
         ),

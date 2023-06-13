@@ -10,6 +10,7 @@ from langchain.agents import initialize_agent
 from langchain.agents import AgentExecutor, AgentType
 from langchain.tools.base import BaseTool
 from langchain.llms.base import LLM
+from pydantic import BaseModel
 from weaviate import Client
 from zenml.steps import step, BaseParameters
 
@@ -17,7 +18,12 @@ from zenml.steps import step, BaseParameters
 class AgentParameters(BaseParameters):
     """Parameters for the agent."""
 
-    llm: HuggingFaceHub
+    llm: Dict = {
+        "repo_id": "google/flan-t5-xl",
+        "huggingfacehub_api_token": "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",
+        "model_kwargs": {"temperature": 0, "max_length": 500},
+    }
+
     weaviate_settings: Dict = {
         "url": "",
     }
@@ -46,7 +52,7 @@ def agent_creator(
             description="How to debug errors in ZenML, how to answer conceptual "
             "questions about ZenML like available features, existing abstractions, "
             "and other parts from the documentation.",
-            llm=config.llm,
+            llm=HuggingFaceHub(**config.llm),
         ),
     ]
 
