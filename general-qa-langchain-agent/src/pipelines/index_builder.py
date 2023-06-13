@@ -14,11 +14,14 @@
 
 
 from zenml.pipelines import pipeline
+from zenml.config import DockerSettings
 
-pipeline_name = "zenml_docs_index_generation"
+pipeline_name = "zenml_agent"
+
+docker_settings = DockerSettings(requirements="requirements.txt")
 
 
-@pipeline(name=pipeline_name)
+@pipeline(name=pipeline_name, settings={"docker": docker_settings})
 def docs_to_index_pipeline(
     url_scraper, web_loader, index_generator, agent_creator
 ):

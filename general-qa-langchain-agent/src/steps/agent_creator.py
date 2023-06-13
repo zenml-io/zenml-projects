@@ -1,3 +1,4 @@
+from typing import Dict
 from langchain.llms import HuggingFaceHub
 from langchain.vectorstores import VectorStore, Weaviate
 from langchain.vectorstores.base import VectorStoreRetriever
@@ -17,13 +18,13 @@ class AgentParameters(BaseParameters):
     """Parameters for the agent."""
 
     llm: HuggingFaceHub
-    weaviate_settings: dict = {
+    weaviate_settings: Dict = {
         "url": "",
     }
 
     # allow extra fields
     class Config:
-        extra = "allow"
+        extra = "ignore"
 
 
 @step
