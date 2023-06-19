@@ -24,7 +24,7 @@ integrations.</h3>
     <br />
     <a href="https://zenml.io/features">Features</a>
     ·
-    <a href="https://zenml.io/roadmap"">Roadmap</a>
+    <a href="https://zenml.io/roadmap">Roadmap</a>
     ·
     <a href="https://github.com/zenml-io/zenml-projects/issues">Report Bug</a>
     ·

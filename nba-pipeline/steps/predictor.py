@@ -10,7 +10,7 @@ def predictor(
     data: pd.DataFrame,
     le_seasons: preprocessing.LabelEncoder,
 ) -> pd.DataFrame:
-    """Runs predictions on next weeks NBA matches.
+    """Runs predictions on next week's NBA matches.
 
     Args:
         model: A sklearn regression model (e.g. RandomForestRegressor).

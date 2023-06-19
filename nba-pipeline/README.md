@@ -90,7 +90,7 @@ We're ready to go now. You have two options:
 
 You can spin up a step-by-step guide in `Building and Using An MLOPs Stack With ZenML.ipynb`:
 
-```python
+```bash
 jupyter notebook
 ```
 
@@ -117,7 +117,7 @@ zenml stack describe
 
 Then, run the pipelines using `run_pipeline.py` script:
 
-```python
+```bash
 python run_pipeline.py drift  # Run one-shot drift pipeline
 python run_pipeline.py train  # Run training pipeline
 python run_pipeline.py infer  # Run inference pipeline
@@ -217,7 +217,7 @@ zenml stack up
 
 You are now ready to run the pipeline!
 
-```python
+```bash
 python run_pipeline.py drift  # Run drift detection pipeline
 python run_pipeline.py train  # Run training pipeline
 python run_pipeline.py infer  # Run inference pipeline

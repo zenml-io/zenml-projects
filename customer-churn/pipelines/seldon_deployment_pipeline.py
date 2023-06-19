@@ -1,7 +1,7 @@
 import json
 from typing import cast
 
-import numpy as np  # type: ignore [import]
+import numpy as np  # type:ignore[import]
 import pandas as pd
 from zenml.integrations.seldon.model_deployers import SeldonModelDeployer
 from zenml.integrations.seldon.services import SeldonDeploymentService

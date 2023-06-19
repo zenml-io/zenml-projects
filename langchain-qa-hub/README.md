@@ -8,27 +8,27 @@ To run the QA pipeline, follow these steps:
 
 1. Install the `langchain_qa_example` plugin from ZenML Hub using the following command:
 
-```bash
-zenml hub install langchain_qa_example
-```
+    ```bash
+    zenml hub install langchain_qa_example
+    ```
 
 2. Set your OpenAI API key as an environment variable:
 
-```bash
-export OPENAI_API_KEY=<YOUR_KEY> # Get it from https://platform.openai.com/account/api-keys
-```
+    ```bash
+    export OPENAI_API_KEY=<YOUR_KEY> # Get it from https://platform.openai.com/account/api-keys
+    ```
 
 3. Import and run the `build_zenml_docs_qa_pipeline` function from the `langchain_qa_example` plugin, passing in the desired question as a parameter. For example:
 
-```python
-from zenml.hub.langchain_qa_example import build_zenml_docs_qa_pipeline
-
-# Specify the question to be answered
-question = "What is ZenML?"
-
-# Run the QA pipeline
-pipeline = build_zenml_docs_qa_pipeline(question=question, load_all_paths=False).run()
-```
+    ```python
+    from zenml.hub.langchain_qa_example import build_zenml_docs_qa_pipeline
+    
+    # Specify the question to be answered
+    question = "What is ZenML?"
+    
+    # Run the QA pipeline
+    pipeline = build_zenml_docs_qa_pipeline(question=question, load_all_paths=False).run()
+    ```
 
 The pipeline will fetch data from the ZenML documentation, create an index, and use the GPT-3.5 language model to answer the question based on the corpus.
 
