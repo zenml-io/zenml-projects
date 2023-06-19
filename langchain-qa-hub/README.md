@@ -67,4 +67,4 @@ account can submit plugins. To find out how, check out the
 [ZenML Hub Plugin Template](https://github.com/zenml-io/zenml-hub-plugin-template).
 
 If you would like to learn more about the ZenML Hub in general, check out the
-[ZenML Hub Documentation](https://docs.zenml.io/collaboration/zenml-hub) or the [ZenML Hub Launch Blog Post](https://blog.zenml.io/zenml-hub-launch).
+[ZenML Hub Documentation](https://docs.zenml.io/user-guide/advanced-guide/leverage-community-contributed-plugins) or the [ZenML Hub Launch Blog Post](https://blog.zenml.io/zenml-hub-launch).

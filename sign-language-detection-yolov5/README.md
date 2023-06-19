@@ -19,7 +19,7 @@ In order to build a model that can detect and recognize the American Sign Langua
 
 1. Download the dataset from [Roboflow](https://public.roboflow.com/object-detection/american-sign-language-alphabet)
 2. Augment the training and valdiation sets using [Albumentations](https://albumentations.ai/)
-3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/vertex) stack component.
+3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/user-guide/component-guide/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/component-gallery/step-operators/vertex) stack component.
 4. Load the model in a different pipeline that deploys the model using [BentoML](https://www.bentoml.com/) and the provided ZenML integration.
 5. Create an inference pipeline that will use the deployed model to detect and recognize the American Sign Language alphabet in test images from the first pipeline.
 
@@ -32,18 +32,18 @@ installed on your local machine:
 * [Docker](https://www.docker.com/)
 * [GCloud CLI](https://cloud.google.com/sdk/docs/install) (authenticated)
 * [MLFlow Tracking Server](https://mlflow.org/docs/latest/tracking.html#mlflow-tracking-servers) (deployed remotely)
-* [Remote ZenML Server](https://docs.zenml.io/getting-started/deploying-zenml#deploying-zenml-in-the-cloud-remote-deployment-of-the-http-server-and-database): a Remote Deployment of the ZenML HTTP server and database
+* [Remote ZenML Server](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml): a Remote Deployment of the ZenML HTTP server and database
 
 ### :rocket: Remote ZenML Server
 
 For advanced use cases where we have a remote orchestrator or step operators such as Vertex AI
 or to share stacks and pipeline information with a team we need to have a separated non-local remote ZenML Server that can be accessible from your
 machine as well as all stack components that may need access to the server.
-[Read more information about the use case here](https://docs.zenml.io/getting-started/deploying-zenml)
+[Read more information about the use case here](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml)
 
 In order to achieve this there are two different ways to get access to a remote ZenML Server.
 
-1. Deploy and manage the server manually on [your own cloud](https://docs.zenml.io/getting-started/deploying-zenml)/
+1. Deploy and manage the server manually on [your own cloud](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml)/
 2. Sign up for [ZenML Enterprise](https://zenml.io/pricing) and get access to a hosted
    version of the ZenML Server with no setup required.
 
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 pip install -r yolov5/requirements.txt
 ```
 
-Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/getting-started/deploying-zenml), but first you must install the optional dependencies for the ZenML server:
+Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/user-guide/starter-guide#explore-the-dashboard), but first you must install the optional dependencies for the ZenML server:
 
 ```bash
 zenml connect --url=$ZENML_SERVER_URL
@@ -270,7 +270,7 @@ The Inference pipeline is made up of the following steps:
 
 # 📜 References
 
-- Documentation on [Step Operators](https://docs.zenml.io/component-gallery/step-operators)
+- Documentation on [Step Operators](https://docs.zenml.io/user-guide/component-guide/step-operators)
 - Example of [Step Operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 - More on [Step Operators](https://blog.zenml.io/step-operators-training/)
 - Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)

@@ -93,7 +93,7 @@ a backend
 
 ### Setup Infrastructure with ZenML Stack recipes:
 
-With [ZenML Stack Recipes](https://docs.zenml.io/advanced-guide/practical-mlops/stack-recipes), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
+With [ZenML Stack Recipes](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-and-set-up-a-cloud-stack/deploy-a-stack-using-stack-recipes), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
 
 The flow to get started for this example can be the following:
 
@@ -126,7 +126,7 @@ The flow to get started for this example can be the following:
 >
 >  You need to have your AWS credentials saved locally under ~/.aws/credentials
 
-You can now skip directly to the [part of this guide where you define ZenML secrets](https://docs.zenml.io/advanced-guide/practical-mlops/secrets-management) for Seldon! 
+You can now skip directly to the [part of this guide where you define ZenML secrets](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/use-the-secret-store) for Seldon! 
 
 ### Running the Pipeline
 
