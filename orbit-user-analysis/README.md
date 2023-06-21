@@ -65,9 +65,9 @@ python run.py
 
 It is much more ideal to run a pipeline such as the 
 `community_analysis_pipeline` on a regular schedule. In order to achieve that, 
-you have to [deploy ZenML](https://docs.zenml.io/getting-started/deploying-zenml) 
+you have to [deploy ZenML](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml) 
 and set up a stack that supports 
-[our scheduling feature](https://docs.zenml.io/advanced-guide/pipelines/scheduling-runs). 
+[our scheduling feature](https://docs.zenml.io/user-guide/advanced-guide/schedule-pipeline-runs). 
 Please check [our docs](https://docs.zenml.io/getting-started/introduction) 
 for more information.
 

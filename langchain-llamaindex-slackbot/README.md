@@ -16,9 +16,9 @@ that was released previously.
 
 ## ZenML 🤝 LLM frameworks
 
-There are various terms being tried out to describe this new paradigm — from LLMOps to Big Model Ops. Not only the words used to describe how engineering will work are new, but the underlying structures and frameworks are also being developed from the ground up. We wanted to witness these changes first hand by participating and getting our hands dirty.
+There are various terms being tried out to describe this new paradigm — from LLMOps to Big Model Ops. Not only the words used to describe how engineering will work are new, but the underlying structures and frameworks are also being developed from the ground up. We wanted to witness these changes first-hand by participating and getting our hands dirty.
 
-In particular, we wanted to experience how users of ZenML might go about using our framework to integrate with these tools and models. We had seen lots of demos showcasing useful and striking use cases, but none were some of complexities around deploying these in production were raised.
+In particular, we wanted to experience how users of ZenML might go about using our framework to integrate with these tools and models. We had seen lots of demos showcasing useful and striking use cases, but none were some of the complexities around deploying these in production were raised.
 
 Starting out, we wanted to get a feel for the two well-known options for developing on top of large language models — that is, LangChain and Llama Index — by trying out some of their core functionality. In particular, loading a series of documents, doing some kind of querying of those documents and packaging this all up into some kind of frontend user experience seemed like good places to start.
 
@@ -94,15 +94,15 @@ example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat
 
 It is much more ideal to run a pipeline such as the 
 `zenml_docs_index_generation` on a regular schedule. In order to achieve that, 
-you have to [deploy ZenML](https://docs.zenml.io/getting-started/deploying-zenml) 
+you have to [deploy ZenML](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml) 
 and set up a stack that supports 
 [our scheduling
-feature](https://docs.zenml.io/advanced-guide/pipelines/scheduling-runs). If you
+feature](https://docs.zenml.io/user-guide/advanced-guide/schedule-pipeline-runs). If you
 wish to deploy the slack bot on GCP Cloud Run as described above, you'll also
 need to be using [a Google Cloud Storage Artifact
-Store](https://docs.zenml.io/component-gallery/artifact-stores/gcp). Note that
+Store](https://docs.zenml.io/user-guide/component-guide/artifact-stores/gcp). Note that
 certain code artifacts like the `Dockerfile` for this project will also need to
-be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/getting-started/introduction) 
+be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices) 
 for more information.
 
 ## Slack Bot In Action!

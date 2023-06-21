@@ -90,7 +90,7 @@ We're ready to go now. You have two options:
 
 You can spin up a step-by-step guide in `Building and Using An MLOPs Stack With ZenML.ipynb`:
 
-```python
+```bash
 jupyter notebook
 ```
 
@@ -117,7 +117,7 @@ zenml stack describe
 
 Then, run the pipelines using `run_pipeline.py` script:
 
-```python
+```bash
 python run_pipeline.py drift  # Run one-shot drift pipeline
 python run_pipeline.py train  # Run training pipeline
 python run_pipeline.py infer  # Run inference pipeline
@@ -125,12 +125,12 @@ python run_pipeline.py infer  # Run inference pipeline
 
 ## :rocket: From Local to Cloud Stack
 In ZenML you can choose to run your pipeline on any infrastructure of your choice.
-The configuration of the infrastructure is called a [Stack](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components). 
+The configuration of the infrastructure is called a [Stack](https://docs.zenml.io/user-guide/starter-guide/understand-stacks). 
 By switching the Stack, you can choose to run your pipeline locally or in the cloud.
 
-In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/getting-started/core-concepts#stacks-and-stack-components): 
-* [Orchestrator](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Coordinates all the steps to run in a pipeline.
-* [Artifact Store](https://docs.zenml.io/getting-started/core-concepts#orchestrator) - Stores all data that pass through the pipeline. 
+In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#components-of-a-stack): 
+* [Orchestrator](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#orchestrator) - Coordinates all the steps to run in a pipeline.
+* [Artifact Store](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#artifact-store) - Stores all data that pass through the pipeline. 
 
 ZenML comes with a default local stack with a local orchestrator and local artifact store.
 ![local](_assets/local_cloud.png)
@@ -217,7 +217,7 @@ zenml stack up
 
 You are now ready to run the pipeline!
 
-```python
+```bash
 python run_pipeline.py drift  # Run drift detection pipeline
 python run_pipeline.py train  # Run training pipeline
 python run_pipeline.py infer  # Run inference pipeline

@@ -17,7 +17,7 @@ def inference_pipeline(
     Args:
         importer: Import step to query data.
                 preprocessor: Preprocess data for inference.
-                extract_next_week: Extract next weeks result.
+                extract_next_week: Extract next week's result.
                 model_picker: Pick the best model from history.
                 predictor: Predict the results for next week.
                 post_processor: Post-process data for human readability.

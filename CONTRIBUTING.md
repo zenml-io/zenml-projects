@@ -13,11 +13,11 @@ you finalize your pull requests.
 
 ## ⚡️ Quicklinks
 
-* [Code of Conduct](#code-of-conduct)
-* [Getting Started](#getting-started)
-    * [Issues](#issues)
-    * [Pull Requests](#pull-requests)
-* [Getting Help](#getting-help)
+* [Code of Conduct](#-code-of-conduct)
+* [Getting Started](#-getting-started)
+    * [Issues](#-issues)
+    * [Pull Requests](#-pull-requests)
+* [Getting Help](#-getting-help)
 
 ## 🧑‍⚖️ Code of Conduct
 
@@ -96,7 +96,7 @@ the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
 1. Review and sign
    the [Contributor License Agreement](https://cla-assistant.io/zenml-io/zenml-dashboard) (
    CLA).
-2. Fork the repository to your own Github account.
+2. Fork the repository to your own GitHub account.
 3. Clone the project to your machine.
 4. Checkout the **main** branch <- `git checkout main`.
 5. Create a branch locally off the **main** branch with a succinct but descriptive name.

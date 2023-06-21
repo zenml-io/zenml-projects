@@ -22,7 +22,7 @@ some of the advantages that ZenML brings to the table. Some major points we
 would like to highlight include:
 
 - **The ease of use**: ZenML features [a simple and clean Python 
-SDK](https://docs.zenml.io/starter-guide/pipelines). As you can 
+SDK](https://docs.zenml.io/user-guide/starter-guide). As you can 
 observe in this example, it is not only used to define your steps and 
 pipelines but also to access/manage the resources and artifacts that you 
 interact with along the way. This makes it significantly easier for you 
@@ -127,16 +127,16 @@ and use the `VertexOrchestrator` to schedule the pipeline.
 
 Before you start building the stack, you need to deploy ZenML on GCP. For more 
 information on how you can achieve do that, please check 
-[the corresponding docs page](https://docs.zenml.io/getting-started/deploying-zenml).
+[the corresponding docs page](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml).
 
 ## ZenNews Stack
 
 Once the ZenML is deployed, we can start to build up our stack. Our stack will 
 consist of the following components:
 
-- [GCP Container Registry](https://docs.zenml.io/component-gallery/container-registries/gcp)
-- [GCS Artifact Store](https://docs.zenml.io/component-gallery/artifact-stores/gcp)
-- [Vertex Orchestrator](https://docs.zenml.io/component-gallery/orchestrators/vertex)
+- [GCP Container Registry](https://docs.zenml.io/user-guide/component-guide/container-registries/gcp)
+- [GCS Artifact Store](https://docs.zenml.io/user-guide/component-guide/artifact-stores/gcp)
+- [Vertex Orchestrator](https://docs.zenml.io/user-guide/component-guide/orchestrators/vertex)
 - [Discord Alerter (part of the `zennews` package)](src/zennews/alerter/discord_alerter.py)
  
 Let's start by installing the `gcp` integration:
@@ -148,7 +148,7 @@ zenml integration install gcp
 ### Container Registry
 
 The first component is a 
-[GCP container registry](https://docs.zenml.io/component-gallery/container-registries/gcp). 
+[GCP container registry](https://docs.zenml.io/user-guide/component-guide/container-registries/gcp). 
 Similar to the previous component, you just need to provide a name and the 
 URI to your container registry on GCP.
 
@@ -161,7 +161,7 @@ zenml container-registry register <CONTAINER_REGISTRY_NAME> \
 ### Artifact Store
 
 The next component on the list is a 
-[GCS artifact store](https://docs.zenml.io/component-gallery/artifact-stores/gcp). 
+[GCS artifact store](https://docs.zenml.io/user-guide/component-guide/artifact-stores/gcp). 
 In order to register it, all you have to do is to provide the path to your GCS
 bucket:
 
@@ -174,7 +174,7 @@ zenml artifact-store register <ARTIFACT_STORE_NAME> \
 ### Orchestrator
 
 Following the artifact store, we will register a
-[Vertex AI orchestrator.](https://docs.zenml.io/component-gallery/orchestrators/vertex)
+[Vertex AI orchestrator.](https://docs.zenml.io/user-guide/component-guide/orchestrators/vertex)
 
 ```bash
 zenml orchestrator register <ORCHESTRATOR_NAME> \

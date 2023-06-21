@@ -20,7 +20,7 @@ class FeatureEngineererConfig(BaseParameters):
 def limit_timeframe(
     dataset: pd.DataFrame, years_to_subtract: int
 ) -> pd.DataFrame:
-    """We use only the last couple years of data in order to not fit
+    """We use only the last couple of years of data in order to not fit
     to outdated playing styles"""
 
     today = date.today()

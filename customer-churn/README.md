@@ -93,7 +93,7 @@ a backend
 
 ### Setup Infrastructure with ZenML Stack recipes:
 
-With [ZenML Stack Recipes](https://docs.zenml.io/advanced-guide/practical-mlops/stack-recipes), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
+With [ZenML Stack Recipes](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-and-set-up-a-cloud-stack/deploy-a-stack-using-stack-recipes), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
 
 The flow to get started for this example can be the following:
 
@@ -106,17 +106,16 @@ The flow to get started for this example can be the following:
 
 3. 🔐 Add your secret information like keys and passwords into the `values.tfvars.json` file which is not committed and only exists locally.
 
-5. 🚀 Deploy the recipe with this simple command.
+4. 🚀 Deploy the recipe with this simple command.
 
     ```
     zenml stack recipe deploy aws-minimal
     ```
 
     > **Note**
-    > If you want to allow ZenML to automatically import the created resources as a ZenML stack, pass the `--import` flag to the command above. By default, the imported stack will have the same name as the stack recipe and you can provide your own with the `--stack-name` option.
-    
+    > If you want to allow ZenML to automatically import the created resources as a ZenML stack, pass the `--import` flag to the command above. By default, the imported stack will have the same name as the stack recipe, and you can provide your own with the `--stack-name` option.
 
-6. You'll notice that a ZenML stack configuration file gets created after the previous command executes 🤯! This YAML file can be imported as a ZenML stack manually by running the following command.
+5. You'll notice that a ZenML stack configuration file gets created after the previous command executes 🤯! This YAML file can be imported as a ZenML stack manually by running the following command.
 
     ```
     zenml stack import <stack-name> <path-to-the-created-stack-config-yaml>
@@ -125,10 +124,6 @@ The flow to get started for this example can be the following:
 > **Note**
 >
 >  You need to have your AWS credentials saved locally under ~/.aws/credentials
-
-You can now skip directly to the [part of this guide where you define ZenML secrets](https://docs.zenml.io/advanced-guide/practical-mlops/secrets-management) for Seldon! 
-
-### Running the Pipeline
 
 After you fulfill the prerequisites, we can configure ZenML.
 
@@ -143,7 +138,7 @@ When the setup is finished, you should see a new local URL that you can access
 in your browser and take a look at the remote Kubeflow Pipelines UI (something
 like http://localhost:8080).
 
-4. Run the pipeline
+### Running the Pipeline
 
 ```bash
 python run_kubeflow_pipeline.py train

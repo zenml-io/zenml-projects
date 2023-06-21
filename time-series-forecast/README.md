@@ -195,7 +195,7 @@ docker push gcr.io/<PROJECT-ID>/busybox
 Note that you may need to run `gcloud auth configure-docker` in order to
 authenticate your local `docker` cli with your GCP container registry and in
 order for the `docker push...` command to work. [See our
-documentation](https://docs.zenml.io/component-gallery/container-registries/gcp)
+documentation](https://docs.zenml.io/user-guide/component-guide/container-registries/gcp)
 for more information on making this work.
 
 ### 6. [Enable](https://console.cloud.google.com/marketplace/product/google/aiplatform.googleapis.com?q=search&referrer=search&project=cloudguru-test-project) `Vertex AI API`
@@ -276,7 +276,7 @@ python main.py
 
 # 📜 References
 
-Documentation on [Step Operators](https://docs.zenml.io/component-gallery/step-operators)
+Documentation on [Step Operators](https://docs.zenml.io/user-guide/component-guide/step-operators)
 
 Example of [Step Operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
 

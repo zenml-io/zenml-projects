@@ -1,6 +1,6 @@
 # Generate Daily Summary of Supabase Database using GPT-4 and ZenML
 
-This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and a [a deployed ZenML instance in Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-sdks-docker-zenml).
+This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and [a deployed ZenML instance in Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-sdks-docker-zenml).
 
 The output of the pipeline posts the summary to a Slack channel:
 
@@ -29,10 +29,10 @@ pip install -r src/requirements.txt
 ## Connect to Your Deployed ZenML
 
 In order to run a ZenML pipeline remotely (e.g. on the cloud), we first need to
-[deploy ZenML](https://docs.zenml.io/getting-started/deploying-zenml). One of the
-easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/getting-started/deploying-zenml/huggingface).
+[deploy ZenML](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml). One of the
+easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml/deploy-using-huggingface-spaces).
 
-Afterwards, establish a connection with your deployed ZenML instance:
+Afterward, establish a connection with your deployed ZenML instance:
 
 ```bash
 zenml connect --url https://*** --username *** --password ***
@@ -67,37 +67,37 @@ You can also modify the preset prompts and system inputs in the [`generate_summa
 
 ## Run the Pipeline on a Remote Stack with Alerter
 
-To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/component-gallery/artifact-stores) and [a Slack alerter](https://docs.zenml.io/component-gallery/alerters/slack), follow these steps:
+To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/user-guide/component-guide/artifact-stores) and [a Slack alerter](https://docs.zenml.io/user-guide/component-guide/alerters/slack), follow these steps:
 
 1. Install the GCP and Slack integrations for ZenML:
 
-```bash
-zenml integration install gcp slack -y
-```
+    ```bash
+    zenml integration install gcp slack -y
+    ```
 
 2. Register the GCP artifact store:
 
-```bash
-zenml artifact-store register gcp_store -f gcp --path=gs://PATH_TO_STORE
-```
+    ```bash
+    zenml artifact-store register gcp_store -f gcp --path=gs://PATH_TO_STORE
+    ```
 
 3. Register the Slack alerter:
 
-```bash
-zenml alerter register slack_alerter -f slack --slack_token=<YOUR_SLACK_TOKEN> --default_slack_channel_id=<YOUR_SLACK_CHANNEL_ID>
-```
+    ```bash
+    zenml alerter register slack_alerter -f slack --slack_token=<YOUR_SLACK_TOKEN> --default_slack_channel_id=<YOUR_SLACK_CHANNEL_ID>
+    ```
 
 4. Register the stack with the GCP artifact store and Slack alerter:
 
-```bash
-zenml stack register -a gcp_store -o default --alerter=slack_alerter --active
-```
+    ```bash
+    zenml stack register -a gcp_store -o default --alerter=slack_alerter --active
+    ```
 
 Once the stack is registered and set active, the pipeline will run on the remote stack with the GCP artifact store and send alerts to the specified Slack channel.
 
 ## Running in production: Choose your MLOps stack
 
-ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/component-gallery/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/component-gallery/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/starter-guide/pipelines/parameters-and-caching) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/component-gallery/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
+ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/user-guide/component-guide/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/user-guide/component-guide/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/user-guide/component-guide/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
 
 ## Example: Automate Pipeline Execution with GitHub Actions
 

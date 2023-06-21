@@ -26,7 +26,7 @@ def main():
         # we use a print alerter
         alerter = print_alerter()
     else:
-        # We assume its a slack alerter
+        # We assume it's a slack alerter
         from zenml.integrations.slack.steps.slack_alerter_post_step import (
             slack_alerter_post_step,
         )
