@@ -14,19 +14,17 @@
 
 from typing import List
 
+from zenml import step
+
 from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from zenml.steps import BaseParameters, step
-
-
-class UrlScraperParameters(BaseParameters):
-    docs_url: str = ""
-    repo_url: str = ""
-    release_notes_url: str = ""
 
 
 @step(enable_cache=True)
 def url_scraper(
-    params: UrlScraperParameters,
+    docs_url: str = "",
+    repo_url: str = "",
+    release_notes_url: str = "",
+    website_url: str = "",
 ) -> List[str]:
     """Generates a list of relevant URLs to scrape.
 
@@ -34,11 +32,14 @@ def url_scraper(
         docs_url: URL to the documentation.
         repo_url: URL to the repository.
         release_notes_url: URL to the release notes.
+        website_url: URL to the website.
 
     Returns:
         List of URLs to scrape.
     """
-    examples_readme_urls = get_nested_readme_urls(params.repo_url)
-    docs_urls = get_all_pages(params.docs_url)
-
-    return docs_urls + examples_readme_urls + [params.release_notes_url]
+    examples_readme_urls = get_nested_readme_urls(repo_url)
+    docs_urls = get_all_pages(docs_url)
+    website_urls = get_all_pages(website_url)
+    return (
+        docs_urls + website_urls + examples_readme_urls + [release_notes_url]
+    )

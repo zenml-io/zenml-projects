@@ -20,7 +20,7 @@ from langchain.text_splitter import (
     CharacterTextSplitter,
 )
 from langchain.vectorstores import FAISS, VectorStore
-from zenml.steps import step
+from zenml import step
 
 
 @step(enable_cache=True)

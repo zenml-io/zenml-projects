@@ -12,12 +12,13 @@ from langchain.chains import ChatVectorDBChain, SequentialChain
 from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+from zenml.logger import get_logger
+
 from slackbot_utils import (
     convert_to_chat_history,
     get_last_n_messages,
     get_vector_store,
 )
-from zenml.logger import get_logger
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
