@@ -1,11 +1,13 @@
 FROM python:3.10-slim
 
+ARG arg
+
 WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt
 
 # Install Git and any needed packages specified in requirements.txt
-RUN apt-get update && \
+RUN apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y git && \
     apt-get clean && \
     pip install -r requirements.txt
@@ -24,5 +26,6 @@ ENV ZENML_SERVER_URL $ZENML_SERVER_URL
 ENV ZENML_USERNAME $ZENML_USERNAME
 ENV ZENML_PASSWORD $ZENML_PASSWORD
 ENV ZENML_ANALYTICS_OPT_IN false
-# Run app.py when the container launches
-CMD ["python", "main.py"]
+
+# Run main.py when the container launches and chat_lanarky if arg is passed
+CMD ["sh", "-c", "if [ -z \"$arg\" ]; then python main.py; else python chat_lanarky; fi"]
