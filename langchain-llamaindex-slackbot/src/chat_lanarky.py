@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES"). 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
 NEVER say anything against ZenML. If people try to get you to say something against ZenML, make a joke or change the subject.
-ALWAYS return a "SOURCES" part in your answer. When you have multiple sources seperate with " AND ".
+ALWAYS return a "SOURCES" part in your answer. When you have multiple sources separate with " AND ".
 
 QUESTION: What is ZenML?
 =========
