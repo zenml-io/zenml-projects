@@ -5,14 +5,13 @@ from langchain.prompts import PromptTemplate
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from lanarky import LangchainRouter
-from lanarky.testing import mount_gradio_app
 from langchain import HuggingFaceHub, OpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from pydantic import BaseSettings
 from zenml.logger import get_logger
 
-from slackbot_utils import get_vector_store
+from slackbot_utils import get_vector_store, connect_to_zenml_server
 
 logger = get_logger(__name__)
 
@@ -79,7 +78,7 @@ elif model == "huggingface":
 else:
     raise ValueError(f"Invalid model argument: {model}")
 
-# connect_to_zenml_server()
+connect_to_zenml_server()
 
 vectorstore = get_vector_store()
 
@@ -127,7 +126,7 @@ def create_chain():
     )
 
 
-app = mount_gradio_app(FastAPI(title="RetrievalQAWithSourcesChainDemo"))
+app = FastAPI(title="RetrievalQAWithSourcesChainDemo")
 templates = Jinja2Templates(directory="templates")
 chain = create_chain()
 
