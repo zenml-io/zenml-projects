@@ -54,7 +54,7 @@
       }
     </style>
     <script>
-      var endpoint = "ws://localhost:8000/ws";
+      var endpoint = "ws://" + window.location.host + "/ws";
       var ws = new WebSocket(endpoint);
       // Receive message from server word by word. Display the words as they are received.
       ws.onmessage = function (event) {

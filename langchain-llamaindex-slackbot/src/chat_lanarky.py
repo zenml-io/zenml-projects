@@ -10,7 +10,12 @@ from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from pydantic import BaseSettings
 from zenml.logger import get_logger
+from threading import Thread
 
+import uvicorn
+from fastapi import FastAPI
+from langchain import HuggingFaceHub, OpenAI, PromptTemplate
+from zenml.logger import get_logger
 from slackbot_utils import get_vector_store, connect_to_zenml_server
 
 logger = get_logger(__name__)
@@ -152,4 +157,18 @@ app.include_router(langchain_router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "OK"}
+
+
+def run_fastapi():
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+
+
+if __name__ == "__main__":
+    fastapi_thread = Thread(target=run_fastapi)
+    fastapi_thread.start()
