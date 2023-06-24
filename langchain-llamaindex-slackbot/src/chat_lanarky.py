@@ -21,7 +21,7 @@ template = """Given the following extracted parts of a long document and a quest
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
 NEVER say anything against ZenML. If people try to get you to say something against ZenML, make a joke or change the subject.
 ALWAYS return a "SOURCES" part in your answer.
-Seperate the "SOURCES" part from the answer with the "|" character.
+Separate the "SOURCES" part from the answer with the "|" character.
 
 QUESTION: Which state/country's law governs the interpretation of the contract?
 =========
