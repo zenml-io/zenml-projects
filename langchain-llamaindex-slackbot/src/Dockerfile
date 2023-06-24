@@ -1,7 +1,5 @@
 FROM python:3.10-slim
 
-ARG arg
-
 WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt
