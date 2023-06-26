@@ -3,6 +3,7 @@ from functools import lru_cache
 # flake8: noqa
 from langchain.prompts import PromptTemplate
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from lanarky import LangchainRouter
 from langchain import HuggingFaceHub, OpenAI
@@ -153,6 +154,15 @@ langchain_router.add_langchain_api_websocket_route(
 
 app.include_router(langchain_router)
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     import uvicorn
