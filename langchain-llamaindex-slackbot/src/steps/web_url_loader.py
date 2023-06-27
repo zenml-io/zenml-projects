@@ -16,7 +16,7 @@ from typing import List
 
 from langchain.docstore.document import Document
 from langchain.document_loaders import UnstructuredURLLoader
-from zenml.steps import step
+from zenml import step
 
 
 @step(enable_cache=True)

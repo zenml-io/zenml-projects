@@ -34,26 +34,27 @@ def connect_to_zenml_server():
     zenml_username = os.getenv("ZENML_USERNAME")
     zenml_password = os.getenv("ZENML_PASSWORD")
 
-    store_dict = {
-        "url": zenml_server_url,
-        "username": zenml_username,
-        "password": zenml_password,
-    }
+    if zenml_server_url is not None:
+        store_dict = {
+            "url": zenml_server_url,
+            "username": zenml_username,
+            "password": zenml_password,
+        }
 
-    store_type = BaseZenStore.get_store_type(zenml_server_url)
-    store_config_class = BaseZenStore.get_store_config_class(store_type)
-    assert store_config_class is not None
+        store_type = BaseZenStore.get_store_type(zenml_server_url)
+        store_config_class = BaseZenStore.get_store_config_class(store_type)
+        assert store_config_class is not None
 
-    store_config = store_config_class.parse_obj(store_dict)
-    try:
-        GlobalConfiguration().set_store(store_config)
-    except IllegalOperationError as e:
-        logger.warning(
-            f"User '{zenml_username}' does not have sufficient permissions to "
-            f"to access the server at '{zenml_server_url}'. Please ask the server "
-            f"administrator to assign a role with permissions to your "
-            f"username: {str(e)}"
-        )
+        store_config = store_config_class.parse_obj(store_dict)
+        try:
+            GlobalConfiguration().set_store(store_config)
+        except IllegalOperationError as e:
+            logger.warning(
+                f"User '{zenml_username}' does not have sufficient permissions to "
+                f"to access the server at '{zenml_server_url}'. Please ask the server "
+                f"administrator to assign a role with permissions to your "
+                f"username: {str(e)}"
+            )
 
 
 def get_vector_store():

@@ -26,4 +26,4 @@ ENV ZENML_PASSWORD $ZENML_PASSWORD
 ENV ZENML_ANALYTICS_OPT_IN false
 
 # Run main.py when the container launches and chat_lanarky if arg is passed
-CMD ["python", "main.py"]
+CMD ["python", "chat_lanarky.py"]
