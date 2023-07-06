@@ -18,7 +18,6 @@ from typing import List
 
 from zenml.client import Client
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipeline
 
 logger = get_logger(__name__)
 
