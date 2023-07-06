@@ -13,11 +13,10 @@
 #  permissions and limitations under the License.
 
 
-from zenml import pipeline
-
 from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
+from zenml import pipeline
 
 pipeline_name = "zenml_docs_index_generation"
 

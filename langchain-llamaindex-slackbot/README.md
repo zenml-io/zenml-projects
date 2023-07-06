@@ -68,7 +68,7 @@ Install the required packages via the `requirements.txt` file located in the
 `/src` directory.
 
 ```bash
-pip install -r src/requirements.txt
+pip install -r src/requirements-slackbot.txt
 ```
 
 ## Running it locally

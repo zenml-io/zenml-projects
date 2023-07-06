@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
+COPY requirements-slackbot.txt /app/requirements.txt
 
 # Install Git and any needed packages specified in requirements.txt
 RUN apt-get -o Acquire::Check-Valid-Until=false update && \
@@ -25,5 +25,4 @@ ENV ZENML_USERNAME $ZENML_USERNAME
 ENV ZENML_PASSWORD $ZENML_PASSWORD
 ENV ZENML_ANALYTICS_OPT_IN false
 
-# Run main.py when the container launches and chat_lanarky if arg is passed
 CMD ["python", "main.py"]

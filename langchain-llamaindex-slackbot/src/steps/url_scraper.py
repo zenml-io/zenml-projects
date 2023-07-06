@@ -14,9 +14,8 @@
 
 from typing import List
 
-from zenml import step
-
 from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
+from zenml import step
 
 
 @step(enable_cache=True)

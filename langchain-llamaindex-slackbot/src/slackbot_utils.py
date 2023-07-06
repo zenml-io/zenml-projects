@@ -16,8 +16,8 @@ import os
 from itertools import zip_longest
 from typing import List
 
+from zenml.client import Client
 from zenml.logger import get_logger
-from zenml.post_execution import get_pipeline
 
 logger = get_logger(__name__)
 
@@ -59,10 +59,11 @@ def connect_to_zenml_server():
 
 def get_vector_store():
     """Get the vector store from the pipeline."""
-    pipeline = get_pipeline(pipeline=PIPELINE_NAME)
-    our_run = pipeline.runs[0]
+    c = Client()
+    pipeline = c.get_pipeline(name_id_or_prefix=PIPELINE_NAME)
+    our_run = pipeline.last_successful_run
     print("Using pipeline: ", pipeline.name)
-    return our_run.steps[-1].output.read()
+    return our_run.steps["index_generator"].output.load()
 
 
 def get_last_n_messages(full_thread: List[List[str]], n: int = 5):

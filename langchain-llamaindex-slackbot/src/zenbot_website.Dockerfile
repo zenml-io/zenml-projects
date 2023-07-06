@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
+COPY requirements-zenml-io-qa.txt /app/requirements.txt
 
 # Install Git and any needed packages specified in requirements.txt
 RUN apt-get -o Acquire::Check-Valid-Until=false update && \
