@@ -1,7 +1,7 @@
 # IMPORTANT NOTE: THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
 ***Please consider the impact it might have on your ongoing work and plan accordingly.***
 
-We are working hard to provide best onboarding experience to you. To support that ultimate goal we are reshaping `examples` of core ZenML package!
+We are working hard to provide the best onboarding experience to you. To support that ultimate goal we are reshaping these projects into the `examples` of the core ZenML package!
 
 More technical details about this will follow shortly.
 
