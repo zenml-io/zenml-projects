@@ -1,9 +1,9 @@
 # IMPORTANT NOTE: THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
 ***Please consider the impact it might have on your ongoing work and plan accordingly.***
 
-We are working hard to provide best onboarding experience to you. To support that ultimate goal we are introducing a new concept of *ZenML Use-Cases*!
+We are working hard to provide best onboarding experience to you. To support that ultimate goal we are reshaping `examples` of core ZenML package!
 
-More details about *ZenML Use-Cases* will follow shortly.
+More technical details about this will follow shortly.
 
 <!-- PROJECT LOGO -->
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
