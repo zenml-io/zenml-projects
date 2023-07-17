@@ -114,8 +114,8 @@ integrations.</h3>
 [github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
 [zenmlproject-orbit-url]: https://zenml.io/project/orbitcommunity
 
-# IMPORTANT NOTE: THIS REPO GOING TO BE DEPRECATED AFTER 01/08/2023. 
-***Please consider impact it might have on your ongoing work and plan accordingly.***
+# IMPORTANT NOTE: THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
+***Please consider the impact it might have on your ongoing work and plan accordingly.***
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 
