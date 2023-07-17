@@ -116,6 +116,8 @@ integrations.</h3>
 
 # IMPORTANT NOTE: THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
 ***Please consider the impact it might have on your ongoing work and plan accordingly.***
+We are working hard to provide best onboarding experience to you. To support that ultimate goal we are introducing a new concept of *ZenML Use-Cases*!
+More details about *ZenML Use-Cases* will follow shortly.
 
 # ☀️ Introducing ZenML Projects (Formerly ZenFiles)
 
