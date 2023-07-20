@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
-from run_deployment import run_main
-from zenml.services import load_last_service_from_step
+from pipelines.deployment_pipeline import prediction_service_loader
+from run_deployment import main
 
 
 def main():
@@ -14,9 +14,7 @@ def main():
     high_level_image = Image.open("_assets/high_level_overview.png")
     st.image(high_level_image, caption="High Level Pipeline")
 
-    whole_pipeline_image = Image.open(
-        "_assets/training_and_deployment_pipeline_updated.png"
-    )
+    whole_pipeline_image = Image.open("_assets/training_and_deployment_pipeline_updated.png")
 
     st.markdown(
         """ 
@@ -64,10 +62,10 @@ def main():
     product_width_cm = st.number_input("Product width (CMs)")
 
     if st.button("Predict"):
-        service = load_last_service_from_step(
-            pipeline_name="continuous_deployment_pipeline",
-            step_name="model_deployer",
-            running=True,
+        service = prediction_service_loader(
+        pipeline_name="continuous_deployment_pipeline",
+        pipeline_step_name="mlflow_model_deployer_step",
+        running=False,
         )
         if service is None:
             st.write(
