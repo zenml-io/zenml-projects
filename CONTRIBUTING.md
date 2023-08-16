@@ -35,8 +35,6 @@ general guidelines that cover both:
   at [support@zenml.io](mailto:support@zenml.io), monitored by
   our security team.
 - Search for existing Issues and PRs before creating your own.
-- Search on the [public Crowd Dev](https://open.crowd.dev/zenml) page to see 
-if the issue has been addressed before.
 - We work hard to make sure issues are handled on time, but it could take a
   while to investigate the root cause depending on the impact.
 
