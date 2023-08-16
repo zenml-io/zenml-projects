@@ -93,7 +93,7 @@ a backend
 
 ### Setup Infrastructure with ZenML Stack recipes:
 
-With [ZenML Stack Recipes](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-and-set-up-a-cloud-stack/deploy-a-stack-using-stack-recipes), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
+With [ZenML Stack Recipes](https://github.com/zenml-io/mlops-stacks), you can now provision all the infrastructure you need to run your ZenML pipelines with just a few simple commands.
 
 The flow to get started for this example can be the following:
 

@@ -29,8 +29,8 @@ pip install -r src/requirements.txt
 ## Connect to Your Deployed ZenML
 
 In order to run a ZenML pipeline remotely (e.g. on the cloud), we first need to
-[deploy ZenML](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml). One of the
-easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml/deploy-using-huggingface-spaces).
+[deploy ZenML](https://docs.zenml.io/user-guide/starter-guide/switch-to-production). One of the
+easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/deploying-zenml/zenml-self-hosted/deploy-using-huggingface-spaces).
 
 Afterward, establish a connection with your deployed ZenML instance:
 
@@ -67,7 +67,7 @@ You can also modify the preset prompts and system inputs in the [`generate_summa
 
 ## Run the Pipeline on a Remote Stack with Alerter
 
-To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/user-guide/component-guide/artifact-stores) and [a Slack alerter](https://docs.zenml.io/user-guide/component-guide/alerters/slack), follow these steps:
+To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores) and [a Slack alerter](https://docs.zenml.io/stacks-and-components/component-guide/alerters/slack), follow these steps:
 
 1. Install the GCP and Slack integrations for ZenML:
 
@@ -97,7 +97,7 @@ Once the stack is registered and set active, the pipeline will run on the remote
 
 ## Running in production: Choose your MLOps stack
 
-ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/user-guide/component-guide/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/user-guide/component-guide/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/user-guide/component-guide/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
+ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/stacks-and-components/component-guide/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
 
 ## Example: Automate Pipeline Execution with GitHub Actions
 
