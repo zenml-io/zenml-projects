@@ -278,8 +278,6 @@ python main.py
 
 Documentation on [Step Operators](https://docs.zenml.io/stacks-and-components/component-guide/step-operators)
 
-Example of [Step Operators](https://github.com/zenml-io/zenml/tree/main/examples/step_operator_remote_training)
-
 More on [Step Operators](https://blog.zenml.io/step-operators-training/)
 
 Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
