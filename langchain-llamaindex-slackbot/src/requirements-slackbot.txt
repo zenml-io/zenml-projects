@@ -1,12 +1,12 @@
-langchain==0.0.125
+langchain==0.0.263
 openai==0.27.2
 slack-bolt==1.16.2
 slack-sdk==3.20.0
-zenml==0.41.0
+zenml==0.43.0
 fastapi
 flask
 uvicorn
-gcsfs==2023.3.0
+gcsfs==2023.5.0
 faiss-cpu==1.7.3
-llama_index==0.5.1
+# llama_index==0.8.4
 unstructured==0.5.7
