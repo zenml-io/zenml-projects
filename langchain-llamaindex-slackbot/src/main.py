@@ -6,12 +6,14 @@
 # as appropriate.
 
 import os
+import re
 from threading import Thread
 
 import uvicorn
 from fastapi import FastAPI
-from langchain import HuggingFaceHub, OpenAI, PromptTemplate
-from langchain.chains import ChatVectorDBChain, SequentialChain
+from langchain import HuggingFaceHub, PromptTemplate
+from langchain.chains import ConversationalRetrievalChain
+from langchain.chat_models import ChatOpenAI
 from openai.error import InvalidRequestError
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -33,7 +35,7 @@ logger = get_logger(__name__)
 model = "openai"
 
 if model == "openai":
-    openai_llm = OpenAI(
+    openai_llm = ChatOpenAI(
         temperature=0, max_tokens=1000, model_name="gpt-3.5-turbo"
     )
     llm = openai_llm
@@ -66,7 +68,21 @@ prompt = PromptTemplate(
 
 vector_store = get_vector_store()
 
-chatgpt_chain = ChatVectorDBChain.from_llm(llm=llm, vectorstore=vector_store)
+chatgpt_chain = ConversationalRetrievalChain.from_llm(
+    llm=llm, retriever=vector_store.as_retriever()
+)
+
+
+def _get_message_without_links(message: str, context):
+    """Remove links from a message.
+
+    Args:
+        message (str): Message to remove links from
+
+    Returns:
+        str: Message without links
+    """
+    return re.sub(r"<.*>", "", message)
 
 
 @app.event({"type": "message", "subtype": None})
@@ -84,8 +100,20 @@ def reply_in_thread(body: dict, say, context):
     if context["bot_user_id"] in event["text"]:
         logger.debug(f"Received message: {event['text']}")
         if event.get("thread_ts", None):
+            # prepare a list of list of messages where if
+            # the user who sent the message is the zenml-bot, then
+            # the prefix is "zenml-bot", otherwise, the prefix is
+            # "human".
+            # also remove text between < and > as this is usually a link
+            # to the user's profile.
             full_thread = [
-                f"{msg['text']}"
+                (
+                    "zenml-bot: "
+                    + _get_message_without_links(msg["text"], context=context)
+                    if msg["user"] == context["bot_user_id"]
+                    else "human: "
+                    + _get_message_without_links(msg["text"], context=context)
+                )
                 for msg in context.client.conversations_replies(
                     channel=context["channel_id"], ts=event["thread_ts"]
                 ).data["messages"]
@@ -93,19 +121,15 @@ def reply_in_thread(body: dict, say, context):
         else:
             full_thread = []
 
-        seq_chain = SequentialChain(
-            chains=[chatgpt_chain],
-            input_variables=["chat_history", "question"],
-        )
         try:
-            output = seq_chain.run(
+            output = chatgpt_chain.run(
                 chat_history=convert_to_chat_history(full_thread),
                 question=event["text"],
                 verbose=True,
             )
         except InvalidRequestError as e:
             logger.warning(e)
-            output = seq_chain.run(
+            output = chatgpt_chain.run(
                 chat_history=get_last_n_messages(
                     convert_to_chat_history(full_thread)
                 ),
