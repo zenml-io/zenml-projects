@@ -8,5 +8,4 @@ flask
 uvicorn
 gcsfs==2023.5.0
 faiss-cpu==1.7.3
-# llama_index==0.8.4
 unstructured==0.5.7
