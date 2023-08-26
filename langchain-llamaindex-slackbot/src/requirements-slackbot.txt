@@ -9,3 +9,4 @@ uvicorn
 gcsfs==2023.5.0
 faiss-cpu==1.7.3
 unstructured==0.5.7
+tiktoken
