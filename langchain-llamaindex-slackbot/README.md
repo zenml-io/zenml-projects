@@ -94,13 +94,13 @@ example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat
 
 It is much more ideal to run a pipeline such as the 
 `zenml_docs_index_generation` on a regular schedule. In order to achieve that, 
-you have to [deploy ZenML](https://docs.zenml.io/platform-guide/set-up-your-mlops-platform/deploy-zenml) 
+you have to [deploy ZenML](https://docs.zenml.io/user-guide/starter-guide/switch-to-production) 
 and set up a stack that supports 
 [our scheduling
-feature](https://docs.zenml.io/user-guide/advanced-guide/schedule-pipeline-runs). If you
+feature](https://docs.zenml.io/user-guide/advanced-guide/pipelining-features/schedule-pipeline-runs). If you
 wish to deploy the slack bot on GCP Cloud Run as described above, you'll also
 need to be using [a Google Cloud Storage Artifact
-Store](https://docs.zenml.io/user-guide/component-guide/artifact-stores/gcp). Note that
+Store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores/gcp). Note that
 certain code artifacts like the `Dockerfile` for this project will also need to
 be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices) 
 for more information.

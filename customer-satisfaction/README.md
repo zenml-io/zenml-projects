@@ -56,7 +56,7 @@ Instead, we are building an end-to-end pipeline for continuously predicting and 
 
 This pipeline can be deployed to the cloud, scale up according to our needs, and ensure that we track the parameters and data that flow through every pipeline that runs. It includes raw data input, features, results, the machine learning model and model parameters, and prediction outputs. ZenML helps us to build such a pipeline in a simple, yet powerful, way.
 
-In this Project, we give special consideration to the [MLflow integration](https://github.com/zenml-io/zenml/tree/main/examples) of ZenML. In particular, we utilize MLflow tracking to track our metrics and parameters, and MLflow deployment to deploy our model. We also use [Streamlit](https://streamlit.io/) to showcase how this model will be used in a real-world setting.
+In this Project, we give special consideration to the [MLflow integration](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/mlflow) of ZenML. In particular, we utilize MLflow tracking to track our metrics and parameters, and MLflow deployment to deploy our model. We also use [Streamlit](https://streamlit.io/) to showcase how this model will be used in a real-world setting.
 
 ### Training Pipeline
 
@@ -92,7 +92,7 @@ service = load_last_service_from_step(
 service.predict(...)  # Predict on incoming data from the application
 ```
 
-While this ZenML Project trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://github.com/zenml-io/zenml/tree/main/examples/seldon_deployment) deployer can also be used in a similar manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
+While this ZenML Project trains and deploys a model locally, other ZenML integrations such as the [Seldon](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/seldon) deployer can also be used in a similar manner to deploy the model in a more production setting (such as on a Kubernetes cluster). We use MLflow here for the convenience of its local deployment.
 
 ![training_and_deployment_pipeline](_assets/training_and_deployment_pipeline_updated.png)
 

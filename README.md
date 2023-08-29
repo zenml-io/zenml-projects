@@ -1,3 +1,8 @@
+# THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
+
+We are now offering ZenML Project Templates - a configurable way to rocketstart your ZenML journey!
+For more details about templates you can use `zenml init --help`.
+
 <!-- PROJECT LOGO -->
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
 
