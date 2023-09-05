@@ -14,6 +14,7 @@
 
 import os
 from itertools import zip_longest
+from langchain.schema import HumanMessage, AIMessage
 from typing import List
 
 from zenml.client import Client
@@ -82,15 +83,28 @@ def get_last_n_messages(full_thread: List[List[str]], n: int = 5):
 def convert_to_chat_history(messages: List[str]):
     """Convert a list of messages to a chat history.
 
+    The messages have a prefix of either "zenml-bot" or "human" to indicate
+    who sent the message. We convert this to a list of HumanMessage and
+    AIMessage objects.
+
     Args:
         messages (list): List of messages in a thread
 
     Returns:
         list: Chat history as a list of pairs of messages
     """
-    paired_list = [
-        list(filter(None, pair)) for pair in zip_longest(*[iter(messages)] * 2)
-    ]
-    if len(messages) % 2 == 1:
-        paired_list[-1].append("")
-    return paired_list
+    chat_history = []
+    for msg in messages:
+        if msg.startswith("zenml-bot"):
+            chat_history.append(
+                (AIMessage(content=msg.replace("zenml-bot: ", "")))
+            )
+        elif msg.startswith("human"):
+            chat_history.append(
+                (HumanMessage(content=msg.replace("human: ", "")))
+            )
+        else:
+            raise ValueError(
+                f"Message {msg} does not start with 'zenml-bot' or 'human'"
+            )
+    return chat_history
