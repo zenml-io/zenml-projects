@@ -147,7 +147,7 @@ def health_check():
     return {"status": "OK"}
 
 
-@app.get("/bot_health")
+@fast_api_app.get("/bot_health")
 def bot_health_check():
     """Checks whether the bot is able to answer questions properly"""
     question = {"question": "What is ZenML?", "chat_history": ""}
