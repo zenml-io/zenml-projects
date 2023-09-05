@@ -164,11 +164,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
 
 @app.get("/health")
 def health_check():
@@ -187,10 +182,5 @@ def bot_health_check():
         return {"status": "ERROR"}
 
 
-def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
-
 if __name__ == "__main__":
-    fastapi_thread = Thread(target=run_fastapi)
-    fastapi_thread.start()
+    uvicorn.run(app, host="0.0.0.0", port=8080)
