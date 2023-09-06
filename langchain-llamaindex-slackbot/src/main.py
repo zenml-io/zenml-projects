@@ -147,6 +147,18 @@ def health_check():
     return {"status": "OK"}
 
 
+@fast_api_app.get("/bot_health")
+def bot_health_check():
+    """Checks whether the bot is able to answer questions properly"""
+    question = {"question": "What is ZenML?", "chat_history": ""}
+    output = chatgpt_chain(question, return_only_outputs=True)
+    answer = output.get("answer")
+    if answer and "ZenML" in answer:
+        return {"status": "OK"}
+    else:
+        return {"status": "ERROR"}
+
+
 def run_fastapi():
     uvicorn.run(fast_api_app, host="0.0.0.0", port=8080)
 

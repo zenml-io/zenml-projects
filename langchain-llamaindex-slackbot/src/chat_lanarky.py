@@ -164,21 +164,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
 
 @app.get("/health")
 def health_check():
     return {"status": "OK"}
 
 
-def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+@app.get("/bot_health")
+def bot_health_check():
+    """Checks whether the bot is able to answer questions properly"""
+    question = {"question": "What is ZenML?"}
+    output = chain(question, return_only_outputs=True)
+    answer = output.get("answer")
+    if answer and "ZenML" in answer:
+        return {"status": "OK"}
+    else:
+        return {"status": "ERROR"}
 
 
 if __name__ == "__main__":
-    fastapi_thread = Thread(target=run_fastapi)
-    fastapi_thread.start()
+    uvicorn.run(app, host="0.0.0.0", port=8080)
