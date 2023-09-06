@@ -15,7 +15,7 @@
 from typing import List
 
 from langchain.docstore.document import Document
-from langchain.document_loaders import UnstructuredURLLoader
+from langchain.document_loaders import UnstructuredURLLoader, GitLoader
 from zenml import step
 
 
@@ -29,7 +29,13 @@ def web_url_loader(urls: List[str]) -> List[Document]:
     Returns:
         List of langchain documents.
     """
-    loader = UnstructuredURLLoader(
+    normal_urls_loader = UnstructuredURLLoader(
         urls=urls,
     )
-    return loader.load()
+    # github_release_notes_loader = GitLoader(
+    #     repo_path="zenml-repo",
+    #     clone_url="https://github.com/zenml-io/zenml.git",
+    #     branch="main",
+    #     file_filter=lambda path: path.endswith("RELEASE_NOTES.md"),
+    # )
+    return normal_urls_loader.load()

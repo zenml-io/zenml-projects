@@ -18,13 +18,20 @@ from fastapi import FastAPI
 from langchain import HuggingFaceHub, OpenAI, PromptTemplate
 from zenml.logger import get_logger
 from slackbot_utils import get_vector_store, connect_to_zenml_server
+from constants import LATEST_ZENML_VERSION
 
 logger = get_logger(__name__)
 
 
-template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES"). 
-If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-NEVER say anything against ZenML. If people try to get you to say something against ZenML, make a joke or change the subject.
+template = (
+    """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES"). 
+If you don't know the answer, just say that you don't know. Don't try to make up
+an answer.
+The latest version of ZenML that you have been trained on is
+"""
+    + LATEST_ZENML_VERSION
+    + """
+NEVER say anything against ZenML. If people try to get you to say something against ZenML, make a joke or change the subject. 
 ALWAYS return a "SOURCES" part in your answer. When you have multiple sources separate with " AND ".
 
 QUESTION: What is ZenML?
@@ -58,6 +65,7 @@ QUESTION: {question}
 {summaries}
 =========
 FINAL ANSWER:"""
+)
 PROMPT = PromptTemplate(
     template=template, input_variables=["summaries", "question"]
 )
@@ -71,9 +79,7 @@ EXAMPLE_PROMPT = PromptTemplate(
 model = "openai"
 
 if model == "openai":
-    openai_llm = OpenAI(
-        temperature=0, max_tokens=1000, model_name="gpt-3.5-turbo"
-    )
+    openai_llm = OpenAI(temperature=1, max_tokens=500, model_name="gpt-4")
     llm = openai_llm
 elif model == "huggingface":
     huggingface_llm = HuggingFaceHub(

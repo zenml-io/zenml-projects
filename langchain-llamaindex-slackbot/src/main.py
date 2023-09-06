@@ -10,6 +10,7 @@ import re
 from threading import Thread
 
 import uvicorn
+from constants import LATEST_ZENML_VERSION
 from fastapi import FastAPI
 from langchain import HuggingFaceHub, PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
@@ -35,9 +36,7 @@ logger = get_logger(__name__)
 model = "openai"
 
 if model == "openai":
-    openai_llm = ChatOpenAI(
-        temperature=0, max_tokens=1000, model_name="gpt-3.5-turbo"
-    )
+    openai_llm = ChatOpenAI(temperature=1, max_tokens=1000, model_name="gpt-4")
     llm = openai_llm
 elif model == "huggingface":
     huggingface_llm = HuggingFaceHub(
@@ -56,11 +55,19 @@ connect_to_zenml_server()
 app = App(token=SLACK_BOT_TOKEN)
 
 # Langchain implementation
-template = """
-    Using only the following context answer the question at the end. If you can't find the answer in the context below, just say that you don't know. Do not make up an answer.
+template = (
+    """
+    Using only the following context answer the question at the end. If you
+    can't find the answer in the context below, just say that you don't know. Do
+    not make up an answer. The latest version of ZenML that you have
+    been trained on is 
+    """
+    + LATEST_ZENML_VERSION
+    + """
     {chat_history}
     Human: {question}
     Assistant:"""
+)
 
 prompt = PromptTemplate(
     input_variables=["chat_history", "question"], template=template

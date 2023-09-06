@@ -36,11 +36,7 @@ def docs_to_index_pipeline(
         release_notes_url: URL to the release notes.
         website_url: URL to the website.
     """
-    urls = url_scraper(
-        docs_url=docs_url,
-        release_notes_url=release_notes_url,
-        repo_url=repo_url,
-        website_url=website_url,
-    )
+    # minimal sources to boost answer quality
+    urls = url_scraper(docs_url=docs_url)
     documents = web_url_loader(urls)
     index_generator(documents)
