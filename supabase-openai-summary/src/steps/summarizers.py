@@ -13,11 +13,11 @@
 #  permissions and limitations under the License.
 
 from typing import List
-import openai
 
-from zenml.steps import step, BaseParameters, StepContext
+import openai
 from zenml.client import Client
-from zenml.post_execution import get_pipeline, PipelineRunView
+from zenml.post_execution import PipelineRunView, get_pipeline
+from zenml.steps import BaseParameters, StepContext, step
 
 
 class SummarizerParams(BaseParameters):

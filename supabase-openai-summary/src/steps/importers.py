@@ -12,12 +12,13 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
 from datetime import datetime, timedelta, timezone
+from typing import List
 
-from zenml.steps import BaseParameters, step
-from supabase import create_client, Client as SupabaseClient
+from supabase import Client as SupabaseClient
+from supabase import create_client
 from zenml.client import Client
+from zenml.steps import BaseParameters, step
 
 
 class SupabaseReaderParams(BaseParameters):

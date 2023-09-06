@@ -12,6 +12,5 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-BOOMING_TAG = 'booming'
-CHURNED_TAG = 'churned'
-
+BOOMING_TAG = "booming"
+CHURNED_TAG = "churned"

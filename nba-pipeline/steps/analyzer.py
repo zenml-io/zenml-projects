@@ -1,6 +1,7 @@
-from zenml.steps import step
-from evidently.report import Report  # type: ignore
 import json
+
+from zenml.steps import step
+
 
 @step
 def analyze_drift(

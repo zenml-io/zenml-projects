@@ -21,9 +21,7 @@ def main():
     docs_url = "https://docs.zenml.io"
     website_url = "https://zenml.io"
     repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
-    release_notes_url = (
-        "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
-    )
+    release_notes_url = "https://raw.githubusercontent.com/zenml-io/zenml/main/RELEASE_NOTES.md"
 
     docs_to_index_pipeline(
         website_url=website_url,

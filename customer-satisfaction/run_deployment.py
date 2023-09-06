@@ -38,7 +38,6 @@ from zenml.services import load_last_service_from_step
     help="Stop the prediction service when done",
 )
 def run_main(min_accuracy: float, stop_service: bool):
-
     """Run the mlflow example pipeline"""
     if stop_service:
         service = load_last_service_from_step(

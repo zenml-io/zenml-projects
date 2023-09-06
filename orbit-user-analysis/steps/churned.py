@@ -11,19 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-from datetime import datetime, timezone, timedelta
-
-from dateutil import parser
-from zenml import step
+from datetime import datetime, timedelta, timezone
 
 from constants import CHURNED_TAG
+from dateutil import parser
 from steps.utils import list_members, update_member_tags
+from zenml import step
 
 
 @step
 def churned(
-        check_days: int = 60,
-        inactive_days: int = 14,
+    check_days: int = 60,
+    inactive_days: int = 14,
 ) -> None:
     """Step that detects churned users and tags them accordingly.
 

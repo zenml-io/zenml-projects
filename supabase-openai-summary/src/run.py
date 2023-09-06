@@ -15,8 +15,8 @@
 import logging
 
 from pipelines.supabase_summary import daily_supabase_summary
-from steps.importers import supabase_reader
 from steps.alerters import print_alerter
+from steps.importers import supabase_reader
 from steps.summarizers import gpt_4_summarizer
 from zenml.client import Client
 
