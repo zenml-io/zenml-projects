@@ -13,20 +13,22 @@
 #  permissions and limitations under the License.
 
 
+from steps.agent_creator import agent_creator
 from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
 from zenml import pipeline
 
-pipeline_name = "zenml_docs_index_generation"
+PIPELINE_NAME = "zenml_agent_creation_pipeline"
 
 
-@pipeline(name=pipeline_name)
-def docs_to_index_pipeline(
+@pipeline(name=PIPELINE_NAME, enable_cache=True)
+def docs_to_agent_pipeline(
     docs_url: str = "",
     repo_url: str = "",
     release_notes_url: str = "",
     website_url: str = "",
+    version: str = "",
 ) -> None:
     """Generate index for ZenML.
 
@@ -35,7 +37,10 @@ def docs_to_index_pipeline(
         repo_url: URL to the repository.
         release_notes_url: URL to the release notes.
         website_url: URL to the website.
+        version: Version of ZenML to generate the index for.
     """
     urls = url_scraper(docs_url, repo_url, release_notes_url, website_url)
     documents = web_url_loader(urls)
-    index_generator(documents)
+    vector_store = index_generator(documents)
+    agent = agent_creator(vector_store=vector_store, version=version)
+
