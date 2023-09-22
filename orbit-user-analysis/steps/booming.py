@@ -12,19 +12,14 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import json
-
-from zenml import step
 
 from constants import BOOMING_TAG
 from steps.utils import list_members, update_member_tags
+from zenml import step
 
 
 @step
-def booming(
-        check_days: int = 14,
-        booming_threshold: int = 150
-) -> None:
+def booming(check_days: int = 14, booming_threshold: int = 150) -> None:
     """Step that detects users with activity above a certain threshold.
 
     Args:
@@ -34,12 +29,10 @@ def booming(
 
      Returns:
          json string representing the list of users and their metadata
-     """
+    """
 
     # The first section is about the clean-up
-    existing_booming_members = list_members(
-        tags=BOOMING_TAG
-    )
+    existing_booming_members = list_members(tags=BOOMING_TAG)
 
     for member in existing_booming_members:
         tags = member["attributes"]["tags"] or []

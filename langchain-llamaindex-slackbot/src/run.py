@@ -19,18 +19,13 @@ from pipelines.index_builder import docs_to_index_pipeline
 
 def main():
     docs_url = "https://docs.zenml.io"
-    website_url = "https://zenml.io"
-    repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
-    release_notes_url = (
-        "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
-    )
+    # website_url = "https://zenml.io"
+    # repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
+    # release_notes_url = (
+    #     "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
+    # )
 
-    docs_to_index_pipeline(
-        website_url=website_url,
-        docs_url=docs_url,
-        repo_url=repo_url,
-        release_notes_url=release_notes_url,
-    )
+    docs_to_index_pipeline(docs_url=docs_url)
 
 
 if __name__ == "__main__":

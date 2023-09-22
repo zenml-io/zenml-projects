@@ -12,14 +12,14 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from zenml.config import DockerSettings
-from zenml import pipeline
 from steps import booming, churned, report
+from zenml import pipeline
+from zenml.config import DockerSettings
 
 docker_settings = DockerSettings(requirements="requirements.txt")
 
 
-@pipeline(enable_cache=False, settings={'docker': docker_settings})
+@pipeline(enable_cache=False, settings={"docker": docker_settings})
 def community_analysis_pipeline() -> None:
     """Defines a pipeline to analyze the community on Orbit."""
     booming()

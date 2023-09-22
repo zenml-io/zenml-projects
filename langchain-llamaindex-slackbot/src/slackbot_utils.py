@@ -13,10 +13,9 @@
 #  permissions and limitations under the License.
 
 import os
-from itertools import zip_longest
-from langchain.schema import HumanMessage, AIMessage
 from typing import List
 
+from langchain.schema import AIMessage, HumanMessage
 from zenml.client import Client
 from zenml.logger import get_logger
 
