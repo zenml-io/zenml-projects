@@ -28,7 +28,6 @@ def docs_to_agent_pipeline(
     repo_url: str = "",
     release_notes_url: str = "",
     website_url: str = "",
-    version: str = "",
 ) -> None:
     """Generate index for ZenML.
 
@@ -37,10 +36,8 @@ def docs_to_agent_pipeline(
         repo_url: URL to the repository.
         release_notes_url: URL to the release notes.
         website_url: URL to the website.
-        version: Version of ZenML to generate the index for.
     """
     urls = url_scraper(docs_url, repo_url, release_notes_url, website_url)
     documents = web_url_loader(urls)
     vector_store = index_generator(documents)
-    agent = agent_creator(vector_store=vector_store, version=version)
-
+    agent = agent_creator(vector_store=vector_store)

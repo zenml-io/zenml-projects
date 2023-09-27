@@ -23,7 +23,7 @@ from langchain.vectorstores import FAISS, VectorStore
 from zenml import step
 
 
-@step(enable_cache=False)
+@step(enable_cache=True)
 def index_generator(documents: List[Document]) -> VectorStore:
     embeddings = OpenAIEmbeddings()
 

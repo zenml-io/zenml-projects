@@ -14,18 +14,19 @@
 
 import logging
 
-from pipelines.index_builder import docs_to_index_pipeline
+from pipelines.index_builder import docs_to_agent_pipeline
 
 
 def main():
-    docs_url = "https://docs.zenml.io"
+    version = "0.44.1"
+    docs_url = f"https://docs.zenml.io/v/{version}/"
     website_url = "https://zenml.io"
-    repo_url = "https://github.com/zenml-io/zenml/tree/main/examples"
+    repo_url = f"https://github.com/zenml-io/zenml/tree/{version}/examples"
     release_notes_url = (
-        "https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md"
+        f"https://github.com/zenml-io/zenml/blob/{version}/RELEASE_NOTES.md"
     )
 
-    docs_to_index_pipeline(
+    docs_to_agent_pipeline(
         website_url=website_url,
         docs_url=docs_url,
         repo_url=repo_url,
