@@ -36,9 +36,7 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-    examples_readme_urls = get_nested_readme_urls(repo_url)
+    # examples_readme_urls = get_nested_readme_urls(repo_url)
     docs_urls = get_all_pages(docs_url)
     website_urls = get_all_pages(website_url)
-    return (
-        docs_urls + website_urls + examples_readme_urls + [release_notes_url]
-    )
+    return docs_urls + website_urls + [release_notes_url]
