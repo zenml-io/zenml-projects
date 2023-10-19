@@ -131,59 +131,59 @@ class ZenMLAgent(ConversationalChatAgent):
         )
 
 
-class ZenMLOutputParser(AgentOutputParser):
-    """Output parser for the conversational agent."""
+# class ZenMLOutputParser(AgentOutputParser):
+#     """Output parser for the conversational agent."""
 
-    def get_format_instructions(self) -> str:
-        """Returns formatting instructions for the given output parser."""
-        return FORMAT_INSTRUCTIONS
+#     def get_format_instructions(self) -> str:
+#         """Returns formatting instructions for the given output parser."""
+#         return FORMAT_INSTRUCTIONS
 
-    def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
-        """Attempts to parse the given text into an AgentAction or AgentFinish.
+#     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+#         """Attempts to parse the given text into an AgentAction or AgentFinish.
 
-        Raises:
-             OutputParserException if parsing fails.
-        """
-        try:
-            # Attempt to parse the text into a structured format (assumed to be JSON
-            # stored as markdown)
-            # if text is a json, parse it otherwise assign directly
-            if text.startswith("{"):
-                response = parse_json_markdown(text)
-            else:
-                response = {"action": "Final Answer", "action_input": text}
+#         Raises:
+#              OutputParserException if parsing fails.
+#         """
+#         try:
+#             # Attempt to parse the text into a structured format (assumed to be JSON
+#             # stored as markdown)
+#             # if text is a json, parse it otherwise assign directly
+#             if text.startswith("{"):
+#                 response = parse_json_markdown(text)
+#             else:
+#                 response = {"action": "Final Answer", "action_input": text}
 
-            # If the response contains an 'action' and 'action_input'
-            if "action" in response and "action_input" in response:
-                action, action_input = (
-                    response["action"],
-                    response["action_input"],
-                )
+#             # If the response contains an 'action' and 'action_input'
+#             if "action" in response and "action_input" in response:
+#                 action, action_input = (
+#                     response["action"],
+#                     response["action_input"],
+#                 )
 
-                # If the action indicates a final answer, return an AgentFinish
-                if action == "Final Answer":
-                    return AgentFinish({"output": action_input}, text)
-                else:
-                    # Otherwise, return an AgentAction with the specified action and
-                    # input
-                    return AgentAction(action, action_input, text)
-            else:
-                # If the necessary keys aren't present in the response, raise an
-                # exception
-                raise OutputParserException(
-                    f"Missing 'action' or 'action_input' in LLM output: {text}"
-                )
-        except Exception as e:
-            breakpoint()
-            # If any other exception is raised during parsing, also raise an
-            # OutputParserException
-            raise OutputParserException(
-                f"Could not parse LLM output: {text}"
-            ) from e
+#                 # If the action indicates a final answer, return an AgentFinish
+#                 if action == "Final Answer":
+#                     return AgentFinish({"output": action_input}, text)
+#                 else:
+#                     # Otherwise, return an AgentAction with the specified action and
+#                     # input
+#                     return AgentAction(action, action_input, text)
+#             else:
+#                 # If the necessary keys aren't present in the response, raise an
+#                 # exception
+#                 raise OutputParserException(
+#                     f"Missing 'action' or 'action_input' in LLM output: {text}"
+#                 )
+#         except Exception as e:
+#             breakpoint()
+#             # If any other exception is raised during parsing, also raise an
+#             # OutputParserException
+#             raise OutputParserException(
+#                 f"Could not parse LLM output: {text}"
+#             ) from e
 
-    @property
-    def _type(self) -> str:
-        return "conversational_chat"
+#     @property
+#     def _type(self) -> str:
+#         return "conversational_chat"
 
 
 if __name__ == "__main__":
@@ -253,7 +253,7 @@ if __name__ == "__main__":
             tools=tools,
             system_message=PREFIX,
             human_message=SUFFIX,
-            output_parser=ZenMLOutputParser(),
+            # output_parser=ZenMLOutputParser(),
         )
 
         chat_history = []
