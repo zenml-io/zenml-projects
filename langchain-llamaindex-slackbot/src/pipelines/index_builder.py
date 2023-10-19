@@ -18,11 +18,18 @@ from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
 from zenml import pipeline
+from zenml.config import DockerSettings
+from zenml.integrations.constants import LANGCHAIN, OPEN_AI, PILLOW
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 
+docker_settings = DockerSettings(
+    requirements="requirements.txt",
+    required_integrations=[LANGCHAIN, OPEN_AI, PILLOW],
+)
 
-@pipeline(name=PIPELINE_NAME, enable_cache=True)
+
+@pipeline(name=PIPELINE_NAME, enable_cache=True, settings=docker_settings)
 def docs_to_agent_pipeline(
     docs_url: str = "",
     repo_url: str = "",
