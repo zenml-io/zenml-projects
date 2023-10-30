@@ -11,17 +11,34 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-
+import os
 
 from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
 from zenml import pipeline
+from zenml.config import DockerSettings
 
 pipeline_name = "zenml_docs_index_generation"
+docker_settings = DockerSettings(
+    requirements=[
+        "langchain==0.0.263",
+        "openai==0.27.2",
+        "slack-bolt==1.16.2",
+        "slack-sdk==3.20.0",
+        "fastapi",
+        "flask",
+        "uvicorn",
+        "gcsfs==2023.5.0",
+        "faiss-cpu==1.7.3",
+        "unstructured==0.5.7",
+        "tiktoken",
+        "bs4"
+    ],
+    environment={"OPENAI_API_KEY": os.getenv("OPENAI_API_KEY")}
+)
 
-
-@pipeline(name=pipeline_name)
+@pipeline(name=pipeline_name, settings={"docker": docker_settings})
 def docs_to_index_pipeline(
     docs_url: str = "",
     repo_url: str = "",

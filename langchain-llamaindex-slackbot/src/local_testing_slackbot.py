@@ -77,7 +77,7 @@ def reply_in_thread(body: dict, say, context):
     thread_ts = event.get("thread_ts", None) or event["ts"]
 
     if context["bot_user_id"] in event["text"]:
-        logger.debug(f"Received message: {event['text']}")
+        logger.info(f"Received message: {event['text']}")
         if event.get("thread_ts", None):
             full_thread = [
                 f"{msg['text']}"
@@ -107,6 +107,7 @@ def reply_in_thread(body: dict, say, context):
                 question=event["text"],
                 verbose=True,
             )
+        logger.info(output)
         say(text=output, thread_ts=thread_ts)
 
 
