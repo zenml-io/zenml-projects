@@ -2,7 +2,7 @@ langchain>=0.0.125,<=0.0.263
 openai>=0.27.2,<=0.27.8
 slack-bolt==1.16.2
 slack-sdk==3.20.0
-zenml==0.44.1
+zenml==0.45.5
 fastapi
 flask
 uvicorn
