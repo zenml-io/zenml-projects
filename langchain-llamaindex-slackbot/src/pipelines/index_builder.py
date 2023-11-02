@@ -34,8 +34,7 @@ docker_settings = DockerSettings(
         "unstructured==0.5.7",
         "tiktoken",
         "bs4"
-    ],
-    environment={"OPENAI_API_KEY": os.getenv("OPENAI_API_KEY")}
+    ]
 )
 
 @pipeline(name=pipeline_name, settings={"docker": docker_settings})
