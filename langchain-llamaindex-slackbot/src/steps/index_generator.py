@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+import os
 
 from typing import List
 
@@ -21,10 +22,12 @@ from langchain.text_splitter import (
 )
 from langchain.vectorstores import FAISS, VectorStore
 from zenml import step
+from zenml.client import Client
 
 
 @step(enable_cache=False)
 def index_generator(documents: List[Document]) -> VectorStore:
+    os.environ["OPENAI_API_KEY"] = Client().get_secret("langchain_project_secret").secret_values["openai_api_key"]
     embeddings = OpenAIEmbeddings()
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)

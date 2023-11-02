@@ -2,7 +2,7 @@ langchain>=0.0.125,<=0.0.263
 openai>=0.27.2,<=0.27.8
 slack-bolt==1.16.2
 slack-sdk==3.20.0
-zenml==0.45.5
+zenml==0.45.6
 fastapi
 flask
 uvicorn
@@ -11,3 +11,4 @@ faiss-cpu>=1.7.3,<=1.7.4
 unstructured>=0.5.7,<=0.7.8
 lanarky==0.7.12
 tiktoken
+bs4

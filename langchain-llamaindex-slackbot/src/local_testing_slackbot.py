@@ -18,10 +18,15 @@ from slackbot_utils import (
     get_vector_store,
 )
 from zenml.logger import get_logger
+from zenml.client import Client
 
-SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SLACK_BOT_TOKEN = (Client().get_secret("langchain_project_secret")
+                           .secret_values["slack_bot_token"])
+SLACK_APP_TOKEN = (Client().get_secret("langchain_project_secret")
+                           .secret_values["slack_app_token"])
+OPENAI_API_KEY = (Client().get_secret("langchain_project_secret")
+                          .secret_values["openai_api_key"])
+
 PIPELINE_NAME = os.getenv("PIPELINE_NAME", "zenml_docs_index_generation")
 
 logger = get_logger(__name__)
