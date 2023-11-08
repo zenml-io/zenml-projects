@@ -18,6 +18,7 @@ from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
 from zenml import pipeline
 from zenml.config import DockerSettings
+from zenml.config.docker_settings import SourceFileMode
 
 pipeline_name = "zenml_docs_index_generation"
 docker_settings = DockerSettings(
@@ -34,7 +35,8 @@ docker_settings = DockerSettings(
         "unstructured==0.5.7",
         "tiktoken",
         "bs4"
-    ]
+    ],
+    source_files=SourceFileMode.DOWNLOAD
 )
 
 @pipeline(name=pipeline_name, settings={"docker": docker_settings})
