@@ -1,0 +1,3 @@
+zenml[server]>=0.50.0
+notebook
+scikit-learn<1.3
