@@ -3,6 +3,7 @@ extend-exclude = ["*.csv", "sign-language-detection-yolov5/*", "orbit-user-analy
 
 [default.extend-identifiers]
 #  HashiCorp = "HashiCorp"
+connexion = "connexion"
 
 
 [default.extend-words]
