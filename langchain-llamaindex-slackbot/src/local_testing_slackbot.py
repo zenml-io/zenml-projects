@@ -18,10 +18,15 @@ from slackbot_utils import (
     get_vector_store,
 )
 from zenml.logger import get_logger
+from zenml.client import Client
 
-SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SLACK_BOT_TOKEN = (Client().get_secret("langchain_project_secret")
+                           .secret_values["slack_bot_token"])
+SLACK_APP_TOKEN = (Client().get_secret("langchain_project_secret")
+                           .secret_values["slack_app_token"])
+OPENAI_API_KEY = (Client().get_secret("langchain_project_secret")
+                          .secret_values["openai_api_key"])
+
 PIPELINE_NAME = os.getenv("PIPELINE_NAME", "zenml_docs_index_generation")
 
 logger = get_logger(__name__)
@@ -77,7 +82,7 @@ def reply_in_thread(body: dict, say, context):
     thread_ts = event.get("thread_ts", None) or event["ts"]
 
     if context["bot_user_id"] in event["text"]:
-        logger.debug(f"Received message: {event['text']}")
+        logger.info(f"Received message: {event['text']}")
         if event.get("thread_ts", None):
             full_thread = [
                 f"{msg['text']}"
@@ -107,6 +112,7 @@ def reply_in_thread(body: dict, say, context):
                 question=event["text"],
                 verbose=True,
             )
+        logger.info(output)
         say(text=output, thread_ts=thread_ts)
 
 

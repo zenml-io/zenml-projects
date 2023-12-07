@@ -16,6 +16,7 @@ from typing import List
 
 from steps.url_scraping_utils import get_all_pages
 from zenml import step
+from zenml.client import Client
 
 
 @step(enable_cache=True)
@@ -36,5 +37,4 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-    # examples_readme_urls = get_nested_readme_urls(repo_url)
     return get_all_pages(docs_url)
