@@ -1,14 +1,17 @@
 # {% include 'template/license_header' %}
 
 import pandas as pd
+import mlflow
 from sklearn.base import ClassifierMixin
 from zenml import step, log_artifact_metadata
+from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
+experiment_tracker = Client().active_stack.experiment_tracker
 
-@step
+@step(experiment_tracker=experiment_tracker.name)
 def model_evaluator(
     model: ClassifierMixin,
     dataset_trn: pd.DataFrame,
@@ -90,5 +93,7 @@ def model_evaluator(
         artifact_name="model",
     )
 
-    ### YOUR CODE ENDS HERE ###
+    mlflow.log_metric("train_accuracy", float(trn_acc))
+    mlflow.log_metric("test_accuracy",  float(tst_acc))
+
     return float(trn_acc)
