@@ -46,6 +46,7 @@ def model_trainer(
         dataset_trn[target],
     )
 
-    mlflow.sklearn.log_model(model, "breast_cancer_classifier")
+    mlflow.sklearn.log_model(model, "breast_cancer_classifier_model")
+    mlflow.sklearn.autolog()
 
     return model
