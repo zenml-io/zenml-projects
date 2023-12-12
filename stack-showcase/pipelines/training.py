@@ -14,7 +14,7 @@ from pipelines import (
 logger = get_logger(__name__)
 
 
-@pipeline
+@pipeline(enable_cache=True)
 def training(
     train_dataset_id: Optional[UUID] = None,
     test_dataset_id: Optional[UUID] = None,
