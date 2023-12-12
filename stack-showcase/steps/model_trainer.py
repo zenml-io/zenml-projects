@@ -1,16 +1,19 @@
 # {% include 'template/license_header' %}
 
+import mlflow
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.tree import DecisionTreeClassifier
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
+from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
+experiment_tracker = Client().active_stack.experiment_tracker
 
-@step(enable_cache=False)
+@step(enable_cache=False, experiment_tracker=experiment_tracker.name)
 def model_trainer(
     dataset_trn: pd.DataFrame,
 ) -> Annotated[ClassifierMixin, ArtifactConfig(name="model", is_model_artifact=True)]:
@@ -28,9 +31,6 @@ def model_trainer(
     Returns:
         The trained model artifact.
     """
-
-    ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
-
     # Use the dataset to fetch the target
     # context = get_step_context()
     # target = context.inputs["dataset_trn"].run_metadata['target'].value
@@ -45,6 +45,7 @@ def model_trainer(
         dataset_trn.drop(columns=[target]),
         dataset_trn[target],
     )
-    ### YOUR CODE ENDS HERE ###
+
+    mlflow.sklearn.log_model(model, "decision_tree_classifier")
 
     return model
