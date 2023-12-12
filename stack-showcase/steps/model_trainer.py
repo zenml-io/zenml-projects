@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
-@step(enable_cache=False, experiment_tracker=experiment_tracker.name)
+@step(enable_cache=False, experiment_tracker="mlflow")
 def model_trainer(
     dataset_trn: pd.DataFrame,
 ) -> Annotated[ClassifierMixin, ArtifactConfig(name="model", is_model_artifact=True)]:
@@ -46,6 +46,7 @@ def model_trainer(
         dataset_trn[target],
     )
 
-    mlflow.sklearn.log_model(model, "decision_tree_classifier")
+    mlflow.sklearn.log_model(model, "breast_cancer_classifier_model")
+    mlflow.sklearn.autolog()
 
     return model

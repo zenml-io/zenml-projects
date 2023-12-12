@@ -6,12 +6,13 @@ from sklearn.base import ClassifierMixin
 from zenml import step, log_artifact_metadata
 from zenml.client import Client
 from zenml.logger import get_logger
+from zenml import get_step_context
 
 logger = get_logger(__name__)
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
-@step(experiment_tracker=experiment_tracker.name)
+@step(enable_cache=False, experiment_tracker="mlflow")
 def model_evaluator(
     model: ClassifierMixin,
     dataset_trn: pd.DataFrame,
@@ -58,7 +59,6 @@ def model_evaluator(
     Raises:
         RuntimeError: if any of accuracies is lower than respective threshold
     """
-    ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     # context = get_step_context()
     # target = context.inputs["dataset_trn"].run_metadata['target'].value
     target = "target"
@@ -88,9 +88,12 @@ def model_evaluator(
         for message in messages:
             logger.warning(message)
 
+    artifact = get_step_context().model_version.get_artifact("model")
+
     log_artifact_metadata(
         metadata={"train_accuracy": float(trn_acc), "test_accuracy": float(tst_acc)},
-        artifact_name="model",
+        artifact_name=artifact.name,
+        artifact_version=artifact.version,
     )
 
     mlflow.log_metric("train_accuracy", float(trn_acc))

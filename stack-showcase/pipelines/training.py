@@ -14,8 +14,8 @@ from pipelines import (
 logger = get_logger(__name__)
 
 
-@pipeline
-def training(
+@pipeline(enable_cache=True)
+def breast_cancer_training(
     train_dataset_id: Optional[UUID] = None,
     test_dataset_id: Optional[UUID] = None,
     min_train_accuracy: float = 0.0,
