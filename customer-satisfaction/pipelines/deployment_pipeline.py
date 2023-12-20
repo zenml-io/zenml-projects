@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Annotated
 
 import numpy as np
 import pandas as pd
@@ -8,8 +9,8 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
-from zenml.pipelines import pipeline
-from zenml.steps import BaseParameters, Output, step
+from zenml import step, pipeline
+from zenml.steps import BaseParameters
 
 from .utils import get_data_for_test
 
@@ -17,7 +18,7 @@ requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
 
 @step(enable_cache=False, output_materializers=cs_materializer)
-def dynamic_importer() -> Output(data=str):
+def dynamic_importer() -> Annotated[str, "data"]:
     """Downloads the latest data from a mock API."""
     data = get_data_for_test()
     return data
