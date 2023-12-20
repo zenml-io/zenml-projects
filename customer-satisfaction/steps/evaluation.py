@@ -21,11 +21,13 @@ def evaluation(
     Annotated[float, "r2_score"],
     Annotated[float, "rmse"]
 ]:
-    """
+    """Evaluates the Model on the Test Dataset and returns the metrics.
+
     Args:
         model: RegressorMixin
         x_test: pd.DataFrame
         y_test: pd.Series
+
     Returns:
         r2_score: float
         rmse: float

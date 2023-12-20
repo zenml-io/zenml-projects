@@ -1,6 +1,10 @@
 import logging
 
 import pandas as pd
+from zenml import ModelVersion
+from zenml.config import DockerSettings
+from zenml.integrations.constants import MLFLOW
+
 from model.data_cleaning import DataCleaning
 
 
@@ -16,3 +20,12 @@ def get_data_for_test():
     except Exception as e:
         logging.error(e)
         raise e
+
+
+docker_settings = DockerSettings(required_integrations=[MLFLOW])
+model_version = ModelVersion(
+    name="Customer_Satisfaction_Predictor",
+    description="Predictor of Customer Satisfaction.",
+    delete_new_version_on_failure=True,
+    tags=["classification", "customer_satisfaction"],
+)

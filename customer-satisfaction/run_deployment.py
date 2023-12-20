@@ -2,15 +2,13 @@ import click
 from zenml.client import Client
 
 from pipelines.deployment_pipeline import (
-    DeploymentTriggerConfig,
-    MLFlowDeploymentLoaderStepParameters,
     continuous_deployment_pipeline,
-    deployment_trigger,
-    dynamic_importer,
     inference_pipeline,
-    prediction_service_loader,
     predictor,
 )
+from steps.dynamic_importer import dynamic_importer
+from steps.deployment_trigger import deployment_trigger
+from steps.prediction_service_loader import prediction_service_loader
 from rich import print
 from steps.clean_data import clean_data
 from steps.evaluation import evaluation
@@ -55,27 +53,14 @@ def run_main(min_accuracy: float, stop_service: bool, model_name="Customer_Satis
             existing_services[0].stop(timeout=10)
         return
 
-    deployment = continuous_deployment_pipeline(
-        ingest_data=ingest_data(),
-        clean_data=clean_data(),
-        model_train=train_model(),
-        evaluation=evaluation(),
-        deployment_trigger=deployment_trigger(
-            config=DeploymentTriggerConfig(
-                min_accuracy=min_accuracy,
-            )
-        ),
-        model_deployer=mlflow_model_deployer_step(workers=3),
-    )
+    deployment = continuous_deployment_pipeline(min_accuracy=min_accuracy)
     deployment.run(config_path="config.yaml")
 
     inference = inference_pipeline(
         dynamic_importer=dynamic_importer(),
         prediction_service_loader=prediction_service_loader(
-            MLFlowDeploymentLoaderStepParameters(
                 pipeline_name="continuous_deployment_pipeline",
-                step_name="model_deployer",
-            )
+                step_name="model_deployer"
         ),
         predictor=predictor(),
     )

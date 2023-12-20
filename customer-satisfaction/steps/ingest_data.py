@@ -20,9 +20,8 @@ class IngestData:
 
 @step
 def ingest_data() -> pd.DataFrame:
-    """
-    Args:
-        None
+    """ Ingest Data and return a Dataframe with the whole dataset.
+
     Returns:
         df: pd.DataFrame
     """
