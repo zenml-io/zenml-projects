@@ -1,53 +1,60 @@
 import logging
+from typing import Annotated
 
 import mlflow
 import pandas as pd
-from model.model_dev import ModelTraining
+
+from model.model_dev import ModelTrainer
 from sklearn.base import RegressorMixin
 from zenml.client import Client
-from zenml.steps import Output, step
+from zenml import step
+from zenml import ArtifactConfig
 
-from .config import ModelNameConfig
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
 
-@step(experiment_tracker=experiment_tracker.name)
+@step(enable_cache=False, experiment_tracker=experiment_tracker.name)
 def train_model(
     x_train: pd.DataFrame,
     x_test: pd.DataFrame,
     y_train: pd.Series,
     y_test: pd.Series,
-    config: ModelNameConfig,
-) -> Output(model=RegressorMixin):
+    model_type: str = "lightgbm",
+    do_fine_tuning: bool = True
+) -> Annotated[
+    RegressorMixin, ArtifactConfig(name="model", is_model_artifact=True)
+]:
     """
     Args:
         x_train: pd.DataFrame
         x_test: pd.DataFrame
         y_train: pd.Series
         y_test: pd.Series
+        model_type: str - available options ["lightgbm", "randomforest", "xgboost"]
+        do_fine_tuning: Should full training run or only fine tuning
     Returns:
         model: RegressorMixin
     """
     try:
-        model_training = ModelTraining(x_train, y_train, x_test, y_test)
+        model_training = ModelTrainer(x_train, y_train, x_test, y_test)
 
-        if config.model_name == "lightgbm":
+        if model_type == "lightgbm":
             mlflow.lightgbm.autolog()
             lgm_model = model_training.lightgbm_trainer(
-                fine_tuning=config.fine_tuning
+                fine_tuning=do_fine_tuning
             )
             return lgm_model
-        elif config.model_name == "randomforest":
+        elif model_type == "randomforest":
             mlflow.sklearn.autolog()
             rf_model = model_training.random_forest_trainer(
-                fine_tuning=config.fine_tuning
+                fine_tuning=do_fine_tuning
             )
             return rf_model
-        elif config.model_name == "xgboost":
+        elif model_type == "xgboost":
             mlflow.xgboost.autolog()
             xgb_model = model_training.xgboost_trainer(
-                fine_tuning=config.fine_tuning
+                fine_tuning=do_fine_tuning
             )
             return xgb_model
         else:

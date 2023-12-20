@@ -13,7 +13,7 @@ from rich import print
 from steps.clean_data import clean_data
 from steps.evaluation import evaluation
 from steps.ingest_data import ingest_data
-from steps.model_train import train_model
+from steps.train_model import train_model
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,

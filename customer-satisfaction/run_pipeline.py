@@ -1,19 +1,19 @@
-from pipelines.training_pipeline import train_pipeline
-from steps.clean_data import clean_data
-from steps.evaluation import evaluation
-from steps.ingest_data import ingest_data
-from steps.model_train import train_model
+from pipelines.training_pipeline import customer_satisfaction_training_pipeline
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
-if __name__ == "__main__":
-    training = train_pipeline(
-        ingest_data(),
-        clean_data(),
-        train_model(),
-        evaluation(),
-    )
+import click
 
-    training.run()
+
+@click.command()
+@click.option(
+    "--model_type",
+    "-m",
+    type=click.Choice(["lightgbm", "randomforest", "xgboost"]),
+    default="xgboost",
+    help="Here you can choose what type of model should be trained."
+)
+def main(model_type: str):
+    training = customer_satisfaction_training_pipeline(model_type)
 
     print(
         "Now run \n "
@@ -22,3 +22,9 @@ if __name__ == "__main__":
         "You can find your runs tracked within the `mlflow_example_pipeline`"
         "experiment. Here you'll also be able to compare the two runs.)"
     )
+
+if __name__ == "__main__":
+    main()
+
+
+
