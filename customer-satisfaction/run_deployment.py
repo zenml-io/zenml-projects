@@ -1,4 +1,6 @@
 import click
+from zenml.client import Client
+
 from pipelines.deployment_pipeline import (
     DeploymentTriggerConfig,
     MLFlowDeploymentLoaderStepParameters,
@@ -21,7 +23,6 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
 from zenml.integrations.mlflow.steps import (
     mlflow_model_deployer_step,
 )
-from zenml.services import load_last_service_from_step
 
 
 @click.command()
@@ -36,16 +37,22 @@ from zenml.services import load_last_service_from_step
     default=False,
     help="Stop the prediction service when done",
 )
-def run_main(min_accuracy: float, stop_service: bool):
+def run_main(min_accuracy: float, stop_service: bool, model_name="Customer_Satisfaction_Predictor"):
     """Run the mlflow example pipeline"""
     if stop_service:
-        service = load_last_service_from_step(
+        # get the MLflow model deployer stack component
+        model_deployer = MLFlowModelDeployer.get_active_model_deployer()
+
+        # fetch existing services with same pipeline name, step name and model name
+        existing_services = model_deployer.find_model_server(
             pipeline_name="continuous_deployment_pipeline",
-            step_name="model_deployer",
+            pipeline_step_name="model_deployer",
+            model_name=model_name,
             running=True,
         )
-        if service:
-            service.stop(timeout=10)
+
+        if existing_services:
+            existing_services[0].stop(timeout=10)
         return
 
     deployment = continuous_deployment_pipeline(
