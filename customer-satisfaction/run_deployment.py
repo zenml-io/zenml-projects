@@ -19,7 +19,6 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
 from zenml.integrations.mlflow.steps import (
-    MLFlowDeployerParameters,
     mlflow_model_deployer_step,
 )
 from zenml.services import load_last_service_from_step
@@ -59,9 +58,7 @@ def run_main(min_accuracy: float, stop_service: bool):
                 min_accuracy=min_accuracy,
             )
         ),
-        model_deployer=mlflow_model_deployer_step(
-            params=MLFlowDeployerParameters(workers=3)
-        ),
+        model_deployer=mlflow_model_deployer_step(workers=3),
     )
     deployment.run(config_path="config.yaml")
 
