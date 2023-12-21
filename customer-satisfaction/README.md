@@ -73,16 +73,21 @@ with the two components are as follows:
 zenml integration install mlflow -y
 zenml experiment-tracker register mlflow_tracker --flavor=mlflow
 zenml model-deployer register mlflow --flavor=mlflow
-zenml stack register mlflow_stack -a default -o default -d mlflow -e mlflow_tracker --set
+zenml stack register local-mlflow-stack -a default -o default -d mlflow -e mlflow_tracker --set
 ```
+
+This should give you the following stack to work with. 
+
+![mlflow_stack](_assets/mlflow_stack.png)
 
 ## 📙 Resources & References
 
 We had written a blog that explains this project
 in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
 
-If you'd like to watch the video that explains the project, you can watch
-the [video](https://youtu.be/L3_pFTlF9EQ).
+If you'd like to watch the video that explains an older version of this project, you can watch
+the [video](https://youtu.be/L3_pFTlF9EQ). Just keep in mind, that some things will be different to due to 
+improvements to the ZenML pipeline interface and additional features.
 
 ## :thumbsup: The Solution
 
@@ -120,22 +125,37 @@ Our standard training pipeline consists of several steps:
 - `model_promoter`: This step compares the newly trained model against the previous 
   production model, in case it performed better, the new model is promoted
 
+This is what the pipeline looks like.
+![training_pipeline](_assets/training_pipeline.png)
+
 ### Deployment Pipeline
 
 We have another pipeline, the `deployment_pipeline.py`, that extends the
 training pipeline, and implements a continuous deployment workflow. It ingests
 and processes input data, trains a model and then (re)deploys the prediction
-server that serves the model if it met the promotion criteria.
-of the training. The first five steps of the pipeline are the same as above, but
-we have added the following additional ones:
+server that serves the model if it met the promotion criteria. The first
+five steps of the pipeline are the same as above, but we have added the
+following additional ones:
 
 - `model_loader`: The step loads the `production` model from the zenml model registry
 - `model_deployer`: This step deploys the model as a service using MLflow (if
   deployment criteria is met).
 
+Here is the full continuous deployment pipeline:
+
+![training_pipeline](_assets/continuous_deployment.png)
+
 In the deployment pipeline ZenML's Model Control Plane is used for
 logging attaching the evaluation metrics as metadata to the trained model. 
-This pipeline also launches a local MLflow deployment server to
+
+Here is what this looks like in the ZenML Cloud Dashboard. 
+
+![training_pipeline](_assets/ModelControlPlane.png)
+
+In the Model Control plane you can easily find model artifacts alongside the data 
+that was used to train them and the metrics of any avaluation steps.
+
+The pipeline also launches a local MLflow deployment server to
 serve the latest MLflow model if its accuracy is above a configured threshold.
 
 The MLflow deployment server runs locally as a daemon process that will continue
@@ -151,8 +171,7 @@ with ZenML within the Streamlit code:
 ```python
 service = model_deployer.find_model_server(
     pipeline_name="continuous_deployment_pipeline",
-    pipeline_step_name="mlflow_model_deployer_step",
-    running=True,
+    pipeline_step_name="mlflow_model_deployer_step"
 )
 ...
 service.predict(...)  # Predict on incoming data from the application
@@ -183,6 +202,12 @@ python run_pipeline.py
 python run_deployment.py
 ```
 
+- The simple inference pipeline. Remember to only run this once you have a running model deployment:
+
+```bash
+python run_inference.py
+```
+
 ## 🕹 Demo Streamlit App
 
 There is a live demo of this project using [Streamlit](https://streamlit.io/)
@@ -195,6 +220,10 @@ your local system, you can run the following command:-
 ```bash
 streamlit run streamlit_app.py
 ```
+
+A browser window should open for you and let you configure a product to run a prediction on:
+![streamlit_app](_assets/StreamlitApp.png)
+
 
 ## :question: FAQ
 

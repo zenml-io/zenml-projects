@@ -2,7 +2,6 @@ from typing import Annotated
 
 from zenml import step
 
-from materializer.custom_materializer import cs_materializer
 from pipelines.utils import get_data_for_test
 
 

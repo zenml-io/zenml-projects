@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
+from zenml.integrations.mlflow.model_deployers import MLFlowModelDeployer
+
 from run_deployment import run_main
-from zenml.services import load_last_service_from_step
 
 
 def main():
@@ -64,11 +65,12 @@ def main():
     product_width_cm = st.number_input("Product width (CMs)")
 
     if st.button("Predict"):
-        service = load_last_service_from_step(
+        model_deployer = MLFlowModelDeployer.get_active_model_deployer()
+
+        service = model_deployer.find_model_server(
             pipeline_name="continuous_deployment_pipeline",
-            step_name="model_deployer",
-            running=True,
-        )
+            pipeline_step_name="mlflow_model_deployer_step"
+        )[0]
         if service is None:
             st.write(
                 "No service could be found. The pipeline will be run first to create a service."

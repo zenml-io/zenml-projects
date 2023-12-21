@@ -2,7 +2,7 @@ import os
 
 from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 
-from zenml import pipeline
+from zenml import pipeline, ModelVersion
 
 from pipelines.training_pipeline import customer_satisfaction_training_pipeline
 from steps import predictor
@@ -24,7 +24,7 @@ def continuous_deployment_pipeline(
     # Fetch the production model from the Model Registry
     production_model = model_loader(
         model_name="Customer_Satisfaction_Predictor",
-        after="model_promoter"  # Make sure this step runs only once the training pipeline is done
+        after="model_promoter"  # Make sure this runs only once the training pipeline is done
     )
 
     # (Re)deploy the production model

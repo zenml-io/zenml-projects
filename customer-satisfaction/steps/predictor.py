@@ -12,7 +12,7 @@ def predictor(
 ) -> np.ndarray:
     """Run an inference request against a prediction service"""
 
-    # service.start(timeout=10)  # should be a NOP if already started
+    service.start(timeout=10)  # should be a NOP if already started
     data = json.loads(input_data)
     data.pop("columns")
     data.pop("index")
