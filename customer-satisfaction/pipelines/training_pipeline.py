@@ -3,19 +3,15 @@ from typing import Tuple, Annotated
 from sklearn.base import RegressorMixin
 from zenml import pipeline
 
-from pipelines.utils import docker_settings, model_version
-from steps import ingest_data, clean_data, train_model, evaluation, \
-    model_promoter
-
-
-@pipeline(
-    enable_cache=True,
-    settings={"docker": docker_settings},
-    model_version=model_version
+from steps import (
+    ingest_data, clean_data, train_model, evaluation, model_promoter
 )
+
+
+@pipeline
 def customer_satisfaction_training_pipeline(
     model_type: str = "lightgbm"
-) -> Tuple[Annotated[RegressorMixin, "model"], Annotated[bool, "is_promoted"]]:
+) -> Tuple[RegressorMixin, bool]:
     """Training Pipeline.
 
     Args:

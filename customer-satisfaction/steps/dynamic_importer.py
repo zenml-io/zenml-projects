@@ -6,8 +6,8 @@ from materializer.custom_materializer import cs_materializer
 from pipelines.utils import get_data_for_test
 
 
-@step(enable_cache=False, output_materializers=cs_materializer)
-def dynamic_importer() -> Annotated[str, "data"]:
+@step(enable_cache=False)
+def dynamic_importer() -> Annotated[str, "batch_data"]:
     """Downloads the latest data from a mock API."""
-    data = get_data_for_test()
-    return data
+    batch_data = get_data_for_test()
+    return batch_data

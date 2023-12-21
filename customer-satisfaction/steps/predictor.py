@@ -4,15 +4,16 @@ import numpy as np
 import json
 import pandas as pd
 
-@step()
+
+@step(enable_cache=False)
 def predictor(
     service: MLFlowDeploymentService,
-    data: str,
+    input_data: str,
 ) -> np.ndarray:
     """Run an inference request against a prediction service"""
 
-    service.start(timeout=10)  # should be a NOP if already started
-    data = json.loads(data)
+    # service.start(timeout=10)  # should be a NOP if already started
+    data = json.loads(input_data)
     data.pop("columns")
     data.pop("index")
     columns_for_df = [

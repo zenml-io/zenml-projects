@@ -5,7 +5,7 @@ from zenml.integrations.mlflow.services import MLFlowDeploymentService
 
 @step(enable_cache=False)
 def prediction_service_loader(
-    pipeline_name: str, step_name: str, running: bool = True
+    pipeline_name: str, step_name: str
 ) -> MLFlowDeploymentService:
     """Get the prediction service started by the deployment pipeline"""
 
@@ -16,7 +16,6 @@ def prediction_service_loader(
     existing_services = model_deployer.find_model_server(
         pipeline_name=pipeline_name,
         pipeline_step_name=step_name,
-        running=running,
     )
 
     if not existing_services:

@@ -44,13 +44,17 @@ def evaluation(
         mlflow.log_metric("mse", mse)
         mlflow.log_metric("rmse", rmse)
 
-        # Also add these metrics to the Model within the ZenML Model Control Plane
-        artifact = get_step_context().model_version.get_artifact("model")
+        # Also add the metrics to the Model within the ZenML Model Control Plane
+        artifact = get_step_context().model_version.get_artifact("sklearn_regressor")
 
         log_artifact_metadata(
-            metadata={"r2_score": float(r2_score),
-                      "mse": float(mse),
-                      "rmse": float(rmse)},
+            metadata={
+                "metrics": {
+                    "r2_score": float(r2_score),
+                    "mse": float(mse),
+                    "rmse": float(rmse)
+                }
+            },
             artifact_name=artifact.name,
             artifact_version=artifact.version,
         )

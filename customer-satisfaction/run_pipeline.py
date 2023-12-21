@@ -13,7 +13,10 @@ import click
     help="Here you can choose what type of model should be trained."
 )
 def main(model_type: str):
-    training = customer_satisfaction_training_pipeline(model_type)
+    (
+        customer_satisfaction_training_pipeline
+        .with_options(config_path="config.yaml")(model_type)
+    )
 
     print(
         "Now run \n "
@@ -22,6 +25,7 @@ def main(model_type: str):
         "You can find your runs tracked within the `mlflow_example_pipeline`"
         "experiment. Here you'll also be able to compare the two runs.)"
     )
+
 
 if __name__ == "__main__":
     main()

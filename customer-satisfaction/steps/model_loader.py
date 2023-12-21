@@ -16,5 +16,5 @@ def model_loader(
         name=model_name,
         version="production"
     )
-    model_artifact: RegressorMixin = model_version.load_artifact("model")
+    model_artifact: RegressorMixin = model_version.load_artifact("sklearn_regressor")
     return model_artifact

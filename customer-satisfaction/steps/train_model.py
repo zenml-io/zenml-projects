@@ -23,7 +23,8 @@ def train_model(
     model_type: str = "lightgbm",
     do_fine_tuning: bool = True
 ) -> Annotated[
-    RegressorMixin, ArtifactConfig(name="model", is_model_artifact=True)
+    RegressorMixin,
+    ArtifactConfig(name="sklearn_regressor", is_model_artifact=True)
 ]:
     """
     Args:
@@ -58,7 +59,7 @@ def train_model(
             )
             return xgb_model
         else:
-            raise ValueError("Model name not supported")
+            raise ValueError("Model type not supported")
     except Exception as e:
         logging.error(e)
         raise e
