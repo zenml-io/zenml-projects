@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 @step
 def model_promoter(
-    accuracy: float,
+    mse: float,
     stage: str = "production"
 ) -> bool:
     """Model promotion step
@@ -15,7 +15,7 @@ def model_promoter(
     the previous production model
 
     Args:
-        accuracy: Accuracy of the model.
+        mse: Mean-squared error of the model.
         stage: Which stage to promote the model to.
 
     Returns:
@@ -31,17 +31,20 @@ def model_promoter(
     )
 
     try:
+        # In case there already is a model version at the correct stage
         previous_production_model_version_mse = float(
             previous_production_model.get_artifact("model").run_metadata["mse"].value
         )
     except RuntimeError:
-        previous_production_model_version_mse = 0.0
+        # In case no model version has been promoted before,
+        #   default to a threshold value well above the new mse
+        previous_production_model_version_mse = mse + 1000
 
-    if accuracy < previous_production_model_version_mse:
+    if mse > previous_production_model_version_mse:
         logger.info(
-            f"Model accuracy {accuracy*100:.2f}% is below the accuracy of "
-            f"the previous production model "
-            f"{previous_production_model_version_mse*100:.2f}% ! "
+            f"Model mean-squared error {mse:.2f} is higher than"
+            f" the mse of the previous production model "
+            f"{previous_production_model_version_mse:.2f} ! "
             f"Not promoting model."
         )
         is_promoted = False

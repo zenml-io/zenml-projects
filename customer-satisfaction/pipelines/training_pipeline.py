@@ -25,5 +25,5 @@ def customer_satisfaction_training_pipeline(
     x_train, x_test, y_train, y_test = clean_data(df)
     model = train_model(x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test, model_type=model_type)
     mse, rmse = evaluation(model, x_test, y_test)
-    is_promoted = model_promoter(accuracy=mse)
+    is_promoted = model_promoter(mse=mse)
     return model, is_promoted

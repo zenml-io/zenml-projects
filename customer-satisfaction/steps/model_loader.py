@@ -12,7 +12,6 @@ def model_loader(
     Args:
         model_name: Name of the Model to load
     """
-
     model_version = ModelVersion(
         name=model_name,
         version="production"

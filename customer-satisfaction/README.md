@@ -117,27 +117,25 @@ Our standard training pipeline consists of several steps:
   using [MLflow autologging](https://www.mlflow.org/docs/latest/tracking.html).
 - `evaluation`: This step will evaluate the model and save the metrics -- using
   MLflow autologging -- into the artifact store.
+- `model_promoter`: This step compares the newly trained model against the previous 
+  production model, in case it performed better, the new model is promoted
 
 ### Deployment Pipeline
 
 We have another pipeline, the `deployment_pipeline.py`, that extends the
 training pipeline, and implements a continuous deployment workflow. It ingests
 and processes input data, trains a model and then (re)deploys the prediction
-server that serves the model if it meets our evaluation criteria. The criteria
-that we have chosen is a configurable threshold on
-the [MSE](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html)
-of the training. The first four steps of the pipeline are the same as above, but
+server that serves the model if it met the promotion criteria.
+of the training. The first five steps of the pipeline are the same as above, but
 we have added the following additional ones:
 
-- `deployment_trigger`: The step checks whether the newly trained model meets
-  the criteria set for deployment.
+- `model_loader`: The step loads the `production` model from the zenml model registry
 - `model_deployer`: This step deploys the model as a service using MLflow (if
   deployment criteria is met).
 
-In the deployment pipeline, ZenML's MLflow tracking integration is used for
-logging the hyperparameter values and the trained model itself and the model
-evaluation metrics -- as MLflow experiment tracking artifacts -- into the local
-MLflow backend. This pipeline also launches a local MLflow deployment server to
+In the deployment pipeline ZenML's Model Control Plane is used for
+logging attaching the evaluation metrics as metadata to the trained model. 
+This pipeline also launches a local MLflow deployment server to
 serve the latest MLflow model if its accuracy is above a configured threshold.
 
 The MLflow deployment server runs locally as a daemon process that will continue
@@ -151,9 +149,9 @@ model service asynchronously from the pipeline logic. This can be done easily
 with ZenML within the Streamlit code:
 
 ```python
-service = load_last_service_from_step(
+service = model_deployer.find_model_server(
     pipeline_name="continuous_deployment_pipeline",
-    step_name="model_deployer",
+    pipeline_step_name="mlflow_model_deployer_step",
     running=True,
 )
 ...
@@ -200,28 +198,7 @@ streamlit run streamlit_app.py
 
 ## :question: FAQ
 
-1. When running the continuous deployment pipeline, I get an error
-   stating: `No Step found for the name mlflow_deployer`.
-
-   Solution: It happens because your artifact store is overridden after running
-   the continuous deployment pipeline. So, you need to delete the artifact store
-   and rerun the pipeline. You can get the location of the artifact store by
-   running the following command:
-
-    ```bash
-    zenml artifact-store describe
-    ```
-
-   and then you can delete the artifact store with the following command:
-
-   **Note**: This is a dangerous / destructive command! Please enter your path
-   carefully, otherwise it may delete other folders from your computer.
-
-    ```bash
-    rm -rf PATH
-    ```
-
-2. When running the continuous deployment pipeline, I get the following
+1. When running the continuous deployment pipeline, I get the following
    error: `No Environment component with name mlflow is currently registered.`
 
    Solution: You forgot to install the MLflow integration in your ZenML
