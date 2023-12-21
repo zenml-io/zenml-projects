@@ -32,7 +32,7 @@ def continuous_deployment_pipeline(
     #  led to a model promotion
     mlflow_model_deployer_step(
         workers=3,
-        deploy_decision=is_promoted,
+        deploy_decision=True,
         model=production_model
     )
 
@@ -46,4 +46,4 @@ def inference_pipeline():
         step_name="mlflow_model_deployer_step",
         running=True
     )
-    predictor(model_deployment_service, batch_data)
+    predictor(service=model_deployment_service, data=batch_data)
