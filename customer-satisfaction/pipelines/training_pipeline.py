@@ -11,7 +11,7 @@ from steps import (
 @pipeline
 def customer_satisfaction_training_pipeline(
     model_type: str = "lightgbm"
-) -> Tuple[RegressorMixin, bool]:
+):
     """Training Pipeline.
 
     Args:
