@@ -9,7 +9,7 @@ connexion = "connexion"
 [default.extend-words]
 #  aks = "aks"
 GOES = "GOES"
-LENGHT = "lenght"
+lenght = "lenght"
 
 [default]
 locale = "en-us"
