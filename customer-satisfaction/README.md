@@ -35,13 +35,13 @@ cd zenml-projects/customer-satisfaction
 pip install -r requirements.txt
 ```
 
-Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard.
+ZenML comes bundled with a React-based dashboard.
 This dashboard allows you
 to observe your stacks, stack components and pipeline DAGs in a dashboard
 interface.
 
 You can either run this yourself locally, or you can use a hosted server on
-the [ZenML Cloud](https://cloud.zenml.io).
+the [ZenML Cloud](https://zenml.io/cloud).
 In case you already have an account, here is how you connect to a deployed
 server.
 
@@ -50,7 +50,7 @@ zenml connect -u <INSERT_SERVER_URL_HERE>
 ```
 
 To run locally, you need
-to [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/user-guide/starter-guide#explore-the-dashboard),
+to launch the ZenML Server and Dashboard locally,
 but first you must install the optional dependencies for the ZenML server:
 
 ```bash
@@ -85,9 +85,8 @@ This should give you the following stack to work with.
 We had written a blog that explains this project
 in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
 
-If you'd like to watch the video that explains an older version of this project, you can watch
-the [video](https://youtu.be/L3_pFTlF9EQ). Just keep in mind, that some things will be different to due to 
-improvements to the ZenML pipeline interface and additional features.
+There is also a great course over on [freeCodeCamp.org](https://www.youtube.com/watch?v=-dJPoLm_gtE) by
+[Ayush Singh](https://www.linkedin.com/in/ayush-singh488/) based on this project.
 
 ## :thumbsup: The Solution
 
