@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-class Evaluation:
+class Evaluator:
     """
     Evaluation class which evaluates the model performance using the sklearn metrics.
     """

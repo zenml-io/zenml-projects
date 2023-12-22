@@ -4,6 +4,7 @@ import optuna
 import pandas as pd
 import xgboost as xgb
 from lightgbm import LGBMRegressor
+from sklearn.base import RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
 
 
@@ -79,7 +80,7 @@ class Hyperparameter_Optimization:
         return val_accuracy
 
 
-class ModelTraining:
+class ModelTrainer:
     """
     Class for training models.
     """
@@ -97,7 +98,7 @@ class ModelTraining:
         self.x_test = x_test
         self.y_test = y_test
 
-    def random_forest_trainer(self, fine_tuning: bool = True):
+    def random_forest_trainer(self, fine_tuning: bool = True) -> RegressorMixin:
         """
         It trains the random forest model.
 
@@ -113,7 +114,7 @@ class ModelTraining:
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hyper_opt.optimize_randomforest, n_trials=100)
+                study.optimize(hyper_opt.optimize_randomforest, n_trials=10)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 max_depth = trial.params["max_depth"]
@@ -137,7 +138,7 @@ class ModelTraining:
             logging.error(e)
             return None
 
-    def lightgbm_trainer(self, fine_tuning: bool = True):
+    def lightgbm_trainer(self, fine_tuning: bool = True) -> RegressorMixin:
         """
         It trains the LightGBM model.
 
@@ -153,7 +154,7 @@ class ModelTraining:
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hyper_opt.optimize_lightgbm, n_trials=100)
+                study.optimize(hyper_opt.optimize_lightgbm, n_trials=10)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 max_depth = trial.params["max_depth"]
@@ -176,7 +177,7 @@ class ModelTraining:
             logging.error(e)
             return None
 
-    def xgboost_trainer(self, fine_tuning: bool = True):
+    def xgboost_trainer(self, fine_tuning: bool = True) -> RegressorMixin:
         """
         It trains the xgboost model.
 
@@ -192,7 +193,7 @@ class ModelTraining:
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hy_opt.optimize_xgboost_regressor, n_trials=100)
+                study.optimize(hy_opt.optimize_xgboost_regressor, n_trials=10)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 learning_rate = trial.params["learning_rate"]

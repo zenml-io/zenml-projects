@@ -1,12 +1,13 @@
 enable_cache: False
-extra:
-  tags: zenml-projects
+
 settings:
   docker:
     required_integrations:
       - mlflow
-steps:
-  model_train:
-    experiment_tracker: mlflow_tracker
-  evaluation:
-    experiment_tracker: mlflow_tracker
+
+# configuration of the Model Control Plane
+model_version:
+  name: Customer_Satisfaction_Predictor
+  license: Apache 2.0
+  description: Predictor of Customer Satisfaction.
+  tags: ["classification", "customer_satisfaction"]
