@@ -160,11 +160,11 @@ def main(
                 train_dataset_version_name is not None
                 and test_dataset_version_name is not None
             )
-            train_dataset_artifact = client.get_artifact(
+            train_dataset_artifact = client.get_artifact_version(
                 train_dataset_name, train_dataset_version_name
             )
             # If train dataset is specified, test dataset must be specified
-            test_dataset_artifact = client.get_artifact(
+            test_dataset_artifact = client.get_artifact_version(
                 test_dataset_name, test_dataset_version_name
             )
             # Use versioned artifacts

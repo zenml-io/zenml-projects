@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
-@step(enable_cache=False, experiment_tracker="mlflow")
+@step(enable_cache=False, experiment_tracker="mlflow", step_operator="sagemaker-eu")
 def model_trainer(
     dataset_trn: pd.DataFrame,
 ) -> Annotated[ClassifierMixin, ArtifactConfig(name="model", is_model_artifact=True)]:
