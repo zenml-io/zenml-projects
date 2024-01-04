@@ -7,7 +7,7 @@ import click
 from pipelines import (
     feature_engineering,
     inference,
-    training,
+    breast_cancer_training,
 )
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -144,7 +144,7 @@ def main(
             run_args_train["train_dataset_id"] = train_dataset_artifact.id
             run_args_train["test_dataset_id"] = test_dataset_artifact.id
 
-        training.with_options(**pipeline_args)(**run_args_train)
+        breast_cancer_training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline finished successfully!")
 
     if inference_pipeline:
