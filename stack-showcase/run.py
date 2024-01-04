@@ -132,7 +132,17 @@ def main(
         run_args_feature = {}
         feature_engineering.with_options(**pipeline_args)(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!")
-
+        train_dataset_artifact = client.get_artifact_version(
+            train_dataset_name
+        )
+        test_dataset_artifact = client.get_artifact_version(test_dataset_name)
+        logger.info(
+            "The latest feature engineering pipeline produced the following "
+            f"artifacts: \n\n1. Train Dataset - Name: {train_dataset_name}, "
+            f"Version Name: {train_dataset_artifact.version} \n2. Test Dataset: "
+            f"Name: {test_dataset_name}, Version Name: {test_dataset_artifact.version}"
+        )
+        
     # Execute Training Pipeline
     if training_pipeline:
         pipeline_args = {}
