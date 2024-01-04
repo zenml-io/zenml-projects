@@ -1,3 +1,18 @@
+
+---
+title: ZenML Breast Cancer Classifier
+emoji: 🦀
+colorFrom: purple
+colorTo: purple
+sdk: gradio
+sdk_version: 3.1.7
+app_file: app.py
+pinned: false
+license: apache-2.0
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+
 # 📜 ZenML Stack Show Case
 
 This project aims to demonstrate the power of stacks. The code in this 

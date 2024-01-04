@@ -35,5 +35,4 @@ def breast_cancer_deployment_pipeline(
     ########## Deploy to HuggingFace ##########
     deploy_to_huggingface(
         repo_name=repo_name,
-        after=["save_model_to_deploy"],
     )
