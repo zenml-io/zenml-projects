@@ -103,7 +103,7 @@ def main(
     train_dataset_version_name: Optional[str] = None,
     test_dataset_name: str = "dataset_tst",
     test_dataset_version_name: Optional[str] = None,
-    config_name: Optional[str] = None,
+    config: Optional[str] = None,
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
@@ -136,10 +136,10 @@ def main(
     # Execute Training Pipeline
     if training_pipeline:
         pipeline_args = {}
-        if config_name is None:
+        if config is None:
             pipeline_args["config_path"] = os.path.join(config_folder, "training.yaml")
         else:
-            pipeline_args["config_path"] = os.path.join(config_folder, config_name)
+            pipeline_args["config_path"] = os.path.join(config_folder, config)
         run_args_train = {}
 
         # If train_dataset_version_name is specified, use versioned artifacts
@@ -166,10 +166,10 @@ def main(
 
     if inference_pipeline:
         pipeline_args = {}
-        if config_name is None:
+        if config is None:
             pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
         else:
-            pipeline_args["config_path"] = os.path.join(config_folder, config_name) 
+            pipeline_args["config_path"] = os.path.join(config_folder, config) 
         run_args_inference = {}
         inference.with_options(**pipeline_args)(**run_args_inference)
         logger.info("Inference pipeline finished successfully!")
