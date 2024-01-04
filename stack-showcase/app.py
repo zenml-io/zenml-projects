@@ -3,6 +3,14 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import load_breast_cancer
 from zenml.client import Client
+import os 
+
+ZENML_STORE_API_KEY = os.getenv("ZENML_STORE_API_KEY", None)
+ZENML_STORE_URL = os.getenv("ZENML_STORE_URL", None)
+
+if ZENML_STORE_API_KEY:
+    # Use os.process to call zenml connect --url ZENML_STORE_URL --api-key ZENML_STORE_API_KEY
+    os.system(f"zenml connect --url {ZENML_STORE_URL} --api-key {ZENML_STORE_API_KEY}")
 
 client = Client()
 zenml_model_version = client.get_model_version("breast_cancer_classifier", "production")

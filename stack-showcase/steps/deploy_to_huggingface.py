@@ -55,7 +55,7 @@ def deploy_to_huggingface(
     )
     repo_commits = api.list_repo_commits(
         repo_id=hf_repo.repo_id,
-        repo_type="model",
+        repo_type="space",
     )
     log_artifact_metadata(
         artifact_name="huggingface_url",
