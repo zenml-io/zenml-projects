@@ -8,7 +8,6 @@ from steps import (
     inference_predict,
 )
 from zenml import pipeline, ExternalArtifact
-from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,8 +36,7 @@ def inference(
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
-    client = Client()
-    random_state = client.get_artifact("dataset").run_metadata["random_state"].value
+    random_state = 60
     target = "target"
     df_inference = data_loader(random_state=random_state, is_inference=True)
     df_inference = inference_preprocessor(

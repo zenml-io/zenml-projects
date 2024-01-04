@@ -24,3 +24,6 @@ from .model_trainer import (
 from .model_promoter import (
     model_promoter,
 )
+from .deploy_to_huggingface import (
+    deploy_to_huggingface,
+)

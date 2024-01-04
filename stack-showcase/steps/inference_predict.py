@@ -53,7 +53,6 @@ def inference_predict(
     predictor = model_version.load_artifact("model")
     predictions = predictor.predict(dataset_inf)
 
-    breakpoint()
     predictions = pd.Series(predictions, name="predicted")
     ### YOUR CODE ENDS HERE ###
 

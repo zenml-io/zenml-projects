@@ -8,6 +8,7 @@ from pipelines import (
     feature_engineering,
     inference,
     breast_cancer_training,
+    breast_cancer_deployment_pipeline
 )
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -85,6 +86,12 @@ Examples:
     default=False,
     help="Whether to run the pipeline that performs inference.",
 )
+@click.option(
+    "--deployment-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that deploys the model.",
+)
 def main(
     train_dataset_name: str = "dataset_trn",
     train_dataset_version_name: Optional[str] = None,
@@ -93,6 +100,7 @@ def main(
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
+    deployment_pipeline: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -154,6 +162,12 @@ def main(
         inference.with_options(**pipeline_args)(**run_args_inference)
         logger.info("Inference pipeline finished successfully!")
 
+    if deployment_pipeline:
+        pipeline_args = {}
+        pipeline_args["config_path"] = os.path.join(config_folder, "deployment.yaml")
+        run_args_inference = {}
+        breast_cancer_deployment_pipeline.with_options(**pipeline_args)(**run_args_inference)
+        logger.info("Deployment pipeline finished successfully!")
 
 if __name__ == "__main__":
     main()
