@@ -69,6 +69,12 @@ Examples:
     "If not specified, a new version will be created.",
 )
 @click.option(
+    "--config",
+    default=None,
+    type=click.STRING,
+    help="The name of the config",
+)
+@click.option(
     "--feature-pipeline",
     is_flag=True,
     default=False,
@@ -97,6 +103,7 @@ def main(
     train_dataset_version_name: Optional[str] = None,
     test_dataset_name: str = "dataset_tst",
     test_dataset_version_name: Optional[str] = None,
+    config_name: Optional[str] = None,
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
@@ -129,8 +136,10 @@ def main(
     # Execute Training Pipeline
     if training_pipeline:
         pipeline_args = {}
-        pipeline_args["config_path"] = os.path.join(config_folder, "training.yaml")
-
+        if config_name is None:
+            pipeline_args["config_path"] = os.path.join(config_folder, "training.yaml")
+        else:
+            pipeline_args["config_path"] = os.path.join(config_folder, config_name)
         run_args_train = {}
 
         # If train_dataset_version_name is specified, use versioned artifacts
@@ -157,7 +166,10 @@ def main(
 
     if inference_pipeline:
         pipeline_args = {}
-        pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
+        if config_name is None:
+            pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
+        else:
+            pipeline_args["config_path"] = os.path.join(config_folder, config_name) 
         run_args_inference = {}
         inference.with_options(**pipeline_args)(**run_args_inference)
         logger.info("Inference pipeline finished successfully!")
