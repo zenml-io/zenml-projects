@@ -122,6 +122,7 @@ def main(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
     )
+    client = Client()
 
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
@@ -159,7 +160,6 @@ def main(
                 train_dataset_version_name is not None
                 and test_dataset_version_name is not None
             )
-            client = Client()
             train_dataset_artifact = client.get_artifact(
                 train_dataset_name, train_dataset_version_name
             )
