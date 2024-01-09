@@ -5,6 +5,7 @@ settings:
       - sklearn
     requirements:
       - pyarrow
+      - huggingface_hub
 
 # configuration of the Model Control Plane
 model_version:
