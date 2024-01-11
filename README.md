@@ -133,13 +133,10 @@ the Apache License Version 2.0.
 | 🗳 **[Vote for Features]**  | Pick what we work on next!                                              |
 | 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.               |
 | 📒 **[API Reference]**      | Detailed reference on ZenML's API.                                      |
-| 🍰 **[ZenBytes]**           | A guided and in-depth tutorial on MLOps and ZenML.                      |
-| 🗂️️ **[ZenML Projects]**   |  A collection of projects built with ZenML.                             |
-| 👨‍🍳 **[MLOps Stacks]**    | Terraform-based infrastructure recipes for pre-made ZenML stacks.       |
+| 👨‍🍳 **[MLStacks]**        | Terraform-based infrastructure recipes for pre-made ZenML stacks.       |
 | ⚽️ **[Examples]**           | Learn best through examples where ZenML is used. We've got you covered. |
 | 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it.         |
 | 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.               |
-| 📣 **[Newsletter]**         | We build ZenML in public. Subscribe to learn how we work.               |
 | 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack!                 |
 | 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
 | 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
@@ -150,12 +147,10 @@ the Apache License Version 2.0.
 [Vote for Features]: https://zenml.io/discussion
 [Docs]: https://docs.zenml.io/
 [API Reference]: https://apidocs.zenml.io/
-[ZenBytes]: https://github.com/zenml-io/zenbytes
-[MLOps Stacks]: https://github.com/zenml-io/mlops-stacks
+[MLStacks]: https://github.com/zenml-io/mlops-stacks
 [Examples]: https://github.com/zenml-io/zenml/tree/main/examples
 [Blog]: https://blog.zenml.io/
 [Podcast]: https://podcast.zenml.io/
-[Newsletter]: https://zenml.io/newsletter/
 [Join Slack]: https://zenml.io/slack-invite/
 [Roadmap]: https://zenml.io/roadmap
 [Contribute]: https://github.com/zenml-io/zenml/blob/main/CONTRIBUTING.md
