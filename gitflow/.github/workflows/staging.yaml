@@ -1,0 +1,89 @@
+name: staging
+on:
+  pull_request:
+    branches:
+      - main
+    
+jobs:
+  run-staging-workflow:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      ZENML_USERNAME: ${{ secrets.ZENML_USERNAME }}
+      ZENML_PASSWORD: ${{ secrets.ZENML_PASSWORD }}
+      ZENML_HOST: ${{ secrets.ZENML_HOST }}
+      ZENML_DEBUG: true
+      ZENML_ANALYTICS_OPT_IN: false
+      ZENML_LOGGING_VERBOSITY: INFO
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - id: install-kubectl
+        uses: azure/setup-kubectl@v3
+ 
+      - name: Authenticate docker
+        run: |
+          gcloud auth configure-docker --project zenml-demos
+        
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+        with:
+          requirement_files: 'requirements-gcp.txt'
+
+      - uses: syphar/restore-pip-download-cache@v1
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        with:
+          requirement_files: 'requirements-gcp.txt'
+          
+      - name: Install requirements
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        run: |
+          pip install -r requirements-gcp.txt
+
+      - name: Install wkhtmltopdf
+        run: sudo apt-get install wkhtmltopdf
+
+      - name: Connect to ZenML server
+        run: |
+          zenml connect --no-verify-ssl --url $ZENML_HOST --username $ZENML_USERNAME --password $ZENML_PASSWORD
+
+      - name: Set stack
+        run: |
+          zenml stack set gcp_gitflow_stack
+
+      - name: Run pipeline
+        run: |
+          python run.py \
+            --pipeline train \
+            --requirements requirements-gcp.txt \
+            --dataset staging
+
+      - name: Read training report
+        id: report
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./model_train_results.md
+
+      - name: PR comment with training report
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: ./model_train_results.md
+          comment_tag: training_report
+          mode: recreate
+          create_if_not_exists: true

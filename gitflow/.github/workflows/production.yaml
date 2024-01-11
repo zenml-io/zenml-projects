@@ -1,0 +1,81 @@
+name: production
+on:
+  push:
+    branches: [ main ]
+    
+jobs:
+  run-production-workflow:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      KUBEFLOW_USERNAME: ${{ secrets.KUBEFLOW_PRODUCTION_USERNAME }}
+      KUBEFLOW_PASSWORD: ${{ secrets.KUBEFLOW_PRODUCTION_PASSWORD }}
+      KUBEFLOW_NAMESPACE: ${{ secrets.KUBEFLOW_PRODUCTION_NAMESPACE }}
+      ZENML_USERNAME: ${{ secrets.ZENML_USERNAME }}
+      ZENML_PASSWORD: ${{ secrets.ZENML_PASSWORD }}
+      ZENML_HOST: ${{ secrets.ZENML_HOST }}
+      ZENML_DEBUG: true
+      ZENML_ANALYTICS_OPT_IN: false
+      ZENML_LOGGING_VERBOSITY: INFO
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::715803424590:role/OrganizationAccountRestrictedAccessRole
+          aws-region: eu-central-1
+
+      - id: install-kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 715803424590.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Login to Amazon EKS
+        id: login-eks
+        run: |
+          aws eks --region eu-central-1 update-kubeconfig --name kubeflowmultitenant --alias zenml-eks
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+        with:
+          requirement_files: 'requirements-aws.txt'
+
+      - uses: syphar/restore-pip-download-cache@v1
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        with:
+          requirement_files: 'requirements-aws.txt'
+          
+      - name: Install requirements
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        run: |
+          pip install -r requirements-aws.txt
+
+      - name: Install wkhtmltopdf
+        run: sudo apt-get install wkhtmltopdf
+
+      - name: Connect to ZenML server
+        run: |
+          zenml connect --no-verify-ssl --url $ZENML_HOST --username $ZENML_USERNAME --password $ZENML_PASSWORD
+
+      - name: Set stack
+        run: |
+          zenml stack set aws_gitflow_stack
+        
+      - name: Run pipeline
+        run: |
+          python run.py \
+            --pipeline end-to-end \
+            --requirements requirements-aws.txt \
+            --model iris-classifier \
+            --dataset production
+

@@ -1,0 +1,27 @@
+# NOTE: these are generated with the following command and should be kept updated:
+#
+#  `zenml integration export-requirements sklearn mlflow deepchecks gcp`
+#
+# Use this file to generate the requirements-gcp.txt file with:
+#
+#  `pip-compile -v -o requirements-gcp.txt requirements-base.in requirements-gcp.in  --resolver=backtracking`
+#
+# Hint: in case of conflicts, try commenting out some these requirements (e.g.
+# deepchecks and torchvision), run the command again, and then uncomment them
+# and run it a second time.
+#
+scikit-learn
+mlflow>=1.24.0,<=2.2.0
+mlserver>=0.5.3
+mlserver-mlflow>=0.5.3
+protobuf>=3.7.0,<4.0.0
+deepchecks[vision]==0.8.0
+torchvision==0.14.0
+kfp==1.8.16
+gcsfs
+google-cloud-secret-manager
+google-cloud-aiplatform>=1.11.0
+google-cloud-scheduler>=2.7.3
+google-cloud-functions>=1.8.3
+google-cloud-build>=3.11.0
+shapely<2.0

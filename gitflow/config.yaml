@@ -1,0 +1,92 @@
+steps:
+  evaluator:
+    enable_cache: Optional[bool]
+    experiment_tracker: Optional[str]
+    extra: Mapping[str, Any]
+    name: Optional[str]
+    outputs:
+      output:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+    parameters: {}
+    settings:
+      experiment_tracker.mlflow:
+        experiment_name: Optional[str]
+        nested: bool
+        tags: Mapping[str, Any]
+      resources:
+        cpu_count: Optional[PositiveFloat]
+        gpu_count: Optional[NonNegativeInt]
+        memory: Optional[ConstrainedStrValue]
+    step_operator: Optional[str]
+    enable_cache: Optional[bool]
+    experiment_tracker: Optional[str]
+    extra: Mapping[str, Any]
+    name: Optional[str]
+    outputs:
+      output:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+    parameters:
+      experiment_name: Optional[str]
+      mlserver: bool
+      model_name: str
+      run_name: Optional[str]
+      timeout: int
+      workers: int
+    settings:
+      experiment_tracker.mlflow:
+        experiment_name: Optional[str]
+        nested: bool
+        tags: Mapping[str, Any]
+      resources:
+        cpu_count: Optional[PositiveFloat]
+        gpu_count: Optional[NonNegativeInt]
+        memory: Optional[ConstrainedStrValue]
+    step_operator: Optional[str]
+  trainer:
+    name: Optional[str]
+    outputs:
+      output:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+    parameters: {}
+    settings:
+      experiment_tracker.mlflow:
+        experiment_name: Optional[str]
+        nested: bool
+        tags: Mapping[str, Any]
+      resources:
+        cpu_count: Optional[PositiveFloat]
+        gpu_count: Optional[NonNegativeInt]
+        memory: Optional[ConstrainedStrValue]
+    step_operator: Optional[str]
+  training_data_loader:
+    enable_cache: Optional[bool]
+    experiment_tracker: Optional[str]
+    extra: Mapping[str, Any]
+    name: Optional[str]
+    outputs:
+      X_test:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+      X_train:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+      y_test:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+      y_train:
+        artifact_source: Optional[str]
+        materializer_source: Optional[str]
+    parameters: {}
+    settings:
+      experiment_tracker.mlflow:
+        experiment_name: Optional[str]
+        nested: bool
+        tags: Mapping[str, Any]
+      resources:
+        cpu_count: Optional[PositiveFloat]
+        gpu_count: Optional[NonNegativeInt]
+        memory: Optional[ConstrainedStrValue]
+    step_operator: Optional[str]

@@ -1,0 +1,3 @@
+pip-tools
+zenml==0.35.1
+pdfkit
