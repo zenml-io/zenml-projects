@@ -1,99 +1,3 @@
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-
-<div align="center">
-
-  <!-- PROJECT LOGO -->
-  <br />
-    <a href="https://zenml.io">
-      <img src="assets/header.png" alt="ZenML Logo">
-    </a>
-  <br />
-
-  [![PyPi][pypi-shield]][pypi-url]
-  [![PyPi][pypiversion-shield]][pypi-url]
-  [![PyPi][downloads-shield]][downloads-url]
-  [![Contributors][contributors-shield]][contributors-url]
-  [![License][license-shield]][license-url]
-  <!-- [![Build][build-shield]][build-url] -->
-  <!-- [![CodeCov][codecov-shield]][codecov-url] -->
-
-</div>
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
-[pypi-shield]: https://img.shields.io/pypi/pyversions/zenml?color=281158
-
-[pypi-url]: https://pypi.org/project/zenml/
-
-[pypiversion-shield]: https://img.shields.io/pypi/v/zenml?color=361776
-
-[downloads-shield]: https://img.shields.io/pypi/dm/zenml?color=431D93
-
-[downloads-url]: https://pypi.org/project/zenml/
-
-[codecov-shield]: https://img.shields.io/codecov/c/gh/zenml-io/zenml?color=7A3EF4
-
-[codecov-url]: https://codecov.io/gh/zenml-io/zenml
-
-[contributors-shield]: https://img.shields.io/github/contributors/zenml-io/zenml?color=7A3EF4
-
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-
-[license-shield]: https://img.shields.io/github/license/zenml-io/zenml?color=9565F6
-
-[license-url]: https://github.com/zenml-io/zenml/blob/main/LICENSE
-
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-
-[linkedin-url]: https://www.linkedin.com/company/zenml/
-
-[twitter-shield]: https://img.shields.io/twitter/follow/zenml_io?style=for-the-badge
-
-[twitter-url]: https://twitter.com/zenml_io
-
-[slack-shield]: https://img.shields.io/badge/-Slack-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-
-[slack-url]: https://zenml.io/slack-invite
-
-[build-shield]: https://img.shields.io/github/workflow/status/zenml-io/zenml/Build,%20Lint,%20Unit%20&%20Integration%20Test/develop?logo=github&style=for-the-badge
-
-[build-url]: https://github.com/zenml-io/zenml/actions/workflows/ci.yml
-
-<div align="center">
-  <h3 align="center">Build portable, production-ready MLOps pipelines.</h3>
-  <p align="center">
-    <div align="center">
-      Join our <a href="https://zenml.io/slack-invite" target="_blank">
-      <img width="18" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
-    <b>Slack Community</b> </a> and be part of the ZenML family.
-    </div>
-    <br />
-    <a href="https://zenml.io/features">Features</a>
-    ·
-    <a href="https://zenml.io/roadmap">Roadmap</a>
-    ·
-    <a href="https://github.com/zenml-io/zenml/issues">Report Bug</a>
-    ·
-    <a href="https://zenml.io/discussion">Vote New Features</a>
-    ·
-    <a href="https://zenml.io/blog">Read Blog</a>
-    ·
-    <a href="https://www.zenml.io/company#team">Meet the Team</a>
-    <br />
-  </p>
-</div>
-
----
-
-<!-- TABLE OF CONTENTS -->
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>🏁 Table of Contents</summary>
@@ -118,7 +22,6 @@
     <li><a href="#-getting-help">Getting Help</a></li>
   </ol>
 </details>
-<br />
 
 # 🤖 Huggingface Model to Sagemaker Endpoint: Automated MLOps with ZenML
 
@@ -177,7 +80,7 @@ Once you have your deployed ZenML ready, you can connect to it using:
 zenml connect --url YOUR_ZENML_SERVER_URL
 ```
 
-This will open up the browser for your to connect to a deployed ZenML!
+This will open up the browser for you to connect to a deployed ZenML!
 
 We now need to register your Huggingface API token to run this demo. This can be found in your [settings](https://huggingface.co/settings/tokens) page. Register this as a ZenML secret with:
 
