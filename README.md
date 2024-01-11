@@ -59,19 +59,20 @@ etc.
 
 A list of updated and maintained projects by the ZenML team and the community:
 
-| Project                                                   | Tags                                   | Integrations                                                                        |
-|-----------------------------------------------------------|----------------------------------------|-------------------------------------------------------------------------------------|
-| [NBA Three-Pointer Predictor](nba-pipeline)               | Time-series                            | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                                     |
-| [Time Series Forecasting](time-series-forecast)           | Time-series                            | `gcp`                                                                               |
-| [Customer Satisfaction](customer-satisfaction)            | Tabular                                | `mlflow` `kubeflow`                                                                 |
-| [Customer Churn](customer-churn)                          | Tabular                                | `kubeflow` `seldon`                                                                 |
-| [YOLOv5 Object Detection](sign-language-detection-yolov5) | Computer-vision                        | `mlflow` `gcp`                                                                      |
-| [LLMs To Analyze Databases](supabase-openai-summary)      | NLP, LLMs                              | `gcp` `slack`                                                                       |
-| [GitFlow ZenML Project](gitflow)                          | MLOps with ZenML and GitHub Workflows  | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`            |
-| [ZenNews](zen-news-summarization)                         | NLP                                    | `gcp` `vertex` `discord`                                                            |
-| [Langchain Slackbot](langchain-llamaindex-slackbot)       | NLP, LLMs                              | `slack` `langchain` `llama_index`                                                   |
-| [Orbit User Analysis](orbit-user-analysis)                | Data Analysis, Tabular                 | -                                                                                   |
-| [Huggingface to Sagemaker](huggingface-sagemaker)         | NLP                                    | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`             |
+| Project                                                   | Tags                                  | Integrations                                                             |
+|-----------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
+| [NBA Three-Pointer Predictor](nba-pipeline)               | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                          |
+| [Time Series Forecasting](time-series-forecast)           | Time-series                           | `gcp`                                                                    |
+| [Customer Satisfaction](customer-satisfaction)            | Tabular                               | `mlflow` `kubeflow`                                                      |
+| [Customer Churn](customer-churn)                          | Tabular                               | `kubeflow` `seldon`                                                      |
+| [Label Studio](label_studio_annotation)                   | Data Annotation                       | `label-studio`                                                           | 
+| [YOLOv5 Object Detection](sign-language-detection-yolov5) | Computer-vision                       | `mlflow` `gcp`                                                           |
+| [LLMs To Analyze Databases](supabase-openai-summary)      | NLP, LLMs                             | `gcp` `slack`                                                            |
+| [GitFlow ZenML Project](gitflow)                          | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
+| [ZenNews](zen-news-summarization)                         | NLP                                   | `gcp` `vertex` `discord`                                                 |
+| [Langchain Slackbot](langchain-llamaindex-slackbot)       | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
+| [Orbit User Analysis](orbit-user-analysis)                | Data Analysis, Tabular                | -                                                                        |
+| [Huggingface to Sagemaker](huggingface-sagemaker)         | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
 
 # 💻 System Requirements
 
