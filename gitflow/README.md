@@ -2,6 +2,10 @@
 
 # ZenML - GitHub Action Workflow
 
+> [!IMPORTANT]  
+> The actual code for this project lies in a separate GitHub repository 
+> [here](https://github.com/zenml-io/zenml-gitflow).
+
 ## 🖼️ Overview
 
 This repository showcases how ZenML can be used for machine learning with a
