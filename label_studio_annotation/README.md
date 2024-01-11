@@ -25,8 +25,8 @@ Studio.
 pip install "zenml[server]" torchvision
 
 # clone the ZenML repository
-git clone https://github.com/zenml-io/zenml.git
-cd examples/label_studio_annotation
+git clone https://github.com/zenml-io/zenml-projects.git
+cd label_studio_annotation
 
 # Initialize ZenML repo
 zenml init
