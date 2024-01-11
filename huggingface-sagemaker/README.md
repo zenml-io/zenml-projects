@@ -43,7 +43,7 @@ see how this works.
 
 ## 👋 Get started
 
-What to do first? You can start by giving the the project a quick run. The
+What to do first? You can start by giving the project a quick run. The
 project is ready to be used and can run as-is without any further code
 changes! You can try it right away by installing ZenML, the needed
 ZenML integration and then calling the CLI included in the project.
@@ -53,8 +53,8 @@ ZenML integration and then calling the CLI included in the project.
 
 ```bash
 # Clone this repo
-git clone git@github.com:zenml-io/zenml-huggingface-sagemaker.git
-cd zenml-huggingface-sagemaker
+git clone git@github.com:zenml-io/zenml-projects.git
+cd huggingface-sagemaker
 
 # Set up a Python virtual environment, if you haven't already
 python3 -m venv .venv
@@ -70,7 +70,7 @@ make setup
 <details>
 <summary><h3>Connect to a deployed ZenML and register secrets</h3></summary>
 
-After this, you should have ZenML and all of the requirements of the project installed locally.
+After this, you should have ZenML and all the requirements of the project installed locally.
 Next thing to do is to connect to a [deployed ZenML instance](https://docs.zenml.io/deploying-zenml/). You can
 create a free trial using [ZenML Cloud](https://cloud.zenml.io) to get setup quickly.
 
