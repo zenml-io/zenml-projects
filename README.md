@@ -1,8 +1,3 @@
-# THIS REPOSITORY IS GOING TO BE DEPRECATED AFTER 01/08/2023. 
-
-We are now offering ZenML Project Templates - a configurable way to rocketstart your ZenML journey!
-For more details about templates you can use `zenml init --help`.
-
 <!-- PROJECT LOGO -->
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
 
@@ -17,10 +12,7 @@ with <a href="https://github.com/zenml-io/zenml/">ZenML</a> and various
 integrations.</h3>
 
   <p align="center">
-    Get everything you need to start a project - demo, video, blog, and code.
-    <br />
-    <a href="https://zenml.io/projects"><strong>ZenML Projects Home Page »</strong></a>
-    <br />
+    Get everything you need to start a project...
     <!-- <div align="center">
       Join our <a href="https://zenml.io/slack" target="_blank">
       <img width="25" src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack"/>
@@ -55,95 +47,31 @@ integrations.</h3>
   </p>
 </div>
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-<!-- SHIELDS -->
-
-[zenmlproject-shield]: https://img.shields.io/badge/ZenML%20Project-Webpage-purple?style=for-the-badge
-[youtube-shield]: https://img.shields.io/badge/-YouTube-black.svg?style=for-the-badge&logo=youtube&colorB=red
-[github-shield]: https://img.shields.io/badge/-Github-black.svg?style=for-the-badge&logo=github&colorB=black
-
-<!-- NBA -->
-
-[zenmlproject-nba-url]: https://zenml.io/project/nba-three-pointer-predictor
-[youtube-nba-url]: https://www.youtube.com/watch?v=Ne-dt9tu11g&ab_channel=MLOps.community
-[github-nba-url]: hhttps://github.com/zenml-io/zenml-projects/tree/main/nba-pipeline
-
-<!-- Time Series -->
-
-[zenmlproject-timeseries-url]: https://zenml.io/project/forecasting-wind-power-generation
-<!-- [youtube-timeseries-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
-[github-timeseries-url]: https://github.com/zenml-io/zenml-projects/tree/main/time-series-forecast
-
-<!-- Customer Satisfaction -->
-
-[zenmlproject-satisfaction-url]: https://zenml.io/project/customer-satisfaction
-[youtube-satisfaction-url]: https://youtu.be/L3_pFTlF9EQ
-[github-satisfaction-url]: https://github.com/zenml-io/zenml-projects/tree/main/customer-satisfaction
-
-<!-- Customer Churn -->
-
-[zenmlproject-churn-url]: https://zenml.io/project/customer-churn
-<!-- [youtube-churn-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
-[github-churn-url]: https://zenml.io/project/customer-churn
-
-<!-- Yolov5 -->
-
-[zenmlproject-yolov5-url]: https://zenml.io/project/sign-language-yolov5
-<!-- [youtube-yolov5-url]: https://www.youtube.com/watch?v=04DbbEzE9ig&ab_channel=ZenML -->
-[github-yolov5-url]: https://github.com/zenml-io/zenml-projects/tree/main/sign-language-detection-yolov5
-
-<!-- GitHub Workflows -->
-
-[github-gitflow-url]: https://github.com/zenml-io/zenml-gitflow
-[zenmlproject-gitflow-url]: https://zenml.io/project/github-gitflow-workflow
-
-<!-- ZenNews -->
-
-[zenmlproject-zennews-url]: https://zenml.io/project/zennews
-[github-zennews-url]: https://github.com/zenml-io/zenml-projects/tree/main/zen-news-summarization
-
-<!-- Langchain Slackbot -->
-
-[zenmlproject-slackbot-url]: https://zenml.io/project/langchain-llamaindex-slackbot
-
-<!-- Supabase Open GPT-4 -->
-[github-supabase-url]: https://github.com/zenml-io/zenml-projects/tree/main/supabase-openai-summary
-[zenmlproject-supabase-url]: https://zenml.io/project/supabase-openai-summary
-
-<!-- [youtube-slackbot-url]: TKTKTKTK -->
-[github-slackbot-url]: https://github.com/zenml-io/zenml-projects/tree/main/langchain-llamaindex-slackbot
-
-
-<!-- Orbit -->
-[github-orbit-url]: https://github.com/zenml-io/zenml-projects/tree/main/orbit-user-analysis
-[zenmlproject-orbit-url]: https://zenml.io/project/orbitcommunity
-
-
-# ☀️ Introducing ZenML Projects (Formerly ZenFiles)
+# ☀️ Introducing ZenML Projects
 
 This repository showcases production-grade ML use cases built with ZenML.
 The goal of this repository is to provide you a ready-to-use MLOps workflow that
-you can adapt for your application.
-We maintain a growing list of projects from various ML domains including
-time-series, tabular data, computer vision, etc.
+you can adapt for your application. We maintain a growing list of projects 
+from various ML domains including time-series, tabular data, computer vision, 
+etc.
 
 # 🧱 Project List
 
-A list of updated and maintained Projects by the ZenML team and the community:
+A list of updated and maintained projects by the ZenML team and the community:
 
-| Project                     | Resources                                                                                                                                                          | Tags                                  | Stack Components                                                         |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
-| NBA Three-Pointer Predictor | [![project][zenmlproject-shield]][zenmlproject-nba-url] [![yt][youtube-shield]][youtube-nba-url] [![yt][github-shield]][github-nba-url]                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws` `discord`                |
-| Time Series Forecasting     | [![project][zenmlproject-shield]][zenmlproject-timeseries-url] [![yt][github-shield]][github-timeseries-url]                                                       | Time-series                           | `vertex`                                                                 |
-| Customer Satisfaction       | [![project][zenmlproject-shield]][zenmlproject-satisfaction-url] [![yt][youtube-shield]][youtube-satisfaction-url] [![yt][github-shield]][github-satisfaction-url] | Tabular                               | `mlflow` `kubeflow`                                                      |
-| Customer Churn              | [![project][zenmlproject-shield]][zenmlproject-churn-url] [![yt][github-shield]][github-churn-url]                                                                 | Tabular                               | `kubeflow` `seldon`                                                      |
-| YOLOv5 Object Detection     | [![project][zenmlproject-shield]][zenmlproject-yolov5-url] [![yt][github-shield]][github-yolov5-url]                                                               | Computer-vision                       | `mlflow` `vertex`                                                        |
-| LLMs To Analyze Databases   | [![project][zenmlproject-shield]][zenmlproject-supabase-url] [![yt][github-shield]][github-supabase-url]                                                           | NLP, LLMs                             | `supabase` `openai` `gpt-4`                                              |
-| GitFlow ZenML Project       | [![project][zenmlproject-shield]][zenmlproject-gitflow-url] [![yt][github-shield]][github-gitflow-url]                                                             | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
-| ZenNews                     | [![project][zenmlproject-shield]][zenmlproject-zennews-url] [![yt][github-shield]][github-zennews-url]                                                             | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| Langchain Slackbot          | [![project][zenmlproject-shield]][zenmlproject-slackbot-url] [![yt][github-shield]][github-slackbot-url]                                                           | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
-| Orbit User Analysis         | [![project][zenmlproject-shield]][zenmlproject-orbit-url] [![yt][github-shield]][github-orbit-url]                                                                 | Data Analysis, Tabular                |                                                                          |
+| Project                                                   | Tags                                   | Integrations                                                                        |
+|-----------------------------------------------------------|----------------------------------------|-------------------------------------------------------------------------------------|
+| [NBA Three-Pointer Predictor](nba-pipeline)               | Time-series                            | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                                     |
+| [Time Series Forecasting](time-series-forecast)           | Time-series                            | `gcp`                                                                               |
+| [Customer Satisfaction](customer-satisfaction)            | Tabular                                | `mlflow` `kubeflow`                                                                 |
+| [Customer Churn](customer-churn)                          | Tabular                                | `kubeflow` `seldon`                                                                 |
+| [YOLOv5 Object Detection](sign-language-detection-yolov5) | Computer-vision                        | `mlflow` `gcp`                                                                      |
+| [LLMs To Analyze Databases](supabase-openai-summary)      | NLP, LLMs                              | `gcp` `slack`                                                                       |
+| [GitFlow ZenML Project](gitflow)                          | MLOps with ZenML and GitHub Workflows  | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp`            |
+| [ZenNews](zen-news-summarization)                         | NLP                                    | `gcp` `vertex` `discord`                                                            |
+| [Langchain Slackbot](langchain-llamaindex-slackbot)       | NLP, LLMs                              | `slack` `langchain` `llama_index`                                                   |
+| [Orbit User Analysis](orbit-user-analysis)                | Data Analysis, Tabular                 | -                                                                                   |
+| [Huggingface to Sagemaker](huggingface-sagemaker)         | NLP                                    | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`             |
 
 # 💻 System Requirements
 
@@ -196,24 +124,24 @@ the Apache License Version 2.0.
 
 # 📖 Learn More
 
-| ZenML Resources | Description |
-| ------------- | - |
-| 🧘‍♀️ **[ZenML 101]** | New to ZenML? Here's everything you need to know! |
-| ⚛️ **[Core Concepts]** | Some key terms and concepts we use. |
-| 🚀 **[Our latest release]** | New features, bug fixes. |
-| 🗳 **[Vote for Features]** | Pick what we work on next! |
-| 📓 **[Docs]** | Full documentation for creating your own ZenML pipelines. |
-| 📒 **[API Reference]** | Detailed reference on ZenML's API. |
-| 🍰 **[ZenBytes]** | A guided and in-depth tutorial on MLOps and ZenML. |
-| 🗂️️ **[ZenML Projects]** | A collection of projects built with ZenML. |
-| 👨‍🍳 **[MLOps Stacks]** | Terraform-based infrastructure recipes for pre-made ZenML stacks. |
-| ⚽️ **[Examples]** | Learn best through examples where ZenML is used. We've got you covered. |
-| 📬 **[Blog]** | Use cases of ZenML and technical deep dives on how we built it. |
-| 🔈 **[Podcast]** | Conversations with leaders in ML, released every 2 weeks. |
-| 📣 **[Newsletter]** | We build ZenML in public. Subscribe to learn how we work. |
-| 💬 **[Join Slack]** | Need help with your specific use case? Say hi on Slack! |
-| 🗺 **[Roadmap]** | See where ZenML is working to build new features. |
-| 🙋‍♀️ **[Contribute]** | How to contribute to the ZenML project and code base. |
+| ZenML Resources             | Description                                                             |
+|-----------------------------|-------------------------------------------------------------------------|
+| 🧘‍♀️ **[ZenML 101]**       | New to ZenML? Here's everything you need to know!                       |
+| ⚛️ **[Core Concepts]**      | Some key terms and concepts we use.                                     |
+| 🚀 **[Our latest release]** | New features, bug fixes.                                                |
+| 🗳 **[Vote for Features]**  | Pick what we work on next!                                              |
+| 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.               |
+| 📒 **[API Reference]**      | Detailed reference on ZenML's API.                                      |
+| 🍰 **[ZenBytes]**           | A guided and in-depth tutorial on MLOps and ZenML.                      |
+| 🗂️️ **[ZenML Projects]**   |  A collection of projects built with ZenML.                             |
+| 👨‍🍳 **[MLOps Stacks]**    | Terraform-based infrastructure recipes for pre-made ZenML stacks.       |
+| ⚽️ **[Examples]**           | Learn best through examples where ZenML is used. We've got you covered. |
+| 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it.         |
+| 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.               |
+| 📣 **[Newsletter]**         | We build ZenML in public. Subscribe to learn how we work.               |
+| 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack!                 |
+| 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
+| 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
 
 [ZenML 101]: https://docs.zenml.io/
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
