@@ -1,0 +1,11 @@
+torch==2.1.1
+torchvision==0.16.1
+zenml[server]==0.47.0
+sagemaker==2.117.0
+cuda-python==12.3.0
+nvidia-cuda-cupti-cu12==12.1.105
+nvidia-cuda-nvrtc-cu12==12.1.105
+nvidia-cuda-runtime-cu12==12.1.105
+datasets==2.14.7
+transformers==4.31.0
+accelerate==0.24.1

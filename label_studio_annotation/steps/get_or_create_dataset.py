@@ -1,4 +1,4 @@
-#  Copyright (c) ZenML GmbH 2023. All Rights Reserved.
+#  Copyright (c) ZenML GmbH 2022. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,18 +11,20 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from zenml.integrations.label_studio.label_config_generators import (
+    generate_image_classification_label_config,
+)
+from zenml.integrations.label_studio.steps import (
+    get_or_create_dataset,
+)
 
-import logging
+LABELS = ["aria", "not_aria"]
 
-from zenml.hub.langchain_qa_example import build_zenml_docs_qa_pipeline
+label_config, _ = generate_image_classification_label_config(LABELS)
 
-
-def main():
-    build_zenml_docs_qa_pipeline(
-        question="What is ZenML?", load_all_paths=False
-    ).run()
-
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.ERROR)
-    main()
+get_or_create_the_dataset = get_or_create_dataset.with_options(
+    parameters=dict(
+        label_config=label_config,
+        dataset_name="aria_detector",
+    )
+)
