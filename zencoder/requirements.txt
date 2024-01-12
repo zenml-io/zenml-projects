@@ -1,0 +1,6 @@
+zenml[server]>=0.50.0
+notebook
+datasets
+nbformat
+pandas
+PyGithub
