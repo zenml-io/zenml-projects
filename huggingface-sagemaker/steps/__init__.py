@@ -27,7 +27,7 @@ from .deploying import (
     save_model_to_deploy,
 )
 from .promotion import promote_get_metrics, promote_metric_compare_promoter
-from .registrer import register_model
+from .registerer import register_model
 from .tokenizer_loader import (
     tokenizer_loader,
 )

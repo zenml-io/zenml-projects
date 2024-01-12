@@ -232,7 +232,7 @@ You can watch a YouTube tutorial for this part of the tutorial [here](https://yo
 
 #### 💯 Step 4: Deploy the model
 
-Finally, when the time is right, its time to deploy the latest `Production` model with the deploymnet pipeline.
+Finally, when the time is right, it's time to deploy the latest `Production` model with the deployment pipeline.
 
 <img src="assets/deploying_pipeline_overview.png" alt="Deploying pipeline" width="800">
 
