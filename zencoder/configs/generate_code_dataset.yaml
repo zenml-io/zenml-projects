@@ -5,7 +5,7 @@ settings:
 
 # pipeline configuration
 parameters:
-  dataset_id: zenml-codegen-v1
+  dataset_id: htahir1/zenml-codegen-v1
 
 steps:
   mirror_repositories:

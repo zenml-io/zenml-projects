@@ -16,5 +16,3 @@
 #
 
 from .generate_code_dataset import generate_code_dataset
-from .inference import inference
-from .training import training

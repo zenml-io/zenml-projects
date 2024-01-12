@@ -38,4 +38,3 @@ def generate_code_dataset(
     # of one step as the input of the next step.
     mirror_directory = mirror_repositories()
     repo_id = prepare_dataset(mirror_directory, dataset_id)
-    push_to_hub(repo_id, dataset_id)
