@@ -93,7 +93,7 @@ zenml secret create huggingface_creds --username=HUGGINGFACE_USERNAME --token=HU
 <details>
 <summary><h3>Set up your local stack</h3></summary>
 
-To run this project, you need to create a [ZenML Stack](https://docs.zenml.io/user-guide/starter-guide/understand-stacks) with the required components to run the pipelines.
+To run this project, you need to create a [ZenML Stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) with the required components to run the pipelines.
 
 ```shell
 make install-stack

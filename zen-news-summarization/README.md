@@ -127,7 +127,7 @@ and use the `VertexOrchestrator` to schedule the pipeline.
 
 Before you start building the stack, you need to deploy ZenML on GCP. For more 
 information on how you can achieve do that, please check 
-[the corresponding docs page](https://docs.zenml.io/user-guide/starter-guide/switch-to-production).
+[the corresponding docs page](https://docs.zenml.io/user-guide/production-guide/connect-deployed-zenml).
 
 ## ZenNews Stack
 
