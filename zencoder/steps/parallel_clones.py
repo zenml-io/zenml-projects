@@ -20,7 +20,7 @@ def mirror_repository(repository):
 
 
 @step
-def mirror_repositories(repositories: List[str]) -> Annotated[str, "mirror_directory"]]:
+def mirror_repositories(repositories: List[str]) -> Annotated[str, "mirror_directory"]:
     """Locally clones a list of repositories.
 
     Args:
