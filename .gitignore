@@ -139,3 +139,5 @@ mlruns/
 
 # Pycharm
 .idea/
+
+zencoder/cloned_public_repos
