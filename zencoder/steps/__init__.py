@@ -18,4 +18,4 @@
 from .parallel_clones import mirror_repositories
 from .prepare_dataset import prepare_dataset
 from .push_dataset_to_hub import push_to_hub
-from .trainer import run_training
+from .trainer import trainer

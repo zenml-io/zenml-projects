@@ -99,8 +99,6 @@ def main(
         inference_pipeline: Whether to run the pipeline that performs inference.
         no_cache: If `True` cache will be disabled.
     """
-    client = Client()
-
     config_folder = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",

@@ -2,24 +2,21 @@
 Fine-Tune StarCoder on code/text dataset
 """
 
-import argparse
+from pydantic import BaseModel
+from typing import Optional
 import os
 import random
-import subprocess
-import warnings
 from zenml import step
 import numpy as np
 import torch
 from datasets import load_dataset
 from torch.utils.data import IterableDataset
-from torch.utils.data.dataloader import DataLoader
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     Trainer,
     TrainingArguments,
-    logging,
     set_seed,
     BitsAndBytesConfig,
 )
@@ -30,61 +27,58 @@ from peft.tuners.lora import LoraLayer
 import fim
 
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default="bigcode/starcoderplus")
-    parser.add_argument("--dataset_name", type=str, default="smangrul/hf-stack-v1")
-    parser.add_argument("--subset", type=str, default="data")
-    parser.add_argument("--split", type=str, default="train")
-    parser.add_argument("--size_valid_set", type=int, default=4000)
-    parser.add_argument("--test_size", type=float, default=0.005)
-    parser.add_argument("--streaming", action="store_true")
-    parser.add_argument("--shuffle_buffer", type=int, default=5000)
-    parser.add_argument("--data_column", type=str, default="content")
+class Configuration(BaseModel):
+    model_path: str = "bigcode/starcoderplus"
+    dataset_name: str = "smangrul/hf-stack-v1"
+    subset: str = "data"
+    split: str = "train"
+    size_valid_set: int = 4000
+    test_size: float = 0.005
+    streaming: bool = False
+    shuffle_buffer: int = 5000
+    data_column: str = "content"
 
-    parser.add_argument("--seq_length", type=int, default=8192)
-    parser.add_argument("--max_steps", type=int, default=10000)
-    parser.add_argument("--batch_size", type=int, default=2)
-    parser.add_argument("--gradient_accumulation_steps", type=int, default=8)
-    parser.add_argument("--eos_token_id", type=int, default=49152)
+    seq_length: int = 8192
+    max_steps: int = 10000
+    batch_size: int = 2
+    gradient_accumulation_steps: int = 8
+    eos_token_id: int = 49152
 
-    parser.add_argument("--learning_rate", type=float, default=5e-5)
-    parser.add_argument("--lr_scheduler_type", type=str, default="cosine")
-    parser.add_argument("--num_warmup_steps", type=int, default=100)
-    parser.add_argument("--weight_decay", type=float, default=0.05)
+    learning_rate: float = 5e-5
+    lr_scheduler_type: str = "cosine"
+    num_warmup_steps: int = 100
+    weight_decay: float = 0.05
 
-    parser.add_argument("--local_rank", type=int, default=0)
-    parser.add_argument("--no_fp16", action="store_false")
-    parser.add_argument("--bf16", action="store_true")
-    parser.add_argument("--no_gradient_checkpointing", action="store_false")
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--num_workers", type=int, default=None)
-    parser.add_argument("--output_dir", type=str, default="./checkpoints")
-    parser.add_argument("--log_freq", default=1, type=int)
-    parser.add_argument("--eval_freq", default=1000, type=int)
-    parser.add_argument("--save_freq", default=1000, type=int)
+    local_rank: int = 0
+    no_fp16: bool = True
+    bf16: bool = False
+    no_gradient_checkpointing: bool = True
+    seed: int = 0
+    num_workers: Optional[int] = None
+    output_dir: str = "./checkpoints"
+    log_freq: int = 1
+    eval_freq: int = 1000
+    save_freq: int = 1000
 
-    parser.add_argument("--fim_rate", type=float, default=0)
-    parser.add_argument("--fim_spm_rate", type=float, default=0)
+    fim_rate: float = 0
+    fim_spm_rate: float = 0
 
-    parser.add_argument("--use_peft_lora", action="store_true")
-    parser.add_argument("--lora_r", type=int, default=0)
-    parser.add_argument("--lora_alpha", type=int, default=0)
-    parser.add_argument("--lora_dropout", type=float, default=0)
-    parser.add_argument("--lora_target_modules", type=str, default=None)
+    use_peft_lora: bool = False
+    lora_r: int = 0
+    lora_alpha: int = 0
+    lora_dropout: float = 0
+    lora_target_modules: Optional[str] = None
 
-    parser.add_argument("--use_flash_attn", action="store_true")
+    use_flash_attn: bool = False
 
-    parser.add_argument("--use_4bit_qunatization", action="store_true")
-    parser.add_argument("--use_nested_quant", action="store_true")
-    parser.add_argument("--bnb_4bit_quant_type", type=str, default="nf4")
-    parser.add_argument("--bnb_4bit_compute_dtype", type=str, default="float16")
+    use_4bit_qunatization: bool = False
+    use_nested_quant: bool = False
+    bnb_4bit_quant_type: str = "nf4"
+    bnb_4bit_compute_dtype: str = "float16"
 
-    parser.add_argument("--use_8bit_qunatization", action="store_true")
+    use_8bit_qunatization: bool = False
 
-    parser.add_argument("--push_to_hub", action="store_true")
-
-    return parser.parse_args()
+    push_to_hub: bool = False
 
 
 def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
@@ -315,8 +309,7 @@ def create_and_prepare_model(args):
     return model
 
 
-@step
-def run_training(args, train_data, val_data):
+def run_training(args: Configuration, train_data, val_data):
     train_data.start_iteration = 0
 
     is_deepspeed_peft_enabled = (
@@ -403,7 +396,10 @@ def run_training(args, train_data, val_data):
         trainer.model.push_to_hub(args.output_dir)
 
 
-def main(args):
+@step
+def trainer(args: Configuration):
+    set_seed(args.seed)
+    os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path, use_auth_token=True, trust_remote_code=True
     )
@@ -411,10 +407,3 @@ def main(args):
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
 
     run_training(args, train_dataset, eval_dataset)
-
-
-if __name__ == "__main__":
-    args = get_args()
-    set_seed(args.seed)
-    os.makedirs(args.output_dir, exist_ok=True)
-    main(args)

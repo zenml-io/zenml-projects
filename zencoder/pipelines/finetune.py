@@ -16,7 +16,7 @@
 #
 
 from steps import (
-    run_training
+    trainer
 )
 
 from zenml import pipeline
@@ -26,13 +26,10 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def finetune_starcoder(
-    dataset_id: str
-):
+def finetune_starcoder():
     """
     This pipeline generates the code dataset.
     """
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
-    run_training()
-
+    trainer()
