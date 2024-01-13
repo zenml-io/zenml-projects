@@ -1,209 +1,52 @@
-# :running: MLOps 101 with ZenML
+# ☮️ Automate MLOps pipeline development with ZenCoder
 
-Build your first MLOps pipelines with ZenML.
+One of the first jobs of somebody entering MLOps is to convert their manual scripts or notebooks into pipelines that can be deployed on the cloud. This job is tedious, and can take time. For example, one has to think about:
 
-## :earth_americas: Overview
+1. Breaking down things into [step functions](https://docs.zenml.io/user-guide/starter-guide/create-an-ml-pipeline)
+2. Type annotating the steps properly
+3. Connecting the steps together in a pipeline
+4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guide/production-guide/configure-pipeline)
+5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/user-guide/advanced-guide/environment-management/containerize-your-pipeline).
 
-This repository is a minimalistic MLOps project intended as a starting point to learn how to put ML workflows in production. It features: 
+Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
 
-- A feature engineering pipeline that loads data and prepares it for training.
-- A training pipeline that loads the preprocessed dataset and trains a model.
-- A batch inference pipeline that runs predictions on the trained model with new data.
+Unfortuantely, most open source or proprietary models like GitHub Copilot are often lagging behind the most recent versions of ML libraries, therefore giving errorneous our outdated syntax when asked simple commands.
 
-This is a representation of how it will all come together: 
+The goal of this project is fine-tune an open-source LLM that performs better than off-the-shelf solutions on giving the right output for the latest version of ZenML.
 
-<img src=".assets/pipeline_overview.png" width="70%" alt="Pipelines Overview">
+## :earth_americas: Inspiration and Credit
 
-Along the way we will also show you how to:
+For this purpose of this project, we are going to be leveraging the excellent work of [Sourab Mangrulkar](https://huggingface.co/smangrul) and [Sayak Paul](https://huggingface.co/sayakpaul), who fine-tuned the [StarCoder](https://huggingface.co/bigcode/starcoder) model on the latest version of HuggingFace. They summarized their work in [this blog post on HuggingFace](https://huggingface.co/blog/personal-copilot). 
 
-- Structure your code into MLOps pipelines.
-- Automatically version, track, and cache data, models, and other artifacts.
-- Transition your ML models from development to production.
+Our [data generation pipeline](pipelines/generate_code_dataset.py) is based on the [codegen](https://github.com/sayakpaul/hf-codegen) repository, and the [training pipeline](pipelines/) is based on [this script](https://github.com/pacman100/DHS-LLM-Workshop/blob/main/personal_copilot/training/train.py). All credit to Sourab and Sayak for putting this work together!
 
-## 🏃 Run on Colab
+## 🍍Methodology
 
-You can use Google Colab to see ZenML in action, no signup / installation required!
+Now, we could take the code above and run it as scripts on some chosen ZenML repositories. But just to make it a bit more fun, we're going to be building ZenML pipelines to achieve this task!
 
-<a href="https://colab.research.google.com/github/zenml-io/zenml/blob/main/examples/quickstart/run.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+That way we write ZenML pipelines to train a model that can produce ZenML pipelines 🐍. Sounds fun.
 
-## :computer: Run Locally
+Specifically, we aim to create two pipelines:
 
-To run locally, install ZenML and pull this quickstart:
+- The data generation pipeline ([here](pipelines/generate_code_dataset.py)) that scrapes a chosen set of latest zenml version based repositories on GitHub, and pushes the dataset to HuggingFace.
+- The training pipeline ([here](pipelines/finetune.py)) that loads the dataset from the previous pipeline and launches a training job on a cloud provider to train the model.
 
-```shell
-# Install ZenML
-pip install "zenml[server]"
+## 📓 To Do
 
-# clone the ZenML repository
-git clone https://github.com/zenml-io/zenml.git
-cd zenml/examples/quickstart
-```
+This project recently did a [call of volunteers](https://www.linkedin.com/feed/update/urn:li:activity:7150388250178662400/). This TODO list can serve as a source of collaboration. If you want to work on any of the following, please [create an issue on this repository](https://github.com/zenml-io/zenml-projects/issues) and assign it to yourself!
 
-Now we're ready to start. You have two options for running the quickstart locally:
+- [x] Create a funtioning data generation pipeline (initial dataset with the core [ZenML repo](https://github.com/zenml-io/zenml) scraped and pushed [here](https://huggingface.co/datasets/htahir1/zenml-codegen-v1))
+- [ ] Curate a set of 5-10 repositories that are using the ZenML latest syntax and use data generation pipeline to push dataset to HuggingFace.
+- [ ] Create a functioning training pipeline
+- [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc
+- [ ] Tests trained model on various metrics
+- [ ] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) 
 
-#### Option 1 - Interactively explore the quickstart using Jupyter Notebook:
-```bash
-pip install notebook
-jupyter notebook
-# open notebooks/quickstart.ipynb
-```
+## :bulb: More Applications
 
-#### Option 2 - Execute the whole ML pipeline from a Python script:
-```bash
-# Install required zenml integrations
-zenml integration install sklearn -y
+While the work here is solely based on the task of finetuning the model for the ZenML library, the pipeline can be changed with minimal effort to point to any set of repositories on GitHub. Theoretically, one could extend this work to point to proprietary codebases to learn from them for any use-case.
 
-# Initialize ZenML
-zenml init
-
-# Start the ZenServer to enable dashboard access
-zenml up
-
-# Run the feature engineering pipeline
-python run.py --feature-pipeline
-
-# Run the training pipeline
-python run.py --training-pipeline
-
-# Run the training pipeline with versioned artifacts
-python run.py --training-pipeline --train-dataset-version-name=1 --test-dataset-version-name=1
-
-# Run the inference pipeline
-python run.py --inference-pipeline
-```
-
-## 🌵 Learning MLOps with ZenML
-
-This project is also a great source of learning about some fundamental MLOps concepts. In sum, there are four exemplary steps happening, that can be mapped onto many other projects:
-
-<details>
-  <summary>🥇 Step 1: Load your data and execute feature engineering</summary>
-
-We'll start off by importing our data. In this project, we'll be working with
-[the Breast Cancer](https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic) dataset
-which is publicly available on the UCI Machine Learning Repository. The task is a classification
-problem, to predict whether a patient is diagnosed with breast cancer or not.
-
-When you're getting started with a machine learning problem you'll want to do
-something similar to this: import your data and get it in the right shape for
-your training. Here are the typical steps within a feature engineering pipeline.
-
-The steps can be found defined the [steps](steps/) directory, while the [pipelines](pipelines/) directory has the pipeline code to connect them together.
-
-<img src=".assets/generate_code_dataset_pipeline.png" width="50%" alt="Feature engineering pipeline" />
-
-To execute the feature engineer pipelines, run:
-
-```python
-python run.py --feature-pipeline
-```
-
-After the pipeline has run, the pipeline will produce some logs like:
-
-```shell
-The latest feature engineering pipeline produced the following artifacts: 
-
-1. Train Dataset - Name: dataset_trn, Version Name: 1 
-2. Test Dataset: Name: dataset_tst, Version Name: 1
-```
-
-We will use these versions in the next pipeline.
-
-</details>
-
-<details>
-  <summary>⌚ Step 2: Training pipeline</summary>
-
-Now that our data is prepared, it makes sense to train some models to get a sense of how difficult the task is. The Breast Cancer dataset is sufficiently large and complex  that it's unlikely we'll be able to train a model that behaves perfectly since the problem is inherently complex, but we can get a sense of what a reasonable baseline looks like.
-
-We'll start with two simple models, a SGD Classifier and a Random Forest
-Classifier, both batteries-included from `sklearn`. We'll train them on the
-same data and then compare their performance.
-
-<img src=".assets/training_pipeline.png" width="50%" alt="Training pipeline">
-
-Run it by using the ID's from the first step:
-
-```python
-# You can also ignore the `--train-dataset-version-name` and `--test-dataset-version-name` to use 
-#  the latest versions
-python run.py --training-pipeline --train-dataset-version-name 1 --test-dataset-version-name 1
-```
-
-To track these models, ZenML offers a *Model Control Plane*, which is a central register of all your ML models.
-Each run of the training pipeline will produce a ZenML Model Version.
-
-```shell
-zenml model list
-```
-
-This will show you a new `breast_cancer_classifier` model with two versions, `sgd` and `rf` created. You can find out how this was configured in the [YAML pipeline configuration files](configs/).
-
-If you are a [ZenML Cloud](https://zenml.io/cloud) user, you can see all of this visualized in the dashboard:
-
-<img src=".assets/cloud_mcp_screenshot.png" width="70%" alt="Model Control Plane">
-
-There is a lot more you can do with ZenML models, including the ability to
-track metrics by adding metadata to it, or having them persist in a model
-registry. However, these topics can be explored more in the
-[ZenML docs](https://docs.zenml.io).
-
-</details>
-
-<details>
-  <summary>💯 Step 3: Promoting the best model to production</summary>
-
-For now, we will use the ZenML model control plane to promote our best
-model to `production`. You can do this by simply setting the `stage` of
-your chosen model version to the `production` tag.
-
-```shell
-zenml model version update breast_cancer_classifier rf --stage production
-```
-
-While we've demonstrated a manual promotion process for clarity, a more in-depth look at the [promoter code](steps/model_promoter.py) reveals that the training pipeline is designed to automate this step. It evaluates the latest model against established production metrics and, if the new model outperforms the existing one based on test set results, it will automatically promote the model to production. Here is an overview of the process:
-
-<img src=".assets/cloud_mcp.png" width="60%" alt="Model Control Plane">
-
-Again, if you are a [ZenML Cloud](https://zenml.io/cloud) user, you would be able to see all this in the cloud dashboard.
-
-</details>
-
-<details>
-  <summary>🫅 Step 4: Consuming the model in production</summary>
-
-Once the model is promoted, we can now consume the right model version in our
-batch inference pipeline directly. Let's see how that works.
-
-The batch inference pipeline simply takes the model marked as `production` and runs inference on it
-with `live data`. The critical step here is the `inference_predict` step, where we load the model in memory and generate predictions. Apart from the loading the model, we must also load the preprocessing pipeline that we ran in feature engineering,
-so that we can do the exact steps that we did on training time, in inference time. Let's bring it all together:
-
-ZenML automatically links all artifacts to the `production` model version as well, including the predictions
-that were returned in the pipeline. This completes the MLOps loop of training to inference:
-
-<img src=".assets/inference_pipeline.png" width="45%" alt="Inference pipeline">
-
-You can also see all predictions ever created as a complete history in the dashboard (Again only for [ZenML Cloud](https://zenml.io/cloud) users):
-
-<img src=".assets/cloud_mcp_predictions.png" width="70%" alt="Model Control Plane">
-
-</details>
-
-## :bulb: Learn More
-
-You're a legit MLOps engineer now! You trained two models, evaluated them against
-a test set, registered the best one with the ZenML model control plane,
-and served some predictions. You also learned how to iterate on your models and
-data by using some of the ZenML utility abstractions. You saw how to view your
-artifacts and stacks via the client as well as the ZenML Dashboard.
-
-If you want to learn more about ZenML as a tool, then the
-[:page_facing_up: **ZenML Docs**](https://docs.zenml.io/) are the perfect place
-to get started. In particular, the [Production Guide](https://docs.zenml.io/user-guide/production-guide/)
-goes into more detail as to how to transition these same pipelines into production on the cloud.
-
-The best way to get a production ZenML instance up and running with all batteries included is the [ZenML Cloud](https://zenml.io/cloud). Check it out!
+For example, see how [VMWare fine-tuned StarCoder to learn their style](https://octo.vmware.com/fine-tuning-starcoder-to-learn-vmwares-coding-style/). 
 
 Also, make sure to join our <a href="https://zenml.io/slack" target="_blank">
     <img width="15" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>

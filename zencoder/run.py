@@ -20,6 +20,7 @@ import os
 import click
 from pipelines import (
     generate_code_dataset,
+    finetune_starcoder,
 )
 
 from zenml.client import Client
@@ -60,7 +61,12 @@ Examples:
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
 )
-
+@click.option(
+    "--training-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that trains the model.",
+)
 @click.option(
     "--no-cache",
     is_flag=True,
@@ -69,6 +75,7 @@ Examples:
 )
 def main(
     feature_pipeline: bool = False,
+    training_pipeline: bool = False,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -110,6 +117,17 @@ def main(
         run_args_feature = {}
         generate_code_dataset.with_options(**pipeline_args)(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!\n")
+        
+    if training_pipeline:
+        pipeline_args = {}
+        if no_cache:
+            pipeline_args["enable_cache"] = False
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, "finetune.yaml"
+        )
+        run_args_training = {}
+        finetune_starcoder.with_options(**pipeline_args)(**run_args_training)
+        logger.info("Training pipeline finished successfully!\n")
 
 if __name__ == "__main__":
     main()
