@@ -12,5 +12,4 @@ huggingface-hub
 accelerate
 peft
 wandb>=0.12.12
-flash-attn
 ninja
