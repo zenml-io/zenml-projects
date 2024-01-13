@@ -1,4 +1,5 @@
 zenml[server]>=0.50.0
+packaging
 notebook
 datasets
 nbformat
@@ -11,4 +12,5 @@ huggingface-hub
 accelerate
 peft
 wandb>=0.12.12
-fim-python
+flash-attn
+ninja
