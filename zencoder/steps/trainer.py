@@ -24,7 +24,7 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from peft.tuners.lora import LoraLayer
 
-import fim
+
 
 
 class Configuration(BaseModel):
@@ -121,6 +121,8 @@ class ConstantLengthDataset(IterableDataset):
         fim_spm_rate=0.5,
         seed=0,
     ):
+        import fim
+        
         self.tokenizer = tokenizer
         self.concat_token_id = tokenizer.eos_token_id
         self.dataset = dataset
@@ -164,6 +166,7 @@ class ConstantLengthDataset(IterableDataset):
             tokenized_inputs = self.tokenizer(buffer, truncation=False)["input_ids"]
             all_token_ids = []
 
+            import fim
             for tokenized_input in tokenized_inputs:
                 # optionally do FIM permutations
                 if self.fim_rate > 0:
