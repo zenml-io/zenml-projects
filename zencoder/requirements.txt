@@ -5,12 +5,10 @@ nbformat
 pandas
 PyGithub
 tqdm==4.65.0
-transformers==4.28.1
-datasets==2.11.0
-huggingface-hub==0.13.4
-accelerate>=0.21.0
+transformers
+datasets
+huggingface-hub
+accelerate
 peft
-torchvision==0.14.1
-torchaudio==0.13.1
 wandb>=0.12.12
 fim-python
