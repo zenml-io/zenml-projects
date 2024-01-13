@@ -20,6 +20,13 @@ model_version:
 
 steps:
   trainer:
+    experiment_tracker: zenml_wandb
+    step_operator: sagemaker-eu
+    settings:
+      step_operator.sagemaker:
+        estimator_args: 
+          instance_type: "ml.p4d.24xlarge"
+
     parameters:
       args:
         model_path: "bigcode/starcoder"
