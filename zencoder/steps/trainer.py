@@ -11,6 +11,7 @@ import numpy as np
 import torch
 from datasets import load_dataset
 from torch.utils.data import IterableDataset
+from zenml.client import Client
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -390,13 +391,18 @@ def run_training(args: Configuration, train_data, val_data):
         trainer.accelerator.state.fsdp_plugin.set_state_dict_type("FULL_STATE_DICT")
 
     if args.push_to_hub:
-        trainer.push_to_hub()
+        # Get token from ZenML
+        secret = Client().get_secret("huggingface_creds")
+        token = secret.secret_values["token"]
+
+    if args.push_to_hub:
+        trainer.push_to_hub(token=token)
     else:
         trainer.save_model(args.output_dir)
     trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
     if args.push_to_hub:
-        trainer.model.push_to_hub(args.output_dir)
+        trainer.model.push_to_hub(args.output_dir, token=token)
 
 
 @step

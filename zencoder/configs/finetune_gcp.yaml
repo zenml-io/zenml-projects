@@ -20,11 +20,12 @@ model_version:
 steps:
   trainer:
     experiment_tracker: zenml_wandb
-    step_operator: vertex
+    step_operator: vertex-us
     settings:
       step_operator.vertex:
         machine_type: "a2-highgpu-1g"
-
+        accelerator_type: "NVIDIA_TESLA_A100"
+        accelerator_count: 1
     parameters:
       args:
         model_path: "bigcode/starcoder"
