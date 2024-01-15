@@ -25,7 +25,87 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from peft.tuners.lora import LoraLayer
 
+import functools
 
+import numpy as np
+
+
+# this is expensive so we cache it
+@functools.lru_cache(maxsize=None)
+def get_fim_token_ids(tokenizer):
+    try:
+        FIM_PREFIX, FIM_MIDDLE, FIM_SUFFIX, FIM_PAD = tokenizer.special_tokens_map["additional_special_tokens"][1:5]
+        suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id = (
+            tokenizer.vocab[tok] for tok in [FIM_SUFFIX, FIM_PREFIX, FIM_MIDDLE, FIM_PAD]
+        )
+    except KeyError:
+        suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id = None, None, None, None
+    return suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id
+
+
+## Adapted from https://github.com/bigcode-project/Megatron-LM/blob/6c4bf908df8fd86b4977f54bf5b8bd4b521003d1/megatron/data/gpt_dataset.py
+def permute(
+    sample,
+    np_rng,
+    suffix_tok_id,
+    prefix_tok_id,
+    middle_tok_id,
+    pad_tok_id,
+    fim_rate=0.5,
+    fim_spm_rate=0.5,
+    truncate_or_pad=False,
+):
+    """
+    Take in a sample (list of tokens) and perform a FIM transformation on it with a probability of fim_rate, using two FIM modes:
+    PSM and SPM (with a probability of fim_spm_rate).
+    """
+
+    if np_rng.binomial(1, fim_rate):
+        boundaries = list(np_rng.randint(low=0, high=len(sample) + 1, size=2))
+        boundaries.sort()
+
+        prefix = np.array(sample[: boundaries[0]], dtype=np.int64)
+        middle = np.array(sample[boundaries[0] : boundaries[1]], dtype=np.int64)
+        suffix = np.array(sample[boundaries[1] :], dtype=np.int64)
+
+        if truncate_or_pad:
+            new_length = suffix.shape[0] + prefix.shape[0] + middle.shape[0] + 3
+            diff = new_length - len(sample)
+            if diff > 0:
+                if suffix.shape[0] <= diff:
+                    return sample, np_rng
+                suffix = suffix[: suffix.shape[0] - diff]
+            elif diff < 0:
+                suffix = np.concatenate([suffix, np.full((-1 * diff), pad_tok_id)])
+
+        if np_rng.binomial(1, fim_spm_rate):
+            # SPM (variant 2 from FIM paper)
+            new_sample = np.concatenate(
+                [
+                    [prefix_tok_id, suffix_tok_id],
+                    suffix,
+                    [middle_tok_id],
+                    prefix,
+                    middle,
+                ]
+            )
+        else:
+            # PSM
+            new_sample = np.concatenate(
+                [
+                    [prefix_tok_id],
+                    prefix,
+                    [suffix_tok_id],
+                    suffix,
+                    [middle_tok_id],
+                    middle,
+                ]
+            )
+    else:
+        # don't do FIM preproc
+        new_sample = sample
+
+    return list(new_sample), np_rng
 
 
 class Configuration(BaseModel):
@@ -121,9 +201,7 @@ class ConstantLengthDataset(IterableDataset):
         fim_rate=0.5,
         fim_spm_rate=0.5,
         seed=0,
-    ):
-        import fim
-        
+    ):        
         self.tokenizer = tokenizer
         self.concat_token_id = tokenizer.eos_token_id
         self.dataset = dataset
@@ -141,7 +219,7 @@ class ConstantLengthDataset(IterableDataset):
             self.prefix_tok_id,
             self.middle_tok_id,
             self.pad_tok_id,
-        ) = fim.get_fim_token_ids(self.tokenizer)
+        ) = get_fim_token_ids(self.tokenizer)
         if not self.suffix_tok_id and self.fim_rate > 0:
             print("FIM is not supported by tokenizer, disabling FIM")
             self.fim_rate = 0
@@ -167,11 +245,10 @@ class ConstantLengthDataset(IterableDataset):
             tokenized_inputs = self.tokenizer(buffer, truncation=False)["input_ids"]
             all_token_ids = []
 
-            import fim
             for tokenized_input in tokenized_inputs:
                 # optionally do FIM permutations
                 if self.fim_rate > 0:
-                    tokenized_input, np_rng = fim.permute(
+                    tokenized_input, np_rng = permute(
                         tokenized_input,
                         np_rng,
                         self.suffix_tok_id,
@@ -313,7 +390,7 @@ def create_and_prepare_model(args):
     return model
 
 
-def run_training(args: Configuration, train_data, val_data):
+def run_training(args: Configuration, train_data, val_data, hf_token):
     train_data.start_iteration = 0
 
     is_deepspeed_peft_enabled = (
@@ -391,23 +468,25 @@ def run_training(args: Configuration, train_data, val_data):
         trainer.accelerator.state.fsdp_plugin.set_state_dict_type("FULL_STATE_DICT")
 
     if args.push_to_hub:
-        # Get token from ZenML
-        secret = Client().get_secret("huggingface_creds")
-        token = secret.secret_values["token"]
-
-    if args.push_to_hub:
-        trainer.push_to_hub(token=token)
+        trainer.push_to_hub(token=hf_token)
     else:
         trainer.save_model(args.output_dir)
     trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
     if args.push_to_hub:
-        trainer.model.push_to_hub(args.output_dir, token=token)
+        trainer.model.push_to_hub(args.output_dir, token=hf_token)
 
 
 @step
 def trainer(args: Configuration):
     set_seed(args.seed)
+    hf_token = None
+    if args.push_to_hub:
+        # Get token from ZenML
+        from huggingface_hub import login
+        secret = Client().get_secret("huggingface_creds")
+        hf_token = secret.secret_values["token"]
+        login(token=hf_token)
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path, use_auth_token=True, trust_remote_code=True
@@ -415,4 +494,4 @@ def trainer(args: Configuration):
 
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
 
-    run_training(args, train_dataset, eval_dataset)
+    run_training(args, train_dataset, eval_dataset, hf_token)

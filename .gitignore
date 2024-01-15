@@ -141,3 +141,5 @@ mlruns/
 .idea/
 
 zencoder/cloned_public_repos
+
+*wandb*
