@@ -1,7 +1,6 @@
 # environment configuration
 settings:
   docker:
-    parent_image: anibali/pytorch:1.13.0-cuda11.8
     requirements: requirements.txt
 
 model_version:
