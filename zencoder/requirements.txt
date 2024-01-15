@@ -13,8 +13,22 @@ accelerate
 peft
 wandb>=0.12.12
 ninja
-s3fs>2022.3.0,<=2023.4.0
-boto3<=1.26.76
-aws-profile-manager
+
+# aws
+# s3fs>2022.3.0,<=2023.4.0
+# boto3<=1.26.76
+# aws-profile-manager
+# kubernetes
+# sagemaker==2.117.0
+
+# gcp
+kfp==1.8.22
+gcsfs
+google-cloud-secret-manager
+google-cloud-container>=2.21.0
+google-cloud-storage>=2.9.0
+google-cloud-aiplatform>=1.21.0
+google-cloud-scheduler>=2.7.3
+google-cloud-functions>=1.8.3
+google-cloud-build>=3.11.0
 kubernetes
-sagemaker==2.117.0
