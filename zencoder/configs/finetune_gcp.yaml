@@ -23,8 +23,7 @@ steps:
     step_operator: vertex
     settings:
       step_operator.vertex:
-        estimator_args: 
-          machine_type: "a2-highgpu-1g"
+        machine_type: "a2-highgpu-1g"
 
     parameters:
       args:
