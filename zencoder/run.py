@@ -121,7 +121,7 @@ def main(
         if no_cache:
             pipeline_args["enable_cache"] = False
         pipeline_args["config_path"] = os.path.join(
-            config_folder, "finetune.yaml"
+            config_folder, "finetune_gcp.yaml"
         )
         run_args_training = {}
         finetune_starcoder.with_options(**pipeline_args)(**run_args_training)
