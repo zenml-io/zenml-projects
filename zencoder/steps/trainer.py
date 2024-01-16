@@ -493,10 +493,16 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
         # Save in ZenML as well
-        save_artifact(model, "final_checkpoint")
         model.save_pretrained(
             os.path.join(args.output_dir, "final_checkpoint/")
         )
+        try:
+            unwrapped = trainer.accelerator.unwrap_model(trainer.model)
+            save_artifact(unwrapped, "final_checkpoint")
+        except Exception as e:
+            print(str(e))
+            print("Skipped saving final checkpoint to ZenML")
+            pass 
 
     if is_deepspeed_peft_enabled:
         trainer.accelerator.wait_for_everyone()
