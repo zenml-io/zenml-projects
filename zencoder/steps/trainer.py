@@ -520,7 +520,8 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
     if args.push_to_hub:
-        trainer.model.push_to_hub(args.output_dir, token=hf_token)
+        commit_info = trainer.model.push_to_hub(args.output_dir, token=hf_token)
+
     return trainer
 
 
