@@ -21,6 +21,7 @@ import click
 from pipelines import (
     generate_code_dataset,
     finetune_starcoder,
+    huggingface_deployment
 )
 
 from zenml.client import Client
@@ -56,6 +57,12 @@ Examples:
 """
 )
 @click.option(
+    "--config",
+    type=str,
+    default=None,
+    help="Path to the YAML config file.",
+)
+@click.option(
     "--feature-pipeline",
     is_flag=True,
     default=False,
@@ -68,14 +75,22 @@ Examples:
     help="Whether to run the pipeline that trains the model.",
 )
 @click.option(
+    "--deploy-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that deploys the model.",
+)
+@click.option(
     "--no-cache",
     is_flag=True,
     default=False,
     help="Disable caching for the pipeline run.",
 )
 def main(
+    config: str = None,
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
+    deploy_pipeline: bool = False,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -103,29 +118,26 @@ def main(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
     )
-
+    pipeline_args = {}
+    if config:
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, config
+        )
+    
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
         pipeline_args = {}
-        if no_cache:
-            pipeline_args["enable_cache"] = False
-        pipeline_args["config_path"] = os.path.join(
-            config_folder, "generate_code_dataset.yaml"
-        )
-        run_args_feature = {}
-        generate_code_dataset.with_options(**pipeline_args)(**run_args_feature)
+        generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
         
-    if training_pipeline:
-        pipeline_args = {}
-        if no_cache:
-            pipeline_args["enable_cache"] = False
-        pipeline_args["config_path"] = os.path.join(
-            config_folder, "finetune_local.yaml"
-        )
-        run_args_training = {}
-        finetune_starcoder.with_options(**pipeline_args)(**run_args_training)
+    elif training_pipeline:
+        finetune_starcoder.with_options(**pipeline_args)()
         logger.info("Training pipeline finished successfully!\n")
+        
+    elif deploy_pipeline:
+        huggingface_deployment.with_options(**pipeline_args)()
+        logger.info("Deployment pipeline finished successfully!\n")
+
 
 if __name__ == "__main__":
     main()
