@@ -3,12 +3,18 @@ import time
 from typing import Tuple, Optional
 from zenml.services import ServiceType, ServiceState
 from zenml.services.service import BaseDeploymentService
-from huggingface_hub import InferenceClient, InferenceEndpointError
+from huggingface_hub import (
+    InferenceClient,
+    InferenceEndpointError,
+    InferenceEndpoint,
+)
 
 logger = get_logger(__name__)
 
 
 class HuggingFaceModelService(BaseDeploymentService):
+    """HuggingFace model deployment service."""
+
     SERVICE_TYPE = ServiceType(
         name="hf-endpoint-deployment",
         type="model-serving",
@@ -16,15 +22,15 @@ class HuggingFaceModelService(BaseDeploymentService):
         description="Huggingface inference endpoint service",
     )
 
-    def __init__(self, endpoint):
-        """_summary_
+    def __init__(self, endpoint: InferenceEndpoint):
+        """_summary_.
 
         Args:
-            endpoint (_type_): _description_
+            endpoint (InferenceEndpoint): _description_
         """
         self.endpoint = endpoint
 
-    def wait_for_startup(self, timeout=300) -> bool:
+    def wait_for_startup(self, timeout: int = 300) -> bool:
         """_summary_
 
         Args:

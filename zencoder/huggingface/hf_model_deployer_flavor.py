@@ -22,7 +22,7 @@ class HFInferenceEndpointConfig(BaseModelDeployerConfig):
 
 
 class HFModelDeployerFlavor(BaseModelDeployerFlavor):
-    """Seldon Core model deployer flavor."""
+    """Huggingface Endpoint model deployer flavor."""
 
     @property
     def name(self) -> str:
@@ -35,7 +35,7 @@ class HFModelDeployerFlavor(BaseModelDeployerFlavor):
 
     @property
     def config_class(self):
-        """Returns `SeldonModelDeployerConfig` config class.
+        """Returns `HFInferenceEndpointConfig` config class.
 
         Returns:
                 The config class.

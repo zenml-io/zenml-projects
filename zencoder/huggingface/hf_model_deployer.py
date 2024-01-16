@@ -9,24 +9,32 @@ from typing import cast, ClassVar, Type
 from zenml.services import BaseService, ServiceConfig
 from huggingface_hub import create_inference_endpoint
 from huggingface.hf_deployment import HuggingFaceModelService
-from zenml.model_deployers.base_model_deployer import BaseModelDeployerFlavor
+from zenml.model_deployers.base_model_deployer import (
+    DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
+    BaseModelDeployerFlavor,
+)
 
 logger = get_logger(__name__)
 
 
 class HFEndpointModelDeployer(BaseModelDeployer):
+    """Huggingface endpoint model deployer."""
+
     NAME: ClassVar[str] = "HFEndpoint"
     FLAVOR: ClassVar[Type[BaseModelDeployerFlavor]] = HFModelDeployerFlavor
 
     def deploy_model(
-        self, config: ServiceConfig, replace: bool = False, timeout: int = 300
+        self,
+        config: ServiceConfig,
+        replace: bool = False,
+        timeout: int = DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     ) -> BaseService:
         """_summary_.
 
         Args:
             config (ServiceConfig): _description_
             replace (bool, optional): _description_. Defaults to False.
-            timeout (int, optional): _description_. Defaults to 300.
+            timeout (int, optional): _description_. Defaults to DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT.
 
         Raises:
             ValueError: _description_
