@@ -1,4 +1,3 @@
-from huggingface_hub import HfApi
 from zenml import step
 from zenml.client import Client
 from huggingface_hub import create_inference_endpoint
