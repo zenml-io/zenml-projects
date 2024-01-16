@@ -141,5 +141,5 @@ mlruns/
 .idea/
 
 zencoder/cloned_public_repos
-
+zencoder/peft-lora-starcoder15B-personal-copilot-A100-40GB-colab/
 *wandb*
