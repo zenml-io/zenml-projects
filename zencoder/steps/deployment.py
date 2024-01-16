@@ -1,9 +1,14 @@
 from zenml import step
 from zenml.client import Client
-from huggingface_hub import create_inference_endpoint
-from zenml import ArtifactConfig
-from typing_extensions import Annotated
+from typing import cast
 from zenml import get_step_context
+from huggingface.hf_model_deployer import HFEndpointModelDeployer
+from huggingface.hf_model_deployer_flavor import HFInferenceEndpointConfig
+from huggingface.hf_deployment import HuggingFaceModelService
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 @step
 def deploy_model_to_hf_hub(
@@ -16,7 +21,7 @@ def deploy_model_to_hf_hub(
     type: str,
     instance_size: str,
     instance_type: str,
-) -> Annotated[str, ArtifactConfig(name="endpoint", is_deployment_artifact=True)]:
+) -> HFEndpointModelDeployer:
     """Pushes the dataset to the Hugging Face Hub.
 
     Args:
@@ -34,7 +39,7 @@ def deploy_model_to_hf_hub(
     """
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
-    
+
     revision = get_step_context().model_version.metadata["revision"]
     repository = get_step_context().model_version.metadata["repository"]
 
@@ -44,10 +49,10 @@ def deploy_model_to_hf_hub(
             "Please make sure that the training pipeline is configured correctly."
         )
 
-    endpoint = create_inference_endpoint(
+    hf_endpoint_cfg = HFInferenceEndpointConfig(
         endpoint_name=endpoint_name,
-        repository=repository,
         revision=revision,
+        repository=repository,
         framework=framework,
         task=task,
         accelerator=accelerator,
@@ -56,6 +61,17 @@ def deploy_model_to_hf_hub(
         type=type,
         instance_size=instance_size,
         instance_type=instance_type,
-        token=hf_token
+        hf_token=hf_token,
     )
-    return endpoint
+
+    new_service = cast(
+        HuggingFaceModelService,
+        HFEndpointModelDeployer.deploy_model(config=hf_endpoint_cfg),
+    )
+
+    logger.info(
+        f"Huggingface Inference Endpoint deployment service started and reachable at:\n"
+        f"    {new_service.prediction_url}\n"
+    )
+
+    return new_service

@@ -44,12 +44,6 @@ class HFEndpointModelDeployer(BaseModelDeployer):
         """
         config = cast(HFInferenceEndpointConfig, config)
 
-        if config.revision is None or config.repository is None:
-            raise ValueError(
-                "The ZenML model version does not have a repository or revision in its metadata. "
-                "Please make sure that the training pipeline is configured correctly."
-            )
-
         endpoint = create_inference_endpoint(
             endpoint_name=config.endpoint_name,
             repository=config.repository,
