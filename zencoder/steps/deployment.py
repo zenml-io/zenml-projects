@@ -21,7 +21,7 @@ def deploy_model_to_hf_hub(
     type: str,
     instance_size: str,
     instance_type: str,
-) -> HFEndpointModelDeployer:
+) -> HuggingFaceModelService:
     """Pushes the dataset to the Hugging Face Hub.
 
     Args:
