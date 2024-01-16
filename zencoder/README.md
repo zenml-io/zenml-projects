@@ -42,6 +42,12 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 - [ ] Tests trained model on various metrics
 - [ ] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) 
 
+## Getting Started
+
+- Obtain API keys for HuggingFace, WANDB. Make sure to accept the terms of use for [starcoder](https://huggingface.co/bigcode/starcoder), this is required to use the model!
+
+- Run `make run` to start the container. 
+
 ## :bulb: More Applications
 
 While the work here is solely based on the task of finetuning the model for the ZenML library, the pipeline can be changed with minimal effort to point to any set of repositories on GitHub. Theoretically, one could extend this work to point to proprietary codebases to learn from them for any use-case.
