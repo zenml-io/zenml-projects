@@ -7,6 +7,8 @@ from typing import Optional
 import os
 import random
 from zenml import step
+from zenml import ArtifactConfig
+from typing_extensions import Annotated
 import numpy as np
 import torch
 from datasets import load_dataset
@@ -478,7 +480,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
 
 @step
-def trainer(args: Configuration):
+def trainer(args: Configuration) -> Annotated[str, ArtifactConfig(is_deployment_artifact=True)]:
     set_seed(args.seed)
     hf_token = None
     if args.push_to_hub:
