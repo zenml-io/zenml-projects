@@ -489,7 +489,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
                         module = module.to(torch.bfloat16)
 
     print("Training...")
-    # trainer.train()
+    trainer.train()
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
         # Save in ZenML as well
