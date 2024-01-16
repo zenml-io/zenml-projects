@@ -4,12 +4,11 @@ from zenml.client import Client
 from huggingface_hub import create_inference_endpoint
 from zenml import ArtifactConfig
 from typing_extensions import Annotated
-
+from zenml import get_step_context
 
 @step
 def deploy_model(
     endpoint_name: str,
-    repository: str,
     framework: str,
     task: str,
     accelerator: str,
@@ -36,9 +35,20 @@ def deploy_model(
     """
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
+    
+    revision = get_step_context().model_version.metadata["revision"]
+    repository = get_step_context().model_version.metadata["repository"]
+
+    if revision is None or repository is None:
+        raise ValueError(
+            "The ZenML model version does not have a repository or revision in its metadata. "
+            "Please make sure that the training pipeline is configured correctly."
+        )
+
     endpoint = create_inference_endpoint(
         endpoint_name=endpoint_name,
         repository=repository,
+        revision=revision,
         framework=framework,
         task=task,
         accelerator=accelerator,
