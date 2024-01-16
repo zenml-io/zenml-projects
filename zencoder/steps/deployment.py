@@ -1,11 +1,13 @@
 from zenml import step
 from zenml.client import Client
-from typing import cast
+from typing import cast, Annotated
 from zenml import get_step_context
 from huggingface.hf_model_deployer import HFEndpointModelDeployer
 from huggingface.hf_model_deployer_flavor import HFInferenceEndpointConfig
 from huggingface.hf_deployment import HuggingFaceModelService
 from zenml.logger import get_logger
+from zenml import ArtifactConfig
+from zenml import log_artifact_metadata
 
 logger = get_logger(__name__)
 
@@ -21,7 +23,10 @@ def deploy_model_to_hf_hub(
     type: str,
     instance_size: str,
     instance_type: str,
-) -> HuggingFaceModelService:
+) -> Annotated[
+    HuggingFaceModelService,
+    ArtifactConfig(name="endpoint", is_deployment_artifact=True),
+]:
     """Pushes the dataset to the Hugging Face Hub.
 
     Args:
@@ -67,6 +72,10 @@ def deploy_model_to_hf_hub(
     new_service = cast(
         HuggingFaceModelService,
         HFEndpointModelDeployer.deploy_model(config=hf_endpoint_cfg),
+    )
+
+    log_artifact_metadata(
+        metadata={"deployment_service": new_service.to_dict()}
     )
 
     logger.info(

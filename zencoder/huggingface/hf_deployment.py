@@ -118,7 +118,7 @@ class HuggingFaceModelService(BaseDeploymentService):
         """
         if not self.is_running:
             raise Exception(
-                "BentoML prediction service is not running. "
+                "Huggingface endpoint inference service is not running. "
                 "Please start the service before making predictions."
             )
         if self.endpoint.prediction_url is not None:

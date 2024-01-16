@@ -65,8 +65,8 @@ class HFEndpointModelDeployer(BaseModelDeployer):
             f"Creating a new huggingface inference endpoint service: {service}"
         )
 
-        # start the service which in turn provisions the Seldon Core
-        # deployment server and waits for it to reach a ready state
+        # start the service
+        # and wait for it to reach a ready state
         service.start(timeout=timeout)
 
         return service
