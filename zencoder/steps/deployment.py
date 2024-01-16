@@ -6,7 +6,7 @@ from typing_extensions import Annotated
 from zenml import get_step_context
 
 @step
-def deploy_model(
+def deploy_model_to_hf_hub(
     endpoint_name: str,
     framework: str,
     task: str,

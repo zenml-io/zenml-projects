@@ -16,7 +16,7 @@
 #
 
 from steps import (
-    deploy_model
+    deploy_model_to_hf_hub
 )
 
 from zenml import pipeline
@@ -30,4 +30,4 @@ def huggingface_deployment():
     """This pipeline pushes the model to the hub."""
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
-    deploy_model()
+    deploy_model_to_hf_hub()

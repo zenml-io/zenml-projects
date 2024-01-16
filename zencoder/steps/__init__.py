@@ -19,4 +19,4 @@ from .parallel_clones import mirror_repositories
 from .prepare_dataset import prepare_dataset
 from .push_dataset_to_hub import push_to_hub
 from .trainer import trainer
-from .deploy_model_to_hf_hub import deploy_model
+from .deployment import deploy_model_to_hf_hub
