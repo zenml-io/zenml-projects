@@ -18,13 +18,6 @@
 import os
 
 import click
-from pipelines import (
-    generate_code_dataset,
-    finetune_starcoder,
-    huggingface_deployment
-)
-
-from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -127,14 +120,17 @@ def main(
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
         pipeline_args = {}
+        from pipelines import generate_code_dataset
         generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
         
     elif training_pipeline:
+        from pipelines import finetune_starcoder
         finetune_starcoder.with_options(**pipeline_args)()
         logger.info("Training pipeline finished successfully!\n")
         
     elif deploy_pipeline:
+        from pipelines import huggingface_deployment
         huggingface_deployment.with_options(**pipeline_args)()
         logger.info("Deployment pipeline finished successfully!\n")
 
