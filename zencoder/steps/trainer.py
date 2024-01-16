@@ -519,15 +519,20 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
             "FULL_STATE_DICT"
         )
 
-    if args.push_to_hub:
-        trainer.push_to_hub(token=hf_token)
-    else:
-        trainer.save_model(args.output_dir)
-    trainer.accelerator.print(f"Model saved to {args.output_dir}")
+    try:
+        if args.push_to_hub:
+            trainer.push_to_hub(token=hf_token)
+        else:
+            trainer.save_model(args.output_dir)
+        trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
-    if args.push_to_hub:
-        commit_info = trainer.model.push_to_hub(args.output_dir, token=hf_token)
-
+        if args.push_to_hub:
+            commit_info = trainer.model.push_to_hub(args.output_dir, token=hf_token)
+            log_model_metadata(metadata={"commit_info": commit_info})
+    except Exception as e:  
+        print("Exception while pushing or saving")
+        print(str(e))
+        pass 
     return trainer
 
 
