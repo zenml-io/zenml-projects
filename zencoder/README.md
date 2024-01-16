@@ -26,10 +26,33 @@ Now, we could take the code above and run it as scripts on some chosen ZenML rep
 
 That way we write ZenML pipelines to train a model that can produce ZenML pipelines 🐍. Sounds fun.
 
-Specifically, we aim to create two pipelines:
+Specifically, we aim to create three pipelines:
 
 - The data generation pipeline ([here](pipelines/generate_code_dataset.py)) that scrapes a chosen set of latest zenml version based repositories on GitHub, and pushes the dataset to HuggingFace.
 - The training pipeline ([here](pipelines/finetune.py)) that loads the dataset from the previous pipeline and launches a training job on a cloud provider to train the model.
+- The deployment pipeline ([here](pipelines/deployment.py) that deploys the model to huggingface inference endpoints)
+
+## 🏃 How to run
+
+The three pipelines can be run using the CLI:
+
+```shell
+# Data generation
+python run.py --feature-engineering --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --feature-engineering --config generate_code_dataset.yaml
+
+# Training
+python run.py --training-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --training-pipeline --config finetune_gcp.yaml
+
+# Deployment
+python run.py --deployment-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --deployment-pipeline --config finetune_gcp.yaml
+```
+
+The `feature_engineering` and `deployment` pipeline can be run simply with the `default` stack, but the training pipelines [stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) will depend on the config.
+
+The `deployment` pipelines relies on the `training_pipeline` to have run before.
 
 ## 📓 To Do
 
@@ -41,6 +64,7 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 - [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings
 - [ ] Tests trained model on various metrics
 - [ ] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) 
+- [ ] Create a custom [model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
 
 ## :bulb: More Applications
 
