@@ -541,7 +541,7 @@ def trainer(
         login(token=hf_token)
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
-        args.model_path, use_auth_token=True, trust_remote_code=True
+        args.model_path, token=True, trust_remote_code=True
     )
 
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
