@@ -1,0 +1,22 @@
+# environment configuration
+settings:
+  docker:
+    requirements: requirements.txt
+
+model_version:
+  name: "peft-lora-zencoder15B-v2-personal-copilot-A100-40GB-colab"
+  version: production
+
+steps:
+  deploy_model:
+    parameters:
+      endpoint_name: my-endpoint-name
+      repository: gpt2
+      framework: pytorch
+      task: text-generation
+      accelerator: cpu
+      vendor: aws
+      region: us-east-1
+      type: protected
+      instance_size: medium
+      instance_type: c6i

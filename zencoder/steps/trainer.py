@@ -14,6 +14,11 @@ import torch
 from datasets import load_dataset
 from torch.utils.data import IterableDataset
 from zenml.client import Client
+from zenml import log_model_metadata
+from materializers import HFTrainerMaterializer
+from typing import Tuple
+from datasets import Dataset
+from zenml import save_artifact
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -23,6 +28,7 @@ from transformers import (
     set_seed,
     BitsAndBytesConfig,
 )
+from huggingface_hub import login
 
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from peft.tuners.lora import LoraLayer
@@ -36,12 +42,23 @@ import numpy as np
 @functools.lru_cache(maxsize=None)
 def get_fim_token_ids(tokenizer):
     try:
-        FIM_PREFIX, FIM_MIDDLE, FIM_SUFFIX, FIM_PAD = tokenizer.special_tokens_map["additional_special_tokens"][1:5]
+        (
+            FIM_PREFIX,
+            FIM_MIDDLE,
+            FIM_SUFFIX,
+            FIM_PAD,
+        ) = tokenizer.special_tokens_map["additional_special_tokens"][1:5]
         suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id = (
-            tokenizer.vocab[tok] for tok in [FIM_SUFFIX, FIM_PREFIX, FIM_MIDDLE, FIM_PAD]
+            tokenizer.vocab[tok]
+            for tok in [FIM_SUFFIX, FIM_PREFIX, FIM_MIDDLE, FIM_PAD]
         )
     except KeyError:
-        suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id = None, None, None, None
+        suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id = (
+            None,
+            None,
+            None,
+            None,
+        )
     return suffix_tok_id, prefix_tok_id, middle_tok_id, pad_tok_id
 
 
@@ -67,18 +84,24 @@ def permute(
         boundaries.sort()
 
         prefix = np.array(sample[: boundaries[0]], dtype=np.int64)
-        middle = np.array(sample[boundaries[0] : boundaries[1]], dtype=np.int64)
+        middle = np.array(
+            sample[boundaries[0] : boundaries[1]], dtype=np.int64
+        )
         suffix = np.array(sample[boundaries[1] :], dtype=np.int64)
 
         if truncate_or_pad:
-            new_length = suffix.shape[0] + prefix.shape[0] + middle.shape[0] + 3
+            new_length = (
+                suffix.shape[0] + prefix.shape[0] + middle.shape[0] + 3
+            )
             diff = new_length - len(sample)
             if diff > 0:
                 if suffix.shape[0] <= diff:
                     return sample, np_rng
                 suffix = suffix[: suffix.shape[0] - diff]
             elif diff < 0:
-                suffix = np.concatenate([suffix, np.full((-1 * diff), pad_tok_id)])
+                suffix = np.concatenate(
+                    [suffix, np.full((-1 * diff), pad_tok_id)]
+                )
 
         if np_rng.binomial(1, fim_spm_rate):
             # SPM (variant 2 from FIM paper)
@@ -169,7 +192,9 @@ def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
     Estimate the average number of characters per token in the dataset.
     """
     total_characters, total_tokens = 0, 0
-    for _, example in tqdm(zip(range(nb_examples), iter(dataset)), total=nb_examples):
+    for _, example in tqdm(
+        zip(range(nb_examples), iter(dataset)), total=nb_examples
+    ):
         total_characters += len(example[data_column])
         total_tokens += len(tokenizer(example[data_column]).tokens())
 
@@ -203,7 +228,7 @@ class ConstantLengthDataset(IterableDataset):
         fim_rate=0.5,
         fim_spm_rate=0.5,
         seed=0,
-    ):        
+    ):
         self.tokenizer = tokenizer
         self.concat_token_id = tokenizer.eos_token_id
         self.dataset = dataset
@@ -244,7 +269,9 @@ class ConstantLengthDataset(IterableDataset):
                     else:
                         more_examples = False
                         break
-            tokenized_inputs = self.tokenizer(buffer, truncation=False)["input_ids"]
+            tokenized_inputs = self.tokenizer(buffer, truncation=False)[
+                "input_ids"
+            ]
             all_token_ids = []
 
             for tokenized_input in tokenized_inputs:
@@ -290,7 +317,9 @@ def create_datasets(tokenizer, args):
         print("Loading the dataset in streaming mode")
         valid_data = dataset.take(args.size_valid_set)
         train_data = dataset.skip(args.size_valid_set)
-        train_data = train_data.shuffle(buffer_size=args.shuffle_buffer, seed=args.seed)
+        train_data = train_data.shuffle(
+            buffer_size=args.shuffle_buffer, seed=args.seed
+        )
     else:
         dataset = dataset.train_test_split(
             test_size=args.test_size, seed=args.seed, shuffle=True
@@ -300,8 +329,12 @@ def create_datasets(tokenizer, args):
         print(
             f"Size of the train set: {len(train_data)}. Size of the validation set: {len(valid_data)}"
         )
-    chars_per_token = chars_token_ratio(train_data, tokenizer, args.data_column)
-    print(f"The character to token ratio of the dataset is: {chars_per_token:.2f}")
+    chars_per_token = chars_token_ratio(
+        train_data, tokenizer, args.data_column
+    )
+    print(
+        f"The character to token ratio of the dataset is: {chars_per_token:.2f}"
+    )
     train_dataset = ConstantLengthDataset(
         tokenizer,
         train_data,
@@ -434,7 +467,10 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
         model.print_trainable_parameters()
 
     trainer = Trainer(
-        model=model, args=training_args, train_dataset=train_data, eval_dataset=val_data
+        model=model,
+        args=training_args,
+        train_dataset=train_data,
+        eval_dataset=val_data,
     )
 
     # post process for faster training when using PEFT + INT4 Quantization
@@ -445,16 +481,22 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
                     module = module.to(torch.bfloat16)
             if "norm" in name:
                 module = module.to(torch.float32)
-            if any(x in name for x in ["lm_head", "embed_tokens", "wte", "wpe"]):
+            if any(
+                x in name for x in ["lm_head", "embed_tokens", "wte", "wpe"]
+            ):
                 if hasattr(module, "weight"):
                     if args.bf16 and module.weight.dtype == torch.float32:
                         module = module.to(torch.bfloat16)
 
     print("Training...")
-    trainer.train()
+    # trainer.train()
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
-        model.save_pretrained(os.path.join(args.output_dir, "final_checkpoint/"))
+        # Save in ZenML as well
+        save_artifact(model, "final_checkpoint")
+        model.save_pretrained(
+            os.path.join(args.output_dir, "final_checkpoint/")
+        )
 
     if is_deepspeed_peft_enabled:
         trainer.accelerator.wait_for_everyone()
@@ -467,7 +509,9 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     # Save model and tokenizer
     if trainer.is_fsdp_enabled:
-        trainer.accelerator.state.fsdp_plugin.set_state_dict_type("FULL_STATE_DICT")
+        trainer.accelerator.state.fsdp_plugin.set_state_dict_type(
+            "FULL_STATE_DICT"
+        )
 
     if args.push_to_hub:
         trainer.push_to_hub(token=hf_token)
@@ -477,15 +521,21 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     if args.push_to_hub:
         trainer.model.push_to_hub(args.output_dir, token=hf_token)
+    return trainer
 
 
-@step
-def trainer(args: Configuration) -> Annotated[str, ArtifactConfig(is_deployment_artifact=True)]:
+@step(output_materializers={"trainer_obj": HFTrainerMaterializer})
+def trainer(
+    args: Configuration,
+) -> Tuple[
+    Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
+    Annotated[Dataset, "train_dataset"],
+    Annotated[Dataset, "eval_dataset"],
+]:
     set_seed(args.seed)
     hf_token = None
     if args.push_to_hub:
         # Get token from ZenML
-        from huggingface_hub import login
         secret = Client().get_secret("huggingface_creds")
         hf_token = secret.secret_values["token"]
         login(token=hf_token)
@@ -495,5 +545,6 @@ def trainer(args: Configuration) -> Annotated[str, ArtifactConfig(is_deployment_
     )
 
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
+    trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    run_training(args, train_dataset, eval_dataset, hf_token)
+    return trainer_obj, train_dataset, eval_dataset
