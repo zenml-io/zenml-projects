@@ -16,6 +16,7 @@ from torch.utils.data import IterableDataset
 from zenml.client import Client
 from zenml import log_model_metadata
 from materializers import HFTrainerMaterializer
+from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
 from typing import Tuple
 from zenml import save_artifact
 from tqdm import tqdm
@@ -589,7 +590,7 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
-    Annotated[AutoTokenizer, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[GPT2TokenizerFast, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
     Annotated[str, "peft_model_id"],
     Annotated[ConstantLengthDataset, "train_dataset"],
     Annotated[ConstantLengthDataset, "eval_dataset"],
