@@ -79,11 +79,11 @@ def deploy_model_to_hf_hub(
         )
 
     if name is None:
-        name = repository + "-" + generate_three_random_letters()
+        name = generate_three_random_letters()
 
     endpoint = create_inference_endpoint(
         name=name,
-        repository=repository,
+        repository=f"{namespace}/{repository}",
         framework=framework,
         accelerator=accelerator,
         instance_size=instance_size,
@@ -97,7 +97,7 @@ def deploy_model_to_hf_hub(
         task=task,
         custom_image=custom_image,
         type=endpoint_type,
-        namespace=namespace,
+        # namespace=namespace,
         token=hf_token,
     )
     
@@ -115,4 +115,4 @@ def deploy_model_to_hf_hub(
         }
     )
     
-    return endpoint
+    return str(endpoint)

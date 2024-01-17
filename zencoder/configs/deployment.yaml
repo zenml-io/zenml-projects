@@ -16,5 +16,5 @@ steps:
       vendor: aws
       region: us-east-1
       max_replica: 1
-      instance_size: 2xlarge
-      instance_type: p4de
+      instance_size: large
+      instance_type: g4dn.12xlarge
