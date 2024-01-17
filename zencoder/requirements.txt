@@ -47,4 +47,3 @@ tiktoken
 deepspeed
 tqdm
 safetensors
-flash-attn
