@@ -506,7 +506,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
                         module = module.to(torch.bfloat16)
 
     print("Training...")
-    # trainer.train()
+    trainer.train()
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
         # Save in ZenML as well
@@ -602,12 +602,17 @@ def trainer(
         secret = Client().get_secret("huggingface_creds")
         hf_token = secret.secret_values["token"]
         login(token=hf_token)
+        
+    print("Loading tokenizer...")
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path, token=True, trust_remote_code=True
     )
 
+    print("Creating a dataset...")
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
+    
+    print("Creating a training...")
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
     return trainer_obj, tokenizer, args.output_peft_repo_id, train_dataset, eval_dataset
