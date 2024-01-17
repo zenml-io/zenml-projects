@@ -17,7 +17,6 @@ from zenml.client import Client
 from zenml import log_model_metadata
 from materializers import HFTrainerMaterializer
 from typing import Tuple
-from datasets import Dataset
 from zenml import save_artifact
 from tqdm import tqdm
 from transformers import (
@@ -541,8 +540,9 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
-    Annotated[Dataset, "train_dataset"],
-    Annotated[Dataset, "eval_dataset"],
+    Annotated[AutoTokenizer, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[ConstantLengthDataset, "train_dataset"],
+    Annotated[ConstantLengthDataset, "eval_dataset"],
 ]:
     set_seed(args.seed)
     hf_token = None
@@ -559,4 +559,4 @@ def trainer(
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    return trainer_obj, train_dataset, eval_dataset
+    return trainer_obj, tokenizer, train_dataset, eval_dataset
