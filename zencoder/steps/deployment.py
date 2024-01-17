@@ -23,11 +23,11 @@ def parse_huggingface_url(url):
     parts = url.split('/')
     
     # Check if the URL has the expected number of parts
-    if len(parts) >= 8 and parts[2] == 'huggingface.co':
+    if len(parts) >= 7 and parts[2] == 'huggingface.co':
         # Extract the namespace (owner), repository, and revision (commit hash)
         namespace = parts[3]
         repository = parts[4]
-        revision = parts[7]
+        revision = parts[6]
         return namespace, repository, revision
     else:
         # Raise an error if the URL doesn't have the expected format
@@ -71,6 +71,7 @@ def deploy_model_to_hf_hub(
     hf_token = secret.secret_values["token"]
     
     commit_info = get_step_context().model_version.metadata["merged_model_commit_info"]
+    breakpoint()
     namespace, repository, revision = parse_huggingface_url(commit_info)
     
     if repository is None:
