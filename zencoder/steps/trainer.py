@@ -537,7 +537,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     try:
         if args.push_to_hub:
-            commit_info = trainer.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            commit_info = trainer.push_to_hub()
             log_model_metadata(metadata={"trainer_commit_info": commit_info})
         else:
             trainer.save_model(args.output_dir)
@@ -553,7 +553,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     return trainer
 
 
-def merge_and_push(peft_model_id: str, hf_token: str, base_model_name: str = "bigcode/starcoder"):
+def merge_and_push(peft_model: PeftModel, hf_token: str, base_model_name: str = "bigcode/starcoder"):
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
@@ -568,7 +568,6 @@ def merge_and_push(peft_model_id: str, hf_token: str, base_model_name: str = "bi
     if not hasattr(model, "hf_device_map"):
         model.cuda()
 
-    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
     peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
     peft_model.set_adapter("best_personal_copilot")
     final_model = model.merge_and_unload()
@@ -602,6 +601,6 @@ def trainer(
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    merge_and_push(args.output_peft_repo_id, hf_token)
+    merge_and_push(trainer_obj.model, hf_token)
 
     return trainer_obj, tokenizer, train_dataset, eval_dataset
