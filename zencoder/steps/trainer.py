@@ -576,8 +576,8 @@ def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder
     peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
     peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
     peft_model.set_adapter("best_personal_copilot")
-    final_model = model.merge_and_unload()
-    
+    final_model = peft_model.merge_and_unload()
+
     model_id_merged = f"{peft_model_id}-merged"
     final_model.push_to_hub(model_id_merged, token=hf_token)
     log_model_metadata(metadata={"merged_model_commit_info": commit_info})
