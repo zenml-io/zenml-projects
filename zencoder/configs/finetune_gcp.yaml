@@ -58,3 +58,4 @@ steps:
         use_4bit_qunatization: true
         use_nested_quant: true
         bnb_4bit_compute_dtype: "bfloat16"
+        output_peft_repo_id: "htahir1/peft-lora-zencoder15B-personal-copilot"

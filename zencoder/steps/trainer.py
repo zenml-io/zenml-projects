@@ -35,6 +35,22 @@ from peft.tuners.lora import LoraLayer
 import functools
 
 import numpy as np
+import os
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+import torch
+from datasets import load_dataset
+from peft import LoraConfig
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    AutoTokenizer,
+    TrainingArguments,
+)
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
 
 
 # this is expensive so we cache it
@@ -184,6 +200,7 @@ class Configuration(BaseModel):
     use_8bit_qunatization: bool = False
 
     push_to_hub: bool = False
+    output_peft_repo_id: str = "htahir1/peft-lora-zencoder15B-personal-copilot"
 
 
 def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
@@ -520,19 +537,45 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     try:
         if args.push_to_hub:
-            trainer.push_to_hub(token=hf_token)
+            commit_info = trainer.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            log_model_metadata(metadata={"trainer_commit_info": commit_info})
         else:
             trainer.save_model(args.output_dir)
         trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
-            commit_info = trainer.model.push_to_hub(args.output_dir, token=hf_token)
-            log_model_metadata(metadata={"commit_info": commit_info})
+            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            log_model_metadata(metadata={"model_commit_info": commit_info})
     except Exception as e:  
         print("Exception while pushing or saving")
         print(str(e))
         pass 
     return trainer
+
+
+def merge_and_push(peft_model_id: str, hf_token: str, base_model_name: str = "bigcode/starcoder"):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model_name,
+        quantization_config=None,
+        device_map=None,
+        trust_remote_code=True,
+        torch_dtype=torch.bfloat16,
+    )
+
+    # model = model.merge_and_unload()
+    if not hasattr(model, "hf_device_map"):
+        model.cuda()
+
+    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
+    peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
+    peft_model.set_adapter("best_personal_copilot")
+    final_model = model.merge_and_unload()
+    
+    model_id_merged = f"{peft_model_id}-merged"
+    final_model.push_to_hub(model_id_merged, token=hf_token)
+    tokenizer.push_to_hub(model_id_merged, token=hf_token)
 
 
 @step(output_materializers={"trainer_obj": HFTrainerMaterializer})
@@ -558,5 +601,7 @@ def trainer(
 
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
+
+    merge_and_push(args.output_peft_repo_id, hf_token)
 
     return trainer_obj, tokenizer, train_dataset, eval_dataset
