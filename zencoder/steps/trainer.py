@@ -553,7 +553,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     return trainer
 
 
-def merge_and_push(peft_model: PeftModel, hf_token: str, base_model_name: str = "bigcode/starcoder"):
+def merge_and_push(peft_model: PeftModel, peft_model_id: str, hf_token: str, base_model_name: str = "bigcode/starcoder"):
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
@@ -601,6 +601,6 @@ def trainer(
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    merge_and_push(trainer_obj.model, hf_token)
+    merge_and_push(trainer_obj.model, args.output_peft_repo_id, hf_token)
 
     return trainer_obj, tokenizer, train_dataset, eval_dataset
