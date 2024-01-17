@@ -9,6 +9,7 @@ import random
 from zenml import step
 from zenml import ArtifactConfig
 from typing_extensions import Annotated
+from huggingface_hub import upload_folder
 import numpy as np
 import torch
 from datasets import load_dataset
@@ -537,14 +538,25 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     try:
         if args.push_to_hub:
-            commit_info = trainer.push_to_hub()
+            accelerator_model_path = os.path.join(args.output_dir, "accelerator_model/")
+            trainer.save_model(accelerator_model_path)
+            trainer.accelerator.print(f"Model saved to {args.output_dir}")
+            print("Upload accelerator model to Hub..")
+            commit_info = upload_folder(
+                repo_id=args.output_peft_repo_id,
+                folder_path=accelerator_model_path,
+                repo_type="model"
+            )
             log_model_metadata(metadata={"trainer_commit_info": commit_info})
-        else:
-            trainer.save_model(args.output_dir)
-        trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
-            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            peft_model_path = os.path.join(args.output_dir, "peft_model/")
+            trainer.model.save_pretrained(peft_model_path)
+            commit_info = upload_folder(
+                repo_id=args.output_peft_repo_id,
+                folder_path=peft_model_path,
+                repo_type="model"
+            )
             log_model_metadata(metadata={"model_commit_info": commit_info})
     except Exception as e:  
         print("Exception while pushing or saving")
