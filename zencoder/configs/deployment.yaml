@@ -16,7 +16,6 @@ steps:
       vendor: aws
       region: us-east-1
       endpoint_type: public
-      task: text-generation
       min_replica: 1
       max_replica: 1
       instance_size: 2xlarge
