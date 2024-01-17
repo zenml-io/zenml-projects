@@ -18,6 +18,21 @@ def generate_three_random_letters() -> str:
     letters = "abcdefghijklmnopqrstuvwxyz"
     return "".join(random.choice(letters) for i in range(3))
 
+def parse_huggingface_url(url):
+    # Split the URL into parts
+    parts = url.split('/')
+    
+    # Check if the URL has the expected number of parts
+    if len(parts) >= 8 and parts[2] == 'huggingface.co':
+        # Extract the namespace (owner), repository, and revision (commit hash)
+        namespace = parts[3]
+        repository = parts[4]
+        revision = parts[7]
+        return namespace, repository, revision
+    else:
+        # Raise an error if the URL doesn't have the expected format
+        raise ValueError("Invalid Huggingface URL format")
+
 
 @step
 def deploy_model_to_hf_hub(
@@ -55,10 +70,9 @@ def deploy_model_to_hf_hub(
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
     
-    revision = get_step_context().model_version.metadata["revision"]
-    repository = get_step_context().model_version.metadata["repository"]
-    namespace = ""
-
+    commit_info = get_step_context().model_version.metadata["merged_model_commit_info"]
+    namespace, repository, revision = parse_huggingface_url(commit_info)
+    
     if repository is None:
         raise ValueError(
             "The ZenML model version does not have a repository in its metadata. "
