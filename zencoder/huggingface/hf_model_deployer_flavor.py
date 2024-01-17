@@ -1,24 +1,11 @@
 from zenml.model_deployers.base_model_deployer import (
-    BaseModelDeployerConfig,
     BaseModelDeployerFlavor,
+    BaseModelDeployerConfig,
 )
 
 
-class HFInferenceEndpointConfig(BaseModelDeployerConfig):
-    """Base class for all ZenML model deployer configurations."""
-
-    endpoint_name: str
-    revision: str
-    repository: str
-    framework: str
-    task: str
-    accelerator: str
-    vendor: str
-    region: str
-    type: str
-    instance_size: str
-    instance_type: str
-    hf_token: str
+class HFConfig(BaseModelDeployerConfig):
+    pass
 
 
 class HFModelDeployerFlavor(BaseModelDeployerFlavor):
@@ -35,12 +22,12 @@ class HFModelDeployerFlavor(BaseModelDeployerFlavor):
 
     @property
     def config_class(self):
-        """Returns `HFInferenceEndpointConfig` config class.
+        """Returns `HFConfig` config class.
 
         Returns:
                 The config class.
         """
-        return HFInferenceEndpointConfig
+        return HFConfig
 
     @property
     def implementation_class(self):

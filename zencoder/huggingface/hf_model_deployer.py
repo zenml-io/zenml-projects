@@ -1,14 +1,14 @@
+from uuid import UUID
 from zenml.model_deployers import BaseModelDeployer
-from huggingface.hf_model_deployer_flavor import (
-    HFInferenceEndpointConfig,
-    HFModelDeployerFlavor,
-)
+from huggingface.hf_model_deployer_flavor import HFModelDeployerFlavor
 from zenml.logger import get_logger
 
-from typing import cast, ClassVar, Type
+from typing import List, Optional, cast, ClassVar, Type, Dict
 from zenml.services import BaseService, ServiceConfig
-from huggingface_hub import create_inference_endpoint
-from huggingface.hf_deployment import HuggingFaceModelService
+from huggingface.hf_deployment import (
+    HuggingFaceModelService,
+    HFInferenceEndpointConfig,
+)
 from zenml.model_deployers.base_model_deployer import (
     DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     BaseModelDeployerFlavor,
@@ -43,32 +43,49 @@ class HFEndpointModelDeployer(BaseModelDeployer):
             BaseService: _description_
         """
         config = cast(HFInferenceEndpointConfig, config)
-
-        endpoint = create_inference_endpoint(
-            endpoint_name=config.endpoint_name,
-            repository=config.repository,
-            revision=config.revision,
-            framework=config.framework,
-            task=config.task,
-            accelerator=config.accelerator,
-            vendor=config.vendor,
-            region=config.region,
-            type=config.type,
-            instance_size=config.instance_size,
-            instance_type=config.instance_type,
-            token=config.hf_token,
-        )
-
-        service = HuggingFaceModelService(endpoint=endpoint)
-
+        service = self._create_new_service(timeout, config)
         logger.info(
             f"Creating a new huggingface inference endpoint service: {service}"
         )
+        return cast(BaseService, service)
 
-        # start the service
-        # and wait for it to reach a ready state
+    def _create_new_service(
+        self, timeout: int, config: HFInferenceEndpointConfig
+    ) -> HuggingFaceModelService:
+        # create a new service for the new model
+        service = HuggingFaceModelService(config)
         service.start(timeout=timeout)
-
         return service
 
-    # TODO: Override rest of the abstract classes
+    def find_model_server(
+        self,
+        running: bool,
+        service_uuid: UUID,
+        pipeline_name: str,
+        run_name: str,
+        pipeline_step_name: str,
+        model_name: str,
+        model_uri: str,
+        model_type: str,
+    ) -> List[BaseService]:
+        pass
+
+    def start_model_server(self, uuid: UUID, timeout: int = ...) -> None:
+        raise NotImplementedError("Starting servers is not implemented")
+
+    def stop_model_server(
+        self, uuid: UUID, timeout: int = ..., force: bool = False
+    ) -> None:
+        raise NotImplementedError("Stopping servers is not implemented")
+
+    def delete_model_server(
+        self, uuid: UUID, timeout: int = ..., force: bool = False
+    ) -> None:
+        raise NotImplementedError("Deleting servers is not implemented")
+
+    def get_model_server_info(
+        service_instance: "HuggingFaceModelService",
+    ) -> Dict[str, Optional[str]]:
+        return {
+            "PREDICTION_URL": service_instance.prediction_url,
+        }

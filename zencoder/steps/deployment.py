@@ -3,8 +3,10 @@ from zenml.client import Client
 from typing import cast, Annotated
 from zenml import get_step_context
 from huggingface.hf_model_deployer import HFEndpointModelDeployer
-from huggingface.hf_model_deployer_flavor import HFInferenceEndpointConfig
-from huggingface.hf_deployment import HuggingFaceModelService
+from huggingface.hf_deployment import (
+    HuggingFaceModelService,
+    HFInferenceEndpointConfig,
+)
 from zenml.logger import get_logger
 from zenml import ArtifactConfig
 from zenml import log_artifact_metadata
@@ -20,7 +22,7 @@ def deploy_model_to_hf_hub(
     accelerator: str,
     vendor: str,
     region: str,
-    type: str,
+    endpoint_type: str,
     instance_size: str,
     instance_type: str,
 ) -> Annotated[
@@ -37,7 +39,7 @@ def deploy_model_to_hf_hub(
         accelerator (str): Type of accelerator to use.
         vendor (str): The cloud service provider.
         region (str): The cloud region where the service will be hosted.
-        type (str): The type of the endpoint.
+        endpoint_type (str): The type of the endpoint.
         instance_size (str): The size of the instance.
         instance_type (str): The type of the instance to use.
 
@@ -47,12 +49,8 @@ def deploy_model_to_hf_hub(
 
     revision = get_step_context().model_version.metadata["revision"]
     repository = get_step_context().model_version.metadata["repository"]
-
-    if revision is None or repository is None:
-        raise ValueError(
-            "The ZenML model version does not have a repository or revision in its metadata. "
-            "Please make sure that the training pipeline is configured correctly."
-        )
+    logger.info(revision)
+    logger.info(repository)
 
     hf_endpoint_cfg = HFInferenceEndpointConfig(
         endpoint_name=endpoint_name,
@@ -63,24 +61,26 @@ def deploy_model_to_hf_hub(
         accelerator=accelerator,
         vendor=vendor,
         region=region,
-        type=type,
+        endpoint_type=endpoint_type,
         instance_size=instance_size,
         instance_type=instance_type,
         hf_token=hf_token,
     )
 
-    new_service = cast(
+    model_deployer = cast(
+        HFEndpointModelDeployer,
+        HFEndpointModelDeployer.get_active_model_deployer(),
+    )
+    service = cast(
         HuggingFaceModelService,
-        HFEndpointModelDeployer.deploy_model(config=hf_endpoint_cfg),
+        model_deployer.deploy_model(config=hf_endpoint_cfg),
     )
 
-    log_artifact_metadata(
-        metadata={"deployment_service": new_service.to_dict()}
-    )
+    log_artifact_metadata(metadata={"deployment_service": service.to_dict()})
 
     logger.info(
         f"Huggingface Inference Endpoint deployment service started and reachable at:\n"
-        f"    {new_service.prediction_url}\n"
+        f"    {service.prediction_url}\n"
     )
 
-    return new_service
+    return service

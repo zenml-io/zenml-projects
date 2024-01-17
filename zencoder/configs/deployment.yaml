@@ -8,14 +8,14 @@ model_version:
   version: production
 
 steps:
-  deploy_model:
+  deploy_model_to_hf_hub:
     parameters:
-      endpoint_name: my-endpoint-name
+      endpoint_name: test-zenml-hf
       framework: pytorch
       task: text-generation
       accelerator: cpu
       vendor: aws
       region: us-east-1
-      type: protected
+      endpoint_type: protected
       instance_size: medium
       instance_type: c6i
