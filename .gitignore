@@ -141,5 +141,4 @@ mlruns/
 .idea/
 
 zencoder/cloned_public_repos
-zencoder/peft-lora-zencoder15B-personal-copilot/
 *wandb*
