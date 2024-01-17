@@ -539,14 +539,14 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     try:
         if args.push_to_hub:
             commit_info = trainer.push_to_hub()
-            log_model_metadata(metadata={"trainer_commit_info": commit_info})
+            log_model_metadata(metadata={"trainer_commit_info": str(commit_info)})
         else:
             trainer.save_model(args.output_dir)
         trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
             commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
-            log_model_metadata(metadata={"model_commit_info": commit_info})
+            log_model_metadata(metadata={"model_commit_info": str(commit_info)})
     except Exception as e:  
         print("Exception while pushing or saving")
         print(str(e))
@@ -579,10 +579,12 @@ def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder
     final_model = peft_model.merge_and_unload()
 
     model_id_merged = f"{peft_model_id}-merged"
-    final_model.push_to_hub(model_id_merged, token=hf_token)
-    log_model_metadata(metadata={"merged_model_commit_info": commit_info})
+    from huggingface_hub import CommitInfo
+
+    commit_info = final_model.push_to_hub(model_id_merged, token=hf_token)
+    log_model_metadata(metadata={"merged_model_commit_info": str(commit_info)})
     commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
-    log_model_metadata(metadata={"merged_tokenizer_commit_info": commit_info})
+    log_model_metadata(metadata={"merged_tokenizer_commit_info": str(commit_info)})
 
 
 @step(output_materializers={"trainer_obj": HFTrainerMaterializer})
