@@ -4,18 +4,20 @@ settings:
     requirements: requirements.txt
 
 model_version:
-  name: "peft-lora-zencoder15B-v2-personal-copilot-A100-40GB-colab"
+  name: "peft-lora-zencoder15B-personal-copilot"
   version: production
 
 steps:
   deploy_model:
     parameters:
-      endpoint_name: my-endpoint-name
       framework: pytorch
       task: text-generation
-      accelerator: cpu
+      accelerator: gpu
       vendor: aws
       region: us-east-1
-      type: protected
-      instance_size: medium
-      instance_type: c6i
+      endpoint_type: public
+      task: text-generation
+      min_replica: 1
+      max_replica: 1
+      instance_size: 2xlarge
+      instance_type: p4de
