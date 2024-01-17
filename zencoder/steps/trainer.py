@@ -9,7 +9,6 @@ import random
 from zenml import step
 from zenml import ArtifactConfig
 from typing_extensions import Annotated
-from huggingface_hub import upload_folder
 import numpy as np
 import torch
 from datasets import load_dataset
@@ -538,25 +537,14 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     try:
         if args.push_to_hub:
-            accelerator_model_path = os.path.join(args.output_dir, "accelerator_model/")
-            trainer.save_model(accelerator_model_path)
-            trainer.accelerator.print(f"Model saved to {args.output_dir}")
-            print("Upload accelerator model to Hub..")
-            commit_info = upload_folder(
-                repo_id=args.output_peft_repo_id,
-                folder_path=accelerator_model_path,
-                repo_type="model"
-            )
+            commit_info = trainer.push_to_hub()
             log_model_metadata(metadata={"trainer_commit_info": commit_info})
+        else:
+            trainer.save_model(args.output_dir)
+        trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
-            peft_model_path = os.path.join(args.output_dir, "peft_model/")
-            trainer.model.save_pretrained(peft_model_path)
-            commit_info = upload_folder(
-                repo_id=args.output_peft_repo_id,
-                folder_path=peft_model_path,
-                repo_type="model"
-            )
+            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
             log_model_metadata(metadata={"model_commit_info": commit_info})
     except Exception as e:  
         print("Exception while pushing or saving")
@@ -565,7 +553,11 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     return trainer
 
 
-def merge_and_push(peft_model: PeftModel, peft_model_id: str, hf_token: str, base_model_name: str = "bigcode/starcoder"):
+@step
+def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder"):
+    secret = Client().get_secret("huggingface_creds")
+    hf_token = secret.secret_values["token"]
+    login(token=hf_token)
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
@@ -580,13 +572,16 @@ def merge_and_push(peft_model: PeftModel, peft_model_id: str, hf_token: str, bas
     if not hasattr(model, "hf_device_map"):
         model.cuda()
 
+    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
     peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
     peft_model.set_adapter("best_personal_copilot")
     final_model = model.merge_and_unload()
     
     model_id_merged = f"{peft_model_id}-merged"
     final_model.push_to_hub(model_id_merged, token=hf_token)
-    tokenizer.push_to_hub(model_id_merged, token=hf_token)
+    log_model_metadata(metadata={"merged_model_commit_info": commit_info})
+    commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
+    log_model_metadata(metadata={"merged_tokenizer_commit_info": commit_info})
 
 
 @step(output_materializers={"trainer_obj": HFTrainerMaterializer})
@@ -595,6 +590,7 @@ def trainer(
 ) -> Tuple[
     Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
     Annotated[AutoTokenizer, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[str, "peft_model_id"],
     Annotated[ConstantLengthDataset, "train_dataset"],
     Annotated[ConstantLengthDataset, "eval_dataset"],
 ]:
@@ -613,6 +609,4 @@ def trainer(
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    merge_and_push(trainer_obj.model, args.output_peft_repo_id, hf_token)
-
-    return trainer_obj, tokenizer, train_dataset, eval_dataset
+    return trainer_obj, tokenizer, args.output_peft_repo_id, train_dataset, eval_dataset
