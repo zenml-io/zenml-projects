@@ -8,7 +8,7 @@ model_version:
   version: production
 
 steps:
-  deploy_model:
+  deploy_model_to_hf_hub:
     parameters:
       framework: pytorch
       task: text-generation
