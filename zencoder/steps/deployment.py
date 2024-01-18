@@ -124,6 +124,16 @@ def deploy_model_to_hf_hub(
             "description": "Huggingface Inference Endpoint",
             "endpoint_name": Uri(endpoint.name),
             "huggingface_model": Uri(model_url),
+            "framework": framework,
+            "accelerator": accelerator,
+            "instance_size": instance_size,
+            "instance_type": instance_type,
+            "region": region,
+            "min_replica": min_replica,
+            "max_replica": max_replica,
+            "revision": revision,
+            "task": task,
+            "type": endpoint_type,
         }
     )
 
