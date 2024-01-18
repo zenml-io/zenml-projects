@@ -149,7 +149,7 @@ def deploy_model_to_hf_hub(
                 f"Waiting for {endpoint.name} to deploy. This might take a few minutes.."
             )
             endpoint_url = get_inference_endpoint(
-                name=endpoint.name, token=hf_token
+                name=endpoint.name, token=hf_token, namespace=namespace
             ).url
             time.sleep(5)
             if time.time() - start_time > POLLING_TIMEOUT:
