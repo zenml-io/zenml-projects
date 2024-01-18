@@ -40,7 +40,7 @@ def parse_huggingface_url(url):
         raise ValueError("Invalid Huggingface URL format")
 
 
-@step
+@step(enable_cache=False)
 def deploy_model_to_hf_hub(
     framework: str,
     accelerator: str,
