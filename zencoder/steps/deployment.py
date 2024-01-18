@@ -13,6 +13,8 @@ import time
 
 logger = get_logger(__name__)
 
+POLLING_TIMEOUT = 1200
+
 
 def generate_random_letters(number_of_letters: int = 10) -> str:
     """Generates three random letters.
@@ -138,6 +140,8 @@ def deploy_model_to_hf_hub(
 
     # Wait for initialization
     try:
+        # Add timelimit
+        start_time = time.time()
         endpoint_url = None
         while endpoint_url is None:
             logger.info(
@@ -147,6 +151,8 @@ def deploy_model_to_hf_hub(
                 name=endpoint.name, token=hf_token
             ).url
             time.sleep(5)
+            if time.time() - start_time > POLLING_TIMEOUT:
+                break
         log_artifact_metadata(
             metadata={
                 "endpoint_url": Uri(endpoint_url),
