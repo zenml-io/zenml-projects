@@ -19,3 +19,12 @@ steps:
       instance_size: xlarge
       instance_type: p4de
       namespace: zenml
+      custom_image:
+        health_route: /health
+        env:
+          MAX_BATCH_PREFILL_TOKENS: 2048
+          MAX_INPUT_LENGTH: 1024
+          MAX_TOTAL_TOKENS: 1512
+          QUANTIZE: bitsandbytes
+          MODEL_ID: /repository
+        url: registry.internal.huggingface.tech/api-inference/community/text-generation-inference:sha-564f2a3
