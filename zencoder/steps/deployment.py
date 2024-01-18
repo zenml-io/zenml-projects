@@ -109,7 +109,7 @@ def deploy_model_to_hf_hub(
         max_replica=max_replica,
         revision=revision,
         task=task,
-        custom_image=custom_image,
+        # custom_image=custom_image,
         type=endpoint_type,
         namespace=namespace,
         token=hf_token,
