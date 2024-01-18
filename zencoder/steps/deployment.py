@@ -91,7 +91,6 @@ def deploy_model_to_hf_hub(
 
     if endpoint_name is None:
         endpoint_name = generate_random_letters()
-        breakpoint()
 
     endpoint = create_inference_endpoint(
         name=endpoint_name,
