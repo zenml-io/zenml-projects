@@ -55,6 +55,7 @@ def deploy_model_to_hf_hub(
     min_replica: int = 0,
     max_replica: int = 1,
     task: Optional[str] = None,
+    namespace: Optional[str] = None,
     custom_image: Optional[Dict] = None,
     endpoint_type: str = "public",
 ) -> Annotated[
@@ -83,7 +84,7 @@ def deploy_model_to_hf_hub(
     commit_info = get_step_context().model_version.metadata[
         "merged_model_commit_info"
     ]
-    namespace, repository, revision = parse_huggingface_url(commit_info)
+    model_namespace, repository, revision = parse_huggingface_url(commit_info)
 
     if repository is None:
         raise ValueError(
@@ -96,7 +97,7 @@ def deploy_model_to_hf_hub(
 
     endpoint = create_inference_endpoint(
         name=endpoint_name,
-        repository=f"{namespace}/{repository}",
+        repository=f"{model_namespace}/{repository}",
         framework=framework,
         accelerator=accelerator,
         instance_size=instance_size,
@@ -110,7 +111,7 @@ def deploy_model_to_hf_hub(
         task=task,
         custom_image=custom_image,
         type=endpoint_type,
-        # namespace=namespace,
+        namespace=namespace,
         token=hf_token,
     )
 

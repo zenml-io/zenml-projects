@@ -18,3 +18,4 @@ steps:
       max_replica: 1
       instance_size: large
       instance_type: g4dn.12xlarge
+      namespace: zenml

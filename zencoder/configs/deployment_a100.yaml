@@ -18,3 +18,4 @@ steps:
       max_replica: 1
       instance_size: xlarge
       instance_type: p4de
+      namespace: zenml

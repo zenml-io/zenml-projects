@@ -18,3 +18,4 @@ steps:
       max_replica: 1
       instance_size: xxlarge
       instance_type: g5.12xlarge
+      namespace: zenml
