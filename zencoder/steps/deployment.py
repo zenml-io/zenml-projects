@@ -9,7 +9,7 @@ import random
 from zenml import log_artifact_metadata
 from zenml.metadata.metadata_types import Uri
 from zenml.logger import get_logger
-import os
+import time
 
 logger = get_logger(__name__)
 
@@ -146,7 +146,7 @@ def deploy_model_to_hf_hub(
             endpoint_url = get_inference_endpoint(
                 name=endpoint.name, token=hf_token
             ).url
-            os.sleep(5)
+            time.sleep(5)
         log_artifact_metadata(
             metadata={
                 "endpoint_url": Uri(endpoint_url),
