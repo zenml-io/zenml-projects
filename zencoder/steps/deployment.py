@@ -115,7 +115,7 @@ def deploy_model_to_hf_hub(
         token=hf_token,
     )
 
-    model_url = f"https://huggingface.co/{namespace}/{repository}"
+    model_url = f"https://huggingface.co/{model_namespace}/{repository}"
     if revision:
         model_url = f"{model_url}/tree/{revision}"
 
