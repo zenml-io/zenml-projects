@@ -45,6 +45,12 @@ For this purpose of this project, we are going to be leveraging the excellent wo
 
 Our [data generation pipeline](pipelines/generate_code_dataset.py) is based on the [codegen](https://github.com/sayakpaul/hf-codegen) repository, and the [training pipeline](pipelines/) is based on [this script](https://github.com/pacman100/DHS-LLM-Workshop/blob/main/personal_copilot/training/train.py). All credit to Sourab and Sayak for putting this work together!
 
+## 🧑‍✈️ Train your own copilot
+
+The work presented in this repository can easily be extended to other codebases and use-cases than just helping ML Engineering. You can easily modify the pipelines to point to other private codebases, and train a personal copilot on your codebase! 
+
+See the [data generation pipeline](pipelines/generate_code_dataset.py) as a starting point.
+
 ## 🍍Methodology
 
 Now, we could take the code above and run it as scripts on some chosen ZenML repositories. But just to make it a bit more fun, we're going to be building ZenML pipelines to achieve this task!
