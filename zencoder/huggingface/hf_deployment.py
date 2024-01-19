@@ -1,34 +1,40 @@
 from zenml.logger import get_logger
 import time
-from typing import Generator, Tuple, Optional, Any
+from typing import Generator, Tuple, Optional, Any, Dict
 from zenml.services import ServiceType, ServiceState, ServiceStatus
 from zenml.services.service import BaseDeploymentService, ServiceConfig
 from huggingface_hub import (
     InferenceClient,
     InferenceEndpointError,
 )
-from huggingface_hub import create_inference_endpoint
+from huggingface_hub import create_inference_endpoint, get_inference_endpoint
 
 from pydantic import Field
 
 logger = get_logger(__name__)
+POLLING_TIMEOUT = 1200
 
 
 class HFInferenceEndpointConfig(ServiceConfig):
     """Base class for all ZenML model deployer configurations."""
 
     endpoint_name: str
-    revision: str
     repository: str
     framework: str
-    task: str
     accelerator: str
-    vendor: str
-    region: str
-    endpoint_type: str
     instance_size: str
     instance_type: str
+    region: str
+    vendor: str
     hf_token: str
+    account_id: Optional[str] = None
+    min_replica: Optional[int] = 0
+    max_replica: Optional[int] = 1
+    revision: Optional[str] = None
+    task: Optional[str] = None
+    custom_image: Optional[Dict] = None
+    namespace: Optional[str] = None
+    endpoint_type: str = "public"
 
 
 class HFEndpointServiceStatus(ServiceStatus):
@@ -57,41 +63,65 @@ class HuggingFaceModelService(BaseDeploymentService):
         """
         super().__init__(config=config, **attrs)
 
-    def wait_for_startup(self, timeout: int = 300) -> bool:
+    def wait_for_startup(self, timeout: int = POLLING_TIMEOUT) -> bool:
         """_summary_
 
         Args:
-            timeout (int, optional): _description_. Defaults to 300.
+            timeout (int, optional): _description_. Defaults to POLLING_TIMEOUT.
 
         Returns:
             bool: _description_
         """
-        start_time = time.time()
+        # Wait for initialization
+        try:
+            # Add timelimit
+            start_time = time.time()
+            endpoint = None
+            while endpoint is None:
+                logger.info(
+                    f"Waiting for {self.config.endpoint_name} to deploy. This might take a few minutes.."
+                )
+                endpoint = get_inference_endpoint(
+                    name=self.config.endpoint_name,
+                    token=self.config.hf_token,
+                    namespace=self.config.namespace,
+                )
+                time.sleep(5)
 
-        while time.time() - start_time < timeout:
-            if self.hf_endpoint.status == "running":
-                return True
-            time.sleep(5)  # Adjust the sleep interval as needed
+                if time.time() - start_time > timeout:
+                    return False
 
+            self.endpoint = endpoint
+            logger.info(f"Endpoint: {self.endpoint}")
+            return True
+
+        except KeyboardInterrupt:
+            logger.info("Detected keyboard interrupt. Stopping polling.")
         return False
 
     def provision(self) -> None:
         """_summary_."""
 
-        self.hf_endpoint = create_inference_endpoint(
+        self.endpoint = create_inference_endpoint(
             name=self.config.endpoint_name,
             repository=self.config.repository,
-            revision=self.config.revision,
             framework=self.config.framework,
-            task=self.config.task,
             accelerator=self.config.accelerator,
-            vendor=self.config.vendor,
-            region=self.config.region,
-            type=self.config.endpoint_type,
             instance_size=self.config.instance_size,
             instance_type=self.config.instance_type,
+            region=self.config.region,
+            vendor=self.config.vendor,
+            account_id=self.config.account_id,
+            min_replica=self.config.min_replica,
+            max_replica=self.config.max_replica,
+            revision=self.config.revision,
+            task=self.config.task,
+            custom_image=self.config.custom_image,
+            type=self.config.endpoint_type,
+            namespace=self.config.namespace,
             token=self.config.hf_token,
         )
+        logger.info(f"Endpoint: {self.endpoint}")
 
         if self.wait_for_startup():
             logger.info("Running huggingface inference endpoint.")
@@ -106,7 +136,7 @@ class HuggingFaceModelService(BaseDeploymentService):
         Returns:
             InferenceClient: _description_
         """
-        return self.hf_endpoint.client
+        return self.endpoint.client
 
     def check_status(self) -> Tuple[ServiceState, str]:
         """_summary_.
@@ -119,19 +149,19 @@ class HuggingFaceModelService(BaseDeploymentService):
         except InferenceEndpointError:
             return (ServiceState.INACTIVE, "")
 
-        if self.hf_endpoint.status == "running":
+        if self.endpoint.status == "running":
             return (
                 ServiceState.ACTIVE,
                 f"HuggingFace Inference Endpoint deployment is available",
             )
 
-        if self.hf_endpoint.status == "failed":
+        if self.endpoint.status == "failed":
             return (
                 ServiceState.ERROR,
                 f"HuggingFace Inference Endpoint deployment failed: ",
             )
 
-        if self.hf_endpoint.status == "pending":
+        if self.endpoint.status == "pending":
             return (
                 ServiceState.PENDING_STARTUP,
                 "HuggingFace Inference Endpoint deployment is being created: ",
@@ -143,7 +173,7 @@ class HuggingFaceModelService(BaseDeploymentService):
         Args:
             force (bool, optional): _description_. Defaults to False.
         """
-        self.hf_endpoint.delete()
+        self.endpoint.delete()
 
     def predict(self, data: "Any", max_new_tokens: int) -> "Any":
         """Make a prediction using the service.
@@ -164,9 +194,9 @@ class HuggingFaceModelService(BaseDeploymentService):
                 "Huggingface endpoint inference service is not running. "
                 "Please start the service before making predictions."
             )
-        if self.hf_endpoint.prediction_url is not None:
+        if self.endpoint.prediction_url is not None:
             client = self._get_client()
-            if self.hf_endpoint.task == "text-generation":
+            if self.endpoint.task == "text-generation":
                 result = client.task_generation(
                     data, max_new_tokens=max_new_tokens
                 )
@@ -186,7 +216,7 @@ class HuggingFaceModelService(BaseDeploymentService):
         """
         if not self.is_running:
             return None
-        return self.hf_endpoint.url
+        return self.endpoint.url
 
     def get_logs(
         self, follow: bool = False, tail: int = None
