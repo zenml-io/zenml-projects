@@ -1,5 +1,8 @@
 """
 Fine-Tune StarCoder on code/text dataset
+
+Based off Sayak Paul (https://github.com/sayakpaul) and Sourab Mangrulkar (https://github.com/pacman100) codebase: https://github.com/pacman100/DHS-LLM-Workshop/tree/main/
+All credit to them for their amazing work!
 """
 
 from pydantic import BaseModel
