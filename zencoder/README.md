@@ -84,8 +84,8 @@ The `deployment` pipelines relies on the `training_pipeline` to have run before.
 A working prototype has been trained and deployed as of Jan 19 2024. The model is using minimal data and finetuned using QLoRA and PEFT. The model was trained using 1 A100 GPU on the cloud:
 
 - Training dataset [Link](https://huggingface.co/datasets/htahir1/zenml-codegen-v1)
-- PEFT Model [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot-merged/)
-- Fully merged model (Ready to deploy on HuggingFace Inference Endpoints) [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot)
+- PEFT Model [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot/)
+- Fully merged model (Ready to deploy on HuggingFace Inference Endpoints) [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot-merged)
 
 The Weights & Biases logs for the latest training runs are available here: [Link](https://wandb.ai/zenmlcode/zenml-projects-zencoder?workspace=user-zenmlcodemonkey)
 
