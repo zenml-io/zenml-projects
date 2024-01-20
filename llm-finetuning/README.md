@@ -10,7 +10,7 @@
 </div>
 
 <div align="center">
-  <h3 align="center">ZenCoder: MLOps pipelines to train and deploy a model to produce MLOps pipelines.</h3>
+  <h3 align="center">ZenCoder: LLMOps pipelines to train and deploy a model to produce MLOps pipelines.</h3>
   <p align="center">
     <div align="center">
       Join our <a href="https://zenml.io/slack-invite" target="_blank">
@@ -23,7 +23,7 @@
 
 ---
 
-# ☮️ Automate MLOps pipeline development with ZenCoder
+# ☮️ Fine-tuning an open source LLM to create MLOps pipelines
 
 One of the first jobs of somebody entering MLOps is to convert their manual scripts or notebooks into pipelines that can be deployed on the cloud. This job is tedious, and can take time. For example, one has to think about:
 
