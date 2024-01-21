@@ -8,10 +8,10 @@ import random
 from zenml import log_artifact_metadata
 from zenml.logger import get_logger
 from huggingface.hf_deployment import (
-    HuggingFaceModelService,
-    HFInferenceEndpointConfig,
+    HuggingFaceDeploymentService,
+    HuggingFaceDeploymentConfig,
 )
-from huggingface.hf_model_deployer import HFEndpointModelDeployer
+from huggingface.hf_model_deployer import HuggingFaceModelDeployer
 
 logger = get_logger(__name__)
 
@@ -59,7 +59,7 @@ def deploy_model_to_hf_hub(
     custom_image: Optional[Dict] = None,
     endpoint_type: str = "public",
 ) -> Annotated[
-    HuggingFaceModelService,
+    HuggingFaceDeploymentService,
     ArtifactConfig(name="endpoint", is_deployment_artifact=True),
 ]:
     """Pushes the dataset to the Hugging Face Hub.
@@ -83,10 +83,9 @@ def deploy_model_to_hf_hub(
     """
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
-    # commit_info = get_step_context().model_version.metadata[
-    #     "merged_model_commit_info"
-    # ]
-    commit_info = "https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot-merged/commit/e661d8219e050a23eba54cb44f8e93d5f11885d2"
+    commit_info = get_step_context().model_version.metadata[
+        "merged_model_commit_info"
+    ]
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
 
     if repository is None:
@@ -98,7 +97,7 @@ def deploy_model_to_hf_hub(
     if endpoint_name is None:
         endpoint_name = generate_random_letters()
 
-    hf_endpoint_cfg = HFInferenceEndpointConfig(
+    hf_endpoint_cfg = HuggingFaceDeploymentConfig(
         endpoint_name=endpoint_name,
         repository=f"{model_namespace}/{repository}",
         framework=framework,
@@ -119,11 +118,11 @@ def deploy_model_to_hf_hub(
     )
 
     model_deployer = cast(
-        HFEndpointModelDeployer,
-        HFEndpointModelDeployer.get_active_model_deployer(),
+        HuggingFaceModelDeployer,
+        HuggingFaceModelDeployer.get_active_model_deployer(),
     )
     service = cast(
-        HuggingFaceModelService,
+        HuggingFaceDeploymentService,
         model_deployer.deploy_model(config=hf_endpoint_cfg),
     )
 

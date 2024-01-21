@@ -3,9 +3,9 @@ settings:
   docker:
     requirements: requirements.txt
 
-# model_version:
-#   name: "peft-lora-zencoder15B-personal-copilot"
-#   version: production
+model_version:
+  name: "peft-lora-zencoder15B-personal-copilot"
+  version: production
 
 steps:
   deploy_model_to_hf_hub:
