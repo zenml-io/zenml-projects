@@ -27,7 +27,7 @@ class HuggingFaceDeploymentConfig(ServiceConfig):
     instance_type: str
     region: str
     vendor: str
-    hf_token: str
+    token: str
     account_id: Optional[str] = None
     min_replica: Optional[int] = 0
     max_replica: Optional[int] = 1
@@ -69,7 +69,7 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         """
         return get_inference_endpoint(
             name=self.config.endpoint_name,
-            token=self.config.hf_token,
+            token=self.config.token,
             namespace=self.config.namespace,
         )
 
@@ -93,7 +93,7 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
             custom_image=self.config.custom_image,
             type=self.config.endpoint_type,
             namespace=self.config.namespace,
-            token=self.config.hf_token,
+            token=self.config.token,
         ).wait(timeout=POLLING_TIMEOUT)
 
         if self.hf_endpoint.url is not None:

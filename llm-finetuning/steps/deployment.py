@@ -106,7 +106,7 @@ def deploy_model_to_hf_hub(
         instance_type=instance_type,
         region=region,
         vendor=vendor,
-        hf_token=hf_token,
+        token=hf_token,
         account_id=account_id,
         min_replica=min_replica,
         max_replica=max_replica,
