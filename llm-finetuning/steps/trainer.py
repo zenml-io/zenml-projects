@@ -1,5 +1,8 @@
 """
 Fine-Tune StarCoder on code/text dataset
+
+Based off Sayak Paul (https://github.com/sayakpaul) and Sourab Mangrulkar (https://github.com/pacman100) codebase: https://github.com/pacman100/DHS-LLM-Workshop/tree/main/
+All credit to them for their amazing work!
 """
 
 from pydantic import BaseModel
@@ -16,8 +19,8 @@ from torch.utils.data import IterableDataset
 from zenml.client import Client
 from zenml import log_model_metadata
 from materializers import HFTrainerMaterializer
+from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
 from typing import Tuple
-from datasets import Dataset
 from zenml import save_artifact
 from tqdm import tqdm
 from transformers import (
@@ -36,6 +39,22 @@ from peft.tuners.lora import LoraLayer
 import functools
 
 import numpy as np
+import os
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+import torch
+from datasets import load_dataset
+from peft import LoraConfig
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    AutoTokenizer,
+    TrainingArguments,
+)
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
 
 
 # this is expensive so we cache it
@@ -185,6 +204,7 @@ class Configuration(BaseModel):
     use_8bit_qunatization: bool = False
 
     push_to_hub: bool = False
+    output_peft_repo_id: str = "htahir1/peft-lora-zencoder15B-personal-copilot"
 
 
 def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
@@ -493,10 +513,16 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
         # Save in ZenML as well
-        save_artifact(model, "final_checkpoint")
         model.save_pretrained(
             os.path.join(args.output_dir, "final_checkpoint/")
         )
+        try:
+            unwrapped = trainer.accelerator.unwrap_model(trainer.model)
+            save_artifact(unwrapped, "final_checkpoint")
+        except Exception as e:
+            print(str(e))
+            print("Skipped saving final checkpoint to ZenML")
+            pass 
 
     if is_deepspeed_peft_enabled:
         trainer.accelerator.wait_for_everyone()
@@ -513,16 +539,54 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
             "FULL_STATE_DICT"
         )
 
-    if args.push_to_hub:
-        trainer.push_to_hub(token=hf_token)
-    else:
-        trainer.save_model(args.output_dir)
-    trainer.accelerator.print(f"Model saved to {args.output_dir}")
+    try:
+        if args.push_to_hub:
+            commit_info = trainer.push_to_hub()
+            log_model_metadata(metadata={"trainer_commit_info": str(commit_info)})
+        else:
+            trainer.save_model(args.output_dir)
+        trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
-    if args.push_to_hub:
-        commit_info = trainer.model.push_to_hub(args.output_dir, token=hf_token)
-
+        if args.push_to_hub:
+            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            log_model_metadata(metadata={"model_commit_info": str(commit_info)})
+    except Exception as e:  
+        print("Exception while pushing or saving")
+        print(str(e))
+        pass 
     return trainer
+
+
+@step
+def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder"):
+    secret = Client().get_secret("huggingface_creds")
+    hf_token = secret.secret_values["token"]
+    login(token=hf_token)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model_name,
+        quantization_config=None,
+        device_map=None,
+        trust_remote_code=True,
+        torch_dtype=torch.bfloat16,
+    )
+
+    # model = model.merge_and_unload()
+    if not hasattr(model, "hf_device_map"):
+        model.cuda()
+
+    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
+    peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
+    peft_model.set_adapter("best_personal_copilot")
+    final_model = peft_model.merge_and_unload()
+    final_model.eval()
+
+    model_id_merged = f"{peft_model_id}-merged"
+    commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
+    log_model_metadata(metadata={"merged_tokenizer_commit_info": str(commit_info)})
+    commit_info = final_model.push_to_hub(model_id_merged, token=hf_token)
+    log_model_metadata(metadata={"merged_model_commit_info": str(commit_info)})
 
 
 @step(output_materializers={"trainer_obj": HFTrainerMaterializer})
@@ -530,8 +594,10 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
-    Annotated[Dataset, "train_dataset"],
-    Annotated[Dataset, "eval_dataset"],
+    Annotated[GPT2TokenizerFast, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[str, "peft_model_id"],
+    Annotated[ConstantLengthDataset, "train_dataset"],
+    Annotated[ConstantLengthDataset, "eval_dataset"],
 ]:
     set_seed(args.seed)
     hf_token = None
@@ -540,12 +606,17 @@ def trainer(
         secret = Client().get_secret("huggingface_creds")
         hf_token = secret.secret_values["token"]
         login(token=hf_token)
+        
+    print("Loading tokenizer...")
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path, token=True, trust_remote_code=True
     )
 
+    print("Creating a dataset...")
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
+    
+    print("Creating a training...")
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    return trainer_obj, train_dataset, eval_dataset
+    return trainer_obj, tokenizer, args.output_peft_repo_id, train_dataset, eval_dataset

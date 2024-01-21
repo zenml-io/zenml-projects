@@ -16,7 +16,8 @@
 #
 
 from steps import (
-    trainer
+    trainer,
+    merge_and_push
 )
 
 from zenml import pipeline
@@ -28,8 +29,9 @@ logger = get_logger(__name__)
 @pipeline
 def finetune_starcoder():
     """
-    This pipeline generates the code dataset.
+    This pipelin finetunes the starcoder model.
     """
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
-    trainer()
+    trainer_obj, tokenizer, output_peft_repo_id, train_dataset, eval_dataset = trainer()
+    merge_and_push(peft_model_id=output_peft_repo_id)

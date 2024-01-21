@@ -1,4 +1,29 @@
-# ☮️ Automate MLOps pipeline development with ZenCoder
+<div align="center">
+
+  <!-- PROJECT LOGO -->
+  <br />
+    <a href="https://zenml.io">
+      <img alt="ZenCoder Header" src=".assets/zencoder_header.png" alt="ZenML Logo">
+    </a>
+  <br />
+
+</div>
+
+<div align="center">
+  <h3 align="center">ZenCoder: LLMOps pipelines to train and deploy a model to produce MLOps pipelines.</h3>
+  <p align="center">
+    <div align="center">
+      Join our <a href="https://zenml.io/slack-invite" target="_blank">
+      <img width="18" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
+    <b>Slack Community</b> </a> and join the zencoder channel!
+    </div>
+    <br />
+  </p>
+</div>
+
+---
+
+# ☮️ Fine-tuning an open source LLM to create MLOps pipelines
 
 One of the first jobs of somebody entering MLOps is to convert their manual scripts or notebooks into pipelines that can be deployed on the cloud. This job is tedious, and can take time. For example, one has to think about:
 
@@ -16,9 +41,15 @@ The goal of this project is fine-tune an open-source LLM that performs better th
 
 ## :earth_americas: Inspiration and Credit
 
-For this purpose of this project, we are going to be leveraging the excellent work of [Sourab Mangrulkar](https://huggingface.co/smangrul) and [Sayak Paul](https://huggingface.co/sayakpaul), who fine-tuned the [StarCoder](https://huggingface.co/bigcode/starcoder) model on the latest version of HuggingFace. They summarized their work in [this blog post on HuggingFace](https://huggingface.co/blog/personal-copilot). 
+For this purpose of this project, we are going to be leveraging the excellent work of [Sourab Mangrulkar](https://huggingface.co/smangrul) and [Sayak Paul](https://huggingface.co/sayakpaul), who fine-tuned the [StarCoder](https://huggingface.co/bigcode/starcoder) model on the latest version of HuggingFace. They summarized their work in [this blog post on HuggingFace](https://huggingface.co/blog/personal-copilot).
 
 Our [data generation pipeline](pipelines/generate_code_dataset.py) is based on the [codegen](https://github.com/sayakpaul/hf-codegen) repository, and the [training pipeline](pipelines/) is based on [this script](https://github.com/pacman100/DHS-LLM-Workshop/blob/main/personal_copilot/training/train.py). All credit to Sourab and Sayak for putting this work together!
+
+## 🧑‍✈️ Train your own copilot
+
+The work presented in this repository can easily be extended to other codebases and use-cases than just helping ML Engineering. You can easily modify the pipelines to point to other private codebases, and train a personal copilot on your codebase!
+
+See the [data generation pipeline](pipelines/generate_code_dataset.py) as a starting point.
 
 ## 🍍Methodology
 
@@ -54,16 +85,36 @@ The `feature_engineering` and `deployment` pipeline can be run simply with the `
 
 The `deployment` pipelines relies on the `training_pipeline` to have run before.
 
+## 🥇Recent developments
+
+A working prototype has been trained and deployed as of Jan 19 2024. The model is using minimal data and finetuned using QLoRA and PEFT. The model was trained using 1 A100 GPU on the cloud:
+
+- Training dataset [Link](https://huggingface.co/datasets/htahir1/zenml-codegen-v1)
+- PEFT Model [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot/)
+- Fully merged model (Ready to deploy on HuggingFace Inference Endpoints) [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot-merged)
+
+The Weights & Biases logs for the latest training runs are available here: [Link](https://wandb.ai/zenmlcode/zenml-projects-zencoder?workspace=user-zenmlcodemonkey)
+
+The [ZenML Cloud](https://zenml.io/cloud) was used to manage the pipelines, models, and deployments. Here are some screenshots of the process:
+
+<div align="center">
+    <img src=".assets/zencoder_mcp_1.png">
+</div>
+
+<div align="center">
+    <img src=".assets/zencoder_mcp_2.png">
+</div>
+
 ## 📓 To Do
 
 This project recently did a [call of volunteers](https://www.linkedin.com/feed/update/urn:li:activity:7150388250178662400/). This TODO list can serve as a source of collaboration. If you want to work on any of the following, please [create an issue on this repository](https://github.com/zenml-io/zenml-projects/issues) and assign it to yourself!
 
-- [x] Create a funtioning data generation pipeline (initial dataset with the core [ZenML repo](https://github.com/zenml-io/zenml) scraped and pushed [here](https://huggingface.co/datasets/htahir1/zenml-codegen-v1))
+- [x] Create a functioning data generation pipeline (initial dataset with the core [ZenML repo](https://github.com/zenml-io/zenml) scraped and pushed [here](https://huggingface.co/datasets/htahir1/zenml-codegen-v1))
+- [x] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) using a deployment pipeline.
+- [x] Create a functioning training pipeline.
 - [ ] Curate a set of 5-10 repositories that are using the ZenML latest syntax and use data generation pipeline to push dataset to HuggingFace.
-- [ ] Create a functioning training pipeline
 - [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings
 - [ ] Tests trained model on various metrics
-- [ ] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) 
 - [ ] Create a custom [model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
 
 ## :bulb: More Applications

@@ -111,7 +111,7 @@ def main(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
     )
-    pipeline_args = {}
+    pipeline_args = {"enable_cache": not no_cache}
     if config:
         pipeline_args["config_path"] = os.path.join(
             config_folder, config
