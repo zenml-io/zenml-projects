@@ -1,9 +1,9 @@
 from zenml import step
-from zenml.client import Client
 from zenml import ArtifactConfig
 from typing_extensions import Annotated
 from zenml import get_step_context
-from typing import Optional, Dict, cast
+from zenml.client import Client
+from typing import Optional, cast, Dict
 import random
 from zenml import log_artifact_metadata
 from zenml.logger import get_logger
@@ -44,7 +44,7 @@ def parse_huggingface_url(url):
 
 @step
 def deploy_model_to_hf_hub(
-    hf_endpoint_cfg: Optional[HuggingFaceServiceConfig] = None,
+    hf_endpoint_cfg: Optional[Dict] = None,
 ) -> Annotated[
     HuggingFaceDeploymentService,
     ArtifactConfig(name="endpoint", is_deployment_artifact=True),
@@ -55,11 +55,16 @@ def deploy_model_to_hf_hub(
         hf_endpoint_cfg: The configuration for the Huggingface endpoint.
 
     """
+    endpoint_name = None
+    hf_endpoint_cfg = HuggingFaceServiceConfig(**hf_endpoint_cfg)
+
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
+
     commit_info = get_step_context().model_version.metadata[
         "merged_model_commit_info"
     ]
+
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
 
     if repository is None:
@@ -71,14 +76,20 @@ def deploy_model_to_hf_hub(
     if endpoint_name is None:
         endpoint_name = generate_random_letters()
 
-    if hf_endpoint_cfg.endpoint_name or hf_endpoint_cfg.repository or hf_endpoint_cfg.revision:
+    if (
+        hf_endpoint_cfg.endpoint_name is None
+        or hf_endpoint_cfg.repository is None
+        or hf_endpoint_cfg.revision is None
+        or hf_endpoint_cfg.token is None
+    ):
         logger.warning(
             "The Huggingface endpoint configuration has already been set via an old pipeline run. "
             "The endpoint name, repository, and revision will be overwritten."
         )
         hf_endpoint_cfg.endpoint_name = endpoint_name
-        hf_endpoint_cfg.repository = repository
+        hf_endpoint_cfg.repository = f"{model_namespace}/{repository}"
         hf_endpoint_cfg.revision = revision
+        hf_endpoint_cfg.token = hf_token
 
     # TODO: Can check if the model deployer is of the right type
     model_deployer = cast(
@@ -90,7 +101,10 @@ def deploy_model_to_hf_hub(
         model_deployer.deploy_model(config=hf_endpoint_cfg),
     )
 
-    log_artifact_metadata(metadata={"deployment_service": service.dict()})
+    service_metadata = service.dict()
+    # UUID object is not json serializable
+    service_metadata["uuid"] = str(service_metadata["uuid"])
+    log_artifact_metadata(metadata={"deployment_service": service_metadata})
 
     logger.info(
         f"Huggingface Inference Endpoint deployment service started and reachable at:\n"

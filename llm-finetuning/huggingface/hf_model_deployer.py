@@ -9,7 +9,10 @@ from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,
     HuggingFaceServiceConfig,
 )
-from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerSettings, HuggingFaceModelDeployerConfig
+from huggingface.hf_model_deployer_flavor import (
+    HuggingFaceModelDeployerSettings,
+    HuggingFaceModelDeployerConfig,
+)
 from zenml.model_deployers.base_model_deployer import (
     DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     BaseModelDeployerFlavor,
@@ -79,7 +82,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         # stop the older service
         existing_service.stop(timeout=timeout, force=force)
 
-
     def deploy_model(
         self,
         config: ServiceConfig,
@@ -102,7 +104,8 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             BaseService: _description_
         """
         config = cast(HuggingFaceServiceConfig, config)
-        
+        service = None
+
         # Add zenml prefix
         if not config.endpoint_name.startswith("zenml-"):
             config.endpoint_name = "zenml-" + config.endpoint_name

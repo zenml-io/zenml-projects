@@ -6,7 +6,6 @@ from zenml.model_deployers.base_model_deployer import (
 )
 from zenml.config.base_settings import BaseSettings
 from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
-from pydantic import BaseModel
 from zenml.utils.secret_utils import SecretField
 
 if TYPE_CHECKING:
