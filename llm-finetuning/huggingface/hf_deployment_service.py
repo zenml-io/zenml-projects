@@ -8,6 +8,7 @@ from huggingface_hub import (
     InferenceEndpoint,
 )
 from huggingface_hub import create_inference_endpoint, get_inference_endpoint
+from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
 
 from pydantic import Field
 
@@ -16,26 +17,8 @@ logger = get_logger(__name__)
 POLLING_TIMEOUT = 1200
 
 
-class HuggingFaceDeploymentConfig(ServiceConfig):
-    """Base class for all ZenML model deployer configurations."""
-
-    endpoint_name: str
-    repository: str
-    framework: str
-    accelerator: str
-    instance_size: str
-    instance_type: str
-    region: str
-    vendor: str
-    token: str
-    account_id: Optional[str] = None
-    min_replica: Optional[int] = 0
-    max_replica: Optional[int] = 1
-    revision: Optional[str] = None
-    task: Optional[str] = None
-    custom_image: Optional[Dict] = None
-    namespace: Optional[str] = None
-    endpoint_type: str = "public"
+class HuggingFaceServiceConfig(HuggingFaceBaseConfig, ServiceConfig):
+    """Base class for Huggingface configurations."""
 
 
 class HuggingFaceServiceStatus(ServiceStatus):
@@ -51,12 +34,12 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         flavor="hfendpoint",
         description="Huggingface inference endpoint service",
     )
-    config: HuggingFaceDeploymentConfig
+    config: HuggingFaceServiceConfig
     status: HuggingFaceServiceStatus = Field(
         default_factory=lambda: HuggingFaceServiceStatus()
     )
 
-    def __init__(self, config: HuggingFaceDeploymentConfig, **attrs: Any):
+    def __init__(self, config: HuggingFaceServiceConfig, **attrs: Any):
         """_summary_."""
         super().__init__(config=config, **attrs)
 
@@ -72,6 +55,27 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
             token=self.config.token,
             namespace=self.config.namespace,
         )
+
+    @property
+    def prediction_url(self) -> Optional[str]:
+        """The prediction URI exposed by the prediction service.
+
+        Returns:
+            The prediction URI exposed by the prediction service, or None if
+            the service is not yet ready.
+        """
+        if not self.is_running:
+            return None
+        return self.hf_endpoint.url
+
+    @property
+    def inference_client(self) -> InferenceClient:
+        """_summary_.
+
+        Returns:
+            InferenceClient: _description_
+        """
+        return self.hf_endpoint.client
 
     def provision(self) -> None:
         """_summary_."""
@@ -105,14 +109,6 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
                 "Failed to start huggingface inference endpoint service..."
             )
 
-    def _get_client(self) -> InferenceClient:
-        """_summary_.
-
-        Returns:
-            InferenceClient: _description_
-        """
-        return self.hf_endpoint.client
-
     def check_status(self) -> Tuple[ServiceState, str]:
         """_summary_.
 
@@ -120,7 +116,7 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
             Tuple[ServiceState, str]: _description_
         """
         try:
-            _ = self._get_client()
+            _ = self.inference_client
         except InferenceEndpointError:
             return (ServiceState.INACTIVE, "")
 
@@ -170,9 +166,8 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
                 "Please start the service before making predictions."
             )
         if self.hf_endpoint.prediction_url is not None:
-            client = self._get_client()
             if self.hf_endpoint.task == "text-generation":
-                result = client.task_generation(
+                result = self.inference_client.task_generation(
                     data, max_new_tokens=max_new_tokens
                 )
         else:
@@ -180,18 +175,6 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
                 "Tasks other than text-generation is not implemented."
             )
         return result
-
-    @property
-    def prediction_url(self) -> Optional[str]:
-        """The prediction URI exposed by the prediction service.
-
-        Returns:
-            The prediction URI exposed by the prediction service, or None if
-            the service is not yet ready.
-        """
-        if not self.is_running:
-            return None
-        return self.hf_endpoint.url
 
     def get_logs(
         self, follow: bool = False, tail: int = None

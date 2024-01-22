@@ -4,6 +4,9 @@ from zenml.model_deployers.base_model_deployer import (
     BaseModelDeployerFlavor,
     BaseModelDeployerConfig,
 )
+from zenml.config.base_settings import BaseSettings
+from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
+from pydantic import BaseModel
 from zenml.utils.secret_utils import SecretField
 
 if TYPE_CHECKING:
@@ -13,10 +16,16 @@ if TYPE_CHECKING:
 HUGGINGFACE_MODEL_DEPLOYER_FLAVOR = "hfendpoint"
 
 
-class HuggingFaceModelDeployerConfig(BaseModelDeployerConfig):
-    """Configuration for the Huggingface model deployer."""
+class HuggingFaceModelDeployerSettings(HuggingFaceBaseConfig, BaseSettings):
+    """Settings for the Huggingface model deployer."""
 
     token: str = SecretField()
+
+
+class HuggingFaceModelDeployerConfig(
+    BaseModelDeployerConfig, HuggingFaceModelDeployerSettings
+):
+    """Configuration for the Huggingface model deployer."""
 
 
 class HuggingFaceModelDeployerFlavor(BaseModelDeployerFlavor):

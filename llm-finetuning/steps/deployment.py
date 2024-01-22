@@ -7,9 +7,9 @@ from typing import Optional, Dict, cast
 import random
 from zenml import log_artifact_metadata
 from zenml.logger import get_logger
-from huggingface.hf_deployment import (
+from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,
-    HuggingFaceDeploymentConfig,
+    HuggingFaceServiceConfig,
 )
 from huggingface.hf_model_deployer import HuggingFaceModelDeployer
 
@@ -44,20 +44,7 @@ def parse_huggingface_url(url):
 
 @step
 def deploy_model_to_hf_hub(
-    framework: str,
-    accelerator: str,
-    instance_size: str,
-    instance_type: str,
-    region: str,
-    vendor: str,
-    endpoint_name: Optional[str] = None,
-    account_id: Optional[str] = None,
-    min_replica: int = 0,
-    max_replica: int = 1,
-    task: Optional[str] = None,
-    namespace: Optional[str] = None,
-    custom_image: Optional[Dict] = None,
-    endpoint_type: str = "public",
+    hf_endpoint_cfg: Optional[HuggingFaceServiceConfig] = None,
 ) -> Annotated[
     HuggingFaceDeploymentService,
     ArtifactConfig(name="endpoint", is_deployment_artifact=True),
@@ -65,20 +52,7 @@ def deploy_model_to_hf_hub(
     """Pushes the dataset to the Hugging Face Hub.
 
     Args:
-        framework (str): The framework of the model.
-        accelerator (str): The accelerator of the model.
-        instance_size (str): The instance size of the model.
-        instance_type (str): The instance type of the model.
-        region (str): The region of the model.
-        vendor (str): The vendor of the model.
-        endpoint_name (Optional[str]): The name of the model.
-        account_id (Optional[str]): The account id of the model.
-        min_replica (int): The minimum replica of the model.
-        max_replica (int): The maximum replica of the model.
-        task (Optional[str]): The task of the model.
-        namespace (Optional[str]): Namespace of the organization.
-        custom_image (Optional[Dict]): The custom image of the model.
-        endpoint_type (str): The type of the model.
+        hf_endpoint_cfg: The configuration for the Huggingface endpoint.
 
     """
     secret = Client().get_secret("huggingface_creds")
@@ -97,26 +71,16 @@ def deploy_model_to_hf_hub(
     if endpoint_name is None:
         endpoint_name = generate_random_letters()
 
-    hf_endpoint_cfg = HuggingFaceDeploymentConfig(
-        endpoint_name=endpoint_name,
-        repository=f"{model_namespace}/{repository}",
-        framework=framework,
-        accelerator=accelerator,
-        instance_size=instance_size,
-        instance_type=instance_type,
-        region=region,
-        vendor=vendor,
-        token=hf_token,
-        account_id=account_id,
-        min_replica=min_replica,
-        max_replica=max_replica,
-        revision=revision,
-        task=task,
-        custom_image=custom_image,
-        namespace=namespace,
-        endpoint_type=endpoint_type,
-    )
+    if hf_endpoint_cfg.endpoint_name or hf_endpoint_cfg.repository or hf_endpoint_cfg.revision:
+        logger.warning(
+            "The Huggingface endpoint configuration has already been set via an old pipeline run. "
+            "The endpoint name, repository, and revision will be overwritten."
+        )
+        hf_endpoint_cfg.endpoint_name = endpoint_name
+        hf_endpoint_cfg.repository = repository
+        hf_endpoint_cfg.revision = revision
 
+    # TODO: Can check if the model deployer is of the right type
     model_deployer = cast(
         HuggingFaceModelDeployer,
         HuggingFaceModelDeployer.get_active_model_deployer(),
@@ -126,7 +90,7 @@ def deploy_model_to_hf_hub(
         model_deployer.deploy_model(config=hf_endpoint_cfg),
     )
 
-    log_artifact_metadata(metadata={"deployment_service": service.to_dict()})
+    log_artifact_metadata(metadata={"deployment_service": service.dict()})
 
     logger.info(
         f"Huggingface Inference Endpoint deployment service started and reachable at:\n"

@@ -5,10 +5,11 @@ from zenml.logger import get_logger
 
 from typing import List, Optional, cast, ClassVar, Type, Dict
 from zenml.services import BaseService, ServiceConfig
-from huggingface.hf_deployment import (
+from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,
-    HuggingFaceDeploymentConfig,
+    HuggingFaceServiceConfig,
 )
+from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerSettings, HuggingFaceModelDeployerConfig
 from zenml.model_deployers.base_model_deployer import (
     DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     BaseModelDeployerFlavor,
@@ -24,6 +25,60 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
     FLAVOR: ClassVar[
         Type[BaseModelDeployerFlavor]
     ] = HuggingFaceModelDeployerFlavor
+
+    @property
+    def config(self) -> HuggingFaceModelDeployerConfig:
+        """Config class for the Huggingface Model deployer settings class.
+
+        Returns:
+            The configuration.
+        """
+        return cast(HuggingFaceModelDeployerConfig, self._config)
+
+    @property
+    def settings_class(self) -> Type[HuggingFaceModelDeployerSettings]:
+        """Settings class for the Huggingface Model deployer settings class.
+
+        Returns:
+            The settings class.
+        """
+        return HuggingFaceModelDeployerSettings
+
+    def _create_new_service(
+        self, timeout: int, config: HuggingFaceServiceConfig
+    ) -> HuggingFaceDeploymentService:
+        """Creates a new HuggingFaceDeploymentService.
+
+        Args:
+            timeout: the timeout in seconds to wait for the Huggingface inference endpoint
+                to be provisioned and successfully started or updated.
+            config: the configuration of the model to be deployed with Hugginface model deployer.
+
+        Returns:
+            The HuggingFaceServiceConfig object that can be used to interact
+            with the Huggingface inference endpoint.
+        """
+        # create a new service for the new model
+        service = HuggingFaceDeploymentService(config)
+        service.start(timeout=timeout)
+        return service
+
+    def _clean_up_existing_service(
+        self,
+        timeout: int,
+        force: bool,
+        existing_service: HuggingFaceDeploymentService,
+    ) -> None:
+        """_summary_
+
+        Args:
+            timeout (int): _description_
+            force (bool): _description_
+            existing_service (HuggingFaceDeploymentService): _description_
+        """
+        # stop the older service
+        existing_service.stop(timeout=timeout, force=force)
+
 
     def deploy_model(
         self,
@@ -46,14 +101,18 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         Returns:
             BaseService: _description_
         """
-        config = cast(HuggingFaceDeploymentConfig, config)
+        config = cast(HuggingFaceServiceConfig, config)
+        
+        # Add zenml prefix
+        if not config.endpoint_name.startswith("zenml-"):
+            config.endpoint_name = "zenml-" + config.endpoint_name
 
         # if replace is True, remove all existing services
         if replace is True:
             existing_services = self.find_model_server(
                 pipeline_name=config.pipeline_name,
                 pipeline_step_name=config.pipeline_step_name,
-                model_name=config.model_name,
+                model_name=config.repository,
             )
 
             for existing_service in existing_services:
@@ -91,41 +150,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             )
 
         return cast(BaseService, service)
-
-    def _create_new_service(
-        self, timeout: int, config: HuggingFaceDeploymentConfig
-    ) -> HuggingFaceDeploymentService:
-        """Creates a new HuggingFaceDeploymentService.
-
-        Args:
-            timeout: the timeout in seconds to wait for the Huggingface inference endpoint
-                to be provisioned and successfully started or updated.
-            config: the configuration of the model to be deployed with Hugginface model deployer.
-
-        Returns:
-            The HuggingFaceDeploymentConfig object that can be used to interact
-            with the Huggingface inference endpoint.
-        """
-        # create a new service for the new model
-        service = HuggingFaceDeploymentService(config)
-        service.start(timeout=timeout)
-        return service
-
-    def _clean_up_existing_service(
-        self,
-        timeout: int,
-        force: bool,
-        existing_service: HuggingFaceDeploymentService,
-    ) -> None:
-        """_summary_
-
-        Args:
-            timeout (int): _description_
-            force (bool): _description_
-            existing_service (HuggingFaceDeploymentService): _description_
-        """
-        # stop the older service
-        existing_service.stop(timeout=timeout, force=force)
 
     def find_model_server(
         self,
