@@ -73,6 +73,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             service,
             "hf_deployment_service",
             str(service_metadata["uuid"]),
+            is_deployment_artifact=True,
         )
         # UUID object is not json serializable
         service_metadata["uuid"] = str(service_metadata["uuid"])
