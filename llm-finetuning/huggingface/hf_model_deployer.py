@@ -64,6 +64,14 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         """
         # create a new service for the new model
         service = HuggingFaceDeploymentService(config)
+        
+        from zenml import save_artifact, log_artifact_metadata
+        save_artifact(service, "hf_deployment_service", str(service_metadata["uuid"]))
+        service_metadata = service.dict()
+        # UUID object is not json serializable
+        service_metadata["uuid"] = str(service_metadata["uuid"])
+        log_artifact_metadata(metadata={"hf_deployment_service": service_metadata})
+
         service.start(timeout=timeout)
         return service
 
@@ -198,6 +206,14 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             if running and not service.is_running:
                 # skip non-running services
                 continue
+            
+            from zenml.client import Client
+            from zenml.services import ServiceRegistry
+            client = Client() 
+            service_artifact = client.get_artifact_version("hf_deployment_service", str(service_uuid))
+            hf_deployment_service_dict = service_artifact.metadata["hf_deployment_service"]
+            ServiceRegistry().load_service_from_dict(hf_deployment_service_dict)
+            
             services.append(service)
 
         return services
