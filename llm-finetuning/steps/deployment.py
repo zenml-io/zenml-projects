@@ -5,7 +5,6 @@ from zenml import get_step_context
 from zenml.client import Client
 from typing import Optional, cast, Dict
 import random
-from zenml import log_artifact_metadata
 from zenml.logger import get_logger
 from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,

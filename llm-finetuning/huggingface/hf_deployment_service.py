@@ -7,6 +7,7 @@ from huggingface_hub import (
     InferenceEndpointError,
     InferenceEndpoint,
 )
+from huggingface_hub.utils import HfHubHTTPError
 from huggingface_hub import (
     create_inference_endpoint,
     get_inference_endpoint,
@@ -23,6 +24,18 @@ POLLING_TIMEOUT = 1200
 
 class HuggingFaceServiceConfig(HuggingFaceBaseConfig, ServiceConfig):
     """Base class for Huggingface configurations."""
+
+    def get_deployed_endpoints(
+        self, token: str, namespace: str
+    ) -> List[InferenceEndpoint]:
+        """_summary_
+        Returns:
+            List[InferenceEndpoint]: _description_
+        """
+        return list_inference_endpoints(
+            token=token,
+            namespace=namespace,
+        )
 
 
 class HuggingFaceServiceStatus(ServiceStatus):
@@ -121,7 +134,7 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         """
         try:
             _ = self.inference_client
-        except InferenceEndpointError:
+        except (InferenceEndpointError, HfHubHTTPError):
             return (ServiceState.INACTIVE, "")
 
         if self.hf_endpoint.status == "running":
