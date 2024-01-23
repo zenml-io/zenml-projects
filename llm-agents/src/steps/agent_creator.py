@@ -9,7 +9,7 @@ from langchain.vectorstores import VectorStore
 from langchain.tools.vectorstore.tool import VectorStoreQATool
 from langchain.agents import AgentExecutor
 from zenml.steps import BaseParameters
-from zenml import step, log_artifact_metadata
+from zenml import step, ArtifactConfig, log_artifact_metadata
 
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
@@ -32,7 +32,7 @@ class AgentParameters(BaseParameters):
 @step(output_materializers=AgentExecutorMaterializer, enable_cache=False)
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters
-) -> Annotated[AgentExecutor, "agent"]:
+) -> Annotated[AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)]:
     """Create an agent from a vector store.
 
     Args:
