@@ -6,12 +6,12 @@ from zenml.utils.secret_utils import SecretField
 class HuggingFaceBaseConfig(BaseModel):
     endpoint_name: Optional[str] = None
     repository: Optional[str] = None
-    framework: str
-    accelerator: str
-    instance_size: str
-    instance_type: str
-    region: str
-    vendor: str
+    framework: Optional[str] = None
+    accelerator: Optional[str] = None
+    instance_size: Optional[str] = None
+    instance_type: Optional[str] = None
+    region: Optional[str] = None
+    vendor: Optional[str] = None
     token: Optional[str] = None
     account_id: Optional[str] = None
     min_replica: Optional[int] = 0

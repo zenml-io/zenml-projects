@@ -21,6 +21,6 @@ zenml model-deployer flavor list
 Register model deployer component into the current stack
 
 ```bash
-zenml model-deployer register hfendpoint --flavor=hfendpoint --token=$HUGGINGFACE_TOKEN --framework=pytorch --accelerator=gpu --instance_size=xlarge --instance_type=p4de --region=us-east-1 --vendor=aws
+zenml model-deployer register hfendpoint --flavor=hfendpoint
 zenml stack update zencoder_hf_stack -d hfendpoint
 ```

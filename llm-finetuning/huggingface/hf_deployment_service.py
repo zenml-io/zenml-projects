@@ -24,17 +24,6 @@ POLLING_TIMEOUT = 1200
 class HuggingFaceServiceConfig(HuggingFaceBaseConfig, ServiceConfig):
     """Base class for Huggingface configurations."""
 
-    def get_deployed_endpoints(self) -> List[InferenceEndpoint]:
-        """_summary_
-
-        Returns:
-            List[InferenceEndpoint]: _description_
-        """
-        return list_inference_endpoints(
-            token=self.config.token,
-            namespace=self.config.namespace,
-        )
-
 
 class HuggingFaceServiceStatus(ServiceStatus):
     """HF Endpoint Inference service status."""

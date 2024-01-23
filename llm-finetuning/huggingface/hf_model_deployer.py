@@ -193,37 +193,30 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             implementation=model_type or "",
         )
 
-        # List all the inference endpoints
-        endpoints = config.get_deployed_endpoints()
-
         services: List[BaseService] = []
-        for endpoint in endpoints:
-            if endpoint.name.startswith("zenml-"):
-                client = Client()
-                service_artifact = client.get_artifact_version(
-                    "hf_deployment_service", str(service_uuid)
-                )
-                hf_deployment_service_dict = service_artifact.metadata[
-                    "hf_deployment_service"
-                ]
-                existing_service = ServiceRegistry().load_service_from_dict(
-                    hf_deployment_service_dict
-                )
+        client = Client()
+        service_artifact = client.get_artifact_version(
+            "hf_deployment_service", str(service_uuid)
+        )
+        hf_deployment_service_dict = service_artifact.metadata[
+            "hf_deployment_service"
+        ]
+        existing_service = ServiceRegistry().load_service_from_dict(
+            hf_deployment_service_dict
+        )
 
-                if not isinstance(
-                    existing_service, HuggingFaceDeploymentService
-                ):
-                    raise TypeError(
-                        f"Expected service type HuggingFaceDeploymentService but got "
-                        f"{type(existing_service)} instead"
-                    )
+        if not isinstance(existing_service, HuggingFaceDeploymentService):
+            raise TypeError(
+                f"Expected service type HuggingFaceDeploymentService but got "
+                f"{type(existing_service)} instead"
+            )
 
-                existing_service.update_status()
-                if self._matches_search_criteria(existing_service, config):
-                    if not running or existing_service.is_running:
-                        services.append(cast(BaseService, existing_service))
+        existing_service.update_status()
+        if self._matches_search_criteria(existing_service, config):
+            if not running or existing_service.is_running:
+                services.append(cast(BaseService, existing_service))
 
-            services.append(existing_service)
+        services.append(existing_service)
 
         return services
 

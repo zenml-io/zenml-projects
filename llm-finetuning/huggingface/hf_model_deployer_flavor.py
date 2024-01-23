@@ -18,8 +18,6 @@ HUGGINGFACE_MODEL_DEPLOYER_FLAVOR = "hfendpoint"
 class HuggingFaceModelDeployerSettings(HuggingFaceBaseConfig, BaseSettings):
     """Settings for the Huggingface model deployer."""
 
-    token: str = SecretField()
-
 
 class HuggingFaceModelDeployerConfig(
     BaseModelDeployerConfig, HuggingFaceModelDeployerSettings

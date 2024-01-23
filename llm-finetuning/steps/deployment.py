@@ -42,7 +42,7 @@ def parse_huggingface_url(url):
         raise ValueError("Invalid Huggingface URL format")
 
 
-@step
+@step(enable_cache=False)
 def deploy_model_to_hf_hub(
     hf_endpoint_cfg: Optional[Dict] = None,
 ) -> Annotated[
@@ -100,11 +100,6 @@ def deploy_model_to_hf_hub(
         HuggingFaceDeploymentService,
         model_deployer.deploy_model(config=hf_endpoint_cfg),
     )
-
-    service_metadata = service.dict()
-    # UUID object is not json serializable
-    service_metadata["uuid"] = str(service_metadata["uuid"])
-    log_artifact_metadata(metadata={"deployment_service": service_metadata})
 
     logger.info(
         f"Huggingface Inference Endpoint deployment service started and reachable at:\n"
