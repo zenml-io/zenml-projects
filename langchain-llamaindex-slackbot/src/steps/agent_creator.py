@@ -53,10 +53,15 @@ def agent_creator(
         ),
     ]
 
+    character = "technical assistant"
+    # make a system prompt that uses the PREFIX and answers questions based
+    # on the character's style
+    system_prompt = PREFIX.format(character=character)
+
     my_agent = ConversationalChatAgent.from_llm_and_tools(
         llm=ChatOpenAI(**config.llm),
         tools=tools,
-        system_message=PREFIX,
+        system_message=system_prompt,
         human_message=SUFFIX,
     )
 
@@ -69,8 +74,14 @@ def agent_creator(
     log_artifact_metadata(
         artifact_name="agent",
         metadata={
-            "personality": "ZenML Agent",
-            "tools": [tool.name for tool in tools],
+            "Tools and their descriptions": {
+                tool.name: tool.description for tool in tools
+            },
+            "Personality": {
+                "character": character,
+                "temperature": config.llm["temperature"],
+                "model_name": config.llm["model_name"],
+            },
         }
     )
 
