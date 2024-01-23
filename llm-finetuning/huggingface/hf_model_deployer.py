@@ -2,6 +2,7 @@ from uuid import UUID
 from zenml.model_deployers import BaseModelDeployer
 from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerFlavor
 from zenml.logger import get_logger
+import datetime
 
 from typing import List, Optional, cast, ClassVar, Type, Dict
 from zenml.services import BaseService, ServiceConfig
@@ -55,7 +56,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         Args:
             timeout: the timeout in seconds to wait for the Huggingface inference endpoint
                 to be provisioned and successfully started or updated.
-            config: the configuration of the model to be deployed with Hugginface model deployer.
+            config: the configuration of the model to be deployed with Huggingface model deployer.
 
         Returns:
             The HuggingFaceServiceConfig object that can be used to interact
@@ -165,7 +166,41 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         model_uri: str,
         model_type: str,
     ) -> List[BaseService]:
-        pass
+        # Use a Huggingface deployment service configuration to compute the labels
+        config = HuggingFaceServiceConfig(
+            pipeline_name=pipeline_name or "",
+            run_name=run_name or "",
+            pipeline_run_id=run_name or "",
+            pipeline_step_name=pipeline_step_name or "",
+            model_name=model_name or "",
+            model_uri=model_uri or "",
+            implementation=model_type or "",
+        )
+
+        endpoints = config.get_deployed_endpoints()
+        # sort the deployments in descending order of their creation time
+        endpoints.sort(
+            key=lambda endpoint: datetime.strptime(
+                endpoint.created_at,
+                "%Y-%m-%dT%H:%M:%SZ",
+            )
+            if endpoint.created_at
+            else datetime.min,
+            reverse=True,
+        )
+
+        services: List[BaseService] = []
+        for endpoint in endpoints:
+            if endpoint.name.startswith("zenml-"):
+                # TODO : Recreate service
+                service = ""
+
+            if running and not service.is_running:
+                # skip non-running services
+                continue
+            services.append(service)
+
+        return services
 
     def stop_model_server(
         self,
