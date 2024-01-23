@@ -2,7 +2,6 @@ from uuid import UUID
 from zenml.model_deployers import BaseModelDeployer
 from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerFlavor
 from zenml.logger import get_logger
-import datetime
 
 from typing import List, Optional, cast, ClassVar, Type, Dict
 from zenml.services import BaseService, ServiceConfig
@@ -18,6 +17,9 @@ from zenml.model_deployers.base_model_deployer import (
     DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     BaseModelDeployerFlavor,
 )
+from zenml.client import Client
+from zenml.services import ServiceRegistry
+from zenml.artifacts.utils import save_artifact, log_artifact_metadata
 
 logger = get_logger(__name__)
 
@@ -65,14 +67,12 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         # create a new service for the new model
         service = HuggingFaceDeploymentService(config)
 
-        from zenml import save_artifact, log_artifact_metadata
-
         service_metadata = service.dict()
 
         save_artifact(
             service,
             "hf_deployment_service",
-            str(service_metadata["uuid"]),
+            version=str(service_metadata["uuid"]),
             is_deployment_artifact=True,
         )
         # UUID object is not json serializable
@@ -199,9 +199,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         services: List[BaseService] = []
         for endpoint in endpoints:
             if endpoint.name.startswith("zenml-"):
-                from zenml.client import Client
-                from zenml.services import ServiceRegistry
-
                 client = Client()
                 service_artifact = client.get_artifact_version(
                     "hf_deployment_service", str(service_uuid)
@@ -220,15 +217,63 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                         f"Expected service type HuggingFaceDeploymentService but got "
                         f"{type(existing_service)} instead"
                     )
-                existing_service.update_status()
 
-                if running and not existing_service.is_running:
-                    # skip non-running services
-                    continue
+                existing_service.update_status()
+                if self._matches_search_criteria(existing_service, config):
+                    if not running or existing_service.is_running:
+                        services.append(cast(BaseService, existing_service))
 
             services.append(existing_service)
 
         return services
+
+    def _matches_search_criteria(
+        self,
+        existing_service: HuggingFaceDeploymentService,
+        config: HuggingFaceModelDeployerConfig,
+    ) -> bool:
+        """Returns true if a service matches the input criteria.
+
+        If any of the values in the input criteria are None, they are ignored.
+        This allows listing services just by common pipeline names or step
+        names, etc.
+
+        Args:
+            existing_service: The materialized Service instance derived from
+                the config of the older (existing) service
+            config: The BentoMlDeploymentConfig object passed to the
+                deploy_model function holding parameters of the new service
+                to be created.
+
+        Returns:
+            True if the service matches the input criteria.
+        """
+        existing_service_config = existing_service.config
+
+        # check if the existing service matches the input criteria
+        if (
+            (
+                not config.pipeline_name
+                or existing_service_config.pipeline_name
+                == config.pipeline_name
+            )
+            and (
+                not config.model_name
+                or existing_service_config.model_name == config.model_name
+            )
+            and (
+                not config.pipeline_step_name
+                or existing_service_config.pipeline_step_name
+                == config.pipeline_step_name
+            )
+            and (
+                not config.run_name
+                or existing_service_config.run_name == config.run_name
+            )
+        ):
+            return True
+
+        return False
 
     def stop_model_server(
         self,
