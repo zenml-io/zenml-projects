@@ -64,13 +64,21 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         """
         # create a new service for the new model
         service = HuggingFaceDeploymentService(config)
-        
+
         from zenml import save_artifact, log_artifact_metadata
-        save_artifact(service, "hf_deployment_service", str(service_metadata["uuid"]))
+
         service_metadata = service.dict()
+
+        save_artifact(
+            service,
+            "hf_deployment_service",
+            str(service_metadata["uuid"]),
+        )
         # UUID object is not json serializable
         service_metadata["uuid"] = str(service_metadata["uuid"])
-        log_artifact_metadata(metadata={"hf_deployment_service": service_metadata})
+        log_artifact_metadata(
+            metadata={"hf_deployment_service": service_metadata}
+        )
 
         service.start(timeout=timeout)
         return service
@@ -124,7 +132,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             existing_services = self.find_model_server(
                 pipeline_name=config.pipeline_name,
                 pipeline_step_name=config.pipeline_step_name,
-                model_name=config.repository,
             )
 
             for existing_service in existing_services:
@@ -165,14 +172,14 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
 
     def find_model_server(
         self,
-        running: bool,
-        service_uuid: UUID,
-        pipeline_name: str,
-        run_name: str,
-        pipeline_step_name: str,
-        model_name: str,
-        model_uri: str,
-        model_type: str,
+        running: bool = False,
+        service_uuid: Optional[UUID] = None,
+        pipeline_name: Optional[str] = None,
+        run_name: Optional[str] = None,
+        pipeline_step_name: Optional[str] = None,
+        model_name: Optional[str] = None,
+        model_uri: Optional[str] = None,
+        model_type: Optional[str] = None,
     ) -> List[BaseService]:
         # Use a Huggingface deployment service configuration to compute the labels
         config = HuggingFaceServiceConfig(
@@ -185,36 +192,40 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             implementation=model_type or "",
         )
 
+        # List all the inference endpoints
         endpoints = config.get_deployed_endpoints()
-        # sort the deployments in descending order of their creation time
-        endpoints.sort(
-            key=lambda endpoint: datetime.strptime(
-                endpoint.created_at,
-                "%Y-%m-%dT%H:%M:%SZ",
-            )
-            if endpoint.created_at
-            else datetime.min,
-            reverse=True,
-        )
 
         services: List[BaseService] = []
         for endpoint in endpoints:
             if endpoint.name.startswith("zenml-"):
-                # TODO : Recreate service
-                service = ""
+                from zenml.client import Client
+                from zenml.services import ServiceRegistry
 
-            if running and not service.is_running:
-                # skip non-running services
-                continue
-            
-            from zenml.client import Client
-            from zenml.services import ServiceRegistry
-            client = Client() 
-            service_artifact = client.get_artifact_version("hf_deployment_service", str(service_uuid))
-            hf_deployment_service_dict = service_artifact.metadata["hf_deployment_service"]
-            ServiceRegistry().load_service_from_dict(hf_deployment_service_dict)
-            
-            services.append(service)
+                client = Client()
+                service_artifact = client.get_artifact_version(
+                    "hf_deployment_service", str(service_uuid)
+                )
+                hf_deployment_service_dict = service_artifact.metadata[
+                    "hf_deployment_service"
+                ]
+                existing_service = ServiceRegistry().load_service_from_dict(
+                    hf_deployment_service_dict
+                )
+
+                if not isinstance(
+                    existing_service, HuggingFaceDeploymentService
+                ):
+                    raise TypeError(
+                        f"Expected service type HuggingFaceDeploymentService but got "
+                        f"{type(existing_service)} instead"
+                    )
+                existing_service.update_status()
+
+                if running and not existing_service.is_running:
+                    # skip non-running services
+                    continue
+
+            services.append(existing_service)
 
         return services
 
