@@ -12,7 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
+from typing import Annotated, List
 
 from langchain.docstore.document import Document
 from langchain.embeddings import OpenAIEmbeddings
@@ -20,14 +20,22 @@ from langchain.text_splitter import (
     CharacterTextSplitter,
 )
 from langchain.vectorstores import FAISS, VectorStore
-from zenml import step
+from zenml import step, log_artifact_metadata
 
 
 @step(enable_cache=True)
-def index_generator(documents: List[Document]) -> VectorStore:
+def index_generator(documents: List[Document]) -> Annotated[VectorStore, "vector_store"]:
     embeddings = OpenAIEmbeddings()
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)
+
+    log_artifact_metadata(
+        artifact_name="vector_store",
+        metadata={
+            "embedding_type": "OpenAIEmbeddings",
+            "vector_store_type": "FAISS",
+        }
+    )
 
     return FAISS.from_documents(compiled_texts, embeddings)

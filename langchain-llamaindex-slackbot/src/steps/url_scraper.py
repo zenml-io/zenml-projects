@@ -12,19 +12,19 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
+from typing import Annotated, List
 
 from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from zenml import step
+from zenml import step, log_artifact_metadata
 
 
-@step(enable_cache=True)
+@step(enable_cache=False)
 def url_scraper(
     docs_url: str = "",
     repo_url: str = "",
     release_notes_url: str = "",
     website_url: str = "",
-) -> List[str]:
+) -> Annotated[List[str], "urls"]:
     """Generates a list of relevant URLs to scrape.
 
     Args:
@@ -37,6 +37,14 @@ def url_scraper(
         List of URLs to scrape.
     """
     # examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(docs_url)
-    website_urls = get_all_pages(website_url)
-    return docs_urls + website_urls + [release_notes_url]
+    # docs_urls = get_all_pages(docs_url)
+    # website_urls = get_all_pages(website_url)
+    # all_urls = docs_urls + website_urls + [release_notes_url]
+    all_urls = [website_url]
+    log_artifact_metadata(
+        artifact_name="urls",
+        metadata={
+            "count": len(all_urls),
+        }
+    )
+    return all_urls

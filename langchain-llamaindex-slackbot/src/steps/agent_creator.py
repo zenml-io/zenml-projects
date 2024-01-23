@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, cast
+from typing import Annotated, Dict, cast
 
 from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
@@ -9,7 +9,7 @@ from langchain.vectorstores import VectorStore
 from langchain.tools.vectorstore.tool import VectorStoreQATool
 from langchain.agents import AgentExecutor
 from zenml.steps import BaseParameters
-from zenml import step
+from zenml import step, log_artifact_metadata
 
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
@@ -32,7 +32,7 @@ class AgentParameters(BaseParameters):
 @step(output_materializers=AgentExecutorMaterializer, enable_cache=False)
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters
-) -> AgentExecutor:
+) -> Annotated[AgentExecutor, "agent"]:
     """Create an agent from a vector store.
 
     Args:
@@ -43,7 +43,7 @@ def agent_creator(
     """
     tools = [
         VectorStoreQATool(
-            name=f"zenml",
+            name=f"zenml-qa-tool",
             vectorstore=vector_store,
             description="Use this tool to answer questions about ZenML. "
             "How to debug errors in ZenML, how to answer conceptual "
@@ -66,5 +66,12 @@ def agent_creator(
         verbose=True,
     )
 
-    logging.info("About to return agent executor.")
+    log_artifact_metadata(
+        artifact_name="agent",
+        metadata={
+            "personality": "ZenML Agent",
+            "tools": [tool.name for tool in tools],
+        }
+    )
+
     return agent_executor

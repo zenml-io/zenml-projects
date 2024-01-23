@@ -17,9 +17,11 @@ from steps.agent_creator import agent_creator
 from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
-from zenml import pipeline
+from zenml import pipeline, log_model_metadata
 from zenml.config import DockerSettings
+from zenml.enums import ModelStages
 from zenml.integrations.constants import LANGCHAIN, OPEN_AI, PILLOW
+from zenml.model.model_version import ModelVersion
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 
@@ -28,8 +30,15 @@ docker_settings = DockerSettings(
     required_integrations=[LANGCHAIN, OPEN_AI, PILLOW],
 )
 
-
-@pipeline(name=PIPELINE_NAME, enable_cache=True, settings=docker_settings)
+@pipeline(name=PIPELINE_NAME,
+          enable_cache=True,
+          settings={"docker": docker_settings},
+          model_version=ModelVersion(
+              name="zenml_agent",
+              license="Apache",
+              description="ZenML Agent with a vector store tool.",
+              tags=["llm", "agent", "rag"]
+          ))
 def docs_to_agent_pipeline(
     docs_url: str = "",
     repo_url: str = "",
@@ -48,3 +57,11 @@ def docs_to_agent_pipeline(
     documents = web_url_loader(urls)
     vector_store = index_generator(documents)
     agent = agent_creator(vector_store=vector_store)
+    # log_model_metadata(
+    #     model_name="zenml_agent",
+    #     model_version=ModelStages.LATEST,
+    #     metadata={
+    #         "llm_framework": "langchain",
+    #     }
+    # )
+        
