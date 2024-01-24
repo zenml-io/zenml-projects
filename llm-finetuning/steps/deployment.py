@@ -1,6 +1,4 @@
 from zenml import step
-from zenml import ArtifactConfig
-from typing_extensions import Annotated
 from zenml import get_step_context
 from zenml.client import Client
 from typing import Optional, cast, Dict
@@ -42,12 +40,7 @@ def parse_huggingface_url(url):
 
 
 @step(enable_cache=False)
-def deploy_model_to_hf_hub(
-    hf_endpoint_cfg: Optional[Dict] = None,
-) -> Annotated[
-    HuggingFaceDeploymentService,
-    ArtifactConfig(name="endpoint", is_deployment_artifact=True),
-]:
+def deploy_model_to_hf_hub(hf_endpoint_cfg: Optional[Dict] = None) -> None:
     """Pushes the dataset to the Hugging Face Hub.
 
     Args:
@@ -104,5 +97,3 @@ def deploy_model_to_hf_hub(
         f"Huggingface Inference Endpoint deployment service started and reachable at:\n"
         f"    {service.prediction_url}\n"
     )
-
-    return service

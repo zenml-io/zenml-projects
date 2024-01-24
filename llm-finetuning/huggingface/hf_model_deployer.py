@@ -1,3 +1,4 @@
+"""Implementation of the Huggingface Model Deployer."""
 from uuid import UUID
 from zenml.model_deployers import BaseModelDeployer
 from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerFlavor
@@ -98,12 +99,13 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         force: bool,
         existing_service: HuggingFaceDeploymentService,
     ) -> None:
-        """_summary_
+        """Stop existing services.
 
         Args:
-            timeout (int): _description_
-            force (bool): _description_
-            existing_service (HuggingFaceDeploymentService): _description_
+            timeout: the timeout in seconds to wait for the Huggingface
+                deployment to be stopped.
+            force: if True, force the service to stop
+            existing_service: Existing Huggingface deployment service
         """
         # stop the older service
         existing_service.stop(timeout=timeout, force=force)
@@ -119,15 +121,22 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         This should serve the supplied model and deployment configuration.
 
         Args:
-            config (ServiceConfig): _description_
-            replace (bool, optional): _description_. Defaults to False.
-            timeout (int, optional): _description_. Defaults to DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT.
+            config: the configuration of the model to be deployed with Huggingface.
+                Core
+            replace: set this flag to True to find and update an equivalent
+                Huggingface deployment server with the new model instead of
+                starting a new deployment server.
+            timeout: the timeout in seconds to wait for the Huggingface endpoint
+                to be provisioned and successfully started or updated. If set
+                to 0, the method will return immediately after the Huggingface
+                server is provisioned, without waiting for it to fully start.
 
         Raises:
-            ValueError: _description_
+            RuntimeError: _description_
 
         Returns:
-            BaseService: _description_
+            The ZenML Huggingface deployment service object that can be used to
+            interact with the remote Huggingface inference endpoint server.
         """
         config = cast(HuggingFaceServiceConfig, config)
         service = None
@@ -166,6 +175,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                     pass
 
         if service:
+            # update an equivalent service in place
             logger.info(
                 f"Updating an existing Hugginface deployment service: {service}"
             )

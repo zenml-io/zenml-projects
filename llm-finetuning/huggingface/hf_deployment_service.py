@@ -1,3 +1,4 @@
+"""Implementation of the Huggingface Deployment service."""
 from zenml.logger import get_logger
 from typing import Generator, Tuple, Optional, Any, List
 from zenml.services import ServiceType, ServiceState, ServiceStatus
@@ -62,10 +63,10 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
 
     @property
     def hf_endpoint(self) -> InferenceEndpoint:
-        """_summary_
+        """Get the deployed Huggingface inference endpoint.
 
         Returns:
-            InferenceEndpoint: _description_
+            Huggingface inference endpoint.
         """
         return get_inference_endpoint(
             name=self.config.endpoint_name,
@@ -87,15 +88,18 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
 
     @property
     def inference_client(self) -> InferenceClient:
-        """_summary_.
+        """Get the Huggingface InferenceClient from Inference Endpoint.
 
         Returns:
-            InferenceClient: _description_
+            Huggingface inference client.
         """
         return self.hf_endpoint.client
 
     def provision(self) -> None:
-        """_summary_."""
+        """Provision or update remote Huggingface deployment instance.
+
+        This should then match the current configuration.
+        """
 
         _ = create_inference_endpoint(
             name=self.config.endpoint_name,
@@ -127,13 +131,15 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
             )
 
     def check_status(self) -> Tuple[ServiceState, str]:
-        """_summary_.
+        """Check the the current operational state of the HuggingFace deployment.
 
         Returns:
-            Tuple[ServiceState, str]: _description_
+            The operational state of the HuggingFace deployment and a message
+            providing additional information about that state (e.g. a
+            description of the error, if one is encountered).
         """
         try:
-            _ = self.inference_client
+            _ = self.hf_endpoint.status
         except (InferenceEndpointError, HfHubHTTPError):
             return (ServiceState.INACTIVE, "")
 
@@ -156,18 +162,22 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
             )
 
     def deprovision(self, force: bool = False) -> None:
-        """_summary_.
+        """Deprovision the remote HuggingFace deployment instance.
 
         Args:
-            force (bool, optional): _description_. Defaults to False.
+            force: if True, the remote deployment instance will be
+                forcefully deprovisioned.
         """
-        self.hf_endpoint.delete()
+        try:
+            self.hf_endpoint.delete()
+        except HfHubHTTPError:
+            pass
 
     def predict(self, data: "Any", max_new_tokens: int) -> "Any":
         """Make a prediction using the service.
 
         Args:
-            api_endpoint: the api endpoint to make the prediction on
+            data: input data
             max_new_tokens: Number of new tokens to generate
 
         Returns:
