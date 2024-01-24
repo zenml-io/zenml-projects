@@ -1,18 +1,20 @@
-# Using LangChain and LlamaIndex in Production to Help Community Slack Support
+# Creating a production-ready LLM-powered Agent with ZenML 
 
-Large language models (LLMs) have become a cornerstone of natural language processing, offering unparalleled capabilities for knowledge generation and reasoning. The past few weeks have seen a number of high profile releases of models and interfaces. However, despite their immense potential, incorporating custom, private data into these models [remains a challenge](https://docs.google.com/presentation/d/1VXQkR65ieROCmJP_ga09gGt8wkTGtTAdvaDRxMB67GI/edit#slide=id.p). This is where tools like [LangChain](https://github.com/hwchase17/langchain) and [LlamaIndex](https://github.com/jerryjliu/llama_index) (formerly 'GPT Index') come into play, offering innovative solutions for data ingestion and indexing, enabling developers to augment LLMs with their unique datasets.
+Agents are applications that allow the LLMs to act on their thoughts through the use of tools or functions. The LLM figures out what to do and what action to perform, choosing from a list of available options, and then the LLM framework facilitates the exchange of data between the system and the model.
 
-LangChain and LlamaIndex facilitate in-context learning, an emerging paradigm that allows developers to insert context into input prompts, leveraging LLM's reasoning capabilities for generating more relevant and accurate responses. This differs from finetuning, which requires retraining models using custom datasets, often demanding significant computational resources and time.
+Agentic applications are on the rise because with the right set of tools, they can become a really powerful way to utilize LLMs. Frameworks like LangChain and Llamaindex offer abstractions to build agents and also host a variety of tools that you can use right out of the box. However, just those frameworks alone aren't enough.
 
-By addressing data ingestion and indexing, LangChain and LlamaIndex provide a streamlined framework for integrating custom data into LLMs. Their flexible design simplifies incorporating external data sources, enabling developers to focus on creating powerful applications that harness LLMs' full potential.
+## 😯 Challenges with productionizing LLM Agents
 
-These tools bridge the gap between external data and LLMs, ensuring seamless integration while maintaining performance. By utilizing LangChain and LlamaIndex, developers can unlock LLMs' true potential and build cutting-edge applications tailored to specific use cases and datasets.
+In principle, the agents with a question-answering tool work on the Retrieval Augmented Generation concept (RAG) which is popularly implemented in many frameworks and projects.
+Upon a closer look and while using the agents in production, however, we need to address some challenges.
 
-🛣️ The project we built uses both `langchain` and `llama_index` as well as some
-extra code for the Slack bot itself. If you want to get your hands dirty
-and try out a simpler version, feel free to check out [our Generative Chat
-example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat)
-that was released previously.
+- Data that powers the agent's answering ability is constantly changing, new information comes in every day.
+- Not feasible to manually generate vector stores based on the changing data. There's a need for automation.
+- Tracking code changes to the vector store creation logic is important as it allows you to tie your outputs to the embeddings model and the other settings that you use.
+- Tracking and versioning the agents that are created helps you manage what agents are used in production and allows easy switching.
+- Important metadata like the agent's personality, the model parameters used for the LLM powering the agent, the type of vector store used, are essential while performing experiments to find the best performing combination.
+
 
 ## ZenML 🤝 LLM frameworks
 
