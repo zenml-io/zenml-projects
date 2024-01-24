@@ -1,0 +1,5 @@
+zenml[server]>=0.50.0
+packaging
+notebook
+pandas_datareader
+statsmodels
