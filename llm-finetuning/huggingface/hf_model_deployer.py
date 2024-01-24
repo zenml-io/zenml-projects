@@ -149,8 +149,12 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         service = None
 
         # Add zenml prefix
-        if not config.endpoint_name.startswith("zenml-"):
+        if not config.endpoint_name and not config.endpoint_name.startswith(
+            "zenml-"
+        ):
             config.endpoint_name = "zenml-" + config.endpoint_name
+        else:
+            config.endpoint_name = "zenml-"
 
         # if replace is True, remove all existing services
         if replace is True:

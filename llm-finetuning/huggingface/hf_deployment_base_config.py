@@ -6,7 +6,7 @@ from zenml.utils.secret_utils import SecretField
 class HuggingFaceBaseConfig(BaseModel):
     """Huggingface Inference Endpoint configuration."""
 
-    endpoint_name: Optional[str] = None
+    endpoint_name: Optional[str] = ""
     repository: Optional[str] = None
     framework: Optional[str] = None
     accelerator: Optional[str] = None
