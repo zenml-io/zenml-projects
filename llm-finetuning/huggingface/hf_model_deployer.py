@@ -120,7 +120,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
     def deploy_model(
         self,
         config: ServiceConfig,
-        replace: bool = True,
+        replace: bool = False,
         timeout: int = DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     ) -> BaseService:
         """Create a new Huggingface deployment service or update an existing one.
