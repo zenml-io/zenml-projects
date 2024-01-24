@@ -13,6 +13,8 @@ from zenml import step, ArtifactConfig, log_artifact_metadata
 
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
+# Choose what character to use for your agent's answers
+CHARACTER = "technical assistant"
 
 
 class AgentParameters(BaseParameters):
@@ -53,10 +55,7 @@ def agent_creator(
         ),
     ]
 
-    character = "technical assistant"
-    # make a system prompt that uses the PREFIX and answers questions based
-    # on the character's style
-    system_prompt = PREFIX.format(character=character)
+    system_prompt = PREFIX.format(character=CHARACTER)
 
     my_agent = ConversationalChatAgent.from_llm_and_tools(
         llm=ChatOpenAI(**config.llm),
@@ -78,7 +77,7 @@ def agent_creator(
                 tool.name: tool.description for tool in tools
             },
             "Personality": {
-                "character": character,
+                "character": CHARACTER,
                 "temperature": config.llm["temperature"],
                 "model_name": config.llm["model_name"],
             },
