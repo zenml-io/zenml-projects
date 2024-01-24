@@ -43,7 +43,7 @@ def save_model_to_deploy():
     logger.info(
         f" Loading latest version of the model for stage {pipeline_extra['target_env']}..."
     )
-    # Get the current model version
+    # Get the current model
     current_zenml_model = get_step_context().model
 
     # Load model and tokenizer from Model Control Plane
