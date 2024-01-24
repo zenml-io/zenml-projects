@@ -188,7 +188,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         if service:
             # update an equivalent service in place
             logger.info(
-                f"Updating an existing Hugginface deployment service: {service}"
+                f"Updating an existing Huggingface deployment service: {service}"
             )
             service.stop(timeout=timeout, force=True)
             service.update(config)
@@ -292,8 +292,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                 if self._matches_search_criteria(existing_service, config):
                     if not running or existing_service.is_running:
                         services.append(cast(BaseService, existing_service))
-
-            services.append(existing_service)
 
         return services
 
