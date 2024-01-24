@@ -25,9 +25,6 @@ from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
-model_registry = Client().active_stack.model_registry
-
-
 @step
 def promote_get_metrics() -> (
     Tuple[
@@ -54,24 +51,23 @@ def promote_get_metrics() -> (
     zenml_client = Client()
 
     # Get current model version metric in current run
-    model_version = get_step_context().model_version
-    current_version = model_version._get_model_version()
-    current_metrics = current_version.get_model_artifact("model").run_metadata["metrics"].value
+    current_zenml_model = get_step_context().model
+    current_metrics = current_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
     logger.info(f"Current model version metrics are {current_metrics}")
 
     # Get latest saved model version metric in target environment
     try:
-        latest_version = zenml_client.get_model_version(
-            model_name_or_id=model_version.name,
+        latest_zenml_model = zenml_client.get_model_version(
+            model_name_or_id=current_zenml_model.name,
             model_version_name_or_number_or_id=ModelStages(
                 pipeline_extra["target_env"]
             ),
         )
     except KeyError:
-        latest_version = None
-    if latest_version:
+        latest_zenml_model = None
+    if latest_zenml_model:
         latest_metrics = (
-            latest_version.get_model_artifact("model").run_metadata["metrics"].value
+            latest_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
         )
         logger.info(f"Current model version metrics are {latest_metrics}")
     else:

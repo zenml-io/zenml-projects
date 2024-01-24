@@ -6,7 +6,7 @@ settings:
       - mlflow
 
 # configuration of the Model Control Plane
-model_version:
+model:
   name: Customer_Satisfaction_Predictor
   license: Apache 2.0
   description: Predictor of Customer Satisfaction.

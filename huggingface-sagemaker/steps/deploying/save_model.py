@@ -44,11 +44,11 @@ def save_model_to_deploy():
         f" Loading latest version of the model for stage {pipeline_extra['target_env']}..."
     )
     # Get the current model version
-    latest_version = get_step_context().model_version
+    current_zenml_model = get_step_context().model
 
     # Load model and tokenizer from Model Control Plane
-    model = latest_version.load_artifact(name="model")
-    tokenizer = latest_version.load_artifact(name="tokenizer")
+    model = current_zenml_model.load_artifact(name="model")
+    tokenizer = current_zenml_model.load_artifact(name="tokenizer")
     # Save the model and tokenizer locally
     model_path = "./gradio/"  # replace with the actual path
     tokenizer_path = "./gradio/"  # replace with the actual path
