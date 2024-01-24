@@ -261,11 +261,12 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         services: List[BaseService] = []
         for endpoint in endpoints:
             if endpoint.name.startswith("zenml-"):
-                service_uuid = endpoint.name[-8:]
+                artifact_version = endpoint.name[-8:]
 
+                # Fetch the saved metadata artifact from zenml server to recreate service
                 client = Client()
                 service_artifact = client.get_artifact_version(
-                    HUGGINGFACE_SERVICE_ARTIFACT, str(service_uuid)
+                    HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
                 )
                 hf_deployment_service_dict = service_artifact.run_metadata[
                     HUGGINGFACE_SERVICE_ARTIFACT
