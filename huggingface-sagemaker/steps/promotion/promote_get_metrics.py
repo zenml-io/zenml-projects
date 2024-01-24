@@ -44,16 +44,16 @@ def promote_get_metrics() -> (
         version: Version of the model to be retrieved.
 
     Returns:
-        Metric value for a given model version.
+        Metric value for a given model.
     """
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     pipeline_extra = get_step_context().pipeline_run.config.extra
     zenml_client = Client()
 
-    # Get current model version metric in current run
+    # Get current model metric in current run
     current_zenml_model = get_step_context().model
     current_metrics = current_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
-    logger.info(f"Current model version metrics are {current_metrics}")
+    logger.info(f"Current model metrics are {current_metrics}")
 
     # Get latest saved model version metric in target environment
     try:
@@ -69,9 +69,9 @@ def promote_get_metrics() -> (
         latest_metrics = (
             latest_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
         )
-        logger.info(f"Current model version metrics are {latest_metrics}")
+        logger.info(f"Current model metrics are {latest_metrics}")
     else:
-        logger.info("No currently promoted model version found.")
+        logger.info("No currently promoted model found.")
         latest_metrics = current_metrics
     ### YOUR CODE ENDS HERE ###
 

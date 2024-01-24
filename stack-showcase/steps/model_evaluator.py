@@ -88,7 +88,7 @@ def model_evaluator(
         for message in messages:
             logger.warning(message)
 
-    artifact = get_step_context().model_version.get_artifact("model")
+    artifact = get_step_context().model.get_artifact("model")
 
     log_artifact_metadata(
         metadata={"train_accuracy": float(trn_acc), "test_accuracy": float(tst_acc)},
