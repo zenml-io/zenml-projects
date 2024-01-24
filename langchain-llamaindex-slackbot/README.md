@@ -9,11 +9,7 @@ By addressing data ingestion and indexing, LangChain and LlamaIndex provide a st
 These tools bridge the gap between external data and LLMs, ensuring seamless integration while maintaining performance. By utilizing LangChain and LlamaIndex, developers can unlock LLMs' true potential and build cutting-edge applications tailored to specific use cases and datasets.
 
 🛣️ The project we built uses both `langchain` and `llama_index` as well as some
-extra code for the Slack bot itself. If you want to get your hands dirty
-and try out a simpler version, feel free to check out [our Generative Chat
-example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat)
-that was released previously.
-
+extra code for the Slack bot itself.
 ## ZenML 🤝 LLM frameworks
 
 There are various terms being tried out to describe this new paradigm — from LLMOps to Big Model Ops. Not only the words used to describe how engineering will work are new, but the underlying structures and frameworks are also being developed from the ground up. We wanted to witness these changes first-hand by participating and getting our hands dirty.
@@ -94,7 +90,7 @@ example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat
 
 It is much more ideal to run a pipeline such as the 
 `zenml_docs_index_generation` on a regular schedule. In order to achieve that, 
-you have to [deploy ZenML](https://docs.zenml.io/user-guide/production-guide/connect-deployed-zenml) 
+you have to [deploy ZenML](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml) 
 and set up a stack that supports 
 [our scheduling
 feature](https://docs.zenml.io/user-guide/advanced-guide/pipelining-features/schedule-pipeline-runs). If you
