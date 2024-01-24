@@ -82,9 +82,7 @@ artifacts for your own data, you can change values as appropriate.
 
 The Slack bot can be locally tested using the `local_testing_slackbot.py` file
 but note that you will need to set up your own Slack workspace and bot in order
-to do so. You can find more information on how to do this in the instructions
-for [our Generative Chat
-example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat).
+to do so.
 
 ## Running it on GCP
 
