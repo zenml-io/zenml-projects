@@ -51,7 +51,7 @@ OTHERS = [
     "pcm",
     "opus",
 ]
-ANTI_FOMATS = tuple(IMAGE + VIDEO + DOC + AUDIO + ARCHIVE + OTHERS)
+ANTI_FORMATS = tuple(IMAGE + VIDEO + DOC + AUDIO + ARCHIVE + OTHERS)
 
 
 def upload_to_hub(df: pd.DataFrame, dataset_id: str) -> str:
@@ -114,7 +114,7 @@ def read_repository_files(directory) -> pd.DataFrame:
     for root, _, files in os.walk(directory):
         for file in files:
             file_path = os.path.join(root, file)
-            if not file_path.endswith(ANTI_FOMATS) and all(
+            if not file_path.endswith(ANTI_FORMATS) and all(
                 k not in file_path for k in [".git", "__pycache__", "xcodeproj"]
             ):
                 file_paths.append((os.path.dirname(root), file_path))

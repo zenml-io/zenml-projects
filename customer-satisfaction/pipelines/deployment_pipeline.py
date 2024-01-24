@@ -2,7 +2,7 @@ import os
 
 from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 
-from zenml import pipeline, ModelVersion
+from zenml import pipeline
 
 from pipelines.training_pipeline import customer_satisfaction_training_pipeline
 from steps import predictor

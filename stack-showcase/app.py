@@ -13,11 +13,11 @@ if ZENML_STORE_API_KEY:
     os.system(f"zenml connect --url {ZENML_STORE_URL} --api-key {ZENML_STORE_API_KEY}")
 
 client = Client()
-zenml_model_version = client.get_model_version("breast_cancer_classifier", "production")
-preprocess_pipeline = zenml_model_version.get_artifact("preprocess_pipeline").load()
+zenml_model = client.get_model_version("breast_cancer_classifier", "production")
+preprocess_pipeline = zenml_model.get_artifact("preprocess_pipeline").load()
 
 # Load the model
-clf = zenml_model_version.get_artifact("model").load()
+clf = zenml_model.get_artifact("model").load()
 
 # Load dataset to get feature names
 data = load_breast_cancer()
