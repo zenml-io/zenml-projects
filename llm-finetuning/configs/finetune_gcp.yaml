@@ -3,7 +3,7 @@ settings:
   docker:
     requirements: requirements.txt
 
-model_version:
+model:
   name: "peft-lora-zencoder15B-personal-copilot"
   description: "Fine-tuned `starcoder15B-personal-copilot-A100-40GB-colab` for ZenML pipelines."
   audience: "Data Scientists / ML Engineers"  

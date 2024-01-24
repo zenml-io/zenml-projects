@@ -3,7 +3,7 @@ settings:
   docker:
     requirements: requirements.txt
 
-model_version:
+model:
   name: "peft-lora-zencoder15B-personal-copilot"
   version: production
 
