@@ -225,14 +225,14 @@ class ConstantLengthDataset(IterableDataset):
     """
     Iterable dataset that returns constant length chunks of tokens from stream of text files.
         Args:
-            tokenizer (Tokenizer): The processor used for proccessing the data.
+            tokenizer (Tokenizer): The processor used for processing the data.
             dataset (dataset.Dataset): Dataset with text files.
             infinite (bool): If True the iterator is reset after dataset reaches end else stops.
             seq_length (int): Length of token sequences to return.
             num_of_sequences (int): Number of token sequences to keep in buffer.
             chars_per_token (int): Number of characters per token used to estimate number of tokens in text buffer.
             fim_rate (float): Rate (0.0 to 1.0) that sample will be permuted with FIM.
-            fim_spm_rate (float): Rate (0.0 to 1.0) of FIM permuations that will use SPM.
+            fim_spm_rate (float): Rate (0.0 to 1.0) of FIM permutations that will use SPM.
             seed (int): Seed for random number generator.
     """
 

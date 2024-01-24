@@ -35,7 +35,7 @@ One of the first jobs of somebody entering MLOps is to convert their manual scri
 
 Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
 
-Unfortuantely, most open source or proprietary models like GitHub Copilot are often lagging behind the most recent versions of ML libraries, therefore giving errorneous our outdated syntax when asked simple commands.
+Unfortunately, most open source or proprietary models like GitHub Copilot are often lagging behind the most recent versions of ML libraries, therefore giving erroneous our outdated syntax when asked simple commands.
 
 The goal of this project is fine-tune an open-source LLM that performs better than off-the-shelf solutions on giving the right output for the latest version of ZenML.
 
