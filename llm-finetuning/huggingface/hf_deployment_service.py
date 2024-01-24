@@ -7,6 +7,7 @@ from huggingface_hub import (
     InferenceClient,
     InferenceEndpointError,
     InferenceEndpoint,
+    InferenceEndpointStatus,
 )
 from huggingface_hub.utils import HfHubHTTPError
 from huggingface_hub import (
@@ -143,19 +144,19 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         except (InferenceEndpointError, HfHubHTTPError):
             return (ServiceState.INACTIVE, "")
 
-        if self.hf_endpoint.status == "running":
+        if self.hf_endpoint.status == InferenceEndpointStatus.RUNNING:
             return (
                 ServiceState.ACTIVE,
                 f"HuggingFace Inference Endpoint deployment is available",
             )
 
-        if self.hf_endpoint.status == "failed":
+        if self.hf_endpoint.status == InferenceEndpointStatus.FAILED:
             return (
                 ServiceState.ERROR,
                 f"HuggingFace Inference Endpoint deployment failed: ",
             )
 
-        if self.hf_endpoint.status == "pending":
+        if self.hf_endpoint.status == InferenceEndpointStatus.PENDING:
             return (
                 ServiceState.PENDING_STARTUP,
                 "HuggingFace Inference Endpoint deployment is being created: ",
@@ -171,6 +172,9 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         try:
             self.hf_endpoint.delete()
         except HfHubHTTPError:
+            logger.error(
+                "Huggingface Inference Endpoint is deleted or cannot be found."
+            )
             pass
 
     def predict(self, data: "Any", max_new_tokens: int) -> "Any":

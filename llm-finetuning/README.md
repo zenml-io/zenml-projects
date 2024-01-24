@@ -78,12 +78,49 @@ python run.py --training-pipeline --config finetune_gcp.yaml
 
 # Deployment
 python run.py --deployment-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
-python run.py --deployment-pipeline --config finetune_gcp.yaml
+python run.py --deployment-pipeline --config deployment_a100.yaml
 ```
 
 The `feature_engineering` and `deployment` pipeline can be run simply with the `default` stack, but the training pipelines [stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) will depend on the config.
 
 The `deployment` pipelines relies on the `training_pipeline` to have run before.
+
+## :cloud: Deployment
+
+We have create a custom zenml model deployer for deploying models on the huggingface inference endpoint. The code for custom deployer is in [huggingface](./huggingface/) folder.
+
+For running deployment pipeline, we create a custom zenml stack. As we are using a custom model deployer, we will have to register the flavor and model deployer. We update the stack to use this custom model deployer for running deployment pipeline.
+
+```bash
+zenml init
+zenml stack register zencoder_hf_stack -o default -a default
+zenml stack set zencoder_hf_stack
+export HUGGINGFACE_USERNAME=<here>
+export HUGGINGFACE_TOKEN=<here>
+zenml secret create huggingface_creds --username=$HUGGINGFACE_USERNAME --token=$HUGGINGFACE_TOKEN
+zenml model-deployer flavor register huggingface.hf_model_deployer_flavor.HuggingFaceModelDeployerFlavor
+```
+
+Afterward, you should see the new flavor in the list of available flavors:
+
+```bash
+zenml model-deployer flavor list
+```
+
+Register model deployer component into the current stack
+
+```bash
+zenml model-deployer register hfendpoint --flavor=hfendpoint
+zenml stack update zencoder_hf_stack -d hfendpoint
+```
+
+Run the deployment pipeline using the CLI:
+
+```shell
+# Deployment
+python run.py --deployment-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --deployment-pipeline --config deployment_a100.yaml
+```
 
 ## 🥇Recent developments
 
@@ -113,7 +150,7 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 - [x] Deploy the model on a [HuggingFace inference endpoint](https://ui.endpoints.huggingface.co/welcome) and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) using a deployment pipeline.
 - [x] Create a functioning training pipeline.
 - [ ] Curate a set of 5-10 repositories that are using the ZenML latest syntax and use data generation pipeline to push dataset to HuggingFace.
-- [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings
+- [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: <https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings>
 - [ ] Tests trained model on various metrics
 - [ ] Create a custom [model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
 
@@ -121,9 +158,9 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 
 While the work here is solely based on the task of finetuning the model for the ZenML library, the pipeline can be changed with minimal effort to point to any set of repositories on GitHub. Theoretically, one could extend this work to point to proprietary codebases to learn from them for any use-case.
 
-For example, see how [VMWare fine-tuned StarCoder to learn their style](https://octo.vmware.com/fine-tuning-starcoder-to-learn-vmwares-coding-style/). 
+For example, see how [VMWare fine-tuned StarCoder to learn their style](https://octo.vmware.com/fine-tuning-starcoder-to-learn-vmwares-coding-style/).
 
 Also, make sure to join our <a href="https://zenml.io/slack" target="_blank">
     <img width="15" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
-    <b>Slack Community</b> 
+    <b>Slack Community</b>
 </a> to become part of the ZenML family!

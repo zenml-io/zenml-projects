@@ -24,6 +24,8 @@ from zenml.artifacts.utils import save_artifact, log_artifact_metadata
 
 logger = get_logger(__name__)
 
+HUGGINGFACE_SERVICE_ARTIFACT = "hf_deployment_service"
+
 
 class HuggingFaceModelDeployer(BaseModelDeployer):
     """Huggingface endpoint model deployer."""
@@ -75,19 +77,24 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         # Add first 8 characters of UUID to endpoint name
         service.config.endpoint_name += artifact_version
 
+        logger.info(
+            f"Creating an artifact {HUGGINGFACE_SERVICE_ARTIFACT} with service instance attached as metadata."
+            " If there's an active pipeline and/or model this artifact will be associated with it."
+        )
+
         service_metadata = service.dict()
         save_artifact(
             service,
-            "hf_deployment_service",
+            HUGGINGFACE_SERVICE_ARTIFACT,
             version=artifact_version,
             is_deployment_artifact=True,
         )
         # UUID object is not json serializable
         service_metadata["uuid"] = str(service_metadata["uuid"])
         log_artifact_metadata(
-            artifact_name="hf_deployment_service",
+            artifact_name=HUGGINGFACE_SERVICE_ARTIFACT,
             artifact_version=artifact_version,
-            metadata={"hf_deployment_service": service_metadata},
+            metadata={HUGGINGFACE_SERVICE_ARTIFACT: service_metadata},
         )
 
         service.start(timeout=timeout)
@@ -200,15 +207,46 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         pipeline_name: Optional[str] = None,
         run_name: Optional[str] = None,
         pipeline_step_name: Optional[str] = None,
+        model_name: Optional[str] = None,
         model_uri: Optional[str] = None,
         model_type: Optional[str] = None,
     ) -> List[BaseService]:
+        """Find one or more Seldon Core model services that match the given criteria.
+
+        The Seldon Core deployment services that meet the search criteria are
+        returned sorted in descending order of their creation time (i.e. more
+        recent deployments first).
+
+        Args:
+            running: if true, only running services will be returned.
+            token: token required for huggingface authentication
+            namespace: namespace if organization is used in huggingface
+            service_uuid: the UUID of the Seldon Core service that was
+                originally used to create the Seldon Core deployment resource.
+            pipeline_name: name of the pipeline that the deployed model was part
+                of.
+            run_name: Name of the pipeline run which the deployed model was
+                part of.
+            pipeline_step_name: the name of the pipeline model deployment step
+                that deployed the model.
+            model_name: the name of the deployed model.
+            model_uri: URI of the deployed model.
+            model_type: the Seldon Core server implementation used to serve
+                the model
+
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            List[BaseService]: _description_
+        """
         # Use a Huggingface deployment service configuration to compute the labels
         config = HuggingFaceServiceConfig(
             pipeline_name=pipeline_name or "",
             run_name=run_name or "",
             pipeline_run_id=run_name or "",
             pipeline_step_name=pipeline_step_name or "",
+            model_name=model_name or "",
             model_uri=model_uri or "",
             implementation=model_type or "",
         )
@@ -226,10 +264,10 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
 
                 client = Client()
                 service_artifact = client.get_artifact_version(
-                    "hf_deployment_service", str(service_uuid)
+                    HUGGINGFACE_SERVICE_ARTIFACT, str(service_uuid)
                 )
                 hf_deployment_service_dict = service_artifact.run_metadata[
-                    "hf_deployment_service"
+                    HUGGINGFACE_SERVICE_ARTIFACT
                 ].dict()
 
                 existing_service = ServiceRegistry().load_service_from_dict(
