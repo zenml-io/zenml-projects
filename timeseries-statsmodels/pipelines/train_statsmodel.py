@@ -16,7 +16,8 @@
 #
 
 from steps import (
-    deploy_model_to_hf_hub
+    sarimax_trainer_step,
+    cpi_data_loader_step
 )
 
 from zenml import pipeline
@@ -26,8 +27,10 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def huggingface_deployment():
-    """This pipeline pushes the model to the hub."""
-    # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-    deploy_model_to_hf_hub()
+def train_statsmodel():
+    """This pipeline trains an individual statsmodel."""
+    # Load the data
+    data = cpi_data_loader_step()
+    
+    # Train the SARIMAX model
+    model = sarimax_trainer_step(data=data)

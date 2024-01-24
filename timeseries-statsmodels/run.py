@@ -56,22 +56,16 @@ Examples:
     help="Path to the YAML config file.",
 )
 @click.option(
-    "--feature-pipeline",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that creates the dataset.",
-)
-@click.option(
     "--training-pipeline",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that trains the model.",
 )
 @click.option(
-    "--deploy-pipeline",
+    "--inference-pipeline",
     is_flag=True,
     default=False,
-    help="Whether to run the pipeline that deploys the model.",
+    help="Whether to run the pipeline that inferences on latest data.",
 )
 @click.option(
     "--no-cache",
@@ -81,9 +75,8 @@ Examples:
 )
 def main(
     config: str = None,
-    feature_pipeline: bool = False,
     training_pipeline: bool = False,
-    deploy_pipeline: bool = False,
+    inference_pipeline: bool = False,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -116,20 +109,13 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, config
         )
-    
-    # Execute Feature Engineering Pipeline
-    if feature_pipeline:
-        pipeline_args = {}
-        from pipelines import generate_code_dataset
-        generate_code_dataset.with_options(**pipeline_args)()
-        logger.info("Feature Engineering pipeline finished successfully!\n")
-        
+
     elif training_pipeline:
-        from pipelines import finetune_starcoder
-        finetune_starcoder.with_options(**pipeline_args)()
+        from pipelines import train_statsmodel
+        train_statsmodel.with_options(**pipeline_args)()
         logger.info("Training pipeline finished successfully!\n")
-        
-    elif deploy_pipeline:
+
+    elif inference_pipeline:
         from pipelines import huggingface_deployment
         huggingface_deployment.with_options(**pipeline_args)()
         logger.info("Deployment pipeline finished successfully!\n")
