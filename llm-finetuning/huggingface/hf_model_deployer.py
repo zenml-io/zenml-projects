@@ -211,9 +211,9 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         model_uri: Optional[str] = None,
         model_type: Optional[str] = None,
     ) -> List[BaseService]:
-        """Find one or more Seldon Core model services that match the given criteria.
+        """Find one or more Huggingface model services that match the given criteria.
 
-        The Seldon Core deployment services that meet the search criteria are
+        The Huggingface deployment services that meet the search criteria are
         returned sorted in descending order of their creation time (i.e. more
         recent deployments first).
 
@@ -221,8 +221,8 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             running: if true, only running services will be returned.
             token: token required for huggingface authentication
             namespace: namespace if organization is used in huggingface
-            service_uuid: the UUID of the Seldon Core service that was
-                originally used to create the Seldon Core deployment resource.
+            service_uuid: the UUID of the Huggingface service that was
+                originally used to create the Huggingface deployment resource.
             pipeline_name: name of the pipeline that the deployed model was part
                 of.
             run_name: Name of the pipeline run which the deployed model was
@@ -231,14 +231,15 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                 that deployed the model.
             model_name: the name of the deployed model.
             model_uri: URI of the deployed model.
-            model_type: the Seldon Core server implementation used to serve
+            model_type: the Huggingface server implementation used to serve
                 the model
 
         Raises:
             TypeError: _description_
 
         Returns:
-            List[BaseService]: _description_
+            One or more Huggingface service objects representing Huggingface
+            model servers that match the input search criteria.
         """
         # Use a Huggingface deployment service configuration to compute the labels
         config = HuggingFaceServiceConfig(
