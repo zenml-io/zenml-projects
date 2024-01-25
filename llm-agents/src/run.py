@@ -18,7 +18,7 @@ from pipelines.agent_creator import docs_to_agent_pipeline
 
 
 def main():
-    version = "0.54.1"
+    version = "0.55.0"
     docs_url = f"https://docs.zenml.io/v/{version}/"
     website_url = "https://zenml.io"
     repo_url = f"https://github.com/zenml-io/zenml/tree/{version}/examples"

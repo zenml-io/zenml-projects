@@ -12,7 +12,8 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Annotated, List
+from typing_extensions import Annotated
+from typing import List
 
 from langchain.docstore.document import Document
 from langchain.embeddings import OpenAIEmbeddings
@@ -25,7 +26,9 @@ from zenml import step, log_artifact_metadata
 
 
 @step(enable_cache=True)
-def index_generator(documents: List[Document]) -> Annotated[VectorStore, "vector_store"]:
+def index_generator(
+    documents: List[Document],
+) -> Annotated[VectorStore, "vector_store"]:
     embeddings = OpenAIEmbeddings()
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
@@ -36,7 +39,7 @@ def index_generator(documents: List[Document]) -> Annotated[VectorStore, "vector
         metadata={
             "embedding_type": "OpenAIEmbeddings",
             "vector_store_type": "FAISS",
-        }
+        },
     )
 
     return FAISS.from_documents(compiled_texts, embeddings)
