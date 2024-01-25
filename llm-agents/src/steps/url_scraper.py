@@ -12,8 +12,8 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Annotated, List
-
+from typing import List
+from typing_extensions import Annotated
 from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
 from zenml import step, log_artifact_metadata
 
@@ -45,6 +45,6 @@ def url_scraper(
         artifact_name="urls",
         metadata={
             "count": len(all_urls),
-        }
+        },
     )
     return all_urls

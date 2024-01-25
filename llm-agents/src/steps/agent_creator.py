@@ -1,5 +1,5 @@
-import logging
-from typing import Annotated, Dict, cast
+from typing import Dict, Optional
+from typing_extensions import Annotated
 
 from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
@@ -8,7 +8,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema.vectorstore import VectorStore
 from langchain.tools.vectorstore.tool import VectorStoreQATool
 from langchain.agents import AgentExecutor
-from zenml.steps import BaseParameters
+from pydantic import BaseModel
 from zenml import step, ArtifactConfig, log_artifact_metadata
 
 
@@ -17,7 +17,7 @@ PIPELINE_NAME = "zenml_agent_creation_pipeline"
 CHARACTER = "technical assistant"
 
 
-class AgentParameters(BaseParameters):
+class AgentParameters(BaseModel):
     """Parameters for the agent."""
 
     llm: Dict = {
@@ -33,8 +33,10 @@ class AgentParameters(BaseParameters):
 
 @step(output_materializers=AgentExecutorMaterializer, enable_cache=False)
 def agent_creator(
-    vector_store: VectorStore, config: AgentParameters
-) -> Annotated[AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)]:
+    vector_store: VectorStore, config: AgentParameters = AgentParameters()
+) -> Annotated[
+    AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)
+]:
     """Create an agent from a vector store.
 
     Args:
@@ -81,7 +83,7 @@ def agent_creator(
                 "temperature": config.llm["temperature"],
                 "model_name": config.llm["model_name"],
             },
-        }
+        },
     )
 
     return agent_executor
