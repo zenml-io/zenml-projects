@@ -17,7 +17,8 @@
 
 from steps import (
     sarimax_trainer_step,
-    cpi_data_loader_step
+    cpi_data_loader_step,
+    sarimax_inference_step,
 )
 
 from zenml import pipeline
@@ -34,3 +35,6 @@ def train_and_infer_statsmodel(data_stream: str = None):
     
     # Train the SARIMAX model
     model = sarimax_trainer_step(data=data)
+
+    # Predict
+    sarimax_inference_step(data, model)

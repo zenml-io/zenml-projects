@@ -56,5 +56,5 @@ class StatsmodelMaterializer(CloudpickleMaterializer):
         describe_uri = os.path.join(self.uri, "describe.csv")
         describe_uri = describe_uri.replace("\\", "/")
         with fileio.open(describe_uri, mode="wb") as f:
-            fitted_model.summary().to_csv()
+            f.write(fitted_model.summary().as_csv().encode())
         return {describe_uri: VisualizationType.CSV}

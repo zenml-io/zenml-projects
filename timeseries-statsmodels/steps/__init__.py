@@ -16,4 +16,5 @@
 #
 
 from .trainer import sarimax_trainer_step
+from .inference import sarimax_inference_step
 from .data_loader import cpi_data_loader_step

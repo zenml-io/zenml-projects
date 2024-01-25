@@ -16,4 +16,6 @@ def sarimax_inference_step(
     """Train a SARIMAX model on the provided data."""
     # Make predictions
     pred = model.predict(len(df), len(df) + 287)
-    return pred
+    
+    return pd.concat([df, pred], axis=1)
+

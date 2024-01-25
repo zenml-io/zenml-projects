@@ -22,6 +22,8 @@ from zenml.io import fileio
 from zenml.logger import get_logger
 from zenml.materializers.pandas_materializer import PandasMaterializer
 from zenml.metadata.metadata_types import MetadataType
+import matplotlib.pyplot as plt
+
 
 logger = get_logger(__name__)
 
@@ -40,11 +42,30 @@ class StatsmodelPredictionMaterializer(PandasMaterializer):
         Returns:
             A dictionary of visualization URIs and their types.
         """
-        describe_uri = os.path.join(self.uri, "describe.csv")
-        describe_uri = describe_uri.replace("\\", "/")
-        with fileio.open(describe_uri, mode="wb") as f:
-            df.describe().to_csv(f)
-        return {describe_uri: VisualizationType.CSV}
+        # Save image 
+        
+        data_df = df["DATA"]
+        pred = df["PRED"] 
+        
+        image_uri = os.path.join(self.uri, "plot.png")
+        plt.figure(figsize=(10, 6))
+        plt.plot(data_df.index, data_df.values, label='Historical')
+        plt.plot(pd.date_range(data_df.index[-1], periods=289)[1:], pred, label='Predicted')
+        plt.title('Airline Passengers (5-minute intervals)')
+        plt.legend()
+        plt.show()
+        
+        with fileio.open(image_uri, mode="wb") as f:
+            plt.savefig(f)
+
+        predictions_path = os.path.join(self.uri, "predictions.csv")
+        predictions_path = predictions_path.replace("\\", "/")
+        with fileio.open(predictions_path, mode="wb") as f:
+            pred.to_csv(f)
+        return {
+            predictions_path: VisualizationType.CSV,
+            image_uri: VisualizationType.IMAGE
+        }
 
     def extract_metadata(
         self, df: Union[pd.DataFrame, pd.Series]
@@ -57,8 +78,11 @@ class StatsmodelPredictionMaterializer(PandasMaterializer):
         Returns:
             The extracted metadata as a dictionary.
         """
+        # Call parent method
         pandas_metadata: Dict[str, "MetadataType"] = super().extract_metadata(
             df
         )
 
+        # Add more visualizatons
+        
         return pandas_metadata
