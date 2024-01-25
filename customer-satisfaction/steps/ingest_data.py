@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from zenml.steps import step
+from zenml import step
 
 
 class IngestData:
@@ -20,9 +20,8 @@ class IngestData:
 
 @step
 def ingest_data() -> pd.DataFrame:
-    """
-    Args:
-        None
+    """ Ingest Data and return a Dataframe with the whole dataset.
+
     Returns:
         df: pd.DataFrame
     """

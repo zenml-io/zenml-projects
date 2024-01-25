@@ -3,12 +3,16 @@ extend-exclude = ["*.csv", "sign-language-detection-yolov5/*", "orbit-user-analy
 
 [default.extend-identifiers]
 #  HashiCorp = "HashiCorp"
-
+connexion = "connexion"
+preprocesser = "preprocesser"
+Preprocesser = "Preprocesser"
 
 [default.extend-words]
 #  aks = "aks"
 GOES = "GOES"
-
+lenght = "lenght"
+preprocesser = "preprocesser"
+Preprocesser = "Preprocesser"
 
 [default]
 locale = "en-us"

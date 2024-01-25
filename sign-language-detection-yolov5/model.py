@@ -32,7 +32,11 @@ class WrapperModel(torch.nn.Module):
 
         # Load model
         device = select_device("")
-        stride, names, pt, = (
+        (
+            stride,
+            names,
+            pt,
+        ) = (
             self.model.stride,
             self.model.names,
             self.model.pt,

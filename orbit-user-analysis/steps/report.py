@@ -9,13 +9,12 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 from datetime import datetime
-from typing import Tuple, List, Any
-
-from discord import SyncWebhook, Embed
-from zenml import step
+from typing import Any, List, Tuple
 
 from constants import BOOMING_TAG, CHURNED_TAG
-from steps.utils import list_members, get_orbit_secrets, get_discord_secret
+from discord import Embed, SyncWebhook
+from steps.utils import get_discord_secret, get_orbit_secrets, list_members
+from zenml import step
 
 
 def generate_link(tag: str, days: int) -> str:
@@ -31,11 +30,13 @@ def generate_link(tag: str, days: int) -> str:
 
     workspace, _ = get_orbit_secrets()
 
-    return f"https://app.orbit.love/{workspace}/members" \
-           f"?affiliation_equals=false" \
-           f"&tags_contains_any_of%5B%5D={tag}" \
-           f"&activity_type_integer_is_set%5B0%5D=" \
-           f"&timeframe_date_relative%5B0%5D=this_{days}_days"
+    return (
+        f"https://app.orbit.love/{workspace}/members"
+        f"?affiliation_equals=false"
+        f"&tags_contains_any_of%5B%5D={tag}"
+        f"&activity_type_integer_is_set%5B0%5D="
+        f"&timeframe_date_relative%5B0%5D=this_{days}_days"
+    )
 
 
 @step
@@ -49,8 +50,10 @@ def report(check_days: int = 180) -> Tuple[List[Any], List[Any]]:
 
     discord_webhook = SyncWebhook.from_url(get_discord_secret())
 
-    content = "Member analysis report generated at " \
-              f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}"
+    content = (
+        "Member analysis report generated at "
+        f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}"
+    )
 
     embeds = []
     for tag in [BOOMING_TAG, CHURNED_TAG]:
@@ -58,9 +61,9 @@ def report(check_days: int = 180) -> Tuple[List[Any], List[Any]]:
             Embed(
                 title=f"{tag} users".upper(),
                 description=f"Link to the Orbit members page, which is "
-                            f"prefiltered to include members with the `{tag}` "
-                            f"tag and who have been active at least once "
-                            f"in the last {check_days} days!",
+                f"prefiltered to include members with the `{tag}` "
+                f"tag and who have been active at least once "
+                f"in the last {check_days} days!",
                 url=generate_link(tag=tag, days=check_days),
                 colour=12745742,
             )

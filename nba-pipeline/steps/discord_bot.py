@@ -1,8 +1,8 @@
+import json
+
 import pandas as pd
 import requests
-from evidently.model_profile import Profile  # type: ignore
 from zenml.steps import step
-import json
 
 # This is a private ZenML Discord channel. We will get notified if you use
 # this, but you won't be able to see it. Feel free to create a new Discord

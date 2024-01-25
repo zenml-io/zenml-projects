@@ -11,6 +11,7 @@ from pipelines.prediction_pipeline import inference_pipeline
 from pipelines.training_pipeline import training_pipeline
 from steps.analyzer import analyze_drift
 from steps.discord_bot import discord_alert, discord_post_prediction
+from steps.drift_reporter import evidently_drift_detector
 from steps.encoder import data_encoder, encode_columns_and_clean
 from steps.evaluator import tester
 from steps.feature_engineer import feature_engineer
@@ -18,7 +19,6 @@ from steps.importer import (
     game_data_importer_offline,
     import_season_schedule_offline,
 )
-from steps.drift_reporter import evidently_drift_detector
 from steps.model_picker import model_picker
 from steps.post_processor import data_post_processor
 from steps.predictor import predictor

@@ -13,14 +13,12 @@
 #  permissions and limitations under the License.
 
 
-from pipelines import community_analysis_pipeline
-
 import argparse
 
+from pipelines import community_analysis_pipeline
 from zenml.config.schedule import Schedule
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
     group = parser.add_mutually_exclusive_group()

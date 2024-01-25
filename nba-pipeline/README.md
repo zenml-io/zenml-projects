@@ -125,12 +125,12 @@ python run_pipeline.py infer  # Run inference pipeline
 
 ## :rocket: From Local to Cloud Stack
 In ZenML you can choose to run your pipeline on any infrastructure of your choice.
-The configuration of the infrastructure is called a [Stack](https://docs.zenml.io/user-guide/starter-guide/understand-stacks). 
+The configuration of the infrastructure is called a [Stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks). 
 By switching the Stack, you can choose to run your pipeline locally or in the cloud.
 
-In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#components-of-a-stack): 
-* [Orchestrator](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#orchestrator) - Coordinates all the steps to run in a pipeline.
-* [Artifact Store](https://docs.zenml.io/user-guide/starter-guide/understand-stacks#artifact-store) - Stores all data that pass through the pipeline. 
+In any Stack, there must be at least two basic [Stack Components](https://docs.zenml.io/user-guide/production-guide/understand-stacks#components-of-a-stack): 
+* [Orchestrator](https://docs.zenml.io/user-guide/production-guide/understand-stacks#orchestrator) - Coordinates all the steps to run in a pipeline.
+* [Artifact Store](https://docs.zenml.io/user-guide/production-guide/understand-stacks#artifact-store) - Stores all data that pass through the pipeline. 
 
 ZenML comes with a default local stack with a local orchestrator and local artifact store.
 ![local](_assets/local_cloud.png)

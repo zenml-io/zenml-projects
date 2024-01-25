@@ -154,7 +154,6 @@ def generate_single_source_command(
     # Extract and add the step parameters to the Click command
     properties = source_params.schema()["properties"]
     for property_name, property_values in properties.items():
-
         property_type = property_values.get("type", None)
         property_default = property_values.get("default", None)
         property_description = property_values.get("description", "")

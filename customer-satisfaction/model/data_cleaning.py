@@ -52,6 +52,9 @@ class DataCleaning:
             ]
             self.df = self.df.drop(cols_to_drop, axis=1)
 
+            # Catchall fillna in case any where missed
+            self.df.fillna(self.df.mean(), inplace=True)
+
             return self.df
         except Exception as e:
             logging.error(e)

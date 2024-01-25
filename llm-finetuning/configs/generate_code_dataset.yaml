@@ -1,0 +1,14 @@
+# environment configuration
+settings:
+  docker:
+    requirements: requirements.txt
+
+# pipeline configuration
+parameters:
+  dataset_id: htahir1/zenml-codegen-v1
+
+steps:
+  mirror_repositories:
+    parameters:
+      repositories:
+        - zenml

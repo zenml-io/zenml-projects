@@ -24,10 +24,7 @@ def get_label_encoder(
     """
     training_pipeline = get_pipeline(pipeline_name=pipeline_name)
     return (
-        training_pipeline.runs[0]
-        .get_step(name=step_name)
-        .outputs[name]
-        .read()
+        training_pipeline.runs[0].get_step(name=step_name).outputs[name].read()
     )
 
 
