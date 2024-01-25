@@ -1,0 +1,12 @@
+langchain==0.0.325
+openai==0.28.1
+zenml==0.55.0
+fastapi
+flask
+uvicorn
+gcsfs==2023.5.0
+faiss-cpu==1.7.3
+unstructured==0.5.7
+tiktoken
+bs4
+typing_extensions

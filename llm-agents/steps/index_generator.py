@@ -1,4 +1,4 @@
-#  Copyright (c) ZenML GmbH 2023. All Rights Reserved.
+#  Copyright (c) ZenML GmbH 2024. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,8 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-import os
 
+from typing_extensions import Annotated
 from typing import List
 
 from langchain.docstore.document import Document
@@ -20,17 +20,26 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
-from langchain.vectorstores import FAISS, VectorStore
-from zenml import step
-from zenml.client import Client
+from langchain.schema.vectorstore import VectorStore
+from langchain.vectorstores.faiss import FAISS
+from zenml import step, log_artifact_metadata
 
 
-@step(enable_cache=False)
-def index_generator(documents: List[Document]) -> VectorStore:
-    os.environ["OPENAI_API_KEY"] = Client().get_secret("langchain_project_secret").secret_values["openai_api_key"]
+@step
+def index_generator(
+    documents: List[Document],
+) -> Annotated[VectorStore, "vector_store"]:
     embeddings = OpenAIEmbeddings()
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)
+
+    log_artifact_metadata(
+        artifact_name="vector_store",
+        metadata={
+            "embedding_type": "OpenAIEmbeddings",
+            "vector_store_type": "FAISS",
+        },
+    )
 
     return FAISS.from_documents(compiled_texts, embeddings)

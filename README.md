@@ -70,7 +70,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [LLMs To Analyze Databases](supabase-openai-summary)                   | NLP, LLMs                             | `gcp` `slack`                                                            |
 | [GitFlow ZenML Project](https://github.com/zenml-io/zenml-gitflow)     | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
 | [ZenNews](zen-news-summarization)                                      | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| [Langchain Slackbot](langchain-llamaindex-slackbot)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
+| [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
 | [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
 

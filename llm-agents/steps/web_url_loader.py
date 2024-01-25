@@ -1,4 +1,4 @@
-#  Copyright (c) ZenML GmbH 2023. All Rights Reserved.
+#  Copyright (c) ZenML GmbH 2024. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,4 +12,24 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-LATEST_ZENML_VERSION = "0.44.1"
+from typing import List
+
+from langchain.docstore.document import Document
+from langchain.document_loaders import UnstructuredURLLoader
+from zenml import step
+
+
+@step
+def web_url_loader(urls: List[str]) -> List[Document]:
+    """Loads documents from a list of URLs.
+
+    Args:
+        urls: List of URLs to load documents from.
+
+    Returns:
+        List of langchain documents.
+    """
+    loader = UnstructuredURLLoader(
+        urls=urls,
+    )
+    return loader.load()
