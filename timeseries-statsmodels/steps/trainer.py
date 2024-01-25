@@ -4,9 +4,10 @@ import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAXResultsWrapper, SARIMAX
 from typing_extensions import Annotated
 from zenml import step, ArtifactConfig
+from materializers.statsmodel_materializer import StatsmodelMaterializer
 
 
-@step
+@step(output_materializers=StatsmodelMaterializer)
 def sarimax_trainer_step(
     data: pd.DataFrame,
     order: Tuple[int, int, int] = (1, 1, 1),

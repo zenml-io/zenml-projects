@@ -6,7 +6,6 @@ from typing_extensions import Annotated
 
 logger = get_logger(__name__)
 
-
 @step
 def cpi_data_loader_step(
     data_stream: str,

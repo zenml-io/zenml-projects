@@ -11,6 +11,5 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-"""Implementation of the Huggingface Trainer materializer."""
+"""Implementation of custom materializers."""
 
-from .huggingface_model_materializer import HFTrainerMaterializer, DEFAULT_TRAINER_MODEL_DIR
