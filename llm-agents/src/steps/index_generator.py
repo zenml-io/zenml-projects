@@ -19,7 +19,8 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
-from langchain.vectorstores import FAISS, VectorStore
+from langchain.schema.vectorstore import VectorStore
+from langchain.vectorstores.faiss import FAISS
 from zenml import step, log_artifact_metadata
 
 

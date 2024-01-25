@@ -5,7 +5,7 @@ from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
 from langchain.agents import ConversationalChatAgent
 from langchain.chat_models import ChatOpenAI
-from langchain.vectorstores import VectorStore
+from langchain.schema.vectorstore import VectorStore
 from langchain.tools.vectorstore.tool import VectorStoreQATool
 from langchain.agents import AgentExecutor
 from zenml.steps import BaseParameters
