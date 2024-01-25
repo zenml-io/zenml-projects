@@ -18,29 +18,30 @@ Upon a closer look and while using the agents in production, however, we need to
 
 ## ZenML 🤝 LLM frameworks
 
-There are various terms being tried out to describe this new paradigm — from LLMOps to Big Model Ops. Not only the words used to describe how engineering will work are new, but the underlying structures and frameworks are also being developed from the ground up. We wanted to witness these changes first-hand by participating and getting our hands dirty.
+There are various terms being tried out to describe this new paradigm — from LLMOps to Big Model Ops. We wanted to experience how users of ZenML might go about using our framework to integrate with these tools and models. We had seen lots of demos showcasing useful and striking use cases, but none were some of the complexities around deploying these in production were raised.
 
-In particular, we wanted to experience how users of ZenML might go about using our framework to integrate with these tools and models. We had seen lots of demos showcasing useful and striking use cases, but none were some of the complexities around deploying these in production were raised.
+What we showcase in this project is a way to build a pipeline around the vector store, and consequently the agent creation . This allows us to automate all the manual steps, among other benefits like making use of caching, tracking artifacts and more!
 
-Starting out, we wanted to get a feel for the two well-known options for developing on top of large language models — that is, LangChain and Llama Index — by trying out some of their core functionality. In particular, loading a series of documents, doing some kind of querying of those documents and packaging this all up into some kind of frontend user experience seemed like good places to start.
+## The Agent Creation Pipeline
 
-![The big-picture workflow](assets/slackbot/big-picture-workflow.png)
+![LLM Agent architecture](./assets/llm-agent/image.jpg)
 
-We approached the problem by dividing it into two main parts, each addressing a specific aspect of the project. The first part focused on creating the ZenML pipeline, while the second part concentrated on the larger workflow that would automate the bot updates.
+We build a ZenML pipeline to handle data ingestion, construct the vector store, and save the resulting data in the ZenML artifact store. We then create an Agent using the vector store as one of its tools. The pipeline consists of the following big-picture actions:
 
-## Part 1: Creating the Index with a ZenML Pipeline
+- Data Ingestion: We use the `langchain` framework to load a series of documents from various sources such as GitHub and Slack. This data will serve as the basis for our vector store.
+- Vector Store Construction: Once the data is ingested, we apply the necessary preprocessing and transform it into a suitable format for querying. We then use the large language models to create a vector store, which will enable us to search and retrieve relevant information efficiently.
+- Creating an Agent: We then create an agent object using the vector store as one of its tool, which would empower it to answer questions about ZenML.
 
-In the first part of the project, we built a ZenML pipeline to handle data ingestion, construct the vector store, and save the resulting data in the ZenML artifact store. The pipeline consisted of the following big-picture actions:
+ZenML stores the outputs of all the steps in an artifact store that you configure as part of your ZenML stack and makes them available across all other steps.
 
-- Data Ingestion: We used the `langchain` and `llama_index` frameworks to load a series of documents from various sources such as GitHub and Slack. This data would serve as the basis for our vector store.
-- Vector Store Construction: Once the data was ingested, we applied the necessary preprocessing and transformed it into a suitable format for querying. We then used the large language models to create a vector store, which would enable us to search and retrieve relevant information efficiently.
-- Saving to ZenML Artifact Store: The final piece was to save the resulting vector store in the ZenML artifact store. This allowed us to have a versioned and easily accessible storage system for our indexed data.
 
-![The steps run in our ZenML pipeline](assets/slackbot/slackbot_pipeline_project.png)
+### Data Sources
 
 We thought about the kinds of data sources we'd want to be queried when users entered their queries. We take a lot of pride and effort to maintain our documentation so that was an obvious one to include. We considered adding [the `README` files of our `examples`](https://github.com/zenml-io/zenml/tree/main/examples) since that's often a starting point for our users, and we thought [our release notes](https://github.com/zenml-io/zenml/blob/main/RELEASE_NOTES.md) would also be useful to be part of the context.
 
-Getting all of this together was not too hard, and LangChain and Llama Index released new versions that helped with obtaining Slack messages and documentation from Gitbook. In the end we wanted more flexibility than was available from the pre-built document loaders, so we just used the generic loader for web content along with a custom scraper to get a list of all URLs available for our docs and examples READMEs.
+Getting all of this together was not too hard, and LangChain has functions that help with obtaining Slack messages and documentation from Gitbook. In the end we wanted more flexibility than was available from the pre-built document loaders, so we just used the generic loader for web content along with a custom scraper to get a list of all URLs available for our docs and examples READMEs.
+
+### Vector Store
 
 We settled on using a vector store as the way to query our documentation. This seems to be a common way to do this when your texts are quite large. You don't want to have to send your entire corpus over to OpenAI (or whoever is providing your LLM) since most of it will be irrelevant to the specific question at hand. Instead, what you want is a way to get only the top handful of useful chunks of information and pass them on to your LLM along with a prompt and the original question.
 
@@ -48,21 +49,32 @@ We used the [FAISS](https://faiss.ai) Vector Store. FAISS (Facebook AI Similarit
 
 The documents downloaded in earlier steps are split up into small 1000-character chunks, then combined together with embeddings and fed into the vector store. This special combination is what allows us to query a large corpus of text.
 
-## Part 2: Deploying the ZenML Bot with an automated workflow
+### Agent
 
-The second part of the project focused on setting up a continuous integration and continuous deployment (CI/CD) workflow to ensure that the bot would be updated automatically whenever a new release was made. This process involved the following steps:
+An agent is essentially the part of the LLM application that coordinates or orchestrates the communication between the LLM and a set of tools. It gives the LLM the power to run functions and makes the outputs of those functions available back to the model for further tasks or for constructing a final answer.
 
-- Triggering the Pipeline: We configured the pipeline to run automatically whenever a new release was made, ensuring that the most up-to-date data would be used for the bot's functionality.
-- Running the ZenML Pipeline: As part of the workflow, the ZenML pipeline would be executed, updating the vector store with the latest data and ensuring that the bot would be able to retrieve the most relevant information for user queries.
-- Deploying the Updated Bot: Once the pipeline had successfully run and the updated vector store was saved in the ZenML artifact store, the new version of the bot was automatically deployed to Slack. This ensured that users would always interact with the most current version of the bot, providing the best possible user experience.
+We can choose to write an agent ourselves, or use any abstraction from one of the LLM frameworks like LangChain. We used the `ConversationalChatAgent` class defined by LangChain which is based on the base agent abstraction. We can customise the agent using the prompt that is supplied to it on creation. You can see that we use characters as a way to influence the style of output of the model.
 
-![Our automated workflow for updating the Slack bot](assets/slackbot/slack-automated-redeployment.png)
+## ZenML Cloud
 
-The Slack bot itself wasn't too hard to put together. Our pattern of use was simple and well-defined. The only unusual part was using the vector store that had been generated in our pipeline as the basis for incoming Slack messages. We deployed our bot inside a container along with a way to query ZenML for the vector store on initialization. It's now up and running courtesy of Google Cloud Run.
+The [ZenML Cloud](https://www.zenml.io/cloud) offers multi-tenant, fully-managed ZenML deployments. The servers come with a host of advanced features like built-in roles for access control, a new dashboard for monitoring and visualizing your pipelines, a model control plane that tracks your ML models across pipelines along with all the artifacts and metadata associated with them, and much more.
 
-In summary, our project combined the power of ZenML with the capabilities of `langchain` and `llama_index` to create an automated system that not only indexed data from our documentation but also updated the bot continuously. This approach allowed us to harness the potential of large language models in a production setting while also getting hands-on experience with the emerging field of LLMOps or Big Model Ops.
+You can sign up for a free trial of the cloud at https://cloud.zenml.io. Once signed up you can connect to it using the command below.
 
-We deal with a decent volume of support requests in Slack, from the ultra-specific involving on-prem deployments to beginners just getting started. We estimate that allowing our community to freely query the documentation with their questions will save us 10% of our time. We also think it will be extremely helpful for those in the early days of their journey who won't necessarily be familiar with every page of our documentation and who just want to get moving forward and to try things out. Perhaps most importantly, we hope that the bot will help new ZenML users and community members to feel empowered to ask all the questions they need, without any feeling like they're taking time from someone else.
+### Models Tab in the Dashboard
+
+The models tab acts as a central control plane for all of your models. You can view the different versions that get created implictly with your pipeline runs, check their metadata, deployments and more!
+
+![model versions](./assets/llm-agent/model_versions.png)
+
+A model version can have one of the following stages: Staging, Production, Archived, No stage. The Dashboard allows you to easily promote a version to either staging and production. The model can then be consumed by another pipeline that serves whatever the production model is.
+
+![model promotion](./assets/llm-agent/model_promotion.png)
+
+Clicking on a model version can show you more details, like the metadata associated with it. In the case of this project, you can find the questions that are asked to a specific version of the agent and the answers that the agent supplies, attached as metadata. This is super helpful when you want to track the quality of responses over different experiments.
+
+![model version metadata](./assets/llm-agent/model_version_metadata.png)
+
 
 ## Installation
 
@@ -70,7 +82,7 @@ Install the required packages via the `requirements.txt` file located in the
 `/src` directory.
 
 ```bash
-pip install -r src/requirements-slackbot.txt
+pip install -r src/requirements.txt
 ```
 
 ## Running it locally
@@ -86,16 +98,9 @@ Note that the pipeline is configured to generate artifacts relating to ZenML's
 documentation and examples. If you want to adapt this project to generate
 artifacts for your own data, you can change values as appropriate.
 
-The Slack bot can be locally tested using the `local_testing_slackbot.py` file
-but note that you will need to set up your own Slack workspace and bot in order
-to do so. You can find more information on how to do this in the instructions
-for [our Generative Chat
-example](https://github.com/zenml-io/zenml/tree/develop/examples/generative_chat).
-
 ## Running it on GCP
 
-It is much more ideal to run a pipeline such as the 
-`zenml_docs_index_generation` on a regular schedule. In order to achieve that, 
+It is much more ideal to run a pipeline like the agent creation pipeline on a regular schedule. In order to achieve that, 
 you have to [deploy ZenML](https://docs.zenml.io/user-guide/starter-guide/switch-to-production) 
 and set up a stack that supports 
 [our scheduling
@@ -106,9 +111,3 @@ Store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stor
 certain code artifacts like the `Dockerfile` for this project will also need to
 be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices) 
 for more information.
-
-## Slack Bot In Action!
-
-If you'd like to see our Slack bot in action, feel free to [join us in
-Slack](https://zenml.io/slack) and get help on your problems even when the core
-team are asleep! Just mention `@zenml-bot` and you'll be on your way!
