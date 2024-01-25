@@ -48,12 +48,12 @@ class StatsmodelPredictionMaterializer(PandasMaterializer):
         pred = df["PRED"] 
         
         image_uri = os.path.join(self.uri, "plot.png")
+        breakpoint()
         plt.figure(figsize=(10, 6))
         plt.plot(data_df.index, data_df.values, label='Historical')
         plt.plot(pd.date_range(data_df.index[-1], periods=289)[1:], pred, label='Predicted')
         plt.title('Airline Passengers (5-minute intervals)')
         plt.legend()
-        plt.show()
         
         with fileio.open(image_uri, mode="wb") as f:
             plt.savefig(f)
@@ -78,9 +78,10 @@ class StatsmodelPredictionMaterializer(PandasMaterializer):
         Returns:
             The extracted metadata as a dictionary.
         """
+        pred = df["PRED"] 
         # Call parent method
         pandas_metadata: Dict[str, "MetadataType"] = super().extract_metadata(
-            df
+            pred
         )
 
         # Add more visualizatons

@@ -29,7 +29,5 @@ def sarimax_trainer_step(
     )
     res_mle = model.fit(disp=False)
 
-    print(res_mle.summary())
-
     # Return the fitted model
     return res_mle
