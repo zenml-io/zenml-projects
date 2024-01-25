@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from typing_extensions import Annotated
 
 from agent.agent_executor_materializer import AgentExecutorMaterializer
@@ -31,7 +31,7 @@ class AgentParameters(BaseModel):
         extra = "ignore"
 
 
-@step(output_materializers=AgentExecutorMaterializer, enable_cache=False)
+@step(output_materializers=AgentExecutorMaterializer)
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters = AgentParameters()
 ) -> Annotated[

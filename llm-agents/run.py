@@ -12,29 +12,50 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import logging
+import os
+from pipelines.agent_creator import zenml_agent_creation_pipeline
 
-from pipelines.agent_creator import docs_to_agent_pipeline
+import click
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
-def main():
-    version = "0.55.0"
-    docs_url = f"https://docs.zenml.io/v/{version}/"
-    website_url = "https://zenml.io"
-    repo_url = f"https://github.com/zenml-io/zenml/tree/{version}/examples"
-    release_notes_url = (
-        f"https://github.com/zenml-io/zenml/blob/{version}/RELEASE_NOTES.md"
+@click.command(
+    help="""
+ZenML Starter project.
+
+Run the ZenML starter project with basic options.
+
+Examples:
+
+  \b
+  # Run the pipeline with config.yaml in the configs folder
+    python run.py --config config.yaml
+
+"""
+)
+@click.option(
+    "--config",
+    type=str,
+    default="agent_config.yaml",
+    help="Path to the YAML config file.",
+)
+def main(
+    config: str = "agent_config.yaml",
+):
+    """Main entry point for the pipeline execution."""
+    config_folder = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "configs",
     )
+    pipeline_args = {}
+    if config:
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, config
+        )
 
-    docs_to_agent_pipeline(
-        website_url=website_url,
-        docs_url=docs_url,
-        repo_url=repo_url,
-        release_notes_url=release_notes_url,
-    )
-
-
+    zenml_agent_creation_pipeline.with_options(**pipeline_args)()
+    
 if __name__ == "__main__":
-    logging.basicConfig(level="INFO")
-    logging.getLogger().setLevel(logging.INFO)
     main()

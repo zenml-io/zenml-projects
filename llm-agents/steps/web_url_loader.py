@@ -19,7 +19,7 @@ from langchain.document_loaders import UnstructuredURLLoader
 from zenml import step
 
 
-@step(enable_cache=True)
+@step
 def web_url_loader(urls: List[str]) -> List[Document]:
     """Loads documents from a list of URLs.
 

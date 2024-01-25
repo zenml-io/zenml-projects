@@ -25,7 +25,7 @@ from langchain.vectorstores.faiss import FAISS
 from zenml import step, log_artifact_metadata
 
 
-@step(enable_cache=True)
+@step
 def index_generator(
     documents: List[Document],
 ) -> Annotated[VectorStore, "vector_store"]:

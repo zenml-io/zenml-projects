@@ -18,12 +18,11 @@ from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
 from zenml import step, log_artifact_metadata
 
 
-@step(enable_cache=False)
+@step
 def url_scraper(
-    docs_url: str = "",
-    repo_url: str = "",
-    release_notes_url: str = "",
-    website_url: str = "",
+    docs_url: str = "https://docs.zenml.io",
+    repo_url: str = "https://github.com/zenml-io/zenml",
+    website_url: str = "https://zenml.io",
 ) -> Annotated[List[str], "urls"]:
     """Generates a list of relevant URLs to scrape.
 
@@ -36,13 +35,14 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
+    
+    # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
     # docs_urls = get_all_pages(docs_url)
     # website_urls = get_all_pages(website_url)
-    # all_urls = docs_urls + website_urls + [release_notes_url]
+    # all_urls = docs_urls + website_urls + examples_readme_urls
     all_urls = [website_url]
     log_artifact_metadata(
-        artifact_name="urls",
         metadata={
             "count": len(all_urls),
         },
