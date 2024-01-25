@@ -53,6 +53,33 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         """
         return HuggingFaceModelDeployerSettings
 
+    def modify_endpoint_name(
+        self, endpoint_name: str, artifact_version: str
+    ) -> str:
+        """Modify endpoint name by adding suffix and prefix.
+
+        It adds a prefix "zenml-" if not present and a suffix
+        of first 8 characters of uuid.
+
+        Args:
+            endpoint_name (str): Name of the endpoint
+            artifact_version (str): Name of the artifact version
+
+        Returns:
+            Modified endpoint name
+        """
+
+        # Add zenml prefix if endpoint name is not set
+        # or it does not start with "zenml-"
+        if not endpoint_name and not endpoint_name.startswith("zenml-"):
+            endpoint_name = "zenml-" + endpoint_name
+        else:
+            endpoint_name = "zenml-"
+
+        # Add first 8 characters of UUID to endpoint name
+        endpoint_name += artifact_version
+        return endpoint_name
+
     def _create_new_service(
         self, timeout: int, config: HuggingFaceServiceConfig
     ) -> HuggingFaceDeploymentService:
@@ -70,12 +97,14 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         # create a new service for the new model
         service = HuggingFaceDeploymentService(config)
 
-        service_metadata = service.dict()
         # Use first 8 characters of UUID as artifact version
+        # Add same 8 characters as suffix to endpoint name
+        service_metadata = service.dict()
         artifact_version = str(service_metadata["uuid"])[:8]
 
-        # Add first 8 characters of UUID to endpoint name
-        service.config.endpoint_name += artifact_version
+        service.config.endpoint_name = self.modify_endpoint_name(
+            service.config.endpoint_name, artifact_version
+        )
 
         logger.info(
             f"Creating an artifact {HUGGINGFACE_SERVICE_ARTIFACT} with service instance attached as metadata."
@@ -83,6 +112,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         )
 
         service_metadata = service.dict()
+
         save_artifact(
             service,
             HUGGINGFACE_SERVICE_ARTIFACT,
@@ -120,7 +150,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
     def deploy_model(
         self,
         config: ServiceConfig,
-        replace: bool = False,
+        replace: bool = True,
         timeout: int = DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     ) -> BaseService:
         """Create a new Huggingface deployment service or update an existing one.
@@ -147,14 +177,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         """
         config = cast(HuggingFaceServiceConfig, config)
         service = None
-
-        # Add zenml prefix
-        if not config.endpoint_name and not config.endpoint_name.startswith(
-            "zenml-"
-        ):
-            config.endpoint_name = "zenml-" + config.endpoint_name
-        else:
-            config.endpoint_name = "zenml-"
 
         # if replace is True, remove all existing services
         if replace is True:
@@ -191,6 +213,15 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                 f"Updating an existing Huggingface deployment service: {service}"
             )
             service.stop(timeout=timeout, force=True)
+
+            # Default endpoint name is set to ""
+            # Using same name as endpoint name results in Bad name
+            service_metadata = service.dict()
+            artifact_version = str(service_metadata["uuid"])[:8]
+            config.endpoint_name = self.modify_endpoint_name(
+                config.endpoint_name, artifact_version
+            )
+
             service.update(config)
             service.start(timeout=timeout)
         else:
@@ -269,29 +300,36 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
 
                 # Fetch the saved metadata artifact from zenml server to recreate service
                 client = Client()
-                service_artifact = client.get_artifact_version(
-                    HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
-                )
-                hf_deployment_service_dict = service_artifact.run_metadata[
-                    HUGGINGFACE_SERVICE_ARTIFACT
-                ].dict()
+                try:
+                    service_artifact = client.get_artifact_version(
+                        HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
+                    )
+                    hf_deployment_service_dict = service_artifact.run_metadata[
+                        HUGGINGFACE_SERVICE_ARTIFACT
+                    ].dict()
 
-                existing_service = ServiceRegistry().load_service_from_dict(
-                    hf_deployment_service_dict["body"]["value"]
-                )
-
-                if not isinstance(
-                    existing_service, HuggingFaceDeploymentService
-                ):
-                    raise TypeError(
-                        f"Expected service type HuggingFaceDeploymentService but got "
-                        f"{type(existing_service)} instead"
+                    existing_service = (
+                        ServiceRegistry().load_service_from_dict(
+                            hf_deployment_service_dict["body"]["value"]
+                        )
                     )
 
-                existing_service.update_status()
-                if self._matches_search_criteria(existing_service, config):
-                    if not running or existing_service.is_running:
-                        services.append(cast(BaseService, existing_service))
+                    if not isinstance(
+                        existing_service, HuggingFaceDeploymentService
+                    ):
+                        raise TypeError(
+                            f"Expected service type HuggingFaceDeploymentService but got "
+                            f"{type(existing_service)} instead"
+                        )
+
+                    existing_service.update_status()
+                    if self._matches_search_criteria(existing_service, config):
+                        if not running or existing_service.is_running:
+                            services.append(
+                                cast(BaseService, existing_service)
+                            )
+                except KeyError:
+                    pass
 
         return services
 
