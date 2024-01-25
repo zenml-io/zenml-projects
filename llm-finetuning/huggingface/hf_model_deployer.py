@@ -56,7 +56,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
 
     @property
     def deployed_endpoints(self) -> List[InferenceEndpoint]:
-        """Get deployed endpoint from Huggingface
+        """Get list of deployed endpoint from Huggingface.
 
         Returns:
             List of deployed endpoints.
@@ -75,11 +75,11 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         of first 8 characters of uuid.
 
         Args:
-            endpoint_name (str): Name of the endpoint
-            artifact_version (str): Name of the artifact version
+            endpoint_name : Name of the endpoint
+            artifact_version: Name of the artifact version
 
         Returns:
-            Modified endpoint name
+            Modified endpoint name with added prefix and suffix
         """
 
         # Add zenml prefix if endpoint name is not set
@@ -223,7 +223,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             logger.info(
                 f"Updating an existing Huggingface deployment service: {service}"
             )
-            service.stop(timeout=timeout, force=True)
 
             # Default endpoint name is set to ""
             # Using same name as endpoint name results in Bad name
@@ -233,6 +232,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                 config.endpoint_name, artifact_version
             )
 
+            service.stop(timeout=timeout, force=True)
             service.update(config)
             service.start(timeout=timeout)
         else:
@@ -297,21 +297,26 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         for endpoint in self.deployed_endpoints:
             if endpoint.name.startswith("zenml-"):
                 artifact_version = endpoint.name[-8:]
+                # If service_uuid is supplied, fetch service for that uuid
+                if (
+                    service_uuid is not None
+                    and str(service_uuid)[:8] != artifact_version
+                ):
+                    continue
 
                 # Fetch the saved metadata artifact from zenml server to recreate service
                 client = Client()
-
                 try:
                     service_artifact = client.get_artifact_version(
-                        HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
+                        HUGGINGFACE_SERVICE_ARTIFACT, artifact_version
                     )
                     hf_deployment_service_dict = service_artifact.run_metadata[
                         HUGGINGFACE_SERVICE_ARTIFACT
-                    ].dict()
+                    ].value
 
                     existing_service = (
                         ServiceRegistry().load_service_from_dict(
-                            hf_deployment_service_dict["body"]["value"]
+                            hf_deployment_service_dict
                         )
                     )
 
