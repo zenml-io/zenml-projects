@@ -14,7 +14,7 @@
 
 import logging
 
-from pipelines.index_builder import docs_to_agent_pipeline
+from pipelines.agent_creator import docs_to_agent_pipeline
 
 
 def main():
