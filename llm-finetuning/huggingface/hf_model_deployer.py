@@ -329,6 +329,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                                 cast(BaseService, existing_service)
                             )
                 except KeyError:
+                    logger.error("The endpoint is provisioned externally.")
                     pass
 
         return services
