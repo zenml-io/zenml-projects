@@ -57,11 +57,3 @@ def docs_to_agent_pipeline(
     documents = web_url_loader(urls)
     vector_store = index_generator(documents)
     agent = agent_creator(vector_store=vector_store)
-    # log_model_metadata(
-    #     model_name="zenml_agent",
-    #     model_version=ModelStages.LATEST,
-    #     metadata={
-    #         "llm_framework": "langchain",
-    #     }
-    # )
-        
