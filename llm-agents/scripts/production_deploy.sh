@@ -3,9 +3,9 @@
 # Get the name of the current directory
 current_directory=$(basename "$PWD")
 
-# Check if the current directory name is 'langchain-llamaindex-slackbot'
-if [ "$current_directory" != "langchain-llamaindex-slackbot" ]; then
-  echo "You have to be in the 'langchain-llamaindex-slackbot' directory to run this script."
+# Check if the current directory name is 'llm-agents'
+if [ "$current_directory" != "llm-agents" ]; then
+  echo "You have to be in the 'llm-agents' directory to run this script."
   exit 1
 fi
 
