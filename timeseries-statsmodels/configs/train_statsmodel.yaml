@@ -1,0 +1,6 @@
+steps:
+  sarimax_trainer_step:
+    parameters:
+      order: [1, 0, 1]
+      seasonal_order: [1, 1, 1, 12]
+      trend: "c"

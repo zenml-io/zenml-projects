@@ -19,53 +19,31 @@ import os
 
 import click
 from zenml.logger import get_logger
+from zenml import Model
+from pipelines import train_and_infer_statsmodel
 
 logger = get_logger(__name__)
 
 
 @click.command(
     help="""
-ZenML Starter project.
+ZenML Time Series Example.
 
-Run the ZenML starter project with basic options.
-
-Examples:
-
-  \b
-  # Run the feature engineering pipeline
-    python run.py --feature-pipeline
-  
-  \b
-  # Run the training pipeline
-    python run.py --training-pipeline
-
-  \b 
-  # Run the training pipeline with versioned artifacts
-    python run.py --training-pipeline --train-dataset-version-name=1 --test-dataset-version-name=1
-
-  \b
-  # Run the inference pipeline
-    python run.py --inference-pipeline
+Using statsmodel to predict timeseries.
 
 """
 )
 @click.option(
     "--config",
     type=str,
-    default=None,
+    default="train_statsmodel.yaml",
     help="Path to the YAML config file.",
 )
 @click.option(
-    "--training-pipeline",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that trains the model.",
-)
-@click.option(
-    "--inference-pipeline",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that inferences on latest data.",
+    "--customer",
+    type=str,
+    default="acme",
+    help="Name of the customer",
 )
 @click.option(
     "--no-cache",
@@ -74,51 +52,31 @@ Examples:
     help="Disable caching for the pipeline run.",
 )
 def main(
-    config: str = None,
-    training_pipeline: bool = False,
-    inference_pipeline: bool = False,
+    config: str = "train_statsmodel.yaml",
+    customer: str = "acme",
     no_cache: bool = False,
 ):
-    """Main entry point for the pipeline execution.
-
-    This entrypoint is where everything comes together:
-
-      * configuring pipeline with the required parameters
-        (some of which may come from command line arguments, but most
-        of which comes from the YAML config files)
-      * launching the pipeline
-
-    Args:
-        train_dataset_name: The name of the train dataset produced by feature engineering.
-        train_dataset_version_name: Version of the train dataset produced by feature engineering.
-            If not specified, a new version will be created.
-        test_dataset_name: The name of the test dataset produced by feature engineering.
-        test_dataset_version_name: Version of the test dataset produced by feature engineering.
-            If not specified, a new version will be created.
-        feature_pipeline: Whether to run the pipeline that creates the dataset.
-        training_pipeline: Whether to run the pipeline that trains the model.
-        inference_pipeline: Whether to run the pipeline that performs inference.
-        no_cache: If `True` cache will be disabled.
-    """
+    """Main entry point for the pipeline execution."""
     config_folder = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
     )
     pipeline_args = {"enable_cache": not no_cache}
     if config:
-        pipeline_args["config_path"] = os.path.join(
-            config_folder, config
-        )
+        pipeline_args["config_path"] = os.path.join(config_folder, config)
 
-    elif training_pipeline:
-        from pipelines import train_statsmodel
-        train_statsmodel.with_options(**pipeline_args)()
-        logger.info("Training pipeline finished successfully!\n")
+    logger.info(f"Configuring model with customer name: {customer}")
+    pipeline_args["model"] = Model(
+        name = f"sarixmax_{customer}_forecast",
+    )
+    
+    if customer == "acme":
+        data_stream = "CPIAUCSL"
+    else:
+        data_stream = "CPIAUCSL"
 
-    elif inference_pipeline:
-        from pipelines import huggingface_deployment
-        huggingface_deployment.with_options(**pipeline_args)()
-        logger.info("Deployment pipeline finished successfully!\n")
+    train_and_infer_statsmodel.with_options(**pipeline_args)(data_stream=data_stream)
+    logger.info("Training pipeline finished successfully!\n")
 
 
 if __name__ == "__main__":

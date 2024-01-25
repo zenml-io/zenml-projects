@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-from .train_statsmodel import train_statsmodel
+from .train_and_infer_statsmodel import train_and_infer_statsmodel

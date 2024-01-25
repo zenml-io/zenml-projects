@@ -27,10 +27,10 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def train_statsmodel():
+def train_and_infer_statsmodel(data_stream: str = None):
     """This pipeline trains an individual statsmodel."""
     # Load the data
-    data = cpi_data_loader_step()
+    data = cpi_data_loader_step(data_stream)
     
     # Train the SARIMAX model
     model = sarimax_trainer_step(data=data)

@@ -18,11 +18,7 @@ import os
 from tempfile import TemporaryDirectory
 from typing import Any, ClassVar, Dict, Tuple, Type
 
-from transformers import (  # type: ignore [import-untyped]
-    Trainer,
-    AutoConfig,
-    TrainingArguments
-)
+
 
 from zenml.enums import ArtifactType
 from zenml.materializers.base_materializer import BaseMaterializer

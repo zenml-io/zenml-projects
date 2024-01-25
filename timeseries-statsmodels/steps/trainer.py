@@ -1,31 +1,34 @@
 from typing import Tuple
 
-import numpy as np
+import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAXResultsWrapper, SARIMAX
 from typing_extensions import Annotated
-from zenml import step
+from zenml import step, ArtifactConfig
 
 
 @step
 def sarimax_trainer_step(
-    data: np.ndarray,
-    order: Tuple[int, int, int] = (1, 0, 1),
+    data: pd.DataFrame,
+    order: Tuple[int, int, int] = (1, 1, 1),
     seasonal_order: Tuple[int, int, int, int] = (
         1,
         1,
         1,
-        12,
+        288,
     ),  # Seasonal (P, D, Q, S)
     trend: str = "c",  # Trend parameter
-) -> Annotated[SARIMAXResultsWrapper, "sarimax_statsmodel"]:
+) -> Annotated[
+    SARIMAXResultsWrapper,
+    ArtifactConfig(name="sarimax_statsmodel", is_model_artifact=True),
+]:
     """Train a SARIMAX model on the provided data."""
     # Instantiate and fit the SARIMAX model
     model = SARIMAX(
         data, order=order, seasonal_order=seasonal_order, trend=trend
     )
-    res_mle  = model.fit(disp=False)
-    
+    res_mle = model.fit(disp=False)
+
     print(res_mle.summary())
 
     # Return the fitted model
-    return res_mle 
+    return res_mle
