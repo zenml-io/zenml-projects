@@ -298,39 +298,40 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             if endpoint.name.startswith("zenml-"):
                 artifact_version = endpoint.name[-8:]
 
-                print(endpoint, str(service_uuid)[:8], artifact_version)
-                if (
-                    service_uuid is None
-                    or str(service_uuid)[:8] != artifact_version
-                ):
-                    continue
-
                 # Fetch the saved metadata artifact from zenml server to recreate service
                 client = Client()
 
-                service_artifact = client.get_artifact_version(
-                    HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
-                )
-                hf_deployment_service_dict = service_artifact.run_metadata[
-                    HUGGINGFACE_SERVICE_ARTIFACT
-                ].dict()
+                try:
+                    service_artifact = client.get_artifact_version(
+                        HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
+                    )
+                    hf_deployment_service_dict = service_artifact.run_metadata[
+                        HUGGINGFACE_SERVICE_ARTIFACT
+                    ].dict()
 
-                existing_service = ServiceRegistry().load_service_from_dict(
-                    hf_deployment_service_dict["body"]["value"]
-                )
-
-                if not isinstance(
-                    existing_service, HuggingFaceDeploymentService
-                ):
-                    raise TypeError(
-                        f"Expected service type HuggingFaceDeploymentService but got "
-                        f"{type(existing_service)} instead"
+                    existing_service = (
+                        ServiceRegistry().load_service_from_dict(
+                            hf_deployment_service_dict["body"]["value"]
+                        )
                     )
 
-                existing_service.update_status()
-                if self._matches_search_criteria(existing_service, config):
-                    if not running or existing_service.is_running:
-                        services.append(cast(BaseService, existing_service))
+                    if not isinstance(
+                        existing_service, HuggingFaceDeploymentService
+                    ):
+                        raise TypeError(
+                            f"Expected service type HuggingFaceDeploymentService but got "
+                            f"{type(existing_service)} instead"
+                        )
+
+                    existing_service.update_status()
+                    if self._matches_search_criteria(existing_service, config):
+                        if not running or existing_service.is_running:
+                            services.append(
+                                cast(BaseService, existing_service)
+                            )
+
+                except KeyError:
+                    pass
 
         return services
 
@@ -438,6 +439,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             )
 
     def get_model_server_info(
+        self,
         service_instance: "HuggingFaceDeploymentService",
     ) -> Dict[str, Optional[str]]:
         return {

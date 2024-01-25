@@ -97,6 +97,7 @@ zenml stack register zencoder_hf_stack -o default -a default
 zenml stack set zencoder_hf_stack
 export HUGGINGFACE_USERNAME=<here>
 export HUGGINGFACE_TOKEN=<here>
+export NAMESPACE=<here>
 zenml secret create huggingface_creds --username=$HUGGINGFACE_USERNAME --token=$HUGGINGFACE_TOKEN
 zenml model-deployer flavor register huggingface.hf_model_deployer_flavor.HuggingFaceModelDeployerFlavor
 ```
@@ -110,7 +111,7 @@ zenml model-deployer flavor list
 Register model deployer component into the current stack
 
 ```bash
-zenml model-deployer register hfendpoint --flavor=hfendpoint
+zenml model-deployer register hfendpoint --flavor=hfendpoint --token=$HUGGINGFACE_TOKEN --namespace=$NAMESPACE
 zenml stack update zencoder_hf_stack -d hfendpoint
 ```
 
