@@ -18,6 +18,7 @@ from zenml.model_deployers.base_model_deployer import (
     DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
     BaseModelDeployerFlavor,
 )
+from huggingface_hub import InferenceEndpoint, list_inference_endpoints
 from zenml.client import Client
 from zenml.services import ServiceRegistry
 from zenml.artifacts.utils import save_artifact, log_artifact_metadata
@@ -52,6 +53,18 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             The settings class.
         """
         return HuggingFaceModelDeployerSettings
+
+    @property
+    def deployed_endpoints(self) -> List[InferenceEndpoint]:
+        """Get deployed endpoint from Huggingface
+
+        Returns:
+            List of deployed endpoints.
+        """
+        return list_inference_endpoints(
+            token=self.config.token,
+            namespace=self.config.namespace,
+        )
 
     def modify_endpoint_name(
         self, endpoint_name: str, artifact_version: str
@@ -183,8 +196,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             existing_services = self.find_model_server(
                 pipeline_name=config.pipeline_name,
                 pipeline_step_name=config.pipeline_step_name,
-                token=config.token,
-                namespace=config.namespace,
             )
 
             for existing_service in existing_services:
@@ -235,8 +246,6 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
 
     def find_model_server(
         self,
-        token: Optional[str] = None,
-        namespace: Optional[str] = None,
         running: bool = False,
         service_uuid: Optional[UUID] = None,
         pipeline_name: Optional[str] = None,
@@ -248,14 +257,9 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
     ) -> List[BaseService]:
         """Find one or more Huggingface model services that match the given criteria.
 
-        The Huggingface deployment services that meet the search criteria are
-        returned sorted in descending order of their creation time (i.e. more
-        recent deployments first).
 
         Args:
             running: if true, only running services will be returned.
-            token: token required for huggingface authentication
-            namespace: namespace if organization is used in huggingface
             service_uuid: the UUID of the Huggingface service that was
                 originally used to create the Huggingface deployment resource.
             pipeline_name: name of the pipeline that the deployed model was part
@@ -287,50 +291,46 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             implementation=model_type or "",
         )
 
-        endpoints = []
-
-        if token is not None:
-            # List all the inference endpoints
-            endpoints = config.get_deployed_endpoints(token, namespace)
-
         services: List[BaseService] = []
-        for endpoint in endpoints:
+
+        # Find all services that match input criteria
+        for endpoint in self.deployed_endpoints:
             if endpoint.name.startswith("zenml-"):
                 artifact_version = endpoint.name[-8:]
 
+                print(endpoint, str(service_uuid)[:8], artifact_version)
+                if (
+                    service_uuid is None
+                    or str(service_uuid)[:8] != artifact_version
+                ):
+                    continue
+
                 # Fetch the saved metadata artifact from zenml server to recreate service
                 client = Client()
-                try:
-                    service_artifact = client.get_artifact_version(
-                        HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
+
+                service_artifact = client.get_artifact_version(
+                    HUGGINGFACE_SERVICE_ARTIFACT, str(artifact_version)
+                )
+                hf_deployment_service_dict = service_artifact.run_metadata[
+                    HUGGINGFACE_SERVICE_ARTIFACT
+                ].dict()
+
+                existing_service = ServiceRegistry().load_service_from_dict(
+                    hf_deployment_service_dict["body"]["value"]
+                )
+
+                if not isinstance(
+                    existing_service, HuggingFaceDeploymentService
+                ):
+                    raise TypeError(
+                        f"Expected service type HuggingFaceDeploymentService but got "
+                        f"{type(existing_service)} instead"
                     )
-                    hf_deployment_service_dict = service_artifact.run_metadata[
-                        HUGGINGFACE_SERVICE_ARTIFACT
-                    ].dict()
 
-                    existing_service = (
-                        ServiceRegistry().load_service_from_dict(
-                            hf_deployment_service_dict["body"]["value"]
-                        )
-                    )
-
-                    if not isinstance(
-                        existing_service, HuggingFaceDeploymentService
-                    ):
-                        raise TypeError(
-                            f"Expected service type HuggingFaceDeploymentService but got "
-                            f"{type(existing_service)} instead"
-                        )
-
-                    existing_service.update_status()
-                    if self._matches_search_criteria(existing_service, config):
-                        if not running or existing_service.is_running:
-                            services.append(
-                                cast(BaseService, existing_service)
-                            )
-                except KeyError:
-                    logger.error("The endpoint is provisioned externally.")
-                    pass
+                existing_service.update_status()
+                if self._matches_search_criteria(existing_service, config):
+                    if not running or existing_service.is_running:
+                        services.append(cast(BaseService, existing_service))
 
         return services
 

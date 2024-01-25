@@ -24,6 +24,12 @@ class HuggingFaceModelDeployerConfig(
 ):
     """Configuration for the Huggingface model deployer."""
 
+    token: str = SecretField()
+
+    # The namespace to list endpoints for. Set to `"*"` to list all endpoints
+    # from all namespaces (i.e. personal namespace and all orgs the user belongs to).
+    namespace: str
+
 
 class HuggingFaceModelDeployerFlavor(BaseModelDeployerFlavor):
     """Huggingface Endpoint model deployer flavor."""
