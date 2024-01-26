@@ -42,9 +42,9 @@ def deploy_model_to_hf_hub(hf_endpoint_cfg: Optional[Dict] = None) -> None:
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
 
-    commit_info = get_step_context().model_version.metadata[
+    commit_info = get_step_context().model.run_metadata[
         "merged_model_commit_info"
-    ]
+    ].value
 
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
 

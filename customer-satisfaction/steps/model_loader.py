@@ -1,5 +1,5 @@
 from sklearn.base import RegressorMixin
-from zenml import step, ModelVersion
+from zenml import step, Model
 from zenml.client import Client
 
 
@@ -12,9 +12,9 @@ def model_loader(
     Args:
         model_name: Name of the Model to load
     """
-    model_version = ModelVersion(
+    model = Model(
         name=model_name,
         version="production"
     )
-    model_artifact: RegressorMixin = model_version.load_artifact("sklearn_regressor")
+    model_artifact: RegressorMixin = model.load_artifact("sklearn_regressor")
     return model_artifact

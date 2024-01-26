@@ -1,0 +1,21 @@
+# environment configuration
+settings:
+  docker:
+    requirements: requirements.txt
+    required_integrations: ["langchain", "openai", "pillow"]
+
+model:
+  name: zenml_agent
+  license: Apache 2.0
+  description: "ZenML Agent with a vector store tool."
+  tags: ["llm", "agent", "rag"]
+
+steps:
+  url_scraper:
+    enable_cache: False
+    parameters:
+      docs_url: "https://docs.zenml.io" 
+      website_url: "https://zenml.io"
+      repo_url: "https://github.com/zenml-io/zenml/tree/0.55.0/examples"
+  agent_creator:
+    enable_cache: False

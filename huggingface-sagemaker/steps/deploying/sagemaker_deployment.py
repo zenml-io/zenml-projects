@@ -45,12 +45,12 @@ def deploy_hf_to_sagemaker(
     Args:
         repo_name: The name of the repo to create/use on huggingface.
     """
-    # If repo_id and revision are not provided, get them from the model version
+    # If repo_id and revision are not provided, get them from the model
     #  Otherwise, use the provided values.
     if repo_id is None or revision is None:
         context = get_step_context()
-        mv = context.model_version
-        deployment_metadata = mv.get_data_artifact(name="huggingface_url").run_metadata
+        zenml_model = context.model
+        deployment_metadata = zenml_model.get_data_artifact(name="huggingface_url").run_metadata
         repo_id = deployment_metadata["repo_id"].value
         revision = deployment_metadata["revision"].value
 

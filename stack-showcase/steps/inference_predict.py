@@ -47,10 +47,10 @@ def inference_predict(
         The predictions as pandas series
     """
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
-    model_version = get_step_context().model_version
+    zenml_model = get_step_context().model
 
     # run prediction from memory
-    predictor = model_version.load_artifact("model")
+    predictor = zenml_model.load_artifact("model")
     predictions = predictor.predict(dataset_inf)
 
     predictions = pd.Series(predictions, name="predicted")

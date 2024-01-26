@@ -45,7 +45,7 @@ def evaluation(
         mlflow.log_metric("rmse", rmse)
 
         # Also add the metrics to the Model within the ZenML Model Control Plane
-        artifact = get_step_context().model_version.get_artifact("sklearn_regressor")
+        artifact = get_step_context().model.get_artifact("sklearn_regressor")
 
         log_artifact_metadata(
             metadata={

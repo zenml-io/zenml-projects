@@ -1,4 +1,4 @@
-#  Copyright (c) ZenML GmbH 2023. All Rights Reserved.
+#  Copyright (c) ZenML GmbH 2024. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,41 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-import os
 
+
+from steps.agent_creator import agent_creator
 from steps.index_generator import index_generator
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
 from zenml import pipeline
-from zenml.config import DockerSettings
-from zenml.config.docker_settings import SourceFileMode
 
-pipeline_name = "zenml_docs_index_generation"
-docker_settings = DockerSettings(
-    requirements=[
-        "langchain==0.0.263",
-        "openai==0.27.2",
-        "slack-bolt==1.16.2",
-        "slack-sdk==3.20.0",
-        "fastapi",
-        "flask",
-        "uvicorn",
-        "gcsfs==2023.5.0",
-        "faiss-cpu==1.7.3",
-        "unstructured==0.5.7",
-        "tiktoken",
-        "bs4"
-    ],
-    source_files=SourceFileMode.DOWNLOAD
-)
 
-@pipeline(name=pipeline_name, settings={"docker": docker_settings})
-def docs_to_index_pipeline(
-    docs_url: str = "",
-    repo_url: str = "",
-    release_notes_url: str = "",
-    website_url: str = "",
-) -> None:
+@pipeline
+def zenml_agent_creation_pipeline():
     """Generate index for ZenML.
 
     Args:
@@ -54,7 +30,7 @@ def docs_to_index_pipeline(
         release_notes_url: URL to the release notes.
         website_url: URL to the website.
     """
-    # minimal sources to boost answer quality
-    urls = url_scraper(docs_url=docs_url)
+    urls = url_scraper()
     documents = web_url_loader(urls)
-    index_generator(documents)
+    vector_store = index_generator(documents)
+    _ = agent_creator(vector_store=vector_store)

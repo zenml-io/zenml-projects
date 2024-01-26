@@ -35,8 +35,8 @@ def model_promoter(accuracy: float, stage: str = "production") -> bool:
     else:
         logger.info(f"Model promoted to {stage}!")
         is_promoted = True
-        model_version = get_step_context().model_version
-        model_version.set_stage(stage, force=True)
+        zenml_model = get_step_context().model
+        zenml_model.set_stage(stage, force=True)
 
     ### YOUR CODE ENDS HERE ###
     return is_promoted

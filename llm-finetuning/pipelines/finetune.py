@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 @pipeline
 def finetune_starcoder():
     """
-    This pipelin finetunes the starcoder model.
+    This pipeline finetunes the starcoder model.
     """
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.

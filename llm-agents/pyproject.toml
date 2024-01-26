@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "langchain-llamaindex-slackbot"
+name = "llm-agents"
 version = "0.0.1"
 description = "A slackbot for ZenML documentation"
 authors = ["ZenML"]
