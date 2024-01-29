@@ -1,0 +1,128 @@
+#  Copyright (c) ZenML GmbH 2024. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at:
+#
+#       https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+#  or implied. See the License for the specific language governing
+#  permissions and limitations under the License.
+
+
+# GLOBAL PROMPT --------------------------------
+project_name:
+    type: str
+    help: Short name for your project
+    default: ZenML LLM Agent Project
+version:
+    type: str
+    help: |
+        Version of your project
+    default: "0.0.1"
+open_source_license:
+    type: str
+    help: >-
+        The license under which your project will be released
+    choices:
+        Apache Software License 2.0: apache
+        MIT license: mit
+        BSD license: bsd
+        ISC license: isc
+        GNU General Public License v3: gpl3
+        Not open source: none
+    default: apache
+full_name:
+    type: str
+    help: >-
+        The name of the person/entity holding the copyright
+    default: ZenML GmbH
+    when: "{{ open_source_license != 'none' }}"
+email:
+    type: str
+    help: >-
+        The email of the person/entity holding the copyright
+    default: info@zenml.io
+    when: "{{ open_source_license != 'none' }}"
+agent_name: 
+    type: str
+    help: "The name of your agent. This is also used for the QA tool used by your agent."
+    default: ZenML Agent
+target_environment:
+    type: str
+    help: "The target environment for your project"
+    choices:
+        - production
+        - staging
+    default: staging
+docs_url:
+    type: str
+    help: "The URL of the documentation to use as knowledge for your agent"
+    default: "https://docs.zenml.io"
+website_url:
+    type: str
+    help: "The URL of the website to use as knowledge for your agent"
+    default: "https://zenml.io"
+repo_url:
+    type: str
+    help: "The URL of the repository to use as knowledge for your agent"
+    default: "https://github.com/zenml-io/zenml"
+zenml_server_url:
+    type: str
+    help: "The URL of the ZenML server [Optional]"
+    default: ""
+
+
+# CONFIGURATION -------------------------
+_templates_suffix: ""
+_exclude:
+    - license
+    - license_header
+
+_tasks:
+    # Remove unused imports and variables
+    - >-
+      {% if _copier_conf.os == 'windows' %}
+      echo "Auto-formatting not supported on Windows"
+      {% else  %}
+      {{ _copier_python }} -m ruff --select F401,F841 --fix \
+          --exclude "__init__.py" --isolated \
+          steps pipelines run.py > /dev/null 2>&1 || true
+      {% endif %}
+    # Sort imports
+    - >-
+      {% if _copier_conf.os == 'windows' %}
+      echo "Auto-formatting not supported on Windows"
+      {% else  %}
+      {{ _copier_python }} -m ruff --select I \
+          --fix --ignore D \
+          steps pipelines run.py > /dev/null 2>&1 || true
+      {% endif %}
+    # Auto-format code
+    - >-
+      {% if _copier_conf.os == 'windows' %}
+      echo "Auto-formatting not supported on Windows"
+      {% else  %}
+      {{ _copier_python }} -m black \
+          --exclude '' --include '\.pyi?$' -l 79 \
+          steps pipelines run.py > /dev/null 2>&1 || true
+      {% endif %}
+    - |
+      echo "Congratulations, your project has been generated in the '{{ _copier_conf.dst_path }}' directory."
+      echo "You can now run the following commands to get started:"
+      echo "   cd {{ _copier_conf.dst_path }}"
+      echo "   make setup"
+      echo "   # optional, provision default local stack"
+      echo "   make install-stack-local"
+      echo "   # optional, start ZenML Dashboard"
+      echo "   zenml up"
+      echo "   python run.py"
+      echo 
+      echo "Next, you should take a look at the '{{ _copier_conf.dst_path }}/README.md' file in the generated project."
+      echo "Happy coding!"
+
+_jinja_extensions:
+    - jinja2_time.TimeExtension

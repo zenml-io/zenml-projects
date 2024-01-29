@@ -21,7 +21,7 @@ from zenml import pipeline
 
 
 @pipeline
-def zenml_agent_creation_pipeline():
+def agent_creation_pipeline():
     """Generate index for ZenML.
 
     Args:

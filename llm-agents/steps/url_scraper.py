@@ -20,9 +20,9 @@ from zenml import step, log_artifact_metadata
 
 @step
 def url_scraper(
-    docs_url: str = "https://docs.zenml.io",
-    repo_url: str = "https://github.com/zenml-io/zenml",
-    website_url: str = "https://zenml.io",
+    docs_url: str = "{{docs_url}}",
+    repo_url: str = "{{repo_url}}",
+    website_url: str = "{{website_url}}",
 ) -> Annotated[List[str], "urls"]:
     """Generates a list of relevant URLs to scrape.
 

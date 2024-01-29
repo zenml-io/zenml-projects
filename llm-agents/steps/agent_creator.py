@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from zenml import step, ArtifactConfig, log_artifact_metadata
 
 
-PIPELINE_NAME = "zenml_agent_creation_pipeline"
+PIPELINE_NAME = "{{project_name}}_agent_creation_pipeline"
 # Choose what character to use for your agent's answers
 CHARACTER = "technical assistant"
 
@@ -47,7 +47,7 @@ def agent_creator(
     """
     tools = [
         VectorStoreQATool(
-            name=f"zenml-qa-tool",
+            name=f"{{agent_name}}-qa-tool",
             vectorstore=vector_store,
             description="Use this tool to answer questions about ZenML. "
             "How to debug errors in ZenML, how to answer conceptual "
