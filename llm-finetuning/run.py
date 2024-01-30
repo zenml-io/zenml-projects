@@ -113,24 +113,25 @@ def main(
     )
     pipeline_args = {"enable_cache": not no_cache}
     if config:
-        pipeline_args["config_path"] = os.path.join(
-            config_folder, config
-        )
-    
+        pipeline_args["config_path"] = os.path.join(config_folder, config)
+
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
         pipeline_args = {}
         from pipelines import generate_code_dataset
+
         generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
-        
+
     elif training_pipeline:
         from pipelines import finetune_starcoder
+
         finetune_starcoder.with_options(**pipeline_args)()
         logger.info("Training pipeline finished successfully!\n")
-        
+
     elif deploy_pipeline:
         from pipelines import huggingface_deployment
+
         huggingface_deployment.with_options(**pipeline_args)()
         logger.info("Deployment pipeline finished successfully!\n")
 
