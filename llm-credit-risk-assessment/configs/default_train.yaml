@@ -1,0 +1,7 @@
+model:
+  name: llm-credit-risk-assessment
+  version: latest
+# extra is used to configure training, 
+# see schemas/configuration.py for details
+extra:
+  model_path: mistralai/Mistral-7B-v0.1
