@@ -21,10 +21,11 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import confusion_matrix
 
-from zenml import log_artifact_metadata, step, log_model_metadata
+from zenml import log_artifact_metadata, step, log_model_metadata, get_step_context
 from zenml.logger import get_logger
 import wandb
 from zenml.client import Client
+from zenml.exceptions import StepContextError
 
 
 logger = get_logger(__name__)
@@ -109,7 +110,13 @@ def model_evaluator(
         .ravel()
         .tolist(),
     }
-    log_model_metadata(metadata={"wandb_url": wandb.run.url})
+    try:
+        if get_step_context().model:
+            log_model_metadata(metadata={"wandb_url": wandb.run.url})
+    except StepContextError:
+        # if model not configured not able to log metadata
+        pass
+
     log_artifact_metadata(
         metadata=metadata,
         artifact_name="sklearn_classifier",

@@ -21,7 +21,7 @@ from steps import (
     inference_preprocessor,
 )
 
-from zenml import get_pipeline_context, pipeline, ExternalArtifact
+from zenml import get_pipeline_context, pipeline
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -41,10 +41,12 @@ def inference(random_state: str, target: str):
         target: Name of target column in dataset.
     """
     # Get the production model artifact
-    model = ExternalArtifact(name="sklearn_classifier")
+    model = get_pipeline_context().model.get_artifact("sklearn_classifier")
 
     # Get the preprocess pipeline artifact associated with this version
-    preprocess_pipeline = ExternalArtifact(name="preprocess_pipeline")
+    preprocess_pipeline = get_pipeline_context().model.get_artifact(
+        "preprocess_pipeline"
+    )
 
     # Link all the steps together by calling them and passing the output
     #  of one step as the input of the next step.
