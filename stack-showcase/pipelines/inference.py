@@ -1,50 +1,60 @@
-# {% include 'template/license_header' %}
-
-from typing import List, Optional
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2024. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 from steps import (
     data_loader,
-    inference_preprocessor,
     inference_predict,
+    inference_preprocessor,
 )
-from zenml import pipeline, ExternalArtifact
+
+from zenml import get_pipeline_context, pipeline, ExternalArtifact
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 @pipeline
-def inference(
-    test_size: float = 0.2,
-    drop_na: Optional[bool] = None,
-    normalize: Optional[bool] = None,
-    drop_columns: Optional[List[str]] = None,
-):
+def inference(random_state: str, target: str):
     """
-    Model training pipeline.
+    Model inference pipeline.
 
-    This is a pipeline that loads the data, processes it and splits
-    it into train and test sets, then search for best hyperparameters,
-    trains and evaluates a model.
+    This is a pipeline that loads the inference data, processes it with
+    the same preprocessing pipeline used in training, and runs inference
+    with the trained model.
 
     Args:
-        test_size: Size of holdout set for training 0.0..1.0
-        drop_na: If `True` NA values will be removed from dataset
-        normalize: If `True` dataset will be normalized with MinMaxScaler
-        drop_columns: List of columns to drop from dataset
+        random_state: Random state for reproducibility.
+        target: Name of target column in dataset.
     """
-    ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
+    # Get the production model artifact
+    model = ExternalArtifact(name="sklearn_classifier")
+
+    # Get the preprocess pipeline artifact associated with this version
+    preprocess_pipeline = ExternalArtifact(name="preprocess_pipeline")
+
     # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-    random_state = 60
-    target = "target"
+    #  of one step as the input of the next step.
     df_inference = data_loader(random_state=random_state, is_inference=True)
     df_inference = inference_preprocessor(
         dataset_inf=df_inference,
-        preprocess_pipeline=ExternalArtifact(name="preprocess_pipeline"),
+        preprocess_pipeline=preprocess_pipeline,
         target=target,
     )
     inference_predict(
+        model=model,
         dataset_inf=df_inference,
     )
-    ### END CODE HERE ###

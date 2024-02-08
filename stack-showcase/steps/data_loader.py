@@ -1,9 +1,25 @@
-# {% include 'template/license_header' %}
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2024. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 import pandas as pd
 from sklearn.datasets import load_breast_cancer
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, step
+
+from zenml import step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -25,19 +41,20 @@ def data_loader(
         https://docs.zenml.io/user-guide/advanced-guide/configure-steps-pipelines
 
     Args:
+        random_state: Random state for sampling
         is_inference: If `True` subset will be returned and target column
             will be removed from dataset.
-        random_state: Random state for sampling
         target: Name of target columns in dataset.
 
     Returns:
         The dataset artifact as Pandas DataFrame and name of target column.
     """
-    ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     dataset = load_breast_cancer(as_frame=True)
     inference_size = int(len(dataset.target) * 0.05)
     dataset: pd.DataFrame = dataset.frame
-    inference_subset = dataset.sample(inference_size, random_state=random_state)
+    inference_subset = dataset.sample(
+        inference_size, random_state=random_state
+    )
     if is_inference:
         dataset = inference_subset
         dataset.drop(columns=target, inplace=True)
@@ -45,9 +62,4 @@ def data_loader(
         dataset.drop(inference_subset.index, inplace=True)
     dataset.reset_index(drop=True, inplace=True)
     logger.info(f"Dataset with {len(dataset)} records loaded!")
-
-    # Recording metadata for this dataset
-    log_artifact_metadata(metadata={"random_state": random_state, target: target})
-
-    ### YOUR CODE ENDS HERE ###
     return dataset

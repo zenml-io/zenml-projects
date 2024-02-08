@@ -1,24 +1,45 @@
-# {% include 'template/license_header' %}
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2024. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+from typing import Optional
 
 import pandas as pd
-import mlflow
 from sklearn.base import ClassifierMixin
-from zenml import step, log_artifact_metadata
-from zenml.client import Client
+from sklearn.metrics import confusion_matrix
+
+from zenml import log_artifact_metadata, step, log_model_metadata
 from zenml.logger import get_logger
-from zenml import get_step_context
+import wandb
+from zenml.client import Client
+
 
 logger = get_logger(__name__)
 
-experiment_tracker = Client().active_stack.experiment_tracker
+et = Client().active_stack.experiment_tracker
 
-@step(enable_cache=False, experiment_tracker="mlflow")
+
+@step(experiment_tracker=et.name)
 def model_evaluator(
     model: ClassifierMixin,
     dataset_trn: pd.DataFrame,
     dataset_tst: pd.DataFrame,
     min_train_accuracy: float = 0.0,
     min_test_accuracy: float = 0.0,
+    target: Optional[str] = "target",
 ) -> float:
     """Evaluate a trained model.
 
@@ -50,29 +71,21 @@ def model_evaluator(
         dataset_tst: The test dataset.
         min_train_accuracy: Minimal acceptable training accuracy value.
         min_test_accuracy: Minimal acceptable testing accuracy value.
-        fail_on_accuracy_quality_gates: If `True` a `RuntimeException` is raised
-            upon not meeting one of the minimal accuracy thresholds.
+        target: Name of target column in dataset.
 
     Returns:
         The model accuracy on the test set.
-
-    Raises:
-        RuntimeError: if any of accuracies is lower than respective threshold
     """
-    # context = get_step_context()
-    # target = context.inputs["dataset_trn"].run_metadata['target'].value
-    target = "target"
-
     # Calculate the model accuracy on the train and test set
     trn_acc = model.score(
         dataset_trn.drop(columns=[target]),
         dataset_trn[target],
     )
-    logger.info(f"Train accuracy={trn_acc*100:.2f}%")
     tst_acc = model.score(
         dataset_tst.drop(columns=[target]),
         dataset_tst[target],
     )
+    logger.info(f"Train accuracy={trn_acc*100:.2f}%")
     logger.info(f"Test accuracy={tst_acc*100:.2f}%")
 
     messages = []
@@ -88,15 +101,27 @@ def model_evaluator(
         for message in messages:
             logger.warning(message)
 
-    artifact = get_step_context().model.get_artifact("model")
-
+    predictions = model.predict(dataset_tst.drop(columns=[target]))
+    metadata = {
+        "train_accuracy": float(trn_acc),
+        "test_accuracy": float(tst_acc),
+        "confusion_matrix": confusion_matrix(dataset_tst[target], predictions)
+        .ravel()
+        .tolist(),
+    }
+    log_model_metadata(metadata={"wandb_url": wandb.run.url})
     log_artifact_metadata(
-        metadata={"train_accuracy": float(trn_acc), "test_accuracy": float(tst_acc)},
-        artifact_name=artifact.name,
-        artifact_version=artifact.version,
+        metadata=metadata,
+        artifact_name="sklearn_classifier",
     )
 
-    mlflow.log_metric("train_accuracy", float(trn_acc))
-    mlflow.log_metric("test_accuracy",  float(tst_acc))
-
-    return float(trn_acc)
+    wandb.log({"train_accuracy": metadata["train_accuracy"]})
+    wandb.log({"test_accuracy": metadata["test_accuracy"]})
+    wandb.log(
+        {
+            "confusion_matrix": wandb.sklearn.plot_confusion_matrix(
+                dataset_tst[target], predictions, ["No Cancer", "Cancer"]
+            )
+        }
+    )
+    return float(tst_acc)

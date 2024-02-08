@@ -5,18 +5,22 @@ settings:
       - sklearn
     requirements:
       - pyarrow
-      - huggingface_hub
 
 # configuration of the Model Control Plane
 model:
   name: breast_cancer_classifier
   license: Apache 2.0
-  description: Classification of Breast Cancer Dataset.
-  tags: ["classification", "sklearn"]
+  description: A breast cancer classifier
+  tags: ["breast_cancer", "classifier","sgd"]
+
+# Configure the pipeline
+parameters:
+  model_type: "sgd"  # Choose between rf/sgd
 
 steps:
   model_trainer:
+    step_operator: sagemaker-eu
     settings:
       step_operator.sagemaker:
         estimator_args: 
-          instance_type: "ml.m5.large"
+          instance_type : ml.m5.large
