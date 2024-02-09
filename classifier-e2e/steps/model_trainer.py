@@ -19,7 +19,6 @@ from typing import Optional
 
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from typing_extensions import Annotated
 
@@ -35,7 +34,7 @@ def model_trainer(
     target: Optional[str] = "target",
 ) -> Annotated[
     ClassifierMixin,
-    ArtifactConfig(name="sklearn_classifier", is_model_artifact=True),
+    ArtifactConfig(name="breast_cancer_classifier", is_model_artifact=True),
 ]:
     """Configure and train a model on the training dataset.
 
@@ -59,8 +58,10 @@ def model_trainer(
     # parameters and train it on the training set.
     if model_type == "sgd":
         model = SGDClassifier()
-    elif model_type == "rf":
-        model = RandomForestClassifier()
+    elif model_type == "xgboost":
+        from xgboost import XGBClassifier
+
+        model = XGBClassifier()
     else:
         raise ValueError(f"Unknown model type {model_type}")
     logger.info(f"Training model {model}...")

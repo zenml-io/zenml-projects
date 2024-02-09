@@ -21,7 +21,12 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import confusion_matrix
 
-from zenml import log_artifact_metadata, step, log_model_metadata, get_step_context
+from zenml import (
+    log_artifact_metadata,
+    step,
+    log_model_metadata,
+    get_step_context,
+)
 from zenml.logger import get_logger
 import wandb
 from zenml.client import Client
@@ -119,11 +124,9 @@ def model_evaluator(
 
     log_artifact_metadata(
         metadata=metadata,
-        artifact_name="sklearn_classifier",
+        artifact_name="breast_cancer_classifier",
     )
 
-    wandb.log({"train_accuracy": metadata["train_accuracy"]})
-    wandb.log({"test_accuracy": metadata["test_accuracy"]})
     wandb.log(
         {
             "confusion_matrix": wandb.sklearn.plot_confusion_matrix(
@@ -131,4 +134,7 @@ def model_evaluator(
             )
         }
     )
+    wandb.log({"train_accuracy": metadata["train_accuracy"]})
+    wandb.log({"test_accuracy": metadata["test_accuracy"]})
+
     return float(tst_acc)

@@ -8,3 +8,4 @@ sagemaker==2.117.0
 pyarrow
 wandb
 seaborn
+xgboost

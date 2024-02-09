@@ -3,6 +3,7 @@ settings:
   docker:
     required_integrations:
       - sklearn
+      - xgboost
     requirements:
       - pyarrow
 
@@ -11,8 +12,16 @@ model:
   name: breast_cancer_classifier
   license: Apache 2.0
   description: A breast cancer classifier
-  tags: ["breast_cancer", "classifier","rf"]
+  tags: ["breast_cancer", "classifier","xgboost"]
 
 # Configure the pipeline
 parameters:
-  model_type: "rf"  # Choose between rf/sgd
+  model_type: "xgboost"  # Choose between sgd/xgboost
+
+steps:
+  model_trainer:
+    step_operator: sagemaker-eu
+    settings:
+      step_operator.sagemaker:
+        estimator_args: 
+          instance_type : ml.m5.large

@@ -221,10 +221,10 @@ def main(
         if no_cache:
             pipeline_args["enable_cache"] = False
         pipeline_args["config_path"] = os.path.join(
-            config_folder, f"training_rf{custom_training_suffix}.yaml"
+            config_folder, f"training_xgboost{custom_training_suffix}.yaml"
         )
         training.with_options(**pipeline_args)(**run_args_train)
-        logger.info("Training pipeline with RF finished successfully!\n\n")
+        logger.info("Training pipeline with XGBoost finished successfully!\n\n")
 
     if inference_pipeline:
         run_args_inference = {}

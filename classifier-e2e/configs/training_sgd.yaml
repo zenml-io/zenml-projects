@@ -11,15 +11,14 @@ model:
   name: breast_cancer_classifier
   license: Apache 2.0
   description: A breast cancer classifier
-  tags: ["breast_cancer", "classifier","rf"]
+  tags: ["breast_cancer", "classifier","sgd"]
 
 # Configure the pipeline
 parameters:
-  model_type: "rf"  # Choose between rf/sgd
+  model_type: "sgd"  # Choose between xgboost/sgd
 
 steps:
   model_trainer:
-    step_operator: sagemaker-eu
     settings:
       step_operator.sagemaker:
         estimator_args: 
