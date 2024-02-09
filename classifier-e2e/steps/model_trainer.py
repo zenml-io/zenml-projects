@@ -24,10 +24,14 @@ from typing_extensions import Annotated
 
 from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
+from zenml.client import Client
 
 logger = get_logger(__name__)
 
-@step
+et = Client().active_stack.experiment_tracker
+
+
+@step(experiment_tracker=et.name)
 def model_trainer(
     dataset_trn: pd.DataFrame,
     model_type: str = "sgd",
