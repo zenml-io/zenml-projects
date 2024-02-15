@@ -8,9 +8,8 @@ import pandas as pd
 
 @step
 def predict_on_endpoint(
-    endpoint_name: str, dataset: pd.DataFrame
+    predictor: Predictor, dataset: pd.DataFrame
 ) -> Annotated[pd.Series, "real_time_predictions"]:
-    predictor = Predictor(endpoint_name=endpoint_name)
     predictions = predictor.predict(
         data=dataset.to_csv(header=False, index=False),
         initial_args={"ContentType": "text/csv"},
@@ -22,6 +21,5 @@ def predict_on_endpoint(
 
 
 @step
-def shutdown_endpoint(endpoint_name: str):
-    predictor = Predictor(endpoint_name=endpoint_name)
+def shutdown_endpoint(predictor: Predictor):
     predictor.delete_endpoint()

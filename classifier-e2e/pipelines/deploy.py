@@ -19,7 +19,7 @@ def deploy(shutdown_endpoint_after_predicting: bool = True):
         preprocess_pipeline=preprocess_pipeline,
         target="target",
     )
-    endpoint_name = deploy_endpoint()
-    predict_on_endpoint(endpoint_name, df_inference)
+    predictor = deploy_endpoint()
+    predict_on_endpoint(predictor, df_inference)
     if shutdown_endpoint_after_predicting:
-        shutdown_endpoint(endpoint_name, after=["predict_on_endpoint"])
+        shutdown_endpoint(predictor, after=["predict_on_endpoint"])
