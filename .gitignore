@@ -103,7 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+.venv*
 env/
 venv/
 ENV/
@@ -142,3 +142,5 @@ mlruns/
 
 zencoder/cloned_public_repos
 *wandb*
+
+.DS_Store
