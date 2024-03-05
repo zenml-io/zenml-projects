@@ -21,13 +21,18 @@ def finetune_lora(
     adapter_output_repo: Optional[str] = None,
     merged_output_repo: Optional[str] = None,
     convert_to_hf: bool = False,
+    data_dir: Optional[str] = None,
 ) -> None:
     checkpoint_dir = Path("checkpoints")
-    data_dir = Path("data/alpaca")
     output_dir = Path("out/lora/alpaca")
     download_from_hub(repo_id=repo_id, checkpoint_dir=checkpoint_dir)
     convert_hf_checkpoint(checkpoint_dir=checkpoint_dir)
-    prepare(destination_path=data_dir, checkpoint_dir=checkpoint_dir)
+
+    if data_dir:
+        data_dir = Path(data_dir)
+    else:
+        data_dir = Path("data/alpaca")
+        prepare(destination_path=data_dir, checkpoint_dir=checkpoint_dir)
 
     io_args = (
         IOArgs(

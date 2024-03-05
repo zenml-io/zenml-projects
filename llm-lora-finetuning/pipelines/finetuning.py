@@ -27,10 +27,12 @@ def finetuning_pipeline(
     adapter_output_repo: Optional[str] = None,
     merged_output_repo: Optional[str] = None,
     convert_to_hf: bool = False,
+    data_dir: Optional[str] = None,
 ) -> None:
     finetune_lora(
         repo_id=repo_id,
         adapter_output_repo=adapter_output_repo,
         merged_output_repo=merged_output_repo,
         convert_to_hf=convert_to_hf,
+        data_dir=data_dir
     )
