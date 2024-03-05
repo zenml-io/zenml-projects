@@ -29,6 +29,7 @@ from lit_gpt.utils import (
     load_checkpoint,
     num_parameters,
 )
+
 from scripts.prepare_alpaca import generate_prompt
 
 
@@ -69,9 +70,23 @@ def setup(
     else:
         strategy = "auto"
 
-    logger = CSVLogger(io.out_dir.parent, io.out_dir.name, flush_logs_every_n_steps=train.log_interval)
-    fabric = L.Fabric(devices=devices, strategy=strategy, precision=precision, loggers=logger)
-    fabric.launch(main, devices, resume, Config.from_name(name=io.checkpoint_dir.name), io, train, eval)
+    logger = CSVLogger(
+        io.out_dir.parent,
+        io.out_dir.name,
+        flush_logs_every_n_steps=train.log_interval,
+    )
+    fabric = L.Fabric(
+        devices=devices, strategy=strategy, precision=precision, loggers=logger
+    )
+    fabric.launch(
+        main,
+        devices,
+        resume,
+        Config.from_name(name=io.checkpoint_dir.name),
+        io,
+        train,
+        eval,
+    )
 
 
 def main(
@@ -90,7 +105,9 @@ def main(
 
     check_valid_checkpoint_dir(io.checkpoint_dir)
 
-    fabric.seed_everything(1337)  # same seed for every process to init model (FSDP)
+    fabric.seed_everything(
+        1337
+    )  # same seed for every process to init model (FSDP)
 
     if fabric.global_rank == 0:
         os.makedirs(io.out_dir, exist_ok=True)
@@ -99,22 +116,39 @@ def main(
     val_data = torch.load(io.val_data_dir / "test.pt")
 
     checkpoint_path = io.checkpoint_dir / "lit_model.pth"
-    fabric.print(f"Loading model {str(checkpoint_path)!r} with {config.__dict__}")
+    fabric.print(
+        f"Loading model {str(checkpoint_path)!r} with {config.__dict__}"
+    )
     with fabric.init_module(empty_init=(devices > 1)):
         model = GPT(config)
 
-    fabric.print(f"Number of trainable parameters: {num_parameters(model, requires_grad=True):,}")
+    fabric.print(
+        f"Number of trainable parameters: {num_parameters(model, requires_grad=True):,}"
+    )
 
     model = fabric.setup(model)
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=train.learning_rate, weight_decay=train.weight_decay, betas=(train.beta1, train.beta2)
+        model.parameters(),
+        lr=train.learning_rate,
+        weight_decay=train.weight_decay,
+        betas=(train.beta1, train.beta2),
     )
     optimizer = fabric.setup_optimizers(optimizer)
-    scheduler = get_lr_scheduler(optimizer, warmup_steps=train.lr_warmup_steps, max_steps=lr_max_steps)
-    state = {"model": model, "optimizer": optimizer, "scheduler": scheduler, "iter_num": 0, "step_count": 0}
+    scheduler = get_lr_scheduler(
+        optimizer, warmup_steps=train.lr_warmup_steps, max_steps=lr_max_steps
+    )
+    state = {
+        "model": model,
+        "optimizer": optimizer,
+        "scheduler": scheduler,
+        "iter_num": 0,
+        "step_count": 0,
+    }
 
     if resume is True:
-        resume = max(io.out_dir.glob("*.pth"), key=(lambda p: int(p.name.split("-")[1])))
+        resume = max(
+            io.out_dir.glob("*.pth"), key=(lambda p: int(p.name.split("-")[1]))
+        )
     if resume:
         fabric.print(f"Resuming training from {resume}")
         fabric.load(resume, state)
@@ -127,10 +161,14 @@ def main(
     fit(fabric, state, train_data, val_data, devices, resume, io, train, eval)
     fabric.print(f"Training time: {(time.perf_counter()-train_time):.2f}s")
     if fabric.device.type == "cuda":
-        fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB")
+        fabric.print(
+            f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB"
+        )
 
     # Save the final checkpoint at the end of training
-    fabric.save(io.out_dir / "lit_model_finetuned.pth", {"model": state["model"]})
+    fabric.save(
+        io.out_dir / "lit_model_finetuned.pth", {"model": state["model"]}
+    )
 
 
 def fit(
@@ -149,13 +187,22 @@ def fit(
     scheduler = state["scheduler"]
     tokenizer = Tokenizer(io.checkpoint_dir)
     longest_seq_length, longest_seq_ix = get_longest_seq_length(train_data)
-    model.max_seq_length = min(longest_seq_length, train.max_seq_length or float("inf"))
+    model.max_seq_length = min(
+        longest_seq_length, train.max_seq_length or float("inf")
+    )
     fabric.print(
         f"The longest sequence length in the train data is {longest_seq_length}, the model's maximum sequence length is"
         f" {model.max_seq_length} and context length is {model.config.block_size}"
     )
 
-    validate(fabric, model, val_data, tokenizer, dataclasses.replace(eval, max_iters=2), train)  # sanity check
+    validate(
+        fabric,
+        model,
+        val_data,
+        tokenizer,
+        dataclasses.replace(eval, max_iters=2),
+        train,
+    )  # sanity check
     initial_iter = state["iter_num"]
 
     # resume data loader state by fast-forwarding through all seen batches
@@ -164,19 +211,24 @@ def fit(
         for resume_iter in range(initial_iter):
             get_batch(fabric, train_data, None)
             if resume_iter % 1000 == 0:
-                fabric.print(f"Resuming dataset: {resume_iter} / {initial_iter}")
+                fabric.print(
+                    f"Resuming dataset: {resume_iter} / {initial_iter}"
+                )
         fabric.barrier()
         fabric.print(
             f"Resuming data loader finished. Took {time.perf_counter() - resume_t0:.1f} seconds to reach iteration"
             f" {initial_iter}."
         )
 
-    running_loss = RunningMean(window=train.gradient_accumulation_iters(devices), sync_on_compute=False).to(
-        fabric.device
-    )
+    running_loss = RunningMean(
+        window=train.gradient_accumulation_iters(devices),
+        sync_on_compute=False,
+    ).to(fabric.device)
     fabric.barrier()
 
-    for state["iter_num"] in range(state["iter_num"] + 1, train.max_iters(devices) + 1):
+    for state["iter_num"] in range(
+        state["iter_num"] + 1, train.max_iters(devices) + 1
+    ):
         iter_t0 = time.perf_counter()
 
         input_ids, targets = get_batch(
@@ -187,7 +239,9 @@ def fit(
             longest_seq_ix if state["iter_num"] == 1 else None,
         )
 
-        is_accumulating = state["iter_num"] % train.gradient_accumulation_iters(devices) != 0
+        is_accumulating = (
+            state["iter_num"] % train.gradient_accumulation_iters(devices) != 0
+        )
         with fabric.no_backward_sync(model, enabled=is_accumulating):
             logits = model(input_ids)
             # shift the targets such that output n predicts token n+1
@@ -203,16 +257,23 @@ def fit(
             state["step_count"] += 1
 
         if state["iter_num"] % train.log_interval == 0:
-            loss = running_loss.compute().item()  # expensive device-to-host synchronization
+            loss = (
+                running_loss.compute().item()
+            )  # expensive device-to-host synchronization
             t1 = time.perf_counter()
             metrics = {
                 "loss": loss,
                 "iter": state["iter_num"],
                 "step": state["step_count"],
                 "iter_time": t1 - iter_t0,
-                "tokens": state["iter_num"] * train.micro_batch_size * model.config.block_size,
+                "tokens": state["iter_num"]
+                * train.micro_batch_size
+                * model.config.block_size,
                 "total_tokens": (
-                    state["iter_num"] * train.micro_batch_size * model.config.block_size * fabric.world_size
+                    state["iter_num"]
+                    * train.micro_batch_size
+                    * model.config.block_size
+                    * fabric.world_size
                 ),
                 # TODO: log learning rate
             }
@@ -224,14 +285,23 @@ def fit(
 
         if not is_accumulating and state["step_count"] % eval.interval == 0:
             t0 = time.perf_counter()
-            val_loss = validate(fabric, model, val_data, tokenizer, eval, train)
+            val_loss = validate(
+                fabric, model, val_data, tokenizer, eval, train
+            )
             t1 = time.perf_counter() - t0
-            fabric.print(f"iter {state['iter_num']}: val loss {val_loss.item():.4f}, val time: {t1 * 1000:.2f} ms")
+            fabric.print(
+                f"iter {state['iter_num']}: val loss {val_loss.item():.4f}, val time: {t1 * 1000:.2f} ms"
+            )
             metrics = {"val_loss": val_loss, "val_ppl": math.exp(val_loss)}
             fabric.log_dict(metrics, step=state["iter_num"])
             fabric.barrier()
-        if not is_accumulating and state["step_count"] % train.save_interval == 0:
-            checkpoint_path = io.out_dir / f"step-{state['step_count']:06d}.pth"
+        if (
+            not is_accumulating
+            and state["step_count"] % train.save_interval == 0
+        ):
+            checkpoint_path = (
+                io.out_dir / f"step-{state['step_count']:06d}.pth"
+            )
             fabric.print(f"Saving checkpoint to {str(checkpoint_path)!r}")
             fabric.save(checkpoint_path, state)
 
@@ -239,15 +309,24 @@ def fit(
 # FSDP has issues with `inference_mode`
 @torch.no_grad()
 def validate(
-    fabric: L.Fabric, model: GPT, val_data: List[Dict], tokenizer: Tokenizer, eval: EvalArgs, train: TrainArgs
+    fabric: L.Fabric,
+    model: GPT,
+    val_data: List[Dict],
+    tokenizer: Tokenizer,
+    eval: EvalArgs,
+    train: TrainArgs,
 ) -> torch.Tensor:
     fabric.print("Validating ...")
     model.eval()
     losses = torch.zeros(eval.max_iters)
     for k in range(eval.max_iters):
-        input_ids, targets = get_batch(fabric, val_data, train.micro_batch_size, train.max_seq_length)
+        input_ids, targets = get_batch(
+            fabric, val_data, train.micro_batch_size, train.max_seq_length
+        )
         logits = model(input_ids)
-        losses[k] = chunked_cross_entropy(logits[..., :-1, :], targets[..., 1:], chunk_size=0)
+        losses[k] = chunked_cross_entropy(
+            logits[..., :-1, :], targets[..., 1:], chunk_size=0
+        )
     val_loss = losses.mean()
 
     # produce an example:
@@ -260,7 +339,11 @@ def validate(
         # do not set `max_seq_length=max_returned_token` because memory is not a concern here
         model.set_kv_cache(batch_size=1)
     output = generate(
-        model, encoded, max_returned_tokens=len(encoded) + eval.max_new_tokens, temperature=0.8, eos_id=tokenizer.eos_id
+        model,
+        encoded,
+        max_returned_tokens=len(encoded) + eval.max_new_tokens,
+        temperature=0.8,
+        eos_id=tokenizer.eos_id,
     )
     model.clear_kv_cache()
     output = tokenizer.decode(output)
@@ -310,9 +393,15 @@ def get_batch(
 
 def get_lr_scheduler(optimizer, warmup_steps: int, max_steps: int):
     # linear warmup followed by cosine annealing
-    scheduler1 = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: step / warmup_steps)
-    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=(max_steps - warmup_steps))
-    return torch.optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], milestones=[warmup_steps])
+    scheduler1 = torch.optim.lr_scheduler.LambdaLR(
+        optimizer, lambda step: step / warmup_steps
+    )
+    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=(max_steps - warmup_steps)
+    )
+    return torch.optim.lr_scheduler.SequentialLR(
+        optimizer, [scheduler1, scheduler2], milestones=[warmup_steps]
+    )
 
 
 def get_longest_seq_length(data: List[Dict]) -> Tuple[int, int]:
@@ -329,7 +418,9 @@ def validate_args(io: IOArgs, train: TrainArgs, eval: EvalArgs) -> None:
     for args, names in unsupported:
         for name in names:
             if getattr(args, name) is not None:
-                issues.append(f"{__file__} doesn't support the {name!r} argument. This is set in {args}")
+                issues.append(
+                    f"{__file__} doesn't support the {name!r} argument. This is set in {args}"
+                )
     required = [
         (io, ["checkpoint_dir", "train_data_dir", "val_data_dir"]),
         (train, ["epoch_size", "epochs"]),
@@ -338,7 +429,9 @@ def validate_args(io: IOArgs, train: TrainArgs, eval: EvalArgs) -> None:
     for args, names in required:
         for name in names:
             if getattr(args, name) is None:
-                issues.append(f"{__file__} requires the {name!r} argument. This is set in {args}")
+                issues.append(
+                    f"{__file__} requires the {name!r} argument. This is set in {args}"
+                )
     if issues:
         raise ValueError("\n".join(issues))
 

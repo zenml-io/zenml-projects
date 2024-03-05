@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 
+import os
 from typing import Optional
+
 import click
 from zenml.logger import get_logger
 
@@ -43,10 +45,6 @@ Examples:
   \b
   # Run the evaluation pipeline
     python run.py --eval-pipeline
-
-  \b
-  # Run the deployment pipeline
-    python run.py --deployment-pipeline
 """
 )
 @click.option(
@@ -80,12 +78,6 @@ Examples:
     help="Whether to run the pipeline that evaluates the model.",
 )
 @click.option(
-    "--deployment-pipeline",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that deploys the model.",
-)
-@click.option(
     "--no-cache",
     is_flag=True,
     default=False,
@@ -97,7 +89,6 @@ def main(
     finetuning_pipeline: bool = False,
     merging_pipeline: bool = False,
     eval_pipeline: bool = False,
-    deployment_pipeline: bool = False,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -105,10 +96,34 @@ def main(
     Args:
         no_cache: If `True` cache will be disabled.
     """
+    config_folder = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "configs",
+    )
+    pipeline_args = {"enable_cache": not no_cache}
+    if config:
+        pipeline_args["config_path"] = os.path.join(config_folder, config)
+
     if feature_pipeline:
         from pipelines.feature_engineering import feature_engineering_pipeline
 
-        feature_engineering_pipeline()
+        feature_engineering_pipeline.with_options(**pipeline_args)()
+
+    if finetuning_pipeline:
+        from pipelines.finetuning import finetuning_pipeline
+
+        finetuning_pipeline.with_options(**pipeline_args)()
+
+    if merging_pipeline:
+        from pipelines.merge import merge_pipeline
+
+        merge_pipeline.with_options(**pipeline_args)()
+
+    if eval_pipeline:
+        from pipelines.eval import eval_pipeline
+
+        eval_pipeline.with_options(**pipeline_args)()
+
 
 if __name__ == "__main__":
     main()

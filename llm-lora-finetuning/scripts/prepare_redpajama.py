@@ -43,7 +43,11 @@ filename_sets = {
 
 
 def prepare_sample(
-    source_path: Path, checkpoint_dir: Path, destination_path: Path, chunk_size: int, match: str = ""
+    source_path: Path,
+    checkpoint_dir: Path,
+    destination_path: Path,
+    chunk_size: int,
+    match: str = "",
 ) -> None:
     """Prepare the "Red Pajama" dataset using the original tokenizer."""
     destination_path.mkdir(parents=True, exist_ok=True)
@@ -87,7 +91,11 @@ def prepare_sample(
 
 
 def prepare_full(
-    source_path: Path, checkpoint_dir: Path, destination_path: Path, chunk_size: int, match: str = ""
+    source_path: Path,
+    checkpoint_dir: Path,
+    destination_path: Path,
+    chunk_size: int,
+    match: str = "",
 ) -> None:
     """Prepare the "Red Pajama" dataset using the original tokenizer."""
     import zstandard as zstd
@@ -102,7 +110,9 @@ def prepare_full(
 
         is_cc = set_name == "common_crawl"
 
-        filenames = glob.glob(os.path.join(source_path, pattern), recursive=True)
+        filenames = glob.glob(
+            os.path.join(source_path, pattern), recursive=True
+        )
 
         if not filenames:
             raise RuntimeError(
@@ -127,24 +137,32 @@ def prepare_full(
             print(f"Processing {name}")
 
             if is_cc:
-                with zstd.open(open(filepath, "rb"), "rt", encoding="utf-8") as f:
+                with zstd.open(
+                    open(filepath, "rb"), "rt", encoding="utf-8"
+                ) as f:
                     for row in tqdm(f):
                         text = json.loads(row)["text"]
                         text_ids = tokenizer.encode(text)
-                        builder.add_array(np.array(text_ids, dtype=builder.dtype))
+                        builder.add_array(
+                            np.array(text_ids, dtype=builder.dtype)
+                        )
             else:
                 with open(filepath, encoding="utf-8") as f:
                     for row in tqdm(f):
                         text = json.loads(row)["text"]
                         text_ids = tokenizer.encode(text)
-                        builder.add_array(np.array(text_ids, dtype=builder.dtype))
+                        builder.add_array(
+                            np.array(text_ids, dtype=builder.dtype)
+                        )
 
         builder.write_reminder()
 
 
 def prepare(
     source_path: Path = Path("data/RedPajama-Data-1T-Sample"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     destination_path: Path = Path("data/redpajama_sample"),
     sample: bool = True,
     match: str = "",
@@ -157,7 +175,8 @@ def prepare(
         source_path=source_path,
         checkpoint_dir=checkpoint_dir,
         destination_path=destination_path,
-        chunk_size=(config.block_size + 1) * 1024,  # block size + 1 for causal, 1024 blocks
+        chunk_size=(config.block_size + 1)
+        * 1024,  # block size + 1 for causal, 1024 blocks
         match=match,
     )
 

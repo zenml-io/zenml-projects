@@ -12,7 +12,16 @@ import numpy as np
 import torch
 from torch.utils.data import IterableDataset, get_worker_info
 
-dtypes = {1: np.uint8, 2: np.int8, 3: np.int16, 4: np.int32, 5: np.int64, 6: np.float32, 7: np.float64, 8: np.uint16}
+dtypes = {
+    1: np.uint8,
+    2: np.int8,
+    3: np.int16,
+    4: np.int32,
+    5: np.int64,
+    6: np.float32,
+    7: np.float64,
+    8: np.uint16,
+}
 
 
 def code(dtype):
@@ -28,7 +37,15 @@ HDR_SIZE = 24  # bytes
 
 class PackedDataset(IterableDataset):
     def __init__(
-        self, filenames, n_chunks, block_size, seed=12345, shuffle=True, wrap=False, num_processes=1, process_rank=0
+        self,
+        filenames,
+        n_chunks,
+        block_size,
+        seed=12345,
+        shuffle=True,
+        wrap=False,
+        num_processes=1,
+        process_rank=0,
     ):
         self._filenames = filenames
         self._n_chunks = n_chunks
@@ -60,7 +77,15 @@ class PackedDataset(IterableDataset):
 
 
 class PackedDatasetBuilder(object):
-    def __init__(self, outdir, prefix, chunk_size, sep_token, dtype="auto", vocab_size=None):
+    def __init__(
+        self,
+        outdir,
+        prefix,
+        chunk_size,
+        sep_token,
+        dtype="auto",
+        vocab_size=None,
+    ):
         if dtype == "auto":
             if vocab_size is None:
                 raise ValueError("vocab_size cannot be None when dtype='auto'")
@@ -187,7 +212,11 @@ class PackedDatasetIterator:
         self._file_idx += self._n_chunks
         n_all_blocks = self._n_chunks * self._n_blocks
 
-        self._block_idxs = self._rng.permutation(n_all_blocks) if self._shuffle else range(n_all_blocks)
+        self._block_idxs = (
+            self._rng.permutation(n_all_blocks)
+            if self._shuffle
+            else range(n_all_blocks)
+        )
 
         self._curr_idx = 0
 
@@ -208,7 +237,9 @@ class PackedDatasetIterator:
         buffer = self._buffers[chunk_id]
         elem_id = (block_idx % self._n_blocks) * self._block_size
         offset = np.dtype(self._dtype).itemsize * elem_id
-        arr = np.frombuffer(buffer, dtype=self._dtype, count=self._block_size, offset=offset)
+        arr = np.frombuffer(
+            buffer, dtype=self._dtype, count=self._block_size, offset=offset
+        )
         self._curr_idx += 1
         return torch.from_numpy(arr.astype(np.int64))
 
@@ -225,7 +256,9 @@ class CombinedDataset(IterableDataset):
             self._weights = [w / sum(weights) for w in weights]
 
     def __iter__(self):
-        return CombinedDatasetIterator(self._datasets, self._seed, self._weights)
+        return CombinedDatasetIterator(
+            self._datasets, self._seed, self._weights
+        )
 
 
 class CombinedDatasetIterator:
@@ -235,5 +268,7 @@ class CombinedDatasetIterator:
         self._rng = random.Random(seed)
 
     def __next__(self):
-        (dataset,) = self._rng.choices(self._datasets, weights=self._weights, k=1)
+        (dataset,) = self._rng.choices(
+            self._datasets, weights=self._weights, k=1
+        )
         return next(dataset)

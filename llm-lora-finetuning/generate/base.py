@@ -16,7 +16,12 @@ wd = Path(__file__).parent.parent.resolve()
 sys.path.append(str(wd))
 
 from lit_gpt import GPT, Config, Tokenizer
-from lit_gpt.utils import CLI, check_valid_checkpoint_dir, get_default_supported_precision, load_checkpoint
+from lit_gpt.utils import (
+    CLI,
+    check_valid_checkpoint_dir,
+    get_default_supported_precision,
+    load_checkpoint,
+)
 
 
 def multinomial_num_samples_1(probs: torch.Tensor) -> torch.Tensor:
@@ -27,7 +32,9 @@ def multinomial_num_samples_1(probs: torch.Tensor) -> torch.Tensor:
     return torch.multinomial(probs, num_samples=1)
 
 
-def sample(logits: torch.Tensor, temperature: float = 1.0, top_k: Optional[int] = None) -> torch.Tensor:
+def sample(
+    logits: torch.Tensor, temperature: float = 1.0, top_k: Optional[int] = None
+) -> torch.Tensor:
     logits = logits[0, -1]
     # optionally crop the logits to only the top k options
     if top_k is not None:
@@ -41,7 +48,9 @@ def sample(logits: torch.Tensor, temperature: float = 1.0, top_k: Optional[int] 
     return torch.argmax(logits, dim=-1, keepdim=True)
 
 
-def next_token(model: GPT, input_pos: torch.Tensor, x: torch.Tensor, **kwargs: Any) -> torch.Tensor:
+def next_token(
+    model: GPT, input_pos: torch.Tensor, x: torch.Tensor, **kwargs: Any
+) -> torch.Tensor:
     logits = model(x, input_pos)
     next = sample(logits, **kwargs)
     return next.to(dtype=x.dtype)
@@ -75,17 +84,29 @@ def generate(
         # rolling the kv cache based on the `input_pos` value would be necessary. However, doing so would introduce a
         # data dependency on the `input_pos` tensor and impact model compilation. Since this setting is uncommon, we do
         # not support it to avoid negatively impacting the overall speed
-        raise NotImplementedError(f"max_seq_length {model.max_seq_length} needs to be >= {max_returned_tokens - 1}")
+        raise NotImplementedError(
+            f"max_seq_length {model.max_seq_length} needs to be >= {max_returned_tokens - 1}"
+        )
 
     device = prompt.device
     tokens = [prompt]
     input_pos = torch.tensor([T], device=device)
     token = next_token(
-        model, torch.arange(0, T, device=device), prompt.view(1, -1), temperature=temperature, top_k=top_k
+        model,
+        torch.arange(0, T, device=device),
+        prompt.view(1, -1),
+        temperature=temperature,
+        top_k=top_k,
     ).clone()
     tokens.append(token)
     for _ in range(2, max_returned_tokens - T + 1):
-        token = next_token(model, input_pos, token.view(1, -1), temperature=temperature, top_k=top_k).clone()
+        token = next_token(
+            model,
+            input_pos,
+            token.view(1, -1),
+            temperature=temperature,
+            top_k=top_k,
+        ).clone()
         tokens.append(token)
         if token == eos_id:
             break
@@ -101,8 +122,12 @@ def main(
     max_new_tokens: int = 50,
     top_k: Optional[int] = 200,
     temperature: float = 0.8,
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
-    quantize: Optional[Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq", "bnb.int8"]] = None,
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
+    quantize: Optional[
+        Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq", "bnb.int8"]
+    ] = None,
     precision: Optional[str] = None,
     compile: bool = False,
 ) -> None:
@@ -128,8 +153,14 @@ def main(
     plugins = None
     if quantize is not None and quantize.startswith("bnb."):
         if "mixed" in precision:
-            raise ValueError("Quantization and mixed precision is not supported.")
-        dtype = {"16-true": torch.float16, "bf16-true": torch.bfloat16, "32-true": torch.float32}[precision]
+            raise ValueError(
+                "Quantization and mixed precision is not supported."
+            )
+        dtype = {
+            "16-true": torch.float16,
+            "bf16-true": torch.bfloat16,
+            "32-true": torch.float32,
+        }[precision]
         plugins = BitsandbytesPrecision(quantize[4:], dtype)
         precision = None
 
@@ -146,11 +177,17 @@ def main(
     prompt_length = encoded.size(0)
     max_returned_tokens = prompt_length + max_new_tokens
 
-    fabric.print(f"Loading model {str(checkpoint_path)!r} with {config.__dict__}", file=sys.stderr)
+    fabric.print(
+        f"Loading model {str(checkpoint_path)!r} with {config.__dict__}",
+        file=sys.stderr,
+    )
     t0 = time.perf_counter()
     with fabric.init_module(empty_init=True):
         model = GPT(config)
-    fabric.print(f"Time to instantiate model: {time.perf_counter() - t0:.02f} seconds.", file=sys.stderr)
+    fabric.print(
+        f"Time to instantiate model: {time.perf_counter() - t0:.02f} seconds.",
+        file=sys.stderr,
+    )
     with fabric.init_tensor():
         # set the max_seq_length to limit the memory usage to what we need
         model.max_seq_length = max_returned_tokens
@@ -169,22 +206,36 @@ def main(
 
     t0 = time.perf_counter()
     load_checkpoint(fabric, model, checkpoint_path)
-    fabric.print(f"Time to load the model weights: {time.perf_counter() - t0:.02f} seconds.", file=sys.stderr)
+    fabric.print(
+        f"Time to load the model weights: {time.perf_counter() - t0:.02f} seconds.",
+        file=sys.stderr,
+    )
 
     L.seed_everything(1234)
     for i in range(num_samples):
         t0 = time.perf_counter()
-        y = generate(model, encoded, max_returned_tokens, temperature=temperature, top_k=top_k, eos_id=tokenizer.eos_id)
+        y = generate(
+            model,
+            encoded,
+            max_returned_tokens,
+            temperature=temperature,
+            top_k=top_k,
+            eos_id=tokenizer.eos_id,
+        )
         t = time.perf_counter() - t0
         for block in model.transformer.h:
             block.attn.kv_cache.reset_parameters()
         fabric.print(tokenizer.decode(y))
         tokens_generated = y.size(0) - prompt_length
         fabric.print(
-            f"Time for inference {i + 1}: {t:.02f} sec total, {tokens_generated / t:.02f} tokens/sec", file=sys.stderr
+            f"Time for inference {i + 1}: {t:.02f} sec total, {tokens_generated / t:.02f} tokens/sec",
+            file=sys.stderr,
         )
     if fabric.device.type == "cuda":
-        fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB", file=sys.stderr)
+        fabric.print(
+            f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB",
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":

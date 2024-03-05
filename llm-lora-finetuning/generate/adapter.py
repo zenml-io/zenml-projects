@@ -16,16 +16,28 @@ sys.path.append(str(wd))
 from generate.base import generate
 from lit_gpt import Tokenizer
 from lit_gpt.adapter import GPT, Config
-from lit_gpt.utils import CLI, check_valid_checkpoint_dir, get_default_supported_precision, lazy_load
+from lit_gpt.utils import (
+    CLI,
+    check_valid_checkpoint_dir,
+    get_default_supported_precision,
+    lazy_load,
+)
+
 from scripts.prepare_alpaca import generate_prompt
 
 
 def main(
     prompt: str = "What food do llamas eat?",
     input: str = "",
-    adapter_path: Path = Path("out/adapter/alpaca/lit_model_adapter_finetuned.pth"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
-    quantize: Optional[Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq", "bnb.int8"]] = None,
+    adapter_path: Path = Path(
+        "out/adapter/alpaca/lit_model_adapter_finetuned.pth"
+    ),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
+    quantize: Optional[
+        Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq", "bnb.int8"]
+    ] = None,
     max_new_tokens: int = 100,
     top_k: Optional[int] = 200,
     temperature: float = 0.8,
@@ -56,8 +68,14 @@ def main(
     plugins = None
     if quantize is not None and quantize.startswith("bnb."):
         if "mixed" in precision:
-            raise ValueError("Quantization and mixed precision is not supported.")
-        dtype = {"16-true": torch.float16, "bf16-true": torch.bfloat16, "32-true": torch.float32}[precision]
+            raise ValueError(
+                "Quantization and mixed precision is not supported."
+            )
+        dtype = {
+            "16-true": torch.float16,
+            "bf16-true": torch.bfloat16,
+            "32-true": torch.float32,
+        }[precision]
         plugins = BitsandbytesPrecision(quantize[4:], dtype)
         precision = None
 
@@ -77,11 +95,17 @@ def main(
     prompt_length = encoded.size(0)
     max_returned_tokens = prompt_length + max_new_tokens
 
-    fabric.print(f"Loading model {str(checkpoint_path)!r} with {config.__dict__}", file=sys.stderr)
+    fabric.print(
+        f"Loading model {str(checkpoint_path)!r} with {config.__dict__}",
+        file=sys.stderr,
+    )
     t0 = time.perf_counter()
     with fabric.init_module(empty_init=True):
         model = GPT(config)
-    fabric.print(f"Time to instantiate model: {time.perf_counter() - t0:.02f} seconds.", file=sys.stderr)
+    fabric.print(
+        f"Time to instantiate model: {time.perf_counter() - t0:.02f} seconds.",
+        file=sys.stderr,
+    )
     with fabric.init_tensor():
         # set the max_seq_length to limit the memory usage to what we need
         model.max_seq_length = max_returned_tokens
@@ -94,13 +118,23 @@ def main(
     adapter_checkpoint = lazy_load(adapter_path)
     checkpoint.update(adapter_checkpoint.get("model", adapter_checkpoint))
     model.load_state_dict(checkpoint)
-    fabric.print(f"Time to load the model weights: {time.perf_counter() - t0:.02f} seconds.", file=sys.stderr)
+    fabric.print(
+        f"Time to load the model weights: {time.perf_counter() - t0:.02f} seconds.",
+        file=sys.stderr,
+    )
 
     model = fabric.setup(model)
 
     L.seed_everything(1234)
     t0 = time.perf_counter()
-    y = generate(model, encoded, max_returned_tokens, temperature=temperature, top_k=top_k, eos_id=tokenizer.eos_id)
+    y = generate(
+        model,
+        encoded,
+        max_returned_tokens,
+        temperature=temperature,
+        top_k=top_k,
+        eos_id=tokenizer.eos_id,
+    )
     t = time.perf_counter() - t0
 
     output = tokenizer.decode(y)
@@ -108,9 +142,15 @@ def main(
     fabric.print(output)
 
     tokens_generated = y.size(0) - prompt_length
-    fabric.print(f"\n\nTime for inference: {t:.02f} sec total, {tokens_generated / t:.02f} tokens/sec", file=sys.stderr)
+    fabric.print(
+        f"\n\nTime for inference: {t:.02f} sec total, {tokens_generated / t:.02f} tokens/sec",
+        file=sys.stderr,
+    )
     if fabric.device.type == "cuda":
-        fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB", file=sys.stderr)
+        fabric.print(
+            f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB",
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ sys.path.append(str(wd))
 
 from lit_gpt.tokenizer import Tokenizer
 from lit_gpt.utils import CLI
+
 from scripts.prepare_alpaca import download_if_missing
 
 
@@ -28,7 +29,9 @@ def load_jsonl(filename):
 
 def prepare(
     destination_path: Path = Path("data/flan"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     mask_inputs: bool = False,  # as in alpaca-lora
     subsets: Optional[str] = None,
     ignore_index: int = -1,
@@ -121,7 +124,9 @@ def prepare(
         subsets = list(supported_subsets)
 
     if max_seq_length is None:
-        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
+        with open(
+            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
+        ) as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 
@@ -187,7 +192,13 @@ def prepare(
     torch.save(test_set, destination_path / "test.pt")
 
 
-def prepare_sample(example: dict, tokenizer: Tokenizer, max_length: int, mask_inputs: bool, ignore_index: int):
+def prepare_sample(
+    example: dict,
+    tokenizer: Tokenizer,
+    max_length: int,
+    mask_inputs: bool,
+    ignore_index: int,
+):
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -207,14 +218,20 @@ def prepare_sample(example: dict, tokenizer: Tokenizer, max_length: int, mask_in
     full_prompt = generate_prompt(example)
     full_prompt_and_response = full_prompt + example["targets"]
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
-    encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
+    encoded_full_prompt_and_response = tokenizer.encode(
+        full_prompt_and_response, eos=True, max_length=max_length
+    )
 
     # The labels are the full prompt with response, but with the prompt masked out
     labels = encoded_full_prompt_and_response.clone()
     if mask_inputs:
         labels[: len(encoded_full_prompt)] = ignore_index
 
-    return {**example, "input_ids": encoded_full_prompt_and_response, "labels": labels}
+    return {
+        **example,
+        "input_ids": encoded_full_prompt_and_response,
+        "labels": labels,
+    }
 
 
 def generate_prompt(example):

@@ -51,8 +51,12 @@ class AdapterV2Linear(torch.nn.Module):
     def __init__(self, in_features: int, out_features: int, **kwargs) -> None:
         super().__init__()
         self.linear = torch.nn.Linear(in_features, out_features, **kwargs)
-        self.adapter_bias = torch.nn.Parameter(torch.zeros(out_features), requires_grad=False)
-        self.adapter_scale = torch.nn.Parameter(torch.ones(out_features), requires_grad=False)
+        self.adapter_bias = torch.nn.Parameter(
+            torch.zeros(out_features), requires_grad=False
+        )
+        self.adapter_scale = torch.nn.Parameter(
+            torch.ones(out_features), requires_grad=False
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.adapter_scale * (self.linear(x) + self.adapter_bias)
@@ -69,11 +73,15 @@ class GPT(BaseModel):
         assert config.padded_vocab_size is not None
         self.config = config
 
-        self.lm_head = AdapterV2Linear(config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias)
+        self.lm_head = AdapterV2Linear(
+            config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias
+        )
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
-                h=nn.ModuleList(Block(config, i) for i in range(config.n_layer)),
+                h=nn.ModuleList(
+                    Block(config, i) for i in range(config.n_layer)
+                ),
                 ln_f=config.norm_class(config.n_embd, eps=config.norm_eps),
             )
         )
@@ -90,9 +98,14 @@ class GPT(BaseModel):
         if isinstance(module, AdapterV2Linear):
             module.reset_parameters()
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with base checkpoints."""
-        mapping = {"lm_head.weight": "lm_head.linear.weight", "lm_head.bias": "lm_head.linear.bias"}
+        mapping = {
+            "lm_head.weight": "lm_head.linear.weight",
+            "lm_head.bias": "lm_head.linear.bias",
+        }
         state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
@@ -121,25 +134,37 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         nn.Module.__init__(self)
         shape = (config.n_head + 2 * config.n_query_groups) * config.head_size
         # key, query, value projections for all heads, but in a batch
-        self.attn = AdapterV2Linear(in_features=config.n_embd, out_features=shape, bias=config.bias)
+        self.attn = AdapterV2Linear(
+            in_features=config.n_embd, out_features=shape, bias=config.bias
+        )
         # output projection
         # if `head_size` is explicitly specified in the config, `n_emd` might not be equal to `head_size * n_head`
-        self.proj = AdapterV2Linear(config.head_size * config.n_head, config.n_embd, bias=config.bias)
+        self.proj = AdapterV2Linear(
+            config.head_size * config.n_head, config.n_embd, bias=config.bias
+        )
         # disabled by default
         self.kv_cache: Optional[KVCache] = None
 
         if block_idx >= config.adapter_start_layer:
             # adapter embedding layer
-            self.adapter_wte = nn.Embedding(config.adapter_prompt_length, config.n_embd)
+            self.adapter_wte = nn.Embedding(
+                config.adapter_prompt_length, config.n_embd
+            )
             # gate for adaption
-            self.gating_factor = torch.nn.Parameter(torch.zeros(1, 1, config.n_head, 1))
+            self.gating_factor = torch.nn.Parameter(
+                torch.zeros(1, 1, config.n_head, 1)
+            )
             # kv cache for inference
-            self.adapter_kv_cache: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+            self.adapter_kv_cache: Optional[
+                Tuple[torch.Tensor, torch.Tensor]
+            ] = None
         self.block_idx = block_idx
 
         self.config = config
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with base checkpoints."""
         mapping = {
             "attn.weight": "attn.linear.weight",
@@ -149,7 +174,9 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         }
         state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)
         # For compatibility with older checkpoints
-        if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(1) == self.config.n_head:
+        if (key := prefix + "gating_factor") in state_dict and state_dict[
+            key
+        ].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
@@ -157,12 +184,18 @@ class CausalSelfAttention(BaseCausalSelfAttention):
 class GptNeoxMLP(lit_gpt.model.GptNeoxMLP):
     def __init__(self, config: Config) -> None:
         nn.Module.__init__(self)
-        self.fc = AdapterV2Linear(config.n_embd, config.intermediate_size, bias=config.bias)
-        self.proj = AdapterV2Linear(config.intermediate_size, config.n_embd, bias=config.bias)
+        self.fc = AdapterV2Linear(
+            config.n_embd, config.intermediate_size, bias=config.bias
+        )
+        self.proj = AdapterV2Linear(
+            config.intermediate_size, config.n_embd, bias=config.bias
+        )
 
         self.config = config
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with base checkpoints."""
         mapping = {
             "fc.weight": "fc.linear.weight",
@@ -177,11 +210,19 @@ class GptNeoxMLP(lit_gpt.model.GptNeoxMLP):
 class LLaMAMLP(lit_gpt.model.LLaMAMLP):
     def __init__(self, config: Config) -> None:
         nn.Module.__init__(self)
-        self.fc_1 = AdapterV2Linear(config.n_embd, config.intermediate_size, bias=config.bias)
-        self.fc_2 = AdapterV2Linear(config.n_embd, config.intermediate_size, bias=config.bias)
-        self.proj = AdapterV2Linear(config.intermediate_size, config.n_embd, bias=config.bias)
+        self.fc_1 = AdapterV2Linear(
+            config.n_embd, config.intermediate_size, bias=config.bias
+        )
+        self.fc_2 = AdapterV2Linear(
+            config.n_embd, config.intermediate_size, bias=config.bias
+        )
+        self.proj = AdapterV2Linear(
+            config.intermediate_size, config.n_embd, bias=config.bias
+        )
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with base checkpoints."""
         mapping = {
             "fc_1.weight": "fc_1.linear.weight",
@@ -207,11 +248,15 @@ class LLaMAMoE(lit_gpt.model.LLaMAMoE):
     def __init__(self, config: Config) -> None:
         nn.Module.__init__(self)
         self.gate = AdapterV2Linear(config.n_embd, config.n_expert, bias=False)
-        self.experts = nn.ModuleList(LLaMAMLP(config) for _ in range(config.n_expert))
+        self.experts = nn.ModuleList(
+            LLaMAMLP(config) for _ in range(config.n_expert)
+        )
 
         self.config = config
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with base checkpoints."""
         mapping = {"gate.weight": "gate.linear.weight"}
         state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)

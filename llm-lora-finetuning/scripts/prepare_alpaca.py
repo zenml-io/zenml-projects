@@ -22,7 +22,9 @@ from lit_gpt.utils import CLI
 
 def prepare(
     destination_path: Path = Path("data/alpaca"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     test_split_fraction: float = 0.03865,  # to get exactly 2000 test samples,
     seed: int = 42,
     mask_inputs: bool = False,  # as in alpaca-lora
@@ -37,7 +39,9 @@ def prepare(
     which stores the preprocessed and tokenized prompts and labels.
     """
     if max_seq_length is None:
-        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
+        with open(
+            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
+        ) as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 
@@ -53,7 +57,9 @@ def prepare(
 
     # Partition the dataset into train and test
     train_set, test_set = random_split(
-        data, [1.0 - test_split_fraction, test_split_fraction], generator=torch.Generator().manual_seed(seed)
+        data,
+        [1.0 - test_split_fraction, test_split_fraction],
+        generator=torch.Generator().manual_seed(seed),
     )
     train_set, test_set = list(train_set), list(test_set)
 
@@ -100,7 +106,13 @@ def download_if_missing(file_path: Path, file_url: str) -> None:
         f.write(requests.get(file_url).text)
 
 
-def prepare_sample(example: dict, tokenizer: Tokenizer, max_length: int, mask_inputs: bool, ignore_index: int) -> dict:
+def prepare_sample(
+    example: dict,
+    tokenizer: Tokenizer,
+    max_length: int,
+    mask_inputs: bool,
+    ignore_index: int,
+) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -120,14 +132,20 @@ def prepare_sample(example: dict, tokenizer: Tokenizer, max_length: int, mask_in
     full_prompt = generate_prompt(example)
     full_prompt_and_response = full_prompt + example["output"]
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
-    encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
+    encoded_full_prompt_and_response = tokenizer.encode(
+        full_prompt_and_response, eos=True, max_length=max_length
+    )
 
     # The labels are the full prompt with response, but with the prompt masked out
     labels = encoded_full_prompt_and_response.clone()
     if mask_inputs:
         labels[: len(encoded_full_prompt)] = ignore_index
 
-    return {**example, "input_ids": encoded_full_prompt_and_response, "labels": labels}
+    return {
+        **example,
+        "input_ids": encoded_full_prompt_and_response,
+        "labels": labels,
+    }
 
 
 def generate_prompt(example: dict) -> str:

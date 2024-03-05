@@ -1,43 +1,74 @@
 # Copyright Lightning AI. Licensed under the Apache License 2.0, see LICENSE file.
+import shutil
 from pathlib import Path
-from typing import Tuple, Annotated
+from typing import Optional
 
+from finetune.lora import setup
+from huggingface_hub import upload_folder
 from lit_gpt.args import IOArgs
 from zenml import step
 
-from scripts.download import download_from_hub
 from scripts.convert_hf_checkpoint import convert_hf_checkpoint
-from scripts.prepare_alpaca import prepare
-from finetune.lora import setup
+from scripts.convert_lit_checkpoint import convert_lit_checkpoint
+from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
-import shutil
+from scripts.prepare_alpaca import prepare
+
 
 @step
-def finetune_lora(repo_id: str) -> Tuple[Annotated[str, "checkpoint_dir"], Annotated[str, "output_path"]]:
+def finetune_lora(
+    repo_id: str,
+    adapter_output_repo: Optional[str] = None,
+    merged_output_repo: Optional[str] = None,
+    convert_to_hf: bool = False,
+) -> None:
     checkpoint_dir = Path("checkpoints")
     data_dir = Path("data/alpaca")
     output_dir = Path("out/lora/alpaca")
     download_from_hub(repo_id=repo_id, checkpoint_dir=checkpoint_dir)
     convert_hf_checkpoint(checkpoint_dir=checkpoint_dir)
     prepare(destination_path=data_dir, checkpoint_dir=checkpoint_dir)
-    
-    io_args = IOArgs(
-        train_data_dir=data_dir,
-        val_data_dir=data_dir,
-        checkpoint_dir=checkpoint_dir,
-        out_dir=output_dir,
-    ),
+
+    io_args = (
+        IOArgs(
+            train_data_dir=data_dir,
+            val_data_dir=data_dir,
+            checkpoint_dir=checkpoint_dir,
+            out_dir=output_dir,
+        ),
+    )
     setup(precision="bf16-true", io=io_args)
 
     model_name = repo_id.split("/")[-1]
-    lora_path = output_dir / model_name / "lit_model_lora_finetuned.pth"
 
-    merge_output_dir = Path("out/lora_merged") / model_name
-    merge_lora(lora_alpha=lora_path, checkpoint_dir=checkpoint_dir, out_dir=merge_output_dir)
+    if merged_output_repo:
+        lora_path = output_dir / model_name / "lit_model_lora_finetuned.pth"
 
-    for path in Path(checkpoint_dir).glob('*.json'):
-        destination = Path(merge_output_dir) / path.name
+        merge_output_dir = Path("out/lora_merged") / model_name
+        merge_lora(
+            lora_alpha=lora_path,
+            checkpoint_dir=checkpoint_dir,
+            out_dir=merge_output_dir,
+        )
 
-        shutil.copy(src=path, dst=destination)
+        for path in Path(checkpoint_dir).glob("*.json"):
+            destination = Path(merge_output_dir) / path.name
 
-    return checkpoint_dir, lora_path
+            shutil.copy(src=path, dst=destination)
+
+        if convert_to_hf:
+            upload_dir = Path("hf_checkpoint_merged")
+            convert_lit_checkpoint(
+                checkpoint_path=merged_output_repo,
+                output_path=output_dir,
+                config_path=merged_output_repo / "lit_config.json",
+            )
+        else:
+            upload_dir = merge_output_dir
+
+        upload_folder(repo_id=merged_output_repo, folder_path=upload_dir)
+
+    if adapter_output_repo:
+        upload_folder(
+            repo_id=adapter_output_repo, folder_path=output_dir / model_name
+        )

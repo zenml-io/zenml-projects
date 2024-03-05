@@ -17,7 +17,12 @@ from lit_gpt.utils import CLI, incremental_save
 
 
 @torch.inference_mode()
-def convert_checkpoint(checkpoint_file: Path, tokenizer_dir: Path, config_name: str, output_dir: Path) -> None:
+def convert_checkpoint(
+    checkpoint_file: Path,
+    tokenizer_dir: Path,
+    config_name: str,
+    output_dir: Path,
+) -> None:
     """Convert a checkpoint after pretraining.
 
     The pretrained checkpoint contains optimizer states and several other metadata that are not needed after training
@@ -40,7 +45,9 @@ def convert_checkpoint(checkpoint_file: Path, tokenizer_dir: Path, config_name: 
             " Please delete it first or choose a different name."
         )
     if not tokenizer_dir.is_dir():
-        raise FileNotFoundError(f"The tokenizer_dir must be a directory: {str(output_dir)}.")
+        raise FileNotFoundError(
+            f"The tokenizer_dir must be a directory: {str(output_dir)}."
+        )
 
     output_dir.mkdir(parents=True)
     output_checkpoint_file = output_dir / "lit_model.pth"
@@ -57,7 +64,10 @@ def convert_checkpoint(checkpoint_file: Path, tokenizer_dir: Path, config_name: 
 
     # Copy config for tokenization if found
     if (tokenizer_dir / "generation_config.json").is_file():
-        shutil.copyfile(tokenizer_dir / "generation_config.json", output_dir / "generation_config.json")
+        shutil.copyfile(
+            tokenizer_dir / "generation_config.json",
+            output_dir / "generation_config.json",
+        )
 
     # Extract the model state dict and save to output folder
     with incremental_save(output_checkpoint_file) as saver:

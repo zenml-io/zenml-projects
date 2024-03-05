@@ -10,7 +10,13 @@ class RMSNorm(torch.nn.Module):
     https://github.com/bzhangGo/rmsnorm/blob/master/LICENSE.
     """
 
-    def __init__(self, size: int, dim: int = -1, eps: float = 1e-6, add_unit_offset: bool = False) -> None:
+    def __init__(
+        self,
+        size: int,
+        dim: int = -1,
+        eps: float = 1e-6,
+        add_unit_offset: bool = False,
+    ) -> None:
         super().__init__()
         self.weight = torch.nn.Parameter(torch.ones(size))
         self.eps = eps

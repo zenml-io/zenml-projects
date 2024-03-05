@@ -15,9 +15,19 @@
 # limitations under the License.
 #
 
-from zenml import pipeline
 from steps.merge import merge
+from zenml import pipeline
+
 
 @pipeline
-def merge_pipeline() -> None:
-    merge()
+def merge_pipeline(
+    base_model_repo: str,
+    adapter_repo: str,
+    output_repo: str,
+    convert_to_hf: bool = False,
+) -> None:
+    merge(
+        base_model_repo=base_model_repo,
+        output_repo=output_repo,
+        convert_to_hf=convert_to_hf,
+    )

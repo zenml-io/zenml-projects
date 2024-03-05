@@ -14,12 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from typing import Optional
 
-from zenml import pipeline
 from steps.finetune import finetune_lora
-from steps.merge import merge
+from zenml import pipeline
 from zenml.config import DockerSettings
 
+
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def finetuning_pipeline(repo_id: str = "mistralai/Mistral-7B-Instruct-v0.1") -> None:
-    checkpoint_dir, output_path = finetune_lora(repo_id=repo_id)
+def finetuning_pipeline(
+    repo_id: str = "mistralai/Mistral-7B-Instruct-v0.1",
+    adapter_output_repo: Optional[str] = None,
+    merged_output_repo: Optional[str] = None,
+    convert_to_hf: bool = False,
+) -> None:
+    finetune_lora(
+        repo_id=repo_id,
+        adapter_output_repo=adapter_output_repo,
+        merged_output_repo=merged_output_repo,
+        convert_to_hf=convert_to_hf,
+    )

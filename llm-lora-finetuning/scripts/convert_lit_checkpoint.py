@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple, Union
 
 import torch
-from lightning.fabric.utilities.load import _NotYetLoadedTensor as NotYetLoadedTensor
+from lightning.fabric.utilities.load import (
+    _NotYetLoadedTensor as NotYetLoadedTensor,
+)
 
 # support running without installing as a package
 wd = Path(__file__).parent.parent.resolve()
@@ -15,6 +17,7 @@ sys.path.append(str(wd))
 
 from lit_gpt import Config
 from lit_gpt.utils import CLI, incremental_save, lazy_load
+
 from scripts.convert_hf_checkpoint import layer_template, load_param
 
 
@@ -226,7 +229,10 @@ def qkv_split(
     ks = []
     vs = []
     for chunk in torch.chunk(param, config.n_query_groups):
-        split = torch.split(chunk, [config.head_size * q_per_kv, config.head_size, config.head_size])
+        split = torch.split(
+            chunk,
+            [config.head_size * q_per_kv, config.head_size, config.head_size],
+        )
         qs.append(split[0])
         ks.append(split[1])
         vs.append(split[2])
@@ -238,20 +244,26 @@ def qkv_split(
 
 def check_conversion_supported(lit_weights: Dict[str, torch.Tensor]) -> None:
     if any("lora" in wn for wn in lit_weights):
-        raise ValueError("Checkpoints with LoRA weights cannot be converted. Call `scripts/merge_lora.py` first.")
+        raise ValueError(
+            "Checkpoints with LoRA weights cannot be converted. Call `scripts/merge_lora.py` first."
+        )
     if any("adapter" in wn or "gating_factor" in wn for wn in lit_weights):
         raise NotImplementedError("Converting adapter models is supported.")
 
 
 @torch.inference_mode()
-def convert_lit_checkpoint(checkpoint_path: Path, output_path: Path, config_path: Path) -> None:
+def convert_lit_checkpoint(
+    checkpoint_path: Path, output_path: Path, config_path: Path
+) -> None:
     config = Config.from_json(config_path)
 
     if "falcon" in config.name:
         copy_fn = partial(copy_weights_falcon, config.name)
     elif config._mlp_class in ("LLaMAMLP", "GemmaMLP", "LLaMAMoE"):
         untie_weights = "Gemma" in config.name
-        copy_fn = partial(copy_weights_llama, config, untie_weights=untie_weights)
+        copy_fn = partial(
+            copy_weights_llama, config, untie_weights=untie_weights
+        )
     elif "phi" in config.name:
         copy_fn = partial(copy_weights_phi, config)
     else:

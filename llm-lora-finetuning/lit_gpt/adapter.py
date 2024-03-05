@@ -29,18 +29,23 @@ class Config(BaseConfig):
 
 class GPT(BaseModel):
     """The implementation is identical to `lit_gpt.model.GPT` with the exception that
-    the `Block` saves the layer index and passes it down to the attention layer."""
+    the `Block` saves the layer index and passes it down to the attention layer.
+    """
 
     def __init__(self, config: Config) -> None:
         nn.Module.__init__(self)
         assert config.padded_vocab_size is not None
         self.config = config
 
-        self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias)
+        self.lm_head = nn.Linear(
+            config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias
+        )
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
-                h=nn.ModuleList(Block(config, i) for i in range(config.n_layer)),
+                h=nn.ModuleList(
+                    Block(config, i) for i in range(config.n_layer)
+                ),
                 ln_f=config.norm_class(config.n_embd, eps=config.norm_eps),
             )
         )
@@ -48,11 +53,16 @@ class GPT(BaseModel):
         self.mask_cache: Optional[torch.Tensor] = None
 
     def forward(
-        self, idx: torch.Tensor, input_pos: Optional[torch.Tensor] = None, lm_head_chunk_size: int = 0
+        self,
+        idx: torch.Tensor,
+        input_pos: Optional[torch.Tensor] = None,
+        lm_head_chunk_size: int = 0,
     ) -> Union[torch.Tensor, List[torch.Tensor]]:
         T = idx.size(1)
         if self.max_seq_length < T:
-            raise ValueError(f"Cannot forward sequence of length {T}, max seq length is only {self.max_seq_length}.")
+            raise ValueError(
+                f"Cannot forward sequence of length {T}, max seq length is only {self.max_seq_length}."
+            )
 
         if input_pos is not None:  # use the kv cache
             cos = self.cos.index_select(0, input_pos)
@@ -65,13 +75,17 @@ class GPT(BaseModel):
             sin = self.sin[:T]
             mask = None
 
-        x = self.transformer.wte(idx)  # token embeddings of shape (b, t, n_embd)
+        x = self.transformer.wte(
+            idx
+        )  # token embeddings of shape (b, t, n_embd)
         for block in self.transformer.h:
             x = block(x, cos, sin, mask, input_pos)
         x = self.transformer.ln_f(x)
         if lm_head_chunk_size > 0:
             # chunk the lm head logits to reduce the peak memory used by autograd
-            return [self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)]
+            return [
+                self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)
+            ]
         return self.lm_head(x)  # (b, t, vocab_size)
 
     @classmethod
@@ -109,15 +123,25 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         super().__init__(config)
         if block_idx >= config.adapter_start_layer:
             # adapter embedding layer
-            self.adapter_wte = nn.Embedding(config.adapter_prompt_length, config.n_embd)
+            self.adapter_wte = nn.Embedding(
+                config.adapter_prompt_length, config.n_embd
+            )
             # gate for adaption
-            self.gating_factor = torch.nn.Parameter(torch.zeros(1, 1, config.n_head, 1))
+            self.gating_factor = torch.nn.Parameter(
+                torch.zeros(1, 1, config.n_head, 1)
+            )
             # kv cache for inference
-            self.adapter_kv_cache: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+            self.adapter_kv_cache: Optional[
+                Tuple[torch.Tensor, torch.Tensor]
+            ] = None
         self.block_idx = block_idx
 
     def scaled_dot_product_attention(
-        self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: Optional[torch.Tensor] = None
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        v: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         y = super().scaled_dot_product_attention(q, k, v, mask)
         if self.block_idx < self.config.adapter_start_layer:
@@ -132,15 +156,25 @@ class CausalSelfAttention(BaseCausalSelfAttention):
             prefix = self.adapter_wte.weight.reshape(1, aT, self.config.n_embd)
             aqkv = self.attn(prefix)
             q_per_kv = self.config.n_head // self.config.n_query_groups
-            aqkv = aqkv.view(1, aT, self.config.n_query_groups, q_per_kv + 2, self.config.head_size)
+            aqkv = aqkv.view(
+                1,
+                aT,
+                self.config.n_query_groups,
+                q_per_kv + 2,
+                self.config.head_size,
+            )
             aqkv = aqkv.permute(0, 2, 3, 1, 4)
             _, ak, av = aqkv.split((q_per_kv, 1, 1), dim=2)
             if self.config.n_query_groups != 1:
                 # for MHA this is a no-op
                 ak = ak.repeat_interleave(q_per_kv, dim=2)
                 av = av.repeat_interleave(q_per_kv, dim=2)
-            ak = ak.view(1, -1, aT, self.config.head_size)  # (1, nh_ak, aT, hs)
-            av = av.view(1, -1, aT, self.config.head_size)  # (1, nh_av, aT, hs)
+            ak = ak.view(
+                1, -1, aT, self.config.head_size
+            )  # (1, nh_ak, aT, hs)
+            av = av.view(
+                1, -1, aT, self.config.head_size
+            )  # (1, nh_av, aT, hs)
             self.adapter_kv_cache = (ak, av)
 
         T = q.size(2)
@@ -151,9 +185,13 @@ class CausalSelfAttention(BaseCausalSelfAttention):
     def reset_parameters(self) -> None:
         torch.nn.init.zeros_(self.gating_factor)
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(
+        self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
+    ) -> None:
         """For compatibility with older checkpoints."""
-        if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(1) == self.config.n_head:
+        if (key := prefix + "gating_factor") in state_dict and state_dict[
+            key
+        ].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 

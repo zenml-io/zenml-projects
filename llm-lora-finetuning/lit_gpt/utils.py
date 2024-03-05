@@ -7,7 +7,17 @@ import pickle
 import sys
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Mapping, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 import lightning as L
 import torch
@@ -29,7 +39,9 @@ def find_multiple(n: int, k: int) -> int:
     return n + k - (n % k)
 
 
-def num_parameters(module: nn.Module, requires_grad: Optional[bool] = None) -> int:
+def num_parameters(
+    module: nn.Module, requires_grad: Optional[bool] = None
+) -> int:
     total = 0
     for p in module.parameters():
         if requires_grad is None or p.requires_grad == requires_grad:
@@ -45,9 +57,13 @@ def check_valid_checkpoint_dir(checkpoint_dir: Path) -> None:
     files = {
         "lit_model.pth": (checkpoint_dir / "lit_model.pth").is_file(),
         "lit_config.json": (checkpoint_dir / "lit_config.json").is_file(),
-        "tokenizer.json OR tokenizer.model": (checkpoint_dir / "tokenizer.json").is_file()
+        "tokenizer.json OR tokenizer.model": (
+            checkpoint_dir / "tokenizer.json"
+        ).is_file()
         or (checkpoint_dir / "tokenizer.model").is_file(),
-        "tokenizer_config.json": (checkpoint_dir / "tokenizer_config.json").is_file(),
+        "tokenizer_config.json": (
+            checkpoint_dir / "tokenizer_config.json"
+        ).is_file(),
     }
     if checkpoint_dir.is_dir():
         if all(files.values()):
@@ -60,7 +76,9 @@ def check_valid_checkpoint_dir(checkpoint_dir: Path) -> None:
     # list locally available checkpoints
     available = list(Path("checkpoints").glob("*/*"))
     if available:
-        options = "\n --checkpoint_dir ".join([""] + [repr(str(p.resolve())) for p in available])
+        options = "\n --checkpoint_dir ".join(
+            [""] + [repr(str(p.resolve())) for p in available]
+        )
         extra = f"\nYou have downloaded locally:{options}\n"
     else:
         extra = ""
@@ -78,7 +96,10 @@ class SavingProxyForStorage:
     def __init__(self, obj, saver, protocol_version=5):
         self.protocol_version = protocol_version
         self.saver = saver
-        if not (isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(obj)):
+        if not (
+            isinstance(obj, torch.storage.TypedStorage)
+            or torch.is_storage(obj)
+        ):
             raise TypeError(f"expected storage, not {type(obj)}")
 
         # this logic is taken from PyTorch 2.0+ torch/serialization.py
@@ -96,7 +117,13 @@ class SavingProxyForStorage:
         storage_key = saver._write_storage_and_return_key(storage)
         location = torch.serialization.location_tag(storage)
 
-        self.storage_info = ("storage", storage_type, storage_key, location, storage_numel)
+        self.storage_info = (
+            "storage",
+            storage_type,
+            storage_key,
+            location,
+            storage_numel,
+        )
 
     def __reduce_ex__(self, protocol_version):
         assert False, "this should be handled with out of band"
@@ -105,22 +132,39 @@ class SavingProxyForStorage:
 class SavingProxyForTensor:
     def __init__(self, tensor, saver, protocol_version=5):
         self.protocol_version = protocol_version
-        self.reduce_ret_fn, reduce_args = tensor.__reduce_ex__(protocol_version)
+        self.reduce_ret_fn, reduce_args = tensor.__reduce_ex__(
+            protocol_version
+        )
         if reduce_args[0] == torch._utils._rebuild_tensor_v2:
             # for Tensors with Python attributes
             (a0, a1, (storage, *a2_other), *other_reduce_args) = reduce_args
-            assert isinstance(storage, torch.storage.TypedStorage), "Please check for updates"
-            storage_proxy = SavingProxyForStorage(storage, saver, protocol_version=protocol_version)
-            self.reduce_args = (a0, a1, (storage_proxy, *a2_other), *other_reduce_args)
+            assert isinstance(
+                storage, torch.storage.TypedStorage
+            ), "Please check for updates"
+            storage_proxy = SavingProxyForStorage(
+                storage, saver, protocol_version=protocol_version
+            )
+            self.reduce_args = (
+                a0,
+                a1,
+                (storage_proxy, *a2_other),
+                *other_reduce_args,
+            )
         else:
             (storage, *other_reduce_args) = reduce_args
-            assert isinstance(storage, torch.storage.TypedStorage), "Please check for updates"
-            storage_proxy = SavingProxyForStorage(storage, saver, protocol_version=protocol_version)
+            assert isinstance(
+                storage, torch.storage.TypedStorage
+            ), "Please check for updates"
+            storage_proxy = SavingProxyForStorage(
+                storage, saver, protocol_version=protocol_version
+            )
             self.reduce_args = (storage_proxy, *other_reduce_args)
 
     def __reduce_ex__(self, protocol_version):
         if protocol_version != self.protocol_version:
-            raise RuntimeError(f"Unexpected protocol version: expected {self.protocol_version}, got {protocol_version}")
+            raise RuntimeError(
+                f"Unexpected protocol version: expected {self.protocol_version}, got {protocol_version}"
+            )
         return self.reduce_ret_fn, self.reduce_args
 
 
@@ -141,7 +185,9 @@ class IncrementalPyTorchPickler(pickle.Pickler):
         if isinstance(obj, SavingProxyForStorage):
             return obj.storage_info
 
-        if isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(obj):
+        if isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(
+            obj
+        ):
             if isinstance(obj, torch.storage.TypedStorage):
                 # TODO: Once we decide to break serialization FC, this case
                 # can be deleted
@@ -162,7 +208,10 @@ class IncrementalPyTorchPickler(pickle.Pickler):
             # not allocated, don't perform this check
             if storage.data_ptr() != 0:
                 if storage.data_ptr() in self.storage_dtypes:
-                    if storage_dtype != self.storage_dtypes[storage.data_ptr()]:
+                    if (
+                        storage_dtype
+                        != self.storage_dtypes[storage.data_ptr()]
+                    ):
                         raise RuntimeError(
                             "Cannot save multiple tensors or storages that view the same data as different types"
                         )
@@ -175,7 +224,13 @@ class IncrementalPyTorchPickler(pickle.Pickler):
                 self.id_map[storage._cdata] = storage_key
             location = torch.serialization.location_tag(storage)
 
-            return ("storage", storage_type, storage_key, location, storage_numel)
+            return (
+                "storage",
+                storage_type,
+                storage_key,
+                location,
+                storage_numel,
+            )
 
         return None
 
@@ -243,13 +298,26 @@ def chunked_cross_entropy(
             logits = torch.cat(logits, dim=1)
             logits = logits.reshape(-1, logits.size(-1))
             targets = targets.reshape(-1)
-            return torch.nn.functional.cross_entropy(logits, targets, ignore_index=ignore_index)
+            return torch.nn.functional.cross_entropy(
+                logits, targets, ignore_index=ignore_index
+            )
 
         # chunk cross entropy
-        logit_chunks = [logit_chunk.reshape(-1, logit_chunk.size(-1)) for logit_chunk in logits]
-        target_chunks = [target_chunk.reshape(-1) for target_chunk in targets.split(logits[0].size(1), dim=1)]
+        logit_chunks = [
+            logit_chunk.reshape(-1, logit_chunk.size(-1))
+            for logit_chunk in logits
+        ]
+        target_chunks = [
+            target_chunk.reshape(-1)
+            for target_chunk in targets.split(logits[0].size(1), dim=1)
+        ]
         loss_chunks = [
-            torch.nn.functional.cross_entropy(logit_chunk, target_chunk, ignore_index=ignore_index, reduction="none")
+            torch.nn.functional.cross_entropy(
+                logit_chunk,
+                target_chunk,
+                ignore_index=ignore_index,
+                reduction="none",
+            )
             for logit_chunk, target_chunk in zip(logit_chunks, target_chunks)
         ]
         non_masked_elems = (targets != ignore_index).sum()
@@ -259,25 +327,36 @@ def chunked_cross_entropy(
     logits = logits.reshape(-1, logits.size(-1))
     targets = targets.reshape(-1)
     if chunk_size == 0:
-        return torch.nn.functional.cross_entropy(logits, targets, ignore_index=ignore_index)
+        return torch.nn.functional.cross_entropy(
+            logits, targets, ignore_index=ignore_index
+        )
 
     # lm_head wasn't chunked, chunk cross entropy
     logit_chunks = logits.split(chunk_size)
     target_chunks = targets.split(chunk_size)
     loss_chunks = [
-        torch.nn.functional.cross_entropy(logit_chunk, target_chunk, ignore_index=ignore_index, reduction="none")
+        torch.nn.functional.cross_entropy(
+            logit_chunk,
+            target_chunk,
+            ignore_index=ignore_index,
+            reduction="none",
+        )
         for logit_chunk, target_chunk in zip(logit_chunks, target_chunks)
     ]
     non_masked_elems = (targets != ignore_index).sum()
     return torch.cat(loss_chunks).sum() / max(1, non_masked_elems)
 
 
-def map_old_state_dict_weights(state_dict: Dict, mapping: Mapping, prefix: str) -> Dict:
+def map_old_state_dict_weights(
+    state_dict: Dict, mapping: Mapping, prefix: str
+) -> Dict:
     for checkpoint_name, attribute_name in mapping.items():
         full_checkpoint_name = prefix + checkpoint_name
         if full_checkpoint_name in state_dict:
             full_attribute_name = prefix + attribute_name
-            state_dict[full_attribute_name] = state_dict.pop(full_checkpoint_name)
+            state_dict[full_attribute_name] = state_dict.pop(
+                full_checkpoint_name
+            )
     return state_dict
 
 
@@ -292,12 +371,19 @@ def get_default_supported_precision(training: bool) -> str:
     """
     from lightning.fabric.accelerators import MPSAccelerator
 
-    if MPSAccelerator.is_available() or (torch.cuda.is_available() and not torch.cuda.is_bf16_supported()):
+    if MPSAccelerator.is_available() or (
+        torch.cuda.is_available() and not torch.cuda.is_bf16_supported()
+    ):
         return "16-mixed" if training else "16-true"
     return "bf16-mixed" if training else "bf16-true"
 
 
-def load_checkpoint(fabric: L.Fabric, model: nn.Module, checkpoint_path: Path, strict: bool = True) -> None:
+def load_checkpoint(
+    fabric: L.Fabric,
+    model: nn.Module,
+    checkpoint_path: Path,
+    strict: bool = True,
+) -> None:
     if isinstance(fabric.strategy, FSDPStrategy):
         fabric.load_raw(checkpoint_path, model, strict=strict)
     else:
@@ -306,8 +392,12 @@ def load_checkpoint(fabric: L.Fabric, model: nn.Module, checkpoint_path: Path, s
         model.load_state_dict(state_dict, strict=strict)
 
 
-def flops_per_param(max_seq_length: int, n_layer: int, n_embd: int, n_params: int) -> int:
-    flops_per_token = 2 * n_params  # each parameter is used for a MAC (2 FLOPS) per network operation
+def flops_per_param(
+    max_seq_length: int, n_layer: int, n_embd: int, n_params: int
+) -> int:
+    flops_per_token = (
+        2 * n_params
+    )  # each parameter is used for a MAC (2 FLOPS) per network operation
     # this assumes that all samples have a fixed length equal to the block size
     # which is most likely false during finetuning
     flops_per_seq = flops_per_token * max_seq_length
@@ -328,12 +418,20 @@ def estimate_flops(model: "GPT", training: bool) -> int:
     # For a proper estimate, this needs a more fine-grained calculation as in Appendix A of the paper.
     n_trainable_params = num_parameters(model, requires_grad=True)
     trainable_flops = flops_per_param(
-        model.max_seq_length, model.config.n_layer, model.config.n_embd, n_trainable_params
+        model.max_seq_length,
+        model.config.n_layer,
+        model.config.n_embd,
+        n_trainable_params,
     )
     # forward + backward + gradients (assumes no gradient accumulation)
     ops_per_step = 3 if training else 1
     n_frozen_params = num_parameters(model, requires_grad=False)
-    frozen_flops = flops_per_param(model.max_seq_length, model.config.n_layer, model.config.n_embd, n_frozen_params)
+    frozen_flops = flops_per_param(
+        model.max_seq_length,
+        model.config.n_layer,
+        model.config.n_embd,
+        n_frozen_params,
+    )
     # forward + backward
     frozen_ops_per_step = 2 if training else 1
     return ops_per_step * trainable_flops + frozen_ops_per_step * frozen_flops

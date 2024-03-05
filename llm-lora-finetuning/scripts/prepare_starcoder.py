@@ -33,7 +33,9 @@ class StarcoderDataRecipe(DataChunkRecipe):
         try:
             parquet_file = pq.ParquetFile(filepath)
             # reduce RAM usage
-            for batch in parquet_file.iter_batches(batch_size=8192, columns=["content"]):
+            for batch in parquet_file.iter_batches(
+                batch_size=8192, columns=["content"]
+            ):
                 for text in batch.to_pandas()["content"]:
                     yield self.tokenizer.encode(text, bos=False, eos=True)
 
@@ -55,7 +57,9 @@ def prepare(
     fast_dev_run: bool = False,
 ) -> None:
     tokenizer = Tokenizer(tokenizer_path)
-    data_recipe = StarcoderDataRecipe(tokenizer=tokenizer, chunk_size=chunk_size)
+    data_recipe = StarcoderDataRecipe(
+        tokenizer=tokenizer, chunk_size=chunk_size
+    )
     data_processor = DataProcessor(
         input_dir=str(input_dir),
         output_dir=str(output_dir),
