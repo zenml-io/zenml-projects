@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pathlib import Path
 from typing import Optional
 
-from steps.finetune import finetune_lora
+from steps.finetune import finetune
 from zenml import pipeline
 from zenml.config import DockerSettings
 
@@ -29,10 +30,10 @@ def finetuning_pipeline(
     convert_to_hf: bool = False,
     data_dir: Optional[str] = None,
 ) -> None:
-    finetune_lora(
+    finetune(
         repo_id=repo_id,
         adapter_output_repo=adapter_output_repo,
         merged_output_repo=merged_output_repo,
         convert_to_hf=convert_to_hf,
-        data_dir=data_dir
+        data_dir=Path(data_dir) if data_dir else None,
     )

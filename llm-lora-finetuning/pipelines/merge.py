@@ -17,9 +17,10 @@
 
 from steps.merge import merge
 from zenml import pipeline
+from zenml.config import DockerSettings
 
 
-@pipeline
+@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
 def merge_pipeline(
     base_model_repo: str,
     adapter_repo: str,
@@ -28,6 +29,7 @@ def merge_pipeline(
 ) -> None:
     merge(
         base_model_repo=base_model_repo,
+        adapter_repo=adapter_repo,
         output_repo=output_repo,
         convert_to_hf=convert_to_hf,
     )

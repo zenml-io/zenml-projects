@@ -13,7 +13,7 @@ from scripts.download import download_from_hub
 
 
 class LocalDirectoryMaterializer(BaseMaterializer):
-    ASSOCIATED_TYPES: ClassVar[Tuple[Type[Any], ...]] = (str,)
+    ASSOCIATED_TYPES: ClassVar[Tuple[Type[Any], ...]] = (Path,)
     ASSOCIATED_ARTIFACT_TYPE: ClassVar[ArtifactType] = ArtifactType.DATA
 
     def load(self, data_type: Type[Any]) -> Any:
@@ -26,7 +26,7 @@ class LocalDirectoryMaterializer(BaseMaterializer):
         """
         directory = mkdtemp(prefix="zenml-artifact")
         fileio.copy(self.uri, directory)
-        return directory
+        return Path(directory)
 
     def save(self, data: Any) -> None:
         """Write logic here to save the data of an artifact.
@@ -34,12 +34,12 @@ class LocalDirectoryMaterializer(BaseMaterializer):
         Args:
             data: The data of the artifact to save.
         """
-        assert isinstance(data, str)
-        fileio.copy(data, self.uri)
+        assert isinstance(data, Path)
+        fileio.copy(str(data), self.uri)
 
 
 @step(output_materializers=LocalDirectoryMaterializer)
-def feature_engineering(model_repo: str, dataset_name: str) -> str:
+def feature_engineering(model_repo: str, dataset_name: str) -> Path:
     checkpoint_dir = Path("checkpoints")
     download_from_hub(
         repo_id=model_repo, tokenizer_only=True, checkpoint_dir=checkpoint_dir
