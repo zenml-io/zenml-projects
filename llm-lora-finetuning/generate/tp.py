@@ -43,7 +43,9 @@ def tensor_parallel_linear(
             f"This linear's {attr} value ({size}) is not evenly divisible by the world size ({world_size})"
         )
 
-    shard = torch.tensor_split(linear.weight, world_size, dim=dim)[fabric.global_rank]
+    shard = torch.tensor_split(linear.weight, world_size, dim=dim)[
+        fabric.global_rank
+    ]
     # overwrite `.data` instead of recreating the parameter for quantization (bitsandbytes) support.
     # the bitsandbytes linear classes use custom `torch.nn.Parameter` subclasses
     linear.weight.data = shard
@@ -51,7 +53,9 @@ def tensor_parallel_linear(
 
     if linear.bias is not None and dim == 0:
         shard = torch.tensor_split(linear.bias, world_size)[fabric.global_rank]
-        linear.bias = torch.nn.Parameter(shard, requires_grad=linear.bias.requires_grad)
+        linear.bias = torch.nn.Parameter(
+            shard, requires_grad=linear.bias.requires_grad
+        )
 
 
 def tensor_parallel_mlp(
@@ -61,11 +65,15 @@ def tensor_parallel_mlp(
         tensor_parallel_linear(fabric, mlp.fc_1, "colwise")
         tensor_parallel_linear(fabric, mlp.fc_2, "colwise")
         tensor_parallel_linear(fabric, mlp.proj, "rowwise")
-        mlp.register_forward_hook(partial(all_reduce_output, fabric.world_size))
+        mlp.register_forward_hook(
+            partial(all_reduce_output, fabric.world_size)
+        )
     elif isinstance(mlp, GptNeoxMLP):
         tensor_parallel_linear(fabric, mlp.fc, "colwise")
         tensor_parallel_linear(fabric, mlp.proj, "rowwise")
-        mlp.register_forward_hook(partial(all_reduce_output, fabric.world_size))
+        mlp.register_forward_hook(
+            partial(all_reduce_output, fabric.world_size)
+        )
     elif isinstance(mlp, LLaMAMoE):
         # we use expert slicing across ranks, alternatively, we could create a expert parallelism group
         # when the number of experts is a multiple of the world size
@@ -115,7 +123,9 @@ def main(
     max_new_tokens: int = 50,
     top_k: Optional[int] = 200,
     temperature: float = 0.8,
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     quantize: Optional[
         Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq"]
     ] = None,
@@ -145,7 +155,9 @@ def main(
         if compile:
             raise NotImplementedError  # untested
         if "mixed" in precision:
-            raise ValueError("Quantization and mixed precision is not supported.")
+            raise ValueError(
+                "Quantization and mixed precision is not supported."
+            )
         dtype = {
             "16-true": torch.float16,
             "bf16-true": torch.bfloat16,
@@ -192,7 +204,9 @@ def main(
     for rank in range(fabric.world_size):
         if fabric.global_rank == rank:
             t0 = time.perf_counter()
-            state_dict = torch.load(str(checkpoint_path), mmap=True, map_location="cpu")
+            state_dict = torch.load(
+                str(checkpoint_path), mmap=True, map_location="cpu"
+            )
             model.load_state_dict(state_dict, assign=True)
             print(
                 f"[{rank}] Time to load the model weights: {time.perf_counter() - t0:.02f} seconds.",
@@ -264,7 +278,9 @@ def main(
 if __name__ == "__main__":
     torch.set_float32_matmul_precision("high")
 
-    bnb_logger = logging.getLogger("lightning.fabric.plugins.precision.bitsandbytes")
+    bnb_logger = logging.getLogger(
+        "lightning.fabric.plugins.precision.bitsandbytes"
+    )
     bnb_logger.setLevel(logging.DEBUG)
     bnb_logger.debug = rank_zero_only(bnb_logger.debug)
 

@@ -261,7 +261,9 @@ def convert_lit_checkpoint(
         copy_fn = partial(copy_weights_falcon, config.name)
     elif config._mlp_class in ("LLaMAMLP", "GemmaMLP", "LLaMAMoE"):
         untie_weights = "Gemma" in config.name
-        copy_fn = partial(copy_weights_llama, config, untie_weights=untie_weights)
+        copy_fn = partial(
+            copy_weights_llama, config, untie_weights=untie_weights
+        )
     elif "phi" in config.name:
         copy_fn = partial(copy_weights_phi, config)
     else:

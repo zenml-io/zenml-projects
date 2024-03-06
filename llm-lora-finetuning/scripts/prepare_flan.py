@@ -29,7 +29,9 @@ def load_jsonl(filename):
 
 def prepare(
     destination_path: Path = Path("data/flan"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     mask_inputs: bool = False,  # as in alpaca-lora
     subsets: Optional[str] = None,
     ignore_index: int = -1,
@@ -122,7 +124,9 @@ def prepare(
         subsets = list(supported_subsets)
 
     if max_seq_length is None:
-        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
+        with open(
+            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
+        ) as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 

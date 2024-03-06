@@ -79,7 +79,9 @@ class GPT(BaseModel):
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
-                h=nn.ModuleList(Block(config, i) for i in range(config.n_layer)),
+                h=nn.ModuleList(
+                    Block(config, i) for i in range(config.n_layer)
+                ),
                 ln_f=config.norm_class(config.n_embd, eps=config.norm_eps),
             )
         )
@@ -145,11 +147,17 @@ class CausalSelfAttention(BaseCausalSelfAttention):
 
         if block_idx >= config.adapter_start_layer:
             # adapter embedding layer
-            self.adapter_wte = nn.Embedding(config.adapter_prompt_length, config.n_embd)
+            self.adapter_wte = nn.Embedding(
+                config.adapter_prompt_length, config.n_embd
+            )
             # gate for adaption
-            self.gating_factor = torch.nn.Parameter(torch.zeros(1, 1, config.n_head, 1))
+            self.gating_factor = torch.nn.Parameter(
+                torch.zeros(1, 1, config.n_head, 1)
+            )
             # kv cache for inference
-            self.adapter_kv_cache: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+            self.adapter_kv_cache: Optional[
+                Tuple[torch.Tensor, torch.Tensor]
+            ] = None
         self.block_idx = block_idx
 
         self.config = config
@@ -166,9 +174,9 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         }
         state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)
         # For compatibility with older checkpoints
-        if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(
-            1
-        ) == self.config.n_head:
+        if (key := prefix + "gating_factor") in state_dict and state_dict[
+            key
+        ].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
@@ -240,7 +248,9 @@ class LLaMAMoE(lit_gpt.model.LLaMAMoE):
     def __init__(self, config: Config) -> None:
         nn.Module.__init__(self)
         self.gate = AdapterV2Linear(config.n_embd, config.n_expert, bias=False)
-        self.experts = nn.ModuleList(LLaMAMLP(config) for _ in range(config.n_expert))
+        self.experts = nn.ModuleList(
+            LLaMAMLP(config) for _ in range(config.n_expert)
+        )
 
         self.config = config
 

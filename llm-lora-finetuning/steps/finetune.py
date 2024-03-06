@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+import torch
 from finetune.lora import setup
 from huggingface_hub import upload_folder
 from lit_gpt.args import IOArgs
@@ -27,13 +28,17 @@ def finetune(
     convert_to_hf: bool = False,
     data_dir: Optional[Path] = None,
 ) -> None:
+    torch.set_float32_matmul_precision("high")
+
     access_token = get_huggingface_access_token()
 
     checkpoint_root_dir = Path("checkpoints")
     checkpoint_dir = checkpoint_root_dir / repo_id
 
     if checkpoint_dir.exists():
-        logger.info("Checkpoint directory already exists, skipping download...")
+        logger.info(
+            "Checkpoint directory already exists, skipping download..."
+        )
     else:
         download_from_hub(
             repo_id=repo_id,
@@ -66,7 +71,9 @@ def finetune(
     if merged_output_repo:
         lora_path = output_dir / model_name / "lit_model_lora_finetuned.pth"
 
-        merge_output_dir = Path("output/lora_merged") / dataset_name / model_name
+        merge_output_dir = (
+            Path("output/lora_merged") / dataset_name / model_name
+        )
         merge_lora(
             lora_alpha=lora_path,
             checkpoint_dir=checkpoint_dir,
@@ -79,7 +86,9 @@ def finetune(
             shutil.copy(src=path, dst=destination)
 
         if convert_to_hf:
-            upload_dir = Path("output/lora_merged_hf") / dataset_name / model_name
+            upload_dir = (
+                Path("output/lora_merged_hf") / dataset_name / model_name
+            )
             convert_lit_checkpoint(
                 checkpoint_path=merged_output_repo / "lit_model.pth",
                 output_path=output_dir,

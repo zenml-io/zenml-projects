@@ -246,7 +246,9 @@ class LoRAQKVLinear(LoRALinear):
                 torch.zeros((r * sum(enable_lora), in_features))
             )  # (4, 128)
             enable_q, enable_k, enable_v = enable_lora
-            self.kv_embd_size = self.linear.in_features // (n_head // n_query_groups)
+            self.kv_embd_size = self.linear.in_features // (
+                n_head // n_query_groups
+            )
             # qkv_shapes will be used to split a tensor with weights correctly
             qkv_shapes = (
                 self.linear.in_features * enable_q,
@@ -282,16 +284,24 @@ class LoRAQKVLinear(LoRALinear):
             ind = range(out_features)
             self.lora_ind = []
             if enable_q:
-                q_ind = [x for x in ind if (x // head_size) % total_qkv < total_qkv - 2]
+                q_ind = [
+                    x
+                    for x in ind
+                    if (x // head_size) % total_qkv < total_qkv - 2
+                ]
                 self.lora_ind.extend(q_ind)
             if enable_k:
                 k_ind = [
-                    x for x in ind if (x // head_size) % total_qkv == total_qkv - 2
+                    x
+                    for x in ind
+                    if (x // head_size) % total_qkv == total_qkv - 2
                 ]
                 self.lora_ind.extend(k_ind)
             if enable_v:
                 v_ind = [
-                    x for x in ind if (x // head_size) % total_qkv == total_qkv - 1
+                    x
+                    for x in ind
+                    if (x // head_size) % total_qkv == total_qkv - 1
                 ]
                 self.lora_ind.extend(v_ind)
             self.reset_parameters()
@@ -352,18 +362,24 @@ class LoRAQKVLinear(LoRALinear):
         # Note: double transpose (in the beginning and in the end) is basically a guard for two-dimensional tensors
         # for example when we want to merge/unmerge LoRA weights and pretrained weights
         x = x.transpose(0, 1)
-        result = x.new_zeros((*x.shape[:-1], self.linear.out_features))  # (64, 64, 384)
+        result = x.new_zeros(
+            (*x.shape[:-1], self.linear.out_features)
+        )  # (64, 64, 384)
         result = result.view(-1, self.linear.out_features)  # (4096, 384)
         result = result.index_copy(
             1,
             torch.tensor(self.lora_ind, device=result.device),
             x.reshape(-1, sum(self.qkv_shapes)),
         )  # (4096, 256)
-        return result.view((*x.shape[:-1], self.linear.out_features)).transpose(
+        return result.view(
+            (*x.shape[:-1], self.linear.out_features)
+        ).transpose(
             0, 1
         )  # (64, 64, 384)
 
-    def conv1d(self, input: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+    def conv1d(
+        self, input: torch.Tensor, weight: torch.Tensor
+    ) -> torch.Tensor:
         """An extension of the `torch.nn.functional.conv1d` function with a logic specific to grouped queries.
 
         If the number of heads is equal to the number of query groups - grouped queries are disabled
@@ -394,8 +410,12 @@ class LoRAQKVLinear(LoRALinear):
         # ⚬ C_output': embeddings size for each LoRA layer (not equal in size)
         # ⚬ r: rank of all LoRA layers (equal in size)
 
-        input_splitted = input.chunk(sum(self.enable_lora), dim=1)  # N * (B, C // N, T)
-        weight_splitted = weight.split(self.qkv_shapes)  # N * (C_output', r, 1)
+        input_splitted = input.chunk(
+            sum(self.enable_lora), dim=1
+        )  # N * (B, C // N, T)
+        weight_splitted = weight.split(
+            self.qkv_shapes
+        )  # N * (C_output', r, 1)
         return torch.cat(
             [F.conv1d(a, b) for a, b in zip(input_splitted, weight_splitted)],
             dim=1,  # (B, C_output', T)
@@ -410,7 +430,9 @@ class LoRAQKVLinear(LoRALinear):
         lora = self.conv1d(
             self.lora_A.data.unsqueeze(0),  # (4, 128) -> (1, 4, 128)
             self.lora_B.data.unsqueeze(-1),  # (256, 2) -> (256, 2, 1)
-        ).squeeze(0)  # (1, 4, 128) @ (256, 2, 1) -> (1, 256, 128) -> (256, 128)
+        ).squeeze(
+            0
+        )  # (1, 4, 128) @ (256, 2, 1) -> (1, 256, 128) -> (256, 128)
         return self.zero_pad(
             lora * self.scaling
         )  # (256, 128) after zero_pad (384, 128)
@@ -489,7 +511,11 @@ def mark_only_lora_as_trainable(model: nn.Module, bias: str = "none") -> None:
                 p.requires_grad = True
     elif bias == "lora_only":
         for m in model.modules():
-            if isinstance(m, LoRALayer) and hasattr(m, "bias") and m.bias is not None:
+            if (
+                isinstance(m, LoRALayer)
+                and hasattr(m, "bias")
+                and m.bias is not None
+            ):
                 m.bias.requires_grad = True
     else:
         raise NotImplementedError
@@ -574,13 +600,17 @@ class GPT(BaseModel):
             sin = self.sin[:T]
             mask = None
 
-        x = self.transformer.wte(idx)  # token embeddings of shape (b, t, n_embd)
+        x = self.transformer.wte(
+            idx
+        )  # token embeddings of shape (b, t, n_embd)
         for block in self.transformer.h:
             x = block(x, cos, sin, mask, input_pos)
         x = self.transformer.ln_f(x)
         if lm_head_chunk_size > 0:
             # chunk the lm head logits to reduce the peak memory used by autograd
-            return [self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)]
+            return [
+                self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)
+            ]
         return self.lm_head(x)  # (B, T, vocab_size)
 
     @classmethod
@@ -764,7 +794,9 @@ class LLaMAMoE(lit_gpt.model.LLaMAMoE):
             lora_alpha=config.alpha,
             lora_dropout=config.dropout,
         )
-        self.experts = nn.ModuleList(LLaMAMLP(config) for _ in range(config.n_expert))
+        self.experts = nn.ModuleList(
+            LLaMAMLP(config) for _ in range(config.n_expert)
+        )
 
         self.config = config
 

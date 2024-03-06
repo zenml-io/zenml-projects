@@ -105,7 +105,9 @@ def main(
 
     check_valid_checkpoint_dir(io.checkpoint_dir)
 
-    fabric.seed_everything(1337)  # same seed for every process to init model (FSDP)
+    fabric.seed_everything(
+        1337
+    )  # same seed for every process to init model (FSDP)
 
     if fabric.global_rank == 0:
         os.makedirs(io.out_dir, exist_ok=True)
@@ -114,7 +116,9 @@ def main(
     val_data = torch.load(io.val_data_dir / "test.pt")
 
     checkpoint_path = io.checkpoint_dir / "lit_model.pth"
-    fabric.print(f"Loading model {str(checkpoint_path)!r} with {config.__dict__}")
+    fabric.print(
+        f"Loading model {str(checkpoint_path)!r} with {config.__dict__}"
+    )
     with fabric.init_module(empty_init=(devices > 1)):
         model = GPT(config)
 
@@ -157,10 +161,14 @@ def main(
     fit(fabric, state, train_data, val_data, devices, resume, io, train, eval)
     fabric.print(f"Training time: {(time.perf_counter()-train_time):.2f}s")
     if fabric.device.type == "cuda":
-        fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB")
+        fabric.print(
+            f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB"
+        )
 
     # Save the final checkpoint at the end of training
-    fabric.save(io.out_dir / "lit_model_finetuned.pth", {"model": state["model"]})
+    fabric.save(
+        io.out_dir / "lit_model_finetuned.pth", {"model": state["model"]}
+    )
 
 
 def fit(
@@ -179,7 +187,9 @@ def fit(
     scheduler = state["scheduler"]
     tokenizer = Tokenizer(io.checkpoint_dir)
     longest_seq_length, longest_seq_ix = get_longest_seq_length(train_data)
-    model.max_seq_length = min(longest_seq_length, train.max_seq_length or float("inf"))
+    model.max_seq_length = min(
+        longest_seq_length, train.max_seq_length or float("inf")
+    )
     fabric.print(
         f"The longest sequence length in the train data is {longest_seq_length}, the model's maximum sequence length is"
         f" {model.max_seq_length} and context length is {model.config.block_size}"
@@ -201,7 +211,9 @@ def fit(
         for resume_iter in range(initial_iter):
             get_batch(fabric, train_data, None)
             if resume_iter % 1000 == 0:
-                fabric.print(f"Resuming dataset: {resume_iter} / {initial_iter}")
+                fabric.print(
+                    f"Resuming dataset: {resume_iter} / {initial_iter}"
+                )
         fabric.barrier()
         fabric.print(
             f"Resuming data loader finished. Took {time.perf_counter() - resume_t0:.1f} seconds to reach iteration"
@@ -214,7 +226,9 @@ def fit(
     ).to(fabric.device)
     fabric.barrier()
 
-    for state["iter_num"] in range(state["iter_num"] + 1, train.max_iters(devices) + 1):
+    for state["iter_num"] in range(
+        state["iter_num"] + 1, train.max_iters(devices) + 1
+    ):
         iter_t0 = time.perf_counter()
 
         input_ids, targets = get_batch(
@@ -271,7 +285,9 @@ def fit(
 
         if not is_accumulating and state["step_count"] % eval.interval == 0:
             t0 = time.perf_counter()
-            val_loss = validate(fabric, model, val_data, tokenizer, eval, train)
+            val_loss = validate(
+                fabric, model, val_data, tokenizer, eval, train
+            )
             t1 = time.perf_counter() - t0
             fabric.print(
                 f"iter {state['iter_num']}: val loss {val_loss.item():.4f}, val time: {t1 * 1000:.2f} ms"
@@ -279,8 +295,13 @@ def fit(
             metrics = {"val_loss": val_loss, "val_ppl": math.exp(val_loss)}
             fabric.log_dict(metrics, step=state["iter_num"])
             fabric.barrier()
-        if not is_accumulating and state["step_count"] % train.save_interval == 0:
-            checkpoint_path = io.out_dir / f"step-{state['step_count']:06d}.pth"
+        if (
+            not is_accumulating
+            and state["step_count"] % train.save_interval == 0
+        ):
+            checkpoint_path = (
+                io.out_dir / f"step-{state['step_count']:06d}.pth"
+            )
             fabric.print(f"Saving checkpoint to {str(checkpoint_path)!r}")
             fabric.save(checkpoint_path, state)
 
@@ -309,9 +330,7 @@ def validate(
     val_loss = losses.mean()
 
     # produce an example:
-    instruction = (
-        "Recommend a movie for me to watch during the weekend and explain the reason."
-    )
+    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
     fabric.print(instruction)
     sample = {"instruction": instruction, "input": ""}
     prompt = generate_prompt(sample)

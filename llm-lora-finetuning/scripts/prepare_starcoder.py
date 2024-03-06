@@ -57,7 +57,9 @@ def prepare(
     fast_dev_run: bool = False,
 ) -> None:
     tokenizer = Tokenizer(tokenizer_path)
-    data_recipe = StarcoderDataRecipe(tokenizer=tokenizer, chunk_size=chunk_size)
+    data_recipe = StarcoderDataRecipe(
+        tokenizer=tokenizer, chunk_size=chunk_size
+    )
     data_processor = DataProcessor(
         input_dir=str(input_dir),
         output_dir=str(output_dir),

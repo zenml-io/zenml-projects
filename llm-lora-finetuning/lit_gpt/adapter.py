@@ -43,7 +43,9 @@ class GPT(BaseModel):
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
-                h=nn.ModuleList(Block(config, i) for i in range(config.n_layer)),
+                h=nn.ModuleList(
+                    Block(config, i) for i in range(config.n_layer)
+                ),
                 ln_f=config.norm_class(config.n_embd, eps=config.norm_eps),
             )
         )
@@ -73,13 +75,17 @@ class GPT(BaseModel):
             sin = self.sin[:T]
             mask = None
 
-        x = self.transformer.wte(idx)  # token embeddings of shape (b, t, n_embd)
+        x = self.transformer.wte(
+            idx
+        )  # token embeddings of shape (b, t, n_embd)
         for block in self.transformer.h:
             x = block(x, cos, sin, mask, input_pos)
         x = self.transformer.ln_f(x)
         if lm_head_chunk_size > 0:
             # chunk the lm head logits to reduce the peak memory used by autograd
-            return [self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)]
+            return [
+                self.lm_head(x_i) for x_i in x.split(lm_head_chunk_size, dim=1)
+            ]
         return self.lm_head(x)  # (b, t, vocab_size)
 
     @classmethod
@@ -117,11 +123,17 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         super().__init__(config)
         if block_idx >= config.adapter_start_layer:
             # adapter embedding layer
-            self.adapter_wte = nn.Embedding(config.adapter_prompt_length, config.n_embd)
+            self.adapter_wte = nn.Embedding(
+                config.adapter_prompt_length, config.n_embd
+            )
             # gate for adaption
-            self.gating_factor = torch.nn.Parameter(torch.zeros(1, 1, config.n_head, 1))
+            self.gating_factor = torch.nn.Parameter(
+                torch.zeros(1, 1, config.n_head, 1)
+            )
             # kv cache for inference
-            self.adapter_kv_cache: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+            self.adapter_kv_cache: Optional[
+                Tuple[torch.Tensor, torch.Tensor]
+            ] = None
         self.block_idx = block_idx
 
     def scaled_dot_product_attention(
@@ -157,8 +169,12 @@ class CausalSelfAttention(BaseCausalSelfAttention):
                 # for MHA this is a no-op
                 ak = ak.repeat_interleave(q_per_kv, dim=2)
                 av = av.repeat_interleave(q_per_kv, dim=2)
-            ak = ak.view(1, -1, aT, self.config.head_size)  # (1, nh_ak, aT, hs)
-            av = av.view(1, -1, aT, self.config.head_size)  # (1, nh_av, aT, hs)
+            ak = ak.view(
+                1, -1, aT, self.config.head_size
+            )  # (1, nh_ak, aT, hs)
+            av = av.view(
+                1, -1, aT, self.config.head_size
+            )  # (1, nh_av, aT, hs)
             self.adapter_kv_cache = (ak, av)
 
         T = q.size(2)
@@ -173,9 +189,9 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any
     ) -> None:
         """For compatibility with older checkpoints."""
-        if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(
-            1
-        ) == self.config.n_head:
+        if (key := prefix + "gating_factor") in state_dict and state_dict[
+            key
+        ].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
