@@ -8,9 +8,11 @@ from zenml import step
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
-
+from lit_gpt import Config
+import json
+from dataclasses import asdict
 from scripts.download import download_from_hub
-
+import os
 
 class DirectoryMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES: ClassVar[Tuple[Type[Any], ...]] = (Path,)
@@ -25,7 +27,7 @@ class DirectoryMaterializer(BaseMaterializer):
         Returns:
         """
         directory = mkdtemp(prefix="zenml-artifact")
-        fileio.copy(self.uri, directory)
+        self._copy_directory(src=self.uri, dst=directory)
         return Path(directory)
 
     def save(self, data: Any) -> None:
@@ -35,15 +37,34 @@ class DirectoryMaterializer(BaseMaterializer):
             data: The data of the artifact to save.
         """
         assert isinstance(data, Path)
-        fileio.copy(str(data), self.uri)
+        self._copy_directory(src=str(data), dst=self.uri)
+
+    @staticmethod
+    def _copy_directory(src: str, dst: str) -> None:
+        for src_dir, _, files in fileio.walk(src):
+            dst_dir = os.path.join(dst, os.path.relpath(src_dir, src))
+            fileio.makedirs(dst_dir)
+
+            for file in files:
+                src_file = os.path.join(src_dir, file)
+                dst_file = os.path.join(dst_dir, file)
+                fileio.copy(src_file, dst_file)
 
 
 @step(output_materializers=DirectoryMaterializer)
 def feature_engineering(model_repo: str, dataset_name: str) -> Path:
-    checkpoint_dir = Path("checkpoints")
+    checkpoint_root_dir = Path("checkpoints")
     download_from_hub(
-        repo_id=model_repo, tokenizer_only=True, checkpoint_dir=checkpoint_dir
+        repo_id=model_repo, tokenizer_only=True, checkpoint_dir=checkpoint_root_dir
     )
+
+    checkpoint_dir = checkpoint_root_dir / model_repo
+
+    model_name = checkpoint_dir.name
+    config = Config.from_name(model_name)
+    config_dict = asdict(config)
+    with open(checkpoint_dir / "lit_config.json", "w") as json_config:
+        json.dump(config_dict, json_config)
 
     destination_dir = Path("data") / dataset_name
 
