@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from huggingface_hub import upload_folder
-from zenml import step
+from zenml import log_model_metadata, step
 
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
@@ -35,10 +35,10 @@ def merge(
         access_token=access_token,
     )
 
-    lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
+    lora_path = adapter_dir / adapter_repo / "lit_model_lora_finetuned.pth"
     merge_lora(
         lora_path=Path(lora_path),
-        checkpoint_dir=base_model_dir,
+        checkpoint_dir=base_model_dir / base_model_repo,
         out_dir=merged_dir,
     )
 
@@ -48,13 +48,21 @@ def merge(
         shutil.copy(src=path, dst=destination)
 
     if convert_to_hf:
-        output_dir = Path("hf_checkpoint_merged")
+        output_dir = Path("lora_merged_hf")
         convert_lit_checkpoint(
             checkpoint_path=merged_dir / "lit_model.pth",
-            output_path=output_dir,
             config_path=merged_dir / "lit_config.json",
+            output_path=output_dir,
         )
     else:
         output_dir = merged_dir
 
-    upload_folder(repo_id=output_repo, folder_path=output_dir)
+    commit = upload_folder(
+        repo_id=output_repo, folder_path=output_dir, token=access_token
+    )
+    log_model_metadata(
+        metadata={
+            "merged_model_huggingface_commit_hash": commit.oid,
+            "merged_model_huggingface_commit_url": commit.commit_url,
+        }
+    )

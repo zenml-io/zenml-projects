@@ -5,10 +5,10 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Any, ClassVar, Tuple, Type
+from typing import Annotated, Any, ClassVar, Tuple, Type
 
 from lit_gpt import Config
-from zenml import step
+from zenml import log_artifact_metadata, step
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
@@ -55,7 +55,9 @@ class DirectoryMaterializer(BaseMaterializer):
 
 
 @step(output_materializers=DirectoryMaterializer)
-def feature_engineering(model_repo: str, dataset_name: str) -> Path:
+def feature_engineering(
+    model_repo: str, dataset_name: str
+) -> Annotated[Path, "data"]:
     access_token = get_huggingface_access_token()
 
     checkpoint_root_dir = Path("checkpoints")
@@ -74,6 +76,13 @@ def feature_engineering(model_repo: str, dataset_name: str) -> Path:
     with open(checkpoint_dir / "lit_config.json", "w") as json_config:
         json.dump(config_dict, json_config)
 
+    log_artifact_metadata(
+        metadata={
+            "model_name": model_name,
+            "model_config": config_dict,
+            "dataset_name": dataset_name,
+        }
+    )
     destination_dir = Path("data") / dataset_name
 
     helper_module = importlib.import_module(f"scripts.prepare_{dataset_name}")
