@@ -12,7 +12,7 @@ from zenml.materializers.base_materializer import BaseMaterializer
 from scripts.download import download_from_hub
 
 
-class LocalDirectoryMaterializer(BaseMaterializer):
+class DirectoryMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES: ClassVar[Tuple[Type[Any], ...]] = (Path,)
     ASSOCIATED_ARTIFACT_TYPE: ClassVar[ArtifactType] = ArtifactType.DATA
 
@@ -38,7 +38,7 @@ class LocalDirectoryMaterializer(BaseMaterializer):
         fileio.copy(str(data), self.uri)
 
 
-@step(output_materializers=LocalDirectoryMaterializer)
+@step(output_materializers=DirectoryMaterializer)
 def feature_engineering(model_repo: str, dataset_name: str) -> Path:
     checkpoint_dir = Path("checkpoints")
     download_from_hub(

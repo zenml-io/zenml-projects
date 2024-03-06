@@ -62,7 +62,7 @@ def finetune(
         if convert_to_hf:
             upload_dir = Path("hf_checkpoint_merged")
             convert_lit_checkpoint(
-                checkpoint_path=merged_output_repo,
+                checkpoint_path=merged_output_repo / "lit_model.pth",
                 output_path=output_dir,
                 config_path=merged_output_repo / "lit_config.json",
             )

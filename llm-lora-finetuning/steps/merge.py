@@ -39,7 +39,7 @@ def merge(
     if convert_to_hf:
         output_dir = Path("hf_checkpoint_merged")
         convert_lit_checkpoint(
-            checkpoint_path=merged_dir,
+            checkpoint_path=merged_dir / "lit_model.pth",
             output_path=output_dir,
             config_path=merged_dir / "lit_config.json",
         )

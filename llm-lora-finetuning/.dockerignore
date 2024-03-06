@@ -1,7 +1,8 @@
 *
 !/pipelines/**
 !/steps/**
-!/lit_gpt/**
-!/generate/**
-!/scripts/**
+!/evaluate/**
 !/finetune/**
+!/generate/**
+!/lit_gpt/**
+!/scripts/**
