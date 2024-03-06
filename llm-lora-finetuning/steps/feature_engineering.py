@@ -47,7 +47,7 @@ def feature_engineering(model_repo: str, dataset_name: str) -> Path:
 
     destination_dir = Path("data") / dataset_name
 
-    helper_module = importlib.import_module(f"scripts/prepare_{dataset_name}")
+    helper_module = importlib.import_module(f"scripts.prepare_{dataset_name}")
     prepare_function = getattr(helper_module, "prepare")
 
     prepare_function(

@@ -5,8 +5,8 @@ import re
 
 from lightning_utilities.core.imports import RequirementCache
 
-from lit_gpt.config import Config
-from lit_gpt.model import GPT
+from lit_gpt.model import GPT  # isort: skip
+from lit_gpt.config import Config  # isort: skip
 from lit_gpt.tokenizer import Tokenizer
 
 _LIGHTNING_AVAILABLE = RequirementCache("lightning>=2.2.0.dev0")
