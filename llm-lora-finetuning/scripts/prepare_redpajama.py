@@ -110,9 +110,7 @@ def prepare_full(
 
         is_cc = set_name == "common_crawl"
 
-        filenames = glob.glob(
-            os.path.join(source_path, pattern), recursive=True
-        )
+        filenames = glob.glob(os.path.join(source_path, pattern), recursive=True)
 
         if not filenames:
             raise RuntimeError(
@@ -137,32 +135,24 @@ def prepare_full(
             print(f"Processing {name}")
 
             if is_cc:
-                with zstd.open(
-                    open(filepath, "rb"), "rt", encoding="utf-8"
-                ) as f:
+                with zstd.open(open(filepath, "rb"), "rt", encoding="utf-8") as f:
                     for row in tqdm(f):
                         text = json.loads(row)["text"]
                         text_ids = tokenizer.encode(text)
-                        builder.add_array(
-                            np.array(text_ids, dtype=builder.dtype)
-                        )
+                        builder.add_array(np.array(text_ids, dtype=builder.dtype))
             else:
                 with open(filepath, encoding="utf-8") as f:
                     for row in tqdm(f):
                         text = json.loads(row)["text"]
                         text_ids = tokenizer.encode(text)
-                        builder.add_array(
-                            np.array(text_ids, dtype=builder.dtype)
-                        )
+                        builder.add_array(np.array(text_ids, dtype=builder.dtype))
 
         builder.write_reminder()
 
 
 def prepare(
     source_path: Path = Path("data/RedPajama-Data-1T-Sample"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     destination_path: Path = Path("data/redpajama_sample"),
     sample: bool = True,
     match: str = "",

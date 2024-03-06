@@ -8,6 +8,7 @@ from zenml import step
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
+from steps.utils import get_huggingface_access_token
 
 
 @step
@@ -17,12 +18,22 @@ def merge(
     output_repo: str,
     convert_to_hf: bool = False,
 ) -> None:
+    access_token = get_huggingface_access_token()
+
     base_model_dir = Path("checkpoints")
     adapter_dir = Path("adapter")
     merged_dir = Path("merged")
 
-    download_from_hub(repo_id=base_model_repo, checkpoint_dir=base_model_dir)
-    download_from_hub(repo_id=adapter_repo, checkpoint_dir=adapter_dir)
+    download_from_hub(
+        repo_id=base_model_repo,
+        checkpoint_dir=base_model_dir,
+        access_token=access_token,
+    )
+    download_from_hub(
+        repo_id=adapter_repo,
+        checkpoint_dir=adapter_dir,
+        access_token=access_token,
+    )
 
     lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
     merge_lora(

@@ -22,9 +22,7 @@ from lit_gpt.utils import CLI
 
 def prepare(
     destination_path: Path = Path("data/alpaca"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     test_split_fraction: float = 0.03865,  # to get exactly 2000 test samples,
     seed: int = 42,
     mask_inputs: bool = False,  # as in alpaca-lora
@@ -39,9 +37,7 @@ def prepare(
     which stores the preprocessed and tokenized prompts and labels.
     """
     if max_seq_length is None:
-        with open(
-            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
-        ) as file:
+        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 

@@ -1,18 +1,21 @@
 # Copyright Lightning AI. Licensed under the Apache License 2.0, see LICENSE file.
 import importlib
+import json
+import os
+from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, ClassVar, Tuple, Type
 
+from lit_gpt import Config
 from zenml import step
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
-from lit_gpt import Config
-import json
-from dataclasses import asdict
+
 from scripts.download import download_from_hub
-import os
+from steps.utils import get_huggingface_access_token
+
 
 class DirectoryMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES: ClassVar[Tuple[Type[Any], ...]] = (Path,)
@@ -53,9 +56,14 @@ class DirectoryMaterializer(BaseMaterializer):
 
 @step(output_materializers=DirectoryMaterializer)
 def feature_engineering(model_repo: str, dataset_name: str) -> Path:
+    access_token = get_huggingface_access_token()
+
     checkpoint_root_dir = Path("checkpoints")
     download_from_hub(
-        repo_id=model_repo, tokenizer_only=True, checkpoint_dir=checkpoint_root_dir
+        repo_id=model_repo,
+        tokenizer_only=True,
+        checkpoint_dir=checkpoint_root_dir,
+        access_token=access_token,
     )
 
     checkpoint_dir = checkpoint_root_dir / model_repo
@@ -71,7 +79,5 @@ def feature_engineering(model_repo: str, dataset_name: str) -> Path:
     helper_module = importlib.import_module(f"scripts.prepare_{dataset_name}")
     prepare_function = getattr(helper_module, "prepare")
 
-    prepare_function(
-        checkpoint_dir=checkpoint_dir, destination_path=destination_dir
-    )
+    prepare_function(checkpoint_dir=checkpoint_dir, destination_path=destination_dir)
     return destination_dir

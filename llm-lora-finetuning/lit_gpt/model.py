@@ -94,9 +94,7 @@ class GPT(nn.Module):
             sin = self.sin[:T]
             mask = None
 
-        x = self.transformer.wte(
-            idx
-        )  # token embeddings of shape (b, t, n_embd)
+        x = self.transformer.wte(idx)  # token embeddings of shape (b, t, n_embd)
         if self.config.scale_embeddings:
             x = x * (self.config.n_embd**0.5)
 
@@ -137,10 +135,7 @@ class GPT(nn.Module):
                 batch_size, max_seq_length, rope_cache_length, device, dtype
             )
 
-        if (
-            self.mask_cache is None
-            or self.mask_cache.size(3) != max_seq_length
-        ):
+        if self.mask_cache is None or self.mask_cache.size(3) != max_seq_length:
             # passing `attn_mask` to SDPA disables the flash implementation. since we only need the mask
             # for the kv-cache support (only during inference), we only create it in that situation
             self.mask_cache = build_mask_cache(max_seq_length, device)
@@ -217,23 +212,17 @@ class CausalSelfAttention(nn.Module):
             B,
             T,
             C,
-        ) = (
-            x.size()
-        )  # batch size, sequence length, embedding dimensionality (n_embd)
+        ) = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
 
         qkv = self.attn(x)
 
         # assemble into a number of query groups to support MHA, MQA and GQA together (see `config.n_query_groups`)
         q_per_kv = self.config.n_head // self.config.n_query_groups
-        total_qkv = (
-            q_per_kv + 2
-        )  # each group has 1+ queries, 1 key, and 1 value
+        total_qkv = q_per_kv + 2  # each group has 1+ queries, 1 key, and 1 value
         qkv = qkv.view(
             B, T, self.config.n_query_groups, total_qkv, self.config.head_size
         )
-        qkv = qkv.permute(
-            0, 2, 3, 1, 4
-        )  # (B, n_query_groups, total_qkv, T, hs)
+        qkv = qkv.permute(0, 2, 3, 1, 4)  # (B, n_query_groups, total_qkv, T, hs)
 
         # split batched computation into three
         q, k, v = qkv.split((q_per_kv, 1, 1), dim=2)
@@ -322,9 +311,7 @@ class CausalSelfAttention(nn.Module):
                 batch_size,
                 heads,
                 max_seq_length,
-                rope_cache_length
-                + self.config.head_size
-                - self.config.rope_n_elem,
+                rope_cache_length + self.config.head_size - self.config.rope_n_elem,
             )
         return KVCache(k_shape, v_shape, device=device, dtype=dtype)
 
@@ -332,35 +319,23 @@ class CausalSelfAttention(nn.Module):
 class GptNeoxMLP(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.fc = nn.Linear(
-            config.n_embd, config.intermediate_size, bias=config.bias
-        )
-        self.proj = nn.Linear(
-            config.intermediate_size, config.n_embd, bias=config.bias
-        )
+        self.fc = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+        self.proj = nn.Linear(config.intermediate_size, config.n_embd, bias=config.bias)
 
         self.config = config
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.fc(x)
-        x = torch.nn.functional.gelu(
-            x, approximate=self.config.gelu_approximate
-        )
+        x = torch.nn.functional.gelu(x, approximate=self.config.gelu_approximate)
         return self.proj(x)
 
 
 class LLaMAMLP(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.fc_1 = nn.Linear(
-            config.n_embd, config.intermediate_size, bias=config.bias
-        )
-        self.fc_2 = nn.Linear(
-            config.n_embd, config.intermediate_size, bias=config.bias
-        )
-        self.proj = nn.Linear(
-            config.intermediate_size, config.n_embd, bias=config.bias
-        )
+        self.fc_1 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+        self.fc_2 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+        self.proj = nn.Linear(config.intermediate_size, config.n_embd, bias=config.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x_fc_1 = self.fc_1(x)
@@ -381,9 +356,7 @@ class LLaMAMoE(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
         self.gate = nn.Linear(config.n_embd, config.n_expert, bias=False)
-        self.experts = nn.ModuleList(
-            LLaMAMLP(config) for _ in range(config.n_expert)
-        )
+        self.experts = nn.ModuleList(LLaMAMLP(config) for _ in range(config.n_expert))
 
         self.config = config
 
@@ -396,9 +369,7 @@ class LLaMAMoE(nn.Module):
             B,
             T,
             C,
-        ) = (
-            x.size()
-        )  # batch size, sequence length, embedding dimensionality (n_embd)
+        ) = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
         x = x.view(-1, C)  # (B*T, C)
         router = self.gate(x)  # (B*T, n_expert)
         probs, indices = torch.topk(
@@ -412,9 +383,7 @@ class LLaMAMoE(nn.Module):
         y = torch.zeros_like(x)  # (B*T, C)
         for mask, expert in zip(masks, self.experts):
             token_idx, expert_idx = torch.where(mask)
-            y[token_idx] += probs[token_idx, expert_idx, None] * expert(
-                x[token_idx]
-            )
+            y[token_idx] += probs[token_idx, expert_idx, None] * expert(x[token_idx])
         return y.view(B, T, C)
 
 
@@ -432,9 +401,7 @@ def build_rope_cache(
     https://github.com/labmlai/annotated_deep_learning_paper_implementations/blob/master/license.
     """
     # $\Theta = {\theta_i = 10000^{\frac{2(i-1)}{d}}, i \in [1, 2, ..., \frac{d}{2}]}$
-    theta = 1.0 / (
-        base ** (torch.arange(0, n_elem, 2, device=device).float() / n_elem)
-    )
+    theta = 1.0 / (base ** (torch.arange(0, n_elem, 2, device=device).float() / n_elem))
 
     # Create position indexes `[0, 1, ..., seq_len - 1]`
     seq_idx = torch.arange(seq_len, device=device) / condense_ratio
@@ -445,9 +412,7 @@ def build_rope_cache(
     return torch.cos(idx_theta), torch.sin(idx_theta)
 
 
-def apply_rope(
-    x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
-) -> torch.Tensor:
+def apply_rope(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
     head_size = x.size(-1)
     x1 = x[..., : head_size // 2]  # (B, nh, T, hs/2)
     x2 = x[..., head_size // 2 :]  # (B, nh, T, hs/2)
@@ -495,7 +460,5 @@ class KVCache(nn.Module):
 def build_mask_cache(
     max_seq_length: int, device: Optional[torch.device] = None
 ) -> torch.Tensor:
-    ones = torch.ones(
-        (max_seq_length, max_seq_length), device=device, dtype=torch.bool
-    )
+    ones = torch.ones((max_seq_length, max_seq_length), device=device, dtype=torch.bool)
     return torch.tril(ones).unsqueeze(0).unsqueeze(0)

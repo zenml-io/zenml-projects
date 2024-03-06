@@ -5,24 +5,31 @@ from pathlib import Path
 from typing import Annotated, Any, Dict, Optional
 
 from evaluate.lm_eval_harness import run_eval_harness
-from zenml import step
+from zenml import step, log_artifact_metadata, log_model_metadata
 
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
+from steps.utils import get_huggingface_access_token
 
 
 @step
 def eval(
     model_repo: str, adapter_repo: Optional[str] = None
 ) -> Annotated[Dict[str, Any], "evaluation_results"]:
+    access_token = get_huggingface_access_token()
+
     model_dir = Path("model")
-    download_from_hub(repo_id=model_repo, checkpoint_dir=model_dir)
+    download_from_hub(
+        repo_id=model_repo, checkpoint_dir=model_dir, access_token=access_token
+    )
 
     if adapter_repo:
         adapter_dir = Path("adapter")
         merged_dir = Path("merged")
 
-        download_from_hub(repo_id=adapter_repo, checkpoint_dir=adapter_dir)
+        download_from_hub(
+            repo_id=adapter_repo, checkpoint_dir=adapter_dir, access_token=access_token
+        )
 
         lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
         merge_lora(

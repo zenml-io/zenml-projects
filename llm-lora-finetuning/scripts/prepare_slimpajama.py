@@ -30,10 +30,7 @@ class SlimPajamaDataRecipe(DataChunkRecipe):
         with zstd.open(open(filepath, "rb"), "rt", encoding="utf-8") as f:
             for row in f:
                 text = json.loads(row)["text"]
-                if (
-                    json.loads(row)["meta"]["redpajama_set_name"]
-                    == "RedPajamaGithub"
-                ):
+                if json.loads(row)["meta"]["redpajama_set_name"] == "RedPajamaGithub":
                     continue  # exclude the GitHub data since it overlaps with starcoder
                 text_ids = self.tokenizer.encode(text, bos=False, eos=True)
                 yield text_ids
@@ -47,9 +44,7 @@ def prepare(
     fast_dev_run: bool = False,
 ) -> None:
     tokenizer = Tokenizer(tokenizer_path)
-    data_recipe = SlimPajamaDataRecipe(
-        tokenizer=tokenizer, chunk_size=chunk_size
-    )
+    data_recipe = SlimPajamaDataRecipe(tokenizer=tokenizer, chunk_size=chunk_size)
     data_processor = DataProcessor(
         input_dir=str(input_dir),
         output_dir=str(output_dir),

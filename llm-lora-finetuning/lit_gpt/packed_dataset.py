@@ -256,9 +256,7 @@ class CombinedDataset(IterableDataset):
             self._weights = [w / sum(weights) for w in weights]
 
     def __iter__(self):
-        return CombinedDatasetIterator(
-            self._datasets, self._seed, self._weights
-        )
+        return CombinedDatasetIterator(self._datasets, self._seed, self._weights)
 
 
 class CombinedDatasetIterator:
@@ -268,7 +266,5 @@ class CombinedDatasetIterator:
         self._rng = random.Random(seed)
 
     def __next__(self):
-        (dataset,) = self._rng.choices(
-            self._datasets, weights=self._weights, k=1
-        )
+        (dataset,) = self._rng.choices(self._datasets, weights=self._weights, k=1)
         return next(dataset)

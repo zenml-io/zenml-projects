@@ -32,9 +32,7 @@ from lit_gpt.utils import (
 
 
 @torch.inference_mode()
-def sequential(
-    model: GPT, root: torch.device, max_seq_length: int, devices: int
-):
+def sequential(model: GPT, root: torch.device, max_seq_length: int, devices: int):
     if model.config.n_layer % devices:
         # TODO: support smarter partitioning schemes
         raise NotImplementedError(
@@ -42,9 +40,7 @@ def sequential(
         )
     layers_per_rank = model.config.n_layer // devices
     # dictates where each block should be instantiated
-    mapping = layer_to_device(
-        model, chunk_on=Block, chunk_size=layers_per_rank
-    )
+    mapping = layer_to_device(model, chunk_on=Block, chunk_size=layers_per_rank)
 
     # materialize each block on the appropriate device
     for path, target_index in mapping.items():
@@ -52,9 +48,7 @@ def sequential(
         target_device = torch.device(root.type, target_index)
         print(f"Moving {path!r} to {target_device}", file=sys.stderr)
         # submodules loaded by the checkpoint will be on CPU (if no quantization). move them
-        replace_device(
-            submodule, replace=torch.device("cpu"), by=target_device
-        )
+        replace_device(submodule, replace=torch.device("cpu"), by=target_device)
         # in case the checkpoint was partial, materialize leftover metas
         _materialize_meta_tensors(submodule, target_device)
         # and build the kv cache
@@ -86,9 +80,7 @@ def sequential(
                     partial(move_block_input, target_device)
                 )
             if layer_num == model.config.n_layer - 1:
-                submodule.register_forward_hook(
-                    partial(move_block_output, root)
-                )
+                submodule.register_forward_hook(partial(move_block_output, root))
 
     return model
 
@@ -134,9 +126,7 @@ def replace_device(
         devices = {t.device for t in tensors.values()}
         if len(devices) != 1:
             # since this is using `submodule.to`, different devices in the same submodule is a problem
-            path_to_device = {
-                f"{name}.{p}": t.device for p, t in tensors.items()
-            }
+            path_to_device = {f"{name}.{p}": t.device for p, t in tensors.items()}
             raise ValueError(f"Found multiple devices: {path_to_device}")
         if devices.pop() == replace:
             submodule.to(by)
@@ -151,9 +141,7 @@ def main(
     max_new_tokens: int = 50,
     top_k: Optional[int] = 200,
     temperature: float = 0.8,
-    checkpoint_dir: Path = Path(
-        "checkpoints/mistralai/Mistral-7B-Instruct-v0.1"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/mistralai/Mistral-7B-Instruct-v0.1"),
     quantize: Optional[
         Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq"]
     ] = None,
@@ -183,9 +171,7 @@ def main(
         if compile:
             raise NotImplementedError  # untested
         if "mixed" in precision:
-            raise ValueError(
-                "Quantization and mixed precision is not supported."
-            )
+            raise ValueError("Quantization and mixed precision is not supported.")
         dtype = {
             "16-true": torch.float16,
             "bf16-true": torch.bfloat16,
@@ -228,9 +214,7 @@ def main(
     )
 
     t0 = time.perf_counter()
-    state_dict = torch.load(
-        str(checkpoint_path), mmap=True, map_location="cpu"
-    )
+    state_dict = torch.load(str(checkpoint_path), mmap=True, map_location="cpu")
     # TODO: this assumes that the model fits on CPU. Use lazy_load and make the materialization checkpoint aware
     model.load_state_dict(state_dict, assign=True)
     print(
@@ -241,9 +225,7 @@ def main(
     model = fabric.setup_module(model, move_to_device=False)
 
     t0 = time.perf_counter()
-    model = sequential(
-        model, fabric.device, max_returned_tokens, total_devices
-    )
+    model = sequential(model, fabric.device, max_returned_tokens, total_devices)
     print(
         f"Time to sequential-ize the model: {time.perf_counter() - t0:.02f} seconds.",
         file=sys.stderr,
@@ -294,8 +276,8 @@ def main(
 if __name__ == "__main__":
     torch.set_float32_matmul_precision("high")
 
-    logging.getLogger(
-        "lightning.fabric.plugins.precision.bitsandbytes"
-    ).setLevel(logging.DEBUG)
+    logging.getLogger("lightning.fabric.plugins.precision.bitsandbytes").setLevel(
+        logging.DEBUG
+    )
 
     CLI(main)

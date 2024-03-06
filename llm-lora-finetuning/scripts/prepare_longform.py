@@ -22,9 +22,7 @@ from scripts.prepare_alpaca import download_if_missing
 
 def prepare(
     destination_path: Path = Path("data/longform"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     mask_inputs: bool = False,  # as in alpaca-lora
     ignore_index: int = -1,
     max_seq_length: Optional[int] = None,
@@ -35,9 +33,7 @@ def prepare(
     which stores the preprocessed and tokenized prompts and labels.
     """
     if max_seq_length is None:
-        with open(
-            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
-        ) as file:
+        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 
@@ -47,9 +43,13 @@ def prepare(
     # val_file_name = "val.json"
     test_file_name = "test.json"
 
-    train_file_url = "https://raw.githubusercontent.com/akoksal/LongForm/main/dataset/train.json"
+    train_file_url = (
+        "https://raw.githubusercontent.com/akoksal/LongForm/main/dataset/train.json"
+    )
     # val_file_url = "https://raw.githubusercontent.com/akoksal/LongForm/main/dataset/val.json"
-    test_file_url = "https://raw.githubusercontent.com/akoksal/LongForm/main/dataset/test.json"
+    test_file_url = (
+        "https://raw.githubusercontent.com/akoksal/LongForm/main/dataset/test.json"
+    )
 
     train_file_path = destination_path / train_file_name
     print("Loading train data file...")

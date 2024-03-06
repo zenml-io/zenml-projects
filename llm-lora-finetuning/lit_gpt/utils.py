@@ -39,9 +39,7 @@ def find_multiple(n: int, k: int) -> int:
     return n + k - (n % k)
 
 
-def num_parameters(
-    module: nn.Module, requires_grad: Optional[bool] = None
-) -> int:
+def num_parameters(module: nn.Module, requires_grad: Optional[bool] = None) -> int:
     total = 0
     for p in module.parameters():
         if requires_grad is None or p.requires_grad == requires_grad:
@@ -61,9 +59,7 @@ def check_valid_checkpoint_dir(checkpoint_dir: Path) -> None:
             checkpoint_dir / "tokenizer.json"
         ).is_file()
         or (checkpoint_dir / "tokenizer.model").is_file(),
-        "tokenizer_config.json": (
-            checkpoint_dir / "tokenizer_config.json"
-        ).is_file(),
+        "tokenizer_config.json": (checkpoint_dir / "tokenizer_config.json").is_file(),
     }
     if checkpoint_dir.is_dir():
         if all(files.values()):
@@ -96,10 +92,7 @@ class SavingProxyForStorage:
     def __init__(self, obj, saver, protocol_version=5):
         self.protocol_version = protocol_version
         self.saver = saver
-        if not (
-            isinstance(obj, torch.storage.TypedStorage)
-            or torch.is_storage(obj)
-        ):
+        if not (isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(obj)):
             raise TypeError(f"expected storage, not {type(obj)}")
 
         # this logic is taken from PyTorch 2.0+ torch/serialization.py
@@ -132,9 +125,7 @@ class SavingProxyForStorage:
 class SavingProxyForTensor:
     def __init__(self, tensor, saver, protocol_version=5):
         self.protocol_version = protocol_version
-        self.reduce_ret_fn, reduce_args = tensor.__reduce_ex__(
-            protocol_version
-        )
+        self.reduce_ret_fn, reduce_args = tensor.__reduce_ex__(protocol_version)
         if reduce_args[0] == torch._utils._rebuild_tensor_v2:
             # for Tensors with Python attributes
             (a0, a1, (storage, *a2_other), *other_reduce_args) = reduce_args
@@ -185,9 +176,7 @@ class IncrementalPyTorchPickler(pickle.Pickler):
         if isinstance(obj, SavingProxyForStorage):
             return obj.storage_info
 
-        if isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(
-            obj
-        ):
+        if isinstance(obj, torch.storage.TypedStorage) or torch.is_storage(obj):
             if isinstance(obj, torch.storage.TypedStorage):
                 # TODO: Once we decide to break serialization FC, this case
                 # can be deleted
@@ -208,10 +197,7 @@ class IncrementalPyTorchPickler(pickle.Pickler):
             # not allocated, don't perform this check
             if storage.data_ptr() != 0:
                 if storage.data_ptr() in self.storage_dtypes:
-                    if (
-                        storage_dtype
-                        != self.storage_dtypes[storage.data_ptr()]
-                    ):
+                    if storage_dtype != self.storage_dtypes[storage.data_ptr()]:
                         raise RuntimeError(
                             "Cannot save multiple tensors or storages that view the same data as different types"
                         )
@@ -304,8 +290,7 @@ def chunked_cross_entropy(
 
         # chunk cross entropy
         logit_chunks = [
-            logit_chunk.reshape(-1, logit_chunk.size(-1))
-            for logit_chunk in logits
+            logit_chunk.reshape(-1, logit_chunk.size(-1)) for logit_chunk in logits
         ]
         target_chunks = [
             target_chunk.reshape(-1)
@@ -347,16 +332,12 @@ def chunked_cross_entropy(
     return torch.cat(loss_chunks).sum() / max(1, non_masked_elems)
 
 
-def map_old_state_dict_weights(
-    state_dict: Dict, mapping: Mapping, prefix: str
-) -> Dict:
+def map_old_state_dict_weights(state_dict: Dict, mapping: Mapping, prefix: str) -> Dict:
     for checkpoint_name, attribute_name in mapping.items():
         full_checkpoint_name = prefix + checkpoint_name
         if full_checkpoint_name in state_dict:
             full_attribute_name = prefix + attribute_name
-            state_dict[full_attribute_name] = state_dict.pop(
-                full_checkpoint_name
-            )
+            state_dict[full_attribute_name] = state_dict.pop(full_checkpoint_name)
     return state_dict
 
 
