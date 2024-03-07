@@ -19,9 +19,10 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Annotated, Any, ClassVar, Tuple, Type
+from typing import Annotated, Any, ClassVar, Dict, Tuple, Type
 
 from lit_gpt import Config
+from pydantic import BaseModel
 from zenml import log_artifact_metadata, step
 from zenml.enums import ArtifactType
 from zenml.io import fileio
@@ -68,21 +69,33 @@ class DirectoryMaterializer(BaseMaterializer):
                 fileio.copy(src_file, dst_file)
 
 
+class FeatureEngineeringParameters(BaseModel):
+    model_repo: str
+    dataset_name: str
+
+    prepare_kwargs: Dict[str, Any] = {}
+
+
 @step(output_materializers=DirectoryMaterializer)
 def feature_engineering(
-    model_repo: str, dataset_name: str
+    config: FeatureEngineeringParameters,
 ) -> Annotated[Path, "data"]:
+    """Prepare the dataset.
+
+    Args:
+        config: Configuration for this step.
+    """
     access_token = get_huggingface_access_token()
 
     checkpoint_root_dir = Path("checkpoints")
     download_from_hub(
-        repo_id=model_repo,
+        repo_id=config.model_repo,
         tokenizer_only=True,
         checkpoint_dir=checkpoint_root_dir,
         access_token=access_token,
     )
 
-    checkpoint_dir = checkpoint_root_dir / model_repo
+    checkpoint_dir = checkpoint_root_dir / config.model_repo
 
     model_name = checkpoint_dir.name
     config = Config.from_name(model_name)
@@ -94,15 +107,19 @@ def feature_engineering(
         metadata={
             "model_name": model_name,
             "model_config": config_dict,
-            "dataset_name": dataset_name,
+            "dataset_name": config.dataset_name,
         }
     )
-    destination_dir = Path("data") / dataset_name
+    destination_dir = Path("data") / config.dataset_name
 
-    helper_module = importlib.import_module(f"scripts.prepare_{dataset_name}")
+    helper_module = importlib.import_module(
+        f"scripts.prepare_{config.dataset_name}"
+    )
     prepare_function = getattr(helper_module, "prepare")
 
     prepare_function(
-        checkpoint_dir=checkpoint_dir, destination_path=destination_dir
+        checkpoint_dir=checkpoint_dir,
+        destination_path=destination_dir,
+        **config.prepare_kwargs,
     )
     return destination_dir

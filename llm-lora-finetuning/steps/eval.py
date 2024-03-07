@@ -16,36 +16,85 @@
 import json
 import shutil
 from pathlib import Path
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 import torch
 from evaluate.lm_eval_harness import run_eval_harness
+from pydantic import BaseModel
 from zenml import step
 
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
-from steps.utils import get_huggingface_access_token
+from steps.params import LoraParameters
+from steps.utils import (
+    convert_to_lit_checkpoint_if_necessary,
+    get_huggingface_access_token,
+)
+
+
+class EvaluationParameters(BaseModel):
+    """If `adapter_repo` is set, it will be merged with the model. Otherwise
+    the model itself will be evaluated.
+    """
+
+    model_repo: str
+    adapter_repo: Optional[str] = None
+
+    precision: Optional[str] = None
+    quantize: Optional[
+        Literal[
+            "bnb.nf4",
+            "bnb.nf4-dq",
+            "bnb.fp4",
+            "bnb.fp4-dq",
+            "bnb.int8-training",
+        ]
+    ] = None
+
+    lora: LoraParameters = LoraParameters()
+
+    eval_tasks: List[str] = [
+        "arc_challenge",
+        "piqa",
+        "hellaswag",
+        "hendrycksTest-*",
+    ]
+    num_fewshot: int = 0
+    limit: Optional[int] = None
+    bootstrap_iters: int = 100000
+    no_cache: bool = True
 
 
 @step
 def eval(
-    model_repo: str, adapter_repo: Optional[str] = None
+    config: EvaluationParameters,
 ) -> Annotated[Dict[str, Any], "evaluation_results"]:
+    """Evaluate model.
+
+    Args:
+        config: Configuration for this step.
+    """
     torch.set_float32_matmul_precision("high")
 
     access_token = get_huggingface_access_token()
 
     model_dir = Path("model")
     download_from_hub(
-        repo_id=model_repo, checkpoint_dir=model_dir, access_token=access_token
+        repo_id=config.model_repo,
+        checkpoint_dir=model_dir,
+        access_token=access_token,
     )
 
-    if adapter_repo:
+    convert_to_lit_checkpoint_if_necessary(
+        checkpoint_dir=model_dir / config.model_repo
+    )
+
+    if config.adapter_repo:
         adapter_dir = Path("adapter")
         merged_dir = Path("merged")
 
         download_from_hub(
-            repo_id=adapter_repo,
+            repo_id=config.adapter_repo,
             checkpoint_dir=adapter_dir,
             access_token=access_token,
         )
@@ -55,6 +104,8 @@ def eval(
             lora_path=Path(lora_path),
             checkpoint_dir=model_dir,
             out_dir=merged_dir,
+            precision=config.precision,
+            **config.lora.dict()
         )
 
         for path in Path(model_dir).glob("*.json"):
@@ -65,7 +116,11 @@ def eval(
         model_dir = merged_dir
 
     output_path = Path("output.json")
-    run_eval_harness(checkpoint_dir=model_dir, save_filepath=output_path)
+    run_eval_harness(
+        checkpoint_dir=model_dir,
+        save_filepath=output_path,
+        **config.dict(exclude={"model_repo", "adapter_repo", "lora"})
+    )
 
     with open(output_path, "r") as f:
         return json.load(f)

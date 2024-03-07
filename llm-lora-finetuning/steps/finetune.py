@@ -30,6 +30,7 @@ from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
 from scripts.prepare_alpaca import prepare
+from steps.params import DataParameters, LoraParameters
 from steps.utils import get_huggingface_access_token
 
 logger = get_logger(__file__)
@@ -66,18 +67,6 @@ class EvalParameters(BaseModel):
     interval: int = 100
     max_new_tokens: int = 100
     max_iters: int = 100
-
-
-class LoraParameters(BaseModel):
-    lora_r: int = 8
-    lora_alpha: int = 16
-    lora_dropout: float = 0.05
-    lora_query: bool = True
-    lora_key: bool = False
-    lora_value: bool = True
-    lora_projection: bool = False
-    lora_mlp: bool = False
-    lora_head: bool = False
 
 
 class FinetuningParameters(BaseModel):

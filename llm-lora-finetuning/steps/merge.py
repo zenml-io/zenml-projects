@@ -15,23 +15,39 @@
 # limitations under the License.
 import shutil
 from pathlib import Path
+from typing import Optional
 
 from huggingface_hub import upload_folder
+from pydantic import BaseModel
 from zenml import log_model_metadata, step
 
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
-from steps.utils import get_huggingface_access_token
+from steps.params import LoraParameters
+from steps.utils import (
+    convert_to_lit_checkpoint_if_necessary,
+    get_huggingface_access_token,
+)
+
+
+class MergeParameters(BaseModel):
+    base_model_repo: str
+    adapter_repo: str
+    output_repo: str
+    convert_to_hf_checkpoint: bool = False
+
+    precision: Optional[str] = None
+    lora: LoraParameters = LoraParameters()
 
 
 @step
-def merge(
-    base_model_repo: str,
-    adapter_repo: str,
-    output_repo: str,
-    convert_to_hf: bool = False,
-) -> None:
+def merge(config: MergeParameters) -> None:
+    """Merge base model and LoRA adapter.
+
+    Args:
+        config: Configuration for this step.
+    """
     access_token = get_huggingface_access_token()
 
     base_model_dir = Path("checkpoints")
@@ -39,21 +55,29 @@ def merge(
     merged_dir = Path("merged")
 
     download_from_hub(
-        repo_id=base_model_repo,
+        repo_id=config.base_model_repo,
         checkpoint_dir=base_model_dir,
         access_token=access_token,
     )
     download_from_hub(
-        repo_id=adapter_repo,
+        repo_id=config.adapter_repo,
         checkpoint_dir=adapter_dir,
         access_token=access_token,
     )
 
-    lora_path = adapter_dir / adapter_repo / "lit_model_lora_finetuned.pth"
+    convert_to_lit_checkpoint_if_necessary(
+        checkpoint_dir=base_model_dir / config.model_repo
+    )
+
+    lora_path = (
+        adapter_dir / config.adapter_repo / "lit_model_lora_finetuned.pth"
+    )
     merge_lora(
         lora_path=Path(lora_path),
-        checkpoint_dir=base_model_dir / base_model_repo,
+        checkpoint_dir=base_model_dir / config.base_model_repo,
         out_dir=merged_dir,
+        precision=config.precision,
+        **config.lora.dict()
     )
 
     for path in Path(base_model_dir).glob("*.json"):
@@ -61,7 +85,7 @@ def merge(
 
         shutil.copy(src=path, dst=destination)
 
-    if convert_to_hf:
+    if config.convert_to_hf_checkpoint:
         output_dir = Path("lora_merged_hf")
         convert_lit_checkpoint(
             checkpoint_path=merged_dir / "lit_model.pth",
@@ -72,7 +96,7 @@ def merge(
         output_dir = merged_dir
 
     commit = upload_folder(
-        repo_id=output_repo, folder_path=output_dir, token=access_token
+        repo_id=config.output_repo, folder_path=output_dir, token=access_token
     )
     log_model_metadata(
         metadata={
