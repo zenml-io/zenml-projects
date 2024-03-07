@@ -31,7 +31,7 @@ from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
 from scripts.prepare_alpaca import prepare
 from steps.params import DataParameters, LoraParameters
-from steps.utils import get_huggingface_access_token
+from steps.utils import get_huggingface_access_token, convert_to_lit_checkpoint_if_necessary
 
 logger = get_logger(__file__)
 
@@ -119,7 +119,7 @@ def finetune(config: FinetuningParameters) -> None:
             access_token=access_token,
         )
 
-    convert_hf_checkpoint(checkpoint_dir=checkpoint_dir)
+    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=checkpoint_dir)
 
     if config.data_dir:
         data_dir = config.data_dir
