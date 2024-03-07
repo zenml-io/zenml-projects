@@ -132,7 +132,9 @@ def finetune(config: FinetuningParameters) -> None:
 
     convert_hf_checkpoint(checkpoint_dir=checkpoint_dir)
 
-    if not data_dir:
+    if config.data_dir:
+        data_dir = config.data_dir
+    else:
         data_dir = Path("data/alpaca")
         prepare(
             destination_path=data_dir,
