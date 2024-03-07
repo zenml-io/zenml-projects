@@ -20,4 +20,5 @@ from zenml.config import DockerSettings
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
 def merge_pipeline() -> None:
+    """Pipeline to merge LLMs with adapters."""
     merge()

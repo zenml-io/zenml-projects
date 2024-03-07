@@ -33,7 +33,9 @@ from steps.utils import (
 
 
 class EvaluationParameters(BaseModel):
-    """If `adapter_repo` is set, it will be merged with the model. Otherwise
+    """Parameters for the evaluation step.
+
+    If `adapter_repo` is set, it will be merged with the model. Otherwise
     the model itself will be evaluated.
     """
 

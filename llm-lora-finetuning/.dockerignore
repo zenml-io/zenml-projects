@@ -1,6 +1,7 @@
 *
 !/pipelines/**
 !/steps/**
+!/materializers/**
 !/evaluate/**
 !/finetune/**
 !/generate/**

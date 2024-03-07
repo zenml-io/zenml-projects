@@ -21,4 +21,5 @@ from zenml.config import DockerSettings
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
 def finetuning_pipeline() -> None:
+    """Pipeline to finetune LLMs using LoRA."""
     finetune()

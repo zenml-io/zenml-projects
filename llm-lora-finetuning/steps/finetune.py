@@ -39,6 +39,8 @@ logger = get_logger(__file__)
 
 
 class DataParameters(BaseModel):
+    """Data preprocessing parameters."""
+
     seed: int = 42
     test_split_fraction: float = 0.03865
     mask_inputs: bool = False
@@ -47,6 +49,8 @@ class DataParameters(BaseModel):
 
 
 class TrainingParameters(BaseModel):
+    """Training parameters."""
+
     save_interval: int = 1000
     log_interval: int = 1
     global_batch_size: int = 64
@@ -66,12 +70,16 @@ class TrainingParameters(BaseModel):
 
 
 class EvalParameters(BaseModel):
+    """Mid-training evaluation parameters."""
+
     interval: int = 100
     max_new_tokens: int = 100
     max_iters: int = 100
 
 
 class FinetuningParameters(BaseModel):
+    """Parameters for the finetuning step."""
+
     base_model_repo: str
     data_dir: Optional[Path] = None
 

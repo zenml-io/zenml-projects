@@ -21,4 +21,5 @@ from zenml.config import DockerSettings
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
 def eval_pipeline() -> None:
+    """Pipeline to evaluate a LoRA fine-tuned LLM."""
     evaluate()

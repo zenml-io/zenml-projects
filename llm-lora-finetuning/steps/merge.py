@@ -32,6 +32,8 @@ from steps.utils import (
 
 
 class MergeParameters(BaseModel):
+    """Parameters for the merging step."""
+
     base_model_repo: str
     adapter_repo: str
     output_repo: str
