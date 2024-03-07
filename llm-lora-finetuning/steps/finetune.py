@@ -29,7 +29,7 @@ from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
 from scripts.prepare_alpaca import prepare
-from steps.params import DataParameters, LoraParameters
+from steps.params import LoraParameters
 from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
