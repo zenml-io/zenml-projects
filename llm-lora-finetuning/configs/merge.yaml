@@ -3,3 +3,10 @@ parameters:
   adapter_repo: ...
   output_repo: ...
   convert_to_hf: False
+model:
+  name: mistral-7b-lora
+  description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
+  tags:
+    - llm
+    - lora
+    - mistral

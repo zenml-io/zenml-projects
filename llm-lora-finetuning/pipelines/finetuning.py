@@ -13,9 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-from pathlib import Path
-from typing import Optional
 
 from steps.finetune import finetune
 from zenml import pipeline
@@ -23,17 +20,5 @@ from zenml.config import DockerSettings
 
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def finetuning_pipeline(
-    repo_id: str = "mistralai/Mistral-7B-Instruct-v0.1",
-    adapter_output_repo: Optional[str] = None,
-    merged_output_repo: Optional[str] = None,
-    convert_to_hf: bool = False,
-    data_dir: Optional[str] = None,
-) -> None:
-    finetune(
-        repo_id=repo_id,
-        adapter_output_repo=adapter_output_repo,
-        merged_output_repo=merged_output_repo,
-        convert_to_hf=convert_to_hf,
-        data_dir=Path(data_dir) if data_dir else None,
-    )
+def finetuning_pipeline() -> None:
+    finetune()

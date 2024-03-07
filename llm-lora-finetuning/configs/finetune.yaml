@@ -1,5 +1,0 @@
-parameters:
-  repo_id: mistralai/Mistral-7B-Instruct-v0.1
-  adapter_output_repo: null
-  merged_output_repo: null
-  convert_to_hf: False
