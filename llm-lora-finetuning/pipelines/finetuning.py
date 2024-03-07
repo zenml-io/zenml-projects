@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from steps.finetune import finetune
+from steps import finetune
 from zenml import pipeline
 from zenml.config import DockerSettings
 

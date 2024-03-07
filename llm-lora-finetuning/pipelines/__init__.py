@@ -13,3 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pipelines.evaluate import eval_pipeline
+from pipelines.feature_engineering import feature_engineering_pipeline
+from pipelines.finetuning import finetuning_pipeline
+from pipelines.merge import merge_pipeline

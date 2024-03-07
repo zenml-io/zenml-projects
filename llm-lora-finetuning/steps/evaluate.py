@@ -66,7 +66,7 @@ class EvaluationParameters(BaseModel):
 
 
 @step
-def eval(
+def evaluate(
     config: EvaluationParameters,
 ) -> Annotated[Dict[str, Any], "evaluation_results"]:
     """Evaluate model.

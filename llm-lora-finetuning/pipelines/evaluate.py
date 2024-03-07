@@ -13,13 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 
-from steps.eval import eval
+from steps import evaluate
 from zenml import pipeline
 from zenml.config import DockerSettings
 
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def eval_pipeline(model_repo: str, adapter_repo: Optional[str] = None) -> None:
-    eval(model_repo=model_repo, adapter_repo=adapter_repo)
+def eval_pipeline() -> None:
+    evaluate()

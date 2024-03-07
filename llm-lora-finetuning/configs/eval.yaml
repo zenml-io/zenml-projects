@@ -1,6 +1,3 @@
-parameters:
-  model_repo: mistralai/Mistral-7B-Instruct-v0.1
-  adapter_repo: ...
 model:
   name: mistral-7b-lora
   description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."

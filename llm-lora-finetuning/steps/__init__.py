@@ -13,3 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from steps.evaluate import evaluate
+from steps.feature_engineering import feature_engineering
+from steps.finetune import finetune
+from steps.merge import merge
