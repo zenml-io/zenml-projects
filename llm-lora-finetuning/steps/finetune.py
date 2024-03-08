@@ -25,6 +25,7 @@ from materializers.directory_materializer import DirectoryMaterializer
 from pydantic import BaseModel
 from zenml import get_step_context, log_model_metadata, step
 from zenml.logger import get_logger
+from zenml.materializers import BuiltInMaterializer
 
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
@@ -104,7 +105,7 @@ class FinetuningParameters(BaseModel):
     lora: LoraParameters = LoraParameters()
 
 
-@step(output_materializers=DirectoryMaterializer)
+@step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def finetune(
     config: FinetuningParameters, dataset_directory: Optional[Path] = None
 ) -> Annotated[Optional[Path], "adapter"]:
