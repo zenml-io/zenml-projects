@@ -90,11 +90,11 @@ def merge(config: MergeParameters) -> None:
         model_name = base_model_dir.name
 
         output_dir = Path("output/lora_merged_hf") / model_name
-        output_dir.mkdir(exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         convert_lit_checkpoint(
             checkpoint_path=merged_dir / "lit_model.pth",
             config_path=merged_dir / "lit_config.json",
-            output_path=output_dir,
+            output_path=output_dir / "pytorch_model",
         )
     else:
         output_dir = merged_dir

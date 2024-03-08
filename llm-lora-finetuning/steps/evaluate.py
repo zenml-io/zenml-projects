@@ -20,6 +20,7 @@ from typing import Annotated, Any, Dict, List, Literal, Optional
 
 import torch
 from evaluate.lm_eval_harness import run_eval_harness
+from huggingface_hub import snapshot_download
 from pydantic import BaseModel
 from zenml import step
 
@@ -80,25 +81,26 @@ def evaluate(
 
     access_token = get_huggingface_access_token()
 
-    model_dir = Path("model")
+    model_root_dir = Path("model")
     download_from_hub(
         repo_id=config.model_repo,
-        checkpoint_dir=model_dir,
+        checkpoint_dir=model_root_dir,
         access_token=access_token,
     )
+    model_dir = model_root_dir / config.model_repo
 
-    convert_to_lit_checkpoint_if_necessary(
-        checkpoint_dir=model_dir / config.model_repo
-    )
+    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=model_dir)
 
     if config.adapter_repo:
-        adapter_dir = Path("adapter")
+        adapter_dir = Path("adapters") / config.adapter_repo
         merged_dir = Path("merged")
 
-        download_from_hub(
-            repo_id=config.adapter_repo,
-            checkpoint_dir=adapter_dir,
-            access_token=access_token,
+        snapshot_download(
+            config.adapter_repo,
+            local_dir=adapter_dir,
+            local_dir_use_symlinks=False,
+            resume_download=True,
+            token=access_token,
         )
 
         lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
@@ -112,7 +114,6 @@ def evaluate(
 
         for path in Path(model_dir).glob("*.json"):
             destination = Path(merged_dir) / path.name
-
             shutil.copy(src=path, dst=destination)
 
         model_dir = merged_dir

@@ -187,18 +187,17 @@ def finetune(config: FinetuningParameters) -> None:
 
         for path in Path(checkpoint_dir).glob("*.json"):
             destination = Path(merge_output_dir) / path.name
-
             shutil.copy(src=path, dst=destination)
 
         if config.convert_to_hf_checkpoint:
             upload_dir = (
                 Path("output/lora_merged_hf") / dataset_name / model_name
             )
-            upload_dir.mkdir(exist_ok=True)
+            upload_dir.mkdir(parents=True, exist_ok=True)
             convert_lit_checkpoint(
                 checkpoint_path=config.merged_output_repo / "lit_model.pth",
-                output_path=output_dir,
                 config_path=config.merged_output_repo / "lit_config.json",
+                output_path=upload_dir / "pytorch_model",
             )
         else:
             upload_dir = merge_output_dir
