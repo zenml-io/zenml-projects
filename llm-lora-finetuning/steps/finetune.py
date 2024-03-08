@@ -135,6 +135,7 @@ def finetune(config: FinetuningParameters) -> None:
         data_dir = config.data_dir
     else:
         data_dir = Path("data/alpaca")
+        dataset_name = data_dir.name
         prepare(
             destination_path=data_dir,
             checkpoint_dir=checkpoint_dir,
@@ -146,12 +147,11 @@ def finetune(config: FinetuningParameters) -> None:
         )
 
     model_name = checkpoint_dir.name
-    dataset_name = data_dir.name
 
     log_model_metadata(
         metadata={"model_name": model_name, "dataset_name": dataset_name}
     )
-    output_dir = Path("output/lora") / dataset_name
+    output_dir = Path("output/lora") / dataset_name / model_name
 
     io_args = IOArgs(
         train_data_dir=data_dir,
@@ -172,7 +172,7 @@ def finetune(config: FinetuningParameters) -> None:
     )
 
     if config.merged_output_repo:
-        lora_path = output_dir / model_name / "lit_model_lora_finetuned.pth"
+        lora_path = output_dir / "lit_model_lora_finetuned.pth"
 
         merge_output_dir = (
             Path("output/lora_merged") / dataset_name / model_name
@@ -194,6 +194,7 @@ def finetune(config: FinetuningParameters) -> None:
             upload_dir = (
                 Path("output/lora_merged_hf") / dataset_name / model_name
             )
+            upload_dir.mkdir(exist_ok=True)
             convert_lit_checkpoint(
                 checkpoint_path=config.merged_output_repo / "lit_model.pth",
                 output_path=output_dir,
@@ -217,7 +218,7 @@ def finetune(config: FinetuningParameters) -> None:
     if config.adapter_output_repo:
         commit = upload_folder(
             repo_id=config.adapter_output_repo,
-            folder_path=output_dir / model_name,
+            folder_path=output_dir,
             token=access_token,
         )
         log_model_metadata(

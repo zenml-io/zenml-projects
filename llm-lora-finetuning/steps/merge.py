@@ -17,7 +17,7 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-from huggingface_hub import upload_folder
+from huggingface_hub import snapshot_download, upload_folder
 from pydantic import BaseModel
 from zenml import log_model_metadata, step
 
@@ -52,31 +52,31 @@ def merge(config: MergeParameters) -> None:
     """
     access_token = get_huggingface_access_token()
 
-    base_model_dir = Path("checkpoints")
-    adapter_dir = Path("adapter")
+    checkpoint_root_dir = Path("checkpoints")
     merged_dir = Path("merged")
+    base_model_dir = checkpoint_root_dir / config.base_model_repo
+    adapter_dir = Path("adapters") / config.adapter_repo
 
     download_from_hub(
         repo_id=config.base_model_repo,
-        checkpoint_dir=base_model_dir,
-        access_token=access_token,
-    )
-    download_from_hub(
-        repo_id=config.adapter_repo,
-        checkpoint_dir=adapter_dir,
+        checkpoint_dir=checkpoint_root_dir,
         access_token=access_token,
     )
 
-    convert_to_lit_checkpoint_if_necessary(
-        checkpoint_dir=base_model_dir / config.model_repo
+    snapshot_download(
+        config.adapter_repo,
+        local_dir=adapter_dir,
+        local_dir_use_symlinks=False,
+        resume_download=True,
+        token=access_token,
     )
 
-    lora_path = (
-        adapter_dir / config.adapter_repo / "lit_model_lora_finetuned.pth"
-    )
+    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=base_model_dir)
+
+    lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
     merge_lora(
         lora_path=Path(lora_path),
-        checkpoint_dir=base_model_dir / config.base_model_repo,
+        checkpoint_dir=base_model_dir,
         out_dir=merged_dir,
         precision=config.precision,
         **config.lora.dict()
@@ -84,11 +84,13 @@ def merge(config: MergeParameters) -> None:
 
     for path in Path(base_model_dir).glob("*.json"):
         destination = Path(merged_dir) / path.name
-
         shutil.copy(src=path, dst=destination)
 
     if config.convert_to_hf_checkpoint:
-        output_dir = Path("lora_merged_hf")
+        model_name = base_model_dir.name
+
+        output_dir = Path("output/lora_merged_hf") / model_name
+        output_dir.mkdir(exist_ok=True)
         convert_lit_checkpoint(
             checkpoint_path=merged_dir / "lit_model.pth",
             config_path=merged_dir / "lit_config.json",

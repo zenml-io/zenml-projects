@@ -11,6 +11,7 @@ steps:
     parameters:
       config:
         base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        precision: bf16-true
         training:
           save_interval: 1
           epochs: 1  # 5
