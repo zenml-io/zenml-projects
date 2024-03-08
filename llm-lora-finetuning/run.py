@@ -105,22 +105,22 @@ def main(
         pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     if feature_pipeline:
-        from pipelines.feature_engineering import feature_engineering_pipeline
+        from pipelines import feature_engineering_pipeline
 
         feature_engineering_pipeline.with_options(**pipeline_args)()
 
     if finetuning_pipeline:
-        from pipelines.finetuning import finetuning_pipeline
+        from pipelines import finetuning_pipeline
 
         finetuning_pipeline.with_options(**pipeline_args)()
 
     if merging_pipeline:
-        from pipelines.merge import merge_pipeline
+        from pipelines import merge_pipeline
 
         merge_pipeline.with_options(**pipeline_args)()
 
     if eval_pipeline:
-        from pipelines.eval import eval_pipeline
+        from pipelines import eval_pipeline
 
         eval_pipeline.with_options(**pipeline_args)()
 
