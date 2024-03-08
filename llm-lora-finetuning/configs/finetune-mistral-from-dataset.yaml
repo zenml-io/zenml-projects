@@ -1,0 +1,23 @@
+model:
+  name: mistral-7b-lora
+  description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
+  tags:
+    - llm
+    - lora
+    - mistral
+
+steps:
+  finetune:
+    parameters:
+      config:
+        base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        precision: bf16-true
+        training:
+          save_interval: 1
+          epochs: 1  # 5
+          epoch_size: 1  # 50000
+          global_batch_size: 128
+          learning_rate: 3e-4
+
+parameters:
+  dataset_artifact_name: dataset

@@ -40,7 +40,7 @@ class FeatureEngineeringParameters(BaseModel):
 @step(output_materializers=DirectoryMaterializer)
 def feature_engineering(
     config: FeatureEngineeringParameters,
-) -> Annotated[Path, "data"]:
+) -> Annotated[Path, "dataset"]:
     """Prepare the dataset.
 
     Args:

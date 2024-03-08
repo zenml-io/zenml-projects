@@ -23,6 +23,7 @@ from evaluate.lm_eval_harness import run_eval_harness
 from huggingface_hub import snapshot_download
 from pydantic import BaseModel
 from zenml import step
+from zenml.logger import get_logger
 
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
@@ -31,6 +32,8 @@ from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
+
+logger = get_logger(__file__)
 
 
 class EvaluationParameters(BaseModel):
@@ -81,19 +84,25 @@ def evaluate(
 
     access_token = get_huggingface_access_token()
 
-    model_root_dir = Path("model")
-    download_from_hub(
-        repo_id=config.model_repo,
-        checkpoint_dir=model_root_dir,
-        access_token=access_token,
-    )
-    model_dir = model_root_dir / config.model_repo
+    checkpoint_root_dir = Path("checkpoints")
+    checkpoint_dir = checkpoint_root_dir / config.model_repo
 
-    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=model_dir)
+    if checkpoint_dir.exists():
+        logger.info(
+            "Checkpoint directory already exists, skipping download..."
+        )
+    else:
+        download_from_hub(
+            repo_id=config.model_repo,
+            checkpoint_dir=checkpoint_root_dir,
+            access_token=access_token,
+        )
+
+    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=checkpoint_dir)
 
     if config.adapter_repo:
         adapter_dir = Path("adapters") / config.adapter_repo
-        merged_dir = Path("merged")
+        merged_dir = Path("output/merged")
 
         snapshot_download(
             config.adapter_repo,
@@ -106,21 +115,21 @@ def evaluate(
         lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
         merge_lora(
             lora_path=Path(lora_path),
-            checkpoint_dir=model_dir,
+            checkpoint_dir=checkpoint_dir,
             out_dir=merged_dir,
             precision=config.precision,
             **config.lora.dict()
         )
 
-        for path in Path(model_dir).glob("*.json"):
+        for path in Path(checkpoint_dir).glob("*.json"):
             destination = Path(merged_dir) / path.name
             shutil.copy(src=path, dst=destination)
 
-        model_dir = merged_dir
+        checkpoint_dir = merged_dir
 
     output_path = Path("output.json")
     run_eval_harness(
-        checkpoint_dir=model_dir,
+        checkpoint_dir=checkpoint_dir,
         save_filepath=output_path,
         **config.dict(exclude={"model_repo", "adapter_repo", "lora"})
     )

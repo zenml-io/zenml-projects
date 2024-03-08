@@ -20,6 +20,7 @@ from typing import Optional
 from huggingface_hub import snapshot_download, upload_folder
 from pydantic import BaseModel
 from zenml import log_model_metadata, step
+from zenml.logger import get_logger
 
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
@@ -29,6 +30,8 @@ from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
+
+logger = get_logger(__file__)
 
 
 class MergeParameters(BaseModel):
@@ -53,15 +56,21 @@ def merge(config: MergeParameters) -> None:
     access_token = get_huggingface_access_token()
 
     checkpoint_root_dir = Path("checkpoints")
-    merged_dir = Path("merged")
     base_model_dir = checkpoint_root_dir / config.base_model_repo
     adapter_dir = Path("adapters") / config.adapter_repo
 
-    download_from_hub(
-        repo_id=config.base_model_repo,
-        checkpoint_dir=checkpoint_root_dir,
-        access_token=access_token,
-    )
+    if base_model_dir.exists():
+        logger.info(
+            "Checkpoint directory already exists, skipping download..."
+        )
+    else:
+        download_from_hub(
+            repo_id=config.base_model_repo,
+            checkpoint_dir=checkpoint_root_dir,
+            access_token=access_token,
+        )
+
+    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=base_model_dir)
 
     snapshot_download(
         config.adapter_repo,
@@ -71,9 +80,9 @@ def merge(config: MergeParameters) -> None:
         token=access_token,
     )
 
-    convert_to_lit_checkpoint_if_necessary(checkpoint_dir=base_model_dir)
-
     lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
+    merged_dir = Path("output/merged")
+
     merge_lora(
         lora_path=Path(lora_path),
         checkpoint_dir=base_model_dir,
