@@ -59,15 +59,15 @@ def feature_engineering(
     checkpoint_dir = checkpoint_root_dir / config.model_repo
 
     model_name = checkpoint_dir.name
-    config = Config.from_name(model_name)
-    config_dict = asdict(config)
+    lit_config = Config.from_name(model_name)
+    lit_config_dict = asdict(lit_config)
     with open(checkpoint_dir / "lit_config.json", "w") as json_config:
-        json.dump(config_dict, json_config)
+        json.dump(lit_config_dict, json_config)
 
     log_artifact_metadata(
         metadata={
             "model_name": model_name,
-            "model_config": config_dict,
+            "model_config": lit_config_dict,
             "dataset_name": config.dataset_name,
         }
     )
