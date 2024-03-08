@@ -5,17 +5,12 @@ model:
     - llm
     - lora
     - mistral
-    - alpaca
 
 steps:
-  finetune:
+  merge:
     parameters:
       config:
         base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        adapter_repo: ...
+        output_repo: ...
         precision: bf16-true
-        training:
-          save_interval: 1
-          epochs: 1  # 5
-          epoch_size: 1  # 50000
-          global_batch_size: 128
-          learning_rate: 3e-4

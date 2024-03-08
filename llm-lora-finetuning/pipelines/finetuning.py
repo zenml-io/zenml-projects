@@ -14,12 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 from steps import finetune
-from zenml import pipeline
+from zenml import get_pipeline_context, pipeline
 from zenml.config import DockerSettings
 
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def finetuning_pipeline() -> None:
+def finetuning_pipeline(
+    dataset_artifact_name: Optional[str] = None,
+    dataset_artifact_version: Optional[str] = None,
+) -> None:
     """Pipeline to finetune LLMs using LoRA."""
-    finetune()
+    dataset_directory = None
+    if dataset_artifact_name:
+        dataset_directory = get_pipeline_context().model.get_artifact(
+            name=dataset_artifact_name, version=dataset_artifact_version
+        )
+
+    finetune(dataset_directory=dataset_directory)

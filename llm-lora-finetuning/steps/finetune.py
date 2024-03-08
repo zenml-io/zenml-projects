@@ -15,14 +15,15 @@
 # limitations under the License.
 import shutil
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 import torch
 from finetune.lora import setup
 from huggingface_hub import upload_folder
 from lit_gpt.args import EvalArgs, IOArgs, TrainArgs
+from materializers.directory_materializer import DirectoryMaterializer
 from pydantic import BaseModel
-from zenml import log_model_metadata, step
+from zenml import get_step_context, log_model_metadata, step
 from zenml.logger import get_logger
 
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
@@ -81,7 +82,6 @@ class FinetuningParameters(BaseModel):
     """Parameters for the finetuning step."""
 
     base_model_repo: str
-    data_dir: Optional[Path] = None
 
     adapter_output_repo: Optional[str] = None
     merged_output_repo: Optional[str] = None
@@ -104,8 +104,10 @@ class FinetuningParameters(BaseModel):
     lora: LoraParameters = LoraParameters()
 
 
-@step
-def finetune(config: FinetuningParameters) -> None:
+@step(output_materializers=DirectoryMaterializer)
+def finetune(
+    config: FinetuningParameters, dataset_directory: Optional[Path] = None
+) -> Annotated[Optional[Path], "adapter"]:
     """Finetune model using LoRA.
 
     Args:
@@ -131,13 +133,21 @@ def finetune(config: FinetuningParameters) -> None:
 
     convert_to_lit_checkpoint_if_necessary(checkpoint_dir=checkpoint_dir)
 
-    if config.data_dir:
-        data_dir = config.data_dir
+    if dataset_directory:
+        try:
+            dataset_name = (
+                get_step_context()
+                .inputs["data_dir"]
+                .run_metadata["dataset_name"]
+                .value
+            )
+        except KeyError:
+            dataset_name = "unknown_dataset"
     else:
-        data_dir = Path("data/alpaca")
-        dataset_name = data_dir.name
+        dataset_directory = Path("data/alpaca")
+        dataset_name = dataset_directory.name
         prepare(
-            destination_path=data_dir,
+            destination_path=dataset_directory,
             checkpoint_dir=checkpoint_dir,
             test_split_fraction=config.data.test_split_fraction,
             seed=config.data.seed,
@@ -151,13 +161,13 @@ def finetune(config: FinetuningParameters) -> None:
     log_model_metadata(
         metadata={"model_name": model_name, "dataset_name": dataset_name}
     )
-    output_dir = Path("output/lora") / dataset_name / model_name
+    adapter_output_dir = Path("output/lora") / dataset_name / model_name
 
     io_args = IOArgs(
-        train_data_dir=data_dir,
-        val_data_dir=data_dir,
+        train_data_dir=dataset_directory,
+        val_data_dir=dataset_directory,
         checkpoint_dir=checkpoint_dir,
-        out_dir=output_dir,
+        out_dir=adapter_output_dir,
     )
     train_args = TrainArgs(**config.training.dict())
     eval_args = EvalArgs(**config.eval.dict())
@@ -172,7 +182,7 @@ def finetune(config: FinetuningParameters) -> None:
     )
 
     if config.merged_output_repo:
-        lora_path = output_dir / "lit_model_lora_finetuned.pth"
+        lora_path = adapter_output_dir / "lit_model_lora_finetuned.pth"
 
         merge_output_dir = (
             Path("output/lora_merged") / dataset_name / model_name
@@ -217,7 +227,7 @@ def finetune(config: FinetuningParameters) -> None:
     if config.adapter_output_repo:
         commit = upload_folder(
             repo_id=config.adapter_output_repo,
-            folder_path=output_dir,
+            folder_path=adapter_output_dir,
             token=access_token,
         )
         log_model_metadata(
@@ -226,3 +236,8 @@ def finetune(config: FinetuningParameters) -> None:
                 "adapter_huggingface_commit_url": commit.commit_url,
             }
         )
+        return None
+    else:
+        # If the adapter should not be uploaded to the HF Hub, we store it
+        # in the artifact store
+        return adapter_output_dir
