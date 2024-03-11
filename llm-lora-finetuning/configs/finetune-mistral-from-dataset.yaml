@@ -1,0 +1,21 @@
+parameters:
+  dataset_artifact_name: dataset
+
+model:
+  name: mistral-7b-lora
+  version: latest
+
+steps:
+  finetune:
+    parameters:
+      config:
+        base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        precision: bf16-true
+        # merged_output_repo:
+        # adapter_output_repo:
+        training:
+          save_interval: 1
+          epochs: 5
+          epoch_size: 50000
+          global_batch_size: 128
+          learning_rate: 3e-4

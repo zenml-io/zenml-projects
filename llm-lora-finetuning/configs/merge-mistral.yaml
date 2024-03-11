@@ -1,0 +1,16 @@
+model:
+  name: mistral-7b-lora
+  description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
+  tags:
+    - llm
+    - lora
+    - mistral
+
+steps:
+  merge:
+    parameters:
+      config:
+        base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        adapter_repo: ...
+        output_repo: ...
+        precision: bf16-true

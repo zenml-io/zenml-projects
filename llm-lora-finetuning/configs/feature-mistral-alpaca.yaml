@@ -1,0 +1,15 @@
+model:
+  name: mistral-7b-lora
+  description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
+  tags:
+    - llm
+    - lora
+    - mistral
+    - alpaca
+
+steps:
+  feature_engineering:
+    parameters:
+      config:
+        model_repo: mistralai/Mistral-7B-Instruct-v0.1
+        dataset_name: alpaca
