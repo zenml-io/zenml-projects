@@ -11,6 +11,8 @@ steps:
       config:
         base_model_repo: mistralai/Mistral-7B-Instruct-v0.1
         precision: bf16-true
+        # merged_output_repo:
+        # adapter_output_repo:
         training:
           save_interval: 1
           epochs: 5

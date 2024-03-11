@@ -101,8 +101,10 @@ def main(
         "configs",
     )
     pipeline_args = {"enable_cache": not no_cache}
-    if config:
-        pipeline_args["config_path"] = os.path.join(config_folder, config)
+    if not config:
+        raise RuntimeError("Config file is required to run a pipeline.")
+
+    pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     if feature_pipeline:
         from pipelines import feature_engineering_pipeline
