@@ -138,7 +138,7 @@ def finetune(
         try:
             dataset_name = (
                 get_step_context()
-                .inputs["data_dir"]
+                .inputs["dataset_directory"]
                 .run_metadata["dataset_name"]
                 .value
             )

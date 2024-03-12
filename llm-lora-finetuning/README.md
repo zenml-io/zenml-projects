@@ -4,6 +4,14 @@ The goal of this project is to use [ZenML](https://github.com/zenml-io/zenml) to
 
 Using these pipelines, we can run the data-preparation and model finetuning with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guide/production-guide/configure-pipeline) and letting ZenML take care of tracking our metadata and [containerizing our pipelines](https://docs.zenml.io/user-guide/advanced-guide/infrastructure-management/containerize-your-pipeline).
 
+<div align="center">
+  <br/>
+    <a href="https://cloud.zenml.io">
+      <img alt="Model version metadata" src=".assets/model.png">
+    </a>
+  <br/>
+</div>
+
 ## :earth_americas: Inspiration and Credit
 
 This project heavily relies on the [Lit-GPT project](https://github.com/Lightning-AI/litgpt) of the amazing people at Lightning AI. We used [this blogpost](https://lightning.ai/pages/community/lora-insights/#toc14) to get started with LoRA and QLoRA and modified the commands they recommend to make them work using ZenML.
@@ -52,3 +60,19 @@ If you want to finetune your model on a different dataset, you can do so by runn
 python run.py --feature-pipeline --config --feature-mistral-alpaca.yaml
 python run.py --finetuning-pipeline --config finetune-mistral-from-dataset.yaml
 ```
+
+## ☁️ Running with a remote stack
+
+To finetune an LLM on remote infrastructure, you can either use a remote orchestrator or a remote step operator. Follow these steps to set up a complete remote stack:
+- Register the [orchestrator](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators) (or [step operator](https://docs.zenml.io/stacks-and-components/component-guide/step-operators)) and make sure to configure it in a way so that the finetuning step has access to a GPU with at least 24GB of VRAM. Check out our docs for more [details](https://docs.zenml.io/stacks-and-components/component-guide).
+    - To access GPUs with this amount of VRAM, you might need to increase your GPU quota ([AWS](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html), [GCP](https://console.cloud.google.com/iam-admin/quotas), [Azure](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2#request-quota-and-limit-increases)).
+    - The GPU instance that your finetuning will be running on will have CUDA drivers of a specific version installed. If that CUDA version is not compatible with the one provided by the default Docker image of the finetuning pipeline, you will need to modify it in the configuration file. See [here](https://hub.docker.com/r/pytorch/pytorch/tags) for a list of available PyTorch images.
+    - If you're running out of memory, you can experiment with quantized LoRA (QLoRA) by setting a different value for the `quantize` parameter in the configuration, or reduce the `global_batch_size`.
+- Register a remote [artifact store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores) and [container registry](https://docs.zenml.io/stacks-and-components/component-guide/container-registries).
+- Register a stack with all these components
+    ```shell
+    zenml stack register llm-finetuning-stack -o <ORCHESTRATOR_NAME> \
+        -a <ARTIFACT_STORE_NAME> \
+        -c <CONTAINER_REGISTRY_NAME> \
+        [-s <STEP_OPERATOR_NAME>]
+    ```

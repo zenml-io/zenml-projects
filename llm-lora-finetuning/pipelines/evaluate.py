@@ -19,7 +19,13 @@ from zenml import pipeline
 from zenml.config import DockerSettings
 
 
-@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
+@pipeline(
+    settings={
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
+    }
+)
 def eval_pipeline() -> None:
     """Pipeline to evaluate a LoRA fine-tuned LLM."""
     evaluate()

@@ -1,4 +1,4 @@
-zenml[server]>=0.55.0
+zenml[server]
 torch>=2.2.0
 lightning @ git+https://github.com/Lightning-AI/lightning@ed367ca675861cdf40dbad2e4d66f7eee2ec50af
 jsonargparse[signatures]  # CLI

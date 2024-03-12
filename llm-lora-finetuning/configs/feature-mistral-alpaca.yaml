@@ -9,6 +9,7 @@ model:
 
 steps:
   feature_engineering:
+    enable_step_logs: False
     parameters:
       config:
         model_repo: mistralai/Mistral-7B-Instruct-v0.1

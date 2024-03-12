@@ -21,7 +21,13 @@ from zenml import get_pipeline_context, pipeline
 from zenml.config import DockerSettings
 
 
-@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
+@pipeline(
+    settings={
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
+    }
+)
 def finetuning_pipeline(
     dataset_artifact_name: Optional[str] = None,
     dataset_artifact_version: Optional[str] = None,

@@ -18,7 +18,13 @@ from zenml import pipeline
 from zenml.config import DockerSettings
 
 
-@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
+@pipeline(
+    settings={
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
+    }
+)
 def feature_engineering_pipeline() -> None:
     """Data preprocessing pipeline."""
     feature_engineering()
