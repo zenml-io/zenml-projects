@@ -13,10 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 from typing import Optional
 
 from steps import finetune
+
 from zenml import get_pipeline_context, pipeline
 from zenml.config import DockerSettings
 
@@ -28,7 +30,7 @@ from zenml.config import DockerSettings
         )
     }
 )
-def finetuning_pipeline(
+def llm_lora_finetuning(
     dataset_artifact_name: Optional[str] = None,
     dataset_artifact_version: Optional[str] = None,
 ) -> None:

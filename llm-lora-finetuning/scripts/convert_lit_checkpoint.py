@@ -17,7 +17,6 @@ sys.path.append(str(wd))
 
 from lit_gpt import Config
 from lit_gpt.utils import CLI, incremental_save, lazy_load
-
 from scripts.convert_hf_checkpoint import layer_template, load_param
 
 

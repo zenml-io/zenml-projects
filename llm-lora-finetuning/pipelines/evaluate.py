@@ -13,8 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 from steps import evaluate
+
 from zenml import pipeline
 from zenml.config import DockerSettings
 
@@ -26,6 +28,6 @@ from zenml.config import DockerSettings
         )
     }
 )
-def eval_pipeline() -> None:
+def llm_lora_evaluation() -> None:
     """Pipeline to evaluate a LoRA fine-tuned LLM."""
     evaluate()

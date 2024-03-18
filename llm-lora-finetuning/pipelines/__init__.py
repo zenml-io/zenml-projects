@@ -13,7 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pipelines.evaluate import eval_pipeline
-from pipelines.feature_engineering import feature_engineering_pipeline
-from pipelines.finetuning import finetuning_pipeline
-from pipelines.merge import merge_pipeline
+#
+
+from pipelines.evaluate import llm_lora_evaluation
+from pipelines.feature_engineering import llm_lora_feature_engineering
+from pipelines.finetuning import llm_lora_finetuning
+from pipelines.merge import llm_lora_merging

@@ -13,25 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 import json
 import shutil
 from pathlib import Path
-from typing import Annotated, Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import torch
 from evaluate.lm_eval_harness import run_eval_harness
 from huggingface_hub import snapshot_download
 from pydantic import BaseModel
-from zenml import step
-from zenml.logger import get_logger
-
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
+from typing_extensions import Annotated
+
 from steps.params import LoraParameters
 from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
+from zenml import step
+from zenml.logger import get_logger
 
 logger = get_logger(__file__)
 
@@ -44,6 +47,7 @@ class EvaluationParameters(BaseModel):
     """
 
     model_repo: str
+    from_safetensors: bool = False
     adapter_repo: Optional[str] = None
 
     precision: Optional[str] = None
@@ -94,6 +98,7 @@ def evaluate(
     else:
         download_from_hub(
             repo_id=config.model_repo,
+            from_safetensors=config.from_safetensors,
             checkpoint_dir=checkpoint_root_dir,
             access_token=access_token,
         )
@@ -114,11 +119,11 @@ def evaluate(
 
         lora_path = adapter_dir / "lit_model_lora_finetuned.pth"
         merge_lora(
-            lora_path=Path(lora_path),
+            lora_path=lora_path,
             checkpoint_dir=checkpoint_dir,
             out_dir=merged_dir,
             precision=config.precision,
-            **config.lora.dict()
+            **config.lora.dict(),
         )
 
         for path in Path(checkpoint_dir).glob("*.json"):
@@ -131,7 +136,7 @@ def evaluate(
     run_eval_harness(
         checkpoint_dir=checkpoint_dir,
         save_filepath=output_path,
-        **config.dict(exclude={"model_repo", "adapter_repo", "lora"})
+        **config.dict(exclude={"model_repo", "adapter_repo", "lora"}),
     )
 
     with open(output_path, "r") as f:

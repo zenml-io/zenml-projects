@@ -13,7 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 from steps import merge
+
 from zenml import pipeline
 from zenml.config import DockerSettings
 
@@ -25,6 +28,6 @@ from zenml.config import DockerSettings
         )
     }
 )
-def merge_pipeline() -> None:
+def llm_lora_merging() -> None:
     """Pipeline to merge LLMs with adapters."""
     merge()

@@ -35,7 +35,6 @@ from lit_gpt.utils import (
     load_checkpoint,
     num_parameters,
 )
-
 from scripts.prepare_alpaca import generate_prompt
 
 

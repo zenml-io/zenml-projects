@@ -13,19 +13,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 import importlib
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import Annotated, Any, Dict
+from typing import Any, Dict
 
 from lit_gpt import Config
 from materializers.directory_materializer import DirectoryMaterializer
 from pydantic import BaseModel
-from zenml import log_artifact_metadata, step
-
 from scripts.download import download_from_hub
+from typing_extensions import Annotated
+
 from steps.utils import get_huggingface_access_token
+from zenml import log_artifact_metadata, step
 
 
 class FeatureEngineeringParameters(BaseModel):

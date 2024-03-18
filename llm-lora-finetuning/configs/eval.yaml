@@ -1,10 +1,10 @@
 model:
-  name: mistral-7b-lora
+  name: llm_lora-Mistral-7B-Instruct-v0.1
   description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
   tags:
     - llm
     - lora
-    - mistral
+    - mistralai/Mistral-7B-Instruct-v0.1
 
 settings:
   docker:
@@ -16,5 +16,6 @@ steps:
     parameters:
       config:
         model_repo: mistralai/Mistral-7B-Instruct-v0.1
-        adapter_repo: ...
+        from_safetensors: False
+        adapter_repo: 
         precision: bf16-true

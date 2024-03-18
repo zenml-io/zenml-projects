@@ -13,13 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 import os
 from pathlib import Path
 from typing import Optional
 
-from zenml.client import Client
-
 from scripts.convert_hf_checkpoint import convert_hf_checkpoint
+
+from zenml.client import Client
 
 
 def get_huggingface_access_token() -> Optional[str]:

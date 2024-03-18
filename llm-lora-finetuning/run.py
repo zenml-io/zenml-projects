@@ -19,6 +19,13 @@ import os
 from typing import Optional
 
 import click
+from pipelines import (
+    llm_lora_evaluation,
+    llm_lora_feature_engineering,
+    llm_lora_finetuning,
+    llm_lora_merging,
+)
+
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,13 +33,15 @@ logger = get_logger(__name__)
 
 @click.command(
     help="""
-ZenML LLM Lora Finetuning project.
+ZenML LLM Finetuning project CLI v0.1.0.
+
+Run the ZenML LLM Finetuning project LLM LoRA finetuning pipelines.
 
 Examples:
 
   \b
-  # Run the feature data preparation pipeline
-    python run.py --data-pipeline
+  # Run the feature feature engineering pipeline
+    python run.py --feature-pipeline
   
   \b
   # Run the finetuning pipeline
@@ -107,24 +116,16 @@ def main(
     pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     if feature_pipeline:
-        from pipelines import feature_engineering_pipeline
-
-        feature_engineering_pipeline.with_options(**pipeline_args)()
+        llm_lora_feature_engineering.with_options(**pipeline_args)()
 
     if finetuning_pipeline:
-        from pipelines import finetuning_pipeline
-
-        finetuning_pipeline.with_options(**pipeline_args)()
+        llm_lora_finetuning.with_options(**pipeline_args)()
 
     if merging_pipeline:
-        from pipelines import merge_pipeline
-
-        merge_pipeline.with_options(**pipeline_args)()
+        llm_lora_merging.with_options(**pipeline_args)()
 
     if eval_pipeline:
-        from pipelines import eval_pipeline
-
-        eval_pipeline.with_options(**pipeline_args)()
+        llm_lora_evaluation.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

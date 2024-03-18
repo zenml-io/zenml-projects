@@ -16,7 +16,6 @@ sys.path.append(str(wd))
 
 from lit_gpt.tokenizer import Tokenizer
 from lit_gpt.utils import CLI
-
 from scripts.prepare_alpaca import download_if_missing
 
 

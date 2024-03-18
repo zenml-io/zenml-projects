@@ -13,23 +13,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 import shutil
 from pathlib import Path
 from typing import Optional
 
 from huggingface_hub import snapshot_download, upload_folder
 from pydantic import BaseModel
-from zenml import log_model_metadata, step
-from zenml.logger import get_logger
-
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
+
 from steps.params import LoraParameters
 from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
+from zenml import log_model_metadata, step
+from zenml.logger import get_logger
 
 logger = get_logger(__file__)
 
@@ -38,6 +40,8 @@ class MergeParameters(BaseModel):
     """Parameters for the merging step."""
 
     base_model_repo: str
+    from_safetensors: bool = False
+
     adapter_repo: str
     output_repo: str
     convert_to_hf_checkpoint: bool = False
@@ -66,6 +70,7 @@ def merge(config: MergeParameters) -> None:
     else:
         download_from_hub(
             repo_id=config.base_model_repo,
+            from_safetensors=config.from_safetensors,
             checkpoint_dir=checkpoint_root_dir,
             access_token=access_token,
         )
@@ -84,11 +89,11 @@ def merge(config: MergeParameters) -> None:
     merged_dir = Path("output/merged")
 
     merge_lora(
-        lora_path=Path(lora_path),
+        lora_path=lora_path,
         checkpoint_dir=base_model_dir,
         out_dir=merged_dir,
         precision=config.precision,
-        **config.lora.dict()
+        **config.lora.dict(),
     )
 
     for path in Path(base_model_dir).glob("*.json"):
