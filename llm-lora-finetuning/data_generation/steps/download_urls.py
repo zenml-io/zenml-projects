@@ -1,17 +1,14 @@
-from typing import List
+from typing import Any, List
 
-from langchain_core.documents import Document
 from langchain_community.document_loaders import UnstructuredURLLoader
-from zenml import step
-
-
-from typing import List
+# from langchain_core.documents import Document
 from typing_extensions import Annotated
-from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from zenml import step, log_artifact_metadata
+from zenml import log_artifact_metadata, step
+
+from steps.url_scraping_utils import get_all_pages
 
 
-@step
+@step(enable_cache=True)
 def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
@@ -28,13 +25,12 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-    
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
     docs_urls = get_all_pages(docs_url)
     # website_urls = get_all_pages(website_url)
     # all_urls = docs_urls + website_urls + examples_readme_urls
-    all_urls = [docs_urls]
+    all_urls = docs_urls
     log_artifact_metadata(
         metadata={
             "count": len(all_urls),
@@ -42,8 +38,9 @@ def url_scraper(
     )
     return all_urls
 
-@step
-def web_url_loader(urls: List[str]) -> List[Document]:
+
+@step(enable_cache=True)
+def web_url_loader(urls: List[str]) -> List[Any]:
     """Loads documents from a list of URLs.
 
     Args:

@@ -1,0 +1,9 @@
+-e git+https://github.com/BatsResearch/bonito#egg=bonito
+datasets
+huggingface_hub
+spacy
+langchain
+beautifulsoup4
+requests
+unstructured
+zenml>=0.55.5

@@ -1,10 +1,10 @@
-from steps.download_urls import url_scraper, web_url_loader
-
 from zenml import pipeline
+
+from steps.download_urls import url_scraper, web_url_loader
 
 
 @pipeline
-def zenml_agent_creation_pipeline():
+def data_generation_pipeline():
     """Generate index for ZenML.
 
     Args:
