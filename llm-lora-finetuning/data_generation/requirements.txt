@@ -7,4 +7,4 @@ beautifulsoup4
 requests
 unstructured
 zenml>=0.55.5
-#ipykernel
+ipykernel
