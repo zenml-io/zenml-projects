@@ -144,3 +144,6 @@ zencoder/cloned_public_repos
 *wandb*
 
 .DS_Store
+
+llm-lora-finetuning/data_generation/ckpt
+llm-lora-finetuning/datagen
