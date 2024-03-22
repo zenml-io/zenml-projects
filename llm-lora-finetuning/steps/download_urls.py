@@ -1,7 +1,6 @@
 from typing import Any, List
 
 from langchain_community.document_loaders import UnstructuredURLLoader
-# from langchain_core.documents import Document
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
 
