@@ -1,4 +1,5 @@
-from typing import Any, List
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
 import argilla as rg
 from datasets import Dataset
@@ -9,16 +10,10 @@ from distilabel.tasks import (
     TextGenerationTask,
     UltraFeedbackTask,
 )
+from distilabel.tasks.prompt import Prompt
 from haystack.nodes import PreProcessor
 from zenml import step
-from distilabel.tasks import TextGenerationTask, UltraFeedbackTask
 
-
-from dataclasses import dataclass
-from typing import Dict, List
-
-from distilabel.tasks import TextGenerationTask
-from distilabel.tasks.prompt import Prompt
 INSTRUCTION_DATASET_NAME = "ollama_instructions_zenml_rag_TEST"
 PREFERENCE_DATASET_NAME = "ollama_preferences_zenml_rag_TEST"
 

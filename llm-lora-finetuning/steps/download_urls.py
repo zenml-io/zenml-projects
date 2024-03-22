@@ -2,9 +2,7 @@ from typing import Any, List
 
 from langchain_community.document_loaders import UnstructuredURLLoader
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, step
-
-from steps.url_scraping_utils import get_all_pages
+from zenml import step
 
 
 @step(enable_cache=True)
