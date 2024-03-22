@@ -19,9 +19,9 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from scripts.convert_hf_checkpoint import convert_hf_checkpoint
-
 from zenml.client import Client
+
+from scripts.convert_hf_checkpoint import convert_hf_checkpoint
 
 
 def get_huggingface_access_token() -> Optional[str]:

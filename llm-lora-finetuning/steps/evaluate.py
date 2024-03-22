@@ -21,20 +21,20 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 import torch
-from evaluate.lm_eval_harness import run_eval_harness
 from huggingface_hub import snapshot_download
 from pydantic import BaseModel
+from typing_extensions import Annotated
+from zenml import step
+from zenml.logger import get_logger
+
+from evaluate.lm_eval_harness import run_eval_harness
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
-from typing_extensions import Annotated
-
 from steps.params import LoraParameters
 from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
-from zenml import step
-from zenml.logger import get_logger
 
 logger = get_logger(__file__)
 

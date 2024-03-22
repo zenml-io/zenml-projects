@@ -21,17 +21,17 @@ from typing import Optional
 
 from huggingface_hub import snapshot_download, upload_folder
 from pydantic import BaseModel
+from zenml import log_model_metadata, step
+from zenml.logger import get_logger
+
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
-
 from steps.params import LoraParameters
 from steps.utils import (
     convert_to_lit_checkpoint_if_necessary,
     get_huggingface_access_token,
 )
-from zenml import log_model_metadata, step
-from zenml.logger import get_logger
 
 logger = get_logger(__file__)
 

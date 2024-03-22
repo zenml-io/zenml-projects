@@ -17,10 +17,10 @@
 
 from typing import Optional
 
-from steps import finetune
-
 from zenml import get_pipeline_context, pipeline
 from zenml.config import DockerSettings
+
+from steps import finetune
 
 
 @pipeline(
