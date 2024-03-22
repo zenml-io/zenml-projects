@@ -17,11 +17,11 @@
 from zenml import pipeline
 from zenml.config import DockerSettings
 
-from steps.data_generation import (
+from steps import (
     generate_instruction_data,
     generate_preference_data,
 )
-from steps.download_urls import url_scraper, web_url_loader
+from steps import url_scraper, web_url_loader
 
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
@@ -29,5 +29,6 @@ def data_generation_pipeline() -> None:
     """Pipeline to generate instruction data."""
     urls = url_scraper()
     documents = web_url_loader(urls)
+
     instruction_data = generate_instruction_data(documents)
     preference_data = generate_preference_data(instruction_data)
