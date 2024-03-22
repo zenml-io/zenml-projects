@@ -13,11 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pipelines.data_generation import (
-    instruction_data_generation_pipeline,
-    preference_data_generation_pipeline,
-)
-from pipelines.evaluate import eval_pipeline
-from pipelines.feature_engineering import feature_engineering_pipeline
-from pipelines.finetuning import finetuning_pipeline
-from pipelines.merge import merge_pipeline
+
+from steps import evaluate
+from zenml import pipeline
+from zenml.config import DockerSettings
+
+
+@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
+def instruction_data_generation_pipeline() -> None:
+    """Pipeline to generate instruction data."""
+    evaluate()
+
+
+@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
+def preference_data_generation_pipeline() -> None:
+    """Pipeline to generate preference data."""
+    evaluate()
