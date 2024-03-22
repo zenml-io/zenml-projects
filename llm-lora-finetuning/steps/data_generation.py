@@ -11,9 +11,55 @@ from distilabel.tasks import (
 )
 from haystack.nodes import PreProcessor
 from zenml import step
+from distilabel.tasks import TextGenerationTask, UltraFeedbackTask
 
+
+from dataclasses import dataclass
+from typing import Dict, List
+
+from distilabel.tasks import TextGenerationTask
+from distilabel.tasks.prompt import Prompt
 INSTRUCTION_DATASET_NAME = "ollama_instructions_zenml_rag_TEST"
 PREFERENCE_DATASET_NAME = "ollama_preferences_zenml_rag_TEST"
+
+
+
+zenml_instruct_prompt = """Please use the following context and a question to
+                        generate a high-quality technical support response. Present your output in two distinct sections:
+[Question] and [Answer].
+Here is some context for your response:
+
+{context}
+
+And the question being asked is:
+
+{instructions}
+
+Guidelines for each section:
+1. [Question]: This should restate the question that was passed in as an input
+to this prompt.
+2. [Answer]: Offer a comprehensive, **correct** answer that accurately
+addresses the [Question] provided, using the context as critical information to
+guide your response.
+"""
+
+
+@dataclass
+class ZenMLInstruct(TextGenerationTask):
+    system_prompt: str = "You are exceptionally skilled at offering support to ZenML users."
+
+    def generate_prompt(self, input: str, instructions: str) -> Prompt:
+        return Prompt(
+            system_prompt=self.system_prompt,
+            formatted_prompt=zenml_instruct_prompt.format(context=input, instructions=instructions)
+          )
+
+    def parse_output(self, output: str) -> List[Dict[str, str]]:
+        question, answer = output.split("[Answer]")
+        return {
+            "question": question.replace("[Question]", "").strip(),
+            "answer": answer.strip()
+        }
 
 
 @step
@@ -77,7 +123,7 @@ def generate_preference_data(
         "instruction-following",
         generator=OllamaLLM(
             model="mixtral",
-            task=TextGenerationTask(),
+            task=ZenMLInstruct(),
             max_new_tokens=256,
             num_threads=2,
             temperature=0.3,
