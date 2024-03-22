@@ -114,10 +114,9 @@ def main(
     pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     if data_generation_pipeline:
-        from pipelines.data_generation_pipeline import instruction_data_generation_pipeline, preference_data_generation_pipeline
+        from pipelines.data_generation_pipeline import data_generation_pipeline
 
-        instruction_data_generation_pipeline.with_options(**pipeline_args)()
-        preference_data_generation_pipeline.with_options(**pipeline_args)()
+        data_generation_pipeline.with_options(**pipeline_args)()
 
     if feature_pipeline:
         from pipelines import feature_engineering_pipeline
