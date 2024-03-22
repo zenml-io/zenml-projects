@@ -20,8 +20,9 @@ from zenml.config import DockerSettings
 from steps import (
     generate_instruction_data,
     generate_preference_data,
+    url_scraper,
+    web_url_loader,
 )
-from steps import url_scraper, web_url_loader
 
 
 @pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
