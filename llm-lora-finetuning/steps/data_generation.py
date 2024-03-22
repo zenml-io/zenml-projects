@@ -40,7 +40,9 @@ guide your response.
 
 @dataclass
 class ZenMLInstruct(TextGenerationTask):
-    system_prompt: str = "You are exceptionally skilled at offering support to ZenML users."
+    system_prompt: str = (
+        "You are exceptionally skilled at offering support to ZenML users."
+    )
 
     @property
     def input_args_names(self) -> List[str]:
@@ -48,21 +50,20 @@ class ZenMLInstruct(TextGenerationTask):
 
     def generate_prompt(self, input: str) -> Prompt:
         context, question = input.split("--------qqq--------")
-        prompt= Prompt(
+        prompt = Prompt(
             system_prompt=self.system_prompt,
-            formatted_prompt=zenml_instruct_prompt.format(context=context, instructions=question)
-          )
+            formatted_prompt=zenml_instruct_prompt.format(
+                context=context, instructions=question
+            ),
+        )
         return prompt
-    
+
     def parse_output(self, output: str) -> List[Dict[str, str]]:
         question, answer = output.split("[Answer]")
         return {
             "input": question.replace("[Question]", "").strip(),
-            "generations": answer.strip()
+            "generations": answer.strip(),
         }
-
-    
-    
 
 
 @step(enable_cache=True)
@@ -110,10 +111,6 @@ def generate_instruction_data(documents: List[Any]) -> str:
     return INSTRUCTION_DATASET_NAME
 
 
-
-    
-
-
 @step
 def generate_preference_data(
     instruction_dataset_name: str = None,
@@ -155,16 +152,18 @@ def generate_preference_data(
 
     instructions_dataset = instructions_dataset.format_as("datasets")
 
-
     instructions_dataset = instructions_dataset.rename_columns(
         {"input": "context", "instructions": "input"}
     )
-    
+
     def _add_context(record):
-        record["input"] = f"{record['context']}\n--------qqq--------{record['input']}\n"
+        record["input"] = (
+            f"{record['context']}\n--------qqq--------{record['input']}\n"
+        )
         return record
+
     instructions_dataset = instructions_dataset.map(_add_context)
-    
+
     preference_dataset = preference_pipeline.generate(
         instructions_dataset,  # type: ignore
         num_generations=2,

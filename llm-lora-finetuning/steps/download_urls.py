@@ -34,7 +34,7 @@ def url_scraper(
     #     },
     # )
     # return all_urls
-    #TODO revert this once testing is finished
+    # TODO revert this once testing is finished
     return ["https://docs.zenml.io/", "https://zenml.io/"]
 
 
