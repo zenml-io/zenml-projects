@@ -54,6 +54,12 @@ Examples:
     help="Path to the YAML config file.",
 )
 @click.option(
+    "--data-generation-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that generates the data.",
+)
+@click.option(
     "--feature-pipeline",
     is_flag=True,
     default=False,
@@ -85,6 +91,7 @@ Examples:
 )
 def main(
     config: Optional[str] = None,
+    data_generation_pipeline: bool = False,
     feature_pipeline: bool = False,
     finetuning_pipeline: bool = False,
     merging_pipeline: bool = False,
@@ -105,6 +112,11 @@ def main(
         raise RuntimeError("Config file is required to run a pipeline.")
 
     pipeline_args["config_path"] = os.path.join(config_folder, config)
+
+    if data_generation_pipeline:
+        from pipelines import data_generation_pipeline
+
+        data_generation_pipeline.with_options(**pipeline_args)()
 
     if feature_pipeline:
         from pipelines import feature_engineering_pipeline
