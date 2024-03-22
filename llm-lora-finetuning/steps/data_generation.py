@@ -12,8 +12,8 @@ from distilabel.tasks import (
 from haystack.nodes import PreProcessor
 from zenml import step
 
-INSTRUCTION_DATASET_NAME = "ollama_instructions_zenml_rag"
-PREFERENCE_DATASET_NAME = "ollama_preferences_zenml_rag"
+INSTRUCTION_DATASET_NAME = "ollama_instructions_zenml_rag_TEST"
+PREFERENCE_DATASET_NAME = "ollama_preferences_zenml_rag_TEST"
 
 
 @step
@@ -94,6 +94,8 @@ def generate_preference_data(
     )
     instructions_dataset = remote_dataset.pull()
     instructions_dataset = instructions_dataset.format_as("datasets")
+
+    breakpoint()
 
     instructions_dataset = instructions_dataset.rename_columns(
         {"input": "context", "instructions": "input"}
