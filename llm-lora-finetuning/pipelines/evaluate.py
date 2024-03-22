@@ -13,13 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-from steps import evaluate
 from zenml import pipeline
 from zenml.config import DockerSettings
 
+from steps import evaluate
 
-@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def eval_pipeline() -> None:
+
+@pipeline(
+    settings={
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
+    }
+)
+def llm_lora_evaluation() -> None:
     """Pipeline to evaluate a LoRA fine-tuned LLM."""
     evaluate()

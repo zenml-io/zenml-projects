@@ -13,16 +13,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 from typing import Optional
 
-from steps import finetune
 from zenml import get_pipeline_context, pipeline
 from zenml.config import DockerSettings
 
+from steps import finetune
 
-@pipeline(settings={"docker": DockerSettings(requirements="requirements.txt")})
-def finetuning_pipeline(
+
+@pipeline(
+    settings={
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
+    }
+)
+def llm_lora_finetuning(
     dataset_artifact_name: Optional[str] = None,
     dataset_artifact_version: Optional[str] = None,
 ) -> None:

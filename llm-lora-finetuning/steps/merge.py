@@ -13,6 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
 import shutil
 from pathlib import Path
 from typing import Optional
@@ -38,6 +40,8 @@ class MergeParameters(BaseModel):
     """Parameters for the merging step."""
 
     base_model_repo: str
+    from_safetensors: bool = False
+
     adapter_repo: str
     output_repo: str
     convert_to_hf_checkpoint: bool = False
@@ -66,6 +70,7 @@ def merge(config: MergeParameters) -> None:
     else:
         download_from_hub(
             repo_id=config.base_model_repo,
+            from_safetensors=config.from_safetensors,
             checkpoint_dir=checkpoint_root_dir,
             access_token=access_token,
         )
@@ -84,11 +89,11 @@ def merge(config: MergeParameters) -> None:
     merged_dir = Path("output/merged")
 
     merge_lora(
-        lora_path=Path(lora_path),
+        lora_path=lora_path,
         checkpoint_dir=base_model_dir,
         out_dir=merged_dir,
         precision=config.precision,
-        **config.lora.dict()
+        **config.lora.dict(),
     )
 
     for path in Path(base_model_dir).glob("*.json"):

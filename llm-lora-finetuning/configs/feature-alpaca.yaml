@@ -1,14 +1,15 @@
 model:
-  name: mistral-7b-lora
+  name: llm_lora-Mistral-7B-Instruct-v0.1
   description: "Fine-tune `mistralai/Mistral-7B-Instruct-v0.1`."
   tags:
     - llm
     - lora
-    - mistral
+    - mistralai/Mistral-7B-Instruct-v0.1
     - alpaca
 
 steps:
   feature_engineering:
+    enable_step_logs: False
     parameters:
       config:
         model_repo: mistralai/Mistral-7B-Instruct-v0.1
