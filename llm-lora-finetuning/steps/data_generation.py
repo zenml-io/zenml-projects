@@ -66,6 +66,12 @@ def generate_preference_data(
     instruction_dataset_name: str = None,
 ) -> None:
     """Step to generate preference data."""
+    # Argilla credentials
+    api_url = "https://strickvl-argilla.hf.space"
+    api_key = "admin.apikey"
+
+    rg.init(api_url=api_url, api_key=api_key)
+
     preference_pipeline = pipeline(
         "preference",
         "instruction-following",
@@ -93,9 +99,8 @@ def generate_preference_data(
         instruction_dataset_name, workspace="admin"
     )
     instructions_dataset = remote_dataset.pull()
-    instructions_dataset = instructions_dataset.format_as("datasets")
 
-    breakpoint()
+    instructions_dataset = instructions_dataset.format_as("datasets")
 
     instructions_dataset = instructions_dataset.rename_columns(
         {"input": "context", "instructions": "input"}

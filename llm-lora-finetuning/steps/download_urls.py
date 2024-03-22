@@ -24,18 +24,20 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-    # We comment this out to make this pipeline faster
-    # examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(docs_url)
-    # website_urls = get_all_pages(website_url)
-    # all_urls = docs_urls + website_urls + examples_readme_urls
-    all_urls = docs_urls
-    log_artifact_metadata(
-        metadata={
-            "count": len(all_urls),
-        },
-    )
-    return all_urls
+    # # We comment this out to make this pipeline faster
+    # # examples_readme_urls = get_nested_readme_urls(repo_url)
+    # docs_urls = get_all_pages(docs_url)
+    # # website_urls = get_all_pages(website_url)
+    # # all_urls = docs_urls + website_urls + examples_readme_urls
+    # all_urls = docs_urls
+    # log_artifact_metadata(
+    #     metadata={
+    #         "count": len(all_urls),
+    #     },
+    # )
+    # return all_urls
+    #TODO revert this once testing is finished
+    return ["https://docs.zenml.io/", "https://zenml.io/"]
 
 
 @step(enable_cache=True)
