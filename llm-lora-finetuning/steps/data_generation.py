@@ -18,7 +18,6 @@ INSTRUCTION_DATASET_NAME = "ollama_instructions_zenml_rag_TEST"
 PREFERENCE_DATASET_NAME = "ollama_preferences_zenml_rag_TEST"
 
 
-
 zenml_instruct_prompt = """Please use the following context and a question to
                         generate a high-quality technical support response. Present your output in two distinct sections:
 [Question] and [Answer].
@@ -43,21 +42,30 @@ guide your response.
 class ZenMLInstruct(TextGenerationTask):
     system_prompt: str = "You are exceptionally skilled at offering support to ZenML users."
 
-    def generate_prompt(self, input: str, instructions: str) -> Prompt:
-        return Prompt(
-            system_prompt=self.system_prompt,
-            formatted_prompt=zenml_instruct_prompt.format(context=input, instructions=instructions)
-          )
+    @property
+    def input_args_names(self) -> List[str]:
+        return ["input"]
 
+    def generate_prompt(self, input: str) -> Prompt:
+        context, question = input.split("--------qqq--------")
+        prompt= Prompt(
+            system_prompt=self.system_prompt,
+            formatted_prompt=zenml_instruct_prompt.format(context=context, instructions=question)
+          )
+        return prompt
+    
     def parse_output(self, output: str) -> List[Dict[str, str]]:
         question, answer = output.split("[Answer]")
         return {
-            "question": question.replace("[Question]", "").strip(),
-            "answer": answer.strip()
+            "input": question.replace("[Question]", "").strip(),
+            "generations": answer.strip()
         }
 
+    
+    
 
-@step
+
+@step(enable_cache=True)
 def generate_instruction_data(documents: List[Any]) -> str:
     """Step to generate instruction data."""
     preprocessor = PreProcessor(
@@ -102,6 +110,10 @@ def generate_instruction_data(documents: List[Any]) -> str:
     return INSTRUCTION_DATASET_NAME
 
 
+
+    
+
+
 @step
 def generate_preference_data(
     instruction_dataset_name: str = None,
@@ -143,10 +155,16 @@ def generate_preference_data(
 
     instructions_dataset = instructions_dataset.format_as("datasets")
 
+
     instructions_dataset = instructions_dataset.rename_columns(
         {"input": "context", "instructions": "input"}
     )
-
+    
+    def _add_context(record):
+        record["input"] = f"{record['context']}\n--------qqq--------{record['input']}\n"
+        return record
+    instructions_dataset = instructions_dataset.map(_add_context)
+    
     preference_dataset = preference_pipeline.generate(
         instructions_dataset,  # type: ignore
         num_generations=2,
