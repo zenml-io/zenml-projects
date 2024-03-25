@@ -158,7 +158,7 @@ def generate_preference_data(
 
     def _add_context(record):
         record["input"] = (
-            f"{record['context']}\n--------qqq--------{record['input']}\n"
+            f"Given the following context taken from ZenML's documentation:\n\nCONTEXT:\n\n{record['context']}\n\nPlease answer the following question:\n\nQUESTION:\n\n{record['input']}\n"
         )
         return record
 
