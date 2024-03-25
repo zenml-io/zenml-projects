@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, List
 
 from langchain_community.document_loaders import UnstructuredURLLoader
@@ -7,28 +8,25 @@ from zenml import log_artifact_metadata, step
 from steps.url_scraping_utils import get_all_pages
 
 
-@step(enable_cache=True)
+@step(enable_cache=False)
 def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
     website_url: str = "https://zenml.io",
+    max_depth: int = 3,
 ) -> Annotated[List[str], "urls"]:
     """Generates a list of relevant URLs to scrape.
 
     Args:
         docs_url: URL to the documentation.
         repo_url: URL to the repository.
-        release_notes_url: URL to the release notes.
         website_url: URL to the website.
+        max_depth: Maximum depth for crawling.
 
     Returns:
         List of URLs to scrape.
     """
-    # # We comment this out to make this pipeline faster
-    # # examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(docs_url)
-    # # website_urls = get_all_pages(website_url)
-    # # all_urls = docs_urls + website_urls + examples_readme_urls
+    docs_urls = asyncio.run(get_all_pages(docs_url, max_depth))
     all_urls = docs_urls
     log_artifact_metadata(
         metadata={
@@ -38,7 +36,7 @@ def url_scraper(
     return all_urls
 
 
-@step(enable_cache=True)
+@step(enable_cache=False)
 def web_url_loader(urls: List[str]) -> List[Any]:
     """Loads documents from a list of URLs.
 

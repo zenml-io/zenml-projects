@@ -1,96 +1,82 @@
+import asyncio
 from logging import getLogger
 from typing import List, Set, Tuple
 from urllib.parse import urljoin, urlparse
 
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 
 logger = getLogger(__name__)
 
+# Rate limiting configuration
+DELAY_BETWEEN_REQUESTS = 1  # Delay in seconds between each request
 
-def is_valid_url(url: str, base: str) -> bool:
-    """
-    Check if the given URL is valid and has the same base as the provided base.
+# Caching configuration
+visited_links = set()
 
-    Args:
-        url (str): The URL to check.
-        base (str): The base URL to compare against.
 
-    Returns:
-        bool: True if the URL is valid and has the same base, False otherwise.
-    """
+async def is_valid_url(url: str, base: str) -> bool:
     parsed = urlparse(url)
     return bool(parsed.netloc) and parsed.netloc == base
 
 
-def get_all_links(url: str, base: str) -> List[str]:
-    """
-    Retrieve all valid links from a given URL with the same base.
+async def get_all_links(session: aiohttp.ClientSession, url: str, base: str, max_retries: int = 3) -> List[str]:
+    for attempt in range(max_retries):
+        try:
+            async with session.get(url) as response:
+                soup = BeautifulSoup(await response.text(), "html.parser")
+                links = []
 
-    Args:
-        url (str): The URL to retrieve links from.
-        base (str): The base URL to compare against.
+                for link in soup.find_all("a", href=True):
+                    href = link["href"]
+                    full_url = urljoin(url, href)
+                    parsed_url = urlparse(full_url)
+                    cleaned_url = parsed_url._replace(fragment="").geturl()
+                    if await is_valid_url(cleaned_url, base) and cleaned_url not in visited_links:
+                        links.append(cleaned_url)
+                        visited_links.add(cleaned_url)
+                        print(f"Found link: {cleaned_url}")
 
-    Returns:
-        List[str]: A list of valid links with the same base.
-    """
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    links = []
-
-    for link in soup.find_all("a", href=True):
-        href = link["href"]
-        full_url = urljoin(url, href)
-        parsed_url = urlparse(full_url)
-        cleaned_url = parsed_url._replace(fragment="").geturl()
-        if is_valid_url(cleaned_url, base):
-            links.append(cleaned_url)
-
-    return links
+                print(f"Total links found for {url}: {len(links)}")
+                return links
+        except asyncio.TimeoutError:
+            if attempt < max_retries - 1:
+                logger.warning(f"Timeout occurred for URL: {url}. Retrying (attempt {attempt + 1})...")
+            else:
+                logger.error(f"Max retries reached for URL: {url}. Skipping...")
+                return []
+        finally:
+            await asyncio.sleep(DELAY_BETWEEN_REQUESTS)  # Delay between requests
 
 
-def crawl(url: str, base: str, visited: Set[str] = None) -> Set[str]:
-    """
-    Recursively crawl a URL and its links, retrieving all valid links with the same base.
+async def crawl(session: aiohttp.ClientSession, url: str, base: str, max_depth: int, current_depth: int = 0) -> None:
+    if current_depth >= max_depth or url in visited_links:
+        return
 
-    Args:
-        url (str): The URL to crawl.
-        base (str): The base URL to compare against.
-        visited (Set[str]): A set of URLs that have been visited. Defaults to None.
+    visited_links.add(url)
+    print(f"Crawling URL: {url}")
+    links = await get_all_links(session, url, base)
 
-    Returns:
-        Set[str]: A set of all valid links with the same base.
-    """
-    if visited is None:
-        visited = set()
-
-    visited.add(url)
-    links = get_all_links(url, base)
-
+    tasks = []
     for link in links:
-        if link not in visited:
-            visited.update(crawl(link, base, visited))
+        if link not in visited_links:
+            print(f"Queuing URL: {link}")
+            task = asyncio.create_task(crawl(session, link, base, max_depth, current_depth + 1))
+            tasks.append(task)
 
-    return visited
+    await asyncio.gather(*tasks)
 
 
-def get_all_pages(url: str) -> List[str]:
-    """
-    Retrieve all pages with the same base as the given URL.
-
-    Args:
-        url (str): The URL to retrieve pages from.
-
-    Returns:
-        List[str]: A list of all pages with the same base.
-    """
+async def get_all_pages(url: str, max_depth: int = 3, timeout: int = 10) -> List[str]:
     logger.debug(f"Scraping all pages from {url}...")
     base_url = urlparse(url).netloc
-    pages = crawl(url, base_url)
-    logger.debug(f"Found {len(pages)} pages.")
-    logger.debug("Done scraping pages.")
-    return list(pages)
 
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+        await crawl(session, url, base_url, max_depth)
+
+    logger.debug(f"Found {len(visited_links)} pages.")
+    logger.debug("Done scraping pages.")
+    return list(visited_links)
 
 def get_readme_urls(repo_url: str) -> Tuple[List[str], List[str]]:
     """
