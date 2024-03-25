@@ -49,7 +49,7 @@ class ZenMLInstruct(TextGenerationTask):
         return ["input"]
 
     def generate_prompt(self, input: str) -> Prompt:
-        context, question = input.split("--------qqq--------")
+        context, question = input.split("----------------")
         prompt = Prompt(
             system_prompt=self.system_prompt,
             formatted_prompt=zenml_instruct_prompt.format(
@@ -66,7 +66,7 @@ class ZenMLInstruct(TextGenerationTask):
         }
 
 
-@step(enable_cache=True)
+@step
 def generate_instruction_data(documents: List[Any]) -> str:
     """Step to generate instruction data."""
     preprocessor = PreProcessor(
@@ -158,7 +158,7 @@ def generate_preference_data(
 
     def _add_context(record):
         record["input"] = (
-            f"Given the following context taken from ZenML's documentation:\n\nCONTEXT:\n\n{record['context']}\n\nPlease answer the following question:\n\nQUESTION:\n\n{record['input']}\n"
+            f"Given the following context taken from ZenML's documentation:\n\nCONTEXT:\n\n{record['context']}\n\n----------------\n\nPlease answer the following question:\n\nQUESTION:\n\n{record['input']}\n"
         )
         return record
 
