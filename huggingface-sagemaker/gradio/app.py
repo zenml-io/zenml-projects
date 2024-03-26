@@ -61,7 +61,7 @@ import gradio as gr
     "--pipeline_version",
     default="3",
     help="Which version of the deploy pipeline should be deployed.",
-    type=int
+    type=int,
 )
 def sentiment_analysis(
     tokenizer_name_or_path: Optional[str],
@@ -71,7 +71,7 @@ def sentiment_analysis(
     description: Optional[str],
     interpretation: Optional[str],
     pipeline_version: int,
-    examples: Optional[str]
+    examples: Optional[str],
 ):
     """Launches a Gradio interface for sentiment analysis.
 

@@ -13,9 +13,9 @@
 #  permissions and limitations under the License.
 
 import os
-from pipelines.agent_creator import zenml_agent_creation_pipeline
 
 import click
+from pipelines.agent_creator import zenml_agent_creation_pipeline
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -51,11 +51,10 @@ def main(
     )
     pipeline_args = {}
     if config:
-        pipeline_args["config_path"] = os.path.join(
-            config_folder, config
-        )
+        pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     zenml_agent_creation_pipeline.with_options(**pipeline_args)()
-    
+
+
 if __name__ == "__main__":
     main()

@@ -23,9 +23,7 @@ def get_label_encoder(
         label_encoder: The LabelEncoder used during training
     """
     training_pipeline = get_pipeline(pipeline_name=pipeline_name)
-    return (
-        training_pipeline.runs[0].get_step(name=step_name).outputs[name].read()
-    )
+    return training_pipeline.runs[0].get_step(name=step_name).outputs[name].read()
 
 
 def apply_encoder(
@@ -47,9 +45,7 @@ def apply_encoder(
 
     """
 
-    dataframe["SEASON_ID"] = label_encoder.fit_transform(
-        dataframe["SEASON_ID"]
-    )
+    dataframe["SEASON_ID"] = label_encoder.fit_transform(dataframe["SEASON_ID"])
 
     one_hot_team = one_hot_encoder.transform(
         dataframe["TEAM_ABBREVIATION"].values.reshape(-1, 1)

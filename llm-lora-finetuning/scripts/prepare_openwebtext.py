@@ -20,9 +20,7 @@ from lit_gpt.utils import CLI
 
 def prepare(
     destination_path: Path = Path("data/openwebtext"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     seed: int = 42,
     test_size: Union[float, int, None] = 0.0005,
 ) -> None:
@@ -48,9 +46,7 @@ def prepare(
     split_dataset = dataset["train"].train_test_split(
         test_size=test_size, seed=seed, shuffle=True
     )
-    split_dataset["val"] = split_dataset.pop(
-        "test"
-    )  # rename the test split to val
+    split_dataset["val"] = split_dataset.pop("test")  # rename the test split to val
 
     def process(example):
         ids = tokenizer.encode(example["text"]).tolist()
@@ -73,18 +69,12 @@ def prepare(
     for split, dset in tokenized.items():
         arr_len = np.sum(dset["len"], dtype=np.uint64)
         filename = destination_path / f"{split}.bin"
-        dtype = (
-            np.uint16
-        )  # (can do since enc.max_token_value == 50256 is < 2**16)
-        arr = np.memmap(
-            str(filename), dtype=dtype, mode="w+", shape=(arr_len,)
-        )
+        dtype = np.uint16  # (can do since enc.max_token_value == 50256 is < 2**16)
+        arr = np.memmap(str(filename), dtype=dtype, mode="w+", shape=(arr_len,))
         total_batches = 1024
 
         idx = 0
-        for batch_idx in tqdm(
-            range(total_batches), desc=f"writing {filename}"
-        ):
+        for batch_idx in tqdm(range(total_batches), desc=f"writing {filename}"):
             # Batch together samples for faster write
             batch = dset.shard(
                 num_shards=total_batches, index=batch_idx, contiguous=True

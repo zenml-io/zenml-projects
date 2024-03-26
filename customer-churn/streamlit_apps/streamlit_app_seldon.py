@@ -87,11 +87,7 @@ def main():
         ]
         data = np.array(pred)
         pred = service.predict(data)
-        st.success(
-            "Given the customer's historical data, model says:- {}".format(
-                pred
-            )
-        )
+        st.success("Given the customer's historical data, model says:- {}".format(pred))
 
 
 if __name__ == "__main__":

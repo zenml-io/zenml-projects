@@ -15,10 +15,7 @@
 # limitations under the License.
 #
 
-from steps import (
-    deploy_model_to_hf_hub
-)
-
+from steps import deploy_model_to_hf_hub
 from zenml import pipeline
 from zenml.logger import get_logger
 

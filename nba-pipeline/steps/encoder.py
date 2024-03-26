@@ -73,9 +73,7 @@ def data_encoder(
     le_seasons = preprocessing.LabelEncoder()
     le_seasons.fit(pandas_df["SEASON_ID"])
 
-    ohe_teams = preprocessing.OneHotEncoder(
-        dtype=np.int32, handle_unknown="ignore"
-    )
+    ohe_teams = preprocessing.OneHotEncoder(dtype=np.int32, handle_unknown="ignore")
     ohe_teams.fit(pandas_df["TEAM_ABBREVIATION"].values.reshape(-1, 1))
 
     new_df = apply_encoder(

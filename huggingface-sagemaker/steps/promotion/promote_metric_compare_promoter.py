@@ -67,21 +67,15 @@ def promote_metric_compare_promoter(
             f"Current model metric={current_metrics[metric_to_compare]:.6f}"
         )
         if latest_metrics[metric_to_compare] < current_metrics[metric_to_compare]:
-            logger.info(
-                "Current model outperformed latest model - promoting current"
-            )
+            logger.info("Current model outperformed latest model - promoting current")
 
         else:
-            logger.info(
-                "Latest model outperformed current model - keeping latest"
-            )
+            logger.info("Latest model outperformed current model - keeping latest")
             should_promote = False
 
     if should_promote:
         zenml_model = get_step_context().model
         zenml_model.set_stage(pipeline_extra["target_env"], force=True)
 
-    logger.info(
-        f"Promoted current model to {pipeline_extra['target_env']} environment"
-    )
+    logger.info(f"Promoted current model to {pipeline_extra['target_env']} environment")
     ### YOUR CODE ENDS HERE ###

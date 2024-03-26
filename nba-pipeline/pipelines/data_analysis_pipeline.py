@@ -8,9 +8,7 @@ docker_settings = DockerSettings(required_integrations=[EVIDENTLY, SKLEARN])
 
 
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
-def data_analysis_pipeline(
-    importer, drift_splitter, drift_detector, drift_analyzer
-):
+def data_analysis_pipeline(importer, drift_splitter, drift_detector, drift_analyzer):
     """Defines a one-time pipeline to detect drift before and after Curry shot.
 
     Args:

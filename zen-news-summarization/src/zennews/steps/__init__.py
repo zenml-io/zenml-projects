@@ -21,9 +21,7 @@ from zennews.steps.report.report import post_summaries
 from zennews.steps.sources.bbc import BBCParameters, bbc_news_source
 from zennews.steps.summarize.bart_large_cnn_samsum import bart_large_cnn_samsum
 
-SOURCE_STEP_MAPPING = {
-    "bbc": {"step": bbc_news_source, "parameters": BBCParameters}
-}
+SOURCE_STEP_MAPPING = {"bbc": {"step": bbc_news_source, "parameters": BBCParameters}}
 
 
 __all__ = [

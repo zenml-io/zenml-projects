@@ -23,7 +23,6 @@ import torch.optim as optim
 from PIL import Image
 from steps.get_or_create_dataset import LABELS
 from torchvision import models, transforms
-
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.integrations.label_studio.label_studio_utils import (
@@ -87,9 +86,7 @@ def train_model(
                 running_corrects += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(
-                dataloaders[phase].dataset
-            )
+            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
             print(f"{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}")
 
     return model

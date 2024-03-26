@@ -211,8 +211,7 @@ def copy_weights_phi(
     dtype: Optional[torch.dtype] = None,
 ) -> None:
     if any(
-        layer_name.startswith(("layers.", "transformer."))
-        for layer_name in hf_weights
+        layer_name.startswith(("layers.", "transformer.")) for layer_name in hf_weights
     ):
         raise ValueError(
             "You are using an outdated Phi checkpoint. Please reload it as described in 'tutorials/download_phi.md'"
@@ -307,9 +306,7 @@ def load_param(
 @torch.inference_mode()
 def convert_hf_checkpoint(
     *,
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     model_name: Optional[str] = None,
     dtype: Optional[str] = None,
 ) -> None:
@@ -342,22 +339,16 @@ def convert_hf_checkpoint(
 
     # Load the json file containing weight mapping
     pytorch_bin_map_json_path = checkpoint_dir / "pytorch_model.bin.index.json"
-    if (
-        pytorch_bin_map_json_path.is_file()
-    ):  # not all checkpoints have this file
+    if pytorch_bin_map_json_path.is_file():  # not all checkpoints have this file
         with open(pytorch_bin_map_json_path) as json_map:
             bin_index = json.load(json_map)
-        bin_files = {
-            checkpoint_dir / bin for bin in bin_index["weight_map"].values()
-        }
+        bin_files = {checkpoint_dir / bin for bin in bin_index["weight_map"].values()}
     else:
         bin_files = set(checkpoint_dir.glob("*.bin"))
         # some checkpoints serialize the training arguments
         bin_files = {f for f in bin_files if f.name != "training_args.bin"}
     if not bin_files:
-        raise ValueError(
-            f"Expected {str(checkpoint_dir)!r} to contain .bin files"
-        )
+        raise ValueError(f"Expected {str(checkpoint_dir)!r} to contain .bin files")
 
     with incremental_save(checkpoint_dir / "lit_model.pth") as saver:
         # for checkpoints that split the QKV across several files, we need to keep all the bin files

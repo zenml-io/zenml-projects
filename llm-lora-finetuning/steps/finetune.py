@@ -20,16 +20,16 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import torch
+from finetune.lora import setup
 from huggingface_hub import upload_folder
+from lit_gpt.args import EvalArgs, IOArgs, TrainArgs
+from materializers.directory_materializer import DirectoryMaterializer
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import get_step_context, log_model_metadata, step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 
-from finetune.lora import setup
-from lit_gpt.args import EvalArgs, IOArgs, TrainArgs
-from materializers.directory_materializer import DirectoryMaterializer
 from scripts.convert_lit_checkpoint import convert_lit_checkpoint
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
@@ -126,9 +126,7 @@ def finetune(
     checkpoint_dir = checkpoint_root_dir / config.base_model_repo
 
     if checkpoint_dir.exists():
-        logger.info(
-            "Checkpoint directory already exists, skipping download..."
-        )
+        logger.info("Checkpoint directory already exists, skipping download...")
     else:
         download_from_hub(
             repo_id=config.base_model_repo,
@@ -190,9 +188,7 @@ def finetune(
     if config.merged_output_repo:
         lora_path = adapter_output_dir / "lit_model_lora_finetuned.pth"
 
-        merge_output_dir = (
-            Path("output/lora_merged") / dataset_name / model_name
-        )
+        merge_output_dir = Path("output/lora_merged") / dataset_name / model_name
         merge_lora(
             lora_path=lora_path,
             checkpoint_dir=checkpoint_dir,
@@ -206,9 +202,7 @@ def finetune(
             shutil.copy(src=path, dst=destination)
 
         if config.convert_to_hf_checkpoint:
-            upload_dir = (
-                Path("output/lora_merged_hf") / dataset_name / model_name
-            )
+            upload_dir = Path("output/lora_merged_hf") / dataset_name / model_name
             upload_dir.mkdir(parents=True, exist_ok=True)
             convert_lit_checkpoint(
                 checkpoint_path=config.merged_output_repo / "lit_model.pth",

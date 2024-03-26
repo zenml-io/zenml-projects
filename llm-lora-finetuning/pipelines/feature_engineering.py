@@ -15,17 +15,14 @@
 # limitations under the License.
 #
 
+from steps import feature_engineering
 from zenml import pipeline
 from zenml.config import DockerSettings
-
-from steps import feature_engineering
 
 
 @pipeline(
     settings={
-        "docker": DockerSettings(
-            apt_packages=["git"], requirements="requirements.txt"
-        )
+        "docker": DockerSettings(apt_packages=["git"], requirements="requirements.txt")
     }
 )
 def llm_lora_feature_engineering() -> None:

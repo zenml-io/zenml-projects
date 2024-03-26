@@ -18,20 +18,18 @@
 from typing import Optional
 
 import pandas as pd
+import wandb
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import confusion_matrix
-
 from zenml import (
-    log_artifact_metadata,
-    step,
-    log_model_metadata,
     get_step_context,
+    log_artifact_metadata,
+    log_model_metadata,
+    step,
 )
-from zenml.logger import get_logger
-import wandb
 from zenml.client import Client
 from zenml.exceptions import StepContextError
-
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -9,9 +9,7 @@ logger = get_logger(__name__)
 
 
 @step
-def evaluation(
-    model: ClassifierMixin, test: pd.DataFrame
-) -> Output(accuracy=float):
+def evaluation(model: ClassifierMixin, test: pd.DataFrame) -> Output(accuracy=float):
     """
     Args:
         model: ClassifierMixin

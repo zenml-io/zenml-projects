@@ -30,9 +30,7 @@ def inference_loader() -> Output(images_path=List):
             last_run.get_step("data_loader").outputs["test_images"].read()
         )
     except KeyError:
-        print(
-            f"Skipping {last_run.name} as it does not contain the data_loader"
-        )
+        print(f"Skipping {last_run.name} as it does not contain the data_loader")
     images = image_saver(inference_data)
     return images
 

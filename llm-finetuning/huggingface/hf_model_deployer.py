@@ -1,27 +1,27 @@
 """Implementation of the Huggingface Model Deployer."""
+from typing import ClassVar, Dict, List, Optional, Type, cast
 from uuid import UUID
-from zenml.model_deployers import BaseModelDeployer
-from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerFlavor
-from zenml.logger import get_logger
 
-from typing import List, Optional, cast, ClassVar, Type, Dict
-from zenml.services import BaseService, ServiceConfig
+from huggingface_hub import InferenceEndpoint, list_inference_endpoints
+from zenml.artifacts.utils import log_artifact_metadata, save_artifact
+from zenml.client import Client
+from zenml.logger import get_logger
+from zenml.model_deployers import BaseModelDeployer
+from zenml.model_deployers.base_model_deployer import (
+    DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
+    BaseModelDeployerFlavor,
+)
+from zenml.services import BaseService, ServiceConfig, ServiceRegistry
+
 from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,
     HuggingFaceServiceConfig,
 )
 from huggingface.hf_model_deployer_flavor import (
-    HuggingFaceModelDeployerSettings,
     HuggingFaceModelDeployerConfig,
+    HuggingFaceModelDeployerFlavor,
+    HuggingFaceModelDeployerSettings,
 )
-from zenml.model_deployers.base_model_deployer import (
-    DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
-    BaseModelDeployerFlavor,
-)
-from huggingface_hub import InferenceEndpoint, list_inference_endpoints
-from zenml.client import Client
-from zenml.services import ServiceRegistry
-from zenml.artifacts.utils import save_artifact, log_artifact_metadata
 
 logger = get_logger(__name__)
 
@@ -32,9 +32,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
     """Huggingface endpoint model deployer."""
 
     NAME: ClassVar[str] = "HFEndpoint"
-    FLAVOR: ClassVar[
-        Type[BaseModelDeployerFlavor]
-    ] = HuggingFaceModelDeployerFlavor
+    FLAVOR: ClassVar[Type[BaseModelDeployerFlavor]] = HuggingFaceModelDeployerFlavor
 
     @property
     def config(self) -> HuggingFaceModelDeployerConfig:
@@ -66,9 +64,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             namespace=self.config.namespace,
         )
 
-    def modify_endpoint_name(
-        self, endpoint_name: str, artifact_version: str
-    ) -> str:
+    def modify_endpoint_name(self, endpoint_name: str, artifact_version: str) -> str:
         """Modify endpoint name by adding suffix and prefix.
 
         It adds a prefix "zenml-" if not present and a suffix
@@ -201,9 +197,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
             for existing_service in existing_services:
                 if service is None:
                     # keep the most recently created service
-                    service = cast(
-                        HuggingFaceDeploymentService, existing_service
-                    )
+                    service = cast(HuggingFaceDeploymentService, existing_service)
                 try:
                     # delete the older services and don't wait for them to
                     # be deprovisioned
@@ -314,15 +308,11 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                         HUGGINGFACE_SERVICE_ARTIFACT
                     ].value
 
-                    existing_service = (
-                        ServiceRegistry().load_service_from_dict(
-                            hf_deployment_service_dict
-                        )
+                    existing_service = ServiceRegistry().load_service_from_dict(
+                        hf_deployment_service_dict
                     )
 
-                    if not isinstance(
-                        existing_service, HuggingFaceDeploymentService
-                    ):
+                    if not isinstance(existing_service, HuggingFaceDeploymentService):
                         raise TypeError(
                             f"Expected service type HuggingFaceDeploymentService but got "
                             f"{type(existing_service)} instead"
@@ -331,9 +321,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
                     existing_service.update_status()
                     if self._matches_search_criteria(existing_service, config):
                         if not running or existing_service.is_running:
-                            services.append(
-                                cast(BaseService, existing_service)
-                            )
+                            services.append(cast(BaseService, existing_service))
 
                 except KeyError:
                     pass
@@ -367,8 +355,7 @@ class HuggingFaceModelDeployer(BaseModelDeployer):
         if (
             (
                 not config.pipeline_name
-                or existing_service_config.pipeline_name
-                == config.pipeline_name
+                or existing_service_config.pipeline_name == config.pipeline_name
             )
             and (
                 not config.pipeline_step_name

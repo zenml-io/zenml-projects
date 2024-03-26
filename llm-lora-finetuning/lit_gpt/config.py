@@ -54,9 +54,7 @@ class Config:
     shared_attention_norm: bool = False
     _norm_class: Literal["LayerNorm", "RMSNorm"] = "LayerNorm"
     norm_eps: float = 1e-5
-    _mlp_class: Literal["GptNeoxMLP", "LLaMAMLP", "GemmaMLP", "LLaMAMoE"] = (
-        "GptNeoxMLP"
-    )
+    _mlp_class: Literal["GptNeoxMLP", "LLaMAMLP", "GemmaMLP", "LLaMAMoE"] = "GptNeoxMLP"
     gelu_approximate: str = "none"
     intermediate_size: Optional[int] = None
     rope_condense_ratio: int = 1
@@ -90,9 +88,7 @@ class Config:
         # compute the intermediate size for MLP if not set
         if self.intermediate_size is None:
             if self._mlp_class == "LLaMAMLP":
-                raise ValueError(
-                    "The config needs to set the `intermediate_size`"
-                )
+                raise ValueError("The config needs to set the `intermediate_size`")
             self.intermediate_size = 4 * self.n_embd
 
         self.rope_n_elem = int(self.rotary_percentage * self.head_size)
@@ -103,9 +99,7 @@ class Config:
             # search through all `config['hf_config']['name']`
             try:
                 conf_dict = next(
-                    config
-                    for config in configs
-                    if name == config["hf_config"]["name"]
+                    config for config in configs if name == config["hf_config"]["name"]
                 )
             except StopIteration:
                 raise ValueError(f"{name!r} is not a supported config name")
@@ -123,9 +117,7 @@ class Config:
         with open(path, encoding="utf-8") as fp:
             json_kwargs = json.load(fp)
         if "condense_ratio" in json_kwargs:  # legacy name
-            json_kwargs["rope_condense_ratio"] = json_kwargs.pop(
-                "condense_ratio"
-            )
+            json_kwargs["rope_condense_ratio"] = json_kwargs.pop("condense_ratio")
         if "condense_ratio" in kwargs:  # legacy name
             kwargs["rope_condense_ratio"] = kwargs.pop("condense_ratio")
         if "org" in json_kwargs:  # legacy name
@@ -368,9 +360,7 @@ redpajama_incite = [
     # https://huggingface.co/togethercomputer/RedPajama-INCITE-Base-3B-v1/blob/main/config.json
     dict(
         name="RedPajama-INCITE-{}-3B-v1",
-        hf_config=dict(
-            org="togethercomputer", name="RedPajama-INCITE-{}-3B-v1"
-        ),
+        hf_config=dict(org="togethercomputer", name="RedPajama-INCITE-{}-3B-v1"),
         block_size=2048,
         n_layer=32,
         n_embd=2560,
@@ -391,9 +381,7 @@ redpajama_incite = [
     # this redirects to the checkpoint above. kept for those who had the old weights already downloaded
     dict(
         name="RedPajama-INCITE-{}-7B-v0.1",
-        hf_config=dict(
-            org="togethercomputer", name="RedPajama-INCITE-{}-7B-v0.1"
-        ),
+        hf_config=dict(org="togethercomputer", name="RedPajama-INCITE-{}-7B-v0.1"),
         block_size=2048,
         n_layer=32,
         padding_multiple=256,
@@ -1266,9 +1254,7 @@ stablecode = [
     # https://huggingface.co/stabilityai/stablecode-completion-alpha-3b/blob/main/config.json
     dict(
         name="stablecode-completion-alpha-3b",
-        hf_config=dict(
-            org="stabilityai", name="stablecode-completion-alpha-3b"
-        ),
+        hf_config=dict(org="stabilityai", name="stablecode-completion-alpha-3b"),
         block_size=16384,
         vocab_size=49152,
         n_layer=32,
@@ -1277,9 +1263,7 @@ stablecode = [
     # https://huggingface.co/stabilityai/stablecode-completion-alpha-3b-4k/blob/main/config.json
     dict(
         name="stablecode-completion-alpha-3b-4k",
-        hf_config=dict(
-            org="stabilityai", name="stablecode-completion-alpha-3b-4k"
-        ),
+        hf_config=dict(org="stabilityai", name="stablecode-completion-alpha-3b-4k"),
         vocab_size=49152,
         n_layer=32,
         n_embd=2560,
@@ -1462,9 +1446,7 @@ llama_2_function_calling = [
     # https://huggingface.co/Trelis/Llama-2-7b-chat-hf-function-calling-v2/blob/main/config.json
     dict(
         name="Llama-2-7b-chat-hf-function-calling-v2",
-        hf_config=dict(
-            org="Trelis", name="Llama-2-7b-chat-hf-function-calling-v2"
-        ),
+        hf_config=dict(org="Trelis", name="Llama-2-7b-chat-hf-function-calling-v2"),
         padding_multiple=64,
         n_layer=32,
         rotary_percentage=1.0,

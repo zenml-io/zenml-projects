@@ -39,9 +39,7 @@ def get_orbit_secrets() -> Tuple[str, str]:
     return workspace, token
 
 
-def list_members(
-    days: int = None, tags: str = None, **kwargs
-) -> List[Dict[Any, Any]]:
+def list_members(days: int = None, tags: str = None, **kwargs) -> List[Dict[Any, Any]]:
     """Function to list all members within the number of specified days.
 
     Args:

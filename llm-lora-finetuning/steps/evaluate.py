@@ -21,13 +21,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 import torch
+from evaluate.lm_eval_harness import run_eval_harness
 from huggingface_hub import snapshot_download
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
-from evaluate.lm_eval_harness import run_eval_harness
 from scripts.download import download_from_hub
 from scripts.merge_lora import merge_lora
 from steps.params import LoraParameters
@@ -92,9 +92,7 @@ def evaluate(
     checkpoint_dir = checkpoint_root_dir / config.model_repo
 
     if checkpoint_dir.exists():
-        logger.info(
-            "Checkpoint directory already exists, skipping download..."
-        )
+        logger.info("Checkpoint directory already exists, skipping download...")
     else:
         download_from_hub(
             repo_id=config.model_repo,

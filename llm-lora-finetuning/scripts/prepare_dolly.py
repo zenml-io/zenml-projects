@@ -17,14 +17,13 @@ sys.path.append(str(wd))
 
 from lit_gpt.tokenizer import Tokenizer
 from lit_gpt.utils import CLI
+
 from scripts.prepare_alpaca import download_if_missing
 
 
 def prepare(
     destination_path: Path = Path("data/dolly"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     test_split_fraction: float = 0.1,
     seed: int = 42,
     mask_inputs: bool = False,
@@ -40,9 +39,7 @@ def prepare(
     """
 
     if max_seq_length is None:
-        with open(
-            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
-        ) as file:
+        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 

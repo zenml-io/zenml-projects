@@ -1,22 +1,21 @@
 """Implementation of the Huggingface Deployment service."""
-from zenml.logger import get_logger
-from typing import Generator, Tuple, Optional, Any, List
-from zenml.services import ServiceType, ServiceState, ServiceStatus
-from zenml.services.service import BaseDeploymentService, ServiceConfig
+from typing import Any, Generator, Optional, Tuple
+
 from huggingface_hub import (
     InferenceClient,
-    InferenceEndpointError,
     InferenceEndpoint,
+    InferenceEndpointError,
     InferenceEndpointStatus,
-)
-from huggingface_hub.utils import HfHubHTTPError
-from huggingface_hub import (
     create_inference_endpoint,
     get_inference_endpoint,
 )
-from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
-
+from huggingface_hub.utils import HfHubHTTPError
 from pydantic import Field
+from zenml.logger import get_logger
+from zenml.services import ServiceState, ServiceStatus, ServiceType
+from zenml.services.service import BaseDeploymentService, ServiceConfig
+
+from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
 
 logger = get_logger(__name__)
 
@@ -110,13 +109,9 @@ class HuggingFaceDeploymentService(BaseDeploymentService):
         ).wait(timeout=POLLING_TIMEOUT)
 
         if self.hf_endpoint.url is not None:
-            logger.info(
-                "Huggingface inference endpoint successfully deployed."
-            )
+            logger.info("Huggingface inference endpoint successfully deployed.")
         else:
-            logger.info(
-                "Failed to start huggingface inference endpoint service..."
-            )
+            logger.info("Failed to start huggingface inference endpoint service...")
 
     def check_status(self) -> Tuple[ServiceState, str]:
         """Check the the current operational state of the HuggingFace deployment.

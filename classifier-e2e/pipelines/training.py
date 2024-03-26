@@ -19,13 +19,13 @@ from typing import Optional
 from uuid import UUID
 
 from steps import model_evaluator, model_promoter, model_trainer
+from zenml import pipeline
+from zenml.client import Client
+from zenml.logger import get_logger
 
 from pipelines import (
     feature_engineering,
 )
-from zenml import pipeline
-from zenml.client import Client
-from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -61,16 +61,10 @@ def training(
         dataset_trn, dataset_tst = feature_engineering(random_state=random_state)
     else:
         client = Client()
-        dataset_trn = client.get_artifact_version(
-            name_id_or_prefix=train_dataset_id
-        )
-        dataset_tst = client.get_artifact_version(
-            name_id_or_prefix=test_dataset_id
-        )
+        dataset_trn = client.get_artifact_version(name_id_or_prefix=train_dataset_id)
+        dataset_tst = client.get_artifact_version(name_id_or_prefix=test_dataset_id)
 
-    model = model_trainer(
-        dataset_trn=dataset_trn, target=target, model_type=model_type
-    )
+    model = model_trainer(dataset_trn=dataset_trn, target=target, model_type=model_type)
 
     acc = model_evaluator(
         model=model,

@@ -54,9 +54,7 @@ class Yolov5ModelMaterializer(BaseMaterializer):
         io_utils.copy_dir(self.artifact.uri, temp_dir.name)
 
         # Load YoloV5 modules from the local repository
-        yolov5_module_path = os.path.join(
-            source_utils.get_source_root_path(), "yolov5"
-        )
+        yolov5_module_path = os.path.join(source_utils.get_source_root_path(), "yolov5")
         if os.path.isdir(yolov5_module_path):
             sys.path.insert(0, yolov5_module_path)
         else:
@@ -80,9 +78,7 @@ class Yolov5ModelMaterializer(BaseMaterializer):
 
         # Create a temporary directory to store the model
         temp_dir = tempfile.TemporaryDirectory(prefix="zenml-temp-")
-        temp_ckpt_path = os.path.join(
-            temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME
-        )
+        temp_ckpt_path = os.path.join(temp_dir.name, DEFAULT_YOLOV5_MODEL_FILENAME)
 
         # save the image in a temporary directory
         torch.save(ckpt, temp_ckpt_path)

@@ -18,11 +18,6 @@
 from typing import Optional
 from uuid import UUID
 
-from zenml import get_pipeline_context, pipeline
-from zenml.artifacts.external_artifact import ExternalArtifact
-from zenml.logger import get_logger
-
-from pipelines import sentinment_analysis_feature_engineering_pipeline
 from steps import (
     deploy_to_huggingface,
     model_trainer,
@@ -30,6 +25,11 @@ from steps import (
     notify_on_success,
     register_model,
 )
+from zenml import get_pipeline_context, pipeline
+from zenml.artifacts.external_artifact import ExternalArtifact
+from zenml.logger import get_logger
+
+from pipelines import sentinment_analysis_feature_engineering_pipeline
 
 logger = get_logger(__name__)
 

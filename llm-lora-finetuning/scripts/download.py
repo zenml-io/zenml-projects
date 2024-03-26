@@ -38,9 +38,7 @@ def download_from_hub(
 
     from huggingface_hub import snapshot_download
 
-    if (
-        "meta-llama" in repo_id or "falcon-180" in repo_id
-    ) and not access_token:
+    if ("meta-llama" in repo_id or "falcon-180" in repo_id) and not access_token:
         raise ValueError(
             f"{repo_id} requires authentication, please set the `HF_TOKEN=your_token` environment"
             " variable or pass --access_token=your_token. You can find your token by visiting"

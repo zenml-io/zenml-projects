@@ -33,9 +33,7 @@ from zennews.cli.utils import (
 from zennews.steps import SOURCE_STEP_MAPPING
 
 
-def generate_single_source_command(
-    source_name: str, source_dict: Dict[Any, Any]
-):
+def generate_single_source_command(source_name: str, source_dict: Dict[Any, Any]):
     """Function to generate dynamic Click commands for the ZenNews CLI."""
 
     source_step = source_dict["step"]
@@ -48,9 +46,7 @@ def generate_single_source_command(
     )
     @click.option(
         "--schedule",
-        type=click.Choice(
-            ["debug", "hourly", "daily", "weekly"], case_sensitive=False
-        ),
+        type=click.Choice(["debug", "hourly", "daily", "weekly"], case_sensitive=False),
         default=None,
         help="The amount of minutes to set as the frequency while scheduling.",
     )
@@ -90,9 +86,7 @@ def generate_single_source_command(
             with stack_handler(stack_name):
                 active_stack = client.active_stack_model
                 active_components = active_stack.components
-                orchestrator = active_components[
-                    StackComponentType.ORCHESTRATOR
-                ][0]
+                orchestrator = active_components[StackComponentType.ORCHESTRATOR][0]
 
                 if orchestrator.flavor not in SUPPORTED_ORCHESTRATORS:
                     error("Does not work.")

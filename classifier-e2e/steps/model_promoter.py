@@ -15,10 +15,10 @@
 # limitations under the License.
 #
 
+from sklearn.metrics import accuracy_score
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
-from sklearn.metrics import accuracy_score
 
 logger = get_logger(__name__)
 
@@ -62,9 +62,7 @@ def model_promoter(accuracy: float, stage: str = "production") -> bool:
             if prod_classifier:
                 # and recompute metrics for current prod model using current test set
                 prod_classifier = prod_classifier.load()
-                current_dataset = current_model.get_artifact(
-                    "dataset_tst"
-                ).load()
+                current_dataset = current_model.get_artifact("dataset_tst").load()
                 prod_accuracy = accuracy_score(
                     current_dataset["target"],
                     prod_classifier.predict(

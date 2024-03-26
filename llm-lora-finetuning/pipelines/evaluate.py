@@ -15,17 +15,14 @@
 # limitations under the License.
 #
 
+from steps import evaluate
 from zenml import pipeline
 from zenml.config import DockerSettings
-
-from steps import evaluate
 
 
 @pipeline(
     settings={
-        "docker": DockerSettings(
-            apt_packages=["git"], requirements="requirements.txt"
-        )
+        "docker": DockerSettings(apt_packages=["git"], requirements="requirements.txt")
     }
 )
 def llm_lora_evaluation() -> None:

@@ -31,11 +31,7 @@ def get_huggingface_access_token() -> Optional[str]:
         The access token if one was found.
     """
     try:
-        return (
-            Client()
-            .get_secret("huggingface_credentials")
-            .secret_values["token"]
-        )
+        return Client().get_secret("huggingface_credentials").secret_values["token"]
     except KeyError:
         return os.getenv("HF_TOKEN")
 

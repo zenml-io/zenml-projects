@@ -91,9 +91,7 @@ def run_training(schedule: bool):
         feature_engineer=feature_engineer(),
         encoder=data_encoder(),
         ml_splitter=sklearn_splitter(
-            SklearnSplitterConfig(
-                ratios={"train": 0.6, "test": 0.2, "validation": 0.2}
-            )
+            SklearnSplitterConfig(ratios={"train": 0.6, "test": 0.2, "validation": 0.2})
         ),
         trainer=random_forest_trainer(),
         tester=tester(),
@@ -133,9 +131,7 @@ def run_inference():
         # ),
         importer=import_season_schedule_offline(),
         preprocessor=encode_columns_and_clean(),
-        extract_next_week=get_coming_week_data(
-            TimeWindowConfig(time_window=7)
-        ),
+        extract_next_week=get_coming_week_data(TimeWindowConfig(time_window=7)),
         model_picker=model_picker(),
         predictor=predictor(),
         post_processor=data_post_processor(),
@@ -152,9 +148,7 @@ def run_inference():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "pipeline", type=str, choices=["drift", "train", "infer"]
-    )
+    parser.add_argument("pipeline", type=str, choices=["drift", "train", "infer"])
     parser.add_argument("-s", "--schedule", type=bool)
     args = parser.parse_args()
 

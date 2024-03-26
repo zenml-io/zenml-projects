@@ -53,9 +53,7 @@ class DatasetMaterializer(BaseMaterializer):
         # Copy from artifact store to temporary directory
         io_utils.copy_dir(self.artifact.uri, temp_dir.name)
 
-        with fileio.open(
-            os.path.join(temp_dir.name, DEFAULT_FILENAME), "rb"
-        ) as f:
+        with fileio.open(os.path.join(temp_dir.name, DEFAULT_FILENAME), "rb") as f:
             return pickle.load(f)
 
     def handle_return(self, ckpt: dict) -> None:

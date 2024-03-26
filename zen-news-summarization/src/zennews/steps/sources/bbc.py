@@ -79,10 +79,7 @@ def bbc_news_source(params: BBCParameters) -> List[Article]:
                 if p.get("class", None):
                     class_identifier = "-".join(p["class"])
                     if any(
-                        [
-                            h not in class_identifier
-                            for h in EXCLUDED_CLASS_IDENTIFIERS
-                        ]
+                        [h not in class_identifier for h in EXCLUDED_CLASS_IDENTIFIERS]
                     ):
                         if class_identifier not in paragraphs:
                             paragraphs[class_identifier] = {

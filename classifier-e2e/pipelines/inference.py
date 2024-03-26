@@ -20,7 +20,6 @@ from steps import (
     inference_predict,
     inference_preprocessor,
 )
-
 from zenml import get_pipeline_context, pipeline
 from zenml.logger import get_logger
 

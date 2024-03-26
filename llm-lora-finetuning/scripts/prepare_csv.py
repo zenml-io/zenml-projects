@@ -22,9 +22,7 @@ from lit_gpt.utils import CLI
 def prepare(
     csv_path: Path,
     destination_path: Path = Path("data/csv"),
-    checkpoint_dir: Path = Path(
-        "checkpoints/stabilityai/stablelm-base-alpha-3b"
-    ),
+    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
     test_split_fraction: float = 0.1,
     seed: int = 42,
     mask_inputs: bool = False,
@@ -48,9 +46,7 @@ def prepare(
 
     df = pd.read_csv(csv_path, dtype=str).fillna("")
     if not (df.columns.values == columns).all():
-        raise ValueError(
-            f"CSV columns must be {columns}, found {df.columns.values}"
-        )
+        raise ValueError(f"CSV columns must be {columns}, found {df.columns.values}")
     data = json.loads(df.to_json(orient="records", indent=4))
 
     print("Loading tokenizer...")

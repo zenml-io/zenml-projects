@@ -17,9 +17,9 @@ class ModelNameConfig(BaseParameters):
 
 
 @step
-def model_trainer(
-    train: pd.DataFrame, config: ModelNameConfig
-) -> Output(model=ClassifierMixin):
+def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(
+    model=ClassifierMixin
+):
     """Trains a specified model."""
     try:
         x_train, x_test, y_train, y_test = train_test_split(
@@ -38,9 +38,7 @@ def model_trainer(
             )
             return rf_model
         elif config.model_name == "xgboost":
-            xgb_model = tree_based_model.xgboost_trainer(
-                fine_tuning=config.fine_tuning
-            )
+            xgb_model = tree_based_model.xgboost_trainer(fine_tuning=config.fine_tuning)
             return xgb_model
         else:
             raise ValueError("Model name not supported")

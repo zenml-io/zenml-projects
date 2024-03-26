@@ -5,56 +5,33 @@ Based off Sayak Paul (https://github.com/sayakpaul) and Sourab Mangrulkar (https
 All credit to them for their amazing work!
 """
 
-from pydantic import BaseModel
-from typing import Optional
+import functools
 import os
 import random
-from zenml import step
-from zenml import ArtifactConfig
-from typing_extensions import Annotated
+from typing import Optional, Tuple
+
 import numpy as np
 import torch
 from datasets import load_dataset
-from torch.utils.data import IterableDataset
-from zenml.client import Client
-from zenml import log_model_metadata
+from huggingface_hub import login
 from materializers import HFTrainerMaterializer
-from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
-from typing import Tuple
-from zenml import save_artifact
+from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_kbit_training
+from peft.tuners.lora import LoraLayer
+from pydantic import BaseModel
+from torch.utils.data import IterableDataset
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
+    BitsAndBytesConfig,
     Trainer,
     TrainingArguments,
     set_seed,
-    BitsAndBytesConfig,
 )
-from huggingface_hub import login
-
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from peft.tuners.lora import LoraLayer
-
-import functools
-
-import numpy as np
-import os
-
-from dataclasses import dataclass, field
-from typing import Optional
-
-import torch
-from datasets import load_dataset
-from peft import LoraConfig
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    AutoTokenizer,
-    TrainingArguments,
-)
-from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
+from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
+from typing_extensions import Annotated
+from zenml import ArtifactConfig, log_model_metadata, save_artifact, step
+from zenml.client import Client
 
 
 # this is expensive so we cache it
@@ -103,24 +80,18 @@ def permute(
         boundaries.sort()
 
         prefix = np.array(sample[: boundaries[0]], dtype=np.int64)
-        middle = np.array(
-            sample[boundaries[0] : boundaries[1]], dtype=np.int64
-        )
+        middle = np.array(sample[boundaries[0] : boundaries[1]], dtype=np.int64)
         suffix = np.array(sample[boundaries[1] :], dtype=np.int64)
 
         if truncate_or_pad:
-            new_length = (
-                suffix.shape[0] + prefix.shape[0] + middle.shape[0] + 3
-            )
+            new_length = suffix.shape[0] + prefix.shape[0] + middle.shape[0] + 3
             diff = new_length - len(sample)
             if diff > 0:
                 if suffix.shape[0] <= diff:
                     return sample, np_rng
                 suffix = suffix[: suffix.shape[0] - diff]
             elif diff < 0:
-                suffix = np.concatenate(
-                    [suffix, np.full((-1 * diff), pad_tok_id)]
-                )
+                suffix = np.concatenate([suffix, np.full((-1 * diff), pad_tok_id)])
 
         if np_rng.binomial(1, fim_spm_rate):
             # SPM (variant 2 from FIM paper)
@@ -212,9 +183,7 @@ def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
     Estimate the average number of characters per token in the dataset.
     """
     total_characters, total_tokens = 0, 0
-    for _, example in tqdm(
-        zip(range(nb_examples), iter(dataset)), total=nb_examples
-    ):
+    for _, example in tqdm(zip(range(nb_examples), iter(dataset)), total=nb_examples):
         total_characters += len(example[data_column])
         total_tokens += len(tokenizer(example[data_column]).tokens())
 
@@ -289,9 +258,7 @@ class ConstantLengthDataset(IterableDataset):
                     else:
                         more_examples = False
                         break
-            tokenized_inputs = self.tokenizer(buffer, truncation=False)[
-                "input_ids"
-            ]
+            tokenized_inputs = self.tokenizer(buffer, truncation=False)["input_ids"]
             all_token_ids = []
 
             for tokenized_input in tokenized_inputs:
@@ -337,9 +304,7 @@ def create_datasets(tokenizer, args):
         print("Loading the dataset in streaming mode")
         valid_data = dataset.take(args.size_valid_set)
         train_data = dataset.skip(args.size_valid_set)
-        train_data = train_data.shuffle(
-            buffer_size=args.shuffle_buffer, seed=args.seed
-        )
+        train_data = train_data.shuffle(buffer_size=args.shuffle_buffer, seed=args.seed)
     else:
         dataset = dataset.train_test_split(
             test_size=args.test_size, seed=args.seed, shuffle=True
@@ -349,12 +314,8 @@ def create_datasets(tokenizer, args):
         print(
             f"Size of the train set: {len(train_data)}. Size of the validation set: {len(valid_data)}"
         )
-    chars_per_token = chars_token_ratio(
-        train_data, tokenizer, args.data_column
-    )
-    print(
-        f"The character to token ratio of the dataset is: {chars_per_token:.2f}"
-    )
+    chars_per_token = chars_token_ratio(train_data, tokenizer, args.data_column)
+    print(f"The character to token ratio of the dataset is: {chars_per_token:.2f}")
     train_dataset = ConstantLengthDataset(
         tokenizer,
         train_data,
@@ -501,9 +462,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
                     module = module.to(torch.bfloat16)
             if "norm" in name:
                 module = module.to(torch.float32)
-            if any(
-                x in name for x in ["lm_head", "embed_tokens", "wte", "wpe"]
-            ):
+            if any(x in name for x in ["lm_head", "embed_tokens", "wte", "wpe"]):
                 if hasattr(module, "weight"):
                     if args.bf16 and module.weight.dtype == torch.float32:
                         module = module.to(torch.bfloat16)
@@ -513,16 +472,14 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     if args.use_peft_lora:
         print("Saving last checkpoint of the model")
         # Save in ZenML as well
-        model.save_pretrained(
-            os.path.join(args.output_dir, "final_checkpoint/")
-        )
+        model.save_pretrained(os.path.join(args.output_dir, "final_checkpoint/"))
         try:
             unwrapped = trainer.accelerator.unwrap_model(trainer.model)
             save_artifact(unwrapped, "final_checkpoint")
         except Exception as e:
             print(str(e))
             print("Skipped saving final checkpoint to ZenML")
-            pass 
+            pass
 
     if is_deepspeed_peft_enabled:
         trainer.accelerator.wait_for_everyone()
@@ -535,9 +492,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
 
     # Save model and tokenizer
     if trainer.is_fsdp_enabled:
-        trainer.accelerator.state.fsdp_plugin.set_state_dict_type(
-            "FULL_STATE_DICT"
-        )
+        trainer.accelerator.state.fsdp_plugin.set_state_dict_type("FULL_STATE_DICT")
 
     try:
         if args.push_to_hub:
@@ -548,12 +503,14 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
         trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
-            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
+            commit_info = trainer.model.push_to_hub(
+                repo_id=args.output_peft_repo_id, token=hf_token
+            )
             log_model_metadata(metadata={"model_commit_info": str(commit_info)})
-    except Exception as e:  
+    except Exception as e:
         print("Exception while pushing or saving")
         print(str(e))
-        pass 
+        pass
     return trainer
 
 
@@ -576,8 +533,12 @@ def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder
     if not hasattr(model, "hf_device_map"):
         model.cuda()
 
-    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
-    peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
+    peft_model = PeftModel.from_pretrained(
+        model, peft_model_id, adapter_name="personal_copilot"
+    )
+    peft_model.add_weighted_adapter(
+        ["personal_copilot"], [0.8], "best_personal_copilot"
+    )
     peft_model.set_adapter("best_personal_copilot")
     final_model = peft_model.merge_and_unload()
     final_model.eval()
@@ -594,7 +555,9 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
-    Annotated[GPT2TokenizerFast, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[
+        GPT2TokenizerFast, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)
+    ],
     Annotated[str, "peft_model_id"],
     Annotated[ConstantLengthDataset, "train_dataset"],
     Annotated[ConstantLengthDataset, "eval_dataset"],
@@ -606,7 +569,7 @@ def trainer(
         secret = Client().get_secret("huggingface_creds")
         hf_token = secret.secret_values["token"]
         login(token=hf_token)
-        
+
     print("Loading tokenizer...")
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
@@ -615,7 +578,7 @@ def trainer(
 
     print("Creating a dataset...")
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
-    
+
     print("Creating a training...")
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 

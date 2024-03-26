@@ -18,10 +18,9 @@
 from datasets import DatasetDict
 from transformers import PreTrainedTokenizerBase
 from typing_extensions import Annotated
+from utils.misc import find_max_length
 from zenml import step
 from zenml.logger import get_logger
-
-from utils.misc import find_max_length
 
 logger = get_logger(__name__)
 

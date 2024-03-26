@@ -35,6 +35,7 @@ from lit_gpt.utils import (
     load_checkpoint,
     num_parameters,
 )
+
 from scripts.prepare_alpaca import generate_prompt
 
 
@@ -75,9 +76,7 @@ def setup(
     plugins = None
     if quantize is not None and quantize.startswith("bnb."):
         if "mixed" in precision:
-            raise ValueError(
-                "Quantization and mixed precision is not supported."
-            )
+            raise ValueError("Quantization and mixed precision is not supported.")
         dtype = {
             "16-true": torch.float16,
             "bf16-true": torch.bfloat16,
@@ -139,9 +138,7 @@ def main(
 
     check_valid_checkpoint_dir(io.checkpoint_dir)
 
-    fabric.seed_everything(
-        1337
-    )  # same seed for every process to init model (FSDP)
+    fabric.seed_everything(1337)  # same seed for every process to init model (FSDP)
 
     if fabric.global_rank == 0:
         os.makedirs(io.out_dir, exist_ok=True)
@@ -150,9 +147,7 @@ def main(
     val_data = torch.load(io.val_data_dir / "test.pt")
 
     checkpoint_path = io.checkpoint_dir / "lit_model.pth"
-    fabric.print(
-        f"Loading model {str(checkpoint_path)!r} with {config.__dict__}"
-    )
+    fabric.print(f"Loading model {str(checkpoint_path)!r} with {config.__dict__}")
     with fabric.init_module(empty_init=(devices > 1)):
         model = GPT(config)
     mark_only_adapter_v2_as_trainable(model)
@@ -204,9 +199,7 @@ def main(
     )
     fabric.print(f"Training time: {(time.perf_counter()-train_time):.2f}s")
     if fabric.device.type == "cuda":
-        fabric.print(
-            f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB"
-        )
+        fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB")
 
     # Save the final checkpoint at the end of training
     save_path = io.out_dir / "lit_model_adapter_finetuned.pth"
@@ -227,9 +220,7 @@ def fit(
 ) -> None:
     tokenizer = Tokenizer(io.checkpoint_dir)
     longest_seq_length, longest_seq_ix = get_longest_seq_length(train_data)
-    model.max_seq_length = min(
-        longest_seq_length, train.max_seq_length or float("inf")
-    )
+    model.max_seq_length = min(longest_seq_length, train.max_seq_length or float("inf"))
     fabric.print(
         f"The longest sequence length in the train data is {longest_seq_length}, the model's maximum sequence length is"
         f" {model.max_seq_length} and context length is {model.config.block_size}"
@@ -260,9 +251,7 @@ def fit(
             longest_seq_ix if iter_num == 1 else None,
         )
 
-        is_accumulating = (
-            iter_num % train.gradient_accumulation_iters(devices) != 0
-        )
+        is_accumulating = iter_num % train.gradient_accumulation_iters(devices) != 0
         with fabric.no_backward_sync(model, enabled=is_accumulating):
             logits = model(input_ids, lm_head_chunk_size=128)
             # shift the targets such that output n predicts token n+1
@@ -294,9 +283,7 @@ def fit(
 
         if not is_accumulating and step_count % eval.interval == 0:
             t0 = time.perf_counter()
-            val_loss = validate(
-                fabric, model, val_data, tokenizer, eval, train
-            )
+            val_loss = validate(fabric, model, val_data, tokenizer, eval, train)
             t1 = time.perf_counter() - t0
             fabric.print(
                 f"iter {iter_num}: val loss {val_loss.item():.4f}, val time: {t1 * 1000:.2f} ms"
@@ -331,7 +318,9 @@ def validate(
     val_loss = losses.mean()
 
     # produce an example:
-    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
+    instruction = (
+        "Recommend a movie for me to watch during the weekend and explain the reason."
+    )
     fabric.print(instruction)
     sample = {"instruction": instruction, "input": ""}
     prompt = generate_prompt(sample)

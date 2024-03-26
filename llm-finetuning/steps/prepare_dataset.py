@@ -6,12 +6,13 @@ All credit to them for their amazing work!
 """
 
 import os
-import pandas as pd
-from nbformat import reads, NO_CONVERT
-from tqdm import tqdm
-from datasets import Dataset
 from typing import Dict
+
+import pandas as pd
+from datasets import Dataset
 from huggingface_hub import HfApi
+from nbformat import NO_CONVERT, reads
+from tqdm import tqdm
 from zenml import step
 from zenml.client import Client
 
@@ -60,11 +61,14 @@ def upload_to_hub(df: pd.DataFrame, dataset_id: str) -> str:
     token = secret.secret_values["token"]
     api = HfApi(token=token)
 
-    repo_id = api.create_repo(repo_id=dataset_id, exist_ok=True, repo_type="dataset").repo_id
+    repo_id = api.create_repo(
+        repo_id=dataset_id, exist_ok=True, repo_type="dataset"
+    ).repo_id
 
     dataset = Dataset.from_pandas(df)
     dataset.push_to_hub(dataset_id, token=token)
     return repo_id
+
 
 def filter_code_cell(cell) -> bool:
     """Filters a code cell w.r.t shell commands, etc."""
@@ -74,6 +78,7 @@ def filter_code_cell(cell) -> bool:
         return False
     else:
         return True
+
 
 def process_file(directory_name: str, file_path: str) -> Dict[str, str]:
     """Processes a single file."""

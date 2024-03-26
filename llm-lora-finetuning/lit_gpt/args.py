@@ -37,17 +37,13 @@ class TrainArgs:
 
     def max_iters(self, devices: int) -> int:
         """Number of iterations"""
-        max_iters = (
-            self.epochs * self.epoch_size // devices // self.micro_batch_size
-        )
+        max_iters = self.epochs * self.epoch_size // devices // self.micro_batch_size
         assert max_iters > 0
         return max_iters
 
     def gradient_accumulation_iters(self, devices: int) -> int:
         """Number of iterations between gradient synchronizations"""
-        gradient_accumulation_iters = (
-            self.batch_size(devices) // self.micro_batch_size
-        )
+        gradient_accumulation_iters = self.batch_size(devices) // self.micro_batch_size
         assert gradient_accumulation_iters > 0
         return gradient_accumulation_iters
 

@@ -66,9 +66,7 @@ def data_loader(
         if isdir(os.path.join(dataset_path, folder)):
             folder_path = os.path.join(dataset_path, folder)
             for filename in os.listdir(os.path.join(folder_path, "images")):
-                img_array = cv2.imread(
-                    os.path.join(folder_path, "images", filename)
-                )
+                img_array = cv2.imread(os.path.join(folder_path, "images", filename))
                 load_bboxes = np.genfromtxt(
                     os.path.join(folder_path, "labels", f"{filename[:-4]}.txt")
                 )

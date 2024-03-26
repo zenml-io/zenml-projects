@@ -36,11 +36,7 @@ def discord_alert(
     except requests.exceptions.HTTPError as err:
         print(err)
     else:
-        print(
-            "Posted to discord successfully, code {}.".format(
-                result.status_code
-            )
-        )
+        print("Posted to discord successfully, code {}.".format(result.status_code))
     print("Drift detected" if drift else "No Drift detected")
     return drift
 
@@ -72,10 +68,6 @@ def discord_post_prediction(
     except requests.exceptions.HTTPError as err:
         print(err)
     else:
-        print(
-            "Posted to discord successfully, code {}.".format(
-                result.status_code
-            )
-        )
+        print("Posted to discord successfully, code {}.".format(result.status_code))
     print(prediction_message)
     return

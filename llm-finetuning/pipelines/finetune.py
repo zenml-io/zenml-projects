@@ -15,11 +15,7 @@
 # limitations under the License.
 #
 
-from steps import (
-    trainer,
-    merge_and_push
-)
-
+from steps import merge_and_push, trainer
 from zenml import pipeline
 from zenml.logger import get_logger
 

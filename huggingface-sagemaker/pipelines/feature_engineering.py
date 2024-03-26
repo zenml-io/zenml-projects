@@ -18,21 +18,20 @@
 
 from typing import Optional
 
-from zenml import pipeline
-from zenml.logger import get_logger
-
 from steps import (
     data_loader,
+    generate_reference_and_comparison_datasets,
     notify_on_failure,
     tokenization_step,
     tokenizer_loader,
-    generate_reference_and_comparison_datasets,
 )
+from zenml import pipeline
 from zenml.integrations.evidently.metrics import EvidentlyMetricConfig
 from zenml.integrations.evidently.steps import (
     EvidentlyColumnMapping,
     evidently_report_step,
 )
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -82,9 +81,7 @@ def sentinment_analysis_feature_engineering_pipeline(
             ),
             metrics=[
                 EvidentlyMetricConfig.metric("DataQualityPreset"),
-                EvidentlyMetricConfig.metric(
-                    "TextOverviewPreset", column_name="text"
-                ),
+                EvidentlyMetricConfig.metric("TextOverviewPreset", column_name="text"),
             ],
             # We need to download the NLTK data for the TextOverviewPreset
             download_nltk_data=True,

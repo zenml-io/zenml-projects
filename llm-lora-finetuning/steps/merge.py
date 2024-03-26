@@ -64,9 +64,7 @@ def merge(config: MergeParameters) -> None:
     adapter_dir = Path("adapters") / config.adapter_repo
 
     if base_model_dir.exists():
-        logger.info(
-            "Checkpoint directory already exists, skipping download..."
-        )
+        logger.info("Checkpoint directory already exists, skipping download...")
     else:
         download_from_hub(
             repo_id=config.base_model_repo,

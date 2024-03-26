@@ -1,7 +1,13 @@
-from zenml import pipeline, get_pipeline_context
-from steps import data_loader, inference_preprocessor
 import random
-from steps import deploy_endpoint, predict_on_endpoint, shutdown_endpoint
+
+from steps import (
+    data_loader,
+    deploy_endpoint,
+    inference_preprocessor,
+    predict_on_endpoint,
+    shutdown_endpoint,
+)
+from zenml import get_pipeline_context, pipeline
 
 
 @pipeline
@@ -11,9 +17,7 @@ def deploy(shutdown_endpoint_after_predicting: bool = True):
         "preprocess_pipeline"
     )
 
-    df_inference = data_loader(
-        random_state=random.randint(0, 1000), is_inference=True
-    )
+    df_inference = data_loader(random_state=random.randint(0, 1000), is_inference=True)
     df_inference = inference_preprocessor(
         dataset_inf=df_inference,
         preprocess_pipeline=preprocess_pipeline,
