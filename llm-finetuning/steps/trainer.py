@@ -5,56 +5,38 @@ Based off Sayak Paul (https://github.com/sayakpaul) and Sourab Mangrulkar (https
 All credit to them for their amazing work!
 """
 
-from pydantic import BaseModel
-from typing import Optional
+import functools
 import os
 import random
-from zenml import step
-from zenml import ArtifactConfig
-from typing_extensions import Annotated
+from typing import Optional, Tuple
+
 import numpy as np
 import torch
 from datasets import load_dataset
-from torch.utils.data import IterableDataset
-from zenml.client import Client
-from zenml import log_model_metadata
+from huggingface_hub import login
 from materializers import HFTrainerMaterializer
-from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
-from typing import Tuple
-from zenml import save_artifact
+from peft import (
+    LoraConfig,
+    PeftModel,
+    get_peft_model,
+    prepare_model_for_kbit_training,
+)
+from peft.tuners.lora import LoraLayer
+from pydantic import BaseModel
+from torch.utils.data import IterableDataset
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
+    BitsAndBytesConfig,
     Trainer,
     TrainingArguments,
     set_seed,
-    BitsAndBytesConfig,
 )
-from huggingface_hub import login
-
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from peft.tuners.lora import LoraLayer
-
-import functools
-
-import numpy as np
-import os
-
-from dataclasses import dataclass, field
-from typing import Optional
-
-import torch
-from datasets import load_dataset
-from peft import LoraConfig
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    AutoTokenizer,
-    TrainingArguments,
-)
-from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
+from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
+from typing_extensions import Annotated
+from zenml import ArtifactConfig, log_model_metadata, save_artifact, step
+from zenml.client import Client
 
 
 # this is expensive so we cache it
@@ -522,7 +504,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
         except Exception as e:
             print(str(e))
             print("Skipped saving final checkpoint to ZenML")
-            pass 
+            pass
 
     if is_deepspeed_peft_enabled:
         trainer.accelerator.wait_for_everyone()
@@ -542,28 +524,38 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     try:
         if args.push_to_hub:
             commit_info = trainer.push_to_hub()
-            log_model_metadata(metadata={"trainer_commit_info": str(commit_info)})
+            log_model_metadata(
+                metadata={"trainer_commit_info": str(commit_info)}
+            )
         else:
             trainer.save_model(args.output_dir)
         trainer.accelerator.print(f"Model saved to {args.output_dir}")
 
         if args.push_to_hub:
-            commit_info = trainer.model.push_to_hub(repo_id=args.output_peft_repo_id, token=hf_token)
-            log_model_metadata(metadata={"model_commit_info": str(commit_info)})
-    except Exception as e:  
+            commit_info = trainer.model.push_to_hub(
+                repo_id=args.output_peft_repo_id, token=hf_token
+            )
+            log_model_metadata(
+                metadata={"model_commit_info": str(commit_info)}
+            )
+    except Exception as e:
         print("Exception while pushing or saving")
         print(str(e))
-        pass 
+        pass
     return trainer
 
 
 @step
-def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder"):
+def merge_and_push(
+    peft_model_id: str, base_model_name: str = "bigcode/starcoder"
+):
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
     login(token=hf_token)
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        base_model_name, trust_remote_code=True
+    )
     model = AutoModelForCausalLM.from_pretrained(
         base_model_name,
         quantization_config=None,
@@ -576,15 +568,21 @@ def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder
     if not hasattr(model, "hf_device_map"):
         model.cuda()
 
-    peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name="personal_copilot")
-    peft_model.add_weighted_adapter(["personal_copilot"], [0.8], "best_personal_copilot")
+    peft_model = PeftModel.from_pretrained(
+        model, peft_model_id, adapter_name="personal_copilot"
+    )
+    peft_model.add_weighted_adapter(
+        ["personal_copilot"], [0.8], "best_personal_copilot"
+    )
     peft_model.set_adapter("best_personal_copilot")
     final_model = peft_model.merge_and_unload()
     final_model.eval()
 
     model_id_merged = f"{peft_model_id}-merged"
     commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
-    log_model_metadata(metadata={"merged_tokenizer_commit_info": str(commit_info)})
+    log_model_metadata(
+        metadata={"merged_tokenizer_commit_info": str(commit_info)}
+    )
     commit_info = final_model.push_to_hub(model_id_merged, token=hf_token)
     log_model_metadata(metadata={"merged_model_commit_info": str(commit_info)})
 
@@ -593,8 +591,13 @@ def merge_and_push(peft_model_id: str, base_model_name: str = "bigcode/starcoder
 def trainer(
     args: Configuration,
 ) -> Tuple[
-    Annotated[Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)],
-    Annotated[GPT2TokenizerFast, ArtifactConfig(name="tokenizer_obj", is_model_artifact=True)],
+    Annotated[
+        Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)
+    ],
+    Annotated[
+        GPT2TokenizerFast,
+        ArtifactConfig(name="tokenizer_obj", is_model_artifact=True),
+    ],
     Annotated[str, "peft_model_id"],
     Annotated[ConstantLengthDataset, "train_dataset"],
     Annotated[ConstantLengthDataset, "eval_dataset"],
@@ -606,7 +609,7 @@ def trainer(
         secret = Client().get_secret("huggingface_creds")
         hf_token = secret.secret_values["token"]
         login(token=hf_token)
-        
+
     print("Loading tokenizer...")
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer = AutoTokenizer.from_pretrained(
@@ -615,8 +618,14 @@ def trainer(
 
     print("Creating a dataset...")
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
-    
+
     print("Creating a training...")
     trainer_obj = run_training(args, train_dataset, eval_dataset, hf_token)
 
-    return trainer_obj, tokenizer, args.output_peft_repo_id, train_dataset, eval_dataset
+    return (
+        trainer_obj,
+        tokenizer,
+        args.output_peft_repo_id,
+        train_dataset,
+        eval_dataset,
+    )

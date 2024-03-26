@@ -95,9 +95,9 @@ class WrapperModel(torch.nn.Module):
                 )  # mypy: ignore
                 p = Path(p)  # to Path
                 s += "%gx%g " % im.shape[2:]  # print string
-                torch.tensor(im0.shape)[  # mypy: ignore
+                torch.tensor(im0.shape)[
                     [1, 0, 1, 0]
-                ]  # mypy: ignore
+                ]  # mypy: ignore  # mypy: ignore
                 annotator = Annotator(im0, line_width=1, example=str(names))
                 if len(det):
                     # Rescale boxes from img_size to im0 size

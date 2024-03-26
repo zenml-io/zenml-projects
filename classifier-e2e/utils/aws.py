@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Any
+from typing import Any, Tuple
 
 import boto3
 import sagemaker

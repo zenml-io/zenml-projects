@@ -13,4 +13,7 @@
 #  permissions and limitations under the License.
 """Implementation of the Huggingface Trainer materializer."""
 
-from .huggingface_model_materializer import HFTrainerMaterializer, DEFAULT_TRAINER_MODEL_DIR
+from .huggingface_model_materializer import (
+    DEFAULT_TRAINER_MODEL_DIR,
+    HFTrainerMaterializer,
+)

@@ -1,13 +1,12 @@
 import click
-
 from pipelines.deployment_pipeline import (
     continuous_deployment_pipeline,
-    inference_pipeline
+    inference_pipeline,
 )
 from rich import print
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
-    MLFlowModelDeployer
+    MLFlowModelDeployer,
 )
 
 
@@ -23,9 +22,13 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     "-m",
     type=click.Choice(["lightgbm", "randomforest", "xgboost"]),
     default="xgboost",
-    help="Here you can choose what type of model should be trained."
+    help="Here you can choose what type of model should be trained.",
 )
-def run_main(stop_service: bool, model_type: str, model_name="Customer_Satisfaction_Predictor"):
+def run_main(
+    stop_service: bool,
+    model_type: str,
+    model_name="Customer_Satisfaction_Predictor",
+):
     """Run the mlflow example pipeline"""
     if stop_service:
         # get the MLflow model deployer stack component
@@ -43,7 +46,9 @@ def run_main(stop_service: bool, model_type: str, model_name="Customer_Satisfact
             existing_services[0].stop(timeout=10)
         return
 
-    continuous_deployment_pipeline.with_options(config_path="config.yaml")(model_type=model_type)
+    continuous_deployment_pipeline.with_options(config_path="config.yaml")(
+        model_type=model_type
+    )
 
     model_deployer = MLFlowModelDeployer.get_active_model_deployer()
 
@@ -60,7 +65,7 @@ def run_main(stop_service: bool, model_type: str, model_name="Customer_Satisfact
     # fetch existing services with same pipeline name, step name and model name
     service = model_deployer.find_model_server(
         pipeline_name="continuous_deployment_pipeline",
-        pipeline_step_name="mlflow_model_deployer_step"
+        pipeline_step_name="mlflow_model_deployer_step",
     )
 
     if service[0]:

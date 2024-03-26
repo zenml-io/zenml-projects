@@ -15,10 +15,9 @@
 # limitations under the License.
 #
 
+from steps import feature_engineering
 from zenml import pipeline
 from zenml.config import DockerSettings
-
-from steps import feature_engineering
 
 
 @pipeline(

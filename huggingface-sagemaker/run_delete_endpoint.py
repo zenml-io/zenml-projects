@@ -67,7 +67,9 @@ def main(
     latest_run = client.get_pipeline(
         deployment_pipeline_name, version=deployment_pipeline_version
     ).runs[0]
-    endpoint_name = latest_run.steps[step_name].outputs[step_output_name].load()
+    endpoint_name = (
+        latest_run.steps[step_name].outputs[step_output_name].load()
+    )
 
     logger.info(f"Deleting endpoint with name: {endpoint_name}")
     # Do a `aws sagemaker delete-endpoint --endpoint-name <endpoint_name>` on the CLI

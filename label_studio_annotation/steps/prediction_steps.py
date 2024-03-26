@@ -16,7 +16,6 @@ from typing import Dict, List
 import torch
 from steps.pytorch_trainer import LABEL_MAPPING, load_mobilenetv3_transforms
 from typing_extensions import Annotated
-
 from zenml import step
 from zenml.client import Client
 

@@ -17,6 +17,8 @@
 
 
 from .deploying import sentinment_analysis_deploy_pipeline
-from .feature_engineering import sentinment_analysis_feature_engineering_pipeline
+from .feature_engineering import (
+    sentinment_analysis_feature_engineering_pipeline,
+)
 from .promoting import sentinment_analysis_promote_pipeline
 from .training import sentinment_analysis_training_pipeline

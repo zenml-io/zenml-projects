@@ -21,12 +21,12 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict
 
+from lit_gpt import Config
+from materializers.directory_materializer import DirectoryMaterializer
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
 
-from lit_gpt import Config
-from materializers.directory_materializer import DirectoryMaterializer
 from scripts.download import download_from_hub
 from steps.utils import get_huggingface_access_token
 

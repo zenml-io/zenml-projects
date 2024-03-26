@@ -1,24 +1,24 @@
-from typing_extensions import Annotated
-
-import sagemaker
-from sagemaker.image_uris import retrieve
-from sagemaker import Predictor
-
-from zenml import step, get_step_context, ArtifactConfig, log_artifact_metadata
 from datetime import datetime
 
+import sagemaker
+from sagemaker import Predictor
+from sagemaker.image_uris import retrieve
+from typing_extensions import Annotated
 from utils.aws import get_aws_config
 from utils.sagemaker_materializer import SagemakerPredictorMaterializer
+from zenml import ArtifactConfig, get_step_context, log_artifact_metadata, step
 
 
 @step(
     enable_cache=False,
     output_materializers=[SagemakerPredictorMaterializer],
 )
-def deploy_endpoint() -> Annotated[
-    Predictor,
-    ArtifactConfig(name="sagemaker_endpoint", is_deployment_artifact=True),
-]:
+def deploy_endpoint() -> (
+    Annotated[
+        Predictor,
+        ArtifactConfig(name="sagemaker_endpoint", is_deployment_artifact=True),
+    ]
+):
     role, session, region = get_aws_config()
 
     model = get_step_context().model._get_model_version()

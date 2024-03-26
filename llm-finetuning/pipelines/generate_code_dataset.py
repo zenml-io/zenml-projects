@@ -16,11 +16,9 @@
 #
 
 from steps import (
-    prepare_dataset,
-    push_to_hub,
     mirror_repositories,
+    prepare_dataset,
 )
-
 from zenml import pipeline
 from zenml.logger import get_logger
 
@@ -28,9 +26,7 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def generate_code_dataset(
-    dataset_id: str
-):
+def generate_code_dataset(dataset_id: str):
     """
     This pipeline generates the code dataset.
     """

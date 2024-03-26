@@ -3,13 +3,10 @@ from typing import Annotated
 
 import mlflow
 import pandas as pd
-
 from model.model_dev import ModelTrainer
 from sklearn.base import RegressorMixin
+from zenml import ArtifactConfig, step
 from zenml.client import Client
-from zenml import step
-from zenml import ArtifactConfig
-
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
@@ -21,10 +18,10 @@ def train_model(
     y_train: pd.Series,
     y_test: pd.Series,
     model_type: str = "lightgbm",
-    do_fine_tuning: bool = True
+    do_fine_tuning: bool = True,
 ) -> Annotated[
     RegressorMixin,
-    ArtifactConfig(name="sklearn_regressor", is_model_artifact=True)
+    ArtifactConfig(name="sklearn_regressor", is_model_artifact=True),
 ]:
     """
     Args:

@@ -1,9 +1,7 @@
-from typing_extensions import Annotated
-
-
-from zenml import step
-from sagemaker.predictor import Predictor
 import pandas as pd
+from sagemaker.predictor import Predictor
+from typing_extensions import Annotated
+from zenml import step
 
 
 @step
