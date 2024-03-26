@@ -81,8 +81,7 @@ def index_generator(
 
     register_vector(conn)
 
-    # Prepare the list of tuples to insert
-    data_list = []
+    # Insert data only if it doesn't already exist
     for i, doc in enumerate(documents):
         title = doc.metadata.get("title", "")
         url = doc.metadata.get("url", "")
@@ -91,19 +90,17 @@ def index_generator(
             content.split()
         )  # Approximate token count based on word count
         embedding = embeddings[i].tolist()
-        data_list.append((title, url, content, tokens, embedding))
 
-    # Insert data only if it doesn't already exist
-    cur.execute("SELECT COUNT(*) FROM embeddings")
-    count = cur.fetchone()[0]
-    if count == 0:
-        psycopg2.extras.execute_values(
-            cur,
-            "INSERT INTO embeddings (title, url, content, tokens, embedding) VALUES %s",
-            data_list,
-            template="(%s, %s, %s, %s, %s)",
+        cur.execute(
+            "SELECT COUNT(*) FROM embeddings WHERE content = %s", (content,)
         )
-        conn.commit()
+        count = cur.fetchone()[0]
+        if count == 0:
+            cur.execute(
+                "INSERT INTO embeddings (title, url, content, tokens, embedding) VALUES (%s, %s, %s, %s, %s)",
+                (title, url, content, tokens, embedding),
+            )
+            conn.commit()
 
     cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
     num_records = cur.fetchone()[0]
