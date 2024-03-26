@@ -15,16 +15,14 @@
 # limitations under the License.
 #
 
-import os
 from typing import Optional
 
 import click
-from zenml.logger import get_logger
-
 from pipelines import (
     llm_basic_rag,
 )
 from utils.llm_utils import process_input_with_retrieval
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

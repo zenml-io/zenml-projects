@@ -1,14 +1,14 @@
+import math
 from typing import Annotated, List
 
-from zenml import ArtifactConfig, step, log_artifact_metadata
-from langchain.docstore.document import Document
-from langchain_text_splitters import CharacterTextSplitter
-from sentence_transformers import SentenceTransformer
 import numpy as np
 import psycopg2
+from langchain.docstore.document import Document
+from langchain_text_splitters import CharacterTextSplitter
 from pgvector.psycopg2 import register_vector
-import math
+from sentence_transformers import SentenceTransformer
 from utils.llm_utils import get_db_conn
+from zenml import ArtifactConfig, log_artifact_metadata, step
 
 EMBEDDINGS_MODEL = "all-distilroberta-v1"
 CHUNK_SIZE = 256

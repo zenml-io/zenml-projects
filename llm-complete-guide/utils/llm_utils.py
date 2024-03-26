@@ -1,10 +1,10 @@
 import numpy as np
 import psycopg2
-from sentence_transformers import SentenceTransformer
-from pgvector.psycopg2 import register_vector
 from openai import OpenAI
-from zenml.client import Client
+from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
+from sentence_transformers import SentenceTransformer
+from zenml.client import Client
 
 OPENAI_MODEL = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "all-distilroberta-v1"
