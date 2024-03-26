@@ -1,9 +1,9 @@
 import logging
 
+import litellm
 import numpy as np
 import psycopg2
 from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
-import litellm
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
