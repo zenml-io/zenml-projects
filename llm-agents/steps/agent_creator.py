@@ -32,7 +32,9 @@ class AgentParameters(BaseModel):
 @step(output_materializers=AgentExecutorMaterializer)
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters = AgentParameters()
-) -> Annotated[AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)]:
+) -> Annotated[
+    AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)
+]:
     """Create an agent from a vector store.
 
     Args:

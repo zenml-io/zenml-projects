@@ -13,9 +13,9 @@ from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 )
 def main(model_type: str):
     (
-        customer_satisfaction_training_pipeline.with_options(config_path="config.yaml")(
-            model_type
-        )
+        customer_satisfaction_training_pipeline.with_options(
+            config_path="config.yaml"
+        )(model_type)
     )
 
     print(

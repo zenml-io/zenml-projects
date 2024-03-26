@@ -70,9 +70,10 @@ def sentinment_analysis_feature_engineering_pipeline(
     dataset = data_loader()
 
     ########## Data Quality stage ##########
-    reference_dataset, comparison_dataset = generate_reference_and_comparison_datasets(
-        dataset
-    )
+    (
+        reference_dataset,
+        comparison_dataset,
+    ) = generate_reference_and_comparison_datasets(dataset)
     text_data_report = evidently_report_step.with_options(
         parameters=dict(
             column_mapping=EvidentlyColumnMapping(
@@ -81,7 +82,9 @@ def sentinment_analysis_feature_engineering_pipeline(
             ),
             metrics=[
                 EvidentlyMetricConfig.metric("DataQualityPreset"),
-                EvidentlyMetricConfig.metric("TextOverviewPreset", column_name="text"),
+                EvidentlyMetricConfig.metric(
+                    "TextOverviewPreset", column_name="text"
+                ),
             ],
             # We need to download the NLTK data for the TextOverviewPreset
             download_nltk_data=True,

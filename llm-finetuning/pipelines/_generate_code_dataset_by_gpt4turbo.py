@@ -5,9 +5,9 @@ from zenml.steps import Output, step
 
 # Step 1: Fetch the list of repositories from GitHub
 @step
-def fetch_repos(username: str, access_token: str, include_fork: bool = False) -> Output(
-    repos=list
-):
+def fetch_repos(
+    username: str, access_token: str, include_fork: bool = False
+) -> Output(repos=list):
     # ... (implementation of get_repos function) ...
     return get_repos(username, access_token, include_fork)
 
@@ -29,7 +29,9 @@ def read_and_filter_files(mirror_directory: str) -> DataArtifact:
 
 # Step 4: Upload the DataFrame to the Hugging Face Hub
 @step
-def upload_to_hf_hub(df: DataArtifact, dataset_id: str, file_format: str) -> None:
+def upload_to_hf_hub(
+    df: DataArtifact, dataset_id: str, file_format: str
+) -> None:
     # ... (implementation of upload_to_hub function) ...
     upload_to_hub(df, dataset_id, file_format)
 

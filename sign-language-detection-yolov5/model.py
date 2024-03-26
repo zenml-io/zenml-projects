@@ -54,7 +54,9 @@ class WrapperModel(torch.nn.Module):
         bs = 1  # batch_size
 
         # Run inference
-        self.model.warmup(imgsz=(1 if pt or self.model.triton else bs, 3, *imgsz))
+        self.model.warmup(
+            imgsz=(1 if pt or self.model.triton else bs, 3, *imgsz)
+        )
         dt, seen = [0.0, 0.0, 0.0], 0
         imgs_res = []
         for path, im, im0s, vid_cap, s in dataset:
@@ -93,7 +95,9 @@ class WrapperModel(torch.nn.Module):
                 )  # mypy: ignore
                 p = Path(p)  # to Path
                 s += "%gx%g " % im.shape[2:]  # print string
-                torch.tensor(im0.shape)[[1, 0, 1, 0]]  # mypy: ignore  # mypy: ignore
+                torch.tensor(im0.shape)[
+                    [1, 0, 1, 0]
+                ]  # mypy: ignore  # mypy: ignore
                 annotator = Annotator(im0, line_width=1, example=str(names))
                 if len(det):
                     # Rescale boxes from img_size to im0 size

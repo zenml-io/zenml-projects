@@ -29,7 +29,9 @@ def main(
     prompt: str = "What food do llamas eat?",
     input: str = "",
     finetuned_path: Path = Path("out/full/alpaca/lit_model_finetuned.pth"),
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     quantize: Optional[
         Literal["bnb.nf4", "bnb.nf4-dq", "bnb.fp4", "bnb.fp4-dq", "bnb.int8"]
     ] = None,
@@ -63,7 +65,9 @@ def main(
     plugins = None
     if quantize is not None and quantize.startswith("bnb."):
         if "mixed" in precision:
-            raise ValueError("Quantization and mixed precision is not supported.")
+            raise ValueError(
+                "Quantization and mixed precision is not supported."
+            )
         dtype = {
             "16-true": torch.float16,
             "bf16-true": torch.bfloat16,

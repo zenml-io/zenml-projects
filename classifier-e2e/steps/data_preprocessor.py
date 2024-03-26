@@ -73,11 +73,15 @@ def data_preprocessor(
         preprocess_pipeline.steps.append(("drop_na", NADropper()))
     if drop_columns:
         # Drop columns
-        preprocess_pipeline.steps.append(("drop_columns", ColumnsDropper(drop_columns)))
+        preprocess_pipeline.steps.append(
+            ("drop_columns", ColumnsDropper(drop_columns))
+        )
     if normalize:
         # Normalize the data
         preprocess_pipeline.steps.append(("normalize", MinMaxScaler()))
-    preprocess_pipeline.steps.append(("cast", DataFrameCaster(dataset_trn.columns)))
+    preprocess_pipeline.steps.append(
+        ("cast", DataFrameCaster(dataset_trn.columns))
+    )
     dataset_trn = preprocess_pipeline.fit_transform(dataset_trn)
     dataset_tst = preprocess_pipeline.transform(dataset_tst)
 

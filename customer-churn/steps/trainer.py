@@ -38,7 +38,9 @@ def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(
             )
             return rf_model
         elif config.model_name == "xgboost":
-            xgb_model = tree_based_model.xgboost_trainer(fine_tuning=config.fine_tuning)
+            xgb_model = tree_based_model.xgboost_trainer(
+                fine_tuning=config.fine_tuning
+            )
             return xgb_model
         else:
             raise ValueError("Model name not supported")

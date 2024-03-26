@@ -223,9 +223,9 @@ def main(
         pipeline_args[
             "run_name"
         ] = f"sentinment_analysis_feature_engineering_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
-        sentinment_analysis_feature_engineering_pipeline.with_options(**pipeline_args)(
-            **run_args_feature
-        )
+        sentinment_analysis_feature_engineering_pipeline.with_options(
+            **pipeline_args
+        )(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!")
 
     # Execute Training Pipeline
@@ -257,8 +257,12 @@ def main(
                 "base_tokenizer", dataset_version_name
             )
             # Use versioned artifacts
-            run_args_train["dataset_artifact_id"] = tokenized_dataset_artifact.id
-            run_args_train["tokenizer_artifact_id"] = tokenized_tokenizer_artifact.id
+            run_args_train[
+                "dataset_artifact_id"
+            ] = tokenized_dataset_artifact.id
+            run_args_train[
+                "tokenizer_artifact_id"
+            ] = tokenized_tokenizer_artifact.id
 
         pipeline_args["model"] = zenml_model
 

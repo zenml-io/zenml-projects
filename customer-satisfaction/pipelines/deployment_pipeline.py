@@ -24,7 +24,9 @@ def continuous_deployment_pipeline(model_type: str = "lightgbm"):
     )
 
     # (Re)deploy the production model
-    mlflow_model_deployer_step(workers=3, deploy_decision=True, model=production_model)
+    mlflow_model_deployer_step(
+        workers=3, deploy_decision=True, model=production_model
+    )
 
 
 @pipeline(enable_cache=False)

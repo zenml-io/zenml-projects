@@ -46,9 +46,9 @@ def transformer(
     }
 
     for direction in cardinal_directions:
-        df.loc[df["Direction"] == direction, "Direction"] = cardinal_directions[
-            direction
-        ]
+        df.loc[
+            df["Direction"] == direction, "Direction"
+        ] = cardinal_directions[direction]
 
     df["Direction"] = df["Direction"].astype(float)
     df["v1"] = df["Speed"] * np.cos(np.deg2rad(np.array(df["Direction"])))

@@ -58,11 +58,15 @@ def model_promoter(accuracy: float, stage: str = "production") -> bool:
         try:
             stage_model = client.get_model_version(current_model.name, stage)
             # We compare their metrics
-            prod_classifier = stage_model.get_artifact("breast_cancer_classifier")
+            prod_classifier = stage_model.get_artifact(
+                "breast_cancer_classifier"
+            )
             if prod_classifier:
                 # and recompute metrics for current prod model using current test set
                 prod_classifier = prod_classifier.load()
-                current_dataset = current_model.get_artifact("dataset_tst").load()
+                current_dataset = current_model.get_artifact(
+                    "dataset_tst"
+                ).load()
                 prod_accuracy = accuracy_score(
                     current_dataset["target"],
                     prod_classifier.predict(

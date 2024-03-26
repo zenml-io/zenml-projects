@@ -45,7 +45,9 @@ class EvalHarnessBase(BaseLM):
 
     @classmethod
     def create_from_arg_string(cls, arg_string, additional_config=None):
-        kwargs = {el.split("=")[0]: el.split("=")[1] for el in arg_string.split(",")}
+        kwargs = {
+            el.split("=")[0]: el.split("=")[1] for el in arg_string.split(",")
+        }
         return cls(**kwargs, **additional_config)
 
     @property
@@ -85,7 +87,9 @@ class EvalHarnessBase(BaseLM):
         return self.model(inps)
 
     @torch.inference_mode()
-    def _model_generate(self, context, max_length, eos_token_id) -> torch.Tensor:
+    def _model_generate(
+        self, context, max_length, eos_token_id
+    ) -> torch.Tensor:
         # this only supports batch size 1
         assert context.shape[0] == 1
         out = generate(self.model, context[0], max_length, eos_id=eos_token_id)
@@ -174,7 +178,9 @@ def run_eval_harness(
     plugins = None
     if quantize is not None and quantize.startswith("bnb."):
         if "mixed" in precision:
-            raise ValueError("Quantization and mixed precision is not supported.")
+            raise ValueError(
+                "Quantization and mixed precision is not supported."
+            )
         dtype = {
             "16-true": torch.float16,
             "bf16-true": torch.bfloat16,

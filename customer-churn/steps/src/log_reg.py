@@ -53,7 +53,9 @@ class LogisticRegression:
         """Test assumptions for appropriate outcome type."""
         try:
             if self.y_train.nunique() == 2:
-                logger.info("Assumption for appropriate outcome type is satisfied.")
+                logger.info(
+                    "Assumption for appropriate outcome type is satisfied."
+                )
             else:
                 logger.error(
                     "Assumption for appropriate outcome type is not satisfied."

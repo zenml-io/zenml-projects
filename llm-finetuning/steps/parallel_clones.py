@@ -28,7 +28,9 @@ def mirror_repository(repository):
 
 
 @step
-def mirror_repositories(repositories: List[str]) -> Annotated[str, "mirror_directory"]:
+def mirror_repositories(
+    repositories: List[str],
+) -> Annotated[str, "mirror_directory"]:
     """Locally clones a list of repositories.
 
     Args:
@@ -48,13 +50,17 @@ def mirror_repositories(repositories: List[str]) -> Annotated[str, "mirror_direc
 
     # Try to get the access token from the ZenML client
     try:
-        gh_access_token = client.get_secret("GH_ACCESS_TOKEN").secret_values["token"]
+        gh_access_token = client.get_secret("GH_ACCESS_TOKEN").secret_values[
+            "token"
+        ]
     except KeyError:
         pass
 
     # Raise an error if the access token is not found
     if gh_access_token is None:
-        raise ValueError("Please set the GH_ACCESS_TOKEN environment variable.")
+        raise ValueError(
+            "Please set the GH_ACCESS_TOKEN environment variable."
+        )
 
     # Get the list of repositories in the organization
     print(f"Total repositories found: {len(repositories)}.")

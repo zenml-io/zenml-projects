@@ -120,7 +120,8 @@ def read_repository_files(directory) -> pd.DataFrame:
         for file in files:
             file_path = os.path.join(root, file)
             if not file_path.endswith(ANTI_FORMATS) and all(
-                k not in file_path for k in [".git", "__pycache__", "xcodeproj"]
+                k not in file_path
+                for k in [".git", "__pycache__", "xcodeproj"]
             ):
                 file_paths.append((os.path.dirname(root), file_path))
 
@@ -139,7 +140,9 @@ def read_repository_files(directory) -> pd.DataFrame:
 
 
 @step(enable_cache=False)
-def prepare_dataset(mirror_directory: str, dataset_id: str = "zenml-codegen-v1"):
+def prepare_dataset(
+    mirror_directory: str, dataset_id: str = "zenml-codegen-v1"
+):
     df = read_repository_files(mirror_directory)
     repo_id = upload_to_hub(df, dataset_id)
     return repo_id

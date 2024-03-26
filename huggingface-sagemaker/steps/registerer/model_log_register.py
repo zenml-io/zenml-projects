@@ -24,7 +24,9 @@ from transformers import (
 )
 from zenml import step
 from zenml.client import Client
-from zenml.integrations.mlflow.experiment_trackers import MLFlowExperimentTracker
+from zenml.integrations.mlflow.experiment_trackers import (
+    MLFlowExperimentTracker,
+)
 from zenml.logger import get_logger
 
 # Initialize logger

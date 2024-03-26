@@ -24,7 +24,9 @@ def bart_large_cnn_samsum(articles: List[Article]) -> List[Article]:
     """Step that generates summaries of the given list of news articles."""
     from transformers import AutoTokenizer, BartForConditionalGeneration
 
-    model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
+    model = BartForConditionalGeneration.from_pretrained(
+        "facebook/bart-large-cnn"
+    )
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
     summarizations = []

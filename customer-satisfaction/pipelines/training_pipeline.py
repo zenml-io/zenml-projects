@@ -1,4 +1,10 @@
-from steps import clean_data, evaluation, ingest_data, model_promoter, train_model
+from steps import (
+    clean_data,
+    evaluation,
+    ingest_data,
+    model_promoter,
+    train_model,
+)
 from zenml import pipeline
 
 

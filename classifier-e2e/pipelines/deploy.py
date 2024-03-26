@@ -17,7 +17,9 @@ def deploy(shutdown_endpoint_after_predicting: bool = True):
         "preprocess_pipeline"
     )
 
-    df_inference = data_loader(random_state=random.randint(0, 1000), is_inference=True)
+    df_inference = data_loader(
+        random_state=random.randint(0, 1000), is_inference=True
+    )
     df_inference = inference_preprocessor(
         dataset_inf=df_inference,
         preprocess_pipeline=preprocess_pipeline,

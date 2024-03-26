@@ -69,7 +69,9 @@ class Hyperparameter_Optimization:
         """
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-7, 10.0),
+            "learning_rate": trial.suggest_loguniform(
+                "learning_rate", 1e-7, 10.0
+            ),
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
         }
         reg = xgb.XGBRegressor(**param)
@@ -96,7 +98,9 @@ class ModelTrainer:
         self.x_test = x_test
         self.y_test = y_test
 
-    def random_forest_trainer(self, fine_tuning: bool = True) -> RegressorMixin:
+    def random_forest_trainer(
+        self, fine_tuning: bool = True
+    ) -> RegressorMixin:
         """
         It trains the random forest model.
 

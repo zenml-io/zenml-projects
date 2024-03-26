@@ -47,7 +47,9 @@ def valid_augmenter(
 
         # Creating 25 augmented images to compensate for the small dataset
         for i in range(25):
-            augmented = aug(image=image, bboxes=[new_bboxes], class_name=[bbox_cat])
+            augmented = aug(
+                image=image, bboxes=[new_bboxes], class_name=[bbox_cat]
+            )
             image_name = f"{key[:-4]}_{i}.jpg"
             boxes = []
             for bbox in augmented["bboxes"]:
@@ -83,9 +85,13 @@ aug = A.Compose(
         A.HorizontalFlip(p=0.5),
         A.Rotate(limit=30, p=0.8),
         A.MultiplicativeNoise(p=0.2),
-        A.RGBShift(r_shift_limit=40, g_shift_limit=40, b_shift_limit=40, p=0.3),
+        A.RGBShift(
+            r_shift_limit=40, g_shift_limit=40, b_shift_limit=40, p=0.3
+        ),
         A.Blur(blur_limit=25, p=0.2),
-        A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.35, p=0.5),
+        A.RandomBrightnessContrast(
+            brightness_limit=0.3, contrast_limit=0.35, p=0.5
+        ),
         A.HueSaturationValue(p=0.3),
         A.OneOf(
             [

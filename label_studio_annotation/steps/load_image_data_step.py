@@ -31,7 +31,9 @@ def load_image_data(
 ) -> Tuple[Annotated[Dict[str, Image.Image], "images"], Annotated[str, "uri"]]:
     """Gets images from a cloud artifact store directory."""
     if base_path is None:
-        base_path = str(Path(__file__).parent.absolute().parent.absolute() / "data")
+        base_path = str(
+            Path(__file__).parent.absolute().parent.absolute() / "data"
+        )
     image_dir_path = os.path.join(base_path, dir_name)
     image_files = glob.glob(f"{image_dir_path}/*.jpeg")
     context = get_step_context()
@@ -41,7 +43,9 @@ def load_image_data(
     for i, image_file in enumerate(image_files):
         image = Image.open(image_file)
         image.load()
-        artifact_filepath = f"{uri}/1/{i}/{DEFAULT_IMAGE_FILENAME}.{image.format}"
+        artifact_filepath = (
+            f"{uri}/1/{i}/{DEFAULT_IMAGE_FILENAME}.{image.format}"
+        )
 
         images[artifact_filepath] = image
 

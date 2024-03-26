@@ -39,12 +39,16 @@ class SagemakerMaterializer(BaseMaterializer):
                     )
                 if member.name == "xgboost-model":
                     est = XGBClassifier()
-                    est.load_model(os.path.join(tempfile.gettempdir(), "xgboost-model"))
+                    est.load_model(
+                        os.path.join(tempfile.gettempdir(), "xgboost-model")
+                    )
                 fileio.remove(os.path.join(tempfile.gettempdir(), member.name))
                 if est:
                     break
         if est is None:
-            raise RuntimeError("Failed to load estimator via SagemakerMaterializer...")
+            raise RuntimeError(
+                "Failed to load estimator via SagemakerMaterializer..."
+            )
         return est
 
     def save(self, my_obj: ClassifierMixin) -> None:

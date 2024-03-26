@@ -20,7 +20,8 @@ def train_model(
     model_type: str = "lightgbm",
     do_fine_tuning: bool = True,
 ) -> Annotated[
-    RegressorMixin, ArtifactConfig(name="sklearn_regressor", is_model_artifact=True)
+    RegressorMixin,
+    ArtifactConfig(name="sklearn_regressor", is_model_artifact=True),
 ]:
     """
     Args:
@@ -38,15 +39,21 @@ def train_model(
 
         if model_type == "lightgbm":
             mlflow.lightgbm.autolog()
-            lgm_model = model_training.lightgbm_trainer(fine_tuning=do_fine_tuning)
+            lgm_model = model_training.lightgbm_trainer(
+                fine_tuning=do_fine_tuning
+            )
             return lgm_model
         elif model_type == "randomforest":
             mlflow.sklearn.autolog()
-            rf_model = model_training.random_forest_trainer(fine_tuning=do_fine_tuning)
+            rf_model = model_training.random_forest_trainer(
+                fine_tuning=do_fine_tuning
+            )
             return rf_model
         elif model_type == "xgboost":
             mlflow.xgboost.autolog()
-            xgb_model = model_training.xgboost_trainer(fine_tuning=do_fine_tuning)
+            xgb_model = model_training.xgboost_trainer(
+                fine_tuning=do_fine_tuning
+            )
             return xgb_model
         else:
             raise ValueError("Model type not supported")

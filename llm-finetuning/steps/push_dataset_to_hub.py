@@ -29,7 +29,9 @@ def push_to_hub(repo_id: str, dataset_id: str):
     api = HfApi(token=token)
 
     folder_path = api.snapshot_download(
-        repo_id=repo_id, allow_patterns=f"*.{FEATHER_FORMAT}", repo_type="dataset"
+        repo_id=repo_id,
+        allow_patterns=f"*.{FEATHER_FORMAT}",
+        repo_type="dataset",
     )
     feather_files = glob.glob(f"{folder_path}/raw_csvs/*.{FEATHER_FORMAT}")
     print(folder_path, len(feather_files))

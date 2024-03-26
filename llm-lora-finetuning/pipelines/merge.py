@@ -22,7 +22,9 @@ from zenml.config import DockerSettings
 
 @pipeline(
     settings={
-        "docker": DockerSettings(apt_packages=["git"], requirements="requirements.txt")
+        "docker": DockerSettings(
+            apt_packages=["git"], requirements="requirements.txt"
+        )
     }
 )
 def llm_lora_merging() -> None:

@@ -17,7 +17,9 @@ class FeatureEngineererConfig(BaseParameters):
     select_features: List[str] = ["SEASON_ID", "TEAM_ABBREVIATION", "FG3M"]
 
 
-def limit_timeframe(dataset: pd.DataFrame, years_to_subtract: int) -> pd.DataFrame:
+def limit_timeframe(
+    dataset: pd.DataFrame, years_to_subtract: int
+) -> pd.DataFrame:
     """We use only the last couple of years of data in order to not fit
     to outdated playing styles"""
 
@@ -49,7 +51,9 @@ def feature_engineer(
         OPPONENT_TEAM_ABBREVIATION - column
         """
         teams_in_match = pd.unique(match_rows["TEAM_ABBREVIATION"])
-        opponent_dir = {teams_in_match[i]: teams_in_match[::-1][i] for i in [0, 1]}
+        opponent_dir = {
+            teams_in_match[i]: teams_in_match[::-1][i] for i in [0, 1]
+        }
         match_rows["OPPONENT_TEAM_ABBREVIATION"] = match_rows.apply(
             lambda x: opponent_dir[x["TEAM_ABBREVIATION"]], axis=1
         )
@@ -57,7 +61,9 @@ def feature_engineer(
 
     select_features = config.select_features + ["GAME_ID"]
 
-    dataset = limit_timeframe(dataset=dataset, years_to_subtract=config.history_length)
+    dataset = limit_timeframe(
+        dataset=dataset, years_to_subtract=config.history_length
+    )
 
     return (
         dataset[select_features]

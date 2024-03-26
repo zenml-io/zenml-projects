@@ -72,7 +72,9 @@ class Hyperparameter_Optimization:
         """
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-7, 10.0),
+            "learning_rate": trial.suggest_loguniform(
+                "learning_rate", 1e-7, 10.0
+            ),
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
         }
         reg = XGBClassifier(**param)

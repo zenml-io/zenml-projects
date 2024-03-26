@@ -76,7 +76,9 @@ def feature_engineering(
     )
     destination_dir = Path("data") / config.dataset_name
 
-    helper_module = importlib.import_module(f"scripts.prepare_{config.dataset_name}")
+    helper_module = importlib.import_module(
+        f"scripts.prepare_{config.dataset_name}"
+    )
     prepare_function = getattr(helper_module, "prepare")
 
     prepare_function(

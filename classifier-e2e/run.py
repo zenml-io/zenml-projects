@@ -166,7 +166,9 @@ def main(
         feature_engineering.with_options(**pipeline_args)(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
-        train_dataset_artifact = client.get_artifact_version(train_dataset_name)
+        train_dataset_artifact = client.get_artifact_version(
+            train_dataset_name
+        )
         test_dataset_artifact = client.get_artifact_version(test_dataset_name)
         logger.info(
             "The latest feature engineering pipeline produced the following "
@@ -194,8 +196,12 @@ def main(
                 test_dataset_name, test_dataset_version_name
             )
             # Use versioned artifacts
-            run_args_train["train_dataset_id"] = train_dataset_artifact_version.id
-            run_args_train["test_dataset_id"] = test_dataset_artifact_version.id
+            run_args_train[
+                "train_dataset_id"
+            ] = train_dataset_artifact_version.id
+            run_args_train[
+                "test_dataset_id"
+            ] = test_dataset_artifact_version.id
 
         run_args_train["random_state"] = random.randint(0, 1000)
 
@@ -217,12 +223,16 @@ def main(
             config_folder, f"training_xgboost{custom_training_suffix}.yaml"
         )
         training.with_options(**pipeline_args)(**run_args_train)
-        logger.info("Training pipeline with XGBoost finished successfully!\n\n")
+        logger.info(
+            "Training pipeline with XGBoost finished successfully!\n\n"
+        )
 
     if inference_pipeline:
         run_args_inference = {}
         pipeline_args = {"enable_cache": False}
-        pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, "inference.yaml"
+        )
 
         # Configure the pipeline
         inference_configured = inference.with_options(**pipeline_args)
@@ -233,11 +243,15 @@ def main(
         zenml_model = client.get_model_version(
             config["model"]["name"], config["model"]["version"]
         )
-        preprocess_pipeline_artifact = zenml_model.get_artifact("preprocess_pipeline")
+        preprocess_pipeline_artifact = zenml_model.get_artifact(
+            "preprocess_pipeline"
+        )
 
         # Use the metadata of feature engineering pipeline artifact
         #  to get the random state and target column
-        random_state = preprocess_pipeline_artifact.run_metadata["random_state"].value
+        random_state = preprocess_pipeline_artifact.run_metadata[
+            "random_state"
+        ].value
         target = preprocess_pipeline_artifact.run_metadata["target"].value
         run_args_inference["random_state"] = random_state
         run_args_inference["target"] = target

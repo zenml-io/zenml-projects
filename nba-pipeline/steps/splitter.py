@@ -37,7 +37,9 @@ def split(dataset: pd.DataFrame, target_col: str):
 
 
 @step(enable_cache=False)
-def sklearn_splitter(dataset: pd.DataFrame, config: SklearnSplitterConfig) -> Output(
+def sklearn_splitter(
+    dataset: pd.DataFrame, config: SklearnSplitterConfig
+) -> Output(
     train_x=pd.DataFrame,
     train_y=pd.DataFrame,
     test_x=pd.DataFrame,
@@ -61,7 +63,12 @@ def sklearn_splitter(dataset: pd.DataFrame, config: SklearnSplitterConfig) -> Ou
     dataset_x, dataset_y = split(dataset, config.target_col)
 
     if (
-        any([split not in config.ratios for split in ["train", "test", "validation"]])
+        any(
+            [
+                split not in config.ratios
+                for split in ["train", "test", "validation"]
+            ]
+        )
         or len(config.ratios) != 3
     ):
         raise KeyError(
@@ -146,7 +153,9 @@ def reference_data_splitter(
 
     print(reference_dataset.shape[0])
 
-    new_data = dataset[dataset["GAME_DATE"] >= config.new_data_split_date][cols]
+    new_data = dataset[dataset["GAME_DATE"] >= config.new_data_split_date][
+        cols
+    ]
     print(new_data.shape[0])
     return reference_dataset, new_data
 
@@ -182,5 +191,6 @@ def get_coming_week_data(
     )
     dataset = dataset.set_index(pd.DatetimeIndex(dataset["DATETIME"]))
     return dataset[
-        (dataset["GAME_DAY"] > initial_date) & (dataset["GAME_DAY"] < next_week)
+        (dataset["GAME_DAY"] > initial_date)
+        & (dataset["GAME_DAY"] < next_week)
     ]

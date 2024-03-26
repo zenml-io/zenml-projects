@@ -30,7 +30,9 @@ def model_loader() -> Output(model_path=str, model=torch.nn.Module):
     try:
         model = last_run.get_step("trainer").output.read()
     except KeyError:
-        print(f"Skipping {last_run.name} as it does not contain the trainer step")
+        print(
+            f"Skipping {last_run.name} as it does not contain the trainer step"
+        )
     model_saver(model, model_path)
     try:
         sys.path.insert(0, "yolov5")

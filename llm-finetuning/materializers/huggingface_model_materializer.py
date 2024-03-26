@@ -54,7 +54,9 @@ class HFTrainerMaterializer(BaseMaterializer):
         args = yaml_utils.read_json(self.uri, DEFAULT_ARGS_JSON)
         config = AutoConfig.from_pretrained(temp_dir.name)
         architecture = config.architectures[0]
-        model_cls = getattr(importlib.import_module("transformers"), architecture)
+        model_cls = getattr(
+            importlib.import_module("transformers"), architecture
+        )
         model = model_cls.from_pretrained(temp_dir.name)
         return Trainer(
             model=model,

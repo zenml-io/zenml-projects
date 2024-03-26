@@ -23,7 +23,9 @@ from lit_gpt.utils import CLI
 def prepare(
     destination_path: Path = Path("data/lima"),
     test_split_fraction: float = 0.1,
-    checkpoint_dir: Path = Path("checkpoints/stabilityai/stablelm-base-alpha-3b"),
+    checkpoint_dir: Path = Path(
+        "checkpoints/stabilityai/stablelm-base-alpha-3b"
+    ),
     mask_inputs: bool = False,  # as in alpaca-lora
     seed: int = 42,
     include_multiturn_conversations: bool = False,
@@ -46,7 +48,9 @@ def prepare(
         )
 
     if max_seq_length is None:
-        with open(checkpoint_dir / "lit_config.json", "r", encoding="utf-8") as file:
+        with open(
+            checkpoint_dir / "lit_config.json", "r", encoding="utf-8"
+        ) as file:
             config = json.load(file)
             max_seq_length = config["block_size"]
 
@@ -56,7 +60,9 @@ def prepare(
     from datasets import load_dataset
 
     dataset = load_dataset(data_repo_id, token=access_token)
-    train_data = format_dataset(dataset["train"], include_multiturn_conversations)
+    train_data = format_dataset(
+        dataset["train"], include_multiturn_conversations
+    )
 
     # test set is present but doesn't have any solutions, so we cannot use it here
     # but have to create our own

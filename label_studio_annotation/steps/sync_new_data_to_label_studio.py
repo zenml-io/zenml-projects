@@ -22,7 +22,9 @@ from zenml.integrations.label_studio.steps import (
 IMAGE_REGEX_FILTER = ".*(jpe?g|png|JPE?G|PNG)"
 
 
-_, label_config_type = generate_image_classification_label_config(["aria", "not_aria"])
+_, label_config_type = generate_image_classification_label_config(
+    ["aria", "not_aria"]
+)
 
 
 zenml_sync_params = LabelStudioDatasetSyncParameters(

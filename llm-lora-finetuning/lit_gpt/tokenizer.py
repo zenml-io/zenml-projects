@@ -23,7 +23,9 @@ class Tokenizer:
         if (vocabulary_path := checkpoint_dir / "tokenizer.model").is_file():
             from sentencepiece import SentencePieceProcessor
 
-            self.processor = SentencePieceProcessor(model_file=str(vocabulary_path))
+            self.processor = SentencePieceProcessor(
+                model_file=str(vocabulary_path)
+            )
             self.backend = "sentencepiece"
             self.bos_id = self.processor.bos_id()
             self.eos_id = self.processor.eos_id()
@@ -41,14 +43,19 @@ class Tokenizer:
                     config = json.load(fp)
                 bos_token = config.get("bos_token")
                 self.bos_id = (
-                    self.token_to_id(bos_token) if bos_token is not None else None
+                    self.token_to_id(bos_token)
+                    if bos_token is not None
+                    else None
                 )
                 eos_token = config.get("eos_token")
                 self.eos_id = (
-                    self.token_to_id(eos_token) if eos_token is not None else None
+                    self.token_to_id(eos_token)
+                    if eos_token is not None
+                    else None
                 )
             if (
-                special_tokens_path := checkpoint_dir / "generation_config.json"
+                special_tokens_path := checkpoint_dir
+                / "generation_config.json"
             ).is_file():
                 with open(special_tokens_path) as fp:
                     config = json.load(fp)
@@ -86,7 +93,8 @@ class Tokenizer:
         with open(tokenizer_config_path) as fp:
             config = json.load(fp)
         if any(
-            config.get(check, False) for check in ("add_bos_token", "add_prefix_space")
+            config.get(check, False)
+            for check in ("add_bos_token", "add_prefix_space")
         ):
             return True
         # for examples that also use the Llama tokenizer, but do not have or set add_bos_token to True.

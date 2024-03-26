@@ -25,7 +25,9 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     help="Here you can choose what type of model should be trained.",
 )
 def run_main(
-    stop_service: bool, model_type: str, model_name="Customer_Satisfaction_Predictor"
+    stop_service: bool,
+    model_type: str,
+    model_name="Customer_Satisfaction_Predictor",
 ):
     """Run the mlflow example pipeline"""
     if stop_service:

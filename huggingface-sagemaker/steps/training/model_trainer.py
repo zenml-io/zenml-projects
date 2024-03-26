@@ -64,7 +64,9 @@ def model_trainer(
     eval_batch_size: Optional[int] = 16,
     weight_decay: Optional[float] = 0.01,
 ) -> Tuple[
-    Annotated[PreTrainedModel, ArtifactConfig(name="model", is_model_artifact=True)],
+    Annotated[
+        PreTrainedModel, ArtifactConfig(name="model", is_model_artifact=True)
+    ],
     Annotated[
         PreTrainedTokenizerBase,
         ArtifactConfig(name="tokenizer", is_model_artifact=True),

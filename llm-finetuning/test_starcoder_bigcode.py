@@ -14,7 +14,7 @@ def tf_mnist_pipeline(epochs: int = 5, lr: float = 0.001):
     """Links all the steps together in a pipeline."""
     # Link all the steps together by calling them and passing the output
     # of one step as the input
-    
+
 #     x_train, x_test, y_train, y_test = RandomSplit(test_size=0.2)(
 #         dataset=iris_data_loader()
 #     )
@@ -26,3 +26,5 @@ def tf_mnist_pipeline(epochs: int = 5, lr: float = 0.001):
     )
     model = TFFeed(epochs=epochs, lr=lr)(
         x_train=x_train
+
+        

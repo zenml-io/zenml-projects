@@ -47,7 +47,9 @@ class HFSagemakerModelDeployer(BaseModelDeployer):
     """Huggingface Sagemaker model deployer stack component implementation."""
 
     NAME: ClassVar[str] = "Huggingface Sagemaker"
-    FLAVOR: ClassVar[Type[BaseModelDeployerFlavor]] = HFSagemakerModelDeployerFlavor
+    FLAVOR: ClassVar[
+        Type[BaseModelDeployerFlavor]
+    ] = HFSagemakerModelDeployerFlavor
 
     @property
     def config(self) -> HFSagemakerModelDeployerConfig:
@@ -160,7 +162,9 @@ class HFSagemakerModelDeployer(BaseModelDeployer):
         if service:
             # update an equivalent service in place
             service.update(config)
-            logger.info(f"Updating an existing Seldon deployment service: {service}")
+            logger.info(
+                f"Updating an existing Seldon deployment service: {service}"
+            )
         else:
             # create a new service
             service = HFSagemakerDeploymentService(config=config)

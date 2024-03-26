@@ -22,7 +22,9 @@ def model_promoter(mse: float, stage: str = "production") -> bool:
     zenml_model = get_step_context().model
 
     # Get the previous model version at the production stage
-    previous_production_model = Model(name=zenml_model.name, version="production")
+    previous_production_model = Model(
+        name=zenml_model.name, version="production"
+    )
 
     try:
         # In case there already is a model version at the correct stage

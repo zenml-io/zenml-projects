@@ -92,7 +92,9 @@ def evaluate(
     checkpoint_dir = checkpoint_root_dir / config.model_repo
 
     if checkpoint_dir.exists():
-        logger.info("Checkpoint directory already exists, skipping download...")
+        logger.info(
+            "Checkpoint directory already exists, skipping download..."
+        )
     else:
         download_from_hub(
             repo_id=config.model_repo,

@@ -76,7 +76,10 @@ def sentinment_analysis_training_pipeline(
 
     # Execute Feature Engineering Pipeline
     if dataset_artifact_id is None:
-        tokenizer, tokenized_data = sentinment_analysis_feature_engineering_pipeline(
+        (
+            tokenizer,
+            tokenized_data,
+        ) = sentinment_analysis_feature_engineering_pipeline(
             lower_case=lower_case,
             padding=padding,
             max_seq_length=max_seq_length,
