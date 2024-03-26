@@ -16,9 +16,9 @@ class DataProcessor:
         """Initialize the DataProcessor class."""
         pass
 
-    def encode_categorical_columns(
-        self, data: pd.DataFrame
-    ) -> Output(data=pd.DataFrame):
+    def encode_categorical_columns(self, data: pd.DataFrame) -> Output(
+        data=pd.DataFrame
+    ):
         """
         Encode categorical columns to numeric values using LabelEncoder.
 
@@ -69,9 +69,9 @@ class DataProcessor:
         except Exception as e:
             logger.error(e)
 
-    def drop_columns(
-        self, data: pd.DataFrame
-    ) -> Output(output_data=pd.DataFrame):
+    def drop_columns(self, data: pd.DataFrame) -> Output(
+        output_data=pd.DataFrame
+    ):
         """
         Drop columns from the dataframe by using several methods.
 
@@ -123,9 +123,9 @@ class DataProcessor:
         except Exception as e:
             logger.error(e)
 
-    def handle_missing_values(
-        self, data: pd.DataFrame
-    ) -> Output(data=pd.DataFrame):
+    def handle_missing_values(self, data: pd.DataFrame) -> Output(
+        data=pd.DataFrame
+    ):
         """
         Handle missing values by filling them with mean values.
 

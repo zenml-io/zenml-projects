@@ -4,9 +4,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
-from zenml.integrations.mlflow.model_deployers import MLFlowModelDeployer
-
 from run_deployment import run_main
+from zenml.integrations.mlflow.model_deployers import MLFlowModelDeployer
 
 
 def main():
@@ -69,7 +68,7 @@ def main():
 
         service = model_deployer.find_model_server(
             pipeline_name="continuous_deployment_pipeline",
-            pipeline_step_name="mlflow_model_deployer_step"
+            pipeline_step_name="mlflow_model_deployer_step",
         )[0]
         if service is None:
             st.write(

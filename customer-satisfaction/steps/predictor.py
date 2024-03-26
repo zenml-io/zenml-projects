@@ -1,8 +1,9 @@
+import json
+
+import numpy as np
+import pandas as pd
 from zenml import step
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
-import numpy as np
-import json
-import pandas as pd
 
 
 @step(enable_cache=False)

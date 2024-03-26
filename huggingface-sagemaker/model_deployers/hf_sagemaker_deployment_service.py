@@ -129,7 +129,9 @@ class HFSagemakerDeploymentConfig(ServiceConfig):
                 the expected annotations or it contains an invalid or
                 incompatible Seldon Core service configuration.
         """
-        config_data = deployment.metadata.annotations.get("zenml.service_config")
+        config_data = deployment.metadata.annotations.get(
+            "zenml.service_config"
+        )
         if not config_data:
             raise ValueError(
                 f"The given deployment resource does not contain a "
@@ -174,7 +176,9 @@ class HFSagemakerDeploymentService(BaseDeploymentService):
         self, config: HFSagemakerDeploymentConfig
     ) -> sagemaker.Session:
         """Returns sagemaker session from connector"""
-        session = sagemaker.Session(boto3.Session(**config.sagemaker_session_args))
+        session = sagemaker.Session(
+            boto3.Session(**config.sagemaker_session_args)
+        )
         return session
 
     def check_status(self) -> Tuple[ServiceState, str]:
@@ -201,7 +205,8 @@ class HFSagemakerDeploymentService(BaseDeploymentService):
         if deployment.is_failed():
             return (
                 ServiceState.ERROR,
-                f"Seldon Core deployment '{name}' failed: " f"{deployment.get_error()}",
+                f"Seldon Core deployment '{name}' failed: "
+                f"{deployment.get_error()}",
             )
 
         pending_message = deployment.get_pending_message() or ""

@@ -17,9 +17,9 @@ class ModelNameConfig(BaseParameters):
 
 
 @step
-def model_trainer(
-    train: pd.DataFrame, config: ModelNameConfig
-) -> Output(model=ClassifierMixin):
+def model_trainer(train: pd.DataFrame, config: ModelNameConfig) -> Output(
+    model=ClassifierMixin
+):
     """Trains a specified model."""
     try:
         x_train, x_test, y_train, y_test = train_test_split(

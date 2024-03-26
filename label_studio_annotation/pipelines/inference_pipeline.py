@@ -19,7 +19,6 @@ from steps.prediction_steps import (
     predictor,
 )
 from steps.sync_new_data_to_label_studio import data_sync
-
 from zenml import pipeline
 from zenml.logger import get_logger
 

@@ -20,7 +20,7 @@ class IngestData:
 
 @step
 def ingest_data() -> pd.DataFrame:
-    """ Ingest Data and return a Dataframe with the whole dataset.
+    """Ingest Data and return a Dataframe with the whole dataset.
 
     Returns:
         df: pd.DataFrame

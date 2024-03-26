@@ -23,7 +23,6 @@ import torch.optim as optim
 from PIL import Image
 from steps.get_or_create_dataset import LABELS
 from torchvision import models, transforms
-
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.integrations.label_studio.label_studio_utils import (

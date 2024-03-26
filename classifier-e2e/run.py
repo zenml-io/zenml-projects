@@ -26,7 +26,6 @@ from pipelines import (
     inference,
     training,
 )
-
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -204,7 +203,7 @@ def main(
                 "test_dataset_id"
             ] = test_dataset_artifact_version.id
 
-        run_args_train["random_state"] = random.randint(0,1000)
+        run_args_train["random_state"] = random.randint(0, 1000)
 
         # Run the SGD pipeline
         pipeline_args = {}
@@ -224,7 +223,9 @@ def main(
             config_folder, f"training_xgboost{custom_training_suffix}.yaml"
         )
         training.with_options(**pipeline_args)(**run_args_train)
-        logger.info("Training pipeline with XGBoost finished successfully!\n\n")
+        logger.info(
+            "Training pipeline with XGBoost finished successfully!\n\n"
+        )
 
     if inference_pipeline:
         run_args_inference = {}

@@ -1,17 +1,18 @@
 import os
+import tarfile
+import tempfile
 from typing import Type, Union
 
+import joblib
+from sagemaker import Predictor
+from sklearn.base import ClassifierMixin
+from sklearn.linear_model import SGDClassifier
+from xgboost import XGBClassifier
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.materializers.built_in_materializer import BuiltInMaterializer
-from sklearn.linear_model import SGDClassifier
-from xgboost import XGBClassifier
-import tarfile
-import tempfile
-import joblib
-from sklearn.base import ClassifierMixin
-from sagemaker import Predictor
+
 
 class SagemakerMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES = (ClassifierMixin,)
@@ -77,9 +78,7 @@ class SagemakerPredictorMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES = (Predictor,)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.SERVICE
 
-    def load(
-        self, data_type: Type[Predictor]
-    ) -> Predictor:
+    def load(self, data_type: Type[Predictor]) -> Predictor:
         """Read from artifact store."""
         return Predictor(endpoint_name=BuiltInMaterializer(self.uri).load(str))
 

@@ -16,15 +16,14 @@
 #
 
 
-from zenml import pipeline
-from zenml.client import Client
-from zenml.logger import get_logger
-
 from steps import (
     deploy_hf_to_sagemaker,
     notify_on_failure,
     notify_on_success,
 )
+from zenml import pipeline
+from zenml.client import Client
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

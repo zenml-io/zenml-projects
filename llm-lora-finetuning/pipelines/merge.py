@@ -15,10 +15,9 @@
 # limitations under the License.
 #
 
+from steps import merge
 from zenml import pipeline
 from zenml.config import DockerSettings
-
-from steps import merge
 
 
 @pipeline(

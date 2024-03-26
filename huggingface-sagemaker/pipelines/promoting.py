@@ -16,15 +16,14 @@
 #
 
 
-from zenml import pipeline
-from zenml.logger import get_logger
-
 from steps import (
     notify_on_failure,
     notify_on_success,
     promote_get_metrics,
     promote_metric_compare_promoter,
 )
+from zenml import pipeline
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
