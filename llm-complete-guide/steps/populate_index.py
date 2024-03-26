@@ -66,8 +66,6 @@ def index_generator(
     table_create_command = f"""
     CREATE TABLE IF NOT EXISTS embeddings (
                 id SERIAL PRIMARY KEY,
-                title TEXT,
-                url TEXT,
                 content TEXT,
                 tokens INTEGER,
                 embedding VECTOR({EMBEDDING_DIMENSIONALITY})
@@ -80,22 +78,16 @@ def index_generator(
 
     # Insert data only if it doesn't already exist
     for i, doc in enumerate(documents):
-        title = doc.metadata.get("title", "")
-        url = doc.metadata.get("url", "")
         content = doc.page_content
-        tokens = len(
-            content.split()
-        )  # Approximate token count based on word count
+        tokens = len(content.split())  # Approximate token count based on word count
         embedding = embeddings[i].tolist()
 
-        cur.execute(
-            "SELECT COUNT(*) FROM embeddings WHERE content = %s", (content,)
-        )
+        cur.execute("SELECT COUNT(*) FROM embeddings WHERE content = %s", (content,))
         count = cur.fetchone()[0]
         if count == 0:
             cur.execute(
-                "INSERT INTO embeddings (title, url, content, tokens, embedding) VALUES (%s, %s, %s, %s, %s)",
-                (title, url, content, tokens, embedding),
+                "INSERT INTO embeddings (content, tokens, embedding) VALUES (%s, %s, %s)",
+                (content, tokens, embedding),
             )
             conn.commit()
 
