@@ -24,6 +24,7 @@ from zenml.logger import get_logger
 from pipelines import (
     llm_basic_rag,
 )
+from utils.llm_utils import process_input_with_retrieval
 
 logger = get_logger(__name__)
 
@@ -48,8 +49,16 @@ Examples:
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
 )
+@click.option(
+    "--rag-query",
+    "rag_query",
+    type=str,
+    required=False,
+    help="Query the RAG model.",
+)
 def main(
     basic_rag: bool = False,
+    rag_query: Optional[str] = None,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -58,6 +67,11 @@ def main(
         no_cache: If `True` cache will be disabled.
     """
     pipeline_args = {"enable_cache": not no_cache}
+
+    if rag_query:
+        # query the llm
+        response = process_input_with_retrieval(rag_query)
+        print(response)
 
     if basic_rag:
         llm_basic_rag.with_options(**pipeline_args)()

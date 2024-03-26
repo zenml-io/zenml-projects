@@ -17,3 +17,4 @@ def llm_basic_rag() -> None:
     processed_docs = preprocess_documents(documents=docs)
     embeddings = generate_embeddings(split_documents=processed_docs)
     index_generator(embeddings=embeddings, documents=docs)
+

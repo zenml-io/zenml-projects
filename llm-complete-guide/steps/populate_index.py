@@ -3,15 +3,15 @@ from typing import Annotated, List
 from zenml import ArtifactConfig, step, log_artifact_metadata
 from langchain.docstore.document import Document
 from langchain_text_splitters import CharacterTextSplitter
-from zenml.client import Client
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import psycopg2
 from pgvector.psycopg2 import register_vector
 import math
+from utils.llm_utils import get_db_conn
 
 EMBEDDINGS_MODEL = "all-distilroberta-v1"
-CHUNK_SIZE = 512
+CHUNK_SIZE = 256
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
     768  # Update this to match the dimensionality of the new model
@@ -57,17 +57,7 @@ def index_generator(
     embeddings: np.ndarray,
     documents: List[Document],
 ) -> None:
-    pg_password = Client().get_secret("postgres_db").secret_values["password"]
-
-    CONNECTION_DETAILS = {
-        "user": "postgres.jjpynzoqhdifcfroyfon",
-        "password": pg_password,
-        "host": "aws-0-eu-central-1.pooler.supabase.com",
-        "port": "5432",
-        "dbname": "postgres",
-    }
-
-    conn = psycopg2.connect(**CONNECTION_DETAILS)
+    conn = get_db_conn()
     cur = conn.cursor()
 
     # Install pgvector if not already installed
