@@ -14,8 +14,7 @@
 
 from typing import List
 from typing_extensions import Annotated
-from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from zenml import step, log_artifact_metadata
+from zenml import step
 
 
 @step
@@ -35,16 +34,21 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-
-    # We comment this out to make this pipeline faster
-    # examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(docs_url)
-    # website_urls = get_all_pages(website_url)
-    # all_urls = docs_urls + website_urls + examples_readme_urls
-    all_urls = docs_urls
-    log_artifact_metadata(
-        metadata={
-            "count": len(all_urls),
-        },
-    )
-    return all_urls
+    # # We comment this out to make this pipeline faster
+    # # examples_readme_urls = get_nested_readme_urls(repo_url)
+    # docs_urls = get_all_pages(docs_url)
+    # # website_urls = get_all_pages(website_url)
+    # # all_urls = docs_urls + website_urls + examples_readme_urls
+    # all_urls = docs_urls
+    # log_artifact_metadata(
+    #     metadata={
+    #         "count": len(all_urls),
+    #     },
+    # )
+    # return all_urls
+    # TODO: revert once url scraping is fixed
+    return [
+        docs_url,
+        "https://docs.zenml.io/getting-started/installation",
+        "https://docs.zenml.io/getting-started/core-concepts",
+    ]
