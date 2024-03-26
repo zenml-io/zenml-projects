@@ -12,6 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+import re
 from functools import lru_cache
 from logging import getLogger
 from time import sleep
@@ -29,17 +30,68 @@ RATE_LIMIT = 5  # Maximum number of requests per second
 
 def is_valid_url(url: str, base: str) -> bool:
     """
-    Check if the given URL is valid and has the same base as the provided base.
+    Check if the given URL is valid, has the same base as the provided base,
+    and does not contain any version-specific paths.
 
     Args:
         url (str): The URL to check.
         base (str): The base URL to compare against.
 
     Returns:
-        bool: True if the URL is valid and has the same base, False otherwise.
+        bool: True if the URL is valid, has the same base, and does not contain version-specific paths, False otherwise.
     """
     parsed = urlparse(url)
-    return bool(parsed.netloc) and parsed.netloc == base
+    if not bool(parsed.netloc) or parsed.netloc != base:
+        return False
+
+    # Check if the URL contains a version pattern (e.g., /v/0.x.x/)
+    version_pattern = r"/v/0\.\d+\.\d+/"
+    return not re.search(version_pattern, url)
+
+
+def get_all_pages(url: str) -> List[str]:
+    """
+    Retrieve all pages with the same base as the given URL.
+
+    Args:
+        url (str): The URL to retrieve pages from.
+
+    Returns:
+        List[str]: A list of all pages with the same base.
+    """
+    logger.info(f"Scraping all pages from {url}...")
+    base_url = urlparse(url).netloc
+    pages = crawl(url, base_url)
+    logger.info(f"Found {len(pages)} pages.")
+    logger.info("Done scraping pages.")
+    return list(pages)
+
+
+def crawl(url: str, base: str, visited: Set[str] = None) -> Set[str]:
+    """
+    Recursively crawl a URL and its links, retrieving all valid links with the same base.
+
+    Args:
+        url (str): The URL to crawl.
+        base (str): The base URL to compare against.
+        visited (Set[str]): A set of URLs that have been visited. Defaults to None.
+
+    Returns:
+        Set[str]: A set of all valid links with the same base.
+    """
+    if visited is None:
+        visited = set()
+
+    visited.add(url)
+    logger.debug(f"Crawling URL: {url}")
+    links = get_all_links(url, base)
+
+    for link in links:
+        if link not in visited:
+            visited.update(crawl(link, base, visited))
+            sleep(1 / RATE_LIMIT)  # Rate limit the recursive calls
+
+    return visited
 
 
 @sleep_and_retry
@@ -71,50 +123,6 @@ def get_all_links(url: str, base: str) -> List[str]:
 
     logger.debug(f"Found {len(links)} valid links from {url}")
     return links
-
-
-def crawl(url: str, base: str, visited: Set[str] = None) -> Set[str]:
-    """
-    Recursively crawl a URL and its links, retrieving all valid links with the same base.
-
-    Args:
-        url (str): The URL to crawl.
-        base (str): The base URL to compare against.
-        visited (Set[str]): A set of URLs that have been visited. Defaults to None.
-
-    Returns:
-        Set[str]: A set of all valid links with the same base.
-    """
-    if visited is None:
-        visited = set()
-
-    visited.add(url)
-    links = get_all_links(url, base)
-
-    for link in links:
-        if link not in visited:
-            visited.update(crawl(link, base, visited))
-            sleep(1 / RATE_LIMIT)  # Rate limit the recursive calls
-
-    return visited
-
-
-def get_all_pages(url: str) -> List[str]:
-    """
-    Retrieve all pages with the same base as the given URL.
-
-    Args:
-        url (str): The URL to retrieve pages from.
-
-    Returns:
-        List[str]: A list of all pages with the same base.
-    """
-    logger.info(f"Scraping all pages from {url}...")
-    base_url = urlparse(url).netloc
-    pages = crawl(url, base_url)
-    logger.info(f"Found {len(pages)} pages.")
-    logger.info("Done scraping pages.")
-    return list(pages)
 
 
 @sleep_and_retry
