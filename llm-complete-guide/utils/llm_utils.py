@@ -3,13 +3,14 @@ import logging
 import numpy as np
 import psycopg2
 from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
-from openai import OpenAI
+import litellm
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
 from zenml.client import Client
 
-openai_client = OpenAI()
+# Configure the logging level for the root logger
+logging.getLogger().setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +48,17 @@ def get_completion_from_messages(
         model = "gpt-4-0125-preview"
     elif model == "gpt35":
         model = "gpt-3.5-turbo"
-    completion = openai_client.chat.completions.create(
+    elif model == "claude3":
+        model = "claude-3-opus-20240229"
+    elif model == "claudehaiku":
+        model = "claude-3-haiku-20240307"
+    completion_response = litellm.completion(
         model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
     )
-    return completion.choices[0].message.content
+    return completion_response.choices[0].message.content
 
 
 # Helper function: get embeddings for a text

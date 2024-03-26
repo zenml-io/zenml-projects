@@ -58,7 +58,14 @@ Examples:
 @click.option(
     "--model",
     "model",
-    type=click.Choice(["gpt4", "gpt35"]),
+    type=click.Choice(
+        [
+            "gpt4",
+            "gpt35",
+            "claude3",
+            "claudehaiku",
+        ]
+    ),
     required=False,
     default="gpt4",
     help="The model to use for the completion.",
