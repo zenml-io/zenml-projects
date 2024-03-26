@@ -6,8 +6,7 @@ from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
 from zenml.client import Client
 
-OPENAI_MODEL = "gpt-3.5-turbo"
-EMBEDDINGS_MODEL = "all-distilroberta-v1"
+from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
 
 openai_client = OpenAI()
 

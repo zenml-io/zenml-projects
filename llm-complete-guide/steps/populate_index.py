@@ -10,15 +10,16 @@ from sentence_transformers import SentenceTransformer
 from utils.llm_utils import get_db_conn
 from zenml import ArtifactConfig, log_artifact_metadata, step
 
-EMBEDDINGS_MODEL = "all-distilroberta-v1"
-CHUNK_SIZE = 256
-CHUNK_OVERLAP = 50
-EMBEDDING_DIMENSIONALITY = (
-    768  # Update this to match the dimensionality of the new model
+
+from constants import (
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    EMBEDDING_DIMENSIONALITY,
+    EMBEDDINGS_MODEL,
 )
 
 
-@step(enable_cache=False)
+@step
 def preprocess_documents(
     documents: List[Document],
 ) -> Annotated[List[Document], ArtifactConfig(name="split_document_chunks")]:
@@ -35,7 +36,7 @@ def preprocess_documents(
     return text_splitter.split_documents(documents)
 
 
-@step(enable_cache=False)
+@step
 def generate_embeddings(
     split_documents: List[Document],
 ) -> Annotated[np.ndarray, ArtifactConfig(name="embeddings")]:

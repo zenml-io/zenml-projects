@@ -49,9 +49,3 @@ def url_scraper(
         },
     )
     return all_urls
-    # # TODO: revert once url scraping is fixed
-    # return [
-    #     docs_url,
-    #     "https://docs.zenml.io/getting-started/installation",
-    #     "https://docs.zenml.io/getting-started/core-concepts",
-    # ]

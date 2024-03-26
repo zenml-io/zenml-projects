@@ -1,3 +1,7 @@
+# export your OpenAI key
+# SUPABASE credentials?
+
+
 # ☮️ Fine-tuning open source LLMs using MLOps pipelines
 
 Welcome to your newly generated "ZenML LLM Finetuning project" project! This is

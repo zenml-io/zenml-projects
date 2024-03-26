@@ -23,9 +23,9 @@ import requests
 from bs4 import BeautifulSoup
 from ratelimit import limits, sleep_and_retry
 
-logger = getLogger(__name__)
+from constants import RATE_LIMIT
 
-RATE_LIMIT = 5  # Maximum number of requests per second
+logger = getLogger(__name__)
 
 
 def is_valid_url(url: str, base: str) -> bool:
