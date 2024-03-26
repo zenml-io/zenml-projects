@@ -21,9 +21,8 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
-from ratelimit import limits, sleep_and_retry
-
 from constants import RATE_LIMIT
+from ratelimit import limits, sleep_and_retry
 
 logger = getLogger(__name__)
 

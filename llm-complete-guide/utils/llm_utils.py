@@ -1,14 +1,17 @@
+import logging
+
 import numpy as np
 import psycopg2
+from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
 from openai import OpenAI
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
 from zenml.client import Client
 
-from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
-
 openai_client = OpenAI()
+
+logger = logging.getLogger(__name__)
 
 
 def get_db_conn() -> connection:
@@ -38,8 +41,12 @@ def get_topn_similar_docs(query_embedding, conn, n: int = 5):
 
 
 def get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
+    messages, model=OPENAI_MODEL, temperature=0.4, max_tokens=1000
 ):
+    if model == "gpt4":
+        model = "gpt-4-0125-preview"
+    elif model == "gpt35":
+        model = "gpt-3.5-turbo"
     completion = openai_client.chat.completions.create(
         model=model,
         messages=messages,
@@ -55,7 +62,7 @@ def get_embeddings(text):
     return model.encode(text)
 
 
-def process_input_with_retrieval(input: str) -> str:
+def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
     """Process the input with retrieval.
 
     Args:
@@ -75,6 +82,9 @@ def process_input_with_retrieval(input: str) -> str:
     You are a friendly chatbot. \
     You can answer questions about ZenML, its features and its use cases. \
     You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant
+    answers. \
+    You do not make up answers or provide opinions that you don't have information to support. \
     """
 
     # Prepare messages to pass to model
@@ -90,5 +100,5 @@ def process_input_with_retrieval(input: str) -> str:
             + "\n".join(doc[0] for doc in related_docs),
         },
     ]
-
-    return get_completion_from_messages(messages)
+    logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
+    return get_completion_from_messages(messages, model=model)

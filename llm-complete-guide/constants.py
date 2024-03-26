@@ -10,5 +10,6 @@ EMBEDDING_DIMENSIONALITY = (
 RATE_LIMIT = 5  # Maximum number of requests per second
 
 # LLM Utils constants
-OPENAI_MODEL = "gpt-3.5-turbo"
+OPENAI_MODEL = "gpt-4-0125-preview"
+# OPENAI_MODEL = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "all-distilroberta-v1"

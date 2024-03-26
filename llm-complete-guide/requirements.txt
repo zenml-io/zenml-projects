@@ -1,7 +1,7 @@
 zenml
 langchain-community
 ratelimit
-langchain<0.1.0
+langchain>=0.0.325
 langchain-openai
 pgvector
 psycopg2-binary
@@ -9,6 +9,5 @@ beautifulsoup4
 unstructured
 pandas
 numpy
-# tiktoken
-# sentence-transformers
-nomic
+sentence-transformers
+litellm

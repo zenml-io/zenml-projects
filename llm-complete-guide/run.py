@@ -18,6 +18,7 @@
 from typing import Optional
 
 import click
+from constants import OPENAI_MODEL
 from pipelines import (
     llm_basic_rag,
 )
@@ -54,9 +55,18 @@ Examples:
     required=False,
     help="Query the RAG model.",
 )
+@click.option(
+    "--model",
+    "model",
+    type=click.Choice(["gpt4", "gpt35"]),
+    required=False,
+    default="gpt4",
+    help="The model to use for the completion.",
+)
 def main(
     basic_rag: bool = False,
     rag_query: Optional[str] = None,
+    model: str = OPENAI_MODEL,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -68,7 +78,7 @@ def main(
 
     if rag_query:
         # query the llm
-        response = process_input_with_retrieval(rag_query)
+        response = process_input_with_retrieval(rag_query, model=model)
         print(response)
 
     if basic_rag:

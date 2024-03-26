@@ -2,21 +2,18 @@ import math
 from typing import Annotated, List
 
 import numpy as np
-import psycopg2
-from langchain.docstore.document import Document
-from langchain_text_splitters import CharacterTextSplitter
-from pgvector.psycopg2 import register_vector
-from sentence_transformers import SentenceTransformer
-from utils.llm_utils import get_db_conn
-from zenml import ArtifactConfig, log_artifact_metadata, step
-
-
 from constants import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
 )
+from langchain.docstore.document import Document
+from langchain_text_splitters import CharacterTextSplitter
+from pgvector.psycopg2 import register_vector
+from sentence_transformers import SentenceTransformer
+from utils.llm_utils import get_db_conn
+from zenml import ArtifactConfig, log_artifact_metadata, step
 
 
 @step
