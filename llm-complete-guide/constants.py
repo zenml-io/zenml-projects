@@ -10,6 +10,11 @@ EMBEDDING_DIMENSIONALITY = (
 RATE_LIMIT = 5  # Maximum number of requests per second
 
 # LLM Utils constants
-OPENAI_MODEL = "gpt-4-0125-preview"
-# OPENAI_MODEL = "gpt-3.5-turbo"
+OPENAI_MODEL = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "all-distilroberta-v1"
+MODEL_NAME_MAP = {
+    "gpt4": "gpt-4-0125-preview",
+    "gpt35": "gpt-3.5-turbo",
+    "claude3": "claude-3-opus-20240229",
+    "claudehaiku": "claude-3-haiku-20240307",
+}

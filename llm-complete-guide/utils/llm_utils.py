@@ -10,7 +10,7 @@ from typing import List
 import litellm
 import numpy as np
 import psycopg2
-from constants import EMBEDDINGS_MODEL, OPENAI_MODEL
+from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
@@ -22,11 +22,28 @@ logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> List[str]:
+def split_text_with_regex(
+    text: str, separator: str, keep_separator: bool
+) -> List[str]:
+    """Splits a given text using a specified separator.
+
+    This function splits the input text using the provided separator. The separator can be included or excluded
+    from the resulting splits based on the value of keep_separator.
+
+    Args:
+        text (str): The text to be split.
+        separator (str): The separator to use for splitting the text.
+        keep_separator (bool): If True, the separator is kept in the resulting splits. If False, the separator is removed.
+
+    Returns:
+        List[str]: A list of strings resulting from splitting the input text.
+    """
     if separator:
         if keep_separator:
             _splits = re.split(f"({separator})", text)
-            splits = [_splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)]
+            splits = [
+                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
+            ]
             if len(_splits) % 2 == 0:
                 splits += _splits[-1:]
             splits = [_splits[0]] + splits
@@ -45,6 +62,22 @@ def split_text(
     keep_separator: bool = False,
     strip_whitespace: bool = True,
 ) -> List[str]:
+    """Splits a given text into chunks of specified size with optional overlap.
+
+    Args:
+        text (str): The text to be split.
+        separator (str, optional): The separator to use for splitting the text. Defaults to "\n\n".
+        chunk_size (int, optional): The maximum size of each chunk. Defaults to 4000.
+        chunk_overlap (int, optional): The size of the overlap between consecutive chunks. Defaults to 200.
+        keep_separator (bool, optional): If True, the separator is kept in the resulting splits. If False, the separator is removed. Defaults to False.
+        strip_whitespace (bool, optional): If True, leading and trailing whitespace is removed from each split. Defaults to True.
+
+    Raises:
+        ValueError: If chunk_overlap is larger than chunk_size.
+
+    Returns:
+        List[str]: A list of strings resulting from splitting the input text into chunks.
+    """
     if chunk_overlap > chunk_size:
         raise ValueError(
             f"Got a larger chunk overlap ({chunk_overlap}) than chunk size "
@@ -91,6 +124,19 @@ def split_documents(
     keep_separator: bool = False,
     strip_whitespace: bool = True,
 ) -> List[str]:
+    """Splits a list of documents into chunks.
+
+    Args:
+        documents (List[str]): The list of documents to be split.
+        separator (str, optional): The separator to use for splitting the documents. Defaults to "\n\n".
+        chunk_size (int, optional): The maximum size of each chunk. Defaults to 4000.
+        chunk_overlap (int, optional): The size of the overlap between consecutive chunks. Defaults to 200.
+        keep_separator (bool, optional): If True, the separator is kept in the resulting splits. If False, the separator is removed. Defaults to False.
+        strip_whitespace (bool, optional): If True, leading and trailing whitespace is removed from each split. Defaults to True.
+
+    Returns:
+        List[str]: A list of chunked documents.
+    """
     chunked_documents = []
     for doc in documents:
         chunked_documents.extend(
@@ -107,6 +153,14 @@ def split_documents(
 
 
 def get_db_conn() -> connection:
+    """Establishes and returns a connection to the PostgreSQL database.
+
+    This function retrieves the password for the PostgreSQL database from a secret store,
+    then uses it along with other connection details to establish a connection.
+
+    Returns:
+        connection: A psycopg2 connection object to the PostgreSQL database.
+    """
     pg_password = Client().get_secret("postgres_db").secret_values["password"]
 
     CONNECTION_DETAILS = {
@@ -121,10 +175,19 @@ def get_db_conn() -> connection:
 
 
 def get_topn_similar_docs(query_embedding, conn, n: int = 5):
+    """Fetches the top n most similar documents to the given query embedding from the database.
+
+    Args:
+        query_embedding (list): The query embedding to compare against.
+        conn (psycopg2.extensions.connection): The database connection object.
+        n (int, optional): The number of similar documents to fetch. Defaults to 5.
+
+    Returns:
+        list: A list of tuples containing the content of the top n most similar documents.
+    """
     embedding_array = np.array(query_embedding)
     register_vector(conn)
     cur = conn.cursor()
-    # Get the top n most similar documents using the KNN <=> operator
     cur.execute(
         f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
         (embedding_array,),
@@ -135,14 +198,18 @@ def get_topn_similar_docs(query_embedding, conn, n: int = 5):
 def get_completion_from_messages(
     messages, model=OPENAI_MODEL, temperature=0.4, max_tokens=1000
 ):
-    if model == "gpt4":
-        model = "gpt-4-0125-preview"
-    elif model == "gpt35":
-        model = "gpt-3.5-turbo"
-    elif model == "claude3":
-        model = "claude-3-opus-20240229"
-    elif model == "claudehaiku":
-        model = "claude-3-haiku-20240307"
+    """Generates a completion response from the given messages using the specified model.
+
+    Args:
+        messages (list): The list of messages to generate a completion from.
+        model (str, optional): The model to use for generating the completion. Defaults to OPENAI_MODEL.
+        temperature (float, optional): The temperature to use for the completion. Defaults to 0.4.
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 1000.
+
+    Returns:
+        str: The content of the completion response.
+    """
+    model = MODEL_NAME_MAP.get(model, model)
     completion_response = litellm.completion(
         model=model,
         messages=messages,
@@ -152,8 +219,15 @@ def get_completion_from_messages(
     return completion_response.choices[0].message.content
 
 
-# Helper function: get embeddings for a text
 def get_embeddings(text):
+    """Generates embeddings for the given text using a SentenceTransformer model.
+
+    Args:
+        text (str): The text to generate embeddings for.
+
+    Returns:
+        np.ndarray: The generated embeddings.
+    """
     model = SentenceTransformer(EMBEDDINGS_MODEL)
     return model.encode(text)
 

@@ -79,7 +79,11 @@ def main(
     """Main entry point for the pipeline execution.
 
     Args:
-        no_cache: If `True` cache will be disabled.
+        basic_rag (bool): If `True`, the basic RAG pipeline will be run.
+        rag_query (Optional[str]): If provided, the RAG model will be queried with this string.
+        model (str): The model to use for the completion. Default is OPENAI_MODEL.
+        no_cache (bool): If `True`, cache will be disabled.
+
     """
     pipeline_args = {"enable_cache": not no_cache}
 

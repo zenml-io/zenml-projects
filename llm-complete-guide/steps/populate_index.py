@@ -26,6 +26,18 @@ logger = logging.getLogger(__name__)
 def preprocess_documents(
     documents: List[str],
 ) -> Annotated[List[str], ArtifactConfig(name="split_chunks")]:
+    """
+    Preprocesses a list of documents by splitting them into chunks.
+
+    Args:
+        documents (List[str]): A list of documents to be preprocessed.
+
+    Returns:
+        Annotated[List[str], ArtifactConfig(name="split_chunks")]: A list of preprocessed documents annotated with an ArtifactConfig.
+
+    Raises:
+        Exception: If an error occurs during preprocessing.
+    """
     try:
         log_artifact_metadata(
             artifact_name="split_chunks",
@@ -46,6 +58,18 @@ def preprocess_documents(
 def generate_embeddings(
     split_documents: List[str],
 ) -> Annotated[np.ndarray, ArtifactConfig(name="embeddings")]:
+    """
+    Generates embeddings for a list of split documents using a SentenceTransformer model.
+
+    Args:
+        split_documents (List[str]): A list of documents that have been split into chunks.
+
+    Returns:
+        Annotated[np.ndarray, ArtifactConfig(name="embeddings")]: The generated embeddings for each document chunk, annotated with an ArtifactConfig.
+
+    Raises:
+        Exception: If an error occurs during the generation of embeddings.
+    """
     try:
         model = SentenceTransformer(EMBEDDINGS_MODEL)
 
@@ -67,6 +91,21 @@ def index_generator(
     embeddings: np.ndarray,
     documents: List[str],
 ) -> None:
+    """
+    Generates an index for the given embeddings and documents.
+
+    This function creates a database connection, installs the pgvector extension if not already installed,
+    creates an embeddings table if it doesn't exist, and inserts the embeddings and documents into the table.
+    It then calculates the index parameters according to best practices and creates an index on the embeddings
+    using the cosine distance measure.
+
+    Args:
+        embeddings (np.ndarray): The embeddings to index.
+        documents (List[str]): The documents corresponding to the embeddings.
+
+    Raises:
+        Exception: If an error occurs during the index generation.
+    """
     try:
         conn = get_db_conn()
         with conn.cursor() as cur:
