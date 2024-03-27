@@ -54,7 +54,7 @@ def preprocess_documents(
         raise
 
 
-@step
+@step(enable_cache=False)
 def generate_embeddings(
     split_documents: List[str],
 ) -> Annotated[np.ndarray, ArtifactConfig(name="embeddings")]:
