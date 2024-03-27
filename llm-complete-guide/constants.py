@@ -11,7 +11,7 @@ RATE_LIMIT = 5  # Maximum number of requests per second
 
 # LLM Utils constants
 OPENAI_MODEL = "gpt-3.5-turbo"
-EMBEDDINGS_MODEL = "all-distilroberta-v1"
+EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L12-v2"
 MODEL_NAME_MAP = {
     "gpt4": "gpt-4-0125-preview",
     "gpt35": "gpt-3.5-turbo",
