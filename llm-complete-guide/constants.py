@@ -1,5 +1,5 @@
 # Vector Store constants
-CHUNK_SIZE = 256
+CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
     384  # Update this to match the dimensionality of the new model
