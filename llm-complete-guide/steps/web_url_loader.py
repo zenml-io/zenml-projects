@@ -14,13 +14,14 @@
 
 from typing import List
 
-from langchain.docstore.document import Document
-from langchain_community.document_loaders import UnstructuredURLLoader
+# from langchain.docstore.document import Document
+# from langchain_community.document_loaders import UnstructuredURLLoader
+from unstructured.partition.html import partition_html
 from zenml import step
 
 
 @step
-def web_url_loader(urls: List[str]) -> List[Document]:
+def web_url_loader(urls: List[str]) -> List[str]:
     """Loads documents from a list of URLs.
 
     Args:
@@ -29,7 +30,9 @@ def web_url_loader(urls: List[str]) -> List[Document]:
     Returns:
         List of langchain documents.
     """
-    loader = UnstructuredURLLoader(
-        urls=urls,
-    )
-    return loader.load()
+    document_texts = []
+    for url in urls:
+        elements = partition_html(url="https://python.org/")
+        text = "\n\n".join([str(el) for el in elements])
+        document_texts.append(text)
+    return document_texts

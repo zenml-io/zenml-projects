@@ -1,4 +1,6 @@
 import logging
+import re
+from typing import List
 
 import litellm
 import numpy as np
@@ -13,6 +15,94 @@ from zenml.client import Client
 logging.getLogger().setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
+
+
+def split_text_with_regex(
+    text: str, separator: str, keep_separator: bool
+) -> List[str]:
+    if separator:
+        if keep_separator:
+            _splits = re.split(f"({separator})", text)
+            splits = [
+                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
+            ]
+            if len(_splits) % 2 == 0:
+                splits += _splits[-1:]
+            splits = [_splits[0]] + splits
+        else:
+            splits = re.split(separator, text)
+    else:
+        splits = list(text)
+    return [s for s in splits if s != ""]
+
+
+def split_text(
+    text: str,
+    separator: str = "\n\n",
+    chunk_size: int = 4000,
+    chunk_overlap: int = 200,
+    keep_separator: bool = False,
+    strip_whitespace: bool = True,
+) -> List[str]:
+    if chunk_overlap > chunk_size:
+        raise ValueError(
+            f"Got a larger chunk overlap ({chunk_overlap}) than chunk size "
+            f"({chunk_size}), should be smaller."
+        )
+
+    separator_regex = re.escape(separator)
+    splits = split_text_with_regex(text, separator_regex, keep_separator)
+    _separator = "" if keep_separator else separator
+
+    chunks = []
+    current_chunk = ""
+
+    for split in splits:
+        if strip_whitespace:
+            split = split.strip()
+
+        if len(current_chunk) + len(split) + len(_separator) <= chunk_size:
+            current_chunk += split + _separator
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.rstrip(_separator))
+            current_chunk = split + _separator
+
+    if current_chunk:
+        chunks.append(current_chunk.rstrip(_separator))
+
+    final_chunks = []
+    for i in range(len(chunks)):
+        if i == 0:
+            final_chunks.append(chunks[i])
+        else:
+            overlap = chunks[i - 1][-chunk_overlap:]
+            final_chunks.append(overlap + chunks[i])
+
+    return final_chunks
+
+
+def split_documents(
+    documents: List[str],
+    separator: str = "\n\n",
+    chunk_size: int = 4000,
+    chunk_overlap: int = 200,
+    keep_separator: bool = False,
+    strip_whitespace: bool = True,
+) -> List[str]:
+    chunked_documents = []
+    for doc in documents:
+        chunked_documents.extend(
+            split_text(
+                doc,
+                separator=separator,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                keep_separator=keep_separator,
+                strip_whitespace=strip_whitespace,
+            )
+        )
+    return chunked_documents
 
 
 def get_db_conn() -> connection:

@@ -8,34 +8,31 @@ from constants import (
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
 )
-from langchain.docstore.document import Document
-from langchain_text_splitters import CharacterTextSplitter
 from pgvector.psycopg2 import register_vector
 from sentence_transformers import SentenceTransformer
-from utils.llm_utils import get_db_conn
+from utils.llm_utils import get_db_conn, split_documents
 from zenml import ArtifactConfig, log_artifact_metadata, step
 
 
 @step
 def preprocess_documents(
-    documents: List[Document],
-) -> Annotated[List[Document], ArtifactConfig(name="split_document_chunks")]:
+    documents: List[str],
+) -> Annotated[List[str], ArtifactConfig(name="split_chunks")]:
     log_artifact_metadata(
-        artifact_name="split_document_chunks",
+        artifact_name="split_chunks",
         metadata={
             "chunk_size": CHUNK_SIZE,
             "chunk_overlap": CHUNK_OVERLAP,
         },
     )
-    text_splitter = CharacterTextSplitter(
-        chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
+    return split_documents(
+        documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
     )
-    return text_splitter.split_documents(documents)
 
 
 @step
 def generate_embeddings(
-    split_documents: List[Document],
+    split_documents: List[str],
 ) -> Annotated[np.ndarray, ArtifactConfig(name="embeddings")]:
     model = SentenceTransformer(EMBEDDINGS_MODEL)
 
@@ -46,14 +43,13 @@ def generate_embeddings(
             "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,
         },
     )
-    raw_texts = [doc.page_content for doc in split_documents]
-    return model.encode(raw_texts)
+    return model.encode(split_documents)
 
 
 @step(enable_cache=False)
 def index_generator(
     embeddings: np.ndarray,
-    documents: List[Document],
+    documents: List[str],
 ) -> None:
     conn = get_db_conn()
     cur = conn.cursor()
@@ -78,11 +74,15 @@ def index_generator(
 
     # Insert data only if it doesn't already exist
     for i, doc in enumerate(documents):
-        content = doc.page_content
-        tokens = len(content.split())  # Approximate token count based on word count
+        content = doc
+        tokens = len(
+            content.split()
+        )  # Approximate token count based on word count
         embedding = embeddings[i].tolist()
 
-        cur.execute("SELECT COUNT(*) FROM embeddings WHERE content = %s", (content,))
+        cur.execute(
+            "SELECT COUNT(*) FROM embeddings WHERE content = %s", (content,)
+        )
         count = cur.fetchone()[0]
         if count == 0:
             cur.execute(
