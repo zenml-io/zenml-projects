@@ -1,3 +1,7 @@
+# credit to
+# https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
+# for providing the base implementation for this indexing functionality
+
 import logging
 import math
 from typing import Annotated, List

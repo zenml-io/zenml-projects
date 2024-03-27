@@ -1,3 +1,8 @@
+# credit to langchain for the original base implementation of splitting
+# functionality
+# https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
+
+
 import logging
 import re
 from typing import List
@@ -17,15 +22,11 @@ logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def split_text_with_regex(
-    text: str, separator: str, keep_separator: bool
-) -> List[str]:
+def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> List[str]:
     if separator:
         if keep_separator:
             _splits = re.split(f"({separator})", text)
-            splits = [
-                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
-            ]
+            splits = [_splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)]
             if len(_splits) % 2 == 0:
                 splits += _splits[-1:]
             splits = [_splits[0]] + splits
