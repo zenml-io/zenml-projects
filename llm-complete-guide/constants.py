@@ -1,5 +1,4 @@
 # Vector Store constants
-EMBEDDINGS_MODEL = "all-distilroberta-v1"
 CHUNK_SIZE = 256
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
