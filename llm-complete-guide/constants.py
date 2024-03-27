@@ -3,7 +3,7 @@ EMBEDDINGS_MODEL = "all-distilroberta-v1"
 CHUNK_SIZE = 256
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
-    768  # Update this to match the dimensionality of the new model
+    384  # Update this to match the dimensionality of the new model
 )
 
 # Scraping constants
