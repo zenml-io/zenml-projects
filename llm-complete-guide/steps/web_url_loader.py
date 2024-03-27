@@ -14,8 +14,6 @@
 
 from typing import List
 
-# from langchain.docstore.document import Document
-# from langchain_community.document_loaders import UnstructuredURLLoader
 from unstructured.partition.html import partition_html
 from zenml import step
 
@@ -32,7 +30,7 @@ def web_url_loader(urls: List[str]) -> List[str]:
     """
     document_texts = []
     for url in urls:
-        elements = partition_html(url="https://python.org/")
+        elements = partition_html(url=url)
         text = "\n\n".join([str(el) for el in elements])
         document_texts.append(text)
     return document_texts
