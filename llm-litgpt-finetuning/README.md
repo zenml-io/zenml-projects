@@ -1,6 +1,6 @@
-# ☮️ Fine-tuning open source LLMs using MLOps pipelines
+# ☮️ Fine-tuning open source LLMs using MLOps pipelines with LitGPT
 
-Welcome to your newly generated "ZenML LLM Finetuning project" project! This is
+Welcome to your newly generated "ZenML LLM LitGPT Finetuning" project! This is
 a great way to get hands-on with ZenML using production-like template. 
 The project contains a collection of ZenML steps, pipelines and other artifacts
 and useful resources that can serve as a solid starting point for finetuning open-source LLMs using ZenML.
