@@ -83,3 +83,8 @@ question2 = (
 answer2 = answer_question(question2, corpus)
 print(f"Question: {question2}")
 print(f"Answer: {answer2}")
+
+irrelevant_question_3 = "What is the capital of Panglossia?"
+answer3 = answer_question(irrelevant_question_3, corpus)
+print(f"Question: {irrelevant_question_3}")
+print(f"Answer: {answer3}")
