@@ -33,12 +33,6 @@ logger = get_logger(__name__)
 ZenML LLM Complete Guide project CLI v0.1.0.
 
 Run the ZenML LLM RAG complete guide project pipelines.
-
-Examples:
-
-  \b
-  # Run the feature feature engineering pipeline
-    python run.py --feature-pipeline
 """
 )
 @click.option(
@@ -88,7 +82,6 @@ def main(
     pipeline_args = {"enable_cache": not no_cache}
 
     if rag_query:
-        # query the llm
         response = process_input_with_retrieval(rag_query, model=model)
         print(response)
 
