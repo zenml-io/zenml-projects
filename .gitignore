@@ -144,3 +144,4 @@ zencoder/cloned_public_repos
 *wandb*
 
 .DS_Store
+.local
