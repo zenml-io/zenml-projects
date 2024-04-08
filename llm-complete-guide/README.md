@@ -1,104 +1,120 @@
-# export your OpenAI key
-# SUPABASE credentials?
+# 🦜 Production-ready RAG pipelines for chat applications
 
+This project showcases how you can work up from a simple RAG pipeline to a more complex setup that
+involves finetuning embeddings, reranking retrieved documents, and even finetuning the
+LLM itself. We'll do this all for a use case relevant to ZenML: a question
+answering system that can provide answers to common questions about ZenML. This
+will help you understand how to apply the concepts covered in this guide to your
+own projects.
 
-# ☮️ Fine-tuning open source LLMs using MLOps pipelines
+Contained within this project is all the code needed to run the full pipelines.
+You can follow along [in our guide](https://docs.zenml.io/user-guide/llmops-guide/) to understand the decisions and tradeoffs
+behind the pipeline and step code contained here. You'll build a solid understanding of how to leverage
+LLMs in your MLOps workflows using ZenML, enabling you to build powerful,
+scalable, and maintainable LLM-powered applications.
 
-Welcome to your newly generated "ZenML LLM Finetuning project" project! This is
-a great way to get hands-on with ZenML using production-like template. 
-The project contains a collection of ZenML steps, pipelines and other artifacts
-and useful resources that can serve as a solid starting point for finetuning open-source LLMs using ZenML.
-
-Using these pipelines, we can run the data-preparation and model finetuning with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guide/production-guide/configure-pipeline) and letting ZenML take care of tracking our metadata and [containerizing our pipelines](https://docs.zenml.io/user-guide/advanced-guide/infrastructure-management/containerize-your-pipeline).
-
-<div align="center">
-  <br/>
-    <a href="https://cloud.zenml.io">
-      <img alt="Model version metadata" src=".assets/model.png">
-    </a>
-  <br/>
-</div>
+This project contains all the pipeline and step code necessary to follow along
+with the guide. You'll need a PostgreSQL database to store the embeddings; full
+instructions are provided below for how to set that up.
 
 ## :earth_americas: Inspiration and Credit
 
-This project heavily relies on the [Lit-GPT project](https://github.com/Lightning-AI/litgpt) of the amazing people at Lightning AI. We used [this blogpost](https://lightning.ai/pages/community/lora-insights/#toc14) to get started with LoRA and QLoRA and modified the commands they recommend to make them work using ZenML.
+The RAG pipeline relies on code from [this Timescale
+blog](https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/)
+that showcased using PostgreSQL as a vector database. We adapted it for our use
+case and adapted it to work with Supabase.
 
 ## 🏃 How to run
 
-In this project we provide a few predefined configuration files for finetuning models on the [Alpaca](https://huggingface.co/datasets/tatsu-lab/alpaca) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
+This project showcases production-ready pipelines so we use some cloud
+infrastructure to manage the assets. You can run the pipelines locally using a
+local PostgreSQL database, but we encourage you to use a cloud database for
+production use cases.
 
-```bash
-# Set up a Python virtual environment, if you haven't already
-python3 -m venv .venv
-source .venv/bin/activate
+### Connecting to ZenML Cloud
 
-# Install requirements
-pip install -r requirements.txt
-```
+If you run the pipeline using ZenML Cloud you'll have access to the managed
+dashboard which will allow you to get started quickly. We offer a free trial so
+you can try out the platform without any cost. Visit the [ZenML Cloud
+dashboard](https://cloud.zenml.io/) to get started.
 
-### Combined feature engineering and finetuning pipeline
+### Setting up Supabase
 
-The easiest way to get started with just a single command is to run the finetuning pipeline with the `finetune-alpaca.yaml` configuration file, which will do both feature engineering and finetuning:
+[Supabase](https://supabase.com/) is a cloud provider that provides a PostgreSQL database. It's simple to
+use and has a free tier that should be sufficient for this project. Once you've
+created a Supabase account and organisation, you'll need to create a new
+project.
 
-```shell
-python run.py --finetuning-pipeline --config finetune-alpaca.yaml
-```
+![](.assets/supabase-create-project.png)
 
-When running the pipeline like this, the trained adapter will be stored in the ZenML artifact store. You can optionally upload the adapter, the merged model or both by specifying the `adapter_output_repo` and `merged_output_repo` parameters in the configuration file.
+You'll then want to connect to this database instance by getting the connection
+string from the Supabase dashboard.
 
+![](.assets/supabase-connection-string.png)
 
-### Evaluation pipeline
-
-Before running this pipeline, you will need to fill in the `adapter_repo` in the `eval.yaml` configuration file. This should point to a huggingface repository that contains the finetuned adapter you got by running the finetuning pipeline.
-
-```shell
-python run.py --eval-pipeline --config eval.yaml
-```
-
-### Merging pipeline
-
-In case you have trained an adapter using the finetuning pipeline, you can merge it with the base model by filling in the `adapter_repo` and `output_repo` parameters in the `merge.yaml` file, and then running:
+You'll then use these details to populate some environment variables where the pipeline code expects them:
 
 ```shell
-python run.py --merge-pipeline --config merge.yaml
+export ZENML_SUPABASE_USER=<your-supabase-user>
+export ZENML_SUPABASE_HOST=<your-supabase-host>
+export ZENML_SUPABASE_PORT=<your-supabase-port>
 ```
 
-### Feature Engineering followed by Finetuning
-
-If you want to finetune your model on a different dataset, you can do so by running the feature engineering pipeline followed by the finetuning pipeline. To define your dataset, take a look at the `scripts/prepare_*` scripts and set the dataset name in the `feature-alpaca.yaml` config file.
+You'll want to save the Supabase database password as a ZenML secret so that it
+isn't stored in plaintext. You can do this by running the following command:
 
 ```shell
-python run.py --feature-pipeline --config feature-alpaca.yaml
-python run.py --finetuning-pipeline --config finetune-from-dataset.yaml
+zenml secret create supabase_postgres_db --password="YOUR_PASSWORD"
 ```
+
+### Running the RAG pipeline
+
+To run the pipeline, you can use the `run.py` script. This script will allow you
+to run the pipelines in the correct order. You can run the script with the
+following command:
+
+```shell
+python run.py --basic-rag
+```
+
+This will run the basic RAG pipeline, which scrapes the ZenML documentation and stores the embeddings in the Supabase database.
+
+### Querying your RAG pipeline assets
+
+Once the pipeline has run successfully, you can query the assets in the Supabase
+database using the `--rag-query` flag as well as passing in the model you'd like
+to use for the LLM.
+
+In order to use the default LLM for this query, you'll need an account
+and an API key from OpenAI specified as another environment variable:
+
+```shell
+export OPENAI_API_KEY=<your-openai-api-key>
+```
+
+When you're ready to make the query, run the following command:
+
+```shell
+python run.py --rag-query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+```
+
+Alternative options for LLMs to use include:
+
+- `gpt4`
+- `gpt35`
+- `claude3`
+- `claudehaiku`
+
+Note that Claude will require a different API key from Anthropic. See [the
+`litellm` docs](https://docs.litellm.ai/docs/providers/anthropic) on how to set this up.
 
 ## ☁️ Running with a remote stack
 
-To finetune an LLM on remote infrastructure, you can either use a remote orchestrator or a remote step operator. Follow these steps to set up a complete remote stack:
-- Register the [orchestrator](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators) (or [step operator](https://docs.zenml.io/stacks-and-components/component-guide/step-operators)) and make sure to configure it in a way so that the finetuning step has access to a GPU with at least 24GB of VRAM. Check out our docs for more [details](https://docs.zenml.io/stacks-and-components/component-guide).
-    - To access GPUs with this amount of VRAM, you might need to increase your GPU quota ([AWS](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html), [GCP](https://console.cloud.google.com/iam-admin/quotas), [Azure](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2#request-quota-and-limit-increases)).
-    - The GPU instance that your finetuning will be running on will have CUDA drivers of a specific version installed. If that CUDA version is not compatible with the one provided by the default Docker image of the finetuning pipeline, you will need to modify it in the configuration file. See [here](https://hub.docker.com/r/pytorch/pytorch/tags) for a list of available PyTorch images.
-    - If you're running out of memory, you can experiment with quantized LoRA (QLoRA) by setting a different value for the `quantize` parameter in the configuration, or reduce the `global_batch_size`/`micro_batch_size`.
-- Register a remote [artifact store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores) and [container registry](https://docs.zenml.io/stacks-and-components/component-guide/container-registries).
-- Register a stack with all these components
-    ```shell
-    zenml stack register llm-finetuning-stack -o <ORCHESTRATOR_NAME> \
-        -a <ARTIFACT_STORE_NAME> \
-        -c <CONTAINER_REGISTRY_NAME> \
-        [-s <STEP_OPERATOR_NAME>]
-    ```
-
-## 💾 Running with custom data
-
-To finetune a model with your custom data, you will need to convert it to a CSV file with the columns described
-[here](https://github.com/Lightning-AI/litgpt/blob/main/tutorials/prepare_dataset.md#preparing-custom-datasets-from-a-csv-file).
-
-Next, update the `configs/feature-custom.yaml` file and set the value of the `csv_path` parameter to that CSV file.
-With all that in place, you can now run the feature engineering pipeline to convert your CSV into the correct format for training and then run the finetuning pipeline as follows:
-```shell
-python run.py --feature-pipeline --config feature-custom.yaml
-python run.py --finetuning-pipeline --config finetune-from-dataset.yaml
-```
+The basic RAG pipeline will run using a local stack, but if you want to improve
+the speed of the embeddings step you might want to consider using a cloud
+orchestrator. Please follow the instructions in [our basic cloud setup guides](https://docs.zenml.io/user-guide/cloud-guide)
+(currently available for [AWS](https://docs.zenml.io/user-guide/cloud-guide/aws-guide) and [GCP](https://docs.zenml.io/user-guide/cloud-guide/gcp-guide)) to learn how you can run the pipelines on
+a remote stack.
 
 ## 📜 Project Structure
 
@@ -106,27 +122,21 @@ The project loosely follows [the recommended ZenML project structure](https://do
 
 ```
 .
-├── configs                         # pipeline configuration files
-│   ├── eval.yaml                   # configuration for the evaluation pipeline
-│   ├── feature-alpaca.yaml         # configuration for the feature engineering pipeline
-│   ├── feature-custom.yaml         # configuration for the feature engineering pipeline
-│   ├── finetune-alpaca.yaml        # configuration for the finetuning pipeline
-│   ├── finetune-from-dataset.yaml  # configuration for the finetuning pipeline
-│   └── merge.yaml                  # configuration for the merging pipeline
-├── pipelines                       # `zenml.pipeline` implementations
-│   ├── evaluate.py                 # Evaluation pipeline
-│   ├── feature_engineering.py      # Feature engineering pipeline
-│   ├── finetuning.py               # Finetuning pipeline
-│   └── merge.py                    # Merging pipeline
-├── steps                           # logically grouped `zenml.steps` implementations
-│   ├── evaluate.py                 # evaluate model performance
-│   ├── feature_engineering.py      # preprocess data
-│   ├── finetune.py                 # finetune a model
-│   ├── merge.py                    # merge model and adapter
-│   ├── params.py                   # shared parameters for steps
-│   └── utils.py                    # utility functions
-├── .dockerignore
-├── README.md                       # this file
-├── requirements.txt                # extra Python dependencies 
-└── run.py                          # CLI tool to run pipelines on ZenML Stack
+├── LICENSE                                             # License file
+├── README.md                                           # This file
+├── constants.py                                        # Constants for the project
+├── pipelines
+│   ├── __init__.py                                    
+│   └── llm_basic_rag.py                                # Basic RAG pipeline
+├── requirements.txt                                    # Requirements file
+├── run.py                                              # Script to run the pipelines
+├── steps
+│   ├── __init__.py                                     
+│   ├── populate_index.py                               # Step to populate the index
+│   ├── url_scraper.py                                  # Step to scrape the URLs
+│   ├── url_scraping_utils.py                           # Utilities for the URL scraper
+│   └── web_url_loader.py                               # Step to load the URLs
+└── utils                                              
+    ├── __init__.py
+    └── llm_utils.py                                    # Utilities related to the LLM
 ```
