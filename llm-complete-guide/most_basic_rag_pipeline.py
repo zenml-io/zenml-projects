@@ -6,11 +6,8 @@ from openai import OpenAI
 
 
 def preprocess_text(text):
-    # Lowercase the text
     text = text.lower()
-    # Remove punctuation
     text = text.translate(str.maketrans("", "", string.punctuation))
-    # Remove extra whitespace
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
@@ -33,27 +30,27 @@ def retrieve_relevant_chunks(query, corpus, top_n=2):
 
 
 def answer_question(query, corpus, top_n=2):
-    if relevant_chunks := retrieve_relevant_chunks(query, corpus, top_n):
-        context = "\n".join(relevant_chunks)
-
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"Based on the provided context, answer the following question: {query}\n\nContext:\n{context}",
-                },
-                {
-                    "role": "user",
-                    "content": query,
-                },
-            ],
-            model="gpt-3.5-turbo",
-        )
-
-        return chat_completion.choices[0].message.content.strip()
-    else:
+    relevant_chunks = retrieve_relevant_chunks(query, corpus, top_n)
+    if not relevant_chunks:
         return "I don't have enough information to answer the question."
+
+    context = "\n".join(relevant_chunks)
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": f"Based on the provided context, answer the following question: {query}\n\nContext:\n{context}",
+            },
+            {
+                "role": "user",
+                "content": query,
+            },
+        ],
+        model="gpt-3.5-turbo",
+    )
+
+    return chat_completion.choices[0].message.content.strip()
 
 
 # Sci-fi themed corpus about "ZenML World"
