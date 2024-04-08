@@ -23,7 +23,9 @@ logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> List[str]:
+def split_text_with_regex(
+    text: str, separator: str, keep_separator: bool
+) -> List[str]:
     """Splits a given text using a specified separator.
 
     This function splits the input text using the provided separator. The separator can be included or excluded
@@ -40,7 +42,9 @@ def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> Li
     if separator:
         if keep_separator:
             _splits = re.split(f"({separator})", text)
-            splits = [_splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)]
+            splits = [
+                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
+            ]
             if len(_splits) % 2 == 0:
                 splits += _splits[-1:]
             splits = [_splits[0]] + splits
@@ -171,7 +175,9 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = Client().get_secret("supabase_postgres_db").secret_values["password"]
+    pg_password = (
+        Client().get_secret("supabase_postgres_db").secret_values["password"]
+    )
 
     local_database_connection = get_local_db_connection_details()
 
