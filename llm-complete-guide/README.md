@@ -7,6 +7,8 @@ answering system that can provide answers to common questions about ZenML. This
 will help you understand how to apply the concepts covered in this guide to your
 own projects.
 
+![](.assets/rag-pipeline-zenml-cloud.png)
+
 Contained within this project is all the code needed to run the full pipelines.
 You can follow along [in our guide](https://docs.zenml.io/user-guide/llmops-guide/) to understand the decisions and tradeoffs
 behind the pipeline and step code contained here. You'll build a solid understanding of how to leverage
@@ -17,7 +19,7 @@ This project contains all the pipeline and step code necessary to follow along
 with the guide. You'll need a PostgreSQL database to store the embeddings; full
 instructions are provided below for how to set that up.
 
-## :earth_americas: Inspiration and Credit
+## 🙏🏻 Inspiration and Credit
 
 The RAG pipeline relies on code from [this Timescale
 blog](https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/)
