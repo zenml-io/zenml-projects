@@ -39,5 +39,5 @@ def llm_basic_rag() -> None:
     urls = url_scraper()
     docs = web_url_loader(urls=urls)
     processed_docs = preprocess_documents(documents=docs)
-    embeddings = generate_embeddings(split_documents=processed_docs)
-    index_generator(documents=docs)
+    embedded_docs = generate_embeddings(split_documents=processed_docs)
+    index_generator(documents=embedded_docs)
