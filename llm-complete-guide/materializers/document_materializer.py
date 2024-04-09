@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 import numpy as np
 from structures import Document
@@ -10,63 +10,75 @@ from zenml.materializers.base_materializer import BaseMaterializer
 
 
 class DocumentMaterializer(BaseMaterializer):
-    ASSOCIATED_TYPES = (Document,)
+    ASSOCIATED_TYPES = (List[Document],)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
 
-    def load(self, data_type: Type[Document]) -> Document:
+    def load(self, data_type: Type[List[Document]]) -> List[Document]:
         """Read from artifact store."""
-        with fileio.open(os.path.join(self.uri, "page_content.txt"), "r") as f:
-            page_content = f.read()
+        documents = []
+        for file_name in fileio.listdir(self.uri):
+            if file_name.startswith("document_") and file_name.endswith(
+                ".json"
+            ):
+                with fileio.open(os.path.join(self.uri, file_name), "r") as f:
+                    document_data = json.load(f)
+                    document = Document(
+                        page_content=document_data["page_content"],
+                        filename=document_data["filename"],
+                        parent_section=document_data["parent_section"],
+                        url=document_data["url"],
+                        embedding=(
+                            np.array(document_data["embedding"])
+                            if document_data["embedding"]
+                            else None
+                        ),
+                        token_count=document_data["token_count"],
+                    )
+                    documents.append(document)
+        return documents
 
-        with fileio.open(os.path.join(self.uri, "metadata.json"), "r") as f:
-            metadata = json.load(f)
-
-        embedding = None
-        if os.path.exists(os.path.join(self.uri, "embedding.npy")):
-            embedding = np.load(os.path.join(self.uri, "embedding.npy"))
-
-        return Document(
-            page_content=page_content,
-            filename=metadata.get("filename"),
-            parent_section=metadata.get("parent_section"),
-            url=metadata.get("url"),
-            embedding=embedding,
-            token_count=metadata.get("token_count"),
-        )
-
-    def save(self, document: Document) -> None:
+    def save(self, documents: List[Document]) -> None:
         """Write to artifact store."""
-        with fileio.open(os.path.join(self.uri, "page_content.txt"), "w") as f:
-            f.write(document.page_content)
-
-        metadata = {
-            "filename": document.filename,
-            "parent_section": document.parent_section,
-            "url": document.url,
-            "token_count": document.token_count,
-        }
-        with fileio.open(os.path.join(self.uri, "metadata.json"), "w") as f:
-            json.dump(metadata, f)
-
-        if document.embedding is not None:
-            np.save(
-                os.path.join(self.uri, "embedding.npy"), document.embedding
-            )
+        for i, document in enumerate(documents):
+            document_data = {
+                "page_content": document.page_content,
+                "filename": document.filename,
+                "parent_section": document.parent_section,
+                "url": document.url,
+                "embedding": (
+                    document.embedding.tolist()
+                    if document.embedding is not None
+                    else None
+                ),
+                "token_count": document.token_count,
+            }
+            with fileio.open(
+                os.path.join(self.uri, f"document_{i}.json"), "w"
+            ) as f:
+                json.dump(document_data, f)
 
     def save_visualizations(
-        self, document: Document
+        self, documents: List[Document]
     ) -> Dict[str, VisualizationType]:
-        """Save visualizations of the document."""
-        visualization_uri = os.path.join(self.uri, "visualization.txt")
-        with fileio.open(visualization_uri, "w") as f:
-            f.write(document.page_content)
-        return {visualization_uri: VisualizationType.TEXT}
+        """Save visualizations of the documents."""
+        visualization_uris = {}
+        for i, document in enumerate(documents):
+            visualization_uri = os.path.join(
+                self.uri, f"visualization_{i}.txt"
+            )
+            with fileio.open(visualization_uri, "w") as f:
+                f.write(document.page_content)
+            visualization_uris[visualization_uri] = VisualizationType.TEXT
+        return visualization_uris
 
-    def extract_metadata(self, document: Document) -> Dict[str, Any]:
-        """Extract metadata from the document."""
-        return {
-            "filename": document.filename,
-            "parent_section": document.parent_section,
-            "url": document.url,
-            "token_count": document.token_count,
+    def extract_metadata(self, documents: List[Document]) -> Dict[str, Any]:
+        """Extract metadata from the documents."""
+        metadata = {
+            "num_documents": len(documents),
+            "total_tokens": sum(
+                doc.token_count
+                for doc in documents
+                if doc.token_count is not None
+            ),
         }
+        return metadata
