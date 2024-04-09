@@ -17,8 +17,9 @@ from typing import List, Optional
 
 import numpy as np
 from unstructured.partition.html import partition_html
-from url_scraping_utils import extract_parent_section
 from zenml import step
+
+from steps.url_scraping_utils import extract_parent_section
 
 
 @dataclass
