@@ -12,3 +12,5 @@ numpy
 sentence-transformers
 litellm
 tiktoken
+umap-learn
+matplotlib
