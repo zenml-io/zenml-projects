@@ -40,4 +40,4 @@ def llm_basic_rag() -> None:
     docs = web_url_loader(urls=urls)
     processed_docs = preprocess_documents(documents=docs)
     embeddings = generate_embeddings(split_documents=processed_docs)
-    index_generator(embeddings=embeddings, documents=docs)
+    index_generator(documents=docs)
