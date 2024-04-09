@@ -12,25 +12,43 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
+from dataclasses import dataclass
+from typing import List, Optional
 
 from unstructured.partition.html import partition_html
 from zenml import step
 
 
+@dataclass
+class Document:
+    """Custom dataclass to represent a document.
+
+    Attributes:
+        page_content: The content of the document.
+        filename: The filename or URL (for web docs) of the document.
+        parent_section: The parent section of the document.
+        url: The URL of the document (if web-derived).
+    """
+    page_content: str
+    filename: Optional[str] = None
+    parent_section: Optional[str] = None
+    url: Optional[str] = None
+
+
 @step
-def web_url_loader(urls: List[str]) -> List[str]:
+def web_url_loader(urls: List[str]) -> List[Document]:
     """Loads documents from a list of URLs.
 
     Args:
         urls: List of URLs to load documents from.
 
     Returns:
-        List of langchain documents.
+        List of custom Document objects.
     """
-    document_texts = []
+    documents = []
     for url in urls:
         elements = partition_html(url=url)
         text = "\n\n".join([str(el) for el in elements])
-        document_texts.append(text)
-    return document_texts
+        document = Document(page_content=text, url=url)
+        documents.append(document)
+    return documents
