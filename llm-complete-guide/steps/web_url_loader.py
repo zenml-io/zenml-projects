@@ -32,6 +32,7 @@ class Document:
         parent_section: The parent section of the document.
         url: The URL of the document (if web-derived).
         embedding: The embedding of the document.
+        token_count: The number of tokens in the document.
     """
 
     page_content: str
@@ -39,6 +40,7 @@ class Document:
     parent_section: Optional[str] = None
     url: Optional[str] = None
     embedding: Optional[np.ndarray] = None
+    token_count: Optional[int] = None
 
 
 @step
@@ -65,4 +67,5 @@ def web_url_loader(urls: List[str]) -> List[Document]:
             parent_section=parent_section,
         )
         documents.append(document)
+
     return documents

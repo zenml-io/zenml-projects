@@ -65,9 +65,11 @@ def preprocess_documents(
                 "chunk_overlap": CHUNK_OVERLAP,
             },
         )
-        return split_documents(
+
+        split_docs = split_documents(
             documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
+        return split_docs
     except Exception as e:
         logger.error(f"Error in preprocess_documents: {e}")
         raise
@@ -76,7 +78,9 @@ def preprocess_documents(
 @step(enable_cache=False)
 def generate_embeddings(
     split_documents: List[Document],
-) -> Annotated[List[Document], ArtifactConfig(name="embeddings")]:
+) -> Annotated[
+    List[Document], ArtifactConfig(name="documents_with_embeddings")
+]:
     """
     Generates embeddings for a list of split documents using a SentenceTransformer model.
 
@@ -105,7 +109,7 @@ def generate_embeddings(
 
         for doc, embedding in zip(split_documents, embeddings):
             doc.embedding = embedding
-
+        breakpoint()
         return split_documents
     except Exception as e:
         logger.error(f"Error in generate_embeddings: {e}")
@@ -142,7 +146,7 @@ def index_generator(
             CREATE TABLE IF NOT EXISTS embeddings (
                         id SERIAL PRIMARY KEY,
                         content TEXT,
-                        tokens INTEGER,
+                        token_count INTEGER,
                         embedding VECTOR({EMBEDDING_DIMENSIONALITY}),
                         filename TEXT,
                         parent_section TEXT,
@@ -157,9 +161,7 @@ def index_generator(
             # Insert data only if it doesn't already exist
             for doc in documents:
                 content = doc.page_content
-                tokens = len(
-                    content.split()
-                )  # Approximate token count based on word count
+                token_count = doc.token_count
                 embedding = doc.embedding.tolist()
                 filename = doc.filename
                 parent_section = doc.parent_section
@@ -172,10 +174,10 @@ def index_generator(
                 count = cur.fetchone()[0]
                 if count == 0:
                     cur.execute(
-                        "INSERT INTO embeddings (content, tokens, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
+                        "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
                         (
                             content,
-                            tokens,
+                            token_count,
                             embedding,
                             filename,
                             parent_section,

@@ -28,6 +28,7 @@ from typing import Dict, List
 import litellm
 import numpy as np
 import psycopg2
+import tiktoken
 from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
@@ -109,6 +110,7 @@ def split_text(
     )
     _separator = "" if keep_separator else separator
 
+    encoding = tiktoken.get_encoding("cl100k_base")
     chunks = []
     current_chunk = ""
 
@@ -120,13 +122,31 @@ def split_text(
             current_chunk += split + _separator
         else:
             if current_chunk:
+                token_count = len(
+                    encoding.encode(current_chunk.rstrip(_separator))
+                )
                 chunks.append(
-                    Document(page_content=current_chunk.rstrip(_separator))
+                    Document(
+                        page_content=current_chunk.rstrip(_separator),
+                        filename=document.filename,
+                        parent_section=document.parent_section,
+                        url=document.url,
+                        token_count=token_count,
+                    )
                 )
             current_chunk = split + _separator
 
     if current_chunk:
-        chunks.append(Document(page_content=current_chunk.rstrip(_separator)))
+        token_count = len(encoding.encode(current_chunk.rstrip(_separator)))
+        chunks.append(
+            Document(
+                page_content=current_chunk.rstrip(_separator),
+                filename=document.filename,
+                parent_section=document.parent_section,
+                url=document.url,
+                token_count=token_count,
+            )
+        )
 
     final_chunks = []
     for i in range(len(chunks)):
@@ -134,8 +154,17 @@ def split_text(
             final_chunks.append(chunks[i])
         else:
             overlap = chunks[i - 1].page_content[-chunk_overlap:]
+            token_count = len(
+                encoding.encode(overlap + chunks[i].page_content)
+            )
             final_chunks.append(
-                Document(page_content=overlap + chunks[i].page_content)
+                Document(
+                    page_content=overlap + chunks[i].page_content,
+                    filename=document.filename,
+                    parent_section=document.parent_section,
+                    url=document.url,
+                    token_count=token_count,
+                )
             )
 
     return final_chunks
