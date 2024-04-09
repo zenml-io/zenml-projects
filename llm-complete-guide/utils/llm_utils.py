@@ -174,12 +174,25 @@ def get_local_db_connection_details() -> Dict[str, str]:
     """Returns the connection details for the local database.
 
     Returns:
-        dict: A dictionary containing the connection details for the local database.
+        dict: A dictionary containing the connection details for the local
+        database.
+
+    Raises:
+        RuntimeError: If the environment variables ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, or ZENML_POSTGRES_PORT are not set.
     """
+    user = os.getenv("ZENML_POSTGRES_USER")
+    host = os.getenv("ZENML_POSTGRES_HOST")
+    port = os.getenv("ZENML_POSTGRES_PORT")
+
+    if not user or not host or not port:
+        raise RuntimeError(
+            "Please make sure to set the environment variables: ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, and ZENML_POSTGRES_PORT"
+        )
+
     return {
-        "user": os.getenv("ZENML_POSTGRES_USER"),
-        "host": os.getenv("ZENML_POSTGRES_HOST"),
-        "port": os.getenv("ZENML_POSTGRES_PORT"),
+        "user": user,
+        "host": host,
+        "port": port,
     }
 
 
