@@ -33,7 +33,7 @@ from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
-from steps.web_url_loader import Document
+from structures import Document
 from zenml.client import Client
 
 # Configure the logging level for the root logger

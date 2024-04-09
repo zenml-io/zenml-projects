@@ -17,7 +17,7 @@
 
 from steps.populate_index import (
     generate_embeddings,
-    index_generator,
+    # index_generator,
     preprocess_documents,
 )
 from steps.url_scraper import url_scraper
@@ -40,4 +40,4 @@ def llm_basic_rag() -> None:
     docs = web_url_loader(urls=urls)
     processed_docs = preprocess_documents(documents=docs)
     embedded_docs = generate_embeddings(split_documents=processed_docs)
-    index_generator(documents=embedded_docs)
+    # index_generator(documents=embedded_docs)

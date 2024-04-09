@@ -12,38 +12,17 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
-import numpy as np
+from materializers.document_materializer import DocumentMaterializer
+from structures import Document
 from unstructured.partition.html import partition_html
 from zenml import step
 
 from steps.url_scraping_utils import extract_parent_section
 
 
-@dataclass
-class Document:
-    """Custom dataclass to represent a document.
-
-    Attributes:
-        page_content: The content of the document.
-        filename: The filename or URL (for web docs) of the document.
-        parent_section: The parent section of the document.
-        url: The URL of the document (if web-derived).
-        embedding: The embedding of the document.
-        token_count: The number of tokens in the document.
-    """
-
-    page_content: str
-    filename: Optional[str] = None
-    parent_section: Optional[str] = None
-    url: Optional[str] = None
-    embedding: Optional[np.ndarray] = None
-    token_count: Optional[int] = None
-
-
-@step
+@step(output_materializers=DocumentMaterializer)
 def web_url_loader(urls: List[str]) -> List[Document]:
     """Loads documents from a list of URLs.
 

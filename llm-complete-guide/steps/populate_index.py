@@ -30,18 +30,18 @@ from constants import (
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
 )
+from materializers.document_materializer import DocumentMaterializer
 from pgvector.psycopg2 import register_vector
 from sentence_transformers import SentenceTransformer
+from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
 from zenml import ArtifactConfig, log_artifact_metadata, step
-
-from steps.web_url_loader import Document
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False)
+@step(enable_cache=False, output_materializers=DocumentMaterializer)
 def preprocess_documents(
     documents: List[Document],
 ) -> Annotated[List[Document], ArtifactConfig(name="split_chunks")]:
@@ -75,7 +75,7 @@ def preprocess_documents(
         raise
 
 
-@step(enable_cache=False)
+@step(enable_cache=False, output_materializers=DocumentMaterializer)
 def generate_embeddings(
     split_documents: List[Document],
 ) -> Annotated[
