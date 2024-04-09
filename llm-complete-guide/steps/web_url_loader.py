@@ -15,6 +15,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+import numpy as np
 from unstructured.partition.html import partition_html
 from zenml import step
 
@@ -28,11 +29,14 @@ class Document:
         filename: The filename or URL (for web docs) of the document.
         parent_section: The parent section of the document.
         url: The URL of the document (if web-derived).
+        embedding: The embedding of the document.
     """
+
     page_content: str
     filename: Optional[str] = None
     parent_section: Optional[str] = None
     url: Optional[str] = None
+    embedding: Optional[np.ndarray] = None
 
 
 @step

@@ -32,6 +32,7 @@ from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
+from steps.web_url_loader import Document
 from zenml.client import Client
 
 # Configure the logging level for the root logger
@@ -73,17 +74,17 @@ def split_text_with_regex(
 
 
 def split_text(
-    text: str,
+    document: Document,
     separator: str = "\n\n",
     chunk_size: int = 4000,
     chunk_overlap: int = 200,
     keep_separator: bool = False,
     strip_whitespace: bool = True,
-) -> List[str]:
+) -> List[Document]:
     """Splits a given text into chunks of specified size with optional overlap.
 
     Args:
-        text (str): The text to be split.
+        document (Document): The document to be split.
         separator (str, optional): The separator to use for splitting the text. Defaults to "\n\n".
         chunk_size (int, optional): The maximum size of each chunk. Defaults to 4000.
         chunk_overlap (int, optional): The size of the overlap between consecutive chunks. Defaults to 200.
@@ -94,7 +95,7 @@ def split_text(
         ValueError: If chunk_overlap is larger than chunk_size.
 
     Returns:
-        List[str]: A list of strings resulting from splitting the input text into chunks.
+        List[Document]: A list of documents resulting from splitting the input document into chunks.
     """
     if chunk_overlap > chunk_size:
         raise ValueError(
@@ -103,7 +104,9 @@ def split_text(
         )
 
     separator_regex = re.escape(separator)
-    splits = split_text_with_regex(text, separator_regex, keep_separator)
+    splits = split_text_with_regex(
+        document.page_content, separator_regex, keep_separator
+    )
     _separator = "" if keep_separator else separator
 
     chunks = []
@@ -117,31 +120,35 @@ def split_text(
             current_chunk += split + _separator
         else:
             if current_chunk:
-                chunks.append(current_chunk.rstrip(_separator))
+                chunks.append(
+                    Document(page_content=current_chunk.rstrip(_separator))
+                )
             current_chunk = split + _separator
 
     if current_chunk:
-        chunks.append(current_chunk.rstrip(_separator))
+        chunks.append(Document(page_content=current_chunk.rstrip(_separator)))
 
     final_chunks = []
     for i in range(len(chunks)):
         if i == 0:
             final_chunks.append(chunks[i])
         else:
-            overlap = chunks[i - 1][-chunk_overlap:]
-            final_chunks.append(overlap + chunks[i])
+            overlap = chunks[i - 1].page_content[-chunk_overlap:]
+            final_chunks.append(
+                Document(page_content=overlap + chunks[i].page_content)
+            )
 
     return final_chunks
 
 
 def split_documents(
-    documents: List[str],
+    documents: List[Document],
     separator: str = "\n\n",
     chunk_size: int = 4000,
     chunk_overlap: int = 200,
     keep_separator: bool = False,
     strip_whitespace: bool = True,
-) -> List[str]:
+) -> List[Document]:
     """Splits a list of documents into chunks.
 
     Args:
