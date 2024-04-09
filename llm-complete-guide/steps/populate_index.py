@@ -109,7 +109,6 @@ def generate_embeddings(
 
         for doc, embedding in zip(split_documents, embeddings):
             doc.embedding = embedding
-        breakpoint()
         return split_documents
     except Exception as e:
         logger.error(f"Error in generate_embeddings: {e}")
