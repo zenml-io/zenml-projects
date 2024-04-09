@@ -66,9 +66,9 @@ string from the Supabase dashboard.
 You can use these details to populate some environment variables where the pipeline code expects them:
 
 ```shell
-export ZENML_SUPABASE_USER=<your-supabase-user>
-export ZENML_SUPABASE_HOST=<your-supabase-host>
-export ZENML_SUPABASE_PORT=<your-supabase-port>
+export ZENML_POSTGRES_USER=<your-supabase-user>
+export ZENML_POSTGRES_HOST=<your-supabase-host>
+export ZENML_POSTGRES_PORT=<your-supabase-port>
 ```
 
 ### Running the RAG pipeline

@@ -177,9 +177,9 @@ def get_local_db_connection_details() -> Dict[str, str]:
         dict: A dictionary containing the connection details for the local database.
     """
     return {
-        "user": os.getenv("ZENML_SUPABASE_USER"),
-        "host": os.getenv("ZENML_SUPABASE_HOST"),
-        "port": os.getenv("ZENML_SUPABASE_PORT"),
+        "user": os.getenv("ZENML_POSTGRES_USER"),
+        "host": os.getenv("ZENML_POSTGRES_HOST"),
+        "port": os.getenv("ZENML_POSTGRES_PORT"),
     }
 
 
