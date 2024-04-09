@@ -17,6 +17,7 @@ from typing import List, Optional
 
 import numpy as np
 from unstructured.partition.html import partition_html
+from url_scraping_utils import extract_parent_section
 from zenml import step
 
 
@@ -53,6 +54,14 @@ def web_url_loader(urls: List[str]) -> List[Document]:
     for url in urls:
         elements = partition_html(url=url)
         text = "\n\n".join([str(el) for el in elements])
-        document = Document(page_content=text, url=url)
+
+        parent_section = extract_parent_section(url)
+
+        document = Document(
+            page_content=text,
+            url=url,
+            filename=url,
+            parent_section=parent_section,
+        )
         documents.append(document)
     return documents
