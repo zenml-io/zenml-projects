@@ -36,15 +36,15 @@ Run the ZenML LLM RAG complete guide project pipelines.
 """
 )
 @click.option(
-    "--basic-rag",
-    "basic_rag",
+    "--rag",
+    "rag",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
 )
 @click.option(
-    "--rag-query",
-    "rag_query",
+    "--query",
+    "query",
     type=str,
     required=False,
     help="Query the RAG model.",
@@ -65,27 +65,27 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="The model to use for the completion.",
 )
 def main(
-    basic_rag: bool = False,
-    rag_query: Optional[str] = None,
+    rag: bool = False,
+    query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
     Args:
-        basic_rag (bool): If `True`, the basic RAG pipeline will be run.
-        rag_query (Optional[str]): If provided, the RAG model will be queried with this string.
+        rag (bool): If `True`, the basic RAG pipeline will be run.
+        query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
 
     """
     pipeline_args = {"enable_cache": not no_cache}
 
-    if rag_query:
-        response = process_input_with_retrieval(rag_query, model=model)
+    if query:
+        response = process_input_with_retrieval(query, model=model)
         print(response)
 
-    if basic_rag:
+    if rag:
         llm_basic_rag.with_options(**pipeline_args)()
 
 
