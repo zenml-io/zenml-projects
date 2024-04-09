@@ -78,7 +78,7 @@ to run the pipelines in the correct order. You can run the script with the
 following command:
 
 ```shell
-python run.py --basic-rag
+python run.py --rag
 ```
 
 This will run the basic RAG pipeline, which scrapes the ZenML documentation and stores the embeddings in the Supabase database.
@@ -86,13 +86,13 @@ This will run the basic RAG pipeline, which scrapes the ZenML documentation and 
 ### Querying your RAG pipeline assets
 
 Once the pipeline has run successfully, you can query the assets in the Supabase
-database using the `--rag-query` flag as well as passing in the model you'd like
+database using the `--query` flag as well as passing in the model you'd like
 to use for the LLM.
 
 When you're ready to make the query, run the following command:
 
 ```shell
-python run.py --rag-query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+python run.py --query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
 ```
 
 Alternative options for LLMs to use include:
