@@ -232,6 +232,20 @@ def get_local_db_connection_details() -> Dict[str, str]:
     }
 
 
+def get_db_password() -> str:
+    """Returns the password for the PostgreSQL database.
+
+    Returns:
+        str: The password for the PostgreSQL database.
+    """
+    return (
+        os.getenv("ZENML_POSTGRES_DB_PASSWORD")
+        or Client()
+        .get_secret("supabase_postgres_db")
+        .secret_values["password"]
+    )
+
+
 def get_db_conn() -> connection:
     """Establishes and returns a connection to the PostgreSQL database.
 
@@ -241,9 +255,7 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = (
-        Client().get_secret("supabase_postgres_db").secret_values["password"]
-    )
+    pg_password = get_db_password()
 
     local_database_connection = get_local_db_connection_details()
 
@@ -338,11 +350,17 @@ def get_embeddings(text):
     return model.encode(text)
 
 
-def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
+def process_input_with_retrieval(
+    input: str, model: str = OPENAI_MODEL, n_items_retrieved: int = 5
+) -> str:
     """Process the input with retrieval.
 
     Args:
         input (str): The input to process.
+        model (str, optional): The model to use for completion. Defaults to
+        OPENAI_MODEL.
+        n_items_retrieved (int, optional): The number of items to retrieve from
+        the database. Defaults to 5.
 
     Returns:
         str: The processed output.
@@ -350,7 +368,9 @@ def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
     delimiter = "```"
 
     # Step 1: Get documents related to the user input from database
-    related_docs = get_topn_similar_docs(get_embeddings(input), get_db_conn())
+    related_docs = get_topn_similar_docs(
+        get_embeddings(input), get_db_conn(), n=n_items_retrieved
+    )
 
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
