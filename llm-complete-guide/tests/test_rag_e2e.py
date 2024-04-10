@@ -4,6 +4,11 @@ from typing import Callable
 
 from utils.llm_utils import process_input_with_retrieval
 
+# Configure the logging level for the root logger
+logging.getLogger().setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
+
 bad_answers = [
     {
         "question": "What orchestrators does ZenML support?",
