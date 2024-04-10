@@ -46,6 +46,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Whether to run the pipeline that creates the dataset.",
 )
 @click.option(
+    "--eval",
+    "eval",
+    is_flag=True,
+    default=False,
+    help="Whether to run the evaluation pipeline.",
+)
+@click.option(
     "--query",
     "query",
     type=str,
@@ -76,6 +83,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 def main(
     rag: bool = False,
+    eval: bool = False,
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
@@ -84,6 +92,7 @@ def main(
 
     Args:
         rag (bool): If `True`, the basic RAG pipeline will be run.
+        eval (bool): If `True`, the evaluation pipeline will be run.
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
@@ -97,6 +106,8 @@ def main(
 
     if rag:
         llm_basic_rag.with_options(**pipeline_args)()
+    elif eval:
+        llm_eval.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

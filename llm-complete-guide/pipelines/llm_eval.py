@@ -13,6 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-from pipelines.llm_basic_rag import llm_basic_rag
-from pipelines.llm_eval import llm_eval
+
+from steps.evaluation import e2e_evaluation, retrieval_evaluation
+from zenml import pipeline
+
+
+@pipeline
+def llm_eval() -> None:
+    """Executes the pipeline to evaluate a RAG pipeline."""
+    retrieval_evaluation()
+    e2e_evaluation()

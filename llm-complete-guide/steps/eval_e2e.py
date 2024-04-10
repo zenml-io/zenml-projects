@@ -1,10 +1,26 @@
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2024. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable
+from typing import Annotated, Callable, Tuple
 
 from utils.llm_utils import process_input_with_retrieval
+from zenml import step
 
-# Configure the logging level for the root logger
 logging.getLogger().setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
@@ -142,24 +158,38 @@ def run_tests(test_data: list, test_function: Callable) -> float:
     return round(failure_rate, 2)
 
 
-# Then, you integrate it into the main execution flow similar to other tests:
-if __name__ == "__main__":
-    print("Testing bad answers...")
+@step
+def e2e_evaluation() -> (
+    Tuple[
+        Annotated[int, "failure_rate_bad_answers"],
+        Annotated[int, "failure_rate_bad_immediate_responses"],
+        Annotated[int, "failure_rate_good_responses"],
+    ]
+):
+    """Executes the end-to-end evaluation step."""
+    logging.info("Testing bad answers...")
     failure_rate_bad_answers = run_tests(
         bad_answers, test_content_for_bad_words
     )
-    print(f"Bad answers failure rate: {failure_rate_bad_answers}%")
+    logging.info(f"Bad answers failure rate: {failure_rate_bad_answers}%")
 
-    print("Testing bad immediate responses...")
+    logging.info("Testing bad immediate responses...")
     failure_rate_bad_immediate_responses = run_tests(
         bad_immediate_responses, test_response_starts_with_bad_words
     )
-    print(
+    logging.info(
         f"Bad immediate responses failure rate: {failure_rate_bad_immediate_responses}%"
     )
 
-    print("Testing good responses...")
+    logging.info("Testing good responses...")
     failure_rate_good_responses = run_tests(
         good_responses, test_content_contains_good_words
     )
-    print(f"Good responses failure rate: {failure_rate_good_responses}%")
+    logging.info(
+        f"Good responses failure rate: {failure_rate_good_responses}%"
+    )
+    return (
+        failure_rate_bad_answers,
+        failure_rate_bad_immediate_responses,
+        failure_rate_good_responses,
+    )
