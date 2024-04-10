@@ -161,9 +161,9 @@ def run_tests(test_data: list, test_function: Callable) -> float:
 @step
 def e2e_evaluation() -> (
     Tuple[
-        Annotated[int, "failure_rate_bad_answers"],
-        Annotated[int, "failure_rate_bad_immediate_responses"],
-        Annotated[int, "failure_rate_good_responses"],
+        Annotated[float, "failure_rate_bad_answers"],
+        Annotated[float, "failure_rate_bad_immediate_responses"],
+        Annotated[float, "failure_rate_good_responses"],
     ]
 ):
     """Executes the end-to-end evaluation step."""

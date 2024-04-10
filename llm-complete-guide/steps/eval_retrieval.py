@@ -89,7 +89,7 @@ def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
 
 
 @step
-def retrieval_evaluation() -> Annotated[int, "failure_rate_retrieval"]:
+def retrieval_evaluation() -> Annotated[float, "failure_rate_retrieval"]:
     """Executes the retrieval evaluation step."""
     failure_rate = test_retrieved_docs_retrieve_best_url(question_doc_pairs)
     logging.info(f"Retrieval failure rate: {failure_rate}%")

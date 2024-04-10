@@ -20,9 +20,7 @@ from typing import Optional
 import click
 from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
-from pipelines import (
-    llm_basic_rag,
-)
+from pipelines import llm_basic_rag, llm_eval
 from structures import Document
 from utils.llm_utils import process_input_with_retrieval
 from zenml.logger import get_logger
@@ -46,8 +44,8 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Whether to run the pipeline that creates the dataset.",
 )
 @click.option(
-    "--eval",
-    "eval",
+    "--evaluation",
+    "evaluation",
     is_flag=True,
     default=False,
     help="Whether to run the evaluation pipeline.",
@@ -83,7 +81,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 def main(
     rag: bool = False,
-    eval: bool = False,
+    evaluation: bool = False,
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
@@ -92,7 +90,7 @@ def main(
 
     Args:
         rag (bool): If `True`, the basic RAG pipeline will be run.
-        eval (bool): If `True`, the evaluation pipeline will be run.
+        evaluation (bool): If `True`, the evaluation pipeline will be run.
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
@@ -106,7 +104,7 @@ def main(
 
     if rag:
         llm_basic_rag.with_options(**pipeline_args)()
-    elif eval:
+    if evaluation:
         llm_eval.with_options(**pipeline_args)()
 
 
