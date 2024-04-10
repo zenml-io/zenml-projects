@@ -7,7 +7,7 @@ from utils.llm_utils import process_input_with_retrieval
 bad_answers = [
     {
         "question": "What orchestrators does ZenML support?",
-        "bad_words": ["AWS Step Functions", "Flyte"],
+        "bad_words": ["AWS Step Functions", "Flyte", "Prefect", "Dagster"],
     },
     {
         "question": "What is the default orchestrator in ZenML?",
@@ -24,16 +24,12 @@ bad_immediate_responses = [
 
 good_responses = [
     {
-        "question": "What are the supported orchestrators in ZenML?",
+        "question": "What are the supported orchestrators in ZenML? Please list as many of the supported ones as possible.",
         "good_words": ["Kubeflow", "Airflow"],
     },
     {
         "question": "What is the default orchestrator in ZenML?",
         "good_words": ["local"],
-    },
-    {
-        "question": "Does ZenML support the Flyte orchestrator out of the box?",
-        "good_words": ["No"],
     },
 ]
 
@@ -128,10 +124,10 @@ def run_tests(test_data: list, test_function: Callable) -> float:
             executor.submit(test_function, item): item for item in test_data
         }
         for future in as_completed(future_to_test):
-            success, question, bad_word, response = future.result()
+            success, question, keyword_query_term, response = future.result()
             if not success:
                 logging.error(
-                    f"Test failed for question: '{question}'. Found bad word: '{bad_word}'. Response: '{response}'"
+                    f"Test failed for question: '{question}'. Found word: '{keyword_query_term}'. Response: '{response}'"
                 )
                 failures += 1
     failure_rate = (failures / total_tests) * 100

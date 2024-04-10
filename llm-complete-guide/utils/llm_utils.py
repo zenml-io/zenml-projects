@@ -34,7 +34,6 @@ from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from sentence_transformers import SentenceTransformer
 from structures import Document
-from zenml.client import Client
 
 # Configure the logging level for the root logger
 logging.getLogger().setLevel(logging.WARNING)
@@ -238,12 +237,16 @@ def get_db_password() -> str:
     Returns:
         str: The password for the PostgreSQL database.
     """
-    return (
-        os.getenv("ZENML_POSTGRES_DB_PASSWORD")
-        or Client()
-        .get_secret("supabase_postgres_db")
-        .secret_values["password"]
-    )
+    password = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
+    if not password:
+        from zenml.client import Client
+
+        password = (
+            Client()
+            .get_secret("supabase_postgres_db")
+            .secret_values["password"]
+        )
+    return password
 
 
 def get_db_conn() -> connection:
