@@ -14,3 +14,9 @@ litellm
 tiktoken
 umap-learn
 matplotlib
+
+
+# optional requirements for S3 artifact store
+# s3fs>2022.3.0
+# boto3
+# aws-profile-manager
