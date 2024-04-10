@@ -1,13 +1,15 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
+from concurrent.futures import ProcessPoolExecutor as Executor
+from concurrent.futures import as_completed
 from utils.llm_utils import get_db_conn, get_embeddings, get_topn_similar_docs
 
-# Configure logging
+# Adjust logging settings as before
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 
 question_doc_pairs = [
     {
@@ -34,32 +36,20 @@ question_doc_pairs = [
 
 
 def query_similar_docs(question: str, url_ending: str) -> tuple:
-    """
-    Queries for the most similar documents based on the embedded question and returns
-    whether the expected URL ending is found in the top similar documents.
-
-    Args:
-        question (str): The question to query.
-        url_ending (str): The expected URL ending in the similar documents.
-
-    Returns:
-        tuple: A tuple containing the question, the expected URL ending, and the query result URLs.
-    """
+    # This function remains unchanged
     embedded_question = get_embeddings(question)
     db_conn = get_db_conn()
     top_similar_docs_urls = get_topn_similar_docs(
         embedded_question, db_conn, n=5, only_urls=True
     )
-    urls = [
-        url[0] for url in top_similar_docs_urls
-    ]  # Assuming URLs are the first element in tuples
+    urls = [url[0] for url in top_similar_docs_urls]  # Unpacking URLs
     return (question, url_ending, urls)
 
 
 def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
     total_tests = len(question_doc_pairs)
     failures = 0
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with Executor(max_workers=4) as executor:
         # Schedule the queries to be executed
         future_to_query = {
             executor.submit(
