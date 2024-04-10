@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-
 # credit to
 # https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
 # for providing the base implementation for this indexing functionality
@@ -30,7 +29,6 @@ from constants import (
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
 )
-from materializers.document_materializer import DocumentMaterializer
 from pgvector.psycopg2 import register_vector
 from sentence_transformers import SentenceTransformer
 from structures import Document
@@ -41,7 +39,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False, output_materializers=DocumentMaterializer)
+@step(enable_cache=False)
 def preprocess_documents(
     documents: List[Document],
 ) -> Annotated[List[Document], ArtifactConfig(name="split_chunks")]:
@@ -75,7 +73,7 @@ def preprocess_documents(
         raise
 
 
-@step(enable_cache=False, output_materializers=DocumentMaterializer)
+@step(enable_cache=False)
 def generate_embeddings(
     split_documents: List[Document],
 ) -> Annotated[

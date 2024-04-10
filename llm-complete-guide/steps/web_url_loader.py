@@ -14,7 +14,6 @@
 
 from typing import List
 
-from materializers.document_materializer import DocumentMaterializer
 from structures import Document
 from unstructured.partition.html import partition_html
 from zenml import step
@@ -22,7 +21,7 @@ from zenml import step
 from steps.url_scraping_utils import extract_parent_section
 
 
-@step(output_materializers=DocumentMaterializer)
+@step
 def web_url_loader(urls: List[str]) -> List[Document]:
     """Loads documents from a list of URLs.
 

@@ -19,11 +19,14 @@ from typing import Optional
 
 import click
 from constants import OPENAI_MODEL
+from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     llm_basic_rag,
 )
+from structures import Document
 from utils.llm_utils import process_input_with_retrieval
 from zenml.logger import get_logger
+from zenml.materializers.materializer_registry import materializer_registry
 
 logger = get_logger(__name__)
 
@@ -90,4 +93,9 @@ def main(
 
 
 if __name__ == "__main__":
+    # use custom materializer for documents
+    # register early
+    materializer_registry.register_materializer_type(
+        Document, DocumentMaterializer
+    )
     main()
