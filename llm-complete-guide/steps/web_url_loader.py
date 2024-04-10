@@ -14,11 +14,10 @@
 
 from typing import List
 
+from steps.url_scraping_utils import extract_parent_section
 from structures import Document
 from unstructured.partition.html import partition_html
 from zenml import step
-
-from steps.url_scraping_utils import extract_parent_section
 
 
 @step

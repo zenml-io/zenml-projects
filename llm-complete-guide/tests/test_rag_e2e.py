@@ -15,4 +15,3 @@ bad_immediate_responses = [
         "bad_words": ["Yes"],
     },
 ]
-
