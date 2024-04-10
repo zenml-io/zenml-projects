@@ -36,6 +36,9 @@ class DocumentMaterializer(BaseMaterializer):
 
     def save(self, document: Document) -> None:
         """Write to artifact store."""
+        # Create the directory path if it doesn't exist
+        fileio.makedirs(self.uri)
+
         with fileio.open(os.path.join(self.uri, "page_content.txt"), "w") as f:
             f.write(document.page_content)
 
@@ -49,13 +52,9 @@ class DocumentMaterializer(BaseMaterializer):
             json.dump(metadata, f)
 
         if document.embedding is not None:
-            np.save(
-                os.path.join(self.uri, "embedding.npy"), document.embedding
-            )
+            np.save(os.path.join(self.uri, "embedding.npy"), document.embedding)
 
-    def save_visualizations(
-        self, document: Document
-    ) -> Dict[str, VisualizationType]:
+    def save_visualizations(self, document: Document) -> Dict[str, VisualizationType]:
         """Save visualizations of the document."""
         visualization_uri = os.path.join(self.uri, "visualization.txt")
         with fileio.open(visualization_uri, "w") as f:

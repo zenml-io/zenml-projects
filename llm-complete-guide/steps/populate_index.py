@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False)
+@step
 def preprocess_documents(
     documents: List[Document],
 ) -> Annotated[List[Document], ArtifactConfig(name="split_chunks")]:
