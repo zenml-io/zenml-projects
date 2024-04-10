@@ -23,7 +23,7 @@
 import logging
 import os
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import litellm
 import numpy as np
@@ -42,9 +42,7 @@ logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def split_text_with_regex(
-    text: str, separator: str, keep_separator: bool
-) -> List[str]:
+def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> List[str]:
     """Splits a given text using a specified separator.
 
     This function splits the input text using the provided separator. The separator can be included or excluded
@@ -61,9 +59,7 @@ def split_text_with_regex(
     if separator:
         if keep_separator:
             _splits = re.split(f"({separator})", text)
-            splits = [
-                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
-            ]
+            splits = [_splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)]
             if len(_splits) % 2 == 0:
                 splits += _splits[-1:]
             splits = [_splits[0]] + splits
@@ -122,9 +118,7 @@ def split_text(
             current_chunk += split + _separator
         else:
             if current_chunk:
-                token_count = len(
-                    encoding.encode(current_chunk.rstrip(_separator))
-                )
+                token_count = len(encoding.encode(current_chunk.rstrip(_separator)))
                 chunks.append(
                     Document(
                         page_content=current_chunk.rstrip(_separator),
@@ -154,9 +148,7 @@ def split_text(
             final_chunks.append(chunks[i])
         else:
             overlap = chunks[i - 1].page_content[-chunk_overlap:]
-            token_count = len(
-                encoding.encode(overlap + chunks[i].page_content)
-            )
+            token_count = len(encoding.encode(overlap + chunks[i].page_content))
             final_chunks.append(
                 Document(
                     page_content=overlap + chunks[i].page_content,
@@ -241,9 +233,7 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = (
-        Client().get_secret("supabase_postgres_db").secret_values["password"]
-    )
+    pg_password = Client().get_secret("supabase_postgres_db").secret_values["password"]
 
     local_database_connection = get_local_db_connection_details()
 
@@ -258,24 +248,46 @@ def get_db_conn() -> connection:
     return psycopg2.connect(**CONNECTION_DETAILS)
 
 
-def get_topn_similar_docs(query_embedding, conn, n: int = 5):
+def get_topn_similar_docs(
+    query_embedding: List[float],
+    conn: psycopg2.extensions.connection,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
     """Fetches the top n most similar documents to the given query embedding from the database.
 
     Args:
         query_embedding (list): The query embedding to compare against.
         conn (psycopg2.extensions.connection): The database connection object.
-        n (int, optional): The number of similar documents to fetch. Defaults to 5.
+        n (int, optional): The number of similar documents to fetch. Defaults to
+        5.
+        include_metadata (bool, optional): Whether to include metadata in the
+        results. Defaults to False.
 
     Returns:
-        list: A list of tuples containing the content of the top n most similar documents.
+        list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
     """
     embedding_array = np.array(query_embedding)
     register_vector(conn)
     cur = conn.cursor()
-    cur.execute(
-        f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
-        (embedding_array,),
-    )
+
+    if include_metadata:
+        cur.execute(
+            f"SELECT content, url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    elif only_urls:
+        cur.execute(
+            f"SELECT url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    else:
+        cur.execute(
+            f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+
     return cur.fetchall()
 
 
