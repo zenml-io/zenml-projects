@@ -16,7 +16,7 @@
 #
 
 # Vector Store constants
-CHUNK_SIZE = 500
+CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
     384  # Update this to match the dimensionality of the new model
@@ -29,7 +29,7 @@ RATE_LIMIT = 5  # Maximum number of requests per second
 OPENAI_MODEL = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L12-v2"
 MODEL_NAME_MAP = {
-    "gpt4": "gpt-4-0125-preview",
+    "gpt4": "gpt-4",
     "gpt35": "gpt-3.5-turbo",
     "claude3": "claude-3-opus-20240229",
     "claudehaiku": "claude-3-haiku-20240307",

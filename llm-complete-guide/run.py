@@ -67,6 +67,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default="gpt4",
     help="The model to use for the completion.",
 )
+@click.option(
+    "--no-cache",
+    "no_cache",
+    is_flag=True,
+    default=False,
+    help="Disable cache.",
+)
 def main(
     rag: bool = False,
     query: Optional[str] = None,
