@@ -52,9 +52,13 @@ class DocumentMaterializer(BaseMaterializer):
             json.dump(metadata, f)
 
         if document.embedding is not None:
-            np.save(os.path.join(self.uri, "embedding.npy"), document.embedding)
+            np.save(
+                os.path.join(self.uri, "embedding.npy"), document.embedding
+            )
 
-    def save_visualizations(self, document: Document) -> Dict[str, VisualizationType]:
+    def save_visualizations(
+        self, document: Document
+    ) -> Dict[str, VisualizationType]:
         """Save visualizations of the document."""
         visualization_uri = os.path.join(self.uri, "visualization.txt")
         with fileio.open(visualization_uri, "w") as f:

@@ -140,7 +140,7 @@ def run_tests(test_data: list, test_function: Callable) -> float:
     """
     failures = 0
     total_tests = len(test_data)
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         future_to_test = {
             executor.submit(test_function, item): item for item in test_data
         }

@@ -68,7 +68,7 @@ def query_similar_docs(question: str, url_ending: str) -> tuple:
 def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
     total_tests = len(question_doc_pairs)
     failures = 0
-    with Executor(max_workers=4) as executor:
+    with Executor(max_workers=1) as executor:
         # Schedule the queries to be executed
         future_to_query = {
             executor.submit(

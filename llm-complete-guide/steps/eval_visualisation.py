@@ -1,39 +1,52 @@
-from zenml.client import Client
-from zenml import step
-from PIL import Image
+import io
+from typing import Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
-import io
+from PIL import Image
+from zenml import step
+from zenml.client import Client
 
 
-@step
+@step(enable_cache=False)
 def visualize_evaluation_results(
     failure_rate_retrieval: float,
     failure_rate_bad_answers: float,
     failure_rate_bad_immediate_responses: float,
     failure_rate_good_responses: float,
-) -> Image.Image:
+) -> Optional[Image.Image]:
     """Visualizes the evaluation results."""
-    c = Client()
-    if last_run := c.get_pipeline("llm_eval").last_successful_run().steps:
-        retrieval_results = last_run["retrieval_evaluation"].outputs
-        e2e_results = last_run["e2e_evaluation"].outputs[0]
+    zen_client = Client()
+    breakpoint()
+    try:
+        last_run = zen_client.get_pipeline("llm_eval").runs
+    except RuntimeError:
+        return None
 
-        previous_failure_rate_retrieval = retrieval_results[
-            "failure_rate_retrieval"
-        ].load()
-        previous_failure_rate_bad_answers = e2e_results[
-            "failure_rate_bad_answers"
-        ].load()
-        previous_failure_rate_bad_immediate_responses = e2e_results[
-            "failure_rate_bad_immediate_responses"
-        ].load()
-        previous_failure_rate_good_responses = e2e_results[
-            "failure_rate_good_responses"
-        ].load()
+    last_run_steps = last_run.steps
+    retrieval_results = last_run_steps["retrieval_evaluation"].outputs
+    e2e_results = last_run_steps["e2e_evaluation"].outputs[0]
+
+    previous_failure_rate_retrieval = retrieval_results[
+        "failure_rate_retrieval"
+    ].load()
+    previous_failure_rate_bad_answers = e2e_results[
+        "failure_rate_bad_answers"
+    ].load()
+    previous_failure_rate_bad_immediate_responses = e2e_results[
+        "failure_rate_bad_immediate_responses"
+    ].load()
+    previous_failure_rate_good_responses = e2e_results[
+        "failure_rate_good_responses"
+    ].load()
 
     # Set up the data
-    labels = ["Retrieval", "Bad Answers", "Bad Immediate Responses", "Good Responses"]
+    labels = [
+        "Retrieval",
+        "Bad Answers",
+        "Bad Immediate Responses",
+        "Good Responses",
+    ]
     previous_values = [
         previous_failure_rate_retrieval,
         previous_failure_rate_bad_answers,
