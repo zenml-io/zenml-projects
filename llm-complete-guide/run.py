@@ -13,14 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from typing import Optional
 
 import click
 from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
-from pipelines import llm_basic_rag, llm_eval
+from pipelines import generate_chunk_questions, llm_basic_rag, llm_eval
 from structures import Document
 from utils.llm_utils import process_input_with_retrieval
 from zenml.logger import get_logger
@@ -79,12 +78,20 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Disable cache.",
 )
+@click.option(
+    "--synthetic",
+    "synthetic",
+    is_flag=True,
+    default=False,
+    help="Run the synthetic data pipeline.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
+    synthetic: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -94,6 +101,7 @@ def main(
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
+        synthetic (bool): If `True`, the synthetic data pipeline will be run.
 
     """
     pipeline_args = {"enable_cache": not no_cache}
@@ -106,6 +114,8 @@ def main(
         llm_basic_rag.with_options(**pipeline_args)()
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
+    if synthetic:
+        generate_chunk_questions.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

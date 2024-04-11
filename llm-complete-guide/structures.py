@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -29,6 +29,7 @@ class Document:
         url: The URL of the document (if web-derived).
         embedding: The embedding of the document.
         token_count: The number of tokens in the document.
+        generated_questions: The generated questions for the document.
     """
 
     page_content: str
@@ -37,3 +38,4 @@ class Document:
     url: Optional[str] = None
     embedding: Optional[np.ndarray] = None
     token_count: Optional[int] = None
+    generated_questions: Optional[List[str]] = None
