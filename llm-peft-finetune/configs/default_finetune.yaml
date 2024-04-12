@@ -22,7 +22,7 @@ model:
     - llm
     - peft
     - mistralai/Mistral-7B-v0.1
-  version: 300_steps
+  version: 100_steps
 
 steps:
   configure:
@@ -32,22 +32,25 @@ steps:
         Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
         This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
         The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
+
+  prepare_data:
+    parameters:
+      dataset_name: gem/viggo
+
   finetune:
     enable_step_logs: False
     step_operator: gcp_a100
     parameters:
-      max_steps: 300
+      max_steps: 100
       eval_steps: 100
-  prepare_data:
-    parameters:
-      dataset_name: gem/viggo
+
   evaluate_finetuned:
     step_operator: gcp_a100
+
   evaluate_base:
     step_operator: gcp_a100
+
   promote:
     parameters:
       metric: rouge2
       target_stage: staging
-  
-
