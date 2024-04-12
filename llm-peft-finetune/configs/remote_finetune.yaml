@@ -39,9 +39,16 @@ steps:
 
   finetune:
     enable_step_logs: False
+    step_operator: gcp_a100
     parameters:
       max_steps: 300
       eval_steps: 100
+
+  evaluate_finetuned:
+    step_operator: gcp_a100
+
+  evaluate_base:
+    step_operator: gcp_a100
 
   promote:
     parameters:

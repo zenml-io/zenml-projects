@@ -34,7 +34,7 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
         )
     }
 )
-def train():
+def llm_peft_full_finetune():
     system_prompt, base_model_id = configure()
     datasets_dir = prepare_data(
         base_model_id=base_model_id, system_prompt=system_prompt
