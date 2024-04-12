@@ -17,7 +17,9 @@ def visualize_evaluation_results(
 ) -> Optional[Image.Image]:
     """Visualizes the evaluation results."""
     zen_client = Client()
-    last_run = zen_client.get_pipeline_run("fbdb9965-b27f-4e76-b656-1e265bcd7aef")
+    last_run = zen_client.get_pipeline_run(
+        "fbdb9965-b27f-4e76-b656-1e265bcd7aef"
+    )
     # try:
     #     last_run = zen_client.get_pipeline("llm_eval").runs
     # except RuntimeError:
@@ -27,8 +29,12 @@ def visualize_evaluation_results(
     retrieval_results = last_run_steps["retrieval_evaluation"].outputs
     e2e_results = last_run_steps["e2e_evaluation"].outputs
 
-    previous_failure_rate_retrieval = retrieval_results["failure_rate_retrieval"].load()
-    previous_failure_rate_bad_answers = e2e_results["failure_rate_bad_answers"].load()
+    previous_failure_rate_retrieval = retrieval_results[
+        "failure_rate_retrieval"
+    ].load()
+    previous_failure_rate_bad_answers = e2e_results[
+        "failure_rate_bad_answers"
+    ].load()
     previous_failure_rate_bad_immediate_responses = e2e_results[
         "failure_rate_bad_immediate_responses"
     ].load()
