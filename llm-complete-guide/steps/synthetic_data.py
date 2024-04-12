@@ -64,10 +64,10 @@ def generate_questions_from_chunks(
     Returns:
         List of documents with generated questions added.
     """
-    for doc in docs_with_embeddings[:20]:
+    for doc in docs_with_embeddings:
         doc.generated_questions = [generate_question(doc.page_content, local)]
 
-    assert all(doc.generated_questions for doc in docs_with_embeddings[:20])
+    assert all(doc.generated_questions for doc in docs_with_embeddings)
 
     # Convert List[Document] to DataFrame
     df = pd.DataFrame([doc.__dict__ for doc in docs_with_embeddings])
