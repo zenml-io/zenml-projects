@@ -15,9 +15,8 @@
 # limitations under the License.
 #
 
-from steps import configure
-from steps.finetune import configure, evaluate_model, finetune, promote
-from steps.prepare_datasets import prepare_data
+
+from steps import configure, evaluate_model, finetune, prepare_data, promote
 from zenml import logging as zenml_logging
 from zenml import pipeline
 from zenml.config import DockerSettings
