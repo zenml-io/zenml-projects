@@ -15,14 +15,18 @@
 # limitations under the License.
 
 from steps.synthetic_data import generate_questions_from_chunks
-from zenml import pipeline
+from zenml import ExternalArtifact, pipeline
 from zenml.client import Client
 
 
 @pipeline
-def generate_chunk_questions(local: bool = False):
+def generate_chunk_questions():
+    """Pipeline to generate questions from chunks."""
+    local_setting = ExternalArtifact(value=True)
     client = Client()
     docs_with_embeddings = client.get_artifact_version(
         name_id_or_prefix="documents_with_embeddings"
     )
-    generate_questions_from_chunks(docs_with_embeddings)
+    generate_questions_from_chunks(
+        docs_with_embeddings=docs_with_embeddings, local=local_setting
+    )

@@ -123,7 +123,7 @@ def main(
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
-        generate_chunk_questions.with_options(local=local, **pipeline_args)()
+        generate_chunk_questions.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

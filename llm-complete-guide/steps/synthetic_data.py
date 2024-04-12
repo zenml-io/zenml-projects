@@ -37,14 +37,13 @@ def generate_question(chunk: str, local: bool = False) -> str:
         model=model,
         messages=[
             {
-                "content": "This is some text from ZenML's documentation. Please generate a question from this text.",
+                "content": f"This is some text from ZenML's documentation. Please generate a question that can be asked about this text: `{chunk}`",
                 "role": "user",
             }
         ],
         api_base="http://localhost:11434",
     )
-    breakpoint()
-    return response[0]["text"]
+    return response.choices[0].message.content
 
 
 @step
