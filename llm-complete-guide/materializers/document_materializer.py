@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 from typing import Any, Dict, Type
 
 import numpy as np
@@ -35,7 +36,11 @@ class DocumentMaterializer(BaseMaterializer):
         )
 
     def save(self, document: Document) -> None:
-        """Write to artifact store."""
+        """Write to artifact store.
+
+        Args:
+            document: Document object to save.
+        """
         # Create the directory path if it doesn't exist
         fileio.makedirs(self.uri)
 
@@ -52,9 +57,13 @@ class DocumentMaterializer(BaseMaterializer):
             json.dump(metadata, f)
 
         if document.embedding is not None:
-            np.save(
-                os.path.join(self.uri, "embedding.npy"), document.embedding
-            )
+            with tempfile.NamedTemporaryFile(
+                suffix=".npy", delete=False
+            ) as temp_file:
+                np.save(temp_file.name, document.embedding)
+                fileio.copy(
+                    temp_file.name, os.path.join(self.uri, "embedding.npy")
+                )
 
     def save_visualizations(
         self, document: Document

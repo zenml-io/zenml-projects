@@ -73,7 +73,7 @@ def preprocess_documents(
         raise
 
 
-@step(enable_cache=False)
+@step
 def generate_embeddings(
     split_documents: List[Document],
 ) -> Annotated[
@@ -114,7 +114,7 @@ def generate_embeddings(
         raise
 
 
-@step(enable_cache=False)
+@step
 def index_generator(
     documents: List[Document],
 ) -> None:
