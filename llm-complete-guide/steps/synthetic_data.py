@@ -14,14 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
 from typing import List
 
+import pandas as pd
+from datasets import Dataset
+from huggingface_hub import create_repo
 from litellm import completion
 from structures import Document
 from zenml import step
 from zenml.client import Client
-from datasets import Dataset
 
 LOCAL_MODEL = "ollama/mixtral"
 
@@ -44,7 +45,7 @@ def generate_question(chunk: str, local: bool = False) -> str:
                 "role": "user",
             }
         ],
-        api_base="http://localhost:11434",
+        api_base="http://localhost:11434" if local else None,
     )
     return response.choices[0].message.content
 
@@ -63,28 +64,36 @@ def generate_questions_from_chunks(
     Returns:
         List of documents with generated questions added.
     """
-    for doc in docs_with_embeddings:
+    for doc in docs_with_embeddings[:20]:
         doc.generated_questions = [generate_question(doc.page_content, local)]
 
-    assert all(doc.generated_questions for doc in docs_with_embeddings)
-
-    # convert List of Documents to parquet file
-    import pandas as pd
+    assert all(doc.generated_questions for doc in docs_with_embeddings[:20])
 
     # Convert List[Document] to DataFrame
     df = pd.DataFrame([doc.__dict__ for doc in docs_with_embeddings])
 
     # Convert numpy arrays to lists
-    df['embedding'] = df['embedding'].apply(lambda x: x.tolist())
-
+    df["embedding"] = df["embedding"].apply(lambda x: x.tolist())
 
     # upload the parquet file to a private dataset on the huggingface hub
     client = Client()
-    hf_token = client.get_secret("hf_token").secret_values['token']
+    hf_token = client.get_secret("huggingface_datasets").secret_values["token"]
+
+    create_repo(
+        "zenml_embedding_questions",
+        token=hf_token,
+        exist_ok=True,
+        private=True,
+        repo_type="dataset",
+    )
 
     dataset = Dataset.from_pandas(df)
-    dataset.push_to_hub(repo="zenml_embedding_questions", private=True, token=hf_token, revision=f"{datetime.now()}", create_pr=True)
-    
+    dataset.push_to_hub(
+        repo_id="zenml_embedding_questions",
+        private=True,
+        token=hf_token,
+        # revision=f"{str(datetime.now())}",
+        create_pr=True,
+    )
+
     return docs_with_embeddings
-
-
