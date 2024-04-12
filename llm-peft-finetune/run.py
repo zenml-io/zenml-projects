@@ -16,33 +16,26 @@
 #
 import os
 from typing import Optional
-import click
 
+import click
 from pipelines.train import llm_peft_full_finetune
+
 
 @click.command(
     help="""
 ZenML LLM Finetuning project CLI v0.1.0.
 
-Run the ZenML LLM Finetuning project LLM LoRA finetuning pipelines.
+Run the ZenML LLM Finetuning project LLM PEFT finetuning pipelines.
 
 Examples:
 
   \b
-  # Run the feature feature engineering pipeline
-    python run.py --feature-pipeline
+  # Run the pipeline
+    python run.py
   
   \b
-  # Run the finetuning pipeline
-    python run.py --finetuning-pipeline
-
-  \b 
-  # Run the merging pipeline
-    python run.py --merging-pipeline
-
-  \b
-  # Run the evaluation pipeline
-    python run.py --eval-pipeline
+  # Run the pipeline with custom config
+    python run.py --config custom_finetune.yaml
 """
 )
 @click.option(
@@ -78,6 +71,6 @@ def main(
 
     llm_peft_full_finetune.with_options(**pipeline_args)()
 
+
 if __name__ == "__main__":
     main()
-    
