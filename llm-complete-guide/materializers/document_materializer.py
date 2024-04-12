@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import tempfile
@@ -23,9 +24,11 @@ class DocumentMaterializer(BaseMaterializer):
             metadata = json.load(f)
 
         embedding = None
-        if os.path.exists(os.path.join(self.uri, "embedding.npy")):
-            embedding = np.load(os.path.join(self.uri, "embedding.npy"))
-
+        embedding_path = os.path.join(self.uri, "embedding.npy")
+        if fileio.exists(embedding_path):
+            with contextlib.suppress(IOError, ValueError):
+                with fileio.open(embedding_path, "rb") as f:
+                    embedding = np.load(f)
         return Document(
             page_content=page_content,
             filename=metadata.get("filename"),
