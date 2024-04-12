@@ -14,11 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 from typing import List
 
 from litellm import completion
 from structures import Document
 from zenml import step
+from zenml.client import Client
+from datasets import Dataset
 
 LOCAL_MODEL = "ollama/mixtral"
 
@@ -64,4 +67,24 @@ def generate_questions_from_chunks(
         doc.generated_questions = [generate_question(doc.page_content, local)]
 
     assert all(doc.generated_questions for doc in docs_with_embeddings)
+
+    # convert List of Documents to parquet file
+    import pandas as pd
+
+    # Convert List[Document] to DataFrame
+    df = pd.DataFrame([doc.__dict__ for doc in docs_with_embeddings])
+
+    # Convert numpy arrays to lists
+    df['embedding'] = df['embedding'].apply(lambda x: x.tolist())
+
+
+    # upload the parquet file to a private dataset on the huggingface hub
+    client = Client()
+    hf_token = client.get_secret("hf_token").secret_values['token']
+
+    dataset = Dataset.from_pandas(df)
+    dataset.push_to_hub(repo="zenml_embedding_questions", private=True, token=hf_token, revision=f"{datetime.now()}", create_pr=True)
+    
     return docs_with_embeddings
+
+
