@@ -64,7 +64,10 @@ def prepare_data(
     return tokenizer, ret[0]
 
 
-def load_base_model(base_model_id: str, is_training: bool = True) -> Any:
+def load_base_model(
+    base_model_id: str,
+    is_training: bool = True,
+) -> Any:
     bnb_config = BitsAndBytesConfig(
         load_in_8bit=True,
         bnb_4bit_use_double_quant=True,

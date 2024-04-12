@@ -51,6 +51,10 @@ def llm_peft_full_finetune():
         id="evaluate_finetuned",
     )
     evaluate_model(
-        base_model_id, system_prompt, datasets_dir, None, id="evaluate_base"
+        base_model_id,
+        system_prompt,
+        datasets_dir,
+        None,
+        id="evaluate_base",
     )
     promote(after=["evaluate_finetuned", "evaluate_base"])

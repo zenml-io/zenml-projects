@@ -22,7 +22,8 @@ if TYPE_CHECKING:
 
 
 def load_tokenizer(
-    base_model_id: str, is_eval: bool = False
+    base_model_id: str,
+    is_eval: bool = False,
 ) -> "AutoTokenizer":
     from transformers import AutoTokenizer
 
@@ -43,7 +44,10 @@ def load_tokenizer(
     return tokenizer
 
 
-def tokenize(prompt: str, tokenizer: "AutoTokenizer") -> dict:
+def tokenize(
+    prompt: str,
+    tokenizer: "AutoTokenizer",
+) -> dict:
     result = tokenizer(
         prompt,
         truncation=True,
@@ -55,7 +59,9 @@ def tokenize(prompt: str, tokenizer: "AutoTokenizer") -> dict:
 
 
 def generate_and_tokenize_prompt(
-    data_point: dict, tokenizer: "AutoTokenizer", system_prompt: str
+    data_point: dict,
+    tokenizer: "AutoTokenizer",
+    system_prompt: str,
 ):
     full_prompt = f"""{system_prompt}
 
@@ -69,7 +75,9 @@ def generate_and_tokenize_prompt(
 
 
 def tokenize_for_eval(
-    data_points: dict, tokenizer: "AutoTokenizer", system_prompt: str
+    data_points: dict,
+    tokenizer: "AutoTokenizer",
+    system_prompt: str,
 ):
     eval_prompts = [
         f"""{system_prompt}
