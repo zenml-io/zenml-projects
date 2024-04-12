@@ -15,17 +15,18 @@
 # limitations under the License.
 #
 
-from zenml import step
-from typing_extensions import Annotated
-from zenml.logger import get_logger
-from zenml import logging as zenml_logging
-from utils.callbacks import ZenMLCallback
-from materializers.directory_materializer import DirectoryMaterializer
-from zenml.materializers import BuiltInMaterializer
 from pathlib import Path
-from utils.loaders import load_base_model, load_tokenizer
+
 import transformers
 from datasets import load_from_disk
+from materializers.directory_materializer import DirectoryMaterializer
+from typing_extensions import Annotated
+from utils.callbacks import ZenMLCallback
+from utils.loaders import load_base_model, load_tokenizer
+from zenml import logging as zenml_logging
+from zenml import step
+from zenml.logger import get_logger
+from zenml.materializers import BuiltInMaterializer
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
@@ -47,7 +48,6 @@ def finetune(
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
 ) -> Annotated[Path, "ft_model_dir"]:
-
     project = "zenml-finetune"
     base_model_name = "mistral"
     run_name = base_model_name + "-" + project

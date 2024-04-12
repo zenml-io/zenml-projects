@@ -15,17 +15,16 @@
 # limitations under the License.
 #
 
+from functools import partial
 from pathlib import Path
 from typing import Any
-from functools import partial
-from utils.tokenizer import load_tokenizer, generate_and_tokenize_prompt
-from utils.logging import print_trainable_parameters
-from transformers import AutoModelForCausalLM
+
 import torch
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training
-from peft import LoraConfig, get_peft_model
 from datasets import load_dataset
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+from utils.logging import print_trainable_parameters
+from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
 
 
 def prepare_data(
@@ -40,7 +39,9 @@ def prepare_data(
 
     tokenizer = load_tokenizer(base_model_id, False)
     gen_and_tokenize = partial(
-        generate_and_tokenize_prompt, tokenizer=tokenizer, system_prompt=system_prompt
+        generate_and_tokenize_prompt,
+        tokenizer=tokenizer,
+        system_prompt=system_prompt,
     )
     ret = []
     if is_tain:

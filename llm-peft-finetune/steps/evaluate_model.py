@@ -15,21 +15,30 @@
 # limitations under the License.
 #
 
-import torch
-from zenml import save_artifact, step, log_model_metadata
-from typing import Optional
 from pathlib import Path
-from utils.loaders import load_base_model, load_tokenizer, load_pretrained_model
-from utils.tokenizer import tokenize_for_eval
-from datasets import load_from_disk
+from typing import Optional
+
 import evaluate
+import torch
+from datasets import load_from_disk
+from utils.loaders import (
+    load_base_model,
+    load_pretrained_model,
+    load_tokenizer,
+)
+from utils.tokenizer import tokenize_for_eval
+from zenml import log_model_metadata, save_artifact, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @step
 def evaluate_model(
-    base_model_id: str, system_prompt: str, datasets_dir: Path, ft_model_dir: Optional[Path]
+    base_model_id: str,
+    system_prompt: str,
+    datasets_dir: Path,
+    ft_model_dir: Optional[Path],
 ) -> None:
     logger.info("Evaluating model...")
 
@@ -37,8 +46,10 @@ def evaluate_model(
     tokenizer = load_tokenizer(base_model_id, is_eval=True)
     test_dataset = load_from_disk(datasets_dir / "test_raw")
     test_dataset = test_dataset[:50]
-    ground_truths = test_dataset['meaning_representation']
-    tokenized_train_dataset = tokenize_for_eval(test_dataset,tokenizer,system_prompt)
+    ground_truths = test_dataset["meaning_representation"]
+    tokenized_train_dataset = tokenize_for_eval(
+        test_dataset, tokenizer, system_prompt
+    )
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
@@ -48,16 +59,27 @@ def evaluate_model(
         model = load_pretrained_model(ft_model_dir)
 
     model.eval()
-    with torch.no_grad(): predictions = model.generate(input_ids=tokenized_train_dataset["input_ids"], attention_mask=tokenized_train_dataset["attention_mask"], max_new_tokens=100, pad_token_id=2)
-    predictions = tokenizer.batch_decode(predictions[:, tokenized_train_dataset["input_ids"].shape[1]:],skip_special_tokens=True,)
+    with torch.no_grad():
+        predictions = model.generate(
+            input_ids=tokenized_train_dataset["input_ids"],
+            attention_mask=tokenized_train_dataset["attention_mask"],
+            max_new_tokens=100,
+            pad_token_id=2,
+        )
+    predictions = tokenizer.batch_decode(
+        predictions[:, tokenized_train_dataset["input_ids"].shape[1] :],
+        skip_special_tokens=True,
+    )
 
     logger.info("Computing ROUGE metrics...")
-    prefix = ("base_model_" if ft_model_dir is None else "finetuned_model_")
-    rouge = evaluate.load('rouge')
-    rouge_metrics = rouge.compute(predictions=predictions,references=ground_truths)
-    metadata = {prefix+k:float(v) for k,v in rouge_metrics.items()}
+    prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
+    rouge = evaluate.load("rouge")
+    rouge_metrics = rouge.compute(
+        predictions=predictions, references=ground_truths
+    )
+    metadata = {prefix + k: float(v) for k, v in rouge_metrics.items()}
 
     log_model_metadata(metadata)
-    logger.info("Computed metrics: "+str(metadata))
+    logger.info("Computed metrics: " + str(metadata))
 
-    save_artifact(rouge_metrics, prefix+"rouge_metrics")
+    save_artifact(rouge_metrics, prefix + "rouge_metrics")

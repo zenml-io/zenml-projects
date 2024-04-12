@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
-from zenml import pipeline
-from steps.finetune import configure, finetune, evaluate_model, promote
 from steps import configure
+from steps.finetune import configure, evaluate_model, finetune, promote
 from steps.prepare_datasets import prepare_data
-from zenml.config import DockerSettings
 from zenml import logging as zenml_logging
+from zenml import pipeline
+from zenml.config import DockerSettings
 
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
     10000  # workaround for https://github.com/zenml-io/zenml/issues/2252
@@ -37,11 +37,21 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 )
 def train():
     system_prompt, base_model_id = configure()
-    datasets_dir = prepare_data(base_model_id=base_model_id, system_prompt=system_prompt)
+    datasets_dir = prepare_data(
+        base_model_id=base_model_id, system_prompt=system_prompt
+    )
     ft_model_dir = finetune(
         base_model_id,
         datasets_dir,
     )
-    evaluate_model(base_model_id, system_prompt, datasets_dir, ft_model_dir, id="evaluate_finetuned")
-    evaluate_model(base_model_id, system_prompt, datasets_dir, None, id="evaluate_base")
+    evaluate_model(
+        base_model_id,
+        system_prompt,
+        datasets_dir,
+        ft_model_dir,
+        id="evaluate_finetuned",
+    )
+    evaluate_model(
+        base_model_id, system_prompt, datasets_dir, None, id="evaluate_base"
+    )
     promote(after=["evaluate_finetuned", "evaluate_base"])

@@ -23,8 +23,12 @@ logger = get_logger(__name__)
 
 @step
 def promote(metric: str = "rouge1", target_stage: str = "staging") -> None:
-    base_metrics = get_step_context().model.load_artifact("base_model_rouge_metrics")
-    ft_metrics = get_step_context().model.load_artifact("finetuned_model_rouge_metrics")
+    base_metrics = get_step_context().model.load_artifact(
+        "base_model_rouge_metrics"
+    )
+    ft_metrics = get_step_context().model.load_artifact(
+        "finetuned_model_rouge_metrics"
+    )
 
     logger.info(
         f"`{metric}` to compare:\nbase={base_metrics[metric]*100:.2f}%\nfinetuned={ft_metrics[metric]*100:.2f}%"

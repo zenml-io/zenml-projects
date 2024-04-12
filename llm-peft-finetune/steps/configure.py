@@ -15,8 +15,9 @@
 # limitations under the License.
 #
 
-from typing_extensions import Annotated
 from typing import Tuple
+
+from typing_extensions import Annotated
 from zenml import step
 
 

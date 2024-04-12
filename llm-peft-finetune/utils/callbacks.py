@@ -16,11 +16,12 @@
 #
 
 from typing import Dict
+
 from transformers import (
     TrainerCallback,
-    TrainingArguments,
-    TrainerState,
     TrainerControl,
+    TrainerState,
+    TrainingArguments,
 )
 from zenml import get_step_context
 
@@ -32,7 +33,7 @@ class ZenMLCallback(TrainerCallback):
         state: TrainerState,
         control: TrainerControl,
         metrics: Dict[str, float],
-        **kwargs
+        **kwargs,
     ):
         try:
             context = get_step_context()
@@ -50,7 +51,7 @@ class ZenMLCallback(TrainerCallback):
         args: TrainingArguments,
         state: TrainerState,
         control: TrainerControl,
-        **kwargs
+        **kwargs,
     ):
         # TODO: add ability to save model checkpoints here, will likely get redundant with Mounts
         pass

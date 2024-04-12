@@ -53,8 +53,7 @@ class DirectoryMaterializer(BaseMaterializer):
         """
         assert isinstance(data, Path)
         self._copy_directory(src=str(data), dst=self.uri)
-        shutil.rmtree(data) # clean-up stored locally data
-
+        shutil.rmtree(data)  # clean-up stored locally data
 
     @staticmethod
     def _copy_directory(src: str, dst: str) -> None:

@@ -16,8 +16,10 @@
 #
 
 import gc
+
 import torch
 
-def cleanup_memory()->None:
+
+def cleanup_memory() -> None:
     while gc.collect():
         torch.cuda.empty_cache()

@@ -16,7 +16,8 @@
 #
 
 from pathlib import Path
-from zenml import step, get_step_context
+
+from zenml import get_step_context, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -29,7 +30,7 @@ def inference_one_example(
     "your opinion true for all games which don't have multiplayer?",
 ):
     import torch
-    from transformers import AutoTokenizer, AutoModelForCausalLM
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     base_model_id = get_step_context().model.load_artifact("base_model_id")
     get_step_context().model.load_artifact("ft_model")

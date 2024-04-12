@@ -15,12 +15,13 @@
 # limitations under the License.
 #
 
-from pathlib import Path
 from functools import partial
-from typing_extensions import Annotated
-from utils.tokenizer import load_tokenizer, generate_and_tokenize_prompt
-from zenml import step
+from pathlib import Path
+
 from materializers.directory_materializer import DirectoryMaterializer
+from typing_extensions import Annotated
+from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
+from zenml import step
 from zenml.materializers import BuiltInMaterializer
 
 
@@ -34,7 +35,9 @@ def prepare_data(
 
     tokenizer = load_tokenizer(base_model_id, False)
     gen_and_tokenize = partial(
-        generate_and_tokenize_prompt, tokenizer=tokenizer, system_prompt=system_prompt
+        generate_and_tokenize_prompt,
+        tokenizer=tokenizer,
+        system_prompt=system_prompt,
     )
 
     train_dataset = load_dataset(dataset_name, split="train")

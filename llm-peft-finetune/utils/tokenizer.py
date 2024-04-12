@@ -20,8 +20,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from transformers import AutoTokenizer
 
-def load_tokenizer(base_model_id: str, is_eval: bool = False) -> "AutoTokenizer":
+
+def load_tokenizer(
+    base_model_id: str, is_eval: bool = False
+) -> "AutoTokenizer":
     from transformers import AutoTokenizer
+
     if is_eval:
         tokenizer = AutoTokenizer.from_pretrained(
             base_model_id, add_bos_token=True, device_map="auto"
@@ -63,12 +67,20 @@ def generate_and_tokenize_prompt(
 """
     return tokenize(full_prompt, tokenizer)
 
-def tokenize_for_eval(data_points: dict, tokenizer: "AutoTokenizer", system_prompt: str):
-    eval_prompts = [f"""{system_prompt}
+
+def tokenize_for_eval(
+    data_points: dict, tokenizer: "AutoTokenizer", system_prompt: str
+):
+    eval_prompts = [
+        f"""{system_prompt}
 
 ### Target sentence:
 {data_point}
 
 ### Meaning representation:
-""" for data_point in data_points["target"]]
-    return tokenizer(eval_prompts, padding='longest', return_tensors="pt").to("cuda")
+"""
+        for data_point in data_points["target"]
+    ]
+    return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to(
+        "cuda"
+    )
