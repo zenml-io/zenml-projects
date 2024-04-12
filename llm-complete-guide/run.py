@@ -85,6 +85,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Run the synthetic data pipeline.",
 )
+@click.option(
+    "--local",
+    "local",
+    is_flag=True,
+    default=False,
+    help="Uses a local LLM via Ollama.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -92,6 +99,7 @@ def main(
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
     synthetic: bool = False,
+    local: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -102,7 +110,7 @@ def main(
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
-
+        local (bool): If `True`, the local LLM via Ollama will be used.
     """
     pipeline_args = {"enable_cache": not no_cache}
 
@@ -115,7 +123,7 @@ def main(
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
-        generate_chunk_questions.with_options(**pipeline_args)()
+        generate_chunk_questions.with_options(local=local, **pipeline_args)()
 
 
 if __name__ == "__main__":
