@@ -19,6 +19,7 @@ from concurrent.futures import ProcessPoolExecutor as Executor
 from concurrent.futures import as_completed
 from typing import Annotated
 
+from datasets import load_dataset
 from utils.llm_utils import get_db_conn, get_embeddings, get_topn_similar_docs
 from zenml import step
 
@@ -89,8 +90,42 @@ def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
 
 
 @step
-def retrieval_evaluation() -> Annotated[float, "failure_rate_retrieval"]:
+def retrieval_evaluation_small() -> (
+    Annotated[float, "small_failure_rate_retrieval"]
+):
     """Executes the retrieval evaluation step."""
     failure_rate = test_retrieved_docs_retrieve_best_url(question_doc_pairs)
     logging.info(f"Retrieval failure rate: {failure_rate}%")
     return failure_rate
+
+
+@step
+def retrieval_evaluation_full() -> (
+    Annotated[float, "full_failure_rate_retrieval"]
+):
+    # Load the dataset from the Hugging Face Hub
+    dataset = load_dataset("strickvl/zenml_embedding_questions", split="train")
+
+    total_tests = len(dataset)
+    failures = 0
+
+    for item in dataset:
+        generated_questions = item["generated_questions"]
+        question = generated_questions[
+            0
+        ]  # Assuming only one question per item
+        url_ending = item["filename"].split("/")[
+            -1
+        ]  # Extract the URL ending from the filename
+
+        _, _, urls = query_similar_docs(question, url_ending)
+
+        if all(url_ending not in url for url in urls):
+            logging.error(
+                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
+            )
+            failures += 1
+
+    logging.info(f"Total tests: {total_tests}. Failures: {failures}")
+    failure_rate = (failures / total_tests) * 100
+    return round(failure_rate, 2)
