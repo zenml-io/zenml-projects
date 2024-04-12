@@ -12,16 +12,18 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
+from typing import Annotated, List
 
 from steps.url_scraping_utils import extract_parent_section
 from structures import Document
 from unstructured.partition.html import partition_html
-from zenml import step
+from zenml import ArtifactConfig, step
 
 
 @step
-def web_url_loader(urls: List[str]) -> List[Document]:
+def web_url_loader(
+    urls: List[str],
+) -> Annotated[List[Document], ArtifactConfig(name="documents_from_urls")]:
     """Loads documents from a list of URLs.
 
     Args:
