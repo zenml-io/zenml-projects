@@ -1,6 +1,6 @@
-# ☮️ Fine-tuning open source LLMs using MLOps pipelines
+# ☮️ Fine-tuning open source LLMs using MLOps pipelines with PEFT
 
-Welcome to your newly generated "ZenML LLM Finetuning project" project! This is
+Welcome to your newly generated "ZenML LLM PEFT Finetuning project" project! This is
 a great way to get hands-on with ZenML using production-like template. 
 The project contains a collection of ZenML steps, pipelines and other artifacts
 and useful resources that can serve as a solid starting point for finetuning open-source LLMs using ZenML.
@@ -17,11 +17,11 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🌎 Inspiration and Credit
 
-This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) of the amazing people at Huggingface.
+This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) of the amazing people at Huggingface and [mistralai/Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1) model from the amazing people at MistralAI.
 
 ## 🏃 How to run
 
-In this project we provide a predefined configuration file to finetune models on the [Viggio](https://huggingface.co/datasets/GEM/viggo) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
+In this project, we provide a predefined configuration file to finetune models on the [Viggio](https://huggingface.co/datasets/GEM/viggo) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
 
 ```bash
 # Set up a Python virtual environment, if you haven't already
