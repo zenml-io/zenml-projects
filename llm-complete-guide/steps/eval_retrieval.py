@@ -100,16 +100,19 @@ def retrieval_evaluation_small() -> (
 
 
 @step
-def retrieval_evaluation_full() -> (
-    Annotated[float, "full_failure_rate_retrieval"]
-):
+def retrieval_evaluation_full(
+    sample_size: int = 50,
+) -> Annotated[float, "full_failure_rate_retrieval"]:
     # Load the dataset from the Hugging Face Hub
     dataset = load_dataset("strickvl/zenml_embedding_questions", split="train")
 
-    total_tests = len(dataset)
+    # Shuffle the dataset and select a random sample
+    sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
+
+    total_tests = len(sampled_dataset)
     failures = 0
 
-    for item in dataset:
+    for item in sampled_dataset:
         generated_questions = item["generated_questions"]
         question = generated_questions[
             0
