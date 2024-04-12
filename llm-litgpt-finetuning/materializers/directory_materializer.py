@@ -16,7 +16,6 @@
 #
 
 import os
-import shutil
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, ClassVar, Tuple, Type
@@ -53,7 +52,6 @@ class DirectoryMaterializer(BaseMaterializer):
         """
         assert isinstance(data, Path)
         self._copy_directory(src=str(data), dst=self.uri)
-        shutil.rmtree(data)  # clean-up stored locally data
 
     @staticmethod
     def _copy_directory(src: str, dst: str) -> None:

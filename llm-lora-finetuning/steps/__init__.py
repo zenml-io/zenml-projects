@@ -15,7 +15,8 @@
 # limitations under the License.
 #
 
-from steps.evaluate import evaluate
-from steps.feature_engineering import feature_engineering
-from steps.finetune import finetune
-from steps.merge import merge
+from .configure import configure
+from .evaluate_model import evaluate_model
+from .finetune import finetune
+from .prepare_datasets import prepare_data
+from .promote import promote
