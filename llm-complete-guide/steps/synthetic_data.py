@@ -92,7 +92,6 @@ def generate_questions_from_chunks(
         repo_id="zenml/rag_qa_embedding_questions",
         private=True,
         token=hf_token,
-        # revision=f"{str(datetime.now())}",
         create_pr=True,
     )
 

@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Annotated, Callable, Tuple
 
 from utils.llm_utils import process_input_with_retrieval
@@ -140,17 +139,13 @@ def run_tests(test_data: list, test_function: Callable) -> float:
     """
     failures = 0
     total_tests = len(test_data)
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future_to_test = {
-            executor.submit(test_function, item): item for item in test_data
-        }
-        for future in as_completed(future_to_test):
-            success, question, keyword_query_term, response = future.result()
-            if not success:
-                logging.error(
-                    f"Test failed for question: '{question}'. Found word: '{keyword_query_term}'. Response: '{response}'"
-                )
-                failures += 1
+    for item in test_data:
+        success, question, keyword_query_term, response = test_function(item)
+        if not success:
+            logging.error(
+                f"Test failed for question: '{question}'. Found word: '{keyword_query_term}'. Response: '{response}'"
+            )
+            failures += 1
     failure_rate = (failures / total_tests) * 100
     logging.info(
         f"Total tests: {total_tests}. Failures: {failures}. Failure rate: {failure_rate}%"
