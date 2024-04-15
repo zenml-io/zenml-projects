@@ -15,53 +15,13 @@
 # limitations under the License.
 #
 
-from functools import partial
 from pathlib import Path
 from typing import Any
 
 import torch
-from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from utils.logging import print_trainable_parameters
-from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
-
-
-def prepare_data(
-    base_model_id: str,
-    system_prompt: str,
-    is_tain: bool = True,
-    is_eval: bool = True,
-    is_test: bool = False,
-) -> Any:
-    if not (is_tain or is_eval):
-        raise ValueError("Please set is_tain or is_eval to True")
-
-    tokenizer = load_tokenizer(base_model_id, False)
-    gen_and_tokenize = partial(
-        generate_and_tokenize_prompt,
-        tokenizer=tokenizer,
-        system_prompt=system_prompt,
-    )
-    ret = []
-    if is_tain:
-        train_dataset = load_dataset("gem/viggo", split="train")
-        tokenized_train_dataset = train_dataset.map(gen_and_tokenize)
-        ret.append(tokenized_train_dataset)
-    if is_eval:
-        eval_dataset = load_dataset("gem/viggo", split="validation")
-        tokenized_val_dataset = eval_dataset.map(gen_and_tokenize)
-        ret.append(tokenized_val_dataset)
-    if is_test:
-        test_dataset = load_dataset("gem/viggo", split="test")
-        tokenized_test_dataset = test_dataset.map(gen_and_tokenize)
-        ret.append(tokenized_test_dataset)
-
-    if len(ret) == 3:
-        return tokenizer, ret[0], ret[1], ret[2]
-    if len(ret) == 2:
-        return tokenizer, ret[0], ret[1]
-    return tokenizer, ret[0]
 
 
 def load_base_model(

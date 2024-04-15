@@ -15,18 +15,14 @@
 # limitations under the License.
 #
 
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from transformers import AutoTokenizer
+from transformers import AutoTokenizer
 
 
 def load_tokenizer(
     base_model_id: str,
     is_eval: bool = False,
-) -> "AutoTokenizer":
-    from transformers import AutoTokenizer
-
+) -> AutoTokenizer:
     if is_eval:
         tokenizer = AutoTokenizer.from_pretrained(
             base_model_id, add_bos_token=True, device_map="auto"
@@ -46,7 +42,7 @@ def load_tokenizer(
 
 def tokenize(
     prompt: str,
-    tokenizer: "AutoTokenizer",
+    tokenizer: AutoTokenizer,
 ) -> dict:
     result = tokenizer(
         prompt,
@@ -60,7 +56,7 @@ def tokenize(
 
 def generate_and_tokenize_prompt(
     data_point: dict,
-    tokenizer: "AutoTokenizer",
+    tokenizer: AutoTokenizer,
     system_prompt: str,
 ):
     full_prompt = f"""{system_prompt}
@@ -76,7 +72,7 @@ def generate_and_tokenize_prompt(
 
 def tokenize_for_eval(
     data_points: dict,
-    tokenizer: "AutoTokenizer",
+    tokenizer: AutoTokenizer,
     system_prompt: str,
 ):
     eval_prompts = [
