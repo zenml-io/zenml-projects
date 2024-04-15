@@ -27,6 +27,15 @@ def promote(
     metric: str = "rouge1",
     target_stage: str = "staging",
 ) -> None:
+    """Promote the model to the target stage.
+
+    If the model does not outperform the base model, it will be skipped.
+    If the model does not outperform the model in the target stage, it will be skipped.
+
+    Args:
+        metric: The metric to use for promotion.
+        target_stage: The target stage to promote to.
+    """
     context_model = get_step_context().model
     base_metrics = context_model.load_artifact("base_model_rouge_metrics")
     ft_metrics = context_model.load_artifact("finetuned_model_rouge_metrics")

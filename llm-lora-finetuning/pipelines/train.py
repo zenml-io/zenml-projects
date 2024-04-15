@@ -35,6 +35,16 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
     }
 )
 def llm_peft_full_finetune():
+    """Pipeline for finetuning an LLM with peft.
+    
+    It will run the following steps:
+
+    - configure: set the system prompt and base model id
+    - prepare_data: prepare the datasets and tokenize them
+    - finetune: finetune the model
+    - evaluate_model: evaluate the base and finetuned model
+    - promote: promote the model to the target stage, if evaluation was successful
+    """
     system_prompt, base_model_id = configure()
     datasets_dir = prepare_data(
         base_model_id=base_model_id, system_prompt=system_prompt

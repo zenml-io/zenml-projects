@@ -26,4 +26,13 @@ def configure(
     system_prompt: str,
     base_model_id: str,
 ) -> Tuple[Annotated[str, "system_prompt"], Annotated[str, "base_model_id"]]:
+    """Set the system prompt and base model id.
+    
+    Args:
+        system_prompt: The system prompt to use.
+        base_model_id: The base model id to use.
+
+    Returns:
+        The system prompt and base model id.
+    """
     return system_prompt, base_model_id

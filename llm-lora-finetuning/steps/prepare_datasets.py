@@ -31,6 +31,16 @@ def prepare_data(
     system_prompt: str,
     dataset_name: str = "gem/viggo",
 ) -> Annotated[Path, "datasets_dir"]:
+    """Prepare the datasets for finetuning.
+
+    Args:
+        base_model_id: The base model id to use.
+        system_prompt: The system prompt to use.
+        dataset_name: The name of the dataset to use.
+
+    Returns:
+        The path to the datasets directory.
+    """
     from datasets import load_dataset
 
     tokenizer = load_tokenizer(base_model_id, False)

@@ -27,6 +27,7 @@ from zenml import get_step_context
 
 
 class ZenMLCallback(TrainerCallback):
+    """Callback that logs metrics to ZenML."""
     def on_evaluate(
         self,
         args: TrainingArguments,
@@ -35,6 +36,14 @@ class ZenMLCallback(TrainerCallback):
         metrics: Dict[str, float],
         **kwargs,
     ):
+        """Log metrics to the ZenML Model version as metadata.
+
+        Args:
+            args: The training arguments.
+            state: The trainer state.
+            control: The trainer control.
+            metrics: The metrics to log.
+        """
         try:
             context = get_step_context()
             context.model.log_metadata(

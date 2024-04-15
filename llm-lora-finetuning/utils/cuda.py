@@ -21,5 +21,6 @@ import torch
 
 
 def cleanup_memory() -> None:
+    """Clean up GPU memory."""
     while gc.collect():
         torch.cuda.empty_cache()

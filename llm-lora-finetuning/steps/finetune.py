@@ -22,7 +22,8 @@ from datasets import load_from_disk
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
-from utils.loaders import load_base_model, load_tokenizer
+from utils.loaders import load_base_model
+from utils.tokenizer import load_tokenizer
 from zenml import logging as zenml_logging
 from zenml import step
 from zenml.logger import get_logger
@@ -48,6 +49,29 @@ def finetune(
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
 ) -> Annotated[Path, "ft_model_dir"]:
+    """Finetune the model using PEFT.
+
+    Base model will be derived from configure step and finetuned model will
+    be saved to the output directory.
+
+    Finetuning parameters can be found here: https://github.com/huggingface/peft#fine-tuning
+
+    Args:
+        base_model_id: The base model id to use.
+        dataset_dir: The path to the dataset directory.
+        max_steps: The maximum number of steps to train for.
+        logging_steps: The number of steps to log at.
+        eval_steps: The number of steps to evaluate at.
+        save_steps: The number of steps to save at.
+        optimizer: The optimizer to use.
+        lr: The learning rate to use.
+        per_device_train_batch_size: The batch size to use for training.
+        gradient_accumulation_steps: The number of gradient accumulation steps.
+        warmup_steps: The number of warmup steps.
+
+    Returns:
+        The path to the finetuned model directory.
+    """
     project = "zenml-finetune"
     base_model_name = "mistral"
     run_name = base_model_name + "-" + project

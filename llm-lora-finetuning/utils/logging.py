@@ -21,9 +21,7 @@ logger = get_logger(__name__)
 
 
 def print_trainable_parameters(model):
-    """
-    Prints the number of trainable parameters in the model.
-    """
+    """Prints the number of trainable parameters in the model."""
     trainable_params = 0
     all_param = 0
     for _, param in model.named_parameters():

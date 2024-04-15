@@ -28,6 +28,17 @@ def load_base_model(
     base_model_id: str,
     is_training: bool = True,
 ) -> Any:
+    """Load the base model.
+
+    Args:
+        base_model_id: The base model id to use.
+        is_training: Whether the model should be prepared for training or not.
+            If True, the Lora parameters will be enabled and PEFT will be
+            applied.
+
+    Returns:
+        The base model.
+    """
     bnb_config = BitsAndBytesConfig(
         load_in_8bit=True,
         bnb_4bit_use_double_quant=True,
@@ -68,6 +79,14 @@ def load_base_model(
 
 
 def load_pretrained_model(ft_model_dir: Path) -> AutoModelForCausalLM:
+    """Load the finetuned model saved in the output directory.
+
+    Args:
+        ft_model_dir: The path to the finetuned model directory.
+
+    Returns:
+        The finetuned model.
+    """
     bnb_config = BitsAndBytesConfig(
         load_in_8bit=True,
         bnb_4bit_use_double_quant=True,
