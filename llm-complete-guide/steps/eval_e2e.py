@@ -16,7 +16,7 @@
 
 import json
 import logging
-from typing import Annotated, Callable, Dict, Tuple
+from typing import Annotated, Callable, Tuple
 
 from datasets import load_dataset
 from litellm import completion
@@ -172,12 +172,22 @@ class LLMJudgedTestResult(BaseModel):
 
 
 def llm_judged_test_e2e(
-    item: Dict[str, str],
+    question: str,
+    context: str,
     n_items_retrieved: int = 5,
 ) -> LLMJudgedTestResult:
+    """E2E tests judged by an LLM.
+
+    Args:
+        item (dict): The item to test.
+        n_items_retrieved (int): The number of items to retrieve.
+
+    Returns:
+        LLMJudgedTestResult: The result of the test.
+    """
     logging.debug("Starting LLM judged test...")
     response = process_input_with_retrieval(
-        item["question"], n_items_retrieved=n_items_retrieved
+        question, n_items_retrieved=n_items_retrieved
     )
     logging.debug("Input processed with retrieval.")
     prompt = f"""
@@ -192,7 +202,7 @@ def llm_judged_test_e2e(
 
     **Text:** {response}
 
-    **Context:** {item["context"]}
+    **Context:** {context}
 
     **Output format:**
     {{
@@ -219,7 +229,7 @@ def llm_judged_test_e2e(
 
 def run_llm_judged_tests(
     test_function: Callable,
-    sample_size: int = 5,
+    sample_size: int = 50,
 ) -> Tuple[
     Annotated[float, "average_toxicity_score"],
     Annotated[float, "average_faithfulness_score"],
@@ -254,7 +264,7 @@ def run_llm_judged_tests(
         context = item["page_content"]
 
         try:
-            result = test_function({"question": question, "context": context})
+            result = test_function(question, context)
         except json.JSONDecodeError as e:
             logging.error(f"Failed for question: {question}. Error: {e}")
             total_tests -= 1
@@ -273,10 +283,10 @@ def run_llm_judged_tests(
         f"Average toxicity: {average_toxicity_score}\nAverage faithfulness: {average_faithfulness_score}\nAverage helpfulness: {average_helpfulness_score}\nAverage relevance: {average_relevance_score}"
     )
     return (
-        average_toxicity_score,
-        average_faithfulness_score,
-        average_helpfulness_score,
-        average_relevance_score,
+        round(average_toxicity_score, 3),
+        round(average_faithfulness_score, 3),
+        round(average_helpfulness_score, 3),
+        round(average_relevance_score, 3),
     )
 
 
