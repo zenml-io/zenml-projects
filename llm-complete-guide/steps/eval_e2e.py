@@ -15,8 +15,9 @@
 # limitations under the License.
 
 import logging
-from typing import Annotated, Callable, Tuple
+from typing import Annotated, Callable
 
+from pydantic import BaseModel
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
 
@@ -54,9 +55,16 @@ good_responses = [
 ]
 
 
+class TestResult(BaseModel):
+    success: bool
+    question: str
+    keyword: str = ""
+    response: str
+
+
 def test_content_for_bad_words(
     item: dict, n_items_retrieved: int = 5
-) -> tuple:
+) -> TestResult:
     """
     Test if responses contain bad words.
 
@@ -65,7 +73,7 @@ def test_content_for_bad_words(
         n_items_retrieved (int): The number of items to retrieve.
 
     Returns:
-        tuple: A tuple containing the success status, the question, the bad word found, and the response.
+        TestResult: A TestResult object containing the test result information.
     """
     question = item["question"]
     bad_words = item["bad_words"]
@@ -74,13 +82,18 @@ def test_content_for_bad_words(
     )
     for word in bad_words:
         if word in response:
-            return (False, question, word, response)
-    return (True, question, None, response)
+            return TestResult(
+                success=False,
+                question=question,
+                keyword=word,
+                response=response,
+            )
+    return TestResult(success=True, question=question, response=response)
 
 
 def test_response_starts_with_bad_words(
     item: dict, n_items_retrieved: int = 5
-) -> tuple:
+) -> TestResult:
     """
     Test if responses improperly start with bad words.
 
@@ -89,7 +102,7 @@ def test_response_starts_with_bad_words(
         n_items_retrieved (int): The number of items to retrieve.
 
     Returns:
-        tuple: A tuple containing the success status, the question, the bad word found, and the response.
+        TestResult: A TestResult object containing the test result information.
     """
     question = item["question"]
     bad_words = item["bad_words"]
@@ -98,13 +111,18 @@ def test_response_starts_with_bad_words(
     )
     for word in bad_words:
         if response.lower().startswith(word.lower()):
-            return (False, question, word, response)
-    return (True, question, None, response)
+            return TestResult(
+                success=False,
+                question=question,
+                keyword=word,
+                response=response,
+            )
+    return TestResult(success=True, question=question, response=response)
 
 
 def test_content_contains_good_words(
     item: dict, n_items_retrieved: int = 5
-) -> tuple:
+) -> TestResult:
     """
     Test if responses properly contain good words.
 
@@ -113,7 +131,7 @@ def test_content_contains_good_words(
         n_items_retrieved (int): The number of items to retrieve, defaulted to 5.
 
     Returns:
-        tuple: A tuple containing the success status, question, the good word not found (if any), and the response.
+        TestResult: A TestResult object containing the test result information.
     """
     question = item["question"]
     good_words = item["good_words"]
@@ -122,8 +140,13 @@ def test_content_contains_good_words(
     )
     for word in good_words:
         if word not in response:
-            return (False, question, word, response)
-    return (True, question, None, response)
+            return TestResult(
+                success=False,
+                question=question,
+                keyword=word,
+                response=response,
+            )
+    return TestResult(success=True, question=question, response=response)
 
 
 def run_tests(test_data: list, test_function: Callable) -> float:
@@ -140,10 +163,10 @@ def run_tests(test_data: list, test_function: Callable) -> float:
     failures = 0
     total_tests = len(test_data)
     for item in test_data:
-        success, question, keyword_query_term, response = test_function(item)
-        if not success:
+        test_result = test_function(item)
+        if not test_result.success:
             logging.error(
-                f"Test failed for question: '{question}'. Found word: '{keyword_query_term}'. Response: '{response}'"
+                f"Test failed for question: '{test_result.question}'. Found word: '{test_result.keyword}'. Response: '{test_result.response}'"
             )
             failures += 1
     failure_rate = (failures / total_tests) * 100
@@ -155,11 +178,9 @@ def run_tests(test_data: list, test_function: Callable) -> float:
 
 @step
 def e2e_evaluation() -> (
-    Tuple[
-        Annotated[float, "failure_rate_bad_answers"],
-        Annotated[float, "failure_rate_bad_immediate_responses"],
-        Annotated[float, "failure_rate_good_responses"],
-    ]
+    Annotated[float, "failure_rate_bad_answers"],
+    Annotated[float, "failure_rate_bad_immediate_responses"],
+    Annotated[float, "failure_rate_good_responses"],
 ):
     """Executes the end-to-end evaluation step."""
     logging.info("Testing bad answers...")
