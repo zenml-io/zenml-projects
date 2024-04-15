@@ -14,30 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from steps.eval_e2e import e2e_evaluation
-from steps.eval_retrieval import (
-    retrieval_evaluation_full,
-    retrieval_evaluation_small,
-)
-from steps.eval_visualisation import visualize_evaluation_results
+from steps.eval_e2e import e2e_evaluation_llm_judged
+
+# from steps.eval_e2e import e2e_evaluation
+# from steps.eval_retrieval import (
+#     retrieval_evaluation_full,
+#     retrieval_evaluation_small,
+# )
+# from steps.eval_visualisation import visualize_evaluation_results
 from zenml import pipeline
 
 
 @pipeline
 def llm_eval() -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
-    failure_rate_retrieval = retrieval_evaluation_small()
-    (
-        failure_rate_bad_answers,
-        failure_rate_bad_immediate_responses,
-        failure_rate_good_responses,
-    ) = e2e_evaluation()
+    # failure_rate_retrieval = retrieval_evaluation_small()
+    # (
+    #     failure_rate_bad_answers,
+    #     failure_rate_bad_immediate_responses,
+    #     failure_rate_good_responses,
+    # ) = e2e_evaluation()
 
-    full_failure_rate_retrieval = retrieval_evaluation_full()
+    # full_failure_rate_retrieval = retrieval_evaluation_full()
 
-    visualize_evaluation_results(
-        failure_rate_retrieval,
-        failure_rate_bad_answers,
-        failure_rate_bad_immediate_responses,
-        failure_rate_good_responses,
-    )
+    # visualize_evaluation_results(
+    #     failure_rate_retrieval,
+    #     failure_rate_bad_answers,
+    #     failure_rate_bad_immediate_responses,
+    #     failure_rate_good_responses,
+    # )
+
+    e2e_evaluation_llm_judged()
