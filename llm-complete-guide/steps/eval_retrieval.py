@@ -127,7 +127,7 @@ def retrieval_evaluation_full(
         The failure rate of the retrieval test.
     """
     # Load the dataset from the Hugging Face Hub
-    dataset = load_dataset("strickvl/zenml_embedding_questions", split="train")
+    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
 
     # Shuffle the dataset and select a random sample
     sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))

@@ -80,7 +80,7 @@ def generate_questions_from_chunks(
     hf_token = client.get_secret("huggingface_datasets").secret_values["token"]
 
     create_repo(
-        "zenml_embedding_questions",
+        "zenml/rag_qa_embedding_questions",
         token=hf_token,
         exist_ok=True,
         private=True,
@@ -89,7 +89,7 @@ def generate_questions_from_chunks(
 
     dataset = Dataset.from_pandas(df)
     dataset.push_to_hub(
-        repo_id="zenml_embedding_questions",
+        repo_id="zenml/rag_qa_embedding_questions",
         private=True,
         token=hf_token,
         # revision=f"{str(datetime.now())}",
