@@ -23,7 +23,7 @@ from pipelines.train import llm_peft_full_finetune
 
 @click.command(
     help="""
-ZenML LLM Finetuning project CLI v0.1.0.
+ZenML LLM Finetuning project CLI v0.2.0.
 
 Run the ZenML LLM Finetuning project LLM PEFT finetuning pipelines.
 
