@@ -15,8 +15,6 @@
 # limitations under the License.
 
 import logging
-from concurrent.futures import ProcessPoolExecutor as Executor
-from concurrent.futures import as_completed
 from typing import Annotated
 
 from datasets import load_dataset
@@ -56,7 +54,15 @@ question_doc_pairs = [
 
 
 def query_similar_docs(question: str, url_ending: str) -> tuple:
-    # This function remains unchanged
+    """Query similar documents for a given question and URL ending.
+
+    Args:
+        question: Question to query similar documents for.
+        url_ending: URL ending to compare the retrieved documents against.
+
+    Returns:
+        Tuple containing the question, URL ending, and retrieved URLs.
+    """
     embedded_question = get_embeddings(question)
     db_conn = get_db_conn()
     top_similar_docs_urls = get_topn_similar_docs(
@@ -67,23 +73,28 @@ def query_similar_docs(question: str, url_ending: str) -> tuple:
 
 
 def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
+    """Test if the retrieved documents contain the best URL ending.
+
+    Args:
+        question_doc_pairs: List of dictionaries containing questions and URL
+        endings.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
     total_tests = len(question_doc_pairs)
     failures = 0
-    with Executor(max_workers=1) as executor:
-        # Schedule the queries to be executed
-        future_to_query = {
-            executor.submit(
-                query_similar_docs, pair["question"], pair["url_ending"]
-            ): pair
-            for pair in question_doc_pairs
-        }
-        for future in as_completed(future_to_query):
-            question, url_ending, urls = future.result()
-            if all(url_ending not in url for url in urls):
-                logging.error(
-                    f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
-                )
-                failures += 1
+
+    for pair in question_doc_pairs:
+        question, url_ending, urls = query_similar_docs(
+            pair["question"], pair["url_ending"]
+        )
+        if all(url_ending not in url for url in urls):
+            logging.error(
+                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
+            )
+            failures += 1
+
     logging.info(f"Total tests: {total_tests}. Failures: {failures}")
     failure_rate = (failures / total_tests) * 100
     return round(failure_rate, 2)
@@ -93,7 +104,11 @@ def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
 def retrieval_evaluation_small() -> (
     Annotated[float, "small_failure_rate_retrieval"]
 ):
-    """Executes the retrieval evaluation step."""
+    """Executes the retrieval evaluation step.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
     failure_rate = test_retrieved_docs_retrieve_best_url(question_doc_pairs)
     logging.info(f"Retrieval failure rate: {failure_rate}%")
     return failure_rate
@@ -103,6 +118,14 @@ def retrieval_evaluation_small() -> (
 def retrieval_evaluation_full(
     sample_size: int = 50,
 ) -> Annotated[float, "full_failure_rate_retrieval"]:
+    """Executes the retrieval evaluation step.
+
+    Args:
+        sample_size: Number of samples to use for the evaluation.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
     # Load the dataset from the Hugging Face Hub
     dataset = load_dataset("strickvl/zenml_embedding_questions", split="train")
 
