@@ -17,7 +17,7 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🌎 Inspiration and Credit
 
-This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) of the amazing people at Huggingface and [mistralai/Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1) model from the amazing people at MistralAI.
+This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) by the amazing people at Huggingface and the [`mistralai/Mistral-7B-v0.1`](https://huggingface.co/mistralai/Mistral-7B-v0.1) model from the amazing people at MistralAI.
 
 ## 🏃 How to run
 
