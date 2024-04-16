@@ -104,7 +104,7 @@ def evaluate_retrieval(question, expected_answer, corpus, top_n=2):
     relevant_chunks = retrieve_relevant_chunks(question, corpus, top_n)
     print(f"Question: {question}")
     print(f"Expected Answer: {expected_answer}")
-    print(f"Retrieved Chunks:")
+    print("Retrieved Chunks:")
     for chunk in relevant_chunks:
         print(f"- {chunk}")
     score = any(
