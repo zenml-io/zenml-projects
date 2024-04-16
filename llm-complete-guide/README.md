@@ -110,6 +110,17 @@ Note that Claude will require a different API key from Anthropic. See [the
 `litellm` docs](https://docs.litellm.ai/docs/providers/anthropic) on how to set
 this up.
 
+### Run the evaluation pipeline
+
+To run the evaluation pipeline, you can use the following command:
+
+```shell
+python run.py --evaluation
+```
+
+You'll need to have first run the RAG pipeline to have the necessary assets in
+the database to evaluate.
+
 ## ☁️ Running in your own VPC
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
@@ -119,6 +130,9 @@ guides](https://docs.zenml.io/user-guide/cloud-guide) (currently available for
 [AWS](https://docs.zenml.io/user-guide/cloud-guide/aws-guide) and
 [GCP](https://docs.zenml.io/user-guide/cloud-guide/gcp-guide)) to learn how you
 can run the pipelines on a remote stack.
+
+If you run the pipeline using a cloud artifact store, logs from all the steps as
+well as assets like the visualizations will all be shown in the ZenML dashboard.
 
 ### BONUS: Connect to ZenML Cloud
 
