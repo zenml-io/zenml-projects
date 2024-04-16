@@ -137,20 +137,38 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ```
 .
 ├── LICENSE                                             # License file
-├── README.md                                           # This file
-├── constants.py                                        # Constants for the project
+├── README.md                                           # Project documentation
+├── __init__.py
+├── constants.py                                        # Constants used throughout the project
+├── materializers
+│   ├── __init__.py
+│   └── document_materializer.py                        # Document materialization logic
+├── most_basic_eval.py                                  # Basic evaluation script
+├── most_basic_rag_pipeline.py                          # Basic RAG pipeline script
+├── notebooks
+│   └── visualise_embeddings.ipynb                      # Notebook to visualize embeddings
 ├── pipelines
-│   ├── __init__.py                                    
-│   └── llm_basic_rag.py                                # Basic RAG pipeline
-├── requirements.txt                                    # Requirements file
-├── run.py                                              # Script to run the pipelines
+│   ├── __init__.py
+│   ├── generate_chunk_questions.py                     # Pipeline to generate chunk questions
+│   ├── llm_basic_rag.py                                # Basic RAG pipeline using LLM
+│   └── llm_eval.py                                     # Pipeline for LLM evaluation
+├── requirements.txt                                    # Project dependencies
+├── run.py                                              # Main script to run the project
 ├── steps
-│   ├── __init__.py                                     
-│   ├── populate_index.py                               # Step to populate the index
-│   ├── url_scraper.py                                  # Step to scrape the URLs
-│   ├── url_scraping_utils.py                           # Utilities for the URL scraper
-│   └── web_url_loader.py                               # Step to load the URLs
-└── utils                                              
+│   ├── __init__.py
+│   ├── eval_e2e.py                                     # End-to-end evaluation step
+│   ├── eval_retrieval.py                               # Retrieval evaluation step
+│   ├── eval_visualisation.py                           # Evaluation visualization step
+│   ├── populate_index.py                               # Step to populate the index
+│   ├── synthetic_data.py                               # Step to generate synthetic data
+│   ├── url_scraper.py                                  # Step to scrape URLs
+│   ├── url_scraping_utils.py                           # Utilities for URL scraping
+│   └── web_url_loader.py                               # Step to load web URLs
+├── structures.py                                       # Data structures used in the project
+├── tests
+│   ├── __init__.py
+│   └── test_url_scraping_utils.py                      # Tests for URL scraping utilities
+└── utils
     ├── __init__.py
     └── llm_utils.py                                    # Utilities related to the LLM
 ```
