@@ -79,7 +79,6 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ├── pipelines                       # `zenml.pipeline` implementations
 │   └── train.py                    # Finetuning and evaluation pipeline
 ├── steps                           # logically grouped `zenml.steps` implementations
-│   ├── configure.py                # configure the base model and system prompt
 │   ├── evaluate_model.py           # evaluate base and finetuned models using Rouge metrics
 │   ├── finetune.py                 # finetune the base model
 │   ├── prepare_datasets.py         # load and tokenize dataset

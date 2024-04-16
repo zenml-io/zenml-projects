@@ -16,25 +16,17 @@
 #
 
 
-from steps import configure, evaluate_model, finetune, prepare_data, promote
+from steps import evaluate_model, finetune, prepare_data, promote
 from zenml import logging as zenml_logging
 from zenml import pipeline
-from zenml.config import DockerSettings
 
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
     10000  # workaround for https://github.com/zenml-io/zenml/issues/2252
 )
 
 
-@pipeline(
-    settings={
-        "docker": DockerSettings(
-            parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
-            requirements="requirements.txt",
-        )
-    }
-)
-def llm_peft_full_finetune():
+@pipeline
+def llm_peft_full_finetune(system_prompt:str, base_model_id:str):
     """Pipeline for finetuning an LLM with peft.
     
     It will run the following steps:
@@ -45,7 +37,6 @@ def llm_peft_full_finetune():
     - evaluate_model: evaluate the base and finetuned model
     - promote: promote the model to the target stage, if evaluation was successful
     """
-    system_prompt, base_model_id = configure()
     datasets_dir = prepare_data(
         base_model_id=base_model_id, system_prompt=system_prompt
     )
