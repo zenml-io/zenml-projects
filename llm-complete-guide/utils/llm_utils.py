@@ -32,6 +32,7 @@ import tiktoken
 from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
+from rerankers import Reranker
 from sentence_transformers import SentenceTransformer
 from structures import Document
 
@@ -353,17 +354,40 @@ def get_embeddings(text):
     return model.encode(text)
 
 
+def rerank_documents(
+    query: str, documents: List[Tuple], reranker_model: str = "cross-encoder"
+) -> List[str]:
+    """Reranks the given documents based on the given query.
+
+    Args:
+        query (str): The query to use for reranking.
+        documents (List[Tuple]): The documents to rerank.
+
+    Returns:
+        List[str]: The reranked content.
+    """
+    ranker = Reranker(reranker_model)
+    docs_texts = [doc[0] for doc in documents]
+    results = ranker.rank(query=query, docs=docs_texts)
+    return [document.text for document in results.results]
+
+
 def process_input_with_retrieval(
-    input: str, model: str = OPENAI_MODEL, n_items_retrieved: int = 5
+    input: str,
+    model: str = OPENAI_MODEL,
+    n_items_retrieved: int = 20,
+    use_reranking: bool = True,
 ) -> str:
     """Process the input with retrieval.
 
     Args:
         input (str): The input to process.
         model (str, optional): The model to use for completion. Defaults to
-        OPENAI_MODEL.
+            OPENAI_MODEL.
         n_items_retrieved (int, optional): The number of items to retrieve from
-        the database. Defaults to 5.
+            the database. Defaults to 5.
+        use_reranking (bool, optional): Whether to use reranking. Defaults to
+            True.
 
     Returns:
         str: The processed output.
@@ -374,6 +398,13 @@ def process_input_with_retrieval(
     related_docs = get_topn_similar_docs(
         get_embeddings(input), get_db_conn(), n=n_items_retrieved
     )
+
+    if use_reranking:
+        # Rerank the documents based on the input
+        # and take the top 5 only
+        context_content = rerank_documents(input, related_docs)[:5]
+    else:
+        context_content = [doc[0] for doc in related_docs[:5]]
 
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
@@ -398,7 +429,7 @@ def process_input_with_retrieval(
         {
             "role": "assistant",
             "content": f"Relevant ZenML documentation: \n"
-            + "\n".join(doc[0] for doc in related_docs),
+            + "\n".join(context_content),
         },
     ]
     logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
