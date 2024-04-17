@@ -126,13 +126,11 @@ def finetune(
         )
         for stdout_line in result.stdout:
             print(stdout_line, end="")
-        result.stdout.close()
-        return_code = result.wait()
-        if return_code == 0:
+        if result.returncode == 0:
             logger.info("Accelerate training job finished.")
             return Path(ft_model_dir)
         else:
             logger.error(
-                f"Accelerate training job failed. With return code {return_code}."
+                f"Accelerate training job failed. With return code {result.returncode}."
             )
-            raise subprocess.CalledProcessError(return_code, command)
+            raise subprocess.CalledProcessError(result.returncode, command)
