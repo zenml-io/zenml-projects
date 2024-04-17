@@ -217,6 +217,7 @@ def accelerated_finetune(
         accelerator = Accelerator()
         should_print = accelerator.is_main_process
     else:
+        accelerator = None
         should_print = True
 
     project = "zenml-finetune"
