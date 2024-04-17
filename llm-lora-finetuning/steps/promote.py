@@ -22,7 +22,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def promote(
     metric: str = "rouge1",
     target_stage: str = "staging",

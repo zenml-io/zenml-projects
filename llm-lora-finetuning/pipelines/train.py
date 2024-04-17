@@ -26,9 +26,9 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 
 
 @pipeline
-def llm_peft_full_finetune(system_prompt:str, base_model_id:str):
+def llm_peft_full_finetune(system_prompt: str, base_model_id: str):
     """Pipeline for finetuning an LLM with peft.
-    
+
     It will run the following steps:
 
     - configure: set the system prompt and base model id

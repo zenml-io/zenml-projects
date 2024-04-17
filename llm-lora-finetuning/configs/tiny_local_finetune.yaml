@@ -22,7 +22,7 @@ model:
     - llm
     - peft
     - mistralai/Mistral-7B-v0.1
-  version: 300_steps
+  version: 50_steps
 
 settings:
   docker:
@@ -44,9 +44,10 @@ steps:
   finetune:
     enable_step_logs: False
     parameters:
-      max_steps: 300
-      eval_steps: 100
+      max_steps: 50
+      eval_steps: 50
       bf16: False
+      
 
   promote:
     parameters:

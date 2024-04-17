@@ -25,7 +25,7 @@ from utils.loaders import (
     load_base_model,
     load_pretrained_model,
 )
-from utils.tokenizer import tokenize_for_eval, load_tokenizer
+from utils.tokenizer import load_tokenizer, tokenize_for_eval
 from zenml import log_model_metadata, save_artifact, step
 from zenml.logger import get_logger
 
@@ -55,7 +55,9 @@ def evaluate_model(
     test_dataset = load_from_disk(datasets_dir / "test_raw")
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
-    tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
+    tokenized_train_dataset = tokenize_for_eval(
+        test_dataset, tokenizer, system_prompt
+    )
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
@@ -80,7 +82,9 @@ def evaluate_model(
     logger.info("Computing ROUGE metrics...")
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
-    rouge_metrics = rouge.compute(predictions=predictions, references=ground_truths)
+    rouge_metrics = rouge.compute(
+        predictions=predictions, references=ground_truths
+    )
     metadata = {prefix + k: float(v) for k, v in rouge_metrics.items()}
 
     log_model_metadata(metadata)

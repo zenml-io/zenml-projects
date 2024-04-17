@@ -15,19 +15,18 @@
 # limitations under the License.
 #
 
+import subprocess
 from pathlib import Path
 
-import transformers
-from datasets import load_from_disk
+import torch
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
-from utils.callbacks import ZenMLCallback
-from utils.loaders import load_base_model
-from utils.tokenizer import load_tokenizer
 from zenml import logging as zenml_logging
 from zenml import step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
+
+from scripts.finetune import accelerated_finetune
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
@@ -48,6 +47,8 @@ def finetune(
     per_device_train_batch_size: int = 2,
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
+    bf16: bool = True,
+    use_accelerate: bool = False,
 ) -> Annotated[Path, "ft_model_dir"]:
     """Finetune the model using PEFT.
 
@@ -68,62 +69,70 @@ def finetune(
         per_device_train_batch_size: The batch size to use for training.
         gradient_accumulation_steps: The number of gradient accumulation steps.
         warmup_steps: The number of warmup steps.
+        bf16: Whether to use bf16.
+        use_accelerate: Whether to use accelerate.
 
     Returns:
         The path to the finetuned model directory.
     """
-    project = "zenml-finetune"
-    base_model_name = "mistral"
-    run_name = base_model_name + "-" + project
-    output_dir = "./" + run_name
+    if not use_accelerate:
+        return (
+            accelerated_finetune(
+                base_model_id=base_model_id,
+                dataset_dir=dataset_dir,
+                max_steps=max_steps,
+                logging_steps=logging_steps,
+                eval_steps=eval_steps,
+                save_steps=save_steps,
+                optimizer=optimizer,
+                lr=lr,
+                per_device_train_batch_size=per_device_train_batch_size,
+                gradient_accumulation_steps=gradient_accumulation_steps,
+                warmup_steps=warmup_steps,
+                bf16=bf16,
+                use_accelerate=False,
+            ),
+        )
+    else:
+        logger.info("Starting accelerate training job...")
+        ft_model_dir = "model_dir"
+        command = f"accelerate launch --num_processes {torch.cuda.device_count()} "
+        command += str(Path("scripts/finetune.py").absolute()) + " "
+        command += f'--base-model-id "{base_model_id}" '
+        command += f'--dataset-dir "{dataset_dir}" '
+        command += f"--max-steps {max_steps} "
+        command += f"--logging-steps {logging_steps} "
+        command += f"--eval-steps {eval_steps} "
+        command += f"--save-steps {save_steps} "
+        command += f"--optimizer {optimizer} "
+        command += f"--lr {lr} "
+        command += f"--per-device-train-batch-size {per_device_train_batch_size} "
+        command += f"--gradient-accumulation-steps {gradient_accumulation_steps} "
+        command += f"--warmup-steps {warmup_steps} "
+        if bf16:
+            command += f"--bf16 "
+        if use_accelerate:
+            command += f"--use-accelerate "
+            command += f"-l input_ids "
+            command += f'--ft-model-dir "{ft_model_dir}" '
 
-    logger.info("Loading datasets...")
-    tokenizer = load_tokenizer(base_model_id)
-    tokenized_train_dataset = load_from_disk(dataset_dir / "train")
-    tokenized_val_dataset = load_from_disk(dataset_dir / "val")
+        print(command)
 
-    logger.info("Loading base model...")
-    model = load_base_model(base_model_id)
-
-    trainer = transformers.Trainer(
-        model=model,
-        train_dataset=tokenized_train_dataset,
-        eval_dataset=tokenized_val_dataset,
-        args=transformers.TrainingArguments(
-            output_dir=output_dir,
-            warmup_steps=warmup_steps,
-            per_device_train_batch_size=per_device_train_batch_size,
-            gradient_checkpointing=True,
-            gradient_accumulation_steps=gradient_accumulation_steps,
-            max_steps=max_steps,
-            learning_rate=lr,
-            logging_steps=logging_steps,
-            bf16=True,
-            optim=optimizer,
-            logging_dir="./logs",
-            save_strategy="steps",
-            save_steps=save_steps,
-            evaluation_strategy="steps",
-            eval_steps=eval_steps,
-            do_eval=True,
-        ),
-        data_collator=transformers.DataCollatorForLanguageModeling(
-            tokenizer, mlm=False
-        ),
-        callbacks=[ZenMLCallback()],
-    )
-
-    model.config.use_cache = (
-        False  # silence the warnings. Please re-enable for inference!
-    )
-
-    logger.info("Training model...")
-    trainer.train()
-
-    logger.info("Saving model...")
-    model.config.use_cache = True
-    ft_model_dir = Path("model_dir")
-    ft_model_dir.mkdir(parents=True, exist_ok=True)
-    trainer.save_model(ft_model_dir)
-
-    return ft_model_dir
+        result = subprocess.run(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        for stdout_line in result.stdout:
+            print(stdout_line, end="")
+        result.stdout.close()
+        return_code = result.wait()
+        if return_code == 0:
+            logger.info("Accelerate training job finished.")
+            return Path(ft_model_dir)
+        else:
+            logger.error(
+                f"Accelerate training job failed. With return code {return_code}."
+            )
+            raise subprocess.CalledProcessError(return_code, command)
