@@ -76,23 +76,22 @@ def finetune(
         The path to the finetuned model directory.
     """
     if not use_accelerate:
-        return (
-            accelerated_finetune(
-                base_model_id=base_model_id,
-                dataset_dir=dataset_dir,
-                max_steps=max_steps,
-                logging_steps=logging_steps,
-                eval_steps=eval_steps,
-                save_steps=save_steps,
-                optimizer=optimizer,
-                lr=lr,
-                per_device_train_batch_size=per_device_train_batch_size,
-                gradient_accumulation_steps=gradient_accumulation_steps,
-                warmup_steps=warmup_steps,
-                bf16=bf16,
-                use_accelerate=False,
-            ),
+        return accelerated_finetune(
+            base_model_id=base_model_id,
+            dataset_dir=dataset_dir,
+            max_steps=max_steps,
+            logging_steps=logging_steps,
+            eval_steps=eval_steps,
+            save_steps=save_steps,
+            optimizer=optimizer,
+            lr=lr,
+            per_device_train_batch_size=per_device_train_batch_size,
+            gradient_accumulation_steps=gradient_accumulation_steps,
+            warmup_steps=warmup_steps,
+            bf16=bf16,
+            use_accelerate=False,
         )
+
     else:
         logger.info("Starting accelerate training job...")
         ft_model_dir = "model_dir"
