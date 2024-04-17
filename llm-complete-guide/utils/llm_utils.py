@@ -373,16 +373,21 @@ def rerank_documents(
 
 
 def process_input_with_retrieval(
-    input: str, model: str = OPENAI_MODEL, n_items_retrieved: int = 20
+    input: str,
+    model: str = OPENAI_MODEL,
+    n_items_retrieved: int = 20,
+    use_reranking: bool = True,
 ) -> str:
     """Process the input with retrieval.
 
     Args:
         input (str): The input to process.
         model (str, optional): The model to use for completion. Defaults to
-        OPENAI_MODEL.
+            OPENAI_MODEL.
         n_items_retrieved (int, optional): The number of items to retrieve from
-        the database. Defaults to 5.
+            the database. Defaults to 5.
+        use_reranking (bool, optional): Whether to use reranking. Defaults to
+            True.
 
     Returns:
         str: The processed output.
@@ -394,11 +399,12 @@ def process_input_with_retrieval(
         get_embeddings(input), get_db_conn(), n=n_items_retrieved
     )
 
-    # Rerank the documents based on the input
-    # and ake the top 5 only
-    reranked_content = rerank_documents(
-        input, related_docs, reranker_model="t5"
-    )[:5]
+    if use_reranking:
+        # Rerank the documents based on the input
+        # and take the top 5 only
+        context_content = rerank_documents(input, related_docs)[:5]
+    else:
+        context_content = [doc[0] for doc in related_docs[:5]]
 
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
@@ -423,7 +429,7 @@ def process_input_with_retrieval(
         {
             "role": "assistant",
             "content": f"Relevant ZenML documentation: \n"
-            + "\n".join(reranked_content),
+            + "\n".join(context_content),
         },
     ]
     logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
