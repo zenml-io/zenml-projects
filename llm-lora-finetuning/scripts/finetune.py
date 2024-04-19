@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import List
 
 import click
+import torch
 import transformers
 from datasets import load_from_disk
 from zenml.logger import get_logger
@@ -26,9 +27,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@click.command(
-    help="Technical wrapper to pass into the `accelerate launch` command."
-)
+@click.command(help="Technical wrapper to pass into the `accelerate launch` command.")
 @click.option(
     "--base-model-id",
     type=str,
@@ -119,6 +118,24 @@ logger = get_logger(__name__)
     default="",
     help="The path to the finetuned model directory.",
 )
+@click.option(
+    "--use-fast",
+    is_flag=True,
+    default=False,
+    help="Use the fast tokenizer.",
+)
+@click.option(
+    "--load-in-4bit",
+    is_flag=True,
+    default=False,
+    help="Whether to load the model in 4bit mode",
+)
+@click.option(
+    "--load-in-8bit",
+    is_flag=True,
+    default=False,
+    help="Whether to load the model in 8bit mode",
+)
 def cli_wrapper(
     base_model_id: str,
     dataset_dir: str,
@@ -135,6 +152,9 @@ def cli_wrapper(
     use_accelerate: bool = False,
     label_names: List[str] = None,
     ft_model_dir: str = "",
+    use_fast: bool = False,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
 ) -> Path:
     dataset_dir = Path(dataset_dir)
     if ft_model_dir:
@@ -158,6 +178,9 @@ def cli_wrapper(
         use_accelerate=use_accelerate,
         label_names=list(label_names),
         ft_model_dir=ft_model_dir,
+        use_fast=use_fast,
+        load_in_4bit=load_in_4bit,
+        load_in_8bit=load_in_8bit,
     )
 
 
@@ -177,6 +200,9 @@ def accelerated_finetune(
     use_accelerate: bool = False,
     label_names: List[str] = None,
     ft_model_dir: Path = None,
+    use_fast: bool = True,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
 ) -> Path:
     """Finetune the model using PEFT.
 
@@ -198,6 +224,9 @@ def accelerated_finetune(
         use_accelerate: Whether to use accelerate.
         label_names: The label names to use.
         ft_model_dir: The path to the finetuned model directory.
+        use_fast: Whether to use fast tokenizers.
+        load_in_4bit: Whether to load the model in 4bit mode.
+        load_in_8bit: Whether to load the model in 8bit mode.
 
     Returns:
         The path to the finetuned model directory.
@@ -227,7 +256,7 @@ def accelerated_finetune(
 
     if should_print:
         logger.info("Loading datasets...")
-    tokenizer = load_tokenizer(base_model_id)
+    tokenizer = load_tokenizer(base_model_id, use_fast=use_fast)
     tokenized_train_dataset = load_from_disk(dataset_dir / "train")
     tokenized_val_dataset = load_from_disk(dataset_dir / "val")
 
@@ -238,6 +267,8 @@ def accelerated_finetune(
         base_model_id,
         use_accelerate=use_accelerate,
         should_print=should_print,
+        load_in_4bit=load_in_4bit,
+        load_in_8bit=load_in_8bit,
     )
 
     trainer = transformers.Trainer(
@@ -252,14 +283,16 @@ def accelerated_finetune(
             gradient_accumulation_steps=gradient_accumulation_steps,
             max_steps=max_steps,
             learning_rate=lr,
-            logging_steps=logging_steps,
+            logging_steps=(
+                min(logging_steps, max_steps) if max_steps >= 0 else logging_steps
+            ),
             bf16=bf16,
             optim=optimizer,
             logging_dir="./logs",
             save_strategy="steps",
-            save_steps=save_steps,
+            save_steps=min(save_steps, max_steps) if max_steps >= 0 else save_steps,
             evaluation_strategy="steps",
-            eval_steps=eval_steps,
+            eval_steps=min(eval_steps, max_steps) if max_steps >= 0 else eval_steps,
             do_eval=True,
             label_names=label_names,
         ),
@@ -279,16 +312,21 @@ def accelerated_finetune(
 
     if should_print:
         logger.info("Saving model...")
-    if not use_accelerate:
-        model.config.use_cache = True
-    else:
-        model = accelerator.unwrap_model(model)
 
     if ft_model_dir is None:
         ft_model_dir = Path("model_dir")
     if not use_accelerate or accelerator.is_main_process:
         ft_model_dir.mkdir(parents=True, exist_ok=True)
+    if not use_accelerate:
+        model.config.use_cache = True
         trainer.save_model(ft_model_dir)
+    else:
+        unwrapped_model = accelerator.unwrap_model(model)
+        unwrapped_model.save_pretrained(
+            ft_model_dir,
+            is_main_process=accelerator.is_main_process,
+            save_function=accelerator.save,
+        )
 
     return ft_model_dir
 

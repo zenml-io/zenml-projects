@@ -22,19 +22,24 @@ from transformers import AutoTokenizer
 def load_tokenizer(
     base_model_id: str,
     is_eval: bool = False,
+    use_fast: bool = True,
 ) -> AutoTokenizer:
     """Loads the tokenizer for the given base model id.
 
     Args:
         base_model_id: The base model id to use.
         is_eval: Whether to load the tokenizer for evaluation.
+        use_fast: Whether to use the fast tokenizer.
 
     Returns:
         The tokenizer.
     """
     if is_eval:
         tokenizer = AutoTokenizer.from_pretrained(
-            base_model_id, add_bos_token=True, device_map="auto"
+            base_model_id,
+            add_bos_token=True,
+            device_map="auto",
+            use_fast=use_fast,
         )
         tokenizer.pad_token_id = 0
     else:
@@ -44,6 +49,7 @@ def load_tokenizer(
             padding_side="left",
             add_eos_token=True,
             device_map="auto",
+            use_fast=use_fast,
         )
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
@@ -127,6 +133,4 @@ def tokenize_for_eval(
 """
         for data_point in data_points["target"]
     ]
-    return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to(
-        "cuda"
-    )
+    return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to("cuda")

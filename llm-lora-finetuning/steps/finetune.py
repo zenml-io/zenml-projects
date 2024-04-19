@@ -27,6 +27,7 @@ from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 
 from scripts.finetune import accelerated_finetune
+from utils.cuda import cleanup_memory
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
@@ -38,6 +39,7 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 def finetune(
     base_model_id: str,
     dataset_dir: Path,
+    finetune_script_sha: str,
     max_steps: int = 1000,
     logging_steps: int = 50,
     eval_steps: int = 50,
@@ -49,6 +51,9 @@ def finetune(
     warmup_steps: int = 5,
     bf16: bool = True,
     use_accelerate: bool = False,
+    use_fast: bool = True,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
 ) -> Annotated[Path, "ft_model_dir"]:
     """Finetune the model using PEFT.
 
@@ -60,6 +65,7 @@ def finetune(
     Args:
         base_model_id: The base model id to use.
         dataset_dir: The path to the dataset directory.
+        finetune_script_sha: The sha of the finetune script.
         max_steps: The maximum number of steps to train for.
         logging_steps: The number of steps to log at.
         eval_steps: The number of steps to evaluate at.
@@ -71,10 +77,14 @@ def finetune(
         warmup_steps: The number of warmup steps.
         bf16: Whether to use bf16.
         use_accelerate: Whether to use accelerate.
+        use_fast: Whether to use the fast tokenizer.
+        load_in_4bit: Whether to load the model in 4bit mode.
+        load_in_8bit: Whether to load the model in 8bit mode.
 
     Returns:
         The path to the finetuned model directory.
     """
+    cleanup_memory()
     if not use_accelerate:
         return accelerated_finetune(
             base_model_id=base_model_id,
@@ -90,6 +100,9 @@ def finetune(
             warmup_steps=warmup_steps,
             bf16=bf16,
             use_accelerate=False,
+            use_fast=use_fast,
+            load_in_4bit=load_in_4bit,
+            load_in_8bit=load_in_8bit,
         )
 
     else:
@@ -114,6 +127,12 @@ def finetune(
             command += f"--use-accelerate "
             command += f"-l input_ids "
             command += f'--ft-model-dir "{ft_model_dir}" '
+        if use_fast:
+            command += f"--use-fast "
+        if load_in_4bit:
+            command += f"--load-in-4bit "
+        if load_in_8bit:
+            command += f"--load-in-8bit "
 
         print(command)
 
@@ -123,8 +142,8 @@ def finetune(
             stdout=subprocess.PIPE,
             universal_newlines=True,
         )
-        for stdout_line in result.stdout:
-            print(stdout_line, end="")
+        for stdout_line in result.stdout.split("\n"):
+            print(stdout_line)
         if result.returncode == 0:
             logger.info("Accelerate training job finished.")
             return Path(ft_model_dir)

@@ -16,13 +16,13 @@
 #
 
 model:
-  name: llm-peft-mistralai-Mistral-7B-v0.1
-  description: "Fine-tune `mistralai/Mistral-7B-v0.1`."
+  name: llm-peft-microsoft-phi-2
+  description: "Fine-tune `microsoft/phi-2`."
   tags:
     - llm
     - peft
-    - mistralai/Mistral-7B-v0.1
-  version: 50_steps
+    - microsoft/phi-2
+  version: 25_steps
 
 settings:
   docker:
@@ -30,11 +30,13 @@ settings:
     requirements: requirements.txt
 
 parameters:
-  base_model_id: mistralai/Mistral-7B-v0.1
+  base_model_id: microsoft/phi-2
   system_prompt: |
     Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
     This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
     The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
+  use_fast: False
+  load_in_4bit: True
 
 steps:
   prepare_data:
@@ -42,10 +44,9 @@ steps:
       dataset_name: gem/viggo
 
   finetune:
-    enable_step_logs: False
     parameters:
-      max_steps: 50
-      eval_steps: 50
+      max_steps: 25
+      eval_steps: 25
       bf16: False
       
 

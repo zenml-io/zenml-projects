@@ -31,6 +31,8 @@ def load_base_model(
     is_training: bool = True,
     use_accelerate: bool = False,
     should_print: bool = True,
+    load_in_8bit: bool = False,
+    load_in_4bit: bool = False,
 ) -> Union[Any, Tuple[Any, Dataset, Dataset]]:
     """Load the base model.
 
@@ -39,6 +41,10 @@ def load_base_model(
         is_training: Whether the model should be prepared for training or not.
             If True, the Lora parameters will be enabled and PEFT will be
             applied.
+        use_accelerate: Whether to use the Accelerate library for training.
+        should_print: Whether to print the trainable parameters.
+        load_in_8bit: Whether to load the model in 8-bit mode.
+        load_in_4bit: Whether to load the model in 4-bit mode.
 
     Returns:
         The base model.
@@ -53,8 +59,8 @@ def load_base_model(
         device_map = {"": torch.cuda.current_device()}
 
     bnb_config = BitsAndBytesConfig(
-        # load_in_8bit=True,
-        load_in_4bit=True,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -95,11 +101,17 @@ def load_base_model(
     return model
 
 
-def load_pretrained_model(ft_model_dir: Path) -> AutoModelForCausalLM:
+def load_pretrained_model(
+    ft_model_dir: Path,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
+) -> AutoModelForCausalLM:
     """Load the finetuned model saved in the output directory.
 
     Args:
         ft_model_dir: The path to the finetuned model directory.
+        load_in_4bit: Whether to load the model in 4-bit mode.
+        load_in_8bit: Whether to load the model in 8-bit mode.
 
     Returns:
         The finetuned model.
@@ -107,7 +119,8 @@ def load_pretrained_model(ft_model_dir: Path) -> AutoModelForCausalLM:
     from transformers import BitsAndBytesConfig
 
     bnb_config = BitsAndBytesConfig(
-        load_in_8bit=True,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,

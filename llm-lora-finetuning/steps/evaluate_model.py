@@ -28,6 +28,7 @@ from utils.loaders import (
 from utils.tokenizer import load_tokenizer, tokenize_for_eval
 from zenml import log_model_metadata, save_artifact, step
 from zenml.logger import get_logger
+from utils.cuda import cleanup_memory
 
 logger = get_logger(__name__)
 
@@ -38,6 +39,9 @@ def evaluate_model(
     system_prompt: str,
     datasets_dir: Path,
     ft_model_dir: Optional[Path],
+    use_fast: bool = True,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
 ) -> None:
     """Evaluate the model with ROUGE metrics.
 
@@ -47,21 +51,36 @@ def evaluate_model(
         datasets_dir: The path to the datasets directory.
         ft_model_dir: The path to the finetuned model directory. If None, the
             base model will be used.
+        use_fast: Whether to use the fast tokenizer.
+        load_in_4bit: Whether to load the model in 4bit mode.
+        load_in_8bit: Whether to load the model in 8bit mode.
     """
+    cleanup_memory()
     logger.info("Evaluating model...")
 
     logger.info("Loading dataset...")
-    tokenizer = load_tokenizer(base_model_id, is_eval=True)
+    tokenizer = load_tokenizer(
+        base_model_id,
+        is_eval=True,
+        use_fast=use_fast,
+    )
     test_dataset = load_from_disk(datasets_dir / "test_raw")
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
     tokenized_train_dataset = tokenize_for_eval(
-        test_dataset, tokenizer, system_prompt
+        test_dataset,
+        tokenizer,
+        system_prompt,
     )
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
-        model = load_base_model(base_model_id, is_training=False)
+        model = load_base_model(
+            base_model_id,
+            is_training=False,
+            load_in_4bit=load_in_4bit,
+            load_in_8bit=load_in_8bit,
+        )
     else:
         logger.info("Generating using finetuned model...")
         model = load_pretrained_model(ft_model_dir)
@@ -83,7 +102,8 @@ def evaluate_model(
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
     rouge_metrics = rouge.compute(
-        predictions=predictions, references=ground_truths
+        predictions=predictions,
+        references=ground_truths,
     )
     metadata = {prefix + k: float(v) for k, v in rouge_metrics.items()}
 
