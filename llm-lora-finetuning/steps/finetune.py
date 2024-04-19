@@ -21,13 +21,13 @@ from pathlib import Path
 import torch
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
+from utils.cuda import cleanup_memory
 from zenml import logging as zenml_logging
 from zenml import step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 
 from scripts.finetune import accelerated_finetune
-from utils.cuda import cleanup_memory
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
@@ -108,7 +108,9 @@ def finetune(
     else:
         logger.info("Starting accelerate training job...")
         ft_model_dir = "model_dir"
-        command = f"accelerate launch --num_processes {torch.cuda.device_count()} "
+        command = (
+            f"accelerate launch --num_processes {torch.cuda.device_count()} "
+        )
         command += str(Path("scripts/finetune.py").absolute()) + " "
         command += f'--base-model-id "{base_model_id}" '
         command += f'--dataset-dir "{dataset_dir}" '
@@ -118,8 +120,12 @@ def finetune(
         command += f"--save-steps {save_steps} "
         command += f"--optimizer {optimizer} "
         command += f"--lr {lr} "
-        command += f"--per-device-train-batch-size {per_device_train_batch_size} "
-        command += f"--gradient-accumulation-steps {gradient_accumulation_steps} "
+        command += (
+            f"--per-device-train-batch-size {per_device_train_batch_size} "
+        )
+        command += (
+            f"--gradient-accumulation-steps {gradient_accumulation_steps} "
+        )
         command += f"--warmup-steps {warmup_steps} "
         if bf16:
             command += f"--bf16 "

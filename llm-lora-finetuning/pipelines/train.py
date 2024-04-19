@@ -17,9 +17,9 @@
 
 
 from steps import evaluate_model, finetune, prepare_data, promote
+from utils.hashing import compute_md5
 from zenml import logging as zenml_logging
 from zenml import pipeline
-from utils.hashing import compute_md5
 
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
     10000  # workaround for https://github.com/zenml-io/zenml/issues/2252
@@ -28,7 +28,11 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 
 @pipeline
 def llm_peft_full_finetune(
-    system_prompt: str, base_model_id: str, use_fast: bool = True, load_in_8bit: bool = False, load_in_4bit: bool = False
+    system_prompt: str,
+    base_model_id: str,
+    use_fast: bool = True,
+    load_in_8bit: bool = False,
+    load_in_4bit: bool = False,
 ):
     """Pipeline for finetuning an LLM with peft.
 
@@ -41,10 +45,14 @@ def llm_peft_full_finetune(
     - promote: promote the model to the target stage, if evaluation was successful
     """
     if not load_in_8bit and not load_in_4bit:
-        raise ValueError("At least one of `load_in_8bit` and `load_in_4bit` must be True.")
+        raise ValueError(
+            "At least one of `load_in_8bit` and `load_in_4bit` must be True."
+        )
     if load_in_4bit and load_in_8bit:
-        raise ValueError("Only one of `load_in_8bit` and `load_in_4bit` can be True.")
-    
+        raise ValueError(
+            "Only one of `load_in_8bit` and `load_in_4bit` can be True."
+        )
+
     datasets_dir = prepare_data(
         base_model_id=base_model_id,
         system_prompt=system_prompt,

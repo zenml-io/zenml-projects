@@ -21,6 +21,7 @@ from typing import Optional
 import evaluate
 import torch
 from datasets import load_from_disk
+from utils.cuda import cleanup_memory
 from utils.loaders import (
     load_base_model,
     load_pretrained_model,
@@ -28,7 +29,6 @@ from utils.loaders import (
 from utils.tokenizer import load_tokenizer, tokenize_for_eval
 from zenml import log_model_metadata, save_artifact, step
 from zenml.logger import get_logger
-from utils.cuda import cleanup_memory
 
 logger = get_logger(__name__)
 

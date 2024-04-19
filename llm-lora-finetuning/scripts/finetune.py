@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import List
 
 import click
-import torch
 import transformers
 from datasets import load_from_disk
 from zenml.logger import get_logger
@@ -27,7 +26,9 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@click.command(help="Technical wrapper to pass into the `accelerate launch` command.")
+@click.command(
+    help="Technical wrapper to pass into the `accelerate launch` command."
+)
 @click.option(
     "--base-model-id",
     type=str,
@@ -284,15 +285,21 @@ def accelerated_finetune(
             max_steps=max_steps,
             learning_rate=lr,
             logging_steps=(
-                min(logging_steps, max_steps) if max_steps >= 0 else logging_steps
+                min(logging_steps, max_steps)
+                if max_steps >= 0
+                else logging_steps
             ),
             bf16=bf16,
             optim=optimizer,
             logging_dir="./logs",
             save_strategy="steps",
-            save_steps=min(save_steps, max_steps) if max_steps >= 0 else save_steps,
+            save_steps=min(save_steps, max_steps)
+            if max_steps >= 0
+            else save_steps,
             evaluation_strategy="steps",
-            eval_steps=min(eval_steps, max_steps) if max_steps >= 0 else eval_steps,
+            eval_steps=min(eval_steps, max_steps)
+            if max_steps >= 0
+            else eval_steps,
             do_eval=True,
             label_names=label_names,
         ),

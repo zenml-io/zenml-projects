@@ -20,10 +20,10 @@ from pathlib import Path
 
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
+from utils.cuda import cleanup_memory
 from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
 from zenml import log_model_metadata, step
 from zenml.materializers import BuiltInMaterializer
-from utils.cuda import cleanup_memory
 
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
@@ -31,7 +31,7 @@ def prepare_data(
     base_model_id: str,
     system_prompt: str,
     dataset_name: str = "gem/viggo",
-    use_fast: bool = True
+    use_fast: bool = True,
 ) -> Annotated[Path, "datasets_dir"]:
     """Prepare the datasets for finetuning.
 
