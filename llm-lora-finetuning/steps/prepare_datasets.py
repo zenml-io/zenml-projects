@@ -69,8 +69,8 @@ def prepare_data(
     test_dataset = load_dataset(dataset_name, split="test")
 
     datasets_path = Path("datasets")
-    tokenized_train_dataset.save_to_disk(datasets_path / "train")
-    tokenized_val_dataset.save_to_disk(datasets_path / "val")
-    test_dataset.save_to_disk(datasets_path / "test_raw")
+    tokenized_train_dataset.save_to_disk(str((datasets_path / "train")))
+    tokenized_val_dataset.save_to_disk(str((datasets_path / "val")))
+    test_dataset.save_to_disk(str((datasets_path / "test_raw")))
 
     return datasets_path
