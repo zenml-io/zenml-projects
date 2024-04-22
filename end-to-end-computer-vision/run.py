@@ -88,17 +88,25 @@ def load_model(
     return YOLO()
 
 
+# @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
+# def train_model(
+#     model: YOLO,
+#     dataset_name: str = "zenml_test_project",
+# ) -> Tuple[
+#     Annotated[
+#         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
+#     ],
+#     Annotated[Image.Image, "confusion_matrix"],
+# ]:
+
+
 @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
 def train_model(
     model: YOLO,
     dataset_name: str = "zenml_test_project",
-) -> Tuple[
-    Annotated[
-        YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
-    ],
-    Annotated[Image.Image, "confusion_matrix"],
+) -> Annotated[
+    YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
 ]:
-
     data_path = load_and_split_data(dataset_name)
     model.train(data=data_path, epochs=1)
 
@@ -113,13 +121,21 @@ def train_model(
     # Read images as PIL images from directory metrics.save_dir for all png and jpg files
     images = load_images_from_folder(metrics.save_dir)
 
-    return model, images[0]
+    return model
+    # return model, images[0]
+
+
+@step
+def predict_image(model: YOLO):
+    results = model("https://ultralytics.com/images/bus.jpg")
+    print(results)
 
 
 @pipeline(enable_cache=True, model=Model(name="Yolo_Object_Detection"))
 def my_pipeline():
     model = load_model()
-    train_model(model=model)
+    trained_model = train_model(model=model)
+    predict_image(trained_model)
 
 
 if __name__ == "__main__":
