@@ -17,20 +17,17 @@
 import os
 import tempfile
 from typing import Any, Annotated
-
 from zenml import pipeline, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
-from materializers.label_studio_yolo_dataset_materializer import \
-    LabelStudioYOLODataset
-
+from materializers.label_studio_yolo_dataset_materializer import  LabelStudioYOLODataset, LabelStudioYOLODatasetMaterializer
 logger = get_logger(__name__)
 
 
 
-@step
-def load_data_from_label_studio(dataset_name: str) -> LabelStudioYOLODataset:
+@step(output_materializers=LabelStudioYOLODatasetMaterializer)
+def load_data_from_label_studio(dataset_name: str) -> Annotated[LabelStudioYOLODataset, "yolo_dataset"]:
     annotator = Client().active_stack.annotator
     from zenml.integrations.label_studio.annotators.label_studio_annotator import (
         LabelStudioAnnotator,
