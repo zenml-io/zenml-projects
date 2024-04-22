@@ -84,8 +84,8 @@ def load_model(
     model_checkpoint: str = "yolov8l.pt",
 ) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
-    # return YOLO(model_checkpoint)
-    return YOLO()
+    return YOLO(model_checkpoint)
+    # return YOLO()
 
 
 # @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
