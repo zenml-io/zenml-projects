@@ -57,7 +57,6 @@ def load_and_split_data(dataset_name: str) -> str:
                 )
                 tmpdirname = os.path.basename(tmpfile_.name)
                 export_location = os.path.join(tmpdirname, "data.zip")
-                extract_location = os.path.join(tmpdirname, "data")
                 dataset.export_tasks(
                     export_type="YOLO",
                     export_location=export_location,

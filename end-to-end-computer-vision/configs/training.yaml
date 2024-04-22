@@ -5,6 +5,8 @@ settings:
     required_integrations:
       - gcp
       - torch
+    requirements:
+      - ultralytics
 
 # configuration of the Model Control Plane
 model:

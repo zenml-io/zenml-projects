@@ -20,8 +20,7 @@ from typing_extensions import Annotated
 from zenml.logger import get_logger
 
 from pipelines.data_export import data_export
-from pipelines.training import training
-from utils import load_images_from_folder, load_and_split_data
+from utils.dataset_utils import load_images_from_folder, load_and_split_data
 from materializers.yolo_materializer import UltralyticsMaterializer
 
 logger = get_logger(__name__)
@@ -90,4 +89,4 @@ if __name__ == "__main__":
     # data_export(dataset_name="cv_proj") #.with_options(config_path="configs/data_export_alexej.yaml")()
     #my_pipeline()
     data_export() #.with_options(config_path="configs/data_export_alexej.yaml")()
-    training()#.with
+    # training()#.with_options(config_path="configs/training.yaml")()

@@ -17,13 +17,8 @@ import os
 from typing import Any, ClassVar, List, Type, Optional
 import tempfile
 
-from pydantic import BaseModel
-from ultralytics import YOLO
-
 from zenml.io import fileio
-from zenml.integrations.pytorch.materializers.pytorch_module_materializer import (
-    PyTorchModuleMaterializer,
-)
+
 from zenml.materializers.base_materializer import BaseMaterializer
 
 DEFAULT_FILENAME = "data.zip"
@@ -68,14 +63,13 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
 
         # Create a temporary folder
         tmpfile_ = tempfile.NamedTemporaryFile(
-            dir="data", delete=False
+            dir="data", delete=False, suffix='.zip'
         )
-        temp_dir = os.path.basename(tmpfile_.name)
-        temp_file = os.path.join(str(temp_dir), DEFAULT_FILENAME)
 
         # Copy from artifact store to temporary file
-        fileio.copy(filepath, temp_file)
-        dataset = LabelStudioYOLODataset(filepath=temp_file)
+        fileio.copy(filepath, tmpfile_.name, overwrite=True)
+        dataset = LabelStudioYOLODataset()
+        dataset.filepath = tmpfile_.name
 
         return dataset
 
