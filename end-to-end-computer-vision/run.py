@@ -42,9 +42,10 @@ def load_and_split_data(dataset_name: str) -> str:
     if annotator and annotator._connection_available():
         for dataset in annotator.get_datasets():
             if dataset.get_params()["title"] == dataset_name:
-                tmpdirname = tempfile.TemporaryDirectory()
-                export_location = os.path.join(tmpdirname.name, "data.zip")
-                extract_location = os.path.join(tmpdirname.name, "data")
+                tmpfile_ = tempfile.NamedTemporaryFile(delete=False)
+                tmpdirname = os.path.basename(tmpfile_.name)
+                export_location = os.path.join(tmpdirname, "data.zip")
+                extract_location = os.path.join(tmpdirname, "data")
                 dataset.export_tasks(
                     export_type="YOLO",
                     export_location=export_location,
@@ -54,7 +55,6 @@ def load_and_split_data(dataset_name: str) -> str:
                 split_dataset(
                     extract_location, ratio=(0.7, 0.15, 0.15), seed=42
                 )
-                breakpoint()
                 return generate_yaml(extract_location)
 
     raise ValueError(f"Dataset {dataset_name} not found in Label Studio.")
@@ -68,6 +68,7 @@ def load_model(
     # return YOLO(model_checkpoint)
     return YOLO()
 
+
 @step
 def train_model(
     model: YOLO,
@@ -77,19 +78,16 @@ def train_model(
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
     ],
     Annotated[dict, "metrics"],
-    Annotated[dict, "result"],
 ]:
 
     data_path = load_and_split_data(dataset_name)
-
     model.train(data=data_path, epochs=1)
 
     # model.train(data="coco8.yaml", epochs=3)  # train the model
     metrics = model.val()  # evaluate model performance on the validation set
-    results = model(
-        "https://ultralytics.com/images/bus.jpg"
-    )  # predict on an image
-    return model, metrics, results
+
+    breakpoint()
+    return model, metrics
 
 
 @pipeline(enable_cache=True, model=Model(name="Yolo_Object_Detection"))
