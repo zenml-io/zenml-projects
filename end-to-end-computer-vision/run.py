@@ -14,73 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import tempfile
 from zenml import step, pipeline, Model, ArtifactConfig, log_artifact_metadata
-from zenml.client import Client
 from ultralytics import YOLO
 from typing_extensions import Annotated
 from zenml.logger import get_logger
-from typing import Tuple
 
 from pipelines.data_export import data_export
-from utils.split_data import unzip_dataset, split_dataset, generate_yaml
-from PIL import Image
-import os
+from pipelines.training import training
+from utils import load_images_from_folder, load_and_split_data
 from materializers.yolo_materializer import UltralyticsMaterializer
 
 logger = get_logger(__name__)
-
-
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        if (
-            filename.endswith(".png")
-            or filename.endswith(".jpg")
-            or filename.endswith(".jpeg")
-        ):
-            with open(os.path.join(folder, filename), "rb") as f:
-                img = Image.open(f)
-                images.append(img)
-    return images
-
-
-def load_and_split_data(dataset_name: str) -> str:
-
-    annotator = Client().active_stack.annotator
-    from zenml.integrations.label_studio.annotators.label_studio_annotator import (
-        LabelStudioAnnotator,
-    )
-
-    if not isinstance(annotator, LabelStudioAnnotator):
-        raise TypeError(
-            "This step can only be used with the Label Studio annotator."
-        )
-
-    if annotator and annotator._connection_available():
-        for dataset in annotator.get_datasets():
-            if dataset.get_params()["title"] == dataset_name:
-                tmpfile_ = tempfile.NamedTemporaryFile(
-                    dir="data", delete=False
-                )
-                tmpdirname = os.path.basename(tmpfile_.name)
-                export_location = os.path.join(tmpdirname, "data.zip")
-                extract_location = os.path.join(tmpdirname, "data")
-                dataset.export_tasks(
-                    export_type="YOLO",
-                    export_location=export_location,
-                    download_resources=True,
-                )
-                extract_location = os.path.join(tmpdirname, "data")
-
-                unzip_dataset(export_location, extract_location)
-                split_dataset(
-                    extract_location, ratio=(0.7, 0.15, 0.15), seed=42
-                )
-                return generate_yaml(extract_location)
-
-    raise ValueError(f"Dataset {dataset_name} not found in Label Studio.")
 
 
 @step
@@ -144,4 +88,4 @@ def my_pipeline():
 
 if __name__ == "__main__":
     data_export() #.with_options(config_path="configs/data_export_alexej.yaml")()
-    #my_pipeline()
+    training()#.with

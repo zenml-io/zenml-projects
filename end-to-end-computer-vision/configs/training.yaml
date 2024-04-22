@@ -1,6 +1,10 @@
-# pipeline configuration
-parameters:
-  dataset_name: polution
+enable_cache: False
+
+settings:
+  docker:
+    required_integrations:
+      - gcp
+      - torch
 
 # configuration of the Model Control Plane
 model:

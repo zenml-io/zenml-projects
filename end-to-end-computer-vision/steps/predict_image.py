@@ -14,22 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from typing import Optional
-from uuid import UUID
-
-from zenml import pipeline
-from zenml.client import Client
-from zenml.logger import get_logger
-
-from run import train_model, predict_image
-from steps.load_model import load_model
-
-logger = get_logger(__name__)
+from ultralytics import YOLO
+from zenml import step
 
 
-@pipeline
-def training(model_checkpoint: str = "yolov8l.pt"):
-    model = load_model(model_checkpoint)
-    trained_model = train_model(model=model)
-    predict_image(trained_model)
+@step
+def predict_image(model: YOLO):
+    results = model("https://ultralytics.com/images/bus.jpg")
+    print(results)
