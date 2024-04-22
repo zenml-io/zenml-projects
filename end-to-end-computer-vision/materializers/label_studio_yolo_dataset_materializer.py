@@ -14,7 +14,7 @@
 """Implementation of the PyTorch DataLoader materializer."""
 
 import os
-from typing import Any, ClassVar, Type, Optional
+from typing import Any, ClassVar, List, Type, Optional
 import tempfile
 
 from pydantic import BaseModel
@@ -32,6 +32,7 @@ DEFAULT_FILENAME = "data.zip"
 class LabelStudioYOLODataset:
     dataset: Optional[Any]
     filepath: Optional[str]
+    task_ids: Optional[List[int]]
 
     def download_dataset(self):
         tmpfile_ = tempfile.NamedTemporaryFile(
@@ -43,6 +44,7 @@ class LabelStudioYOLODataset:
             export_type="YOLO",
             export_location=self.filepath,
             download_resources=True,
+            ids=self.task_ids,
         )
 
 
@@ -65,14 +67,17 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
         # Create a temporary folder
-        with tempfile.TemporaryDirectory(prefix="zenml-temp-") as temp_dir:
-            temp_file = os.path.join(str(temp_dir), DEFAULT_FILENAME)
+        tmpfile_ = tempfile.NamedTemporaryFile(
+            dir="data", delete=False
+        )
+        temp_dir = os.path.basename(tmpfile_.name)
+        temp_file = os.path.join(str(temp_dir), DEFAULT_FILENAME)
 
-            # Copy from artifact store to temporary file
-            fileio.copy(filepath, temp_file)
-            dataset = LabelStudioYOLODataset(filepath=temp_file)
+        # Copy from artifact store to temporary file
+        fileio.copy(filepath, temp_file)
+        dataset = LabelStudioYOLODataset(filepath=temp_file)
 
-            return dataset
+        return dataset
 
     def save(self, dataset: LabelStudioYOLODataset) -> None:
         """Creates a JSON serialization for a label studio YOLO dataset model.
@@ -85,6 +90,6 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
         # Make a temporary phantom artifact
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".zip") as f:
             # Copy it into artifact store
             fileio.copy(dataset.filepath, filepath)

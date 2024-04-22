@@ -143,5 +143,5 @@ def my_pipeline():
 
 
 if __name__ == "__main__":
-    data_export() #.with_options(config_path="configs/data_export_alexej.yaml")()
+    data_export(dataset_name="cv_proj") #.with_options(config_path="configs/data_export_alexej.yaml")()
     #my_pipeline()
