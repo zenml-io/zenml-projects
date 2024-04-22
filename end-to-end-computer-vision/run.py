@@ -104,7 +104,10 @@ def train_model(
     # model.train(data="coco8.yaml", epochs=3)  # train the model
     metrics = model.val()  # evaluate model performance on the validation set
 
-    log_artifact_metadata(metadata={"metrics": metrics.results_dict})
+    log_artifact_metadata(
+        artifact_name="Trained_YOLO",
+        metadata={"metrics": metrics.results_dict},
+    )
 
     # Read images as PIL images from directory metrics.save_dir for all png and jpg files
     images = load_images_from_folder(metrics.save_dir)
