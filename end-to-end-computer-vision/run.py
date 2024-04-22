@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os 
+import os
 import tempfile
 from zenml import step, pipeline, Model, ArtifactConfig
 from zenml.client import Client
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 
 def load_and_split_data(dataset_name: str) -> str:
-    
+
     annotator = Client().active_stack.annotator
     from zenml.integrations.label_studio.annotators.label_studio_annotator import (
         LabelStudioAnnotator,
@@ -51,15 +51,20 @@ def load_and_split_data(dataset_name: str) -> str:
                         download_resources=True,
                     )
                     unzip_dataset(export_location, extract_location)
-                    split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
+                    split_dataset(
+                        extract_location, ratio=(0.7, 0.15, 0.15), seed=42
+                    )
                     return generate_yaml(extract_location)
 
     raise ValueError(f"Dataset {dataset_name} not found in Label Studio.")
 
+
 @step
-def load_model(model_checkpoint: str = "yolov8l.pt") -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
+def load_model(
+    model_checkpoint: str = "yolov8l.pt",
+) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
-    return YOLO(model_checkpoint)
+    return YOLO()
 
 
 @step
@@ -67,18 +72,22 @@ def train_model(
     model: YOLO,
     dataset_name: str = "zenml_test_project",
 ) -> Tuple[
-    Annotated[YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)],
+    Annotated[
+        YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
+    ],
     Annotated[dict, "metrics"],
     Annotated[dict, "result"],
 ]:
-    
+
     data_path = load_and_split_data(dataset_name)
-    
+
     model.train(data=data_path, epochs=1)
 
     # model.train(data="coco8.yaml", epochs=3)  # train the model
     metrics = model.val()  # evaluate model performance on the validation set
-    results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+    results = model(
+        "https://ultralytics.com/images/bus.jpg"
+    )  # predict on an image
     return model, metrics, results
 
 
@@ -86,6 +95,7 @@ def train_model(
 def my_pipeline():
     model = load_model()
     train_model(model=model)
+
 
 if __name__ == "__main__":
     my_pipeline()

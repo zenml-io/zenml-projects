@@ -58,7 +58,9 @@ def training(
 
     # Execute Feature Engineering Pipeline
     if train_dataset_id is None or test_dataset_id is None:
-        dataset_trn, dataset_tst = feature_engineering(random_state=random_state)
+        dataset_trn, dataset_tst = feature_engineering(
+            random_state=random_state
+        )
     else:
         client = Client()
         dataset_trn = client.get_artifact_version(
