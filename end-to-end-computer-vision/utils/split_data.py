@@ -57,8 +57,6 @@ def split_dataset(
         files[test_idx_end:],
     ]
 
-    breakpoint()
-
     # Iterate over each file split and move each pair of image and label files to the proper split
     for split_name, split_files in zip(["train", "test", "val"], splits):
         for img_file, lbl_file in split_files:

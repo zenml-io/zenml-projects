@@ -16,15 +16,31 @@
 #
 import os
 import tempfile
-from zenml import step, pipeline, Model, ArtifactConfig
+from zenml import step, pipeline, Model, ArtifactConfig, log_artifact_metadata
 from zenml.client import Client
 from ultralytics import YOLO
 from typing_extensions import Annotated
 from zenml.logger import get_logger
 from typing import Tuple
 from utils.split_data import unzip_dataset, split_dataset, generate_yaml
+from PIL import Image
+import os
 
 logger = get_logger(__name__)
+
+
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        if (
+            filename.endswith(".png")
+            or filename.endswith(".jpg")
+            or filename.endswith(".jpeg")
+        ):
+            with open(os.path.join(folder, filename), "rb") as f:
+                img = Image.open(f)
+                images.append(img)
+    return images
 
 
 def load_and_split_data(dataset_name: str) -> str:
@@ -42,7 +58,9 @@ def load_and_split_data(dataset_name: str) -> str:
     if annotator and annotator._connection_available():
         for dataset in annotator.get_datasets():
             if dataset.get_params()["title"] == dataset_name:
-                tmpfile_ = tempfile.NamedTemporaryFile(delete=False)
+                tmpfile_ = tempfile.NamedTemporaryFile(
+                    dir="data", delete=False
+                )
                 tmpdirname = os.path.basename(tmpfile_.name)
                 export_location = os.path.join(tmpdirname, "data.zip")
                 extract_location = os.path.join(tmpdirname, "data")
@@ -77,7 +95,7 @@ def train_model(
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
     ],
-    Annotated[dict, "metrics"],
+    Annotated[Image.Image, "confusion_matrix"],
 ]:
 
     data_path = load_and_split_data(dataset_name)
@@ -86,8 +104,12 @@ def train_model(
     # model.train(data="coco8.yaml", epochs=3)  # train the model
     metrics = model.val()  # evaluate model performance on the validation set
 
-    breakpoint()
-    return model, metrics
+    log_artifact_metadata(metadata={"metrics": metrics.results_dict})
+
+    # Read images as PIL images from directory metrics.save_dir for all png and jpg files
+    images = load_images_from_folder(metrics.save_dir)
+
+    return model, images[0]
 
 
 @pipeline(enable_cache=True, model=Model(name="Yolo_Object_Detection"))
