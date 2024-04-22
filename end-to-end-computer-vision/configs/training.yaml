@@ -13,5 +13,5 @@ model:
   name: Yolo_Object_Detection
   license: Apache 2.0
   description: Object Detection Model.
-  tags: ["object detection", "customer_satisfaction"]
+  tags: ["object detection"]
   version: staging
