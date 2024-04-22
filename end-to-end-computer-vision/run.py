@@ -42,19 +42,20 @@ def load_and_split_data(dataset_name: str) -> str:
     if annotator and annotator._connection_available():
         for dataset in annotator.get_datasets():
             if dataset.get_params()["title"] == dataset_name:
-                with tempfile.TemporaryDirectory() as tmpdirname:
-                    export_location = os.path.join(tmpdirname, "data.zip")
-                    extract_location = os.path.join(tmpdirname, "data")
-                    dataset.export_tasks(
-                        export_type="YOLO",
-                        export_location=export_location,
-                        download_resources=True,
-                    )
-                    unzip_dataset(export_location, extract_location)
-                    split_dataset(
-                        extract_location, ratio=(0.7, 0.15, 0.15), seed=42
-                    )
-                    return generate_yaml(extract_location)
+                tmpdirname = tempfile.TemporaryDirectory()
+                export_location = os.path.join(tmpdirname.name, "data.zip")
+                extract_location = os.path.join(tmpdirname.name, "data")
+                dataset.export_tasks(
+                    export_type="YOLO",
+                    export_location=export_location,
+                    download_resources=True,
+                )
+                unzip_dataset(export_location, extract_location)
+                split_dataset(
+                    extract_location, ratio=(0.7, 0.15, 0.15), seed=42
+                )
+                breakpoint()
+                return generate_yaml(extract_location)
 
     raise ValueError(f"Dataset {dataset_name} not found in Label Studio.")
 
@@ -64,8 +65,8 @@ def load_model(
     model_checkpoint: str = "yolov8l.pt",
 ) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
+    # return YOLO(model_checkpoint)
     return YOLO()
-
 
 @step
 def train_model(
@@ -91,7 +92,7 @@ def train_model(
     return model, metrics, results
 
 
-@pipeline(enable_cache=False, model=Model(name="Yolo_Object_Detection"))
+@pipeline(enable_cache=True, model=Model(name="Yolo_Object_Detection"))
 def my_pipeline():
     model = load_model()
     train_model(model=model)
