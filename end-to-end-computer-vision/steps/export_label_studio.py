@@ -2,9 +2,12 @@ from typing import Annotated, Tuple, List
 
 from zenml import step, get_step_context
 from zenml.client import Client
+from zenml.logger import get_logger
 
 from materializers.label_studio_yolo_dataset_materializer import \
     LabelStudioYOLODatasetMaterializer, LabelStudioYOLODataset
+
+logger = get_logger(__name__)
 
 
 @step(output_materializers={"yolo_dataset": LabelStudioYOLODatasetMaterializer})
@@ -43,7 +46,12 @@ def load_data_from_label_studio(
                     last_task_ids = []
 
                 cur_task_ids = dataset.get_tasks_ids()
+                logger.info(f"{len(cur_task_ids)} total labels found.")
+
                 new_task_ids = list(set(cur_task_ids) - set(last_task_ids))
+                logger.info(f"{len(new_task_ids)} new labels are being beamed "
+                            f"straight to you.")
+
                 ls_dataset.task_ids = new_task_ids
                 return ls_dataset, new_task_ids
     else:

@@ -20,6 +20,8 @@ import tempfile
 from PIL import Image
 from zenml.client import Client
 
+from materializers.label_studio_yolo_dataset_materializer import \
+    LabelStudioYOLODataset
 from utils.split_data import unzip_dataset, split_dataset, generate_yaml
 
 
@@ -37,7 +39,7 @@ def load_images_from_folder(folder):
     return images
 
 
-def load_and_split_data(dataset_name: str) -> str:
+def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
 
     annotator = Client().active_stack.annotator
     from zenml.integrations.label_studio.annotators.label_studio_annotator import (
@@ -48,26 +50,15 @@ def load_and_split_data(dataset_name: str) -> str:
         raise TypeError(
             "This step can only be used with the Label Studio annotator."
         )
+    tmpfile_ = tempfile.NamedTemporaryFile(
+        dir="data", delete=False
+    )
+    tmpdirname = os.path.basename(tmpfile_.name)
 
-    if annotator and annotator._connection_available():
-        for dataset in annotator.get_datasets():
-            if dataset.get_params()["title"] == dataset_name:
-                tmpfile_ = tempfile.NamedTemporaryFile(
-                    dir="data", delete=False
-                )
-                tmpdirname = os.path.basename(tmpfile_.name)
-                export_location = os.path.join(tmpdirname, "data.zip")
-                dataset.export_tasks(
-                    export_type="YOLO",
-                    export_location=export_location,
-                    download_resources=True,
-                )
-                extract_location = os.path.join(tmpdirname, "data")
+    extract_location = os.path.join(tmpdirname, "data")
 
-                unzip_dataset(export_location, extract_location)
-                split_dataset(
-                    extract_location, ratio=(0.7, 0.15, 0.15), seed=42
-                )
-                return generate_yaml(extract_location)
-
-    raise ValueError(f"Dataset {dataset_name} not found in Label Studio.")
+    unzip_dataset(dataset.filepath, extract_location)
+    split_dataset(
+        extract_location, ratio=(0.7, 0.15, 0.15), seed=42
+    )
+    return generate_yaml(extract_location)

@@ -19,18 +19,20 @@ from typing import Annotated
 from ultralytics import YOLO
 from zenml import step, ArtifactConfig, log_artifact_metadata
 
+from materializers.label_studio_yolo_dataset_materializer import \
+    LabelStudioYOLODataset
 from materializers.yolo_materializer import UltralyticsMaterializer
-from utils import load_images_from_folder, load_and_split_data
+from utils.dataset_utils import load_images_from_folder, load_and_split_data
 
 
 @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
 def train_model(
     model: YOLO,
-    dataset_name: str = "zenml_test_project",
+    dataset: LabelStudioYOLODataset,
 ) -> Annotated[
     YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
 ]:
-    data_path = load_and_split_data(dataset_name)
+    data_path = load_and_split_data(dataset=dataset)
     model.train(data=data_path, epochs=1)
 
     # model.train(data="coco8.yaml", epochs=3)  # train the model
