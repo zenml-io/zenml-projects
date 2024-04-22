@@ -9,3 +9,4 @@ pyarrow
 wandb
 seaborn
 xgboost
+ultralytics
