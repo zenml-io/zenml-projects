@@ -25,6 +25,7 @@ from typing import Tuple
 from utils.split_data import unzip_dataset, split_dataset, generate_yaml
 from PIL import Image
 import os
+from materializers.yolo_materializer import UltralyticsMaterializer
 
 logger = get_logger(__name__)
 
@@ -87,7 +88,7 @@ def load_model(
     return YOLO()
 
 
-@step
+@step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
 def train_model(
     model: YOLO,
     dataset_name: str = "zenml_test_project",
