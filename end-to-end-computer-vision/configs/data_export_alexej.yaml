@@ -1,0 +1,10 @@
+# pipeline configuration
+parameters:
+  dataset_name: polution
+
+# configuration of the Model Control Plane
+model:
+  name: YOLO
+  license: Apache 2.0
+  description: Object Detection Model.
+  tags: ["object dete", "customer_satisfaction"]

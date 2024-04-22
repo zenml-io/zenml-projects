@@ -22,6 +22,8 @@ from ultralytics import YOLO
 from typing_extensions import Annotated
 from zenml.logger import get_logger
 from typing import Tuple
+
+from pipelines.data_export import data_export
 from utils.split_data import unzip_dataset, split_dataset, generate_yaml
 from PIL import Image
 import os
@@ -70,6 +72,8 @@ def load_and_split_data(dataset_name: str) -> str:
                     export_location=export_location,
                     download_resources=True,
                 )
+                extract_location = os.path.join(tmpdirname, "data")
+
                 unzip_dataset(export_location, extract_location)
                 split_dataset(
                     extract_location, ratio=(0.7, 0.15, 0.15), seed=42
@@ -139,4 +143,5 @@ def my_pipeline():
 
 
 if __name__ == "__main__":
-    my_pipeline()
+    data_export() #.with_options(config_path="configs/data_export_alexej.yaml")()
+    #my_pipeline()
