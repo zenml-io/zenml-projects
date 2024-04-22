@@ -44,7 +44,9 @@ def load_data_from_label_studio(dataset_name: str) -> LabelStudioYOLODataset:
     if annotator and annotator._connection_available():
         for dataset in annotator.get_datasets():
             if dataset.get_params()["title"] == dataset_name:
-                return LabelStudioYOLODataset(dataset=dataset)
+                ls_dataset = LabelStudioYOLODataset()
+                ls_dataset.dataset = dataset
+                return ls_dataset
     else:
         raise TypeError(
             "This step can only be used with an active Label Studio annotator."
