@@ -23,10 +23,10 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def cloud_inference():
+def inference():
     """Uses FiftyOne for inference on a dataset."""
     create_fiftyone_dataset()
 
 
 if __name__ == "__main__":
-    cloud_inference.with_options(config_path="configs/cloud_inference.yaml")()
+    inference.with_options(config_path="configs/cloud_inference.yaml")()

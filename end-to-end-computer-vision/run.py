@@ -22,9 +22,9 @@ from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
-from pipelines.cloud_inference import cloud_inference
 from pipelines.data_export import export_for_training
-from pipelines.fifty_one import fifty_one
+from pipelines.fifty_one import export_predictions
+from pipelines.inference import inference
 from pipelines.training import training
 
 logger = get_logger(__name__)
@@ -113,14 +113,12 @@ def main(
     if inference_pipeline:
         client.activate_stack(stack_id)
 
-        cloud_inference.with_options(
-            config_path="configs/cloud_inference.yaml"
-        )()
+        inference.with_options(config_path="configs/cloud_inference.yaml")()
 
     if fiftyone:
         client.activate_stack(stack_id)
 
-        fifty_one.with_options(config_path="configs/fiftyone.yaml")()
+        export_predictions.with_options(config_path="configs/fiftyone.yaml")()
 
 
 if __name__ == "__main__":

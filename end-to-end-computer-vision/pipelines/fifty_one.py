@@ -18,12 +18,12 @@
 from zenml import pipeline
 from zenml.logger import get_logger
 
-from steps.fifty_one_labelling import create_fiftyone_dataset
+from steps.fifty_one_labelling import fifty_one_launcher
 
 logger = get_logger(__name__)
 
 
 @pipeline
-def fifty_one():
+def export_predictions():
     """Launches the FiftyOne app with the predictions dataset."""
-    create_fiftyone_dataset()
+    fifty_one_launcher()

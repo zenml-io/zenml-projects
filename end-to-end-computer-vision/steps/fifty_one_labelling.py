@@ -22,7 +22,7 @@ from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME
 
 
 @step
-def create_fiftyone_dataset():
+def fifty_one_launcher():
     """Launches the FiftyOne app with the predictions dataset."""
     artifact = Client().get_artifact_version(
         name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
