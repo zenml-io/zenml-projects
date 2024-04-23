@@ -30,7 +30,6 @@ from pipelines.training import training
 logger = get_logger(__name__)
 
 
-
 @click.command()
 @click.option(
     "--feature",
