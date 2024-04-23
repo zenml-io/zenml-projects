@@ -7,5 +7,6 @@ pip install -r requirements.txt
 # Env variables
 
 ```bash
-DATA_UPLOAD_MAX_NUMBER_FILES = 1000000
+export DATA_UPLOAD_MAX_NUMBER_FILES=1000000
+export WANDB_DISABLED=True
 ```
