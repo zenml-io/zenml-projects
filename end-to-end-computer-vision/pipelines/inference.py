@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import pipeline, step
-from zenml.logger import get_logger
-
-from zenml.client import Client
 import os
+from typing import Annotated
+
+from zenml import log_artifact_metadata, pipeline, step
+from zenml.client import Client
+from zenml.logger import get_logger
 
 os.environ["YOLO_VERBOSE"] = "False"
 
@@ -34,7 +35,7 @@ DATASET_DIR = "data/ships/subset"
 
 
 @step
-def predict_over_images() -> fo.Dataset:
+def predict_over_images() -> Annotated[str, "predictions_dataset_json"]:
 
     # model = Model(
     #     name="Yolo_Object_Detection",
@@ -52,8 +53,10 @@ def predict_over_images() -> fo.Dataset:
         dataset_dir=DATASET_DIR,
         dataset_type=fo.types.ImageDirectory,
         name=DATASET_NAME,
+        overwrite=True,
+        persistent=True,
     )
-    dataset.persistent = True
+
     # # View summary info about the dataset
     # print(dataset)
 
@@ -61,7 +64,16 @@ def predict_over_images() -> fo.Dataset:
     # print(dataset.head())
 
     dataset.apply_model(yolo_model, label_field="boxes")
-    return dataset
+
+    log_artifact_metadata(
+        artifact_name="predictions_dataset_json",
+        metadata={
+            "summary_info": dataset.summary(),
+            "persistence": dataset.persistent,
+        },
+    )
+
+    return dataset.to_json()
 
 
 @pipeline
