@@ -96,7 +96,7 @@ def main(
     if inference_pipeline:
         client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
 
-        cloud_inference.with_options(config_path="configs/inference.yaml")()
+        cloud_inference.with_options(config_path="configs/cloud_inference.yaml")()
 
     if fiftyone:
         # client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
