@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 
 @pipeline
 def cloud_inference():
+    """Uses FiftyOne for inference on a dataset."""
     create_fiftyone_dataset()
 
 

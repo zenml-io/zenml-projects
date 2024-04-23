@@ -27,5 +27,14 @@ logger = get_logger(__name__)
 def load_model(
     model_checkpoint: str,
 ) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
+    """Loads a YOLO model from a checkpoint.
+
+    Args:
+        model_checkpoint: Checkpoint of the model to load.
+
+    Returns:
+        YOLO: A YOLO model loaded from the checkpoint.
+    """
+
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
     return YOLO(model_checkpoint)

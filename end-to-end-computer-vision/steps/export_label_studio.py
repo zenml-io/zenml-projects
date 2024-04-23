@@ -21,6 +21,14 @@ def load_data_from_label_studio(
     Annotated[LabelStudioYOLODataset, "yolo_dataset"],
     Annotated[List[int], "task_ids"],
 ]:
+    """Loads data from Label Studio.
+
+    Args:
+        dataset_name: Name of the dataset to load.
+
+    Returns:
+        Tuple of the loaded dataset and the Label Studio task IDs.
+    """
     annotator = Client().active_stack.annotator
     from zenml.integrations.label_studio.annotators.label_studio_annotator import (
         LabelStudioAnnotator,

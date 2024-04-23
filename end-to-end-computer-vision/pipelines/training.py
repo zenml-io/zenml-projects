@@ -26,6 +26,12 @@ logger = get_logger(__name__)
 
 @pipeline
 def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
+    """Trains a model on a dataset.
+
+    Args:
+        epochs: Number of epochs to train the model for.
+        model_checkpoint: Checkpoint of the model to load.
+    """
     model = load_model(model_checkpoint)
 
     # Load the latest version of the train dataset

@@ -37,6 +37,16 @@ def train_model(
     ],
     Annotated[Dict[str, Any], "validation_metrics"],
 ]:
+    """Trains a model on a dataset.
+
+    Args:
+        epochs: Number of epochs to train the model for.
+        model: YOLO model to train.
+        dataset: Dataset to train the model on.
+
+    Returns:
+        Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
+    """
     data_path = load_and_split_data(dataset=dataset)
     model.train(data=data_path, epochs=epochs)
 

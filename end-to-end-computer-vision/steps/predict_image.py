@@ -20,5 +20,10 @@ from zenml import step
 
 @step
 def predict_image(model: YOLO):
+    """Predicts an image using the model.
+
+    Args:
+        model: YOLO model to use for prediction.
+    """
     results = model("https://ultralytics.com/images/bus.jpg")
     print(results)

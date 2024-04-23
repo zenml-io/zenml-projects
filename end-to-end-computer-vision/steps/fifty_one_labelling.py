@@ -30,4 +30,3 @@ def create_fiftyone_dataset():
     dataset_json = artifact.load()
     dataset = fo.Dataset.from_json(dataset_json, persistent=False)
     session = fo.launch_app(dataset)
-

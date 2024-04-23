@@ -24,4 +24,9 @@ logger = get_logger(__name__)
 
 @pipeline
 def data_export(dataset_name: str = "polution"):
+    """Loads data from Label studio.
+
+    Args:
+        dataset_name: Name of the dataset to load.
+    """
     load_data_from_label_studio(dataset_name=dataset_name)

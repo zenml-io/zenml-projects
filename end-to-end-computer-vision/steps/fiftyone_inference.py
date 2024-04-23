@@ -38,6 +38,11 @@ os.environ["YOLO_VERBOSE"] = "False"
 def create_fiftyone_dataset() -> (
     Annotated[str, PREDICTIONS_DATASET_ARTIFACT_NAME]
 ):
+    """Creates a FiftyOne dataset with predictions using a model.
+
+    Returns:
+        str: Name of the artifact containing the FiftyOne JSON dataset.
+    """
     c = Client()
     model_artifact = c.get_artifact_version(
         name_id_or_prefix=TRAINED_MODEL_NAME

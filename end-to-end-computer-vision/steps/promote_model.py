@@ -28,6 +28,11 @@ logger = get_logger(__name__)
 def promote_model(
     metrics: Dict[str, Any],
 ) -> None:
+    """Promotes model to production if better than current production model.
+
+    Args:
+        metrics: Metrics to compare against the current production model.
+    """
     client = Client()
     # Get the model associated with this pipeline
     cur_model_version = get_step_context().model
