@@ -33,12 +33,32 @@ logger = get_logger(__name__)
 
 @click.command()
 @click.option(
-    "--fiftyone", is_flag=True, help="Run only the final inference step"
+    "--feature-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that exports the dataset from "
+         "labelstudio.",
 )
-def main(fiftyone):
+@click.option(
+    "--training-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that trains the model.",
+)
+@click.option(
+    "--inference-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that performs inference.",
+)
+def main(
+    feature_pipeline: bool = False,
+    training_pipeline: bool = False,
+    inference_pipeline: bool = False
+):
     client = Client()
 
-    if not fiftyone:
+    if feature_pipeline:
         client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
 
         # Export data from label studio
@@ -52,18 +72,23 @@ def main(fiftyone):
         )
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
+    if training_pipeline:
         client.activate_stack(UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e"))
 
         # Train model on data
         training.with_options(config_path="configs/training_gpu.yaml")()
+        # training.with_options(config_path="configs/training.yaml")()
 
-    inference()
-    artifact = Client().get_artifact_version(
-        name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
-    )
-    dataset_json = artifact.load()
-    dataset = fo.Dataset.from_json(dataset_json, persistent=False)
-    fo.launch_app(dataset)
+    if inference_pipeline:
+        client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
+
+        inference.with_options(config_path="configs/inference.yaml")()
+        artifact = Client().get_artifact_version(
+            name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
+        )
+        dataset_json = artifact.load()
+        dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+        fo.launch_app(dataset)
 
 
 if __name__ == "__main__":

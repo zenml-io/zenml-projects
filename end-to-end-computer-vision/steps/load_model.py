@@ -23,9 +23,9 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step(enable_cache=True)
+@step(enable_cache=True, enable_step_logs=False)
 def load_model(
     model_checkpoint: str,
 ) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
-    return YOLO()  # model_checkpoint)
+    return YOLO(model_checkpoint)
