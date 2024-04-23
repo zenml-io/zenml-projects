@@ -23,7 +23,7 @@ from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
 )
 from materializers.yolo_materializer import UltralyticsMaterializer
-from utils.dataset_utils import load_and_split_data, load_images_from_folder
+from utils.dataset_utils import load_and_split_data
 
 
 @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})

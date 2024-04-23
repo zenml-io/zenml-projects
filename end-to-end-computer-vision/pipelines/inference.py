@@ -13,52 +13,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 import os
-from typing import Annotated
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 import fiftyone as fo
-from zenml import log_artifact_metadata, pipeline, step
+from zenml import pipeline
 from zenml.client import Client
 from zenml.logger import get_logger
 
-from utils.constants import DATASET_DIR, DATASET_NAME, TRAINED_MODEL_NAME
+from steps.fiftyone_inference import create_fiftyone_dataset
+from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME
 
 logger = get_logger(__name__)
 
 os.environ["YOLO_VERBOSE"] = "False"
 
 
-@step
-def create_fiftyone_dataset() -> Annotated[str, "predictions_dataset_json"]:
-    c = Client()
-    model_artifact = c.get_artifact_version(
-        name_id_or_prefix=TRAINED_MODEL_NAME
-    )
-    yolo_model = model_artifact.load()
-    # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
-
-    dataset = fo.Dataset.from_dir(
-        dataset_dir=DATASET_DIR,
-        dataset_type=fo.types.ImageDirectory,
-        name=DATASET_NAME,
-        overwrite=True,
-        persistent=True,
-    )
-
-    dataset.apply_model(yolo_model, label_field="boxes")
-
-    log_artifact_metadata(
-        artifact_name="predictions_dataset_json",
-        metadata={
-            "summary_info": dataset.summary(),
-            "persistence": dataset.persistent,
-        },
-    )
-
-    return dataset.to_json()
-
-
-@pipeline
+@pipeline(enable_cache=False)
 def inference():
     create_fiftyone_dataset()
+
+
+if __name__ == "__main__":
+    inference()
+
+    artifact = Client().get_artifact_version(
+        name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
+    )
+    dataset_json = artifact.load()
+    dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+    fo.launch_app(dataset)
