@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 os.environ["YOLO_VERBOSE"] = "False"
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def inference():
     create_fiftyone_dataset()
 
