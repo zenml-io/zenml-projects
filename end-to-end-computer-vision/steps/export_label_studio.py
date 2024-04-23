@@ -1,21 +1,25 @@
-from typing import Annotated, Tuple, List
+from typing import Annotated, List, Tuple
 
-from zenml import step, get_step_context
+from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
-from materializers.label_studio_yolo_dataset_materializer import \
-    LabelStudioYOLODatasetMaterializer, LabelStudioYOLODataset
+from materializers.label_studio_yolo_dataset_materializer import (
+    LabelStudioYOLODataset,
+    LabelStudioYOLODatasetMaterializer,
+)
 
 logger = get_logger(__name__)
 
 
-@step(output_materializers={"yolo_dataset": LabelStudioYOLODatasetMaterializer})
+@step(
+    output_materializers={"yolo_dataset": LabelStudioYOLODatasetMaterializer}
+)
 def load_data_from_label_studio(
-    dataset_name: str
+    dataset_name: str,
 ) -> Tuple[
     Annotated[LabelStudioYOLODataset, "yolo_dataset"],
-    Annotated[List[int], "task_ids"]
+    Annotated[List[int], "task_ids"],
 ]:
     annotator = Client().active_stack.annotator
     from zenml.integrations.label_studio.annotators.label_studio_annotator import (
@@ -39,9 +43,14 @@ def load_data_from_label_studio(
                 cur_step_name = step_context.step_name
 
                 try:
-                    last_run = c.get_pipeline(cur_pipeline_name).last_successful_run
-                    last_task_ids = last_run.steps[cur_step_name].outputs[
-                        'task_ids'].read()
+                    last_run = c.get_pipeline(
+                        cur_pipeline_name
+                    ).last_successful_run
+                    last_task_ids = (
+                        last_run.steps[cur_step_name]
+                        .outputs["task_ids"]
+                        .read()
+                    )
                 except (RuntimeError, KeyError):
                     last_task_ids = []
 
@@ -49,8 +58,10 @@ def load_data_from_label_studio(
                 logger.info(f"{len(cur_task_ids)} total labels found.")
 
                 new_task_ids = list(set(cur_task_ids) - set(last_task_ids))
-                logger.info(f"{len(new_task_ids)} new labels are being beamed "
-                            f"straight to you.")
+                logger.info(
+                    f"{len(new_task_ids)} new labels are being beamed "
+                    f"straight to you."
+                )
 
                 ls_dataset.task_ids = new_task_ids
                 return ls_dataset, new_task_ids

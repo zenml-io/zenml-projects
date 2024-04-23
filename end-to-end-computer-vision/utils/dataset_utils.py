@@ -20,9 +20,10 @@ import tempfile
 from PIL import Image
 from zenml.client import Client
 
-from materializers.label_studio_yolo_dataset_materializer import \
-    LabelStudioYOLODataset
-from utils.split_data import unzip_dataset, split_dataset, generate_yaml
+from materializers.label_studio_yolo_dataset_materializer import (
+    LabelStudioYOLODataset,
+)
+from utils.split_data import generate_yaml, split_dataset, unzip_dataset
 
 
 def load_images_from_folder(folder):
@@ -50,15 +51,11 @@ def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
         raise TypeError(
             "This step can only be used with the Label Studio annotator."
         )
-    tmpfile_ = tempfile.NamedTemporaryFile(
-        dir="data", delete=False
-    )
+    tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
     tmpdirname = os.path.basename(tmpfile_.name)
 
     extract_location = os.path.join(tmpdirname, "data")
 
     unzip_dataset(dataset.filepath, extract_location)
-    split_dataset(
-        extract_location, ratio=(0.7, 0.15, 0.15), seed=42
-    )
+    split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
     return generate_yaml(extract_location)

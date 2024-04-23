@@ -14,22 +14,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import pipeline, get_pipeline_context
+import os
+from typing import Annotated
+
+from zenml import log_artifact_metadata, pipeline, step
+from zenml.client import Client
 from zenml.logger import get_logger
 
-from steps.train_model import train_model
-from steps.predict_image import predict_image
-from steps.load_model import load_model
+os.environ["YOLO_VERBOSE"] = "False"
+
+import fiftyone as fo
 
 logger = get_logger(__name__)
 
 
+import fiftyone as fo
+
+DATASET_NAME = "ships"
+DATASET_DIR = "data/ships/subset"
+
+
+@step
+def predict_over_images() -> Annotated[str, "predictions_dataset_json"]:
+
+    # model = Model(
+    #     name="Yolo_Object_Detection",
+    #     version="staging",
+    # )
+    # model.get_model_artifact(name="staging").load()
+    # model_artifact = model_version.get_model_artifact(name="Raw_YOLO")
+    artifact = Client().get_artifact_version(
+        "105c768c-8c86-465a-b018-b1a800ad4e19"
+    )
+    yolo_model = artifact.load()
+    # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
+
+    dataset = fo.Dataset.from_dir(
+        dataset_dir=DATASET_DIR,
+        dataset_type=fo.types.ImageDirectory,
+        name=DATASET_NAME,
+        overwrite=True,
+        persistent=True,
+    )
+
+    # # View summary info about the dataset
+    # print(dataset)
+
+    # # Print the first few samples in the dataset
+    # print(dataset.head())
+
+    dataset.apply_model(yolo_model, label_field="boxes")
+
+    log_artifact_metadata(
+        artifact_name="predictions_dataset_json",
+        metadata={
+            "summary_info": dataset.summary(),
+            "persistence": dataset.persistent,
+        },
+    )
+
+    return dataset.to_json()
+
+
 @pipeline
 def inference():
-    # Load the latest version of the train dataset
-    mv = get_pipeline_context().model
-    ma = mv.get_model_artifact(name="Raw_YOLO")
-
-
-
-
+    dataset = predict_over_images()

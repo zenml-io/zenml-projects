@@ -14,11 +14,10 @@
 """Implementation of the PyTorch DataLoader materializer."""
 
 import os
-from typing import Any, ClassVar, List, Type, Optional
 import tempfile
+from typing import Any, ClassVar, List, Optional, Type
 
 from zenml.io import fileio
-
 from zenml.materializers.base_materializer import BaseMaterializer
 
 DEFAULT_FILENAME = "data.zip"
@@ -30,9 +29,7 @@ class LabelStudioYOLODataset:
     task_ids: Optional[List[int]]
 
     def download_dataset(self):
-        tmpfile_ = tempfile.NamedTemporaryFile(
-            dir="data", delete=False
-        )
+        tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
         tmpdirname = os.path.basename(tmpfile_.name)
         self.filepath = os.path.join(tmpdirname, DEFAULT_FILENAME)
         self.dataset.export_tasks(
@@ -63,7 +60,7 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
 
         # Create a temporary folder
         tmpfile_ = tempfile.NamedTemporaryFile(
-            dir="data", delete=False, suffix='.zip'
+            dir="data", delete=False, suffix=".zip"
         )
 
         # Copy from artifact store to temporary file

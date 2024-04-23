@@ -14,13 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import pipeline, get_pipeline_context
+from zenml import get_pipeline_context, pipeline
 from zenml.logger import get_logger
 
 from steps.promote_model import promote_model
 from steps.train_model import train_model
 from steps.predict_image import predict_image
 from steps.load_model import load_model
+from steps.predict_image import predict_image
+from steps.train_model import train_model
 
 logger = get_logger(__name__)
 

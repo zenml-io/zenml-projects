@@ -21,6 +21,7 @@ from steps.export_label_studio import load_data_from_label_studio
 
 logger = get_logger(__name__)
 
+
 @pipeline
-def data_export(dataset_name: str = 'polution'):
+def data_export(dataset_name: str = "polution"):
     load_data_from_label_studio(dataset_name=dataset_name)

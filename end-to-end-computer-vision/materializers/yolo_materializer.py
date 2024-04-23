@@ -14,15 +14,14 @@
 """Implementation of the PyTorch DataLoader materializer."""
 
 import os
-from typing import Any, ClassVar, Type
 import tempfile
+from typing import Any, ClassVar, Type
 
 from ultralytics import YOLO
-
-from zenml.io import fileio
 from zenml.integrations.pytorch.materializers.pytorch_module_materializer import (
     PyTorchModuleMaterializer,
 )
+from zenml.io import fileio
 
 DEFAULT_FILENAME = "obj.pt"
 

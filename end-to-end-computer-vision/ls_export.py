@@ -17,8 +17,8 @@
 
 import os
 import time
+
 from label_studio_sdk import Client
-from label_studio_converter import Converter
 
 LABEL_STUDIO_URL = os.getenv(
     "LABEL_STUDIO_URL", default="http://localhost:8080"
