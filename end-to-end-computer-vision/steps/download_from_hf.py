@@ -14,14 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Dict, Any
+import os
+from typing import Any, Dict
 
-import fiftyone.zoo as foz
 from datasets import load_dataset
 from PIL import Image
-import os
-import json
-
 from zenml import step
 from zenml.logger import get_logger
 
@@ -33,7 +30,7 @@ logger = get_logger(__name__)
 @step
 def download_dataset_from_hf() -> Dict[str, Any]:
     dataset = load_dataset("datadrivenscience/ship-detection")
-    data = dataset['train']
+    data = dataset["train"]
     output_dir = "/home/apenner/Desktop/ships/dataset"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -42,17 +39,17 @@ def download_dataset_from_hf() -> Dict[str, Any]:
 
     for i, d in enumerate(data):
         print(d)
-        img = d['image']
-        img_path = f'{output_dir}/image_{i}.png'
+        img = d["image"]
+        img_path = f"{output_dir}/image_{i}.png"
 
         print(f"Writing to {img_path}.")
 
         img.save(img_path)
 
-        width, height = d['image'].size
+        width, height = d["image"].size
 
         results = []
-        for j, bbox in enumerate(d['objects']['bbox']):
+        for j, bbox in enumerate(d["objects"]["bbox"]):
             x1, y1, x2, y2 = bbox
             x = x1 / width
             y = y1 / height
@@ -69,14 +66,12 @@ def download_dataset_from_hf() -> Dict[str, Any]:
                         "width": w * 100,
                         "height": h * 100,
                         "rotation": 0,
-                        "rectanglelabels": [
-                            "ship"
-                        ]
+                        "rectanglelabels": ["ship"],
                     },
                     "from_name": "label",
                     "to_name": "image",
                     "type": "rectanglelabels",
-                    "origin": "manual"
+                    "origin": "manual",
                 }
             )
 
