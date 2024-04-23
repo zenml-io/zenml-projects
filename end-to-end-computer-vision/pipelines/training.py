@@ -39,4 +39,4 @@ def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
 
     promote_model(metrics)
 
-    predict_image(trained_model)
+    # predict_image(trained_model)

@@ -2,7 +2,7 @@ enable_cache: False
 
 parameters:
   model_checkpoint: yolov8l.pt
-  epochs: 5
+  epochs: 500
 
 settings:
   docker:

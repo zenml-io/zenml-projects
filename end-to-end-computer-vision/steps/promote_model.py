@@ -32,24 +32,29 @@ def promote_model(
     # Get the model associated with this pipeline
     cur_model_version = get_step_context().model
 
-    # Get the current production model
-    latest_model_version = client.get_model_version(
-        model_name_or_id=cur_model_version.name,
-        model_version_name_or_number_or_id=ModelStages.STAGING,
-    )
-
-    prod_metrics = latest_model_version.get_artifact(
-        "validation_metrics"
-    ).load()
-
-    if metrics["metrics/mAP50(B)"] >= prod_metrics["metrics/mAP50(B)"]:
-        logger.info(
-            "Model promoted to `production` as it outperformed the "
-            "current `production` model on `mAP50`."
+    try:
+        # Get the current production model
+        latest_model_version = client.get_model_version(
+            model_name_or_id=cur_model_version.name,
+            model_version_name_or_number_or_id=ModelStages.PRODUCTION,
         )
+    except KeyError:
+        logger.info("No `production` model found to compare to, current "
+                    "model will be promoted by default.")
         cur_model_version.set_stage(ModelStages.PRODUCTION, force=True)
+
     else:
-        logger.info(
-            "Model was less performant than the current `production` "
-            "model. Model will **not** be promoted."
-        )
+        prod_metrics = latest_model_version.get_artifact(
+            "validation_metrics"
+        ).load()
+        if metrics["metrics/mAP50(B)"] >= prod_metrics["metrics/mAP50(B)"]:
+            logger.info(
+                "Model promoted to `production` as it outperformed the "
+                "current `production` model on `mAP50`."
+            )
+            cur_model_version.set_stage(ModelStages.PRODUCTION, force=True)
+        else:
+            logger.info(
+                "Model was less performant than the current `production` "
+                "model. Model will **not** be promoted."
+            )

@@ -39,7 +39,7 @@ def inference():
 
 
 if __name__ == "__main__":
-    inference()
+    inference.with_options(config_path="configs/inference.yaml")()
 
     artifact = Client().get_artifact_version(
         name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
