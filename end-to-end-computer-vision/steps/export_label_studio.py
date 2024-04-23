@@ -19,7 +19,7 @@ def load_data_from_label_studio(
     dataset_name: str,
 ) -> Tuple[
     Annotated[LabelStudioYOLODataset, "YOLO_dataset"],
-    Annotated[List[int], "task_ids"],
+    Annotated[List[int], "new_ids"],
 ]:
     """Loads data from Label Studio.
 
@@ -55,9 +55,7 @@ def load_data_from_label_studio(
                         cur_pipeline_name
                     ).last_successful_run
                     last_task_ids = (
-                        last_run.steps[cur_step_name]
-                        .outputs["task_ids"]
-                        .load()
+                        last_run.steps[cur_step_name].outputs["new_ids"].load()
                     )
                 except (RuntimeError, KeyError):
                     last_task_ids = []
