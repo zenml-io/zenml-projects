@@ -26,14 +26,16 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def training(model_checkpoint: str = "yolov8l.pt"):
+def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
     model = load_model(model_checkpoint)
 
     # Load the latest version of the train dataset
     mv = get_pipeline_context().model
     dataset = mv.get_artifact("yolo_dataset")
 
-    trained_model, metrics = train_model(model=model, dataset=dataset)
+    trained_model, metrics = train_model(
+        model=model, dataset=dataset, epochs=epochs
+    )
 
     promote_model(metrics)
 

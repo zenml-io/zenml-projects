@@ -28,6 +28,7 @@ from utils.dataset_utils import load_and_split_data
 
 @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
 def train_model(
+    epochs: int,
     model: YOLO,
     dataset: LabelStudioYOLODataset,
 ) -> Tuple[
@@ -37,7 +38,7 @@ def train_model(
     Annotated[Dict[str, Any], "validation_metrics"],
 ]:
     data_path = load_and_split_data(dataset=dataset)
-    model.train(data=data_path, epochs=1)
+    model.train(data=data_path, epochs=epochs)
 
     # model.train(data="coco8.yaml", epochs=3)  # train the model
     metrics = model.val()  # evaluate model performance on the validation set

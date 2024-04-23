@@ -55,7 +55,7 @@ def main(fiftyone):
         client.activate_stack(UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e"))
 
         # Train model on data
-        training.with_options(config_path="configs/training.yaml")()
+        training.with_options(config_path="configs/training_gpu.yaml")()
 
     inference()
     artifact = Client().get_artifact_version(
