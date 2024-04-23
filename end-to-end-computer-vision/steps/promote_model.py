@@ -14,14 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Dict, Any
+from typing import Any, Dict
 
-from zenml import step, get_step_context, Model
+from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 @step()
 def promote_model(
@@ -34,15 +35,21 @@ def promote_model(
     # Get the current production model
     latest_model_version = client.get_model_version(
         model_name_or_id=cur_model_version.name,
-        model_version_name_or_number_or_id=ModelStages.STAGING
+        model_version_name_or_number_or_id=ModelStages.STAGING,
     )
 
-    prod_metrics = latest_model_version.get_artifact("validation_metrics").load()
+    prod_metrics = latest_model_version.get_artifact(
+        "validation_metrics"
+    ).load()
 
     if metrics["metrics/mAP50(B)"] >= prod_metrics["metrics/mAP50(B)"]:
-        logger.info("Model promoted to `production` as it outperformed the "
-                    "current `production` model on `mAP50`.")
+        logger.info(
+            "Model promoted to `production` as it outperformed the "
+            "current `production` model on `mAP50`."
+        )
         cur_model_version.set_stage(ModelStages.PRODUCTION, force=True)
     else:
-        logger.info("Model was less performant than the current `production` "
-                    "model. Model will **not** be promoted.")
+        logger.info(
+            "Model was less performant than the current `production` "
+            "model. Model will **not** be promoted."
+        )
