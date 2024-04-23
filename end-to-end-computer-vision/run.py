@@ -23,6 +23,7 @@ from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 from pipelines.data_export import export_for_training
+from pipelines.data_ingestion import data_ingestion
 from pipelines.fifty_one import export_predictions
 from pipelines.inference import inference
 from pipelines.training import train_model
@@ -32,6 +33,15 @@ logger = get_logger(__name__)
 
 
 @click.command()
+@click.option(
+    "--ingest",
+    "-i",
+    "ingest_data_pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the data ingestion pipeline, that takes the dataset"
+         "from huggingface and uploads it into label studio.",
+)
 @click.option(
     "--feature",
     "-f",
@@ -74,6 +84,7 @@ logger = get_logger(__name__)
     help="The stack to use for the pipeline.",
 )
 def main(
+    ingest_data_pipeline: bool = False,
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
@@ -89,6 +100,11 @@ def main(
         stack_id = UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2")
 
     client = Client()
+
+    if ingest_data_pipeline:
+        data_ingestion(
+            config_path="configs/ingest_data.yaml"
+        )()
 
     if feature_pipeline:
         client.activate_stack(stack_id)

@@ -23,6 +23,7 @@ import os
 import json
 
 from zenml import step
+from zenml.io import fileio
 from zenml.logger import get_logger
 
 Image.MAX_IMAGE_PIXELS = None
@@ -31,23 +32,27 @@ logger = get_logger(__name__)
 
 
 @step
-def download_dataset_from_hf() -> Dict[str, Any]:
-    dataset = load_dataset("datadrivenscience/ship-detection")
+def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
+    dataset = load_dataset(dataset)
     data = dataset['train']
-    output_dir = "/home/apenner/Desktop/ships/dataset"
+
+    output_dir = "data"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     all_images = {}
 
     for i, d in enumerate(data):
-        print(d)
         img = d['image']
-        img_path = f'{output_dir}/image_{i}.png'
+        img_name = f"image_{i}.png"
+        img_path = f'{output_dir}/{img_name}'
 
-        print(f"Writing to {img_path}.")
-
+        logger.info(f"Storing image to {img_path}.")
         img.save(img_path)
+
+        bucket_path = os.path.join(gcp_bucket, img_name)
+        logger.info(f"Copying into gcp bucket {bucket_path}")
+        fileio.copy(img_path, bucket_path)
 
         width, height = d['image'].size
 
@@ -81,4 +86,6 @@ def download_dataset_from_hf() -> Dict[str, Any]:
             )
 
         all_images[img_path] = results
+        if i > 20:
+            break
     return all_images
