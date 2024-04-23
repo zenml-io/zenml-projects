@@ -2,9 +2,9 @@ enable_cache: False
 
 settings:
   docker:
+    parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
     required_integrations:
       - gcp
-      - torch
     requirements:
       - ultralytics
 

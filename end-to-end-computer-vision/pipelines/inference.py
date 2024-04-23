@@ -17,7 +17,6 @@
 from zenml import pipeline, get_pipeline_context
 from zenml.logger import get_logger
 
-from steps.promote_model import promote_model
 from steps.train_model import train_model
 from steps.predict_image import predict_image
 from steps.load_model import load_model
@@ -26,15 +25,11 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def training(model_checkpoint: str = "yolov8l.pt"):
-    model = load_model(model_checkpoint)
-
+def inference():
     # Load the latest version of the train dataset
     mv = get_pipeline_context().model
-    dataset = mv.get_artifact("yolo_dataset")
+    ma = mv.get_model_artifact(name="Raw_YOLO")
 
-    trained_model, metrics = train_model(model=model, dataset=dataset)
 
-    promote_model(metrics)
 
-    predict_image(trained_model)
+
