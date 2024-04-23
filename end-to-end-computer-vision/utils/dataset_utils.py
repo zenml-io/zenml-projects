@@ -42,15 +42,6 @@ def load_images_from_folder(folder):
 
 def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
 
-    annotator = Client().active_stack.annotator
-    from zenml.integrations.label_studio.annotators.label_studio_annotator import (
-        LabelStudioAnnotator,
-    )
-
-    if not isinstance(annotator, LabelStudioAnnotator):
-        raise TypeError(
-            "This step can only be used with the Label Studio annotator."
-        )
     tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
     tmpdirname = os.path.basename(tmpfile_.name)
 
