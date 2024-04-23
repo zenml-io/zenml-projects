@@ -24,7 +24,7 @@ from zenml.logger import get_logger
 
 from pipelines import data_export
 from pipelines.cloud_inference import cloud_inference
-from pipelines.local_inference import fifty_one
+from pipelines.fifty_one import fifty_one
 from pipelines.training import training
 
 logger = get_logger(__name__)
@@ -96,7 +96,9 @@ def main(
     if inference_pipeline:
         client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
 
-        cloud_inference.with_options(config_path="configs/cloud_inference.yaml")()
+        cloud_inference.with_options(
+            config_path="configs/cloud_inference.yaml"
+        )()
 
     if fiftyone:
         # client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
