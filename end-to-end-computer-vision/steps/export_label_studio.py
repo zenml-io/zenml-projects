@@ -49,7 +49,7 @@ def load_data_from_label_studio(
                     last_task_ids = (
                         last_run.steps[cur_step_name]
                         .outputs["task_ids"]
-                        .read()
+                        .load()
                     )
                 except (RuntimeError, KeyError):
                     last_task_ids = []
