@@ -2,6 +2,13 @@
 ```commandline
 zenml integration install label_studio torch gcp
 pip install -r requirements.txt
+pip uninstall wandb
+```
+
+## Maybe
+
+```shell
+zenml integration install mlflow -y
 ```
 
 # Env variables
