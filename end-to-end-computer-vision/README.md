@@ -25,3 +25,8 @@ fiftyone plugins download https://github.com/jacobmarks/fiftyone-albumentations-
 
 fiftyone plugins download https://github.com/voxel51/fiftyone-plugins --plugin-names @voxel51/annotation
 ```
+
+
+# Data
+
+initial dataset is stored at: `gs://zenml-internal-artifact-store/raw-ship-data/`
