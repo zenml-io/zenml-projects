@@ -21,14 +21,27 @@ from steps.train_model import train_model
 from steps.predict_image import predict_image
 from steps.load_model import load_model
 from zenml import Model
-logger = get_logger(__name__)
 from zenml.client import Client
+import os; os.environ["YOLO_VERBOSE"] = "False"
 
+import fiftyone as fo
+import fiftyone.zoo as foz
+import fiftyone.utils.ultralytics as fou
+
+from ultralytics import YOLO
+
+logger = get_logger(__name__)
+
+
+import fiftyone as fo
+
+DATASET_NAME = "ships"
+DATASET_DIR = "data/ships/subset"
 
 
 @step
-def predict_over_images():
-    images_dir_path = "data/ships/subset"
+def predict_over_images() -> fo.Dataset:
+    
     # model = Model(
     #     name="Yolo_Object_Detection",
     #     version="staging",
@@ -37,10 +50,24 @@ def predict_over_images():
     # model_artifact = model_version.get_model_artifact(name="Raw_YOLO")
     artifact = Client().get_artifact_version('105c768c-8c86-465a-b018-b1a800ad4e19')
     yolo_model = artifact.load()
-    results = yolo_model(images_dir_path, half=True, conf=0.6)
-    breakpoint()
+    # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
+
+    dataset = fo.Dataset.from_dir(
+        dataset_dir=DATASET_DIR,
+        dataset_type=fo.types.ImageDirectory,
+        name=DATASET_NAME,
+    )
+    dataset.persistent = True
+    # # View summary info about the dataset
+    # print(dataset)
+
+    # # Print the first few samples in the dataset
+    # print(dataset.head())
+
+    dataset.apply_model(yolo_model, label_field="boxes")
+    return dataset
 
 
 @pipeline
 def inference():
-    predict_over_images()
+    dataset = predict_over_images()
