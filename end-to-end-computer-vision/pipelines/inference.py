@@ -32,21 +32,13 @@ import fiftyone as fo
 
 DATASET_NAME = "ships"
 DATASET_DIR = "data/ships/subset"
-
+TRAINED_MODEL_NAME = "Trained_YOLO"
 
 @step
-def predict_over_images() -> Annotated[str, "predictions_dataset_json"]:
-
-    # model = Model(
-    #     name="Yolo_Object_Detection",
-    #     version="staging",
-    # )
-    # model.get_model_artifact(name="staging").load()
-    # model_artifact = model_version.get_model_artifact(name="Raw_YOLO")
-    artifact = Client().get_artifact_version(
-        "105c768c-8c86-465a-b018-b1a800ad4e19"
-    )
-    yolo_model = artifact.load()
+def create_fiftyone_dataset() -> Annotated[str, "predictions_dataset_json"]:
+    c = Client()
+    model_artifact = c.get_artifact_version(name_id_or_prefix=TRAINED_MODEL_NAME)
+    yolo_model = model_artifact.load()
     # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
 
     dataset = fo.Dataset.from_dir(
@@ -56,12 +48,6 @@ def predict_over_images() -> Annotated[str, "predictions_dataset_json"]:
         overwrite=True,
         persistent=True,
     )
-
-    # # View summary info about the dataset
-    # print(dataset)
-
-    # # Print the first few samples in the dataset
-    # print(dataset.head())
 
     dataset.apply_model(yolo_model, label_field="boxes")
 
@@ -78,4 +64,4 @@ def predict_over_images() -> Annotated[str, "predictions_dataset_json"]:
 
 @pipeline
 def inference():
-    dataset = predict_over_images()
+    dataset = create_fiftyone_dataset()
