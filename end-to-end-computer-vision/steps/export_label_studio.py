@@ -40,37 +40,42 @@ def load_data_from_label_studio(
         )
 
     if annotator and annotator._connection_available():
-        for dataset in annotator.get_datasets():
-            if dataset.get_params()["title"] == dataset_name:
-                ls_dataset = LabelStudioYOLODataset()
-                ls_dataset.dataset = dataset
+        try:
+            dataset = annotator.get_dataset(dataset_name)
+            ls_dataset = LabelStudioYOLODataset()
+            ls_dataset.dataset = dataset
 
-                c = Client()
-                step_context = get_step_context()
-                cur_pipeline_name = step_context.pipeline.name
-                cur_step_name = step_context.step_name
+            c = Client()
+            step_context = get_step_context()
+            cur_pipeline_name = step_context.pipeline.name
+            cur_step_name = step_context.step_name
 
-                try:
-                    last_run = c.get_pipeline(
-                        cur_pipeline_name
-                    ).last_successful_run
-                    last_task_ids = (
-                        last_run.steps[cur_step_name].outputs["new_ids"].load()
-                    )
-                except (RuntimeError, KeyError):
-                    last_task_ids = []
-
-                cur_task_ids = dataset.get_tasks_ids()
-                logger.info(f"{len(cur_task_ids)} total labels found.")
-
-                new_task_ids = list(set(cur_task_ids) - set(last_task_ids))
-                logger.info(
-                    f"{len(new_task_ids)} new labels are being beamed "
-                    f"straight to you."
+            try:
+                last_run = c.get_pipeline(
+                    cur_pipeline_name
+                ).last_successful_run
+                last_task_ids = (
+                    last_run.steps[cur_step_name].outputs["new_ids"].load()
                 )
+            except (RuntimeError, KeyError):
+                last_task_ids = []
 
-                ls_dataset.task_ids = new_task_ids
-                return ls_dataset, new_task_ids
+            cur_task_ids = dataset.get_tasks_ids()
+            logger.info(f"{len(cur_task_ids)} total labels found.")
+
+            new_task_ids = list(set(cur_task_ids) - set(last_task_ids))
+            logger.info(
+                f"{len(new_task_ids)} new labels are being beamed "
+                f"straight to you."
+            )
+
+            ls_dataset.task_ids = new_task_ids
+            return ls_dataset, new_task_ids
+        except:
+            raise ValueError(
+                f"Dataset {dataset_name} not found in Label Studio."
+            )
+
     else:
         raise TypeError(
             "This step can only be used with an active Label Studio annotator."
