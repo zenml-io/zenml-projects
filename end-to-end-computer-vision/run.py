@@ -30,6 +30,7 @@ from pipelines.training import training
 logger = get_logger(__name__)
 
 
+
 @click.command()
 @click.option(
     "--feature",
@@ -64,16 +65,31 @@ logger = get_logger(__name__)
     default=False,
     help="Whether to launch the FiftyOne app pipeline.",
 )
+@click.option(
+    "--stack",
+    "-s",
+    "stack",
+    required=False,
+    type=click.Choice(["alexej", "hamza", "alex"]),
+    help="The stack to use for the pipeline.",
+)
 def main(
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
     fiftyone: bool = False,
+    stack: UUID = "alexej",
 ):
+    if stack == "hamza":
+        stack_id = UUID("cca5eaf7-0309-413d-89ff-1cd371b7d27c")
+    elif stack == "alex":
+        stack_id = UUID("fcf840ac-addd-4de3-a3e4-a1015f7bb96c")
+    else:
+        stack_id = UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2")
     client = Client()
 
     if feature_pipeline:
-        client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
+        client.activate_stack(stack_id)
 
         # Export data from label studio
         data_export.with_options(
@@ -87,21 +103,21 @@ def main(
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
     if training_pipeline:
-        client.activate_stack(UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e"))
+        client.activate_stack(stack_id)
 
         # Train model on data
         training.with_options(config_path="configs/training_gpu.yaml")()
         # training.with_options(config_path="configs/training.yaml")()
 
     if inference_pipeline:
-        client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
+        client.activate_stack(stack_id)
 
         cloud_inference.with_options(
             config_path="configs/cloud_inference.yaml"
         )()
 
     if fiftyone:
-        # client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
+        client.activate_stack(stack_id)
 
         fifty_one.with_options(config_path="configs/fiftyone.yaml")()
 
