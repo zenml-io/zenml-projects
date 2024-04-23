@@ -14,14 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Dict, Any
+import os
+from typing import Any, Dict
 
-import fiftyone.zoo as foz
 from datasets import load_dataset
 from PIL import Image
-import os
-import json
-
 from zenml import step
 from zenml.io import fileio
 from zenml.logger import get_logger
@@ -57,7 +54,7 @@ def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
         width, height = d['image'].size
 
         results = []
-        for j, bbox in enumerate(d['objects']['bbox']):
+        for j, bbox in enumerate(d["objects"]["bbox"]):
             x1, y1, x2, y2 = bbox
             x = x1 / width
             y = y1 / height
@@ -74,14 +71,12 @@ def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
                         "width": w * 100,
                         "height": h * 100,
                         "rotation": 0,
-                        "rectanglelabels": [
-                            "ship"
-                        ]
+                        "rectanglelabels": ["ship"],
                     },
                     "from_name": "label",
                     "to_name": "image",
                     "type": "rectanglelabels",
-                    "origin": "manual"
+                    "origin": "manual",
                 }
             )
 

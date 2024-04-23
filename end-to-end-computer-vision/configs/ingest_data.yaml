@@ -3,5 +3,5 @@ enable_cache: False
 steps:
   download_dataset_from_hf:
     parameters:
-      dataset: datadrivenscience/ship-detection
-      gcp_bucket: zenml-internal-artifact-store/label_studio_cv_webinar
+      dataset: "datadrivenscience/ship-detection"
+      gcp_bucket: "zenml-internal-artifact-store/label_studio_cv_webinar"

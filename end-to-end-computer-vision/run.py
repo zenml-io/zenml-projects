@@ -102,7 +102,7 @@ def main(
     client = Client()
 
     if ingest_data_pipeline:
-        data_ingestion(
+        data_ingestion.with_options(
             config_path="configs/ingest_data.yaml"
         )()
 

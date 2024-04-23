@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Dict, Any
+from typing import Any, Dict
 
 from zenml import step
 from zenml.client import Client
@@ -22,8 +22,7 @@ from zenml.client import Client
 
 @step
 def upload_labels_to_label_studio(
-        labels_dict: Dict[str, Any],
-        ls_project_id: int = 7
+    labels_dict: Dict[str, Any], ls_project_id: int = 7
 ):
     """Uploads ground truth labels for images to label studio.
 
@@ -51,7 +50,5 @@ def upload_labels_to_label_studio(
         filename = task["storage_filename"]
         print(filename)
         project.create_annotation(
-            task["id"],
-            result=labels_dict[filename],
-            ground_truth=True
+            task["id"], result=labels_dict[filename], ground_truth=True
         )
