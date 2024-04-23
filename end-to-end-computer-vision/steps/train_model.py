@@ -27,7 +27,7 @@ from utils.dataset_utils import load_and_split_data
 
 
 @step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
-def training(
+def train_model(
     epochs: int,
     model: YOLO,
     dataset: LabelStudioYOLODataset,

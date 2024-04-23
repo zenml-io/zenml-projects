@@ -15,7 +15,7 @@ settings:
 
 # configuration of the Model Control Plane
 # model:
-#   name: Yolo_Object_Detection
+#   name: ShipDetector
 #   license: Apache 2.0
 #   description: Object Detection Model.
 #   tags: ["object detection"]

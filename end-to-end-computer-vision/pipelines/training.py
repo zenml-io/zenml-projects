@@ -19,7 +19,7 @@ from zenml.logger import get_logger
 
 from steps.load_model import load_model
 from steps.promote_model import promote_model
-from steps.train_model import training
+from steps.train_model import train_model
 
 logger = get_logger(__name__)
 
@@ -38,7 +38,7 @@ def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
     mv = get_pipeline_context().model
     dataset = mv.get_artifact("YOLO_dataset")
 
-    trained_model, metrics = training(
+    trained_model, metrics = train_model(
         model=model, dataset=dataset, epochs=epochs
     )
 

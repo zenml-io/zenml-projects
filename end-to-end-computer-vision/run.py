@@ -25,7 +25,8 @@ from zenml.logger import get_logger
 from pipelines.data_export import export_for_training
 from pipelines.fifty_one import export_predictions
 from pipelines.inference import inference
-from pipelines.training import training
+from pipelines.training import train_model
+from utils.constants import ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
 
@@ -99,7 +100,7 @@ def main(
 
         # Promote Model to staging
         latest_model = Model(
-            name="Yolo_Object_Detection", version=ModelStages.LATEST
+            name=ZENML_MODEL_NAME, version=ModelStages.LATEST
         )
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
@@ -107,7 +108,7 @@ def main(
         client.activate_stack(stack_id)
 
         # Train model on data
-        training.with_options(config_path="configs/training_gpu.yaml")()
+        train_model.with_options(config_path="configs/training_gpu.yaml")()
         # training.with_options(config_path="configs/training.yaml")()
 
     if inference_pipeline:
