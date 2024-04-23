@@ -2,3 +2,4 @@
 !data/.gitkeep
 data/
 runs/
+**/tmp*
