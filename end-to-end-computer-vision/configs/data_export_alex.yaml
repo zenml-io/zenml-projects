@@ -2,7 +2,7 @@ enable_cache: False
 
 # pipeline configuration
 parameters:
-  dataset_name: "FiftyOne_ships_1713862317"
+  dataset_name: "FiftyOne_ships_wuxqa5"
 
 # configuration of the Model Control Plane
 model:
