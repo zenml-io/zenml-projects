@@ -17,18 +17,16 @@
 import os
 from typing import Annotated
 
+import fiftyone as fo
 from zenml import log_artifact_metadata, pipeline, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
-os.environ["YOLO_VERBOSE"] = "False"
-
-import fiftyone as fo
+from utils.constants import DATASET_DIR, DATASET_NAME, TRAINED_MODEL_NAME
 
 logger = get_logger(__name__)
 
-
-import fiftyone as fo
+os.environ["YOLO_VERBOSE"] = "False"
 
 
 @step
@@ -63,4 +61,4 @@ def create_fiftyone_dataset() -> Annotated[str, "predictions_dataset_json"]:
 
 @pipeline
 def inference():
-    dataset = create_fiftyone_dataset()
+    create_fiftyone_dataset()
