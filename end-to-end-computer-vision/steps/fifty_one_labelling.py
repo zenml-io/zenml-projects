@@ -29,4 +29,4 @@ def fifty_one_launcher():
     )
     dataset_json = artifact.load()
     dataset = fo.Dataset.from_json(dataset_json, persistent=False)
-    session = fo.launch_app(dataset)
+    fo.launch_app(dataset)
