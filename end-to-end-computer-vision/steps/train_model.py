@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Annotated, Tuple, Dict, Any
+from typing import Annotated, Any, Dict, Tuple
 
 from ultralytics import YOLO
 from zenml import ArtifactConfig, log_artifact_metadata, step
@@ -31,9 +31,11 @@ def train_model(
     model: YOLO,
     dataset: LabelStudioYOLODataset,
 ) -> Tuple[
-     Annotated[YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)],
-     Annotated[Dict[str, Any], "validation_metrics"]
-     ]:
+    Annotated[
+        YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
+    ],
+    Annotated[Dict[str, Any], "validation_metrics"],
+]:
     data_path = load_and_split_data(dataset=dataset)
     model.train(data=data_path, epochs=1)
 
@@ -46,6 +48,6 @@ def train_model(
     )
 
     # Read images as PIL images from directory metrics.save_dir for all png and jpg files
-    images = load_images_from_folder(metrics.save_dir)
+    # images = load_images_from_folder(metrics.save_dir)
 
     return model, metrics.results_dict

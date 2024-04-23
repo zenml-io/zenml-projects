@@ -22,6 +22,7 @@ from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 from pipelines import data_export
+from pipelines.inference import inference
 from pipelines.training import training
 
 logger = get_logger(__name__)
@@ -37,8 +38,7 @@ if __name__ == "__main__":
 
     # Promote Model to staging
     latest_model = Model(
-        name="Yolo_Object_Detection",
-        version=ModelStages.LATEST
+        name="Yolo_Object_Detection", version=ModelStages.LATEST
     )
     latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
@@ -46,3 +46,5 @@ if __name__ == "__main__":
 
     # Train model on data
     training.with_options(config_path="configs/training.yaml")()
+
+    inference()
