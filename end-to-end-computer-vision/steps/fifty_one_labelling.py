@@ -11,5 +11,5 @@ def create_fiftyone_dataset():
         name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
     )
     dataset_json = artifact.load()
-    dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+    dataset = fo.Dataset.from_json(dataset_json, persistent=True)
     fo.launch_app(dataset)
