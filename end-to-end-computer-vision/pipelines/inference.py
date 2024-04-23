@@ -14,21 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import pipeline, get_pipeline_context, step
+from zenml import pipeline, step
 from zenml.logger import get_logger
 
-from steps.train_model import train_model
-from steps.predict_image import predict_image
-from steps.load_model import load_model
-from zenml import Model
 from zenml.client import Client
-import os; os.environ["YOLO_VERBOSE"] = "False"
+import os
+
+os.environ["YOLO_VERBOSE"] = "False"
 
 import fiftyone as fo
-import fiftyone.zoo as foz
-import fiftyone.utils.ultralytics as fou
-
-from ultralytics import YOLO
 
 logger = get_logger(__name__)
 
@@ -41,14 +35,16 @@ DATASET_DIR = "data/ships/subset"
 
 @step
 def predict_over_images() -> fo.Dataset:
-    
+
     # model = Model(
     #     name="Yolo_Object_Detection",
     #     version="staging",
     # )
     # model.get_model_artifact(name="staging").load()
     # model_artifact = model_version.get_model_artifact(name="Raw_YOLO")
-    artifact = Client().get_artifact_version('105c768c-8c86-465a-b018-b1a800ad4e19')
+    artifact = Client().get_artifact_version(
+        "105c768c-8c86-465a-b018-b1a800ad4e19"
+    )
     yolo_model = artifact.load()
     # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
 

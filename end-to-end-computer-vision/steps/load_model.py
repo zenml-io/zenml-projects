@@ -17,7 +17,7 @@
 from typing import Annotated
 
 from ultralytics import YOLO
-from zenml import step, ArtifactConfig
+from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,4 +28,4 @@ def load_model(
     model_checkpoint: str,
 ) -> Annotated[YOLO, ArtifactConfig(name="Raw_YOLO", is_model_artifact=True)]:
     logger.info(f"Loading YOLO checkpoint {model_checkpoint}")
-    return YOLO() #model_checkpoint)
+    return YOLO()  # model_checkpoint)
