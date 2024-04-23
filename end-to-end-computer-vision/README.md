@@ -30,3 +30,6 @@ fiftyone plugins download https://github.com/voxel51/fiftyone-plugins --plugin-n
 # Data
 
 initial dataset is stored at: `gs://zenml-internal-artifact-store/raw-ship-data/`
+
+copy with:
+`gsutil -m cp -r gs://zenml-internal-artifact-store/raw-ship-data/ /path`
