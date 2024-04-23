@@ -12,7 +12,7 @@ label images to improve the model's performance, as well as feedback using
 
 The project uses the [Ship Detection
 dataset](https://huggingface.co/datasets/datadrivenscience/ship-detection) from
-DataDrivenScience on the Hugging Face Hub, which contains images of ships in
+[DataDrivenScience](https://datadrivenscience.com/) on the Hugging Face Hub, which contains images of ships in
 satellite imagery. The goal is to train a model to detect ships in the images.
 Note that this isn't something that our YOLOv8 model is particularly good at out
 of the box, so it serves as a good example of how to build a pipeline that can
