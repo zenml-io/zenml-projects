@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-from .data_export import data_export
+from .data_export import export_for_training
 
 # from .training import training

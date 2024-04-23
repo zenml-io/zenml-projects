@@ -22,8 +22,8 @@ from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
-from pipelines import data_export
 from pipelines.cloud_inference import cloud_inference
+from pipelines.data_export import export_for_training
 from pipelines.fifty_one import fifty_one
 from pipelines.training import training
 
@@ -79,19 +79,21 @@ def main(
     fiftyone: bool = False,
     stack: UUID = "alexej",
 ):
+    # TODO: remove all this :)
     if stack == "hamza":
         stack_id = UUID("cca5eaf7-0309-413d-89ff-1cd371b7d27c")
     elif stack == "alex":
         stack_id = UUID("fcf840ac-addd-4de3-a3e4-a1015f7bb96c")
     else:
         stack_id = UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2")
+
     client = Client()
 
     if feature_pipeline:
         client.activate_stack(stack_id)
 
         # Export data from label studio
-        data_export.with_options(
+        export_for_training.with_options(
             config_path="configs/data_export_alexej.yaml"
         )()
 

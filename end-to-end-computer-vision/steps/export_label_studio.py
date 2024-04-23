@@ -13,12 +13,12 @@ logger = get_logger(__name__)
 
 
 @step(
-    output_materializers={"yolo_dataset": LabelStudioYOLODatasetMaterializer}
+    output_materializers={"YOLO_dataset": LabelStudioYOLODatasetMaterializer}
 )
 def load_data_from_label_studio(
     dataset_name: str,
 ) -> Tuple[
-    Annotated[LabelStudioYOLODataset, "yolo_dataset"],
+    Annotated[LabelStudioYOLODataset, "YOLO_dataset"],
     Annotated[List[int], "task_ids"],
 ]:
     """Loads data from Label Studio.

@@ -36,7 +36,7 @@ def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
 
     # Load the latest version of the train dataset
     mv = get_pipeline_context().model
-    dataset = mv.get_artifact("yolo_dataset")
+    dataset = mv.get_artifact("YOLO_dataset")
 
     trained_model, metrics = train_model(
         model=model, dataset=dataset, epochs=epochs

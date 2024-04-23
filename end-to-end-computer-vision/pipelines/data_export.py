@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def data_export(dataset_name: str = "polution"):
+def export_for_training(dataset_name: str = "polution"):
     """Loads data from Label studio.
 
     Args:
