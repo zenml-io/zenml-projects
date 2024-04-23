@@ -43,7 +43,6 @@ def create_fiftyone_dataset() -> (
         name_id_or_prefix=TRAINED_MODEL_NAME
     )
     yolo_model = model_artifact.load()
-    # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
 
     dataset = fo.Dataset.from_dir(
         dataset_dir=DATASET_DIR,

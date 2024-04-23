@@ -39,8 +39,10 @@ def promote_model(
             model_version_name_or_number_or_id=ModelStages.PRODUCTION,
         )
     except KeyError:
-        logger.info("No `production` model found to compare to, current "
-                    "model will be promoted by default.")
+        logger.info(
+            "No `production` model found to compare to, current "
+            "model will be promoted by default."
+        )
         cur_model_version.set_stage(ModelStages.PRODUCTION, force=True)
 
     else:

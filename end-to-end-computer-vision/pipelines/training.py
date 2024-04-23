@@ -18,7 +18,6 @@ from zenml import get_pipeline_context, pipeline
 from zenml.logger import get_logger
 
 from steps.load_model import load_model
-from steps.predict_image import predict_image
 from steps.promote_model import promote_model
 from steps.train_model import train_model
 

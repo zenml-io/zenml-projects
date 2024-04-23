@@ -17,16 +17,15 @@
 from uuid import UUID
 
 import click
-import fiftyone as fo
 from zenml import Model
 from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 from pipelines import data_export
-from pipelines.cloud_inference import inference
+from pipelines.cloud_inference import cloud_inference
+from pipelines.local_inference import fifty_one
 from pipelines.training import training
-from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME
 
 logger = get_logger(__name__)
 
@@ -39,7 +38,7 @@ logger = get_logger(__name__)
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that exports the dataset from "
-         "labelstudio.",
+    "labelstudio.",
 )
 @click.option(
     "--training",
@@ -57,10 +56,19 @@ logger = get_logger(__name__)
     default=False,
     help="Whether to run the pipeline that performs inference.",
 )
+@click.option(
+    "--fiftyone",
+    "-fo",
+    "fiftyone",
+    is_flag=True,
+    default=False,
+    help="Whether to launch the FiftyOne app pipeline.",
+)
 def main(
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
-    inference_pipeline: bool = False
+    inference_pipeline: bool = False,
+    fiftyone: bool = False,
 ):
     client = Client()
 
@@ -88,13 +96,12 @@ def main(
     if inference_pipeline:
         client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
 
-        inference.with_options(config_path="configs/inference.yaml")()
-        artifact = Client().get_artifact_version(
-            name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
-        )
-        dataset_json = artifact.load()
-        dataset = fo.Dataset.from_json(dataset_json, persistent=False)
-        fo.launch_app(dataset)
+        cloud_inference.with_options(config_path="configs/inference.yaml")()
+
+    if fiftyone:
+        # client.activate_stack(UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2"))
+
+        fifty_one.with_options(config_path="configs/fiftyone.yaml")()
 
 
 if __name__ == "__main__":

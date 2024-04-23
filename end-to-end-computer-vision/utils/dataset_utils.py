@@ -18,7 +18,6 @@ import os
 import tempfile
 
 from PIL import Image
-from zenml.client import Client
 
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
