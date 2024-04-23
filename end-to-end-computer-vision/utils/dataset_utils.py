@@ -40,7 +40,20 @@ def load_images_from_folder(folder):
     return images
 
 
-def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
+def load_and_split_data(
+    dataset: LabelStudioYOLODataset,
+    data_source: str
+) -> str:
+    """Load data from dataset into file system and split into train/val.
+
+    First download the .zip file containing the label.txt files from the zenml
+    Model. Then downloads the corresponding images from the data source.
+
+    Args:
+        dataset: Dataset object that points to the zip file that contains the
+            label files.
+        data_source: Path of the remote data source that contains the images.
+    """
     tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
     tmpdirname = os.path.basename(tmpfile_.name)
     extract_location = os.path.join(tmpdirname, "data")
@@ -54,12 +67,12 @@ def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
         if f.endswith(".txt")
     ]
 
-    # Download corresponding images from gs://zenml-internal-artifact-store/label_studio_cv_webinar
+    # Download corresponding images from gcp bucket
     images_folder = os.path.join(extract_location, "images")
     os.makedirs(images_folder, exist_ok=True)
 
     for filename in filenames:
-        src_path = f"gs://zenml-internal-artifact-store/label_studio_cv_webinar/{filename}.png"
+        src_path = f"{data_source}/{filename}.png"
         dst_path = os.path.join(images_folder, f"{filename}.png")
         fileio.copy(src_path, dst_path)
 

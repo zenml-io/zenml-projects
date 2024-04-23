@@ -28,7 +28,7 @@ Image.MAX_IMAGE_PIXELS = None
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=True)
 def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
     dataset = load_dataset(dataset)
     data = dataset['train']
@@ -44,12 +44,12 @@ def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
         img_name = f"image_{i}.png"
         img_path = f'{output_dir}/{img_name}'
 
-        logger.info(f"Storing image to {img_path}.")
-        img.save(img_path)
-
-        bucket_path = os.path.join(gcp_bucket, img_name)
-        logger.info(f"Copying into gcp bucket {bucket_path}")
-        fileio.copy(img_path, bucket_path)
+        # logger.info(f"Storing image to {img_path}.")
+        # img.save(img_path)
+        #
+        # bucket_path = os.path.join(gcp_bucket, img_name)
+        # logger.info(f"Copying into gcp bucket {bucket_path}")
+        # fileio.copy(img_path, bucket_path, overwrite=True)
 
         width, height = d['image'].size
 
@@ -80,7 +80,7 @@ def download_dataset_from_hf(dataset: str, gcp_bucket: str) -> Dict[str, Any]:
                 }
             )
 
-        all_images[img_path] = results
+        all_images[img_name] = results
         if i > 20:
             break
     return all_images

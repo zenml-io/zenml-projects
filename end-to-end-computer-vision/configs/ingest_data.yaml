@@ -1,7 +1,11 @@
-enable_cache: False
 
 steps:
   download_dataset_from_hf:
+    enable_cache: True
     parameters:
       dataset: "datadrivenscience/ship-detection"
-      gcp_bucket: "zenml-internal-artifact-store/label_studio_cv_webinar"
+      gcp_bucket: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+  upload_labels_to_label_studio:
+    enable_cache: False
+    parameters:
+      ls_project_id: 8

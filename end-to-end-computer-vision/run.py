@@ -26,10 +26,12 @@ from pipelines.data_export import export_for_training
 from pipelines.data_ingestion import data_ingestion
 from pipelines.fifty_one import export_predictions
 from pipelines.inference import inference
-from pipelines.training import train_model
+from pipelines.training import train_model, training
 from utils.constants import ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
+
+REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 
 
 @click.command()
@@ -43,9 +45,9 @@ logger = get_logger(__name__)
          "from huggingface and uploads it into label studio.",
 )
 @click.option(
-    "--feature",
-    "-f",
-    "feature_pipeline",
+    "--export",
+    "-e",
+    "export_pipeline",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that exports the dataset from "
@@ -85,7 +87,7 @@ logger = get_logger(__name__)
 )
 def main(
     ingest_data_pipeline: bool = False,
-    feature_pipeline: bool = False,
+    export_pipeline: bool = False,
     training_pipeline: bool = False,
     inference_pipeline: bool = False,
     fiftyone: bool = False,
@@ -106,7 +108,7 @@ def main(
             config_path="configs/ingest_data.yaml"
         )()
 
-    if feature_pipeline:
+    if export_pipeline:
         client.activate_stack(stack_id)
 
         # Export data from label studio
@@ -121,14 +123,14 @@ def main(
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
     if training_pipeline:
-        client.activate_stack(stack_id)
+        client.activate_stack(REMOTE_STACK_ID)
 
         # Train model on data
-        train_model.with_options(config_path="configs/training_gpu.yaml")()
+        training.with_options(config_path="configs/training_gpu.yaml")()
         # training.with_options(config_path="configs/training.yaml")()
 
     if inference_pipeline:
-        client.activate_stack(stack_id)
+        client.activate_stack(REMOTE_STACK_ID)
 
         inference.with_options(config_path="configs/cloud_inference.yaml")()
 

@@ -31,6 +31,7 @@ def train_model(
     epochs: int,
     model: YOLO,
     dataset: LabelStudioYOLODataset,
+    data_source: str
 ) -> Tuple[
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
@@ -47,7 +48,7 @@ def train_model(
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
     """
-    data_path = load_and_split_data(dataset=dataset)
+    data_path = load_and_split_data(dataset=dataset, data_source=data_source)
     model.train(data=data_path, epochs=epochs)
 
     # model.train(data="coco8.yaml", epochs=3)  # train the model

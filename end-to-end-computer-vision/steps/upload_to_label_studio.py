@@ -22,7 +22,7 @@ from zenml.client import Client
 
 @step
 def upload_labels_to_label_studio(
-    labels_dict: Dict[str, Any], ls_project_id: int = 7
+    labels_dict: Dict[str, Any], ls_project_id: int = 8
 ):
     """Uploads ground truth labels for images to label studio.
 
@@ -47,8 +47,8 @@ def upload_labels_to_label_studio(
     tasks = project.get_tasks()
 
     for task in tasks:
-        filename = task["storage_filename"]
-        print(filename)
+        filename = task["storage_filename"].split('/')[-1]
+
         project.create_annotation(
             task["id"], result=labels_dict[filename], ground_truth=True
         )

@@ -12,3 +12,4 @@ huggingface_hub>=0.20.0 # needed for fiftyone imports of HF datasets
 fiftyone
 datasets
 albumentations
+pillow>=10.*.*

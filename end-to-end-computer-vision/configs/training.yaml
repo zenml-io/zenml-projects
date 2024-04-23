@@ -4,6 +4,11 @@ parameters:
   model_checkpoint: yolov8l.pt
   epochs: 1
 
+steps:
+  train_model:
+    parameters:
+      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+
 settings:
   docker:
     apt_packages:
