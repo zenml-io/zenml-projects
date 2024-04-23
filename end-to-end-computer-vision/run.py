@@ -24,7 +24,7 @@ from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 from pipelines import data_export
-from pipelines.inference import inference
+from pipelines.cloud_inference import inference
 from pipelines.training import training
 from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME
 
@@ -33,20 +33,26 @@ logger = get_logger(__name__)
 
 @click.command()
 @click.option(
-    "--feature-pipeline",
+    "--feature",
+    "-f",
+    "feature_pipeline",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that exports the dataset from "
          "labelstudio.",
 )
 @click.option(
-    "--training-pipeline",
+    "--training",
+    "-t",
+    "training_pipeline",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that trains the model.",
 )
 @click.option(
-    "--inference-pipeline",
+    "--inference",
+    "-i",
+    "inference_pipeline",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that performs inference.",
