@@ -41,7 +41,7 @@ def load_data_from_label_studio(
 
     if annotator and annotator._connection_available():
         try:
-            dataset = annotator.get_dataset(dataset_name)
+            dataset = annotator.get_dataset(dataset_name=dataset_name)
             ls_dataset = LabelStudioYOLODataset()
             ls_dataset.dataset = dataset
 
@@ -60,10 +60,12 @@ def load_data_from_label_studio(
             except (RuntimeError, KeyError):
                 last_task_ids = []
 
-            cur_task_ids = dataset.get_tasks_ids()
-            logger.info(f"{len(cur_task_ids)} total labels found.")
+            current_labeled_task_ids = dataset.get_labeled_tasks_ids()
+            logger.info(f"{len(current_labeled_task_ids)} total labels found.")
 
-            new_task_ids = list(set(cur_task_ids) - set(last_task_ids))
+            new_task_ids = list(
+                set(current_labeled_task_ids) - set(last_task_ids)
+            )
             logger.info(
                 f"{len(new_task_ids)} new labels are being beamed "
                 f"straight to you."
