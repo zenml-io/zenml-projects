@@ -18,6 +18,7 @@ import os
 import tempfile
 
 from PIL import Image
+from zenml.io import fileio
 
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
@@ -40,12 +41,27 @@ def load_images_from_folder(folder):
 
 
 def load_and_split_data(dataset: LabelStudioYOLODataset) -> str:
-
     tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
     tmpdirname = os.path.basename(tmpfile_.name)
-
     extract_location = os.path.join(tmpdirname, "data")
-
     unzip_dataset(dataset.filepath, extract_location)
+
+    # Get all filenames inside the labels subfolder
+    labels_folder = os.path.join(extract_location, "labels")
+    filenames = [
+        os.path.splitext(f)[0]
+        for f in os.listdir(labels_folder)
+        if f.endswith(".txt")
+    ]
+
+    # Download corresponding images from gs://zenml-internal-artifact-store/label_studio_cv_webinar
+    images_folder = os.path.join(extract_location, "images")
+    os.makedirs(images_folder, exist_ok=True)
+
+    for filename in filenames:
+        src_path = f"gs://zenml-internal-artifact-store/label_studio_cv_webinar/{filename}.png"
+        dst_path = os.path.join(images_folder, f"{filename}.png")
+        fileio.copy(src_path, dst_path)
+
     split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
     return generate_yaml(extract_location)
