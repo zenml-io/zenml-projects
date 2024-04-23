@@ -41,7 +41,8 @@ export DATA_UPLOAD_MAX_NUMBER_FILES=1000000
 export WANDB_DISABLED=True
 ```
 
-And to use the Albumentations and annotation plugins, you'll need to install them:
+And to use the Albumentations and annotation plugins, you'll need to install
+them:
 
 ```bash
 fiftyone plugins download https://github.com/jacobmarks/fiftyone-albumentations-plugin
@@ -54,7 +55,8 @@ fiftyone plugins download https://github.com/voxel51/fiftyone-plugins --plugin-n
 
 # Data
 
-initial dataset is stored at: `gs://zenml-internal-artifact-store/raw-ship-data/`
+initial dataset is stored at:
+`gs://zenml-internal-artifact-store/raw-ship-data/`
 
-copy with:
-`gsutil -m cp -r gs://zenml-internal-artifact-store/raw-ship-data/ /path`
+copy with: `gsutil -m cp -r gs://zenml-internal-artifact-store/raw-ship-data/
+/path`
