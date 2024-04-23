@@ -48,6 +48,6 @@ def train_model(
     )
 
     # Read images as PIL images from directory metrics.save_dir for all png and jpg files
-    images = load_images_from_folder(metrics.save_dir)
+    # images = load_images_from_folder(metrics.save_dir)
 
     return model, metrics.results_dict

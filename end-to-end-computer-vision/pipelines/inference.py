@@ -30,14 +30,13 @@ logger = get_logger(__name__)
 
 import fiftyone as fo
 
-DATASET_NAME = "ships"
-DATASET_DIR = "data/ships/subset"
-TRAINED_MODEL_NAME = "Trained_YOLO"
 
 @step
 def create_fiftyone_dataset() -> Annotated[str, "predictions_dataset_json"]:
     c = Client()
-    model_artifact = c.get_artifact_version(name_id_or_prefix=TRAINED_MODEL_NAME)
+    model_artifact = c.get_artifact_version(
+        name_id_or_prefix=TRAINED_MODEL_NAME
+    )
     yolo_model = model_artifact.load()
     # results = yolo_model(DATASET_DIR, half=True, conf=0.6)
 
