@@ -85,6 +85,14 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     type=click.Choice(["alexej", "hamza", "alex"]),
     help="The stack to use for the pipeline.",
 )
+@click.option(
+    "--local",
+    "-l",
+    "train_local",
+    is_flag=True,
+    default=False,
+    help="Whether to train local.",
+)
 def main(
     ingest_data_pipeline: bool = False,
     export_pipeline: bool = False,
@@ -92,6 +100,7 @@ def main(
     inference_pipeline: bool = False,
     fiftyone: bool = False,
     stack: UUID = "alexej",
+    train_local: bool = False,
 ):
     # TODO: remove all this :)
     if stack == "hamza":
@@ -122,12 +131,17 @@ def main(
         )
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
-    if training_pipeline:
+    if training_pipeline and train_local:
+        client.activate_stack(stack_id)
+
+        # Train model on data
+        training.with_options(config_path="configs/training.yaml")()
+
+    if training_pipeline and not train_local:
         client.activate_stack(REMOTE_STACK_ID)
 
         # Train model on data
         training.with_options(config_path="configs/training_gpu.yaml")()
-        # training.with_options(config_path="configs/training.yaml")()
 
     if inference_pipeline:
         client.activate_stack(REMOTE_STACK_ID)

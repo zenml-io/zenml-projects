@@ -24,17 +24,18 @@ from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
     LabelStudioYOLODatasetMaterializer,
 )
+from utils.constants import LABELED_DATASET_NAME
 
 logger = get_logger(__name__)
 
 
 @step(
-    output_materializers={"YOLO_dataset": LabelStudioYOLODatasetMaterializer}
+    output_materializers={LABELED_DATASET_NAME: LabelStudioYOLODatasetMaterializer}
 )
 def load_data_from_label_studio(
     dataset_name: str,
 ) -> Tuple[
-    Annotated[LabelStudioYOLODataset, "YOLO_dataset"],
+    Annotated[LabelStudioYOLODataset, LABELED_DATASET_NAME],
     Annotated[List[int], "new_ids"],
 ]:
     """Loads data from Label Studio.

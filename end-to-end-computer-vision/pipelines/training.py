@@ -20,6 +20,7 @@ from zenml.logger import get_logger
 from steps.load_model import load_model
 from steps.promote_model import promote_model
 from steps.train_model import train_model
+from utils.constants import LABELED_DATASET_NAME
 
 logger = get_logger(__name__)
 
@@ -36,7 +37,7 @@ def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
 
     # Load the latest version of the train dataset
     mv = get_pipeline_context().model
-    dataset = mv.get_artifact("YOLO_dataset")
+    dataset = mv.get_artifact(LABELED_DATASET_NAME)
 
     trained_model, metrics = train_model(
         model=model, dataset=dataset, epochs=epochs

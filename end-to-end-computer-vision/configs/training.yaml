@@ -1,11 +1,12 @@
-enable_cache: False
-
 parameters:
   model_checkpoint: yolov8l.pt
   epochs: 1
 
 steps:
+  load_model:
+    enable_cache: True
   train_model:
+    enable_cache: False
     parameters:
       data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
 
