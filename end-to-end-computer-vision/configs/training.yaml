@@ -2,6 +2,10 @@ enable_cache: False
 
 settings:
   docker:
+    apt_packages:
+      - ffmpeg
+      - libsm6
+      - libxext6
     required_integrations:
       - gcp
     requirements:
@@ -12,6 +16,10 @@ steps:
     step_operator: gcp_a100
     enable_step_logs: False
     settings:
+      step_operator.vertex:
+        accelerator_type: NVIDIA_TESLA_A100 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
+        accelerator_count: 1
+        disk_size_gb: 25
       docker:
         parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
         required_integrations:
