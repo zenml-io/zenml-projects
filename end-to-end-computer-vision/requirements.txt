@@ -10,3 +10,4 @@ torch
 huggingface_hub>=0.20.0 # needed for fiftyone imports of HF datasets
 # fiftyone @ git+https://github.com/voxel51/fiftyone.git@develop # fiftyone v0.24.0
 fiftyone
+datasets
