@@ -80,7 +80,4 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
 
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
-        # Make a temporary phantom artifact
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".zip") as f:
-            # Copy it into artifact store
-            fileio.copy(dataset.filepath, filepath)
+        fileio.copy(dataset.filepath, filepath)
