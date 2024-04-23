@@ -45,5 +45,5 @@ if __name__ == "__main__":
         name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
     )
     dataset_json = artifact.load()
-    dataset = fo.Dataset.from_json(dataset_json, persistent=True)
-    session = fo.launch_app(dataset)
+    dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+    fo.launch_app(dataset)
