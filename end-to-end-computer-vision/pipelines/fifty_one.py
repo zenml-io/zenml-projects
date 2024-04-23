@@ -25,4 +25,5 @@ logger = get_logger(__name__)
 
 @pipeline
 def fifty_one():
+    """Launches the FiftyOne app with the predictions dataset."""
     create_fiftyone_dataset()

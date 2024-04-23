@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import fiftyone as fo
 from zenml import step
 from zenml.client import Client
@@ -24,9 +23,11 @@ from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME
 
 @step
 def create_fiftyone_dataset():
+    """Launches the FiftyOne app with the predictions dataset."""
     artifact = Client().get_artifact_version(
         name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
     )
     dataset_json = artifact.load()
-    dataset = fo.Dataset.from_json(dataset_json, persistent=True)
-    fo.launch_app(dataset)
+    dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+    session = fo.launch_app(dataset)
+
