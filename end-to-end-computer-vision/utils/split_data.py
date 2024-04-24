@@ -10,6 +10,12 @@ logger = get_logger(__name__)
 
 
 def unzip_dataset(zip_path: str, extract_dir: str):
+    """Unzip a dataset to a directory.
+
+    Args:
+        zip_path: Path to the zip file.
+        extract_dir: Directory to extract the zip file to.
+    """
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_dir)
 
@@ -20,7 +26,16 @@ def split_dataset(
     lbl_subdir: str = "labels",
     ratio: tuple = (0.7, 0.2, 0.1),
     seed: int = None,
-):
+) -> None:
+    """Split a dataset into train, test, and validation sets.
+
+    Args:
+        data_path: Path to the dataset.
+        img_subdir: Subdirectory containing images.
+        lbl_subdir: Subdirectory containing labels.
+        ratio: Tuple of ratios for train, test, and validation sets.
+        seed: Random seed for reproducibility.
+    """
     # Ensure the ratio is correct
     assert sum(ratio) == 1.0
 
@@ -71,7 +86,16 @@ def split_dataset(
             )
 
 
-def generate_yaml(data_path: str, yaml_path: str = None):
+def generate_yaml(data_path: str, yaml_path: str = None) -> str:
+    """Generate a yaml file from a dataset.
+
+    Args:
+        data_path: Path to the dataset.
+        yaml_path: Path to save the yaml file.
+
+    Returns:
+        str: Path to the yaml file.
+    """
     if yaml_path is None:
         yaml_path = data_path
     # Read classes from classes.txt
