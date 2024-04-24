@@ -18,10 +18,6 @@ Note that this isn't something that our YOLOv8 model is particularly good at out
 of the box, so it serves as a good example of how to build a pipeline that can
 be extended to other use cases.
 
-The project consists of the following pipelines and steps:
-
-- 
-
 ## Run this pipeline
 
 ### Setup
@@ -49,14 +45,3 @@ fiftyone plugins download https://github.com/jacobmarks/fiftyone-albumentations-
 
 fiftyone plugins download https://github.com/voxel51/fiftyone-plugins --plugin-names @voxel51/annotation
 ```
-
-
-
-
-# Data
-
-initial dataset is stored at:
-`gs://zenml-internal-artifact-store/raw-ship-data/`
-
-copy with: `gsutil -m cp -r gs://zenml-internal-artifact-store/raw-ship-data/
-/path`
