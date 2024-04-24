@@ -109,6 +109,7 @@ def generate_yaml(data_path: str, yaml_path: str = None) -> str:
         "val": "images/val",
         "test": "images/test",
         "names": {i: name for i, name in enumerate(classes)},
+        "nc": len(classes),
     }
     logger.info("Generated yaml data: %s", data)
     # Write to yaml file
