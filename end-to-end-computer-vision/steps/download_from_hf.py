@@ -43,7 +43,7 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
 
     for i, d in enumerate(data):
         img = d["image"]
-        img_name = f"image_{i}.png"
+        img_name = f"image_{i}"
         logger.info(f"Handling {img_name}")
         img_path = f"{output_dir}/{img_name}.png"
 
