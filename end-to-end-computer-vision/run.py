@@ -143,10 +143,6 @@ def main(
     if inference_pipeline:
         client.activate_stack(REMOTE_STACK_ID)
 
-        # Promote Model to production
-        latest_model = Model(name=ZENML_MODEL_NAME, version=ModelStages.LATEST)
-        latest_model.set_stage(stage=ModelStages.PRODUCTION, force=True)
-
         inference.with_options(config_path="configs/cloud_inference.yaml")()
 
     if fiftyone:

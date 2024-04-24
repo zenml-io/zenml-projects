@@ -1,6 +1,5 @@
 parameters:
   model_checkpoint: yolov8l.pt
-  epochs: 500
 
 settings:
   docker:
@@ -23,10 +22,14 @@ steps:
     enable_step_logs: False
     parameters:
       data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      batch_size: 8
+      imgsz: 480
+      epochs: 500
+      is_quad_gpu_env: True
     settings:
       step_operator.vertex:
         accelerator_type: NVIDIA_TESLA_T4 # NVIDIA_TESLA_A100 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
-        accelerator_count: 1
+        accelerator_count: 4
         disk_size_gb: 25
       docker:
         parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
@@ -36,6 +39,10 @@ steps:
         requirements:
           - ultralytics
           - zenml
+          - numpy
+        environment:
+          MKL_SERVICE_FORCE_INTEL: 1
+
 
 # configuration of the Model Control Plane
 model:
