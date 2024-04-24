@@ -21,15 +21,18 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.linear_model import SGDClassifier
 from typing_extensions import Annotated
-
+from utils.sagemaker_materializer import SagemakerMaterializer
 from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
 
-from utils.sagemaker_materializer import SagemakerMaterializer
-
 logger = get_logger(__name__)
 
-@step(output_materializers=[SagemakerMaterializer,])
+
+@step(
+    output_materializers=[
+        SagemakerMaterializer,
+    ]
+)
 def model_trainer(
     dataset_trn: pd.DataFrame,
     model_type: str = "sgd",

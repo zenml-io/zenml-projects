@@ -73,6 +73,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
 | [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
+| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs                           | `openai` `supabase`  |
 
 # 💻 System Requirements
 

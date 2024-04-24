@@ -55,12 +55,14 @@ def data_loader() -> Annotated[DatasetDict, "dataset"]:
         sampled_dataset = DatasetDict()
         for split in dataset.keys():
             split_size = len(dataset[split])
-            indices = np.random.choice(split_size, int(split_size * sample_rate), replace=False)
+            indices = np.random.choice(
+                split_size, int(split_size * sample_rate), replace=False
+            )
             sampled_dataset[split] = dataset[split].select(indices)
         return sampled_dataset
 
     dataset = sample_dataset(dataset)
-    
+
     # Log the dataset and sample examples
     logger.info(dataset)
     logger.info(

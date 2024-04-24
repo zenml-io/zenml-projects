@@ -8,36 +8,91 @@ authors = ["ZenML CodeMonkey <codemonkey@zenml.io>"]
 python = ">=3.7.0,<3.9.0"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
-isort = "^5.9.3"
 pytest = "^6.2.5"
 darglint = "1.8.1"
-ruff = "^0.0.254"
+ruff = ">=0.0.254"
 pyspelling = "^2.8.2"
-mypy = "^1.0.0"
+mypy = ">=1.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.isort]
-profile = "black"
-known_third_party = []
-skip_glob = []
-line_length = 79
-
-[tool.black]
+[tool.ruff]
 line-length = 79
-include = '\.pyi?$'
-exclude = '''
-/(
-	\.git
-| \.hg
-| \.mypy_cache
-| \.tox
-| \.venv
-| _build
-| buck-out
-| build
-)/
-'''
+# Exclude a variety of commonly ignored directories.
+exclude = [
+	".bzr",
+	".direnv",
+	".eggs",
+	".git",
+	".hg",
+	".mypy_cache",
+	".nox",
+	".pants.d",
+	".ruff_cache",
+	".svn",
+	".tox",
+	".venv",
+	"__pypackages__",
+	"_build",
+	"buck-out",
+	".test_durations",
+	"build",
+	"dist",
+	"node_modules",
+	"venv",
+	'__init__.py',
+]
+# use Python 3.8 as the minimum version for autofixing
+target-version = "py38"
+
+
+[tool.ruff.format]
+exclude = [
+	"*.git",
+	"*.hg",
+	".mypy_cache",
+	".tox",
+	".venv",
+	"_build",
+	"buck-out",
+	"build]",
+]
+
+[tool.ruff.lint]
+# Disable autofix for unused imports (`F401`).
+unfixable = ["F401"]
+per-file-ignores = {}
+ignore-init-module-imports = true
+ignore = [
+	"E501",
+	"F401",
+	"F403",
+	"D301",
+	"D401",
+	"D403",
+	"D407",
+	"D213",
+	"D203",
+	"S101",
+	"S104",
+	"S105",
+	"S106",
+	"S107",
+]
+select = ["D", "E", "F", "I", "I001", "Q"]
+
+[tool.ruff.lint.flake8-import-conventions.aliases]
+altair = "alt"
+"matplotlib.pyplot" = "plt"
+numpy = "np"
+pandas = "pd"
+seaborn = "sns"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
+[tool.ruff.lint.pydocstyle]
+# Use Google-style docstrings.
+convention = "google"

@@ -19,11 +19,10 @@ from tempfile import TemporaryDirectory
 from typing import Any, ClassVar, Dict, Tuple, Type
 
 from transformers import (  # type: ignore [import-untyped]
-    Trainer,
     AutoConfig,
-    TrainingArguments
+    Trainer,
+    TrainingArguments,
 )
-
 from zenml.enums import ArtifactType
 from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.metadata.metadata_types import DType, MetadataType
@@ -31,6 +30,7 @@ from zenml.utils import io_utils, yaml_utils
 
 DEFAULT_TRAINER_MODEL_DIR = "hf_model"
 DEFAULT_ARGS_JSON = "args.json"
+
 
 class HFTrainerMaterializer(BaseMaterializer):
     """Materializer to read torch model to and from huggingface pretrained model."""
@@ -76,12 +76,10 @@ class HFTrainerMaterializer(BaseMaterializer):
             os.path.join(self.uri, DEFAULT_TRAINER_MODEL_DIR),
         )
         yaml_utils.write_json(
-            os.path.join(self.uri, DEFAULT_ARGS_JSON), trainer.args.to_dict() 
+            os.path.join(self.uri, DEFAULT_ARGS_JSON), trainer.args.to_dict()
         )
 
-    def extract_metadata(
-        self, trainer: Trainer
-    ) -> Dict[str, "MetadataType"]:
+    def extract_metadata(self, trainer: Trainer) -> Dict[str, "MetadataType"]:
         """Extract metadata from the given `PreTrainedModel` object.
 
         Args:

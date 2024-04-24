@@ -28,10 +28,10 @@ from .deploying import (
 )
 from .promotion import promote_get_metrics, promote_metric_compare_promoter
 from .registerer import register_model
-from .tokenizer_loader import (
-    tokenizer_loader,
-)
 from .tokenization import (
     tokenization_step,
+)
+from .tokenizer_loader import (
+    tokenizer_loader,
 )
 from .training import model_trainer

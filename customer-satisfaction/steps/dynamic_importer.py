@@ -1,8 +1,7 @@
 from typing import Annotated
 
-from zenml import step
-
 from pipelines.utils import get_data_for_test
+from zenml import step
 
 
 @step(enable_cache=False)

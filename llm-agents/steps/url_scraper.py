@@ -13,9 +13,9 @@
 #  permissions and limitations under the License.
 
 from typing import List
+
 from typing_extensions import Annotated
-from steps.url_scraping_utils import get_all_pages, get_nested_readme_urls
-from zenml import step, log_artifact_metadata
+from zenml import log_artifact_metadata, step
 
 
 @step
@@ -35,7 +35,7 @@ def url_scraper(
     Returns:
         List of URLs to scrape.
     """
-    
+
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
     # docs_urls = get_all_pages(docs_url)

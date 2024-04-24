@@ -66,7 +66,10 @@ def promote_metric_compare_promoter(
             f"Latest model metric={latest_metrics[metric_to_compare]:.6f}\n"
             f"Current model metric={current_metrics[metric_to_compare]:.6f}"
         )
-        if latest_metrics[metric_to_compare] < current_metrics[metric_to_compare]:
+        if (
+            latest_metrics[metric_to_compare]
+            < current_metrics[metric_to_compare]
+        ):
             logger.info(
                 "Current model outperformed latest model - promoting current"
             )

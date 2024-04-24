@@ -1,27 +1,27 @@
 """Implementation of the Huggingface Model Deployer."""
+from typing import ClassVar, Dict, List, Optional, Type, cast
 from uuid import UUID
-from zenml.model_deployers import BaseModelDeployer
-from huggingface.hf_model_deployer_flavor import HuggingFaceModelDeployerFlavor
-from zenml.logger import get_logger
 
-from typing import List, Optional, cast, ClassVar, Type, Dict
-from zenml.services import BaseService, ServiceConfig
+from huggingface_hub import InferenceEndpoint, list_inference_endpoints
+from zenml.artifacts.utils import log_artifact_metadata, save_artifact
+from zenml.client import Client
+from zenml.logger import get_logger
+from zenml.model_deployers import BaseModelDeployer
+from zenml.model_deployers.base_model_deployer import (
+    DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
+    BaseModelDeployerFlavor,
+)
+from zenml.services import BaseService, ServiceConfig, ServiceRegistry
+
 from huggingface.hf_deployment_service import (
     HuggingFaceDeploymentService,
     HuggingFaceServiceConfig,
 )
 from huggingface.hf_model_deployer_flavor import (
-    HuggingFaceModelDeployerSettings,
     HuggingFaceModelDeployerConfig,
+    HuggingFaceModelDeployerFlavor,
+    HuggingFaceModelDeployerSettings,
 )
-from zenml.model_deployers.base_model_deployer import (
-    DEFAULT_DEPLOYMENT_START_STOP_TIMEOUT,
-    BaseModelDeployerFlavor,
-)
-from huggingface_hub import InferenceEndpoint, list_inference_endpoints
-from zenml.client import Client
-from zenml.services import ServiceRegistry
-from zenml.artifacts.utils import save_artifact, log_artifact_metadata
 
 logger = get_logger(__name__)
 

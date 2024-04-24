@@ -15,15 +15,14 @@
 # limitations under the License.
 #
 
-from typing import List, Optional
 import random
+from typing import List, Optional
 
 from steps import (
     data_loader,
     data_preprocessor,
     data_splitter,
 )
-
 from zenml import pipeline
 from zenml.logger import get_logger
 
@@ -59,7 +58,7 @@ def feature_engineering(
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
     if random_state is None:
-        random_state = random.randint(0,1000)
+        random_state = random.randint(0, 1000)
     raw_data = data_loader(random_state=random_state, target=target)
     dataset_trn, dataset_tst = data_splitter(
         dataset=raw_data,

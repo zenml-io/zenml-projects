@@ -1,16 +1,14 @@
 from typing import Dict
-from typing_extensions import Annotated
 
 from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
-from langchain.agents import ConversationalChatAgent
+from langchain.agents import AgentExecutor, ConversationalChatAgent
 from langchain.chat_models import ChatOpenAI
 from langchain.schema.vectorstore import VectorStore
 from langchain.tools.vectorstore.tool import VectorStoreQATool
-from langchain.agents import AgentExecutor
 from pydantic import BaseModel
-from zenml import step, ArtifactConfig, log_artifact_metadata
-
+from typing_extensions import Annotated
+from zenml import ArtifactConfig, log_artifact_metadata, step
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 # Choose what character to use for your agent's answers

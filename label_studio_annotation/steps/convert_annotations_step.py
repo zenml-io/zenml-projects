@@ -14,7 +14,6 @@
 from typing import Any, Dict, List, Tuple
 
 from typing_extensions import Annotated
-
 from zenml import step
 from zenml.logger import get_logger
 

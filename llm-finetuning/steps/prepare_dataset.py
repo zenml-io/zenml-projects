@@ -6,12 +6,13 @@ All credit to them for their amazing work!
 """
 
 import os
-import pandas as pd
-from nbformat import reads, NO_CONVERT
-from tqdm import tqdm
-from datasets import Dataset
 from typing import Dict
+
+import pandas as pd
+from datasets import Dataset
 from huggingface_hub import HfApi
+from nbformat import NO_CONVERT, reads
+from tqdm import tqdm
 from zenml import step
 from zenml.client import Client
 
@@ -60,11 +61,14 @@ def upload_to_hub(df: pd.DataFrame, dataset_id: str) -> str:
     token = secret.secret_values["token"]
     api = HfApi(token=token)
 
-    repo_id = api.create_repo(repo_id=dataset_id, exist_ok=True, repo_type="dataset").repo_id
+    repo_id = api.create_repo(
+        repo_id=dataset_id, exist_ok=True, repo_type="dataset"
+    ).repo_id
 
     dataset = Dataset.from_pandas(df)
     dataset.push_to_hub(dataset_id, token=token)
     return repo_id
+
 
 def filter_code_cell(cell) -> bool:
     """Filters a code cell w.r.t shell commands, etc."""
@@ -74,6 +78,7 @@ def filter_code_cell(cell) -> bool:
         return False
     else:
         return True
+
 
 def process_file(directory_name: str, file_path: str) -> Dict[str, str]:
     """Processes a single file."""
@@ -115,7 +120,8 @@ def read_repository_files(directory) -> pd.DataFrame:
         for file in files:
             file_path = os.path.join(root, file)
             if not file_path.endswith(ANTI_FORMATS) and all(
-                k not in file_path for k in [".git", "__pycache__", "xcodeproj"]
+                k not in file_path
+                for k in [".git", "__pycache__", "xcodeproj"]
             ):
                 file_paths.append((os.path.dirname(root), file_path))
 
@@ -134,7 +140,9 @@ def read_repository_files(directory) -> pd.DataFrame:
 
 
 @step(enable_cache=False)
-def prepare_dataset(mirror_directory: str, dataset_id: str = "zenml-codegen-v1"):
+def prepare_dataset(
+    mirror_directory: str, dataset_id: str = "zenml-codegen-v1"
+):
     df = read_repository_files(mirror_directory)
     repo_id = upload_to_hub(df, dataset_id)
     return repo_id

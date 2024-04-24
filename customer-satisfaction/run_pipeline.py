@@ -1,7 +1,6 @@
+import click
 from pipelines.training_pipeline import customer_satisfaction_training_pipeline
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
-
-import click
 
 
 @click.command()
@@ -10,12 +9,13 @@ import click
     "-m",
     type=click.Choice(["lightgbm", "randomforest", "xgboost"]),
     default="xgboost",
-    help="Here you can choose what type of model should be trained."
+    help="Here you can choose what type of model should be trained.",
 )
 def main(model_type: str):
     (
-        customer_satisfaction_training_pipeline
-        .with_options(config_path="config.yaml")(model_type)
+        customer_satisfaction_training_pipeline.with_options(
+            config_path="config.yaml"
+        )(model_type)
     )
 
     print(
@@ -29,6 +29,3 @@ def main(model_type: str):
 
 if __name__ == "__main__":
     main()
-
-
-
