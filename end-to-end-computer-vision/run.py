@@ -140,7 +140,7 @@ def main(
         training.with_options(config_path="configs/training_gpu.yaml")()
 
     if inference_pipeline:
-        client.activate_stack(stack_id)  # REMOTE_STACK_ID)
+        client.activate_stack(stack_id)
 
         inference.with_options(config_path="configs/cloud_inference.yaml")()
 
