@@ -23,6 +23,8 @@ from zenml import step
 from zenml.io import fileio
 from zenml.logger import get_logger
 
+from utils.dataset_utils import export_to_gcp, convert_bbox_for_ls
+
 Image.MAX_IMAGE_PIXELS = None
 
 logger = get_logger(__name__)
@@ -45,40 +47,22 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
         logger.info(f"Handling {img_name}")
         img_path = f"{output_dir}/{img_name}"
 
-        logger.info(f"Storing image to {img_path}.")
-        img.save(img_path)
-
-        bucket_path = os.path.join(data_source, img_name)
-        logger.info(f"Copying into gcp bucket {bucket_path}")
-        fileio.copy(img_path, bucket_path, overwrite=True)
+        export_to_gcp(
+            data_source=data_source,
+            img=img,
+            img_name=img_name,
+            img_path=img_path
+        )
 
         width, height = d["image"].size
 
         results = []
         for j, bbox in enumerate(d["objects"]["bbox"]):
             x1, y1, x2, y2 = bbox
-            x = x1 / width
-            y = y1 / height
-            w = (x2 - x1) / width
-            h = (y2 - y1) / height
             results.append(
-                {
-                    "original_width": width,
-                    "original_height": height,
-                    "image_rotation": 0,
-                    "value": {
-                        "x": x * 100,
-                        "y": y * 100,
-                        "width": w * 100,
-                        "height": h * 100,
-                        "rotation": 0,
-                        "rectanglelabels": ["ship"],
-                    },
-                    "from_name": "label",
-                    "to_name": "image",
-                    "type": "rectanglelabels",
-                    "origin": "manual",
-                }
+                convert_bbox_for_ls(
+                    x1=x1, x2=x2, y1=y1, y2=y2, width=width, height=height
+                )
             )
 
         all_images[img_name] = results
