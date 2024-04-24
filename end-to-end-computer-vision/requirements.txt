@@ -13,3 +13,4 @@ fiftyone
 datasets
 albumentations
 pillow>=10.*.*
+dill
