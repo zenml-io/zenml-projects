@@ -31,12 +31,12 @@ from utils.dataset_utils import load_and_split_data
     enable_cache=True,
 )
 def train_model(
-    epochs: int,
-    batch_size: int,
-    imgsz: int,
     model: YOLO,
     dataset: LabelStudioYOLODataset,
     data_source: str,
+    epochs: int = 100,
+    batch_size: int = 16,
+    imgsz: int = 640,
     is_quad_gpu_env: bool = False,
 ) -> Tuple[
     Annotated[
@@ -70,7 +70,10 @@ def train_model(
         )
     else:
         model.train(
-            data=data_path, epochs=epochs, batch=batch_size, imgsz=imgsz
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz,
         )
 
     metrics = model.val()  # evaluate model performance on the validation set
