@@ -47,7 +47,7 @@ def upload_labels_to_label_studio(
     tasks = project.get_tasks()
 
     for task in tasks:
-        filename = task["storage_filename"].split('/')[-1]
+        filename = task["storage_filename"].split("/")[-1]
 
         project.create_annotation(
             task["id"], result=labels_dict[filename], ground_truth=True

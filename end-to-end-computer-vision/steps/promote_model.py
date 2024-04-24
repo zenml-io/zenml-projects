@@ -24,7 +24,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step()
+@step
 def promote_model(
     metrics: Dict[str, Any],
 ) -> None:
@@ -43,7 +43,7 @@ def promote_model(
             model_name_or_id=cur_model_version.name,
             model_version_name_or_number_or_id=ModelStages.PRODUCTION,
         )
-    except KeyError:
+    except (RuntimeError, KeyError):
         logger.info(
             "No `production` model found to compare to, current "
             "model will be promoted by default."

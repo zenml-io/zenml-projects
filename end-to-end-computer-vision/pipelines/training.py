@@ -18,7 +18,6 @@ from zenml import get_pipeline_context, pipeline
 from zenml.logger import get_logger
 
 from steps.load_model import load_model
-from steps.promote_model import promote_model
 from steps.train_model import train_model
 from utils.constants import LABELED_DATASET_NAME
 
@@ -43,6 +42,6 @@ def training(epochs: int, model_checkpoint: str = "yolov8l.pt"):
         model=model, dataset=dataset, epochs=epochs
     )
 
-    promote_model(metrics)
+    # promote_model(metrics)
 
     # predict_image(trained_model)

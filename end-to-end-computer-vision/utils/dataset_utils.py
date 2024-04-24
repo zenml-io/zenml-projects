@@ -41,8 +41,7 @@ def load_images_from_folder(folder):
 
 
 def load_and_split_data(
-    dataset: LabelStudioYOLODataset,
-    data_source: str
+    dataset: LabelStudioYOLODataset, data_source: str
 ) -> str:
     """Load data from dataset into file system and split into train/val.
 
