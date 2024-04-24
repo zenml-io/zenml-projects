@@ -13,7 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 
+from utils.llm_utils import process_input_with_retrieval
+from zenml.logger import get_logger
+
+# Next, configure the loggers right after the imports
+logging.getLogger("pytorch").setLevel(logging.CRITICAL)
+logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
+logging.getLogger("rerankers").setLevel(logging.CRITICAL)
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+logging.getLogger().setLevel(logging.ERROR)  # Root logger configuration
+
+# Continue with the rest of your imports and code
 from typing import Optional
 
 import click
@@ -21,8 +33,6 @@ from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import generate_chunk_questions, llm_basic_rag, llm_eval
 from structures import Document
-from utils.llm_utils import process_input_with_retrieval
-from zenml.logger import get_logger
 from zenml.materializers.materializer_registry import materializer_registry
 
 logger = get_logger(__name__)
@@ -129,7 +139,5 @@ def main(
 if __name__ == "__main__":
     # use custom materializer for documents
     # register early
-    materializer_registry.register_materializer_type(
-        Document, DocumentMaterializer
-    )
+    materializer_registry.register_materializer_type(Document, DocumentMaterializer)
     main()

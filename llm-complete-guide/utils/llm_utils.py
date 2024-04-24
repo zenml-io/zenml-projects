@@ -19,8 +19,17 @@
 # functionality
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
-
 import logging
+
+# Configure logging levels for specific modules
+logging.getLogger("pytorch").setLevel(logging.CRITICAL)
+logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
+logging.getLogger("rerankers").setLevel(logging.CRITICAL)
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+
+# Configure the logging level for the root logger
+logging.getLogger().setLevel(logging.ERROR)
+
 import os
 import re
 from typing import Dict, List, Tuple
@@ -36,15 +45,11 @@ from rerankers import Reranker
 from sentence_transformers import SentenceTransformer
 from structures import Document
 
-# Configure the logging level for the root logger
-logging.getLogger().setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
 
-def split_text_with_regex(
-    text: str, separator: str, keep_separator: bool
-) -> List[str]:
+def split_text_with_regex(text: str, separator: str, keep_separator: bool) -> List[str]:
     """Splits a given text using a specified separator.
 
     This function splits the input text using the provided separator. The separator can be included or excluded
@@ -61,9 +66,7 @@ def split_text_with_regex(
     if separator:
         if keep_separator:
             _splits = re.split(f"({separator})", text)
-            splits = [
-                _splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)
-            ]
+            splits = [_splits[i] + _splits[i + 1] for i in range(1, len(_splits), 2)]
             if len(_splits) % 2 == 0:
                 splits += _splits[-1:]
             splits = [_splits[0]] + splits
@@ -122,9 +125,7 @@ def split_text(
             current_chunk += split + _separator
         else:
             if current_chunk:
-                token_count = len(
-                    encoding.encode(current_chunk.rstrip(_separator))
-                )
+                token_count = len(encoding.encode(current_chunk.rstrip(_separator)))
                 chunks.append(
                     Document(
                         page_content=current_chunk.rstrip(_separator),
@@ -154,9 +155,7 @@ def split_text(
             final_chunks.append(chunks[i])
         else:
             overlap = chunks[i - 1].page_content[-chunk_overlap:]
-            token_count = len(
-                encoding.encode(overlap + chunks[i].page_content)
-            )
+            token_count = len(encoding.encode(overlap + chunks[i].page_content))
             final_chunks.append(
                 Document(
                     page_content=overlap + chunks[i].page_content,
@@ -242,11 +241,7 @@ def get_db_password() -> str:
     if not password:
         from zenml.client import Client
 
-        password = (
-            Client()
-            .get_secret("supabase_postgres_db")
-            .secret_values["password"]
-        )
+        password = Client().get_secret("supabase_postgres_db").secret_values["password"]
     return password
 
 
@@ -355,13 +350,14 @@ def get_embeddings(text):
 
 
 def rerank_documents(
-    query: str, documents: List[Tuple], reranker_model: str = "cross-encoder"
+    query: str, documents: List[Tuple], reranker_model: str = "colbert"
 ) -> List[str]:
     """Reranks the given documents based on the given query.
 
     Args:
         query (str): The query to use for reranking.
         documents (List[Tuple]): The documents to rerank.
+        reranker_model (str, optional): The reranker model to use. Defaults to "colbert".
 
     Returns:
         List[str]: The reranked content.
@@ -428,7 +424,7 @@ def process_input_with_retrieval(
         {"role": "user", "content": f"{delimiter}{input}{delimiter}"},
         {
             "role": "assistant",
-            "content": f"Relevant ZenML documentation: \n"
+            "content": f"Relevant ZenML documentation (in order of usefulness for this query): \n"
             + "\n".join(context_content),
         },
     ]
