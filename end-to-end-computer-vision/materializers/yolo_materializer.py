@@ -14,21 +14,24 @@
 """Implementation of the PyTorch DataLoader materializer."""
 
 import os
-import tempfile
+import uuid
 from typing import Any, ClassVar, Type
 
 from ultralytics import YOLO
+from zenml.enums import ArtifactType
 from zenml.integrations.pytorch.materializers.pytorch_module_materializer import (
     PyTorchModuleMaterializer,
 )
 from zenml.io import fileio
 
-DEFAULT_FILENAME = "obj.pt"
+DEFAULT_FILENAME = "obj.onnx"
 
 
+# class UltralyticsMaterializer(BaseMaterializer):
 class UltralyticsMaterializer(PyTorchModuleMaterializer):
     """Base class for ultralytics YOLO models."""
 
+    ASSOCIATED_ARTIFACT_TYPE: ClassVar[ArtifactType] = ArtifactType.MODEL
     FILENAME: ClassVar[str] = DEFAULT_FILENAME
     SKIP_REGISTRATION: ClassVar[bool] = True
     ASSOCIATED_TYPES = (YOLO,)
@@ -45,14 +48,18 @@ class UltralyticsMaterializer(PyTorchModuleMaterializer):
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
         # Create a temporary folder
-        with tempfile.TemporaryDirectory(prefix="zenml-temp-") as temp_dir:
-            temp_file = os.path.join(str(temp_dir), DEFAULT_FILENAME)
+        # make a random string I can use as a prefix for the folder name
+        random_string = str(uuid.uuid4().hex)
+        temp_dir = os.path.join("/tmp", random_string)
+        # make the directory if it doesn't already exist
+        os.makedirs(temp_dir, exist_ok=True)
+        temp_file = os.path.join(temp_dir, DEFAULT_FILENAME)
 
-            # Copy from artifact store to temporary file
-            fileio.copy(filepath, temp_file)
-            model = YOLO(temp_file)
+        # Copy from artifact store to temporary file
+        fileio.copy(filepath, temp_file)
+        model = YOLO(temp_file, task="detect")
 
-            return model
+        return model
 
     def save(self, model: YOLO) -> None:
         """Creates a JSON serialization for a ultralytics YOLO model.
@@ -61,9 +68,7 @@ class UltralyticsMaterializer(PyTorchModuleMaterializer):
             model: A ultralytics YOLO model.
         """
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
+        filename = model.export(format="onnx")
 
-        # Make a temporary phantom artifact
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
-            model.save(f.name)
-            # Copy it into artifact store
-            fileio.copy(f.name, filepath)
+        # Copy it into artifact store
+        fileio.copy(filename, filepath)
