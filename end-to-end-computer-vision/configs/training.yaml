@@ -8,8 +8,8 @@ steps:
     enable_cache: False
     parameters:
       data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
-      batch_size: 8
-      imgsz: 480
+      batch_size: 30
+      imgsz: 1000
       epochs: 30
 
 settings:
