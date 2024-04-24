@@ -24,8 +24,8 @@ from zenml.client import Client
 def upload_labels_to_label_studio(
     labels_dict: Dict[str, Any],
     ls_project_id: int = 8,
-    storage_type: str = 'gcs',
-    storage_id: int = 1
+    storage_type: str = "gcs",
+    storage_id: int = 1,
 ):
     """Uploads ground truth labels for images to label studio.
 

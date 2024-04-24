@@ -66,14 +66,11 @@ def train_model(
             epochs=epochs,
             batch=batch_size,
             imgsz=imgsz,
-            device=[0, 1, 2, 3]
+            device=[0, 1, 2, 3],
         )
     else:
         model.train(
-            data=data_path,
-            epochs=epochs,
-            batch=batch_size,
-            imgsz=imgsz
+            data=data_path, epochs=epochs, batch=batch_size, imgsz=imgsz
         )
 
     metrics = model.val()  # evaluate model performance on the validation set

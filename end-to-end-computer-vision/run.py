@@ -26,7 +26,7 @@ from pipelines.data_export import export_for_training
 from pipelines.data_ingestion import data_ingestion
 from pipelines.inference import inference
 from pipelines.training import training
-from utils.constants import ZENML_MODEL_NAME, PREDICTIONS_DATASET_ARTIFACT_NAME
+from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME, ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
 
@@ -140,7 +140,7 @@ def main(
         training.with_options(config_path="configs/training_gpu.yaml")()
 
     if inference_pipeline:
-        client.activate_stack(stack_id)# REMOTE_STACK_ID)
+        client.activate_stack(stack_id)  # REMOTE_STACK_ID)
 
         inference.with_options(config_path="configs/cloud_inference.yaml")()
 

@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 import os
-import tempfile
 from typing import Annotated
 
 import fiftyone as fo
@@ -25,7 +24,6 @@ from zenml.io import fileio
 from zenml.logger import get_logger
 
 from utils.constants import (
-    DATASET_DIR,
     DATASET_NAME,
     PREDICTIONS_DATASET_ARTIFACT_NAME,
     TRAINED_MODEL_NAME,
@@ -39,9 +37,9 @@ INFERENCE_BATCH = 20
 
 
 @step
-def create_fiftyone_dataset(inference_data_source: str) -> (
-    Annotated[str, PREDICTIONS_DATASET_ARTIFACT_NAME]
-):
+def create_fiftyone_dataset(
+    inference_data_source: str,
+) -> Annotated[str, PREDICTIONS_DATASET_ARTIFACT_NAME]:
     """Creates a FiftyOne dataset with predictions using a model.
 
     Returns:
@@ -61,7 +59,7 @@ def create_fiftyone_dataset(inference_data_source: str) -> (
         fileio.copy(
             os.path.join(inference_data_source, file),
             os.path.join(extract_location, file),
-            overwrite=True
+            overwrite=True,
         )
 
     dataset = fo.Dataset.from_dir(

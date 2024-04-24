@@ -38,7 +38,8 @@ def training(model_checkpoint: str = "yolov8l.pt"):
     dataset = mv.get_artifact(LABELED_DATASET_NAME)
 
     trained_model, metrics = train_model(
-        model=model, dataset=dataset,
+        model=model,
+        dataset=dataset,
     )
 
     # promote_model(metrics)
