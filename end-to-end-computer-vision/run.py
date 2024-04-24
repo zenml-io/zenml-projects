@@ -24,10 +24,9 @@ from zenml.logger import get_logger
 
 from pipelines.data_export import export_for_training
 from pipelines.data_ingestion import data_ingestion
-from pipelines.fifty_one import export_predictions
 from pipelines.inference import inference
 from pipelines.training import training
-from utils.constants import ZENML_MODEL_NAME
+from utils.constants import ZENML_MODEL_NAME, PREDICTIONS_DATASET_ARTIFACT_NAME
 
 logger = get_logger(__name__)
 
@@ -71,7 +70,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 )
 @click.option(
     "--fiftyone",
-    "-fo",
+    "-f",
     "fiftyone",
     is_flag=True,
     default=False,
@@ -146,9 +145,16 @@ def main(
         inference.with_options(config_path="configs/cloud_inference.yaml")()
 
     if fiftyone:
-        client.activate_stack(stack_id)
+        import fiftyone as fo
 
-        export_predictions.with_options(config_path="configs/fiftyone.yaml")()
+        client.activate_stack(stack_id)
+        artifact = Client().get_artifact_version(
+            name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
+        )
+        dataset_json = artifact.load()
+        dataset = fo.Dataset.from_json(dataset_json, persistent=False)
+        session = fo.launch_app(dataset)
+        session.wait()
 
 
 if __name__ == "__main__":
