@@ -1,0 +1,11 @@
+
+steps:
+  download_dataset_from_hf:
+    enable_cache: True
+    parameters:
+      dataset: "datadrivenscience/ship-detection"
+      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+  upload_labels_to_label_studio:
+    enable_cache: False
+    parameters:
+      ls_project_id: 8

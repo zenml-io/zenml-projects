@@ -1,0 +1,5 @@
+*.pt
+!data/.gitkeep
+data/
+runs/
+**/tmp*
