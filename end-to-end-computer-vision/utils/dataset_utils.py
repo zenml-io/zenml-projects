@@ -76,4 +76,5 @@ def load_and_split_data(
         fileio.copy(src_path, dst_path)
 
     split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
-    return generate_yaml(extract_location)
+    yaml_path = generate_yaml(extract_location)
+    return yaml_path
