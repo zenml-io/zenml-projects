@@ -37,7 +37,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 @click.command()
 @click.option(
     "--ingest",
-    "-i",
+    "-ig",
     "ingest_data_pipeline",
     is_flag=True,
     default=False,

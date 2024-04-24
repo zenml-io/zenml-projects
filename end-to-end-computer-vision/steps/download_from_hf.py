@@ -81,6 +81,5 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
             )
 
         all_images[img_name] = results
-        if i > 20:
-            break
+
     return all_images
