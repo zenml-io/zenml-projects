@@ -26,7 +26,7 @@ from pipelines.data_export import export_for_training
 from pipelines.data_ingestion import data_ingestion
 from pipelines.fifty_one import export_predictions
 from pipelines.inference import inference
-from pipelines.training import train_model, training
+from pipelines.training import training
 from utils.constants import ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
@@ -42,7 +42,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     is_flag=True,
     default=False,
     help="Whether to run the data ingestion pipeline, that takes the dataset"
-         "from huggingface and uploads it into label studio.",
+    "from huggingface and uploads it into label studio.",
 )
 @click.option(
     "--export",
@@ -113,9 +113,7 @@ def main(
     client = Client()
 
     if ingest_data_pipeline:
-        data_ingestion.with_options(
-            config_path="configs/ingest_data.yaml"
-        )()
+        data_ingestion.with_options(config_path="configs/ingest_data.yaml")()
 
     if export_pipeline:
         client.activate_stack(stack_id)
@@ -126,9 +124,7 @@ def main(
         )()
 
         # Promote Model to staging
-        latest_model = Model(
-            name=ZENML_MODEL_NAME, version=ModelStages.LATEST
-        )
+        latest_model = Model(name=ZENML_MODEL_NAME, version=ModelStages.LATEST)
         latest_model.set_stage(stage=ModelStages.STAGING, force=True)
 
     if training_pipeline and train_local:

@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 @step(enable_cache=True)
 def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
     dataset = load_dataset(dataset)
-    data = dataset['train']
+    data = dataset["train"]
 
     output_dir = "data"
     if not os.path.exists(output_dir):
@@ -40,9 +40,9 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
     all_images = {}
 
     for i, d in enumerate(data):
-        img = d['image']
+        img = d["image"]
         img_name = f"image_{i}.png"
-        img_path = f'{output_dir}/{img_name}'
+        img_path = f"{output_dir}/{img_name}"
 
         logger.info(f"Storing image to {img_path}.")
         img.save(img_path)
@@ -51,7 +51,7 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
         logger.info(f"Copying into gcp bucket {bucket_path}")
         fileio.copy(img_path, bucket_path, overwrite=True)
 
-        width, height = d['image'].size
+        width, height = d["image"].size
 
         results = []
         for j, bbox in enumerate(d["objects"]["bbox"]):

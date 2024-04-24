@@ -26,12 +26,12 @@ from materializers.yolo_materializer import UltralyticsMaterializer
 from utils.dataset_utils import load_and_split_data
 
 
-@step(output_materializers={"Trained_YOLO": UltralyticsMaterializer})
+@step(
+    output_materializers={"Trained_YOLO": UltralyticsMaterializer},
+    enable_cache=True,
+)
 def train_model(
-    epochs: int,
-    model: YOLO,
-    dataset: LabelStudioYOLODataset,
-    data_source: str
+    epochs: int, model: YOLO, dataset: LabelStudioYOLODataset, data_source: str
 ) -> Tuple[
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
