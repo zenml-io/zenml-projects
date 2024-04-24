@@ -28,7 +28,7 @@ steps:
       is_quad_gpu_env: True
     settings:
       step_operator.vertex:
-        accelerator_type: NVIDIA_TESLA_T4 # NVIDIA_TESLA_A100 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
+        accelerator_type: NVIDIA_TESLA_T4 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
         accelerator_count: 4
         disk_size_gb: 25
       docker:

@@ -41,7 +41,3 @@ def training(model_checkpoint: str = "yolov8l.pt"):
         model=model,
         dataset=dataset,
     )
-
-    # promote_model(metrics)
-
-    # predict_image(trained_model)

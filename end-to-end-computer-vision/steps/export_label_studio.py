@@ -16,7 +16,7 @@
 #
 from typing import Annotated, List, Tuple
 
-from zenml import get_step_context, step
+from zenml import get_step_context, step, log_artifact_metadata
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -64,34 +64,16 @@ def load_data_from_label_studio(
             ls_dataset = LabelStudioYOLODataset()
             ls_dataset.dataset = dataset
 
-            c = Client()
-            step_context = get_step_context()
-            cur_pipeline_name = step_context.pipeline.name
-            cur_step_name = step_context.step_name
-
-            try:
-                last_run = c.get_pipeline(
-                    cur_pipeline_name
-                ).last_successful_run
-                last_task_ids = (
-                    last_run.steps[cur_step_name].outputs["new_ids"].load()
-                )
-            except (RuntimeError, KeyError):
-                last_task_ids = []
-
             current_labeled_task_ids = dataset.get_labeled_tasks_ids()
-            logger.info(f"{len(current_labeled_task_ids)} total labels found.")
 
-            new_task_ids = list(
-                set(current_labeled_task_ids) - set(last_task_ids)
+            ls_dataset.task_ids = current_labeled_task_ids
+            log_artifact_metadata(
+                metadata={
+                    "num_images": len(current_labeled_task_ids),
+                },
+                artifact_name=LABELED_DATASET_NAME
             )
-            logger.info(
-                f"{len(new_task_ids)} new labels are being beamed "
-                f"straight to you."
-            )
-
-            ls_dataset.task_ids = new_task_ids
-            return ls_dataset, new_task_ids
+            return ls_dataset, current_labeled_task_ids
         except:
             raise ValueError(
                 f"Dataset {dataset_name} not found in Label Studio."
