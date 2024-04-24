@@ -31,7 +31,13 @@ from utils.dataset_utils import load_and_split_data
     enable_cache=True,
 )
 def train_model(
-    epochs: int, model: YOLO, dataset: LabelStudioYOLODataset, data_source: str
+    epochs: int,
+    batch_size: int,
+    imgsz: int,
+    model: YOLO,
+    dataset: LabelStudioYOLODataset,
+    data_source: str,
+    is_quad_gpu_env: bool = False,
 ) -> Tuple[
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
@@ -42,24 +48,39 @@ def train_model(
 
     Args:
         epochs: Number of epochs to train the model for.
+        batch_size: Batch size for training
+        imgsz: Image size for training
         model: YOLO model to train.
         dataset: Dataset to train the model on.
+        data_source: Source where the data lives
+        is_quad_gpu_env: Whether we are in an env with 4 gpus
 
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
     """
     data_path = load_and_split_data(dataset=dataset, data_source=data_source)
-    model.train(data=data_path, epochs=epochs)
 
-    # model.train(data="coco8.yaml", epochs=3)  # train the model
+    if is_quad_gpu_env:
+        model.train(
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz,
+            device=[0, 1, 2, 3]
+        )
+    else:
+        model.train(
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz
+        )
+
     metrics = model.val()  # evaluate model performance on the validation set
 
     log_artifact_metadata(
         artifact_name="Trained_YOLO",
         metadata={"metrics": metrics.results_dict},
     )
-
-    # Read images as PIL images from directory metrics.save_dir for all png and jpg files
-    # images = load_images_from_folder(metrics.save_dir)
 
     return model, metrics.results_dict
