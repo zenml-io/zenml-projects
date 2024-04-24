@@ -25,8 +25,10 @@ from zenml.io import fileio
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
 )
-from steps.download_and_tile_from_hf import logger
 from utils.split_data import generate_yaml, split_dataset, unzip_dataset
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def load_images_from_folder(folder):
@@ -119,7 +121,7 @@ def convert_bbox_for_ls(x1, x2, y1, y2, width, height) -> Dict[str, Any]:
 
 
 def split_large_image(
-    d: Any, img_name: str, output_dir: str, all_images: Dict[str, Any]
+    d: Any, img_name: str, output_dir: str, all_images: Dict[str, Any], data_source: str
 ):
     """Some images are too large to be useful, this splits them into multiple tiles.
 
@@ -144,7 +146,13 @@ def split_large_image(
         # Create new dictionary for each tile
         new_img_name = img_name + '_' + str(tile_id)
         img_path = f'{output_dir}/{new_img_name}.png'
-        img_tile.save(img_path)  # Save image tile
+
+        export_to_gcp(
+            data_source=data_source,
+            img=img,
+            img_name=new_img_name,
+            img_path=img_path
+        )
 
         print(f"{img_path} saved.")
         results = []
@@ -172,12 +180,12 @@ def export_to_gcp(data_source: str, img: Image, img_name: str, img_path: str):
         stored.
     img: The image to be stored. This should be an instance of the PIL Image
         class.
-    img_name: The name to be used when saving the image in the GCP bucket.
+    img_name: The name to be used when saving the image in the GCP bucket. Should not contain '.png'
     img_path: The local path where the image will be temporarily saved before
         being copied to the bucket.
     """
     logger.info(f"Storing image to {img_path}.")
     img.save(img_path)
-    bucket_path = os.path.join(data_source, img_name)
+    bucket_path = os.path.join(data_source, f"{img_name}.png")
     logger.info(f"Copying into gcp bucket {bucket_path}")
     fileio.copy(img_path, bucket_path, overwrite=True)

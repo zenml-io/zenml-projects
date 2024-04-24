@@ -1,10 +1,11 @@
 
 steps:
-  download_dataset_from_hf:
+  download_and_tile_dataset_from_hf:
     enable_cache: True
+    enable_step_logs: False
     parameters:
       dataset: "datadrivenscience/ship-detection"
-      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"# "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
   upload_labels_to_label_studio:
     enable_cache: False
     parameters:

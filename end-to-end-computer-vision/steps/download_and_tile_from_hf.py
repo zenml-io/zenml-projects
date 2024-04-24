@@ -31,9 +31,9 @@ logger = get_logger(__name__)
 
 
 @step
-def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
+def download_and_tile_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
     dataset = load_dataset(dataset)
-    data = dataset["train"]
+    data = dataset["test"]
 
     output_dir = "data"
     if not os.path.exists(output_dir):
@@ -51,7 +51,8 @@ def download_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
                 d=d,
                 img_name=img_name,
                 output_dir=output_dir,
-                all_images=all_images
+                all_images=all_images,
+                data_source=data_source,
             )
         else:
             img_path = f'{output_dir}/{img_name}.png'
