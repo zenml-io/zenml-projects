@@ -35,7 +35,7 @@ class LabelStudioYOLODataset:
         self.dataset.export_tasks(
             export_type="YOLO",
             export_location=self.filepath,
-            download_resources=True,
+            download_resources=False,
             ids=self.task_ids,
         )
 

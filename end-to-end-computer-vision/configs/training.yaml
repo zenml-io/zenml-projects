@@ -12,18 +12,6 @@ steps:
       imgsz: 640
       epochs: 30
 
-settings:
-  docker:
-    apt_packages:
-      - ffmpeg
-      - libsm6
-      - libxext6
-    required_integrations:
-      - gcp
-      - github
-    requirements:
-      - ultralytics
-
 # configuration of the Model Control Plane
 model:
   name: ShipDetector
