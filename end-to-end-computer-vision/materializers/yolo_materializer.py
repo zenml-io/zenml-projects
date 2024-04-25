@@ -62,8 +62,12 @@ class UltralyticsMaterializer(PyTorchModuleMaterializer):
         """
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
-        # Make a temporary phantom artifact
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
-            model.save(f.name)
-            # Copy it into artifact store
-            fileio.copy(f.name, filepath)
+        # set `model_file` to filepath of
+        # `{CURRENT_DIR}/runs/train/weights/last.pt`
+        # see https://github.com/ultralytics/ultralytics/issues/10297
+        model_filepath = os.path.join(
+            os.getcwd(), "runs", "train", "weights", "last.pt"
+        )
+
+        # Copy it into artifact store
+        fileio.copy(model_filepath, filepath)
