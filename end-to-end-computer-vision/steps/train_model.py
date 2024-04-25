@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from typing import Annotated, Any, Dict, Tuple
-
-from ultralytics import YOLO
-from zenml import ArtifactConfig, log_artifact_metadata, step
-from zenml.logger import get_logger
 
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
 )
 from materializers.yolo_materializer import UltralyticsMaterializer
+from ultralytics import YOLO
 from utils.dataset_utils import load_and_split_data
+from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -66,6 +66,12 @@ def train_model(
     logger.info("Loading and splitting data...")
     data_path = load_and_split_data(dataset=dataset, data_source=data_source)
 
+    # make a directory called runs to store the training logs
+    logger.info("Creating directory for training logs...")
+    runs_dir = "runs"
+    if not os.path.exists(runs_dir):
+        os.makedirs(runs_dir)
+
     logger.info("Training model...")
     if is_quad_gpu_env:
         model.train(
@@ -81,6 +87,7 @@ def train_model(
             epochs=epochs,
             batch=batch_size,
             imgsz=imgsz,
+            project="runs_dir",
         )
 
     logger.info("Evaluating model...")

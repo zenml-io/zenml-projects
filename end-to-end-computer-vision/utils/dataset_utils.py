@@ -17,12 +17,12 @@
 import os
 import tempfile
 
-from PIL import Image
-from zenml.io import fileio
-
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
 )
+from PIL import Image
+from zenml.io import fileio
+
 from utils.split_data import generate_yaml, split_dataset, unzip_dataset
 
 
