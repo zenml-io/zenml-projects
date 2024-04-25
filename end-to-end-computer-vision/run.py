@@ -17,16 +17,15 @@
 from uuid import UUID
 
 import click
-from zenml import Model
-from zenml.client import Client
-from zenml.enums import ModelStages
-from zenml.logger import get_logger
-
 from pipelines.data_export import export_for_training
 from pipelines.data_ingestion import data_ingestion
 from pipelines.inference import inference
 from pipelines.training import training
 from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME, ZENML_MODEL_NAME
+from zenml import Model
+from zenml.client import Client
+from zenml.enums import ModelStages
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
