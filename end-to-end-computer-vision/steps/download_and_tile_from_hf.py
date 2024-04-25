@@ -1,19 +1,3 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2024. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 import os
 from typing import Any, Dict
 
@@ -32,19 +16,14 @@ logger = get_logger(__name__)
 
 
 @step
-def download_and_tile_dataset_from_hf(dataset: str, data_source: str, max_tile_size:int = 1000) -> Dict[str, Any]:
-    # Load dataset from huggingface
+def download_and_tile_dataset_from_hf(dataset: str, data_source: str, max_tile_size:int = 1000) -> None:
     dataset = load_dataset(dataset)
     data = dataset["train"]
 
-    # Create local directory to initially copy data to
     output_dir = "data"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    all_images = {}
-
-    # iterate through the dataset
     for i, d in enumerate(data):
         img = d['image']
         img_name = f"image_{i}"
@@ -59,7 +38,6 @@ def download_and_tile_dataset_from_hf(dataset: str, data_source: str, max_tile_s
                 d=d,
                 img_name=img_name,
                 output_dir=output_dir,
-                all_images=all_images,
                 data_source=data_source,
                 max_tile_size=max_tile_size
             )
@@ -84,6 +62,7 @@ def download_and_tile_dataset_from_hf(dataset: str, data_source: str, max_tile_s
                     )
                 )
 
-            all_images[img_path] = results
+        # Clear unnecessary variables and references
+        del d['image']
 
-    return all_images
+    return None
