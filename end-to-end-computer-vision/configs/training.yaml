@@ -10,7 +10,7 @@ steps:
       data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
       batch_size: 16
       imgsz: 640
-      epochs: 30
+      epochs: 500
 
 settings:
   docker:
