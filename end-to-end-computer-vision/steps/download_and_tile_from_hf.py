@@ -27,32 +27,41 @@ from utils.dataset_utils import split_large_image, convert_bbox_for_ls, \
 
 Image.MAX_IMAGE_PIXELS = None
 
+
 logger = get_logger(__name__)
 
 
 @step
-def download_and_tile_dataset_from_hf(dataset: str, data_source: str) -> Dict[str, Any]:
+def download_and_tile_dataset_from_hf(dataset: str, data_source: str, max_tile_size:int = 1000) -> Dict[str, Any]:
+    # Load dataset from huggingface
     dataset = load_dataset(dataset)
-    data = dataset["test"]
+    data = dataset["train"]
 
+    # Create local directory to initially copy data to
     output_dir = "data"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     all_images = {}
 
+    # iterate through the dataset
     for i, d in enumerate(data):
         img = d['image']
         img_name = f"image_{i}"
 
         width, height = d['image'].size
-        if width > 2000 or height > 2000:
+        # in case images are very large, we split them up into 4 smaller tiles
+        if width > max_tile_size or height > max_tile_size:
+            logger.info(f"Image {img_name} is larger than {max_tile_size} pixels in "
+                        f"at least one dimension, we'll cut it down into "
+                        f"separate tiles.")
             split_large_image(
                 d=d,
                 img_name=img_name,
                 output_dir=output_dir,
                 all_images=all_images,
                 data_source=data_source,
+                max_tile_size=max_tile_size
             )
         else:
             img_path = f'{output_dir}/{img_name}.png'
@@ -65,6 +74,8 @@ def download_and_tile_dataset_from_hf(dataset: str, data_source: str) -> Dict[st
             )
 
             results = []
+
+            print(d['objects']['bbox'])
             for j, bbox in enumerate(d['objects']['bbox']):
                 x1, y1, x2, y2 = bbox
                 results.append(

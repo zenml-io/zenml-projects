@@ -120,8 +120,29 @@ def convert_bbox_for_ls(x1, x2, y1, y2, width, height) -> Dict[str, Any]:
         }
 
 
+def crop_and_adjust_bboxes(image, bboxes, crop_coordinates):
+    x_crop_min, y_crop_min, x_crop_max, y_crop_max = crop_coordinates
+    cropped_image = image[y_crop_min:y_crop_max, x_crop_min:x_crop_max]
+
+    adjusted_bboxes = []
+    for bbox in bboxes:
+        xmin, ymin, xmax, ymax = bbox
+
+        # Adjust bounding box coordinates
+        xmin_new = max(0, xmin - x_crop_min)
+        ymin_new = max(0, ymin - y_crop_min)
+        xmax_new = min(x_crop_max - x_crop_min, xmax - x_crop_min)
+        ymax_new = min(y_crop_max - y_crop_min, ymax - y_crop_min)
+
+        # Check if the adjusted bounding box is still within the cropping area
+        if xmin_new < xmax_new and ymin_new < ymax_new:
+            adjusted_bboxes.append([xmin_new, ymin_new, xmax_new, ymax_new])
+
+    return cropped_image, adjusted_bboxes
+
+
 def split_large_image(
-    d: Any, img_name: str, output_dir: str, all_images: Dict[str, Any], data_source: str
+    d: Any, img_name: str, output_dir: str, all_images: Dict[str, Any], data_source: str, max_tile_size: int = 500
 ):
     """Some images are too large to be useful, this splits them into multiple tiles.
 
@@ -133,42 +154,68 @@ def split_large_image(
     """
     tile_id = 0
     img = d['image']
+    bboxes = d['objects']['bbox']
     width, height = d['image'].size
 
-    img_tiles = [img.crop((x, y, x + width // 2, y + height // 2))
-                 for x in range(0, width, width // 2)
-                 for y in range(0, height, height // 2)]
+    logger.info(f"Processing {img_name} ...")
+    for x in range(0, width, max_tile_size):
+        print(f"increased x={x}")
+        for y in range(0, height, max_tile_size):
 
-    print(f"Split {img_name} into 4 tiles.")
-
-    # Iterate through all 4 tiles, save the image and calculate the new bboxes
-    for i, img_tile in enumerate(img_tiles):
-        # Create new dictionary for each tile
-        new_img_name = img_name + '_' + str(tile_id)
-        img_path = f'{output_dir}/{new_img_name}.png'
-
-        export_to_gcp(
-            data_source=data_source,
-            img=img,
-            img_name=new_img_name,
-            img_path=img_path
-        )
-
-        print(f"{img_path} saved.")
-        results = []
-        for j, bbox in enumerate(d["objects"]["bbox"]):
-            x1, y1, x2, y2 = np.clip(bbox, [i * (width // 2), i * (height // 2),
-                                            (i + 1) * (width // 2),
-                                            (i + 1) * (height // 2)],
-                                     [0, 0, width // 2, height // 2])
-            results.append(
-                convert_bbox_for_ls(
-                    x1=x1, x2=x2, y1=y1, y2=y2, width=width, height=height
-                )
+            print(f"increased y={y}")
+            if x+max_tile_size <= width:
+                x1 = x
+                x2 = min(x + max_tile_size, width)
+            else:
+                # The last tile of the row also stays 500 pixels wide by
+                #  cropping from max width to the left
+                x1 = max(0, width-max_tile_size)
+                x2 = width
+            if y+max_tile_size <= height:
+                y1 = y
+                y2 = min(y + max_tile_size, height)
+            else:
+                # The last tile of the row also stays 500 pixels high by
+                #  cropping from max height up
+                y1 = max(0, height-max_tile_size)
+                y2 = height
+            cropped_img, adjusted_bboxes = crop_and_adjust_bboxes(
+                image=np.array(img),
+                bboxes=bboxes,
+                crop_coordinates=(x1, y1, x2, y2)
             )
 
-        all_images[img_path] = results
-        tile_id += 1
+            # store this tile
+            new_img_name = img_name + '_' + str(tile_id)
+            img_path = f'{output_dir}/{new_img_name}.png'
+
+            print(f"Storing tile {tile_id} of {img_name} at {img_path} ...")
+            export_to_gcp(
+                data_source=data_source,
+                img=Image.fromarray(cropped_img),
+                img_name=new_img_name,
+                img_path=img_path
+            )
+
+            logger.info(f"Calculating new bboxes for tile {img_path}")
+            tile_width = x2-x1
+            tile_height = y2-y1
+
+            results = []
+            for bbox in adjusted_bboxes:
+                results.append(
+                    convert_bbox_for_ls(
+                        x1=bbox[0],
+                        x2=bbox[2],
+                        y1=bbox[1],
+                        y2=bbox[3],
+                        width=tile_width,
+                        height=tile_height
+                    )
+                )
+
+            all_images[f'{new_img_name}.png'] = results
+            tile_id += 1
 
 
 def export_to_gcp(data_source: str, img: Image, img_name: str, img_path: str):
