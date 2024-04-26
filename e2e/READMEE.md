@@ -17,7 +17,7 @@ pip install zenml
 
 5- Install the requirements and integrations:
 ```bash
-zenml integrations install mlflow sklearn evidently bentoml
+zenml integration install mlflow sklearn evidently bentoml
 ```
 
 6- Register the local stack components and local stack:
