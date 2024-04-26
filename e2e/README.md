@@ -228,7 +228,7 @@ zenml orchestrator register vertex_orchestrator \
 
 11- We also need a container registry:
 ```bash
-zenml container-registry register gcp_container_registry --flavor=gcr --uri=gcr.io/zenml-core -c gcp_service_connector
+zenml container-registry register gcp_container_registry --flavor=gcp --uri=gcr.io/zenml-core -c gcp_service_connector
 ```
 
 11- Let's create a new stack that uses the remote artifact store and the vertex orchestrator:
