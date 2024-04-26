@@ -22,7 +22,7 @@ from zenml import ArtifactConfig, log_artifact_metadata, step
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
 )
-from materializers.yolo_materializer import UltralyticsMaterializer
+from materializers.ultralytics_materializer import UltralyticsMaterializer
 from utils.dataset_utils import load_and_split_data
 
 

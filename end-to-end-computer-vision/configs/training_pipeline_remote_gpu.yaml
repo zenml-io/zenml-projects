@@ -21,7 +21,7 @@ steps:
     step_operator: gcp_a100
     enable_step_logs: False
     parameters:
-      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"
       batch_size: 8
       imgsz: 480
       epochs: 500

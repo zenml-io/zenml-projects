@@ -8,7 +8,7 @@ steps:
   train_model:
     enable_cache: False
     parameters:
-      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"
 
 settings:
   docker:

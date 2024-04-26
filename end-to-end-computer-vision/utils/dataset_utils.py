@@ -16,7 +16,7 @@
 #
 import os
 import tempfile
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 
 import numpy as np
 from PIL import Image
@@ -120,7 +120,18 @@ def convert_bbox_for_ls(x1, x2, y1, y2, width, height) -> Dict[str, Any]:
         }
 
 
-def crop_and_adjust_bboxes(image, bboxes, crop_coordinates):
+def crop_and_adjust_bboxes(image: np.array, bboxes: List[List[int]], crop_coordinates: Tuple[int]):
+    """Crops an image and adjust the bboxes that are within the croped portion.
+
+    Args:
+        image: Image as np.array
+        bboxes: List of bboxes [[x1, y1, x2, y2], [x1, y1, x2, y2]]
+        crop_coordinates: Coordinates of the crop, format (x1, y1, x2, y2)
+
+    Returns:
+        Tuple containing the cropped portion of the images and all bboxes
+            within the crop area
+    """
     x_crop_min, y_crop_min, x_crop_max, y_crop_max = crop_coordinates
     cropped_image = image[y_crop_min:y_crop_max, x_crop_min:x_crop_max]
 
@@ -141,16 +152,18 @@ def crop_and_adjust_bboxes(image, bboxes, crop_coordinates):
     return cropped_image, adjusted_bboxes
 
 
-def split_large_image(
+def split_image_into_tiles(
     d: Any, img_name: str, output_dir: str, all_images: Dict[str, Any], data_source: str, max_tile_size: int = 500
 ):
     """Some images are too large to be useful, this splits them into multiple tiles.
 
     Args:
-        d: The hf dataset entry
-        img_name: Name of the image
-        output_dir: Where to initially save the image to
+        d: One hf dataset entry - needs to contain d['image'] and
+            d['objects']['bbox']
+        img_name: Name of the image (excluding any suffix)
+        output_dir: Where to locally save the image
         all_images: Dictionary containing the image_name<->bboxes mapping
+        max_tile_size: Maximum tile size
     """
     tile_id = 0
     img = d['image']

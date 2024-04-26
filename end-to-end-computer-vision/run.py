@@ -132,18 +132,18 @@ def main(
         client.activate_stack(stack_id)
 
         # Train model on data
-        training.with_options(config_path="configs/training.yaml")()
+        training.with_options(config_path="configs/training_pipeline.yaml")()
 
     if training_pipeline and not train_local:
         client.activate_stack(REMOTE_STACK_ID)
 
         # Train model on data
-        training.with_options(config_path="configs/training_gpu.yaml")()
+        training.with_options(config_path="configs/training_pipeline_remote_gpu.yaml")()
 
     if inference_pipeline:
         client.activate_stack(REMOTE_STACK_ID)
 
-        inference.with_options(config_path="configs/cloud_inference.yaml")()
+        inference.with_options(config_path="configs/inference_pipeline.yaml")()
 
     if fiftyone:
         client.activate_stack(stack_id)
