@@ -233,5 +233,18 @@ zenml container-registry register gcp_container_registry --flavor=gcp --uri=gcr.
 
 11- Let's create a new stack that uses the remote artifact store and the vertex orchestrator:
 ```bash
-zenml stack register -a gcp_artifact_store -e mlflow_experiment_tracker -o vertex_orchestrator -c gcp_container_registr vertex_stack
+zenml stack register -a gcp_artifact_store -e mlflow_experiment_tracker -o vertex_orchestrator -c gcp_container_registr gcp_stack
+```
+
+12- Run the training pipeline remotely
+```bash
+zenml stack set gcp_stack
+python run.py --training
+```
+
+13. Run the deployment pipeline
+
+```bash
+zenml stack set local_stack
+python run.py --deployment
 ```
