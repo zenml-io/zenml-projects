@@ -86,7 +86,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 )
 def main(
     ingest_data: bool = False,
-    export_annotations: bool = False,
+    export_pipeline: bool = False,
     train: bool = False,
     batch_inference: bool = False,
     fiftyone: bool = False,
@@ -111,7 +111,7 @@ def main(
             config_path="configs/ingest_data.yaml"
         )()
 
-    if export_annotations:
+    if export_pipeline:
         if not client.active_stack.orchestrator.config.is_local:
             raise RuntimeError(
                 "The implementation of this pipeline "
