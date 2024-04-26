@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
-from .data_export import export_for_training
-
-# from .training import training
+from .data_ingestion import data_ingestion_pipeline
+from .data_export import data_export_pipeline
+from .training import training_pipeline
+from .inference import inference_pipeline

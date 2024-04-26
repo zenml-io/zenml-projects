@@ -15,20 +15,32 @@
 
 import os
 import tempfile
-from typing import Any, ClassVar, List, Optional, Type
+from typing import Any, ClassVar, Type, TYPE_CHECKING
 
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 
-DEFAULT_FILENAME = "data.zip"
+DEFAULT_FILENAME = "annotations.zip"
+
+if TYPE_CHECKING:
+    from label_studio_sdk import Project
 
 
-class LabelStudioYOLODataset:
-    dataset: Optional[Any]
-    filepath: Optional[str]
-    task_ids: Optional[List[int]]
+class LabelStudioAnnotationExport:
 
-    def download_dataset(self):
+    def __init__(self, dataset: "Project" = None, filepath: str =None):
+        """
+        Initialize LabelStudioAnnotationExport object with optional parameters.
+
+        Parameters:
+        dataset: Label-studio dataset object.
+        filepath: A string representing the file path. Defaults to None.
+        """
+        self.dataset = dataset
+        self.filepath = filepath
+
+    def download_annotations(self):
+        """Downloads the annotations from label-studio to the local fs."""
         tmpfile_ = tempfile.NamedTemporaryFile(dir="data", delete=False)
         tmpdirname = os.path.basename(tmpfile_.name)
         self.filepath = os.path.join(tmpdirname, DEFAULT_FILENAME)
@@ -39,15 +51,15 @@ class LabelStudioYOLODataset:
         )
 
 
-class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
-    """Base class for Label Studio YOLO dataset models."""
+class LabelStudioAnnotationMaterializer(BaseMaterializer):
+    """Base class for Label Studio annotation models."""
 
     FILENAME: ClassVar[str] = DEFAULT_FILENAME
     SKIP_REGISTRATION: ClassVar[bool] = True
-    ASSOCIATED_TYPES = (LabelStudioYOLODataset,)
+    ASSOCIATED_TYPES = (LabelStudioAnnotationExport,)
 
-    def load(self, data_type: Type[Any]) -> LabelStudioYOLODataset:
-        """Reads a ultralytics YOLO model from a serialized JSON file.
+    def load(self, data_type: Type[Any]) -> LabelStudioAnnotationExport:
+        """Loads the serialized JSON file containing the annotations.
 
         Args:
             data_type: A ultralytics YOLO type.
@@ -55,28 +67,33 @@ class LabelStudioYOLODatasetMaterializer(BaseMaterializer):
         Returns:
             A ultralytics YOLO object.
         """
+        # Recreate the filepath of the file
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
-        # Create a temporary folder
+        # Create a temporary file
         tmpfile_ = tempfile.NamedTemporaryFile(
             dir="data", delete=False, suffix=".zip"
         )
 
         # Copy from artifact store to temporary file
         fileio.copy(filepath, tmpfile_.name, overwrite=True)
-        dataset = LabelStudioYOLODataset()
-        dataset.filepath = tmpfile_.name
+
+        # Re-instantiate the LabelStudioAnnotationExport model
+        dataset = LabelStudioAnnotationExport(filepath=tmpfile_.name)
 
         return dataset
 
-    def save(self, dataset: LabelStudioYOLODataset) -> None:
+    def save(self, dataset: LabelStudioAnnotationExport) -> None:
         """Creates a JSON serialization for a label studio YOLO dataset model.
 
         Args:
             dataset: A label studio YOLO dataset model.
         """
-        dataset.download_dataset()
+        # Downloads the annotations into the local fs
+        dataset.download_annotations()
 
+        # create the destination path for the exported annotations
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
 
+        # copies the files from local fs into the artifact store
         fileio.copy(dataset.filepath, filepath)

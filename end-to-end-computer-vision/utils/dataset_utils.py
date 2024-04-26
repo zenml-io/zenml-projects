@@ -22,8 +22,8 @@ import numpy as np
 from PIL import Image
 from zenml.io import fileio
 
-from materializers.label_studio_yolo_dataset_materializer import (
-    LabelStudioYOLODataset,
+from materializers.label_studio_export_materializer import (
+    LabelStudioAnnotationExport,
 )
 from utils.split_data import generate_yaml, split_dataset, unzip_dataset
 from zenml.logger import get_logger
@@ -46,7 +46,7 @@ def load_images_from_folder(folder):
 
 
 def load_and_split_data(
-    dataset: LabelStudioYOLODataset, data_source: str
+    dataset: LabelStudioAnnotationExport, data_source: str
 ) -> str:
     """Load data from dataset into file system and split into train/val.
 

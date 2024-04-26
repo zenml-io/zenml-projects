@@ -20,9 +20,9 @@ from zenml import get_step_context, step, log_artifact_metadata
 from zenml.client import Client
 from zenml.logger import get_logger
 
-from materializers.label_studio_yolo_dataset_materializer import (
-    LabelStudioYOLODataset,
-    LabelStudioYOLODatasetMaterializer,
+from materializers.label_studio_export_materializer import (
+    LabelStudioAnnotationExport,
+    LabelStudioAnnotationMaterializer,
 )
 from utils.constants import LABELED_DATASET_NAME
 
@@ -31,13 +31,13 @@ logger = get_logger(__name__)
 
 @step(
     output_materializers={
-        LABELED_DATASET_NAME: LabelStudioYOLODatasetMaterializer
+        LABELED_DATASET_NAME: LabelStudioAnnotationMaterializer
     }
 )
 def load_data_from_label_studio(
     dataset_name: str,
 ) -> Tuple[
-    Annotated[LabelStudioYOLODataset, LABELED_DATASET_NAME],
+    Annotated[LabelStudioAnnotationExport, LABELED_DATASET_NAME],
     Annotated[List[int], "new_ids"],
 ]:
     """Loads data from Label Studio.
@@ -61,7 +61,7 @@ def load_data_from_label_studio(
     if annotator and annotator._connection_available():
         try:
             dataset = annotator.get_dataset(dataset_name=dataset_name)
-            ls_dataset = LabelStudioYOLODataset()
+            ls_dataset = LabelStudioAnnotationExport()
             ls_dataset.dataset = dataset
 
             current_labeled_task_ids = dataset.get_labeled_tasks_ids()
