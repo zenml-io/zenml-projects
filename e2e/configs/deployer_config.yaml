@@ -35,7 +35,7 @@ steps:
 # configuration of the Model Control Plane
 model:
   name: e2e_use_case
-  version: staging
+  version: production
 
 # pipeline level extra configurations
 extra:

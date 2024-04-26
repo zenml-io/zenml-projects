@@ -60,6 +60,7 @@ def data_loader(
     inference_size = int(len(dataset.target) * 0.05)
     target = "target"
     dataset: pd.DataFrame = dataset.frame
+    logger.info("Sampling dataset...")
     inference_subset = dataset.sample(
         inference_size, random_state=random_state
     )
@@ -68,6 +69,7 @@ def data_loader(
         dataset.drop(columns=target, inplace=True)
     else:
         dataset.drop(inference_subset.index, inplace=True)
+    logger.info("Resetting index...")
     dataset.reset_index(drop=True, inplace=True)
     logger.info(f"Dataset with {len(dataset)} records loaded!")
     ### YOUR CODE ENDS HERE ###
