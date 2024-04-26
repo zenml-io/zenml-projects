@@ -20,7 +20,7 @@ from steps import deployment_deploy, notify_on_failure, notify_on_success, bento
 from zenml import pipeline
 
 
-@pipeline(on_failure=notify_on_failure)
+@pipeline(on_failure=notify_on_failure, enable_cache=False)
 def e2e_use_case_deployment():
     """
     Model deployment pipeline.
