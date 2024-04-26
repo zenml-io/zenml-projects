@@ -80,6 +80,7 @@ zenml connect --url <INSERT_ZENML_URL_HERE>
 
 ### [Start label studio locally](https://labelstud.io/guide/start)
 ### [Follow these zenml instructions to set up label studio as a stack component](https://docs.zenml.io/stacks-and-components/component-guide/annotators/label-studio)
+### Create a project within label studio and name it `ship_detection_gcp`
 ### [Set up label studio to use external storage](https://labelstud.io/guide/storage) 
 use the first bucket that you created to data persistence
 

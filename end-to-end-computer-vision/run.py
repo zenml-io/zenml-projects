@@ -126,7 +126,7 @@ def main(
 
         # Export data from label studio
         data_export_pipeline.with_options(
-            config_path="configs/data_export_alexej.yaml"
+            config_path="configs/data_export.yaml"
         )()
 
     if train:
@@ -159,12 +159,12 @@ def main(
         try:
             client.get_model_version(
                 model_name_or_id=ZENML_MODEL_NAME,
-                model_version_name_or_number_or_id=ModelStages.STAGING
+                model_version_name_or_number_or_id=ModelStages.PRODUCTION
             )
         except KeyError:
             raise RuntimeError(
                 "This pipeline requires that there is a version of its "
-                "associated model in the `STAGING` stage. Make sure you run "
+                "associated model in the `Production` stage. Make sure you run "
                 "the `data_export_pipeline` at least once to create the Model "
                 "along with a version of this model. After this you can "
                 "promote the version of your choice, either through the "
