@@ -226,7 +226,12 @@ zenml orchestrator register vertex_orchestrator \
     --workload_service_account=vertex-ai-sa@zenml-core.iam.gserviceaccount.com
 ```
 
+11- We also need a container registry:
+```bash
+zenml container-registry register gcp_container_registry --flavor=gcr --uri=gcr.io/zenml-core -c gcp_service_connector
+```
+
 11- Let's create a new stack that uses the remote artifact store and the vertex orchestrator:
 ```bash
-zenml stack create -a gcp_artifact_store -e mlflow_experiment_tracker -o vertex_orchestrator -d bentoml_deployer -dv evidently_local vertex_stack
+zenml stack register -a gcp_artifact_store -e mlflow_experiment_tracker -o vertex_orchestrator -d bentoml_deployer -c gcp_container_registry -dv evidently_data_validator vertex_stack
 ```
