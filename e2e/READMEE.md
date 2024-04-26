@@ -39,6 +39,8 @@ python run.py --training
 
 7- Promotion of the model:
 
+Promote the model in the dashboard!
+
 8- Let's deploy the model:
 ```bash
 python run.py --deployment
