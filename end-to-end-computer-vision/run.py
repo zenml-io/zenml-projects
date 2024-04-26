@@ -74,7 +74,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     "fiftyone",
     is_flag=True,
     default=False,
-    help="Whether to launch the FiftyOne app pipeline.",
+    help="Whether to launch the FiftyOne app.",
 )
 @click.option(
     "--local",
@@ -82,7 +82,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     "train_local",
     is_flag=True,
     default=False,
-    help="Whether to train local.",
+    help="Whether to train local or an a remote orchestrator/ step operator.",
 )
 def main(
     ingest_data: bool = False,
@@ -143,8 +143,8 @@ def main(
                 "along with a version of this model. After this you can "
                 "promote the version of your choice, either through the "
                 "frontend or with the following command: "
-                f" zenml model version update {ZENML_MODEL_NAME} latest "
-                f"-s staging."
+                f"`zenml model version update {ZENML_MODEL_NAME} latest "
+                f"-s staging`"
             )
 
         if train_local:
@@ -156,6 +156,22 @@ def main(
         training_pipeline.with_options(config_path=config_path)()
 
     if batch_inference:
+        try:
+            client.get_model_version(
+                model_name_or_id=ZENML_MODEL_NAME,
+                model_version_name_or_number_or_id=ModelStages.STAGING
+            )
+        except KeyError:
+            raise RuntimeError(
+                "This pipeline requires that there is a version of its "
+                "associated model in the `STAGING` stage. Make sure you run "
+                "the `data_export_pipeline` at least once to create the Model "
+                "along with a version of this model. After this you can "
+                "promote the version of your choice, either through the "
+                "frontend or with the following command: "
+                f"`zenml model version update {ZENML_MODEL_NAME} staging "
+                f"-s production`"
+            )
 
         inference_pipeline.with_options(
             config_path="configs/inference_pipeline.yaml"
