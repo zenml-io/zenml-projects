@@ -18,6 +18,7 @@ from typing import Annotated, Any, Dict, Tuple
 
 from ultralytics import YOLO
 from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.logger import get_logger
 
 from materializers.label_studio_yolo_dataset_materializer import (
     LabelStudioYOLODataset,
@@ -25,18 +26,20 @@ from materializers.label_studio_yolo_dataset_materializer import (
 from materializers.ultralytics_materializer import UltralyticsMaterializer
 from utils.dataset_utils import load_and_split_data
 
+logger = get_logger(__name__)
+
 
 @step(
     output_materializers={"Trained_YOLO": UltralyticsMaterializer},
     enable_cache=True,
 )
 def train_model(
-    epochs: int,
-    batch_size: int,
-    imgsz: int,
     model: YOLO,
     dataset: LabelStudioYOLODataset,
     data_source: str,
+    epochs: int = 100,
+    batch_size: int = 16,
+    imgsz: int = 640,
     is_quad_gpu_env: bool = False,
 ) -> Tuple[
     Annotated[
@@ -58,24 +61,29 @@ def train_model(
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
     """
+    logger.info(f"Training YOLO model on dataset {dataset}")
+    logger.info(f"Training for {epochs} epochs with batch size {batch_size}")
+    logger.info("Loading and splitting data...")
     data_path = load_and_split_data(dataset=dataset, data_source=data_source)
 
+    logger.info("Training model...")
     if is_quad_gpu_env:
         model.train(
             data=data_path,
             epochs=epochs,
             batch=batch_size,
             imgsz=imgsz,
-            device=[0, 1, 2, 3]
+            device=[0, 1, 2, 3],
         )
     else:
         model.train(
             data=data_path,
             epochs=epochs,
             batch=batch_size,
-            imgsz=imgsz
+            imgsz=imgsz,
         )
 
+    logger.info("Evaluating model...")
     metrics = model.val()  # evaluate model performance on the validation set
 
     log_artifact_metadata(

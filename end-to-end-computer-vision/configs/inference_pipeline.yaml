@@ -6,12 +6,20 @@ settings:
       - ffmpeg
       - libsm6
       - libxext6
+      - libcurl4
     required_integrations:
       - gcp
       - github
     requirements:
       - ultralytics
       - fiftyone
+
+steps:
+  create_fiftyone_dataset:
+    enable_cache: False
+    enable_step_logs: False
+    parameters:
+      inference_data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"
 
 # configuration of the Model Control Plane
 model:

@@ -20,10 +20,10 @@ from typing import Annotated
 import fiftyone as fo
 from zenml import log_artifact_metadata, step
 from zenml.client import Client
+from zenml.io import fileio
 from zenml.logger import get_logger
 
 from utils.constants import (
-    DATASET_DIR,
     DATASET_NAME,
     PREDICTIONS_DATASET_ARTIFACT_NAME,
     TRAINED_MODEL_NAME,
@@ -33,11 +33,13 @@ logger = get_logger(__name__)
 
 os.environ["YOLO_VERBOSE"] = "False"
 
+INFERENCE_BATCH = 5
+
 
 @step
-def create_fiftyone_dataset() -> (
-    Annotated[str, PREDICTIONS_DATASET_ARTIFACT_NAME]
-):
+def create_fiftyone_dataset(
+    inference_data_source: str,
+) -> Annotated[str, PREDICTIONS_DATASET_ARTIFACT_NAME]:
     """Creates a FiftyOne dataset with predictions using a model.
 
     Returns:
@@ -49,8 +51,19 @@ def create_fiftyone_dataset() -> (
     )
     yolo_model = model_artifact.load()
 
+    # create a local dir and copy 20 images into it from gcs
+    extract_location = "data"
+    os.makedirs(extract_location, exist_ok=True)
+
+    for file in fileio.listdir(inference_data_source)[:INFERENCE_BATCH]:
+        fileio.copy(
+            os.path.join(inference_data_source, file),
+            os.path.join(extract_location, file),
+            overwrite=True,
+        )
+
     dataset = fo.Dataset.from_dir(
-        dataset_dir=DATASET_DIR,
+        dataset_dir=extract_location,
         dataset_type=fo.types.ImageDirectory,
         name=DATASET_NAME,
         overwrite=True,

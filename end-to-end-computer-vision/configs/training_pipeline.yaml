@@ -1,6 +1,5 @@
 parameters:
   model_checkpoint: yolov8l.pt
-  epochs: 1
 
 steps:
   load_model:
@@ -9,6 +8,9 @@ steps:
     enable_cache: False
     parameters:
       data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"
+      batch_size: 16
+      imgsz: 640
+      epochs: 30
 
 settings:
   docker:
