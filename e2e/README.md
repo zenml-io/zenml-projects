@@ -176,7 +176,7 @@ pip install zenml
 zenml experiment-tracker register -f mlflow local_mlflow_tracker && \ 
 zenml data-validator register -f evidently evidently_data_validator && \
 zenml model-deployer register bentoml_deployer --flavor=bentoml && \
-zenml stack register -a default -o default -e mlflow_local -dv evidently_local -d bentoml_deployer local_stack && \
+zenml stack register -a default -o default -e local_mlflow_tracker -dv evidently_data_validator -d bentoml_deployer local_stack && \
 zenml stack set local_stack
 
 # or use the Makefile
@@ -230,4 +230,3 @@ zenml orchestrator register vertex_orchestrator \
 ```bash
 zenml stack create -a gcp_artifact_store -e mlflow_experiment_tracker -o vertex_orchestrator -d bentoml_deployer -dv evidently_local vertex_stack
 ```
-    
