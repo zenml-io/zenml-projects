@@ -15,7 +15,7 @@
 
 import os
 import tempfile
-from typing import Any, ClassVar, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Type
 
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 class LabelStudioAnnotationExport:
 
-    def __init__(self, dataset: "Project" = None, filepath: str =None):
+    def __init__(self, dataset: "Project" = None, filepath: str = None):
         """
         Initialize LabelStudioAnnotationExport object with optional parameters.
 

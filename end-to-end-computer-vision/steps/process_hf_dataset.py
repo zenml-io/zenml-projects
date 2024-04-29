@@ -22,8 +22,7 @@ from PIL import Image
 from zenml import step
 from zenml.logger import get_logger
 
-from utils.dataset_utils import split_image_into_tiles, convert_bbox_for_ls, \
-    export_to_gcp
+from utils.dataset_utils import split_image_into_tiles
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -33,9 +32,7 @@ logger = get_logger(__name__)
 
 @step
 def process_hf_dataset(
-    dataset: str,
-    data_source: str,
-    max_tile_size: int = 1000
+    dataset: str, data_source: str, max_tile_size: int = 1000
 ) -> Dict[str, Any]:
     """Downloads a hf dataset and does some processing.
 
@@ -94,7 +91,7 @@ def process_hf_dataset(
             output_dir=local_output_dir,
             all_images=all_images,
             data_source=data_source,
-            max_tile_size=max_tile_size
+            max_tile_size=max_tile_size,
         )
 
     return all_images
