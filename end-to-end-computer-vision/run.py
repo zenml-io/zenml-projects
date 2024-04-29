@@ -17,7 +17,6 @@
 from uuid import UUID
 
 import click
-from zenml import Model
 from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
@@ -133,7 +132,7 @@ def main(
         try:
             client.get_model_version(
                 model_name_or_id=ZENML_MODEL_NAME,
-                model_version_name_or_number_or_id=ModelStages.STAGING
+                model_version_name_or_number_or_id=ModelStages.STAGING,
             )
         except KeyError:
             raise RuntimeError(
@@ -159,7 +158,7 @@ def main(
         try:
             client.get_model_version(
                 model_name_or_id=ZENML_MODEL_NAME,
-                model_version_name_or_number_or_id=ModelStages.PRODUCTION
+                model_version_name_or_number_or_id=ModelStages.PRODUCTION,
             )
         except KeyError:
             raise RuntimeError(
