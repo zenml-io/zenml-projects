@@ -75,11 +75,15 @@ def load_and_split_data(
     images_folder = os.path.join(extract_location, "images")
     os.makedirs(images_folder, exist_ok=True)
 
-    for filename in filenames:
+    total_images = len(filenames)
+    logger.info(f"Downloading images from {data_source}")
+    for index, filename in enumerate(filenames):
         src_path = f"{data_source}/{filename}.png"
         dst_path = os.path.join(images_folder, f"{filename}.png")
         fileio.copy(src_path, dst_path)
 
+        if (index + 1) % 100 == 0 or index == total_images - 1:
+            logger.info(f"{index + 1} of {total_images} images have been downloaded...")
     split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
     yaml_path = generate_yaml(extract_location)
     return yaml_path
