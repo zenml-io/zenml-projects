@@ -137,4 +137,50 @@ zenml stack set <local_stack>
 python run.py --ingest
 ```
 
+## data_export_pipeline
+
+This pipeline exports the annotations from label studio and loads it into the
+zenml artifact store to make them accessible to downstream pipelines. 
+
+### Configure this pipeline
+The configuration file for this pipeline lives at `./configs/data_export.yaml`.
+Make sure in particular to change `dataset_name` to reflect the name of the 
+dataset within Label Studio.
+
+### Run this pipeline
+
+Label studio should be up and running for the whole duration of this pipeline 
+run.
+
+```bash
+zenml stack set <local_stack>
+python run.py --export
+```
+
+## training_pipeline
+
+This pipeline trains a yolo v8 object detection model. 
+
+### Configure this pipeline
+You can choose to run 
+this pipeline locally or on the cloud. These two options use two different 
+configuration files. For local training: `./configs/training_pipeline.yaml`.
+For training on the cloud: `./configs/training_pipeline_remote_gpu.yaml`. 
+Make sure 
+
+### Run this pipeline
+
+This pipeline requires the associated model (see the model section of the
+configuration yaml file) to have a version in the `staging` stage.
+In order to promote the model produced by the latest run of the 
+`data_export_pipeline`, run the following code:
+
+```bash
+zenml model version update <MODEL_NAME> latest -s staging 
+```
+
+```bash
+zenml stack set <local_stack>
+python run.py --training
+```
 
