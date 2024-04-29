@@ -162,11 +162,11 @@ python run.py --export
 This pipeline trains a yolo v8 object detection model. 
 
 ### Configure this pipeline
-You can choose to run 
-this pipeline locally or on the cloud. These two options use two different 
-configuration files. For local training: `./configs/training_pipeline.yaml`.
-For training on the cloud: `./configs/training_pipeline_remote_gpu.yaml`. 
-Make sure 
+You can choose to run this pipeline locally or on the cloud. These two options 
+use two different configuration files. For local training: 
+`./configs/training_pipeline.yaml`. For training on the cloud: 
+`./configs/training_pipeline_remote_gpu.yaml`. Make sure 
+`data_source` points to your cloud storage bucket.
 
 ### Run this pipeline
 
@@ -179,8 +179,17 @@ In order to promote the model produced by the latest run of the
 zenml model version update <MODEL_NAME> latest -s staging 
 ```
 
+For local training run the following code:
+
 ```bash
 zenml stack set <local_stack>
+python run.py --training --local
+```
+
+For remote training run the following code:
+
+```bash
+zenml stack set <remote_stack>
 python run.py --training
 ```
 
