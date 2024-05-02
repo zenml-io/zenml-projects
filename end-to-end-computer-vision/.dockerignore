@@ -1,0 +1,6 @@
+.venv*
+.requirements*
+**/tmp*
+data/*
+*.jpg
+*.pt

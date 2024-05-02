@@ -1,0 +1,12 @@
+enable_cache: False
+
+# pipeline configuration
+parameters:
+  dataset_name: "FiftyOne_ships_wuxqa5"
+
+# configuration of the Model Control Plane
+model:
+  name: ShipDetector
+  license: Apache 2.0
+  description: Object Detection Model.
+  tags: ["object detection"]
