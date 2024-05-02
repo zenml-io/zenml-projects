@@ -14,6 +14,8 @@ def visualize_evaluation_results(
     failure_rate_bad_answers: float,
     failure_rate_bad_immediate_responses: float,
     failure_rate_good_responses: float,
+    full_failure_rate_retrieval: float,
+    e2e_evaluation_llm_judged_results: float,
 ) -> Optional[Image.Image]:
     """Visualizes the evaluation results."""
     zen_client = Client()

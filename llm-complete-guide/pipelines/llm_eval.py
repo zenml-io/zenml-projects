@@ -35,11 +35,13 @@ def llm_eval() -> None:
 
     full_failure_rate_retrieval = retrieval_evaluation_full()
 
+    e2e_evaluation_llm_judged_results = e2e_evaluation_llm_judged()
+
     visualize_evaluation_results(
         failure_rate_retrieval,
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
+        full_failure_rate_retrieval,
+        e2e_evaluation_llm_judged_results,
     )
-
-    e2e_evaluation_llm_judged()
