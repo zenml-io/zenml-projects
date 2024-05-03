@@ -46,9 +46,6 @@ project.export_tasks(
     download_resources=True,
 )
 
-
-breakpoint()
-
 for view in views:
     if VIEW_ID and VIEW_ID != view["id"]:
         continue

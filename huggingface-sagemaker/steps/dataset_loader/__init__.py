@@ -16,4 +16,6 @@
 #
 
 from .data_loader import data_loader
-from .generate_reference_and_comparison_datasets import generate_reference_and_comparison_datasets
+from .generate_reference_and_comparison_datasets import (
+    generate_reference_and_comparison_datasets,
+)

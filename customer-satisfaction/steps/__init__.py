@@ -7,12 +7,8 @@ from .evaluation import (
 from .ingest_data import (
     ingest_data,
 )
+from .model_promoter import model_promoter
+from .predictor import predictor
 from .train_model import (
     train_model,
-)
-from .predictor import (
-    predictor
-)
-from .model_promoter import (
-    model_promoter
 )

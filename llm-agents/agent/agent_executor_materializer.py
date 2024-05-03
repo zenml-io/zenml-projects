@@ -14,9 +14,8 @@
 """Implementation of ZenML's pickle materializer."""
 
 import os
-from typing import Any, ClassVar, Tuple, Type
-
 import pickle
+from typing import Any, ClassVar, Tuple, Type
 
 from zenml.enums import ArtifactType
 from zenml.environment import Environment

@@ -15,11 +15,7 @@
 # limitations under the License.
 #
 
-from steps import (
-    trainer,
-    merge_and_push
-)
-
+from steps import merge_and_push, trainer
 from zenml import pipeline
 from zenml.logger import get_logger
 
@@ -33,5 +29,11 @@ def finetune_starcoder():
     """
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
-    trainer_obj, tokenizer, output_peft_repo_id, train_dataset, eval_dataset = trainer()
+    (
+        trainer_obj,
+        tokenizer,
+        output_peft_repo_id,
+        train_dataset,
+        eval_dataset,
+    ) = trainer()
     merge_and_push(peft_model_id=output_peft_repo_id)

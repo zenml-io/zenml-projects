@@ -37,10 +37,14 @@ import gradio as gr
     "--model_name_or_path", default=None, help="Name or the path of the model."
 )
 @click.option(
-    "--labels", default="Negative,Positive", help="Comma-separated list of labels."
+    "--labels",
+    default="Negative,Positive",
+    help="Comma-separated list of labels.",
 )
 @click.option(
-    "--title", default="ZenML NLP Use-Case", help="Title of the Gradio interface."
+    "--title",
+    default="ZenML NLP Use-Case",
+    help="Title of the Gradio interface.",
 )
 @click.option(
     "--description",
@@ -61,7 +65,7 @@ import gradio as gr
     "--pipeline_version",
     default="3",
     help="Which version of the deploy pipeline should be deployed.",
-    type=int
+    type=int,
 )
 def sentiment_analysis(
     tokenizer_name_or_path: Optional[str],
@@ -71,7 +75,7 @@ def sentiment_analysis(
     description: Optional[str],
     interpretation: Optional[str],
     pipeline_version: int,
-    examples: Optional[str]
+    examples: Optional[str],
 ):
     """Launches a Gradio interface for sentiment analysis.
 
@@ -119,10 +123,14 @@ def sentiment_analysis(
                 model_path = f"{dirname(__file__)}/{model_name_or_path}/"
             print(f"Loading model from {model_path}")
             if tokenizer_name_or_path:
-                tokenizer_path = f"{dirname(__file__)}/{tokenizer_name_or_path}/"
+                tokenizer_path = (
+                    f"{dirname(__file__)}/{tokenizer_name_or_path}/"
+                )
             print(f"Loading tokenizer from {tokenizer_path}")
             tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-            model = AutoModelForSequenceClassification.from_pretrained(model_path)
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_path
+            )
 
             text = preprocess(text)
             encoded_input = tokenizer(text, return_tensors="pt")
@@ -149,9 +157,15 @@ def sentiment_analysis(
             )
             res = predictor.predict({"inputs": text})
             if res[0]["label"] == "LABEL_1":
-                scores = {"Negative": 1 - res[0]["score"], "Positive": res[0]["score"]}
+                scores = {
+                    "Negative": 1 - res[0]["score"],
+                    "Positive": res[0]["score"],
+                }
             else:
-                scores = {"Negative": res[0]["score"], "Positive": 1 - res[0]["score"]}
+                scores = {
+                    "Negative": res[0]["score"],
+                    "Positive": 1 - res[0]["score"],
+                }
 
         return scores
 
@@ -159,7 +173,9 @@ def sentiment_analysis(
         fn=analyze_text,
         inputs=[
             gr.Dropdown(
-                ["local", "sagemaker"], label="Select inference type", value="sagemaker"
+                ["local", "sagemaker"],
+                label="Select inference type",
+                value="sagemaker",
             ),
             gr.TextArea("Write your text or tweet here", label="Analyze Text"),
         ],

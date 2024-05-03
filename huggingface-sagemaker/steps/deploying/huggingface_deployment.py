@@ -23,7 +23,6 @@ from zenml import log_artifact_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
-
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -48,13 +47,13 @@ def deploy_to_huggingface(
     save_model_to_deploy.entrypoint()
 
     logger.info("Model saved locally. Pushing to HuggingFace...")
-    assert (
-        secret
-    ), "No secret found with name 'huggingface_creds'. Please create one with your `token`."
+    assert secret, "No secret found with name 'huggingface_creds'. Please create one with your `token`."
 
     token = secret.secret_values["token"]
     api = HfApi(token=token)
-    hf_repo = api.create_repo(repo_id=repo_name, repo_type="model", exist_ok=True)
+    hf_repo = api.create_repo(
+        repo_id=repo_name, repo_type="model", exist_ok=True
+    )
     zenml_repo_root = Client().root
     if not zenml_repo_root:
         logger.warning(

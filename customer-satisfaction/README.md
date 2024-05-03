@@ -236,3 +236,13 @@ A browser window should open for you and let you configure a product to run a pr
     ```bash
     zenml integration install mlflow -y
     ```
+
+2. If you are trying to start the ZenML server with `zenml up`, if you're running 
+on a Mac, you might want to set the following environment variable in your `.zshrc` 
+file or in the environment in which you're running the pipeline:
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+```
+
+This sometimes fixes problems with how ZenML starts.

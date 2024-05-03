@@ -18,7 +18,6 @@ from pathlib import Path
 from typing import Annotated, Dict, Optional, Tuple
 
 from PIL import Image
-
 from zenml import get_step_context, step
 from zenml.integrations.pillow.materializers.pillow_image_materializer import (
     DEFAULT_IMAGE_FILENAME,

@@ -1,12 +1,14 @@
 """Huggingface model deployer flavor."""
-from typing import Optional, Type, TYPE_CHECKING
-from zenml.model_deployers.base_model_deployer import (
-    BaseModelDeployerFlavor,
-    BaseModelDeployerConfig,
-)
+from typing import TYPE_CHECKING, Optional, Type
+
 from zenml.config.base_settings import BaseSettings
-from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
+from zenml.model_deployers.base_model_deployer import (
+    BaseModelDeployerConfig,
+    BaseModelDeployerFlavor,
+)
 from zenml.utils.secret_utils import SecretField
+
+from huggingface.hf_deployment_base_config import HuggingFaceBaseConfig
 
 if TYPE_CHECKING:
     from huggingface.hf_model_deployer import HuggingFaceModelDeployer

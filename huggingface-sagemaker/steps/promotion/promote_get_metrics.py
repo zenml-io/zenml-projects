@@ -25,6 +25,7 @@ from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @step
 def promote_get_metrics() -> (
     Tuple[
@@ -52,7 +53,11 @@ def promote_get_metrics() -> (
 
     # Get current model metric in current run
     current_zenml_model = get_step_context().model
-    current_metrics = current_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
+    current_metrics = (
+        current_zenml_model.get_model_artifact("model")
+        .run_metadata["metrics"]
+        .value
+    )
     logger.info(f"Current model metrics are {current_metrics}")
 
     # Get latest saved model version metric in target environment
@@ -67,7 +72,9 @@ def promote_get_metrics() -> (
         latest_zenml_model = None
     if latest_zenml_model:
         latest_metrics = (
-            latest_zenml_model.get_model_artifact("model").run_metadata["metrics"].value
+            latest_zenml_model.get_model_artifact("model")
+            .run_metadata["metrics"]
+            .value
         )
         logger.info(f"Current model metrics are {latest_metrics}")
     else:

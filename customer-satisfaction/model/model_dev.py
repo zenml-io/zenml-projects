@@ -98,7 +98,9 @@ class ModelTrainer:
         self.x_test = x_test
         self.y_test = y_test
 
-    def random_forest_trainer(self, fine_tuning: bool = True) -> RegressorMixin:
+    def random_forest_trainer(
+        self, fine_tuning: bool = True
+    ) -> RegressorMixin:
         """
         It trains the random forest model.
 

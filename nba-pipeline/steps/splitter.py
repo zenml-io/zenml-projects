@@ -105,9 +105,9 @@ class SplitConfig(BaseParameters):
 
 
 @step
-def date_based_splitter(
-    dataset: pd.DataFrame, config: SplitConfig
-) -> Output(before=pd.DataFrame, after=pd.DataFrame):
+def date_based_splitter(dataset: pd.DataFrame, config: SplitConfig) -> Output(
+    before=pd.DataFrame, after=pd.DataFrame
+):
     """Splits data for drift detection."""
     cols = config.columns if config.columns else dataset.columns
     dataset["GAME_DATE"] = pd.to_datetime(dataset["GAME_DATE"])

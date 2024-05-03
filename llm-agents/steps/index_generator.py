@@ -12,17 +12,17 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing_extensions import Annotated
 from typing import List
 
 from langchain.docstore.document import Document
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.schema.vectorstore import VectorStore
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
-from langchain.schema.vectorstore import VectorStore
 from langchain.vectorstores.faiss import FAISS
-from zenml import step, log_artifact_metadata
+from typing_extensions import Annotated
+from zenml import log_artifact_metadata, step
 
 
 @step

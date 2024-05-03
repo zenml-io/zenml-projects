@@ -1,6 +1,6 @@
+from typing import Dict, Optional
+
 from pydantic import BaseModel
-from typing import Optional, Dict
-from zenml.utils.secret_utils import SecretField
 
 
 class HuggingFaceBaseConfig(BaseModel):

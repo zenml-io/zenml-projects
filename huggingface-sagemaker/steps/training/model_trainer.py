@@ -28,13 +28,13 @@ from transformers import (
     TrainingArguments,
 )
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, step, ArtifactConfig
+from utils.misc import compute_metrics
+from zenml import ArtifactConfig, log_artifact_metadata, step
 from zenml.client import Client
 from zenml.integrations.mlflow.experiment_trackers import (
     MLFlowExperimentTracker,
 )
 from zenml.logger import get_logger
-from utils.misc import compute_metrics
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -64,9 +64,12 @@ def model_trainer(
     eval_batch_size: Optional[int] = 16,
     weight_decay: Optional[float] = 0.01,
 ) -> Tuple[
-    Annotated[PreTrainedModel, ArtifactConfig(name="model", is_model_artifact=True)],
     Annotated[
-        PreTrainedTokenizerBase, ArtifactConfig(name="tokenizer", is_model_artifact=True)
+        PreTrainedModel, ArtifactConfig(name="model", is_model_artifact=True)
+    ],
+    Annotated[
+        PreTrainedTokenizerBase,
+        ArtifactConfig(name="tokenizer", is_model_artifact=True),
     ],
 ]:
     """
