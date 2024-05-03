@@ -7,7 +7,7 @@ steps:
   train_model:
     enable_cache: False
     parameters:
-      data_source: "gs://<YOUR_PATH>"
+      data_source: # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
       batch_size: 8
       imgsz: 720
       epochs: 1

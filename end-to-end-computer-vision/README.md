@@ -193,3 +193,42 @@ zenml stack set <remote_stack>
 python run.py --training
 ```
 
+
+## inference_pipeline
+
+This pipeline perform inference on the object detection model. 
+
+### Configure this pipeline
+You can configure this pipeline at the following yaml file
+`./configs/inference_pipeline.yaml`.  Make sure 
+`data_source` points to your cloud storage bucket that contains images that you
+want to perform batch inference on
+
+### Run this pipeline
+
+This pipeline requires the associated model (see the model section of the
+configuration yaml file) to have a version in the `production` stage.
+In order to promote the model produced by the latest run of the 
+`training_pipeline`, run the following code:
+
+```bash
+zenml model version update <MODEL_NAME> staging -s production 
+```
+
+```bash
+zenml stack set <local_stack>
+python run.py --inference
+```
+
+
+## Analyze and Curate your data through fiftyone
+
+Now to close the loop, we will import the predictions into fiftyone. All you'll
+need to do is run:
+
+```bash
+python run.py --fiftyone
+```
+
+Within fiftyone, you can now analyze all the predictions and export them back 
+to label studio for finetuned labeling and retraining.

@@ -5,7 +5,7 @@ steps:
     enable_step_logs: False
     parameters:
       dataset: "datadrivenscience/ship-detection"
-      data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"# "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      data_source: # Insert your bucket path here where the training images will live e.g. "gs://foo/bar"
   upload_labels_to_label_studio:
     enable_cache: False
     parameters:
