@@ -34,10 +34,10 @@ pip install -r requirements.txt
 
 ### 👷 Combined feature engineering and finetuning pipeline
 
-The easiest way to get started with just a single command is to run the finetuning pipeline with the `default_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
+The easiest way to get started with just a single command is to run the finetuning pipeline with the `mistral_default_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
 
 ```shell
-python run.py --config default_finetune.yaml
+python run.py --config mistral_default_finetune.yaml
 ```
 
 When running the pipeline like this, the trained model will be stored in the ZenML artifact store.
@@ -49,6 +49,19 @@ When running the pipeline like this, the trained model will be stored in the Zen
     </a>
   <br/>
 </div>
+
+### ⚡ Accelerate your finetuning
+
+Do you want to benefit from multiple GPUs training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this task.
+For example, `phi_accelerated_local_finetune.yaml` can run finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
+
+```shell
+python run.py --config phi_accelerated_local_finetune.yaml # if you architecture doesn't support BF16
+# OR
+python run.py --config phi_accelerated_local_bf16_finetune.yaml # if you architecture support BF16
+```
+
+Under the hood, the finetuning step will spin up the accelerated job using the finetuning script CLI wrapper (`scripts/finetune.py`), which will run on all available GPUs.
 
 ## ☁️ Running with a remote stack
 
@@ -71,26 +84,33 @@ The project loosely follows [the recommended ZenML project structure](https://do
 
 ```
 .
-├── configs                         # pipeline configuration files
-│   ├── default_finetune.yaml       # default local configuration (or remote orchestrator)
-│   └── remote_finetune.yaml        # default step operator configuration
+├── configs                                       # pipeline configuration files
+│   ├── mistral_default_finetune.yaml             # mistral local configuration (or remote orchestrator)
+│   ├── mistral_remote_finetune.yaml              # mistral step operator configuration
+│   ├── phi_accelerated_local_bf16_finetune.yaml  # phi accelerated local with bf16
+│   ├── phi_accelerated_local_finetune.yaml       # phi accelerated local without bf16
+│   ├── phi_accelerated_remote_finetune.yaml      # phi accelerated step operator without bf16
+│   ├── phi_local_bf16_finetune.yaml              # phi local with bf16
+│   └── phi_local_finetune.yaml                   # phi local without bf16
 ├── materializers
-│   └── directory_materializer.py   # custom materializer to push whole directories to the artifact store and back
-├── pipelines                       # `zenml.pipeline` implementations
-│   └── train.py                    # Finetuning and evaluation pipeline
-├── steps                           # logically grouped `zenml.steps` implementations
-│   ├── evaluate_model.py           # evaluate base and finetuned models using Rouge metrics
-│   ├── finetune.py                 # finetune the base model
-│   ├── prepare_datasets.py         # load and tokenize dataset
-│   └── promote.py                  # promote good models to target environment
-├── utils                           # utility functions
-│   ├── callbacks.py                # custom callbacks
-│   ├── cuda.py                     # helpers for CUDA
-│   ├── loaders.py                  # loaders for models and data
-│   ├── logging.py                  # logging helpers
-│   └── tokenizer.py                # load and tokenize
+│   └── directory_materializer.py                 # custom materializer to push whole directories to the artifact store and back
+├── pipelines                                     # `zenml.pipeline` implementations
+│   └── train.py                                  # Finetuning and evaluation pipeline
+├── scripts                                       # scripts used in the finetuning
+│   └── finetune.py                               # Finetuning function and a CLI wrapper for `accelerate run ...`
+├── steps                                         # logically grouped `zenml.steps` implementations
+│   ├── evaluate_model.py                         # evaluate base and finetuned models using Rouge metrics
+│   ├── finetune.py                               # finetune the base model
+│   ├── prepare_datasets.py                       # load and tokenize dataset
+│   └── promote.py                                # promote good models to target environment
+├── utils                                         # utility functions
+│   ├── callbacks.py                              # custom callbacks
+│   ├── cuda.py                                   # helpers for CUDA
+│   ├── loaders.py                                # loaders for models and data
+│   ├── logging.py                                # logging helpers
+│   └── tokenizer.py                              # load and tokenize
 ├── .dockerignore
-├── README.md                       # this file
-├── requirements.txt                # extra Python dependencies 
-└── run.py                          # CLI tool to run pipelines on ZenML Stack
+├── README.md                                     # this file
+├── requirements.txt                              # extra Python dependencies 
+└── run.py                                        # CLI tool to run pipelines on ZenML Stack
 ```
