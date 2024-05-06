@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from steps.eval_e2e import e2e_evaluation
+from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
     retrieval_evaluation_small,
@@ -31,7 +31,7 @@ def llm_eval() -> None:
 
     # E2E evals
     e2e_eval_tuple = e2e_evaluation()
-    # e2e_llm_judged_tuple = e2e_evaluation_llm_judged()
+    e2e_llm_judged_tuple = e2e_evaluation_llm_judged()
 
     # visualize_evaluation_results(
     #     failure_rate_retrieval,
