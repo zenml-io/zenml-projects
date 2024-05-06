@@ -363,4 +363,15 @@ def e2e_evaluation_llm_judged() -> (
         Tuple: The average toxicity, faithfulness, helpfulness, and relevance scores.
     """
     logging.info("Starting end-to-end evaluation...")
-    return run_llm_judged_tests(llm_judged_test_e2e)
+    (
+        average_toxicity_score,
+        average_faithfulness_score,
+        average_helpfulness_score,
+        average_relevance_score,
+    ) = run_llm_judged_tests(llm_judged_test_e2e)
+    return (
+        average_toxicity_score,
+        average_faithfulness_score,
+        average_helpfulness_score,
+        average_relevance_score,
+    )
