@@ -16,6 +16,7 @@ umap-learn
 matplotlib
 pyarrow
 rerankers[all]
+datasets
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0

@@ -139,5 +139,7 @@ def main(
 if __name__ == "__main__":
     # use custom materializer for documents
     # register early
-    materializer_registry.register_materializer_type(Document, DocumentMaterializer)
+    materializer_registry.register_materializer_type(
+        Document, DocumentMaterializer
+    )
     main()
