@@ -348,7 +348,7 @@ def e2e_evaluation() -> (
     )
 
 
-@step(enable_cache=False)
+@step
 def e2e_evaluation_llm_judged() -> (
     Tuple[
         Annotated[float, "average_toxicity_score"],
