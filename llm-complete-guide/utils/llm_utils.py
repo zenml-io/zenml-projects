@@ -383,7 +383,7 @@ def process_input_with_retrieval(
     input: str,
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
-    use_reranking: bool = True,
+    use_reranking: bool = False,
 ) -> str:
     """Process the input with retrieval.
 
@@ -394,7 +394,7 @@ def process_input_with_retrieval(
         n_items_retrieved (int, optional): The number of items to retrieve from
             the database. Defaults to 5.
         use_reranking (bool, optional): Whether to use reranking. Defaults to
-            True.
+            False.
 
     Returns:
         str: The processed output.
