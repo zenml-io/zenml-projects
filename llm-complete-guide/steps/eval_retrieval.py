@@ -73,19 +73,16 @@ def query_similar_docs(
     """
     embedded_question = get_embeddings(question)
     db_conn = get_db_conn()
-    if not use_reranking:
-        top_similar_docs_urls = get_topn_similar_docs(
-            embedded_question, db_conn, n=5, only_urls=True
-        )
-        urls = [url[0] for url in top_similar_docs_urls]  # Unpacking URLs
+    num_docs = 20 if use_reranking else 5
+    top_similar_docs_urls = get_topn_similar_docs(
+        embedded_question, db_conn, n=num_docs, only_urls=True
+    )
+
+    if use_reranking:
+        urls = rerank_documents(question, top_similar_docs_urls)[:5]
     else:
-        top_similar_docs_urls = get_topn_similar_docs(
-            embedded_question, db_conn, n=20, only_urls=True
-        )
-        reranked_docs_urls = rerank_documents(question, top_similar_docs_urls)[
-            :5
-        ]
-        urls = [url[0] for url in reranked_docs_urls]  # Unpacking URLs
+        urls = [url[0] for url in top_similar_docs_urls]  # Unpacking URLs
+
     return (question, url_ending, urls)
 
 
@@ -120,41 +117,93 @@ def test_retrieved_docs_retrieve_best_url(
     return round(failure_rate, 2)
 
 
-@step
-def retrieval_evaluation_small() -> (
-    Annotated[float, "small_failure_rate_retrieval"]
-):
-    """Executes the retrieval evaluation step.
+def perform_small_retrieval_evaluation(use_reranking: bool) -> float:
+    """Helper function to perform the small retrieval evaluation.
+
+    Args:
+        use_reranking: Whether to use reranking in the retrieval process.
 
     Returns:
         The failure rate of the retrieval test.
     """
-    failure_rate = test_retrieved_docs_retrieve_best_url(question_doc_pairs)
-    logging.info(f"Retrieval failure rate: {failure_rate}%")
+    failure_rate = test_retrieved_docs_retrieve_best_url(
+        question_doc_pairs, use_reranking
+    )
+    logging.info(
+        f"Retrieval failure rate{' with reranking' if use_reranking else ''}: {failure_rate}%"
+    )
     return failure_rate
+
+
+@step
+def retrieval_evaluation_small() -> (
+    Annotated[float, "small_failure_rate_retrieval"]
+):
+    """Executes the retrieval evaluation step without reranking.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    return perform_small_retrieval_evaluation(use_reranking=False)
 
 
 @step
 def retrieval_evaluation_small_with_reranking() -> (
     Annotated[float, "small_failure_rate_retrieval_reranking"]
 ):
-    """Executes the retrieval evaluation step.
+    """Executes the retrieval evaluation step with reranking.
 
     Returns:
         The failure rate of the retrieval test.
     """
-    failure_rate = test_retrieved_docs_retrieve_best_url(
-        question_doc_pairs, use_reranking=True
-    )
-    logging.info(f"Retrieval failure rate with reranking: {failure_rate}%")
-    return failure_rate
+    return perform_small_retrieval_evaluation(use_reranking=True)
+
+
+def perform_retrieval_evaluation(
+    sample_size: int, use_reranking: bool
+) -> float:
+    """Helper function to perform the retrieval evaluation.
+
+    Args:
+        sample_size: Number of samples to use for the evaluation.
+        use_reranking: Whether to use reranking in the retrieval process.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
+    sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
+
+    total_tests = len(sampled_dataset)
+    failures = 0
+
+    for item in sampled_dataset:
+        generated_questions = item["generated_questions"]
+        question = generated_questions[
+            0
+        ]  # Assuming only one question per item
+        url_ending = item["filename"].split("/")[
+            -1
+        ]  # Extract the URL ending from the filename
+
+        _, _, urls = query_similar_docs(question, url_ending, use_reranking)
+
+        if all(url_ending not in url for url in urls):
+            logging.error(
+                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
+            )
+            failures += 1
+
+    logging.info(f"Total tests: {total_tests}. Failures: {failures}")
+    failure_rate = (failures / total_tests) * 100
+    return round(failure_rate, 2)
 
 
 @step
 def retrieval_evaluation_full(
     sample_size: int = 50,
 ) -> Annotated[float, "full_failure_rate_retrieval"]:
-    """Executes the retrieval evaluation step.
+    """Executes the retrieval evaluation step without reranking.
 
     Args:
         sample_size: Number of samples to use for the evaluation.
@@ -162,42 +211,18 @@ def retrieval_evaluation_full(
     Returns:
         The failure rate of the retrieval test.
     """
-    # Load the dataset from the Hugging Face Hub
-    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
-
-    # Shuffle the dataset and select a random sample
-    sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
-
-    total_tests = len(sampled_dataset)
-    failures = 0
-
-    for item in sampled_dataset:
-        generated_questions = item["generated_questions"]
-        question = generated_questions[
-            0
-        ]  # Assuming only one question per item
-        url_ending = item["filename"].split("/")[
-            -1
-        ]  # Extract the URL ending from the filename
-
-        _, _, urls = query_similar_docs(question, url_ending)
-
-        if all(url_ending not in url for url in urls):
-            logging.error(
-                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
-            )
-            failures += 1
-
-    logging.info(f"Total tests: {total_tests}. Failures: {failures}")
-    failure_rate = (failures / total_tests) * 100
-    return round(failure_rate, 2)
+    failure_rate = perform_retrieval_evaluation(
+        sample_size, use_reranking=False
+    )
+    logging.info(f"Retrieval failure rate: {failure_rate}%")
+    return failure_rate
 
 
 @step
 def retrieval_evaluation_full_with_reranking(
     sample_size: int = 50,
 ) -> Annotated[float, "full_failure_rate_retrieval_reranking"]:
-    """Executes the retrieval evaluation step.
+    """Executes the retrieval evaluation step with reranking.
 
     Args:
         sample_size: Number of samples to use for the evaluation.
@@ -205,34 +230,8 @@ def retrieval_evaluation_full_with_reranking(
     Returns:
         The failure rate of the retrieval test.
     """
-    # Load the dataset from the Hugging Face Hub
-    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
-
-    # Shuffle the dataset and select a random sample
-    sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
-
-    total_tests = len(sampled_dataset)
-    failures = 0
-
-    for item in sampled_dataset:
-        generated_questions = item["generated_questions"]
-        question = generated_questions[
-            0
-        ]  # Assuming only one question per item
-        url_ending = item["filename"].split("/")[
-            -1
-        ]  # Extract the URL ending from the filename
-
-        _, _, urls = query_similar_docs(
-            question, url_ending, use_reranking=True
-        )
-
-        if all(url_ending not in url for url in urls):
-            logging.error(
-                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
-            )
-            failures += 1
-
-    logging.info(f"Total tests: {total_tests}. Failures: {failures}")
-    failure_rate = (failures / total_tests) * 100
-    return round(failure_rate, 2)
+    failure_rate = perform_retrieval_evaluation(
+        sample_size, use_reranking=True
+    )
+    logging.info(f"Retrieval failure rate with reranking: {failure_rate}%")
+    return failure_rate
