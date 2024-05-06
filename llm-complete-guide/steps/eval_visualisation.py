@@ -10,7 +10,9 @@ from zenml import get_step_context, step
 @step(enable_cache=False)
 def visualize_evaluation_results(
     small_retrieval_eval_failure_rate: float,
+    small_retrieval_eval_failure_rate_reranking: float,
     full_retrieval_eval_failure_rate: float,
+    full_retrieval_eval_failure_rate_reranking: float,
     failure_rate_bad_answers: float,
     failure_rate_bad_immediate_responses: float,
     failure_rate_good_responses: float,
@@ -27,7 +29,9 @@ def visualize_evaluation_results(
         score / 20
         for score in [
             small_retrieval_eval_failure_rate,
+            small_retrieval_eval_failure_rate_reranking,
             full_retrieval_eval_failure_rate,
+            full_retrieval_eval_failure_rate_reranking,
             failure_rate_bad_answers,
         ]
     ]
@@ -43,7 +47,9 @@ def visualize_evaluation_results(
 
     labels = [
         "Small Retrieval Eval Failure Rate",
+        "Small Retrieval Eval Failure Rate Reranking",
         "Full Retrieval Eval Failure Rate",
+        "Full Retrieval Eval Failure Rate Reranking",
         "Failure Rate Bad Answers",
         "Failure Rate Bad Immediate Responses",
         "Failure Rate Good Responses",
