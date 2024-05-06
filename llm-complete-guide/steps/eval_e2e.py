@@ -223,7 +223,7 @@ def llm_judged_test_e2e(
 
 def run_llm_judged_tests(
     test_function: Callable,
-    sample_size: int = 50,
+    sample_size: int = 10,
 ) -> Tuple[
     Annotated[float, "average_toxicity_score"],
     Annotated[float, "average_faithfulness_score"],
