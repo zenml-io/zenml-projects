@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+
 # Vector Store constants
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 50

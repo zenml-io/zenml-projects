@@ -21,6 +21,7 @@ from typing import Annotated, Callable, Tuple
 from datasets import load_dataset
 from litellm import completion
 from pydantic import BaseModel, conint
+from structures import TestResult
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
 
@@ -56,13 +57,6 @@ good_responses = [
         "good_words": ["local"],
     },
 ]
-
-
-class TestResult(BaseModel):
-    success: bool
-    question: str
-    keyword: str = ""
-    response: str
 
 
 def test_content_for_bad_words(
@@ -290,24 +284,6 @@ def run_llm_judged_tests(
     )
 
 
-@step(enable_cache=False)
-def e2e_evaluation_llm_judged() -> (
-    Tuple[
-        Annotated[float, "average_toxicity_score"],
-        Annotated[float, "average_faithfulness_score"],
-        Annotated[float, "average_helpfulness_score"],
-        Annotated[float, "average_relevance_score"],
-    ]
-):
-    """Executes the end-to-end evaluation step.
-
-    Returns:
-        Tuple: The average toxicity, faithfulness, helpfulness, and relevance scores.
-    """
-    logging.info("Starting end-to-end evaluation...")
-    return run_llm_judged_tests(llm_judged_test_e2e)
-
-
 def run_simple_tests(test_data: list, test_function: Callable) -> float:
     """
     Run tests for bad answers.
@@ -337,9 +313,11 @@ def run_simple_tests(test_data: list, test_function: Callable) -> float:
 
 @step
 def e2e_evaluation() -> (
-    Annotated[float, "failure_rate_bad_answers"],
-    Annotated[float, "failure_rate_bad_immediate_responses"],
-    Annotated[float, "failure_rate_good_responses"],
+    Tuple[
+        Annotated[float, "failure_rate_bad_answers"],
+        Annotated[float, "failure_rate_bad_immediate_responses"],
+        Annotated[float, "failure_rate_good_responses"],
+    ]
 ):
     """Executes the end-to-end evaluation step."""
     logging.info("Testing bad answers...")
@@ -368,3 +346,21 @@ def e2e_evaluation() -> (
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
     )
+
+
+@step(enable_cache=False)
+def e2e_evaluation_llm_judged() -> (
+    Tuple[
+        Annotated[float, "average_toxicity_score"],
+        Annotated[float, "average_faithfulness_score"],
+        Annotated[float, "average_helpfulness_score"],
+        Annotated[float, "average_relevance_score"],
+    ]
+):
+    """Executes the end-to-end evaluation step.
+
+    Returns:
+        Tuple: The average toxicity, faithfulness, helpfulness, and relevance scores.
+    """
+    logging.info("Starting end-to-end evaluation...")
+    return run_llm_judged_tests(llm_judged_test_e2e)

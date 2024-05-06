@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
+from pydantic import BaseModel
 
 
 @dataclass
@@ -39,3 +40,10 @@ class Document:
     embedding: Optional[np.ndarray] = None
     token_count: Optional[int] = None
     generated_questions: Optional[List[str]] = None
+
+
+class TestResult(BaseModel):
+    success: bool
+    question: str
+    keyword: str = ""
+    response: str
