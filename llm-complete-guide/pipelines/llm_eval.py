@@ -19,6 +19,7 @@ from steps.eval_retrieval import (
     retrieval_evaluation_full,
     retrieval_evaluation_small,
 )
+from steps.eval_visualisation import visualize_evaluation_results
 from zenml import pipeline
 
 
@@ -30,11 +31,26 @@ def llm_eval() -> None:
     full_retrieval_answers = retrieval_evaluation_full()
 
     # E2E evals
-    e2e_eval_tuple = e2e_evaluation()
-    e2e_llm_judged_tuple = e2e_evaluation_llm_judged()
+    (
+        failure_rate_bad_answers,
+        failure_rate_bad_immediate_responses,
+        failure_rate_good_responses,
+    ) = e2e_evaluation()
+    (
+        average_toxicity_score,
+        average_faithfulness_score,
+        average_helpfulness_score,
+        average_relevance_score,
+    ) = e2e_evaluation_llm_judged()
 
-    # visualize_evaluation_results(
-    #     failure_rate_retrieval,
-    #     e2e_answers,
-    #     full_retrieval_answers,
-    # )
+    visualize_evaluation_results(
+        failure_rate_retrieval,
+        full_retrieval_answers,
+        failure_rate_bad_answers,
+        failure_rate_bad_immediate_responses,
+        failure_rate_good_responses,
+        average_toxicity_score,
+        average_faithfulness_score,
+        average_helpfulness_score,
+        average_relevance_score,
+    )

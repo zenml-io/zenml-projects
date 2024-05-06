@@ -4,107 +4,77 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from zenml import step
-from zenml.client import Client
+from zenml import get_step_context, step
 
 
 @step(enable_cache=False)
 def visualize_evaluation_results(
-    failure_rate_retrieval: float,
+    small_retrieval_eval_failure_rate: float,
+    full_retrieval_eval_failure_rate: float,
     failure_rate_bad_answers: float,
     failure_rate_bad_immediate_responses: float,
     failure_rate_good_responses: float,
-    full_failure_rate_retrieval: float,
-    e2e_evaluation_llm_judged_results: float,
+    average_toxicity_score: float,
+    average_faithfulness_score: float,
+    average_helpfulness_score: float,
+    average_relevance_score: float,
 ) -> Optional[Image.Image]:
     """Visualizes the evaluation results."""
-    zen_client = Client()
-    last_run = zen_client.get_pipeline_run(
-        "fbdb9965-b27f-4e76-b656-1e265bcd7aef"
-    )
-    # try:
-    #     last_run = zen_client.get_pipeline("llm_eval").runs
-    # except RuntimeError:
-    #     return None
+    step_context = get_step_context()
+    pipeline_run_name = step_context.pipeline_run.name
 
-    last_run_steps = last_run.steps
-    retrieval_results = last_run_steps["retrieval_evaluation"].outputs
-    e2e_results = last_run_steps["e2e_evaluation"].outputs
-
-    previous_failure_rate_retrieval = retrieval_results[
-        "failure_rate_retrieval"
-    ].load()
-    previous_failure_rate_bad_answers = e2e_results[
-        "failure_rate_bad_answers"
-    ].load()
-    previous_failure_rate_bad_immediate_responses = e2e_results[
-        "failure_rate_bad_immediate_responses"
-    ].load()
-    previous_failure_rate_good_responses = e2e_results[
-        "failure_rate_good_responses"
-    ].load()
-
-    # Set up the data
-    labels = [
-        "Retrieval",
-        "Bad Answers",
-        "Bad Immediate Responses",
-        "Good Responses",
+    normalized_scores = [
+        score / 20
+        for score in [
+            small_retrieval_eval_failure_rate,
+            full_retrieval_eval_failure_rate,
+            failure_rate_bad_answers,
+        ]
     ]
-    previous_values = [
-        previous_failure_rate_retrieval,
-        previous_failure_rate_bad_answers,
-        previous_failure_rate_bad_immediate_responses,
-        previous_failure_rate_good_responses,
-    ]
-    current_values = [
-        failure_rate_retrieval,
-        failure_rate_bad_answers,
+
+    scores = normalized_scores + [
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
+        average_toxicity_score,
+        average_faithfulness_score,
+        average_helpfulness_score,
+        average_relevance_score,
     ]
 
-    # Set the width of the bars
-    bar_width = 0.35
+    labels = [
+        "Small Retrieval Eval Failure Rate",
+        "Full Retrieval Eval Failure Rate",
+        "Failure Rate Bad Answers",
+        "Failure Rate Bad Immediate Responses",
+        "Failure Rate Good Responses",
+        "Average Toxicity Score",
+        "Average Faithfulness Score",
+        "Average Helpfulness Score",
+        "Average Relevance Score",
+    ]
 
-    # Set the positions of the bars on the x-axis
-    x = np.arange(len(labels))
-
-    # Create the figure and axes
+    # Create a new figure and axis
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Create the 'Previous' bars
-    ax.bar(
-        x - bar_width / 2,
-        previous_values,
-        width=bar_width,
-        label="Previous",
-        color="blue",
-    )
-
-    # Create the 'Current' bars
-    ax.bar(
-        x + bar_width / 2,
-        current_values,
-        width=bar_width,
-        label="Current",
-        color="green",
-    )
-
-    # Add labels and title
-    ax.set_xlabel("Metrics")
-    ax.set_ylabel("Failure Rate")
-    ax.set_title("Evaluation Results Comparison")
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=45, ha="right")
-    ax.legend()
+    # Plot the horizontal bar chart
+    y_pos = np.arange(len(labels))
+    ax.barh(y_pos, scores, align="center")
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels)
+    ax.invert_yaxis()  # Labels read top-to-bottom
+    ax.set_xlabel("Score")
+    ax.set_xlim(0, 5)
+    ax.set_title(f"Evaluation Metrics for {pipeline_run_name}")
 
     # Adjust the layout
-    fig.tight_layout()
+    plt.tight_layout()
 
-    # Save the chart to a bytes buffer
-    buffer = io.BytesIO()
-    fig.savefig(buffer, format="png")
-    buffer.seek(0)
+    # Save the plot to a BytesIO object
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
 
-    return Image.open(buffer)
+    # Create a PIL Image object from the BytesIO object
+    image = Image.open(buf)
+
+    return image
