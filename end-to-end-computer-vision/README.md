@@ -115,7 +115,7 @@ The project consists of the following pipelines
 
 This pipeline downloads the [Ship Detection dataset](https://huggingface.co/datasets/datadrivenscience/ship-detection). This dataset contains
 some truly huge images with a few hundred million pixels. In order to make these
-useable, we break down all source images into managable tiles with a max 
+useable, we break down all source images into manageable tiles with a max 
 height/width of 1000 pixels. After this preprocessing is done, the images are
 uploaded into a cloud bucket and the ground truth annotations are uploaded to
 a local label studio instance. 
