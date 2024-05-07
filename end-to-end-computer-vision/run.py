@@ -17,15 +17,14 @@
 from uuid import UUID
 
 import click
-from zenml import Model
 from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
-from pipelines.data_export import export_for_training
-from pipelines.data_ingestion import data_ingestion
-from pipelines.inference import inference
-from pipelines.training import training
+from pipelines.data_export import data_export_pipeline
+from pipelines.data_ingestion import data_ingestion_pipeline
+from pipelines.inference import inference_pipeline
+from pipelines.training import training_pipeline
 from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME, ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
@@ -37,7 +36,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 @click.option(
     "--ingest",
     "-ig",
-    "ingest_data_pipeline",
+    "ingest_data",
     is_flag=True,
     default=False,
     help="Whether to run the data ingestion pipeline, that takes the dataset"
@@ -55,7 +54,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 @click.option(
     "--training",
     "-t",
-    "training_pipeline",
+    "train",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that trains the model.",
@@ -63,7 +62,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
 @click.option(
     "--inference",
     "-i",
-    "inference_pipeline",
+    "batch_inference",
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that performs inference.",
@@ -74,15 +73,7 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     "fiftyone",
     is_flag=True,
     default=False,
-    help="Whether to launch the FiftyOne app pipeline.",
-)
-@click.option(
-    "--stack",
-    "-s",
-    "stack",
-    required=False,
-    type=click.Choice(["alexej", "hamza", "alex"]),
-    help="The stack to use for the pipeline.",
+    help="Whether to launch the FiftyOne app.",
 )
 @click.option(
     "--local",
@@ -90,64 +81,104 @@ REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
     "train_local",
     is_flag=True,
     default=False,
-    help="Whether to train local.",
+    help="Whether to train local or an a remote orchestrator/ step operator.",
 )
 def main(
-    ingest_data_pipeline: bool = False,
+    ingest_data: bool = False,
     export_pipeline: bool = False,
-    training_pipeline: bool = False,
-    inference_pipeline: bool = False,
+    train: bool = False,
+    batch_inference: bool = False,
     fiftyone: bool = False,
-    stack: UUID = "alexej",
     train_local: bool = False,
 ):
-    # TODO: remove all this :)
-    if stack == "hamza":
-        stack_id = UUID("cca5eaf7-0309-413d-89ff-1cd371b7d27c")
-    elif stack == "alex":
-        stack_id = UUID("fcf840ac-addd-4de3-a3e4-a1015f7bb96c")
-    else:
-        stack_id = UUID("7cda3cec-6744-48dc-8bdc-f102242a26d2")
-
     client = Client()
 
-    if ingest_data_pipeline:
-        client.activate_stack(stack_id)
-        data_ingestion.with_options(config_path="configs/ingest_data.yaml")()
+    if ingest_data:
+        if not client.active_stack.orchestrator.config.is_local:
+            raise RuntimeError(
+                "The implementation of this pipeline "
+                "requires that you are running on a local "
+                "machine with data being persisted in the local "
+                "filesystem across multiple steps. Please "
+                "switch to a stack that contains a local "
+                "orchestrator and a local label-studio "
+                "annotator. See the README for more information "
+                "on this setup."
+            )
 
-    if export_pipeline:
-        client.activate_stack(stack_id)
-
-        # Export data from label studio
-        export_for_training.with_options(
-            config_path="configs/data_export_alexej.yaml"
+        data_ingestion_pipeline.with_options(
+            config_path="configs/ingest_data.yaml"
         )()
 
-        # Promote Model to staging
-        latest_model = Model(name=ZENML_MODEL_NAME, version=ModelStages.LATEST)
-        latest_model.set_stage(stage=ModelStages.STAGING, force=True)
+    if export_pipeline:
+        if not client.active_stack.orchestrator.config.is_local:
+            raise RuntimeError(
+                "The implementation of this pipeline "
+                "requires that you are running on a local "
+                "machine with a running instance of label-studio "
+                "configured in the stack as annotator."
+                " Please switch to a stack that contains a local "
+                "orchestrator and a local label-studio "
+                "annotator. See the README for more information "
+                "on this setup."
+            )
 
-    if training_pipeline and train_local:
-        client.activate_stack(stack_id)
+        # Export data from label studio
+        data_export_pipeline.with_options(
+            config_path="configs/data_export.yaml"
+        )()
+
+    if train:
+        try:
+            client.get_model_version(
+                model_name_or_id=ZENML_MODEL_NAME,
+                model_version_name_or_number_or_id=ModelStages.STAGING,
+            )
+        except KeyError:
+            raise RuntimeError(
+                "This pipeline requires that there is a version of its "
+                "associated model in the `STAGING` stage. Make sure you run "
+                "the `data_export_pipeline` at least once to create the Model "
+                "along with a version of this model. After this you can "
+                "promote the version of your choice, either through the "
+                "frontend or with the following command: "
+                f"`zenml model version update {ZENML_MODEL_NAME} latest "
+                f"-s staging`"
+            )
+
+        if train_local:
+            config_path = "configs/training_pipeline.yaml"
+        else:
+            config_path = "configs/training_pipeline_remote_gpu.yaml"
 
         # Train model on data
-        training.with_options(config_path="configs/training.yaml")()
+        training_pipeline.with_options(config_path=config_path)()
 
-    if training_pipeline and not train_local:
-        client.activate_stack(REMOTE_STACK_ID)
+    if batch_inference:
+        try:
+            client.get_model_version(
+                model_name_or_id=ZENML_MODEL_NAME,
+                model_version_name_or_number_or_id=ModelStages.PRODUCTION,
+            )
+        except KeyError:
+            raise RuntimeError(
+                "This pipeline requires that there is a version of its "
+                "associated model in the `Production` stage. Make sure you run "
+                "the `data_export_pipeline` at least once to create the Model "
+                "along with a version of this model. After this you can "
+                "promote the version of your choice, either through the "
+                "frontend or with the following command: "
+                f"`zenml model version update {ZENML_MODEL_NAME} staging "
+                f"-s production`"
+            )
 
-        # Train model on data
-        training.with_options(config_path="configs/training_gpu.yaml")()
-
-    if inference_pipeline:
-        client.activate_stack(stack_id)  # REMOTE_STACK_ID)
-
-        inference.with_options(config_path="configs/cloud_inference.yaml")()
+        inference_pipeline.with_options(
+            config_path="configs/inference_pipeline.yaml"
+        )()
 
     if fiftyone:
         import fiftyone as fo
 
-        client.activate_stack(stack_id)
         artifact = Client().get_artifact_version(
             name_id_or_prefix=PREDICTIONS_DATASET_ARTIFACT_NAME
         )

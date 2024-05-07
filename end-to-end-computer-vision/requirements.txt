@@ -1,14 +1,12 @@
-zenml[server]>=0.55.2
+zenml[server]>=0.55.3
 notebook
 scikit-learn<1.3
 pyarrow
-wandb
 seaborn
 xgboost
 ultralytics
 torch
-huggingface_hub>=0.20.0 # needed for fiftyone imports of HF datasets
-# fiftyone @ git+https://github.com/voxel51/fiftyone.git@develop # fiftyone v0.24.0
+huggingface_hub>=0.20.0
 fiftyone
 datasets
 albumentations

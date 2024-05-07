@@ -1,4 +1,16 @@
-enable_cache: False
+parameters:
+  model_checkpoint: yolov8l.pt
+
+steps:
+  load_model:
+    enable_cache: True
+  train_model:
+    enable_cache: False
+    parameters:
+      data_source: # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
+      batch_size: 8
+      imgsz: 720
+      epochs: 1
 
 settings:
   docker:
@@ -6,20 +18,11 @@ settings:
       - ffmpeg
       - libsm6
       - libxext6
-      - libcurl4
     required_integrations:
       - gcp
       - github
     requirements:
       - ultralytics
-      - fiftyone
-
-steps:
-  create_fiftyone_dataset:
-    enable_cache: False
-    enable_step_logs: False
-    parameters:
-      inference_data_source: "gs://zenml-internal-artifact-store/inference_cv_webinar"
 
 # configuration of the Model Control Plane
 model:
@@ -27,4 +30,4 @@ model:
   license: Apache 2.0
   description: Object Detection Model.
   tags: ["object detection"]
-  version: production
+  version: staging
