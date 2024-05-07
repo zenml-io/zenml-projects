@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from utils.cuda import cleanup_memory
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -37,7 +37,7 @@ def promote(
         metric: The metric to use for promotion.
         target_stage: The target stage to promote to.
     """
-    cleanup_memory()
+    cleanup_gpu_memory(force=True)
     context_model = get_step_context().model
     base_metrics = context_model.load_artifact("base_model_rouge_metrics")
     ft_metrics = context_model.load_artifact("finetuned_model_rouge_metrics")

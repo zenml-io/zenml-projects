@@ -20,7 +20,7 @@ from pathlib import Path
 
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
-from utils.cuda import cleanup_memory
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
 from zenml import log_model_metadata, step
 from zenml.materializers import BuiltInMaterializer
@@ -46,7 +46,7 @@ def prepare_data(
     """
     from datasets import load_dataset
 
-    cleanup_memory()
+    cleanup_gpu_memory(force=True)
 
     log_model_metadata(
         {

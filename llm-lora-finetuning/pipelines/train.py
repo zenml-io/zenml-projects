@@ -17,7 +17,6 @@
 
 
 from steps import evaluate_model, finetune, prepare_data, promote
-from utils.hashing import compute_md5
 from zenml import logging as zenml_logging
 from zenml import pipeline
 
@@ -61,7 +60,6 @@ def llm_peft_full_finetune(
     ft_model_dir = finetune(
         base_model_id,
         datasets_dir,
-        finetune_script_sha=compute_md5("scripts/finetune.py"),
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,

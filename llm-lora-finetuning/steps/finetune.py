@@ -15,31 +15,30 @@
 # limitations under the License.
 #
 
-import subprocess
 from pathlib import Path
 
-import torch
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
-from utils.cuda import cleanup_memory
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 from zenml import logging as zenml_logging
 from zenml import step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
+from zenml.integrations.accelerate.utils.accelerate_runner import run_with_accelerate
 
-from scripts.finetune import accelerated_finetune
+from functions.finetune import finetune_fn
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
     10000  # workaround for https://github.com/zenml-io/zenml/issues/2252
 )
 
+cache_invalidator = hash(finetune_fn.__code__)
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def finetune(
     base_model_id: str,
     dataset_dir: Path,
-    finetune_script_sha: str,
     max_steps: int = 1000,
     logging_steps: int = 50,
     eval_steps: int = 50,
@@ -54,6 +53,7 @@ def finetune(
     use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
+    cache_invalidator: int = cache_invalidator,
 ) -> Annotated[Path, "ft_model_dir"]:
     """Finetune the model using PEFT.
 
@@ -65,7 +65,6 @@ def finetune(
     Args:
         base_model_id: The base model id to use.
         dataset_dir: The path to the dataset directory.
-        finetune_script_sha: The sha of the finetune script.
         max_steps: The maximum number of steps to train for.
         logging_steps: The number of steps to log at.
         eval_steps: The number of steps to evaluate at.
@@ -84,77 +83,35 @@ def finetune(
     Returns:
         The path to the finetuned model directory.
     """
-    cleanup_memory()
+    cleanup_gpu_memory(force=True)
+
+    ft_model_dir = "model_dir"
+    common_kwargs = dict(
+        base_model_id=base_model_id,
+        dataset_dir=dataset_dir.as_posix(),
+        max_steps=max_steps,
+        logging_steps=logging_steps,
+        eval_steps=eval_steps,
+        save_steps=save_steps,
+        optimizer=optimizer,
+        lr=lr,
+        per_device_train_batch_size=per_device_train_batch_size,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        warmup_steps=warmup_steps,
+        bf16=bf16,
+        use_fast=use_fast,
+        load_in_4bit=load_in_4bit,
+        load_in_8bit=load_in_8bit,
+        use_accelerate=use_accelerate,
+        ft_model_dir=ft_model_dir,
+    )
     if not use_accelerate:
-        return accelerated_finetune(
-            base_model_id=base_model_id,
-            dataset_dir=dataset_dir,
-            max_steps=max_steps,
-            logging_steps=logging_steps,
-            eval_steps=eval_steps,
-            save_steps=save_steps,
-            optimizer=optimizer,
-            lr=lr,
-            per_device_train_batch_size=per_device_train_batch_size,
-            gradient_accumulation_steps=gradient_accumulation_steps,
-            warmup_steps=warmup_steps,
-            bf16=bf16,
-            use_accelerate=False,
-            use_fast=use_fast,
-            load_in_4bit=load_in_4bit,
-            load_in_8bit=load_in_8bit,
+        finetune_fn(
+            **common_kwargs,
         )
-
     else:
-        logger.info("Starting accelerate training job...")
-        ft_model_dir = "model_dir"
-        command = (
-            f"accelerate launch --num_processes {torch.cuda.device_count()} "
+        run_with_accelerate(
+            function=finetune_fn, label_names=["input_ids"], **common_kwargs
         )
-        command += str(Path("scripts/finetune.py").absolute()) + " "
-        command += f'--base-model-id "{base_model_id}" '
-        command += f'--dataset-dir "{dataset_dir}" '
-        command += f"--max-steps {max_steps} "
-        command += f"--logging-steps {logging_steps} "
-        command += f"--eval-steps {eval_steps} "
-        command += f"--save-steps {save_steps} "
-        command += f"--optimizer {optimizer} "
-        command += f"--lr {lr} "
-        command += (
-            f"--per-device-train-batch-size {per_device_train_batch_size} "
-        )
-        command += (
-            f"--gradient-accumulation-steps {gradient_accumulation_steps} "
-        )
-        command += f"--warmup-steps {warmup_steps} "
-        if bf16:
-            command += f"--bf16 "
-        if use_accelerate:
-            command += f"--use-accelerate "
-            command += f"-l input_ids "
-            command += f'--ft-model-dir "{ft_model_dir}" '
-        if use_fast:
-            command += f"--use-fast "
-        if load_in_4bit:
-            command += f"--load-in-4bit "
-        if load_in_8bit:
-            command += f"--load-in-8bit "
 
-        print(command)
-
-        result = subprocess.run(
-            command,
-            shell=True,
-            stdout=subprocess.PIPE,
-            universal_newlines=True,
-        )
-        for stdout_line in result.stdout.split("\n"):
-            print(stdout_line)
-        if result.returncode == 0:
-            logger.info("Accelerate training job finished.")
-            return Path(ft_model_dir)
-        else:
-            logger.error(
-                f"Accelerate training job failed. With return code {result.returncode}."
-            )
-            raise subprocess.CalledProcessError(result.returncode, command)
+    return Path(ft_model_dir)

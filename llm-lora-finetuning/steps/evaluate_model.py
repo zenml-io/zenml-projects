@@ -21,7 +21,7 @@ from typing import Optional
 import evaluate
 import torch
 from datasets import load_from_disk
-from utils.cuda import cleanup_memory
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 from utils.loaders import (
     load_base_model,
     load_pretrained_model,
@@ -55,7 +55,7 @@ def evaluate_model(
         load_in_4bit: Whether to load the model in 4bit mode.
         load_in_8bit: Whether to load the model in 8bit mode.
     """
-    cleanup_memory()
+    cleanup_gpu_memory(force=True)
     logger.info("Evaluating model...")
 
     logger.info("Loading dataset...")
