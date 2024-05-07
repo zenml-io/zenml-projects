@@ -306,7 +306,7 @@ def get_topn_similar_docs(
 
     if include_metadata:
         cur.execute(
-            f"SELECT content, url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            f"SELECT content, url, parent_section FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
             (embedding_array,),
         )
     elif only_urls:
@@ -376,7 +376,7 @@ def rerank_documents(
             the reranked documents and their URLs.
     """
     ranker = Reranker(reranker_model)
-    docs_texts = [doc[0] for doc in documents]
+    docs_texts = [f"{doc[0]} PARENT SECTION: {doc[2]}" for doc in documents]
     results = ranker.rank(query=query, docs=docs_texts)
     # pair the texts with the original urls in `documents`
     # `documents` is a tuple of (content, url)

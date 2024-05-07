@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import logging
-from typing import Annotated
+from typing import Annotated, List, Tuple
 
 from datasets import load_dataset
 from utils.llm_utils import (
@@ -63,7 +63,7 @@ def query_similar_docs(
     url_ending: str,
     use_reranking: bool = False,
     returned_sample_size: int = 5,
-) -> tuple:
+) -> Tuple[str, str, List[str]]:
     """Query similar documents for a given question and URL ending.
 
     Args:
