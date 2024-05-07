@@ -59,7 +59,10 @@ question_doc_pairs = [
 
 
 def query_similar_docs(
-    question: str, url_ending: str, use_reranking: bool = False
+    question: str,
+    url_ending: str,
+    use_reranking: bool = False,
+    returned_sample_size: int = 5,
 ) -> tuple:
     """Query similar documents for a given question and URL ending.
 
@@ -67,21 +70,26 @@ def query_similar_docs(
         question: Question to query similar documents for.
         url_ending: URL ending to compare the retrieved documents against.
         use_reranking: Whether to use reranking to improve retrieval.
+        returned_sample_size: Number of documents to return.
 
     Returns:
         Tuple containing the question, URL ending, and retrieved URLs.
     """
     embedded_question = get_embeddings(question)
     db_conn = get_db_conn()
-    num_docs = 20 if use_reranking else 5
-    top_similar_docs_urls = get_topn_similar_docs(
-        embedded_question, db_conn, n=num_docs, only_urls=True
+    num_docs = 20 if use_reranking else returned_sample_size
+    # get (content, url) tuples for the top n similar documents
+    top_similar_docs = get_topn_similar_docs(
+        embedded_question, db_conn, n=num_docs, include_metadata=True
     )
 
     if use_reranking:
-        urls = rerank_documents(question, top_similar_docs_urls)[:5]
+        reranked_docs_and_urls = rerank_documents(question, top_similar_docs)[
+            :returned_sample_size
+        ]
+        urls = [doc[1] for doc in reranked_docs_and_urls]
     else:
-        urls = [url[0] for url in top_similar_docs_urls]  # Unpacking URLs
+        urls = [doc[1] for doc in top_similar_docs]  # Unpacking URLs
 
     return (question, url_ending, urls)
 
@@ -201,7 +209,7 @@ def perform_retrieval_evaluation(
 
 @step
 def retrieval_evaluation_full(
-    sample_size: int = 50,
+    sample_size: int = 100,
 ) -> Annotated[float, "full_failure_rate_retrieval"]:
     """Executes the retrieval evaluation step without reranking.
 
@@ -220,7 +228,7 @@ def retrieval_evaluation_full(
 
 @step
 def retrieval_evaluation_full_with_reranking(
-    sample_size: int = 50,
+    sample_size: int = 100,
 ) -> Annotated[float, "full_failure_rate_retrieval_reranking"]:
     """Executes the retrieval evaluation step with reranking.
 
