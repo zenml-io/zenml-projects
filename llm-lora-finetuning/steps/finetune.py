@@ -17,16 +17,17 @@
 
 from pathlib import Path
 
+from functions.finetune import finetune_fn
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
-from zenml.utils.cuda_utils import cleanup_gpu_memory
 from zenml import logging as zenml_logging
 from zenml import step
+from zenml.integrations.accelerate.utils.accelerate_runner import (
+    run_with_accelerate,
+)
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
-from zenml.integrations.accelerate.utils.accelerate_runner import run_with_accelerate
-
-from functions.finetune import finetune_fn
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 logger = get_logger(__name__)
 zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
@@ -34,6 +35,7 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 )
 
 cache_invalidator = hash(finetune_fn.__code__)
+
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def finetune(

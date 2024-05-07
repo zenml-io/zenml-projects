@@ -20,10 +20,10 @@ from pathlib import Path
 
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
-from zenml.utils.cuda_utils import cleanup_gpu_memory
 from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
 from zenml import log_model_metadata, step
 from zenml.materializers import BuiltInMaterializer
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])

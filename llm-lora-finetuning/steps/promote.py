@@ -15,10 +15,10 @@
 # limitations under the License.
 #
 
-from zenml.utils.cuda_utils import cleanup_gpu_memory
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 logger = get_logger(__name__)
 
