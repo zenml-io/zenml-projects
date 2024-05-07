@@ -34,6 +34,11 @@ pip install -r requirements.txt
 
 ### 👷 Combined feature engineering and finetuning pipeline
 
+> [!WARNING]  
+> All steps of this pipeline have a `clean_gpu_memory(force=True)` at the beginning. This is used to ensure that the memory is properly cleared after previous steps.
+>
+> This functionality might affect other GPU processes running on the same environment, so if you don't want to clean the GPU memory between the steps, you can delete those utility calls from all steps.
+
 The easiest way to get started with just a single command is to run the finetuning pipeline with the `mistral_default_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
 
 ```shell
@@ -52,13 +57,13 @@ When running the pipeline like this, the trained model will be stored in the Zen
 
 ### ⚡ Accelerate your finetuning
 
-Do you want to benefit from multiple GPUs training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this task.
-For example, `phi_accelerated_local_finetune.yaml` can run finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
+Do you want to benefit from multi-GPU-training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this purpose.
+For example, `phi_accelerated_local_finetune.yaml` can run a finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
 
 ```shell
-python run.py --config phi_accelerated_local_finetune.yaml # if you architecture doesn't support BF16
+python run.py --config phi_accelerated_local_finetune.yaml # if your architecture doesn't support BF16
 # OR
-python run.py --config phi_accelerated_local_bf16_finetune.yaml # if you architecture support BF16
+python run.py --config phi_accelerated_local_bf16_finetune.yaml # if your architecture support BF16
 ```
 
 Under the hood, the finetuning step will spin up the accelerated job using the finetuning script CLI wrapper (`scripts/finetune.py`), which will run on all available GPUs.
