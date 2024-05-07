@@ -4,6 +4,8 @@ This is a project that demonstrates an end-to-end computer vision pipeline using
 ZenML. The pipeline is designed to be modular and flexible, allowing for easy
 experimentation and extension.
 
+![diagram.png](_assets/diagram.png)
+
 The project showcases the full lifecycle of a computer vision project, from data
 collection and preprocessing to model training and evaluation. The pipeline also
 incorporates a human-in-the-loop (HITL) component, where human annotators can
