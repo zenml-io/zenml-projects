@@ -101,8 +101,8 @@ The project loosely follows [the recommended ZenML project structure](https://do
 │   └── directory_materializer.py                 # custom materializer to push whole directories to the artifact store and back
 ├── pipelines                                     # `zenml.pipeline` implementations
 │   └── train.py                                  # Finetuning and evaluation pipeline
-├── scripts                                       # scripts used in the finetuning
-│   └── finetune.py                               # Finetuning function and a CLI wrapper for `accelerate run ...`
+├── functions                                     # functions used in the finetuning
+│   └── finetune.py                               # Finetuning function
 ├── steps                                         # logically grouped `zenml.steps` implementations
 │   ├── evaluate_model.py                         # evaluate base and finetuned models using Rouge metrics
 │   ├── finetune.py                               # finetune the base model
