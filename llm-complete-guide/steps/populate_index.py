@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-
 # credit to
 # https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
 # for providing the base implementation for this indexing functionality
@@ -24,7 +23,6 @@ import logging
 import math
 from typing import Annotated, List
 
-import numpy as np
 from constants import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
@@ -33,6 +31,7 @@ from constants import (
 )
 from pgvector.psycopg2 import register_vector
 from sentence_transformers import SentenceTransformer
+from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
 from zenml import ArtifactConfig, log_artifact_metadata, step
 
@@ -40,18 +39,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False)
+@step
 def preprocess_documents(
-    documents: List[str],
-) -> Annotated[List[str], ArtifactConfig(name="split_chunks")]:
+    documents: List[Document],
+) -> Annotated[List[Document], ArtifactConfig(name="split_chunks")]:
     """
     Preprocesses a list of documents by splitting them into chunks.
 
     Args:
-        documents (List[str]): A list of documents to be preprocessed.
+        documents (List[Document]): A list of documents to be preprocessed.
 
     Returns:
-        Annotated[List[str], ArtifactConfig(name="split_chunks")]: A list of preprocessed documents annotated with an ArtifactConfig.
+        Annotated[List[Document], ArtifactConfig(name="split_chunks")]: A list of preprocessed documents annotated with an ArtifactConfig.
 
     Raises:
         Exception: If an error occurs during preprocessing.
@@ -64,26 +63,30 @@ def preprocess_documents(
                 "chunk_overlap": CHUNK_OVERLAP,
             },
         )
-        return split_documents(
+
+        split_docs = split_documents(
             documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
+        return split_docs
     except Exception as e:
         logger.error(f"Error in preprocess_documents: {e}")
         raise
 
 
-@step(enable_cache=False)
+@step
 def generate_embeddings(
-    split_documents: List[str],
-) -> Annotated[np.ndarray, ArtifactConfig(name="embeddings")]:
+    split_documents: List[Document],
+) -> Annotated[
+    List[Document], ArtifactConfig(name="documents_with_embeddings")
+]:
     """
     Generates embeddings for a list of split documents using a SentenceTransformer model.
 
     Args:
-        split_documents (List[str]): A list of documents that have been split into chunks.
+        split_documents (List[Document]): A list of Document objects that have been split into chunks.
 
     Returns:
-        Annotated[np.ndarray, ArtifactConfig(name="embeddings")]: The generated embeddings for each document chunk, annotated with an ArtifactConfig.
+        Annotated[List[Document], ArtifactConfig(name="embeddings")]: The list of Document objects with generated embeddings, annotated with an ArtifactConfig.
 
     Raises:
         Exception: If an error occurs during the generation of embeddings.
@@ -98,28 +101,33 @@ def generate_embeddings(
                 "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,
             },
         )
-        return model.encode(split_documents)
+
+        document_texts = [doc.page_content for doc in split_documents]
+        embeddings = model.encode(document_texts)
+
+        for doc, embedding in zip(split_documents, embeddings):
+            doc.embedding = embedding
+
+        return split_documents
     except Exception as e:
         logger.error(f"Error in generate_embeddings: {e}")
         raise
 
 
-@step(enable_cache=False)
+@step
 def index_generator(
-    embeddings: np.ndarray,
-    documents: List[str],
+    documents: List[Document],
 ) -> None:
     """
-    Generates an index for the given embeddings and documents.
+    Generates an index for the given documents.
 
     This function creates a database connection, installs the pgvector extension if not already installed,
-    creates an embeddings table if it doesn't exist, and inserts the embeddings and documents into the table.
+    creates an embeddings table if it doesn't exist, and inserts the embeddings and document metadata into the table.
     It then calculates the index parameters according to best practices and creates an index on the embeddings
     using the cosine distance measure.
 
     Args:
-        embeddings (np.ndarray): The embeddings to index.
-        documents (List[str]): The documents corresponding to the embeddings.
+        documents (List[Document]): The list of Document objects with generated embeddings.
 
     Raises:
         Exception: If an error occurs during the index generation.
@@ -136,8 +144,11 @@ def index_generator(
             CREATE TABLE IF NOT EXISTS embeddings (
                         id SERIAL PRIMARY KEY,
                         content TEXT,
-                        tokens INTEGER,
-                        embedding VECTOR({EMBEDDING_DIMENSIONALITY})
+                        token_count INTEGER,
+                        embedding VECTOR({EMBEDDING_DIMENSIONALITY}),
+                        filename TEXT,
+                        parent_section TEXT,
+                        url TEXT
                         );
                         """
             cur.execute(table_create_command)
@@ -146,12 +157,13 @@ def index_generator(
             register_vector(conn)
 
             # Insert data only if it doesn't already exist
-            for i, doc in enumerate(documents):
-                content = doc
-                tokens = len(
-                    content.split()
-                )  # Approximate token count based on word count
-                embedding = embeddings[i].tolist()
+            for doc in documents:
+                content = doc.page_content
+                token_count = doc.token_count
+                embedding = doc.embedding.tolist()
+                filename = doc.filename
+                parent_section = doc.parent_section
+                url = doc.url
 
                 cur.execute(
                     "SELECT COUNT(*) FROM embeddings WHERE content = %s",
@@ -160,8 +172,15 @@ def index_generator(
                 count = cur.fetchone()[0]
                 if count == 0:
                     cur.execute(
-                        "INSERT INTO embeddings (content, tokens, embedding) VALUES (%s, %s, %s)",
-                        (content, tokens, embedding),
+                        "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (
+                            content,
+                            token_count,
+                            embedding,
+                            filename,
+                            parent_section,
+                            url,
+                        ),
                     )
                     conn.commit()
 

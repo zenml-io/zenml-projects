@@ -180,3 +180,20 @@ def get_nested_readme_urls(repo_url: str) -> List[str]:
         f"Found {len(readme_links)} nested README links from {repo_url}"
     )
     return readme_links
+
+
+def extract_parent_section(url: str) -> str:
+    """
+    Extracts the parent section from a URL.
+
+    Args:
+        url: The URL to extract the parent section from.
+
+    Returns:
+        The parent section if found, otherwise None.
+    """
+    match = re.search(
+        r"https://docs\.zenml\.io(?:/v(?:/(?:docs|\d+\.\d+\.\d+))?)?/([^/]+)",
+        url,
+    )
+    return match.group(1) if match else None

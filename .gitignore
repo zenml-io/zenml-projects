@@ -145,3 +145,8 @@ zencoder/cloned_public_repos
 
 .DS_Store
 .local
+
+# local files
+llm-lora-finetuning/ckpt/
+llm-lora-finetuning/data_generation/
+llm-lora-finetuning/datagen/

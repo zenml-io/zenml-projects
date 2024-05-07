@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 def process_hf_dataset(
     dataset: str, data_source: str, max_tile_size: int = 1000
 ) -> Dict[str, Any]:
-    """Downloads a hf dataset and does some processing.
+    """Downloads a Hugging Face dataset and does some processing.
 
     Converts the labels into the label_studio format.
     Also uploads the images to the datasource path.

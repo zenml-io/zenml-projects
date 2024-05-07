@@ -19,23 +19,31 @@
 # functionality
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
-
 import logging
+
+# Configure logging levels for specific modules
+logging.getLogger("pytorch").setLevel(logging.CRITICAL)
+logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
+logging.getLogger("rerankers").setLevel(logging.CRITICAL)
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+
+# Configure the logging level for the root logger
+logging.getLogger().setLevel(logging.ERROR)
+
 import os
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import litellm
 import numpy as np
 import psycopg2
+import tiktoken
 from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
+from rerankers import Reranker
 from sentence_transformers import SentenceTransformer
-from zenml.client import Client
-
-# Configure the logging level for the root logger
-logging.getLogger().setLevel(logging.WARNING)
+from structures import Document
 
 logger = logging.getLogger(__name__)
 
@@ -73,17 +81,17 @@ def split_text_with_regex(
 
 
 def split_text(
-    text: str,
+    document: Document,
     separator: str = "\n\n",
     chunk_size: int = 4000,
     chunk_overlap: int = 200,
     keep_separator: bool = False,
     strip_whitespace: bool = True,
-) -> List[str]:
+) -> List[Document]:
     """Splits a given text into chunks of specified size with optional overlap.
 
     Args:
-        text (str): The text to be split.
+        document (Document): The document to be split.
         separator (str, optional): The separator to use for splitting the text. Defaults to "\n\n".
         chunk_size (int, optional): The maximum size of each chunk. Defaults to 4000.
         chunk_overlap (int, optional): The size of the overlap between consecutive chunks. Defaults to 200.
@@ -94,7 +102,7 @@ def split_text(
         ValueError: If chunk_overlap is larger than chunk_size.
 
     Returns:
-        List[str]: A list of strings resulting from splitting the input text into chunks.
+        List[Document]: A list of documents resulting from splitting the input document into chunks.
     """
     if chunk_overlap > chunk_size:
         raise ValueError(
@@ -103,9 +111,12 @@ def split_text(
         )
 
     separator_regex = re.escape(separator)
-    splits = split_text_with_regex(text, separator_regex, keep_separator)
+    splits = split_text_with_regex(
+        document.page_content, separator_regex, keep_separator
+    )
     _separator = "" if keep_separator else separator
 
+    encoding = tiktoken.get_encoding("cl100k_base")
     chunks = []
     current_chunk = ""
 
@@ -117,31 +128,62 @@ def split_text(
             current_chunk += split + _separator
         else:
             if current_chunk:
-                chunks.append(current_chunk.rstrip(_separator))
+                token_count = len(
+                    encoding.encode(current_chunk.rstrip(_separator))
+                )
+                chunks.append(
+                    Document(
+                        page_content=current_chunk.rstrip(_separator),
+                        filename=document.filename,
+                        parent_section=document.parent_section,
+                        url=document.url,
+                        token_count=token_count,
+                    )
+                )
             current_chunk = split + _separator
 
     if current_chunk:
-        chunks.append(current_chunk.rstrip(_separator))
+        token_count = len(encoding.encode(current_chunk.rstrip(_separator)))
+        chunks.append(
+            Document(
+                page_content=current_chunk.rstrip(_separator),
+                filename=document.filename,
+                parent_section=document.parent_section,
+                url=document.url,
+                token_count=token_count,
+            )
+        )
 
     final_chunks = []
     for i in range(len(chunks)):
         if i == 0:
             final_chunks.append(chunks[i])
         else:
-            overlap = chunks[i - 1][-chunk_overlap:]
-            final_chunks.append(overlap + chunks[i])
+            overlap = chunks[i - 1].page_content[-chunk_overlap:]
+            token_count = len(
+                encoding.encode(overlap + chunks[i].page_content)
+            )
+            final_chunks.append(
+                Document(
+                    page_content=overlap + chunks[i].page_content,
+                    filename=document.filename,
+                    parent_section=document.parent_section,
+                    url=document.url,
+                    token_count=token_count,
+                )
+            )
 
     return final_chunks
 
 
 def split_documents(
-    documents: List[str],
+    documents: List[Document],
     separator: str = "\n\n",
     chunk_size: int = 4000,
     chunk_overlap: int = 200,
     keep_separator: bool = False,
     strip_whitespace: bool = True,
-) -> List[str]:
+) -> List[Document]:
     """Splits a list of documents into chunks.
 
     Args:
@@ -174,13 +216,44 @@ def get_local_db_connection_details() -> Dict[str, str]:
     """Returns the connection details for the local database.
 
     Returns:
-        dict: A dictionary containing the connection details for the local database.
+        dict: A dictionary containing the connection details for the local
+        database.
+
+    Raises:
+        RuntimeError: If the environment variables ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, or ZENML_POSTGRES_PORT are not set.
     """
+    user = os.getenv("ZENML_POSTGRES_USER")
+    host = os.getenv("ZENML_POSTGRES_HOST")
+    port = os.getenv("ZENML_POSTGRES_PORT")
+
+    if not user or not host or not port:
+        raise RuntimeError(
+            "Please make sure to set the environment variables: ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, and ZENML_POSTGRES_PORT"
+        )
+
     return {
-        "user": os.getenv("ZENML_POSTGRES_USER"),
-        "host": os.getenv("ZENML_POSTGRES_HOST"),
-        "port": os.getenv("ZENML_POSTGRES_PORT"),
+        "user": user,
+        "host": host,
+        "port": port,
     }
+
+
+def get_db_password() -> str:
+    """Returns the password for the PostgreSQL database.
+
+    Returns:
+        str: The password for the PostgreSQL database.
+    """
+    password = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
+    if not password:
+        from zenml.client import Client
+
+        password = (
+            Client()
+            .get_secret("supabase_postgres_db")
+            .secret_values["password"]
+        )
+    return password
 
 
 def get_db_conn() -> connection:
@@ -192,9 +265,7 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = (
-        Client().get_secret("supabase_postgres_db").secret_values["password"]
-    )
+    pg_password = get_db_password()
 
     local_database_connection = get_local_db_connection_details()
 
@@ -209,24 +280,46 @@ def get_db_conn() -> connection:
     return psycopg2.connect(**CONNECTION_DETAILS)
 
 
-def get_topn_similar_docs(query_embedding, conn, n: int = 5):
+def get_topn_similar_docs(
+    query_embedding: List[float],
+    conn: psycopg2.extensions.connection,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
     """Fetches the top n most similar documents to the given query embedding from the database.
 
     Args:
         query_embedding (list): The query embedding to compare against.
         conn (psycopg2.extensions.connection): The database connection object.
-        n (int, optional): The number of similar documents to fetch. Defaults to 5.
+        n (int, optional): The number of similar documents to fetch. Defaults to
+        5.
+        include_metadata (bool, optional): Whether to include metadata in the
+        results. Defaults to False.
 
     Returns:
-        list: A list of tuples containing the content of the top n most similar documents.
+        list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
     """
     embedding_array = np.array(query_embedding)
     register_vector(conn)
     cur = conn.cursor()
-    cur.execute(
-        f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
-        (embedding_array,),
-    )
+
+    if include_metadata:
+        cur.execute(
+            f"SELECT content, url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    elif only_urls:
+        cur.execute(
+            f"SELECT url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    else:
+        cur.execute(
+            f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+
     return cur.fetchall()
 
 
@@ -267,11 +360,41 @@ def get_embeddings(text):
     return model.encode(text)
 
 
-def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
+def rerank_documents(
+    query: str, documents: List[Tuple], reranker_model: str = "colbert"
+) -> List[str]:
+    """Reranks the given documents based on the given query.
+
+    Args:
+        query (str): The query to use for reranking.
+        documents (List[Tuple]): The documents to rerank.
+        reranker_model (str, optional): The reranker model to use. Defaults to "colbert".
+
+    Returns:
+        List[str]: The reranked content.
+    """
+    ranker = Reranker(reranker_model)
+    docs_texts = [doc[0] for doc in documents]
+    results = ranker.rank(query=query, docs=docs_texts)
+    return [document.text for document in results.results]
+
+
+def process_input_with_retrieval(
+    input: str,
+    model: str = OPENAI_MODEL,
+    n_items_retrieved: int = 20,
+    use_reranking: bool = False,
+) -> str:
     """Process the input with retrieval.
 
     Args:
         input (str): The input to process.
+        model (str, optional): The model to use for completion. Defaults to
+            OPENAI_MODEL.
+        n_items_retrieved (int, optional): The number of items to retrieve from
+            the database. Defaults to 5.
+        use_reranking (bool, optional): Whether to use reranking. Defaults to
+            False.
 
     Returns:
         str: The processed output.
@@ -279,7 +402,16 @@ def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
     delimiter = "```"
 
     # Step 1: Get documents related to the user input from database
-    related_docs = get_topn_similar_docs(get_embeddings(input), get_db_conn())
+    related_docs = get_topn_similar_docs(
+        get_embeddings(input), get_db_conn(), n=n_items_retrieved
+    )
+
+    if use_reranking:
+        # Rerank the documents based on the input
+        # and take the top 5 only
+        context_content = rerank_documents(input, related_docs)[:5]
+    else:
+        context_content = [doc[0] for doc in related_docs[:5]]
 
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
@@ -289,7 +421,9 @@ def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
     You respond in a concise, technically credible tone. \
     You ONLY use the context from the ZenML documentation to provide relevant
     answers. \
-    You do not make up answers or provide opinions that you don't have information to support. \
+    You do not make up answers or provide opinions that you don't have
+    information to support. \
+    If you are unsure or don't know, just say so. \
     """
 
     # Prepare messages to pass to model
@@ -301,8 +435,8 @@ def process_input_with_retrieval(input: str, model: str = OPENAI_MODEL) -> str:
         {"role": "user", "content": f"{delimiter}{input}{delimiter}"},
         {
             "role": "assistant",
-            "content": f"Relevant ZenML documentation: \n"
-            + "\n".join(doc[0] for doc in related_docs),
+            "content": f"Relevant ZenML documentation (in order of usefulness for this query): \n"
+            + "\n".join(context_content),
         },
     ]
     logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
