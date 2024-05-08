@@ -21,14 +21,14 @@ steps:
     step_operator: gcp_a100
     enable_step_logs: False
     parameters:
-      data_source: "gs://zenml-internal-artifact-store/label_studio_cv_webinar"
+      data_source:  # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
       batch_size: 8
-      imgsz: 480
-      epochs: 5000
+      imgsz: 720
+      epochs: 50000
       is_quad_gpu_env: True
     settings:
       step_operator.vertex:
-        accelerator_type: NVIDIA_TESLA_T4 # NVIDIA_TESLA_A100 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
+        accelerator_type: NVIDIA_TESLA_T4 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
         accelerator_count: 4
         disk_size_gb: 25
       docker:

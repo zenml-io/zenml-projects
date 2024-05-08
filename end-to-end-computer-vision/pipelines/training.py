@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def training(model_checkpoint: str = "yolov8l.pt"):
+def training_pipeline(model_checkpoint: str = "yolov8l.pt"):
     """Trains a model on a dataset.
 
     Args:
@@ -41,7 +41,3 @@ def training(model_checkpoint: str = "yolov8l.pt"):
         model=model,
         dataset=dataset,
     )
-
-    # promote_model(metrics)
-
-    # predict_image(trained_model)

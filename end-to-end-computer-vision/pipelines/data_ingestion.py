@@ -17,13 +17,13 @@
 from zenml import pipeline
 from zenml.logger import get_logger
 
-from steps.download_from_hf import download_dataset_from_hf
+from steps.process_hf_dataset import process_hf_dataset
 from steps.upload_to_label_studio import upload_labels_to_label_studio
 
 logger = get_logger(__name__)
 
 
 @pipeline
-def data_ingestion():
-    labels_dict = download_dataset_from_hf()
+def data_ingestion_pipeline():
+    labels_dict = process_hf_dataset()
     upload_labels_to_label_studio(labels_dict)

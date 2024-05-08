@@ -20,10 +20,10 @@ from ultralytics import YOLO
 from zenml import ArtifactConfig, log_artifact_metadata, step
 from zenml.logger import get_logger
 
-from materializers.label_studio_yolo_dataset_materializer import (
-    LabelStudioYOLODataset,
+from materializers.label_studio_export_materializer import (
+    LabelStudioAnnotationExport,
 )
-from materializers.yolo_materializer import UltralyticsMaterializer
+from materializers.ultralytics_materializer import UltralyticsMaterializer
 from utils.dataset_utils import load_and_split_data
 
 logger = get_logger(__name__)
@@ -35,7 +35,7 @@ logger = get_logger(__name__)
 )
 def train_model(
     model: YOLO,
-    dataset: LabelStudioYOLODataset,
+    dataset: LabelStudioAnnotationExport,
     data_source: str,
     epochs: int = 100,
     batch_size: int = 16,

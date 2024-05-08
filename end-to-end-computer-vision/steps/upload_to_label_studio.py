@@ -18,6 +18,9 @@ from typing import Any, Dict
 
 from zenml import step
 from zenml.client import Client
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @step
@@ -54,7 +57,9 @@ def upload_labels_to_label_studio(
 
     for task in tasks:
         filename = task["storage_filename"].split("/")[-1]
-
-        project.create_annotation(
-            task["id"], result=labels_dict[filename], ground_truth=True
-        )
+        try:
+            project.create_annotation(
+                task["id"], result=labels_dict[filename], ground_truth=True
+            )
+        except KeyError:
+            logger.info(f"No labels found for {filename}. Skipping ...")

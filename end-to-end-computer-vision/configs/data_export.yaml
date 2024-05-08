@@ -2,7 +2,7 @@ enable_cache: False
 
 # pipeline configuration
 parameters:
-  dataset_name: "ship_detection_gcp" # "ship_detection"
+  dataset_name: "ship_detection_gcp"  # This is the name of the dataset in label studio
 
 # Configuration of the Model Control Plane
 model:
