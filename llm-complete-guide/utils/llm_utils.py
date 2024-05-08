@@ -306,7 +306,7 @@ def get_topn_similar_docs(
 
     if include_metadata:
         cur.execute(
-            f"SELECT content, url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            f"SELECT content, url, parent_section FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
             (embedding_array,),
         )
     elif only_urls:
@@ -361,22 +361,34 @@ def get_embeddings(text):
 
 
 def rerank_documents(
-    query: str, documents: List[Tuple], reranker_model: str = "colbert"
-) -> List[str]:
+    query: str, documents: List[Tuple], reranker_model: str = "flashrank"
+) -> List[Tuple[str, str]]:
     """Reranks the given documents based on the given query.
 
     Args:
         query (str): The query to use for reranking.
         documents (List[Tuple]): The documents to rerank.
-        reranker_model (str, optional): The reranker model to use. Defaults to "colbert".
+        reranker_model (str, optional): The reranker model to use.
+            Defaults to "flashrank".
 
     Returns:
-        List[str]: The reranked content.
+        List[Tuple[str, str]]: A list of tuples containing
+            the reranked documents and their URLs.
     """
     ranker = Reranker(reranker_model)
-    docs_texts = [doc[0] for doc in documents]
+    docs_texts = [f"{doc[0]} PARENT SECTION: {doc[2]}" for doc in documents]
     results = ranker.rank(query=query, docs=docs_texts)
-    return [document.text for document in results.results]
+    # pair the texts with the original urls in `documents`
+    # `documents` is a tuple of (content, url)
+    # we want the urls to be returned
+    reranked_documents_and_urls = []
+    for result in results.results:
+        # content is a `rerankers` Result object
+        index_val = result.doc_id
+        doc_text = result.text
+        doc_url = documents[index_val][1]
+        reranked_documents_and_urls.append((doc_text, doc_url))
+    return reranked_documents_and_urls
 
 
 def process_input_with_retrieval(

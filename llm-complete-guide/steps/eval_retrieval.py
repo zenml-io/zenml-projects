@@ -15,10 +15,15 @@
 # limitations under the License.
 
 import logging
-from typing import Annotated
+from typing import Annotated, List, Tuple
 
 from datasets import load_dataset
-from utils.llm_utils import get_db_conn, get_embeddings, get_topn_similar_docs
+from utils.llm_utils import (
+    get_db_conn,
+    get_embeddings,
+    get_topn_similar_docs,
+    rerank_documents,
+)
 from zenml import step
 
 # Adjust logging settings as before
@@ -53,31 +58,51 @@ question_doc_pairs = [
 ]
 
 
-def query_similar_docs(question: str, url_ending: str) -> tuple:
+def query_similar_docs(
+    question: str,
+    url_ending: str,
+    use_reranking: bool = False,
+    returned_sample_size: int = 5,
+) -> Tuple[str, str, List[str]]:
     """Query similar documents for a given question and URL ending.
 
     Args:
         question: Question to query similar documents for.
         url_ending: URL ending to compare the retrieved documents against.
+        use_reranking: Whether to use reranking to improve retrieval.
+        returned_sample_size: Number of documents to return.
 
     Returns:
         Tuple containing the question, URL ending, and retrieved URLs.
     """
     embedded_question = get_embeddings(question)
     db_conn = get_db_conn()
-    top_similar_docs_urls = get_topn_similar_docs(
-        embedded_question, db_conn, n=5, only_urls=True
+    num_docs = 20 if use_reranking else returned_sample_size
+    # get (content, url) tuples for the top n similar documents
+    top_similar_docs = get_topn_similar_docs(
+        embedded_question, db_conn, n=num_docs, include_metadata=True
     )
-    urls = [url[0] for url in top_similar_docs_urls]  # Unpacking URLs
+
+    if use_reranking:
+        reranked_docs_and_urls = rerank_documents(question, top_similar_docs)[
+            :returned_sample_size
+        ]
+        urls = [doc[1] for doc in reranked_docs_and_urls]
+    else:
+        urls = [doc[1] for doc in top_similar_docs]  # Unpacking URLs
+
     return (question, url_ending, urls)
 
 
-def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
+def test_retrieved_docs_retrieve_best_url(
+    question_doc_pairs: list, use_reranking: bool = False
+) -> float:
     """Test if the retrieved documents contain the best URL ending.
 
     Args:
         question_doc_pairs: List of dictionaries containing questions and URL
-        endings.
+            endings.
+        use_reranking: Whether to use reranking to improve retrieval.
 
     Returns:
         The failure rate of the retrieval test.
@@ -87,7 +112,7 @@ def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
 
     for pair in question_doc_pairs:
         question, url_ending, urls = query_similar_docs(
-            pair["question"], pair["url_ending"]
+            pair["question"], pair["url_ending"], use_reranking
         )
         if all(url_ending not in url for url in urls):
             logging.error(
@@ -100,36 +125,61 @@ def test_retrieved_docs_retrieve_best_url(question_doc_pairs: list) -> float:
     return round(failure_rate, 2)
 
 
-@step
-def retrieval_evaluation_small() -> (
-    Annotated[float, "small_failure_rate_retrieval"]
-):
-    """Executes the retrieval evaluation step.
+def perform_small_retrieval_evaluation(use_reranking: bool) -> float:
+    """Helper function to perform the small retrieval evaluation.
+
+    Args:
+        use_reranking: Whether to use reranking in the retrieval process.
 
     Returns:
         The failure rate of the retrieval test.
     """
-    failure_rate = test_retrieved_docs_retrieve_best_url(question_doc_pairs)
-    logging.info(f"Retrieval failure rate: {failure_rate}%")
+    failure_rate = test_retrieved_docs_retrieve_best_url(
+        question_doc_pairs, use_reranking
+    )
+    logging.info(
+        f"Retrieval failure rate{' with reranking' if use_reranking else ''}: {failure_rate}%"
+    )
     return failure_rate
 
 
 @step
-def retrieval_evaluation_full(
-    sample_size: int = 50,
-) -> Annotated[float, "full_failure_rate_retrieval"]:
-    """Executes the retrieval evaluation step.
-
-    Args:
-        sample_size: Number of samples to use for the evaluation.
+def retrieval_evaluation_small() -> (
+    Annotated[float, "small_failure_rate_retrieval"]
+):
+    """Executes the retrieval evaluation step without reranking.
 
     Returns:
         The failure rate of the retrieval test.
     """
-    # Load the dataset from the Hugging Face Hub
-    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
+    return perform_small_retrieval_evaluation(use_reranking=False)
 
-    # Shuffle the dataset and select a random sample
+
+@step
+def retrieval_evaluation_small_with_reranking() -> (
+    Annotated[float, "small_failure_rate_retrieval_reranking"]
+):
+    """Executes the retrieval evaluation step with reranking.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    return perform_small_retrieval_evaluation(use_reranking=True)
+
+
+def perform_retrieval_evaluation(
+    sample_size: int, use_reranking: bool
+) -> float:
+    """Helper function to perform the retrieval evaluation.
+
+    Args:
+        sample_size: Number of samples to use for the evaluation.
+        use_reranking: Whether to use reranking in the retrieval process.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
     sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
 
     total_tests = len(sampled_dataset)
@@ -144,7 +194,7 @@ def retrieval_evaluation_full(
             -1
         ]  # Extract the URL ending from the filename
 
-        _, _, urls = query_similar_docs(question, url_ending)
+        _, _, urls = query_similar_docs(question, url_ending, use_reranking)
 
         if all(url_ending not in url for url in urls):
             logging.error(
@@ -155,3 +205,41 @@ def retrieval_evaluation_full(
     logging.info(f"Total tests: {total_tests}. Failures: {failures}")
     failure_rate = (failures / total_tests) * 100
     return round(failure_rate, 2)
+
+
+@step
+def retrieval_evaluation_full(
+    sample_size: int = 100,
+) -> Annotated[float, "full_failure_rate_retrieval"]:
+    """Executes the retrieval evaluation step without reranking.
+
+    Args:
+        sample_size: Number of samples to use for the evaluation.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    failure_rate = perform_retrieval_evaluation(
+        sample_size, use_reranking=False
+    )
+    logging.info(f"Retrieval failure rate: {failure_rate}%")
+    return failure_rate
+
+
+@step
+def retrieval_evaluation_full_with_reranking(
+    sample_size: int = 100,
+) -> Annotated[float, "full_failure_rate_retrieval_reranking"]:
+    """Executes the retrieval evaluation step with reranking.
+
+    Args:
+        sample_size: Number of samples to use for the evaluation.
+
+    Returns:
+        The failure rate of the retrieval test.
+    """
+    failure_rate = perform_retrieval_evaluation(
+        sample_size, use_reranking=True
+    )
+    logging.info(f"Retrieval failure rate with reranking: {failure_rate}%")
+    return failure_rate
