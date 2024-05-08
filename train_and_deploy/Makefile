@@ -20,5 +20,10 @@ install-local-stack:
 	zenml experiment-tracker register -f mlflow local_mlflow_tracker && \ 
 	zenml data-validator register -f evidently evidently_data_validator && \
 	zenml model-deployer register bentoml_deployer --flavor=bentoml && \
-	zenml stack register -a default -o default -e mlflow_local -dv evidently_local -d bentoml_deployer local_stack && \
+	zenml stack register -a default -o default -e local_mlflow_tracker -dv evidently_data_validator -d bentoml_deployer local_stack && \
 	zenml stack set local_stack
+
+
+
+
+evidently_data_validator
