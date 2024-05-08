@@ -1,0 +1,14 @@
+zenml[server]>=0.55.3
+notebook
+scikit-learn<1.3
+pyarrow
+seaborn
+xgboost
+ultralytics
+torch
+huggingface_hub>=0.20.0
+fiftyone
+datasets
+albumentations
+pillow>=10.*.*
+dill

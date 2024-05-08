@@ -1,0 +1,12 @@
+enable_cache: False
+
+# pipeline configuration
+parameters:
+  dataset_name: "ship_detection_gcp"  # This is the name of the dataset in label studio
+
+# Configuration of the Model Control Plane
+model:
+  name: ShipDetector
+  license: Apache 2.0
+  description: Object Detection Model.
+  tags: ["object detection"]
