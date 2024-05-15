@@ -41,7 +41,9 @@ def create_comparison_chart(
         A PIL Image object of the chart.
     """
     # Convert scores to percentages
-    print(f"pretrained_similarity: {pretrained_similarity}, finetuned_similarity: {finetuned_similarity}")
+    print(
+        f"pretrained_similarity: {pretrained_similarity}, finetuned_similarity: {finetuned_similarity}"
+    )
     scores_percent = [pretrained_similarity * 100, finetuned_similarity * 100]
 
     _, ax = plt.subplots(figsize=(10, 6))
