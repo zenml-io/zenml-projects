@@ -51,17 +51,3 @@ class TestResult(BaseModel):
     question: str
     keyword: str = ""
     response: str
-
-
-class InputExampleDataset(Dataset):
-    def __init__(self, examples):
-        self.examples = examples
-
-    def __len__(self):
-        return len(self.examples)
-
-    def __getitem__(self, idx):
-        if isinstance(idx, list):
-            return [self.__getitem__(i) for i in idx]
-        example = self.examples[idx]
-        return example.texts[0], example.texts[1]
