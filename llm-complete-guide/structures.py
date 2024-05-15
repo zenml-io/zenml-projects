@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
-from datasets.arrow_dataset import Dataset
 from pydantic import BaseModel
 from zenml.logger import get_logger
 

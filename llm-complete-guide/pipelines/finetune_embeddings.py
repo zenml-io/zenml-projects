@@ -23,7 +23,7 @@ from zenml import pipeline
 
 DATASET_NAME = "zenml/rag_qa_embedding_questions"
 MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
-NUM_EPOCHS = 3
+NUM_EPOCHS = 30
 WARMUP_STEPS = 0.1  # 10% of train data
 
 

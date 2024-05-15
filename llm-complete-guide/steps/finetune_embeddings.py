@@ -16,12 +16,14 @@
 
 from typing import Annotated, Any, Dict, List, Tuple
 
+import PIL
 import torch
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
+from utils.visualization_utils import create_comparison_chart
 from zenml import step
 from zenml.logger import get_logger
 
@@ -48,7 +50,7 @@ def load_datasets(
     return train_dataset, test_dataset
 
 
-@step
+@step(enable_step_logs=False)
 def train_model(
     train_dataset: Dataset,
     model_path: str,
@@ -121,20 +123,27 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     return question_texts, context_texts
 
 
-@step
+@step(enable_cache=False)
 def evaluate_model(
-    model: SentenceTransformer,
+    finetuned_model: SentenceTransformer,
     test_dataset: Dataset,
-) -> Annotated[float, "average_similarity"]:
-    """Evaluate the trained model on the test set.
+) -> Tuple[
+    Annotated[float, "pretrained_average_similarity"],
+    Annotated[float, "finetuned_average_similarity"],
+    Annotated[PIL.Image.Image, "comparison_plot"],
+]:
+    """Compare two models on the test set.
 
     Args:
-        model: The trained sentence transformer model.
+        finetuned_model: The finetuned sentence transformer model.
         test_dataset: The test dataset.
 
     Returns:
-        The average cosine similarity on the test set.
+        A tuple containing the average cosine similarity for each model on the
+        test set as well as an image visualising the comparison.
     """
+    pretrained_model = SentenceTransformer("all-MiniLM-L6-v2")
+
     test_dataloader = DataLoader(
         test_dataset,
         shuffle=False,
@@ -142,18 +151,44 @@ def evaluate_model(
         collate_fn=collate_fn,
     )
 
-    total_similarity = 0
+    finetuned_total_similarity = 0
+    pretrained_total_similarity = 0
     num_examples = 0
 
     for batch in test_dataloader:
         question_texts, context_texts = batch
-        question_embeddings = model.encode(question_texts)
-        content_embeddings = model.encode(context_texts)
-        similarity_scores = cosine_similarity(
-            question_embeddings, content_embeddings
+        question_embeddings_finetuned = finetuned_model.encode(question_texts)
+        content_embeddings_finetuned = finetuned_model.encode(context_texts)
+        question_embeddings_pretrained = pretrained_model.encode(
+            question_texts
         )
-        total_similarity += similarity_scores.diagonal().sum()
+        content_embeddings_pretrained = pretrained_model.encode(context_texts)
+
+        finetuned_similarity_scores = cosine_similarity(
+            question_embeddings_finetuned, content_embeddings_finetuned
+        )
+        pretrained_similarity_scores = cosine_similarity(
+            question_embeddings_pretrained, content_embeddings_pretrained
+        )
+
+        finetuned_total_similarity += (
+            finetuned_similarity_scores.diagonal().sum()
+        )
+        pretrained_total_similarity += (
+            pretrained_similarity_scores.diagonal().sum()
+        )
         num_examples += len(question_texts)
 
-    average_similarity = total_similarity / num_examples
-    return average_similarity
+    finetuned_average_similarity = finetuned_total_similarity / num_examples
+    pretrained_average_similarity = pretrained_total_similarity / num_examples
+
+    comparison_plot = create_comparison_chart(
+        ["Pretrained Model", "Finetuned Model"],
+        [pretrained_average_similarity, finetuned_average_similarity],
+    )
+
+    return (
+        finetuned_average_similarity,
+        pretrained_average_similarity,
+        comparison_plot,
+    )
