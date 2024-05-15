@@ -83,7 +83,11 @@ def evaluate_model(
         )
     else:
         logger.info("Generating using finetuned model...")
-        model = load_pretrained_model(ft_model_dir)
+        model = load_pretrained_model(
+            ft_model_dir,
+            load_in_4bit=load_in_4bit,
+            load_in_8bit=load_in_8bit,
+        )
 
     model.eval()
     with torch.no_grad():
