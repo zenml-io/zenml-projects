@@ -31,7 +31,12 @@ from typing import Optional
 import click
 from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
-from pipelines import generate_chunk_questions, llm_basic_rag, llm_eval
+from pipelines import (
+    finetune_embeddings,
+    generate_chunk_questions,
+    llm_basic_rag,
+    llm_eval,
+)
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -102,6 +107,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Uses a local LLM via Ollama.",
 )
+@click.option(
+    "--embeddings",
+    "embeddings",
+    is_flag=True,
+    default=False,
+    help="Fine-tunes embeddings.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -110,6 +122,7 @@ def main(
     no_cache: bool = False,
     synthetic: bool = False,
     local: bool = False,
+    embeddings: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -121,6 +134,7 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
+        embeddings (bool): If `True`, the embeddings will be fine-tuned.
     """
     pipeline_args = {"enable_cache": not no_cache}
 
@@ -134,6 +148,8 @@ def main(
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
         generate_chunk_questions.with_options(**pipeline_args)()
+    if embeddings:
+        finetune_embeddings.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":
