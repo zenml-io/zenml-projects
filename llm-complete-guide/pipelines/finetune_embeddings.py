@@ -15,8 +15,6 @@
 # limitations under the License.
 
 from steps.finetune_embeddings import (
-    create_test_examples,
-    create_train_examples,
     evaluate_model,
     load_datasets,
     train_model,
@@ -25,28 +23,20 @@ from zenml import pipeline
 
 DATASET_NAME = "zenml/rag_qa_embedding_questions"
 MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
-NUM_EPOCHS = 30
+NUM_EPOCHS = 3
 WARMUP_STEPS = 0.1  # 10% of train data
 
 
 @pipeline
 def finetune_embeddings() -> float:
-    """Fine-tunes embeddings and evaluates the model.
-
-    Returns:
-        The average cosine similarity on the test set.
-    """
+    """Fine-tunes embeddings and evaluates the model."""
     train_dataset, test_dataset = load_datasets(DATASET_NAME)
 
-    train_examples = create_train_examples(train_dataset)
-
     model = train_model(
-        train_examples,
+        train_dataset,
         model_path=MODEL_PATH,
         num_epochs=NUM_EPOCHS,
         warmup_steps=WARMUP_STEPS,
     )
 
-    test_examples = create_test_examples(test_dataset)
-
-    evaluate_model(model, test_examples)
+    evaluate_model(model, test_dataset)

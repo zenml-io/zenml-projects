@@ -13,12 +13,14 @@
 #  permissions and limitations under the License.
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
 from pydantic import BaseModel
-from sentence_transformers import InputExample
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -52,12 +54,14 @@ class TestResult(BaseModel):
 
 
 class InputExampleDataset(Dataset):
-    def __init__(self, examples: Dict[str, InputExample]):
-        self.examples = list(examples.values())
+    def __init__(self, examples):
+        self.examples = examples
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.examples)
 
-    def __getitem__(self, idx: int) -> List[str]:
+    def __getitem__(self, idx):
+        if isinstance(idx, list):
+            return [self.__getitem__(i) for i in idx]
         example = self.examples[idx]
-        return example.texts
+        return example.texts[0], example.texts[1]

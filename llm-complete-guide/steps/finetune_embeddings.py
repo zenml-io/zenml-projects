@@ -14,16 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Annotated, Dict, Tuple
+from typing import Annotated, Any, Dict, List, Tuple
 
 import torch
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
-from structures import InputExampleDataset
 from torch.utils.data import DataLoader
 from zenml import step
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @step
@@ -47,32 +49,8 @@ def load_datasets(
 
 
 @step
-def create_train_examples(
-    train_dataset: Dataset,
-) -> Annotated[Dict[str, InputExample], "train_examples"]:
-    """Create training examples from the train dataset.
-
-    Args:
-        train_dataset: The train dataset.
-
-    Returns:
-        A dictionary mapping example indices to InputExample objects.
-    """
-    train_examples = {}
-    train_data = train_dataset
-    n_examples = train_dataset.num_rows
-
-    for i in range(n_examples):
-        example = train_data[i]
-        train_examples[str(i)] = InputExample(
-            texts=[example["generated_questions"][0], example["page_content"]]
-        )
-    return train_examples
-
-
-@step
 def train_model(
-    train_examples: Dict[str, InputExample],
+    train_dataset: Dataset,
     model_path: str,
     num_epochs: int,
     warmup_steps: float,
@@ -88,6 +66,16 @@ def train_model(
     Returns:
         The trained sentence transformer model.
     """
+    train_examples = {}
+    train_data = train_dataset
+    n_examples = train_dataset.num_rows
+
+    for i in range(n_examples):
+        example = train_data[i]
+        train_examples[str(i)] = InputExample(
+            texts=[example["generated_questions"][0], example["page_content"]]
+        )
+
     num_train_steps = len(train_examples) * num_epochs
     warmup_steps = int(num_train_steps * warmup_steps)
 
@@ -116,55 +104,56 @@ def train_model(
     return model.module
 
 
-@step
-def create_test_examples(
-    test_dataset: Dataset,
-) -> Annotated[Dict[str, InputExample], "test_examples"]:
-    """Create test examples from the test dataset.
+def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
+    """
+    Custom collate function for the DataLoader.
 
     Args:
-        test_dataset: The test dataset.
+        batch: A list of examples from the dataset.
 
     Returns:
-        A dictionary mapping example indices to InputExample objects.
+        A tuple containing two lists:
+            - question_texts: A list of question texts.
+            - context_texts: A list of context texts.
     """
-    test_examples = {}
-    test_data = test_dataset
-    n_test_examples = test_dataset.num_rows
-
-    for i in range(n_test_examples):
-        example = test_data[i]
-        test_examples[str(i)] = InputExample(
-            texts=[example["generated_questions"][0], example["page_content"]]
-        )
-    return test_examples
+    question_texts = [example["generated_questions"][0] for example in batch]
+    context_texts = [example["page_content"] for example in batch]
+    return question_texts, context_texts
 
 
 @step
 def evaluate_model(
-    model: SentenceTransformer, test_examples: Dict[str, InputExample]
+    model: SentenceTransformer,
+    test_dataset: Dataset,
 ) -> Annotated[float, "average_similarity"]:
     """Evaluate the trained model on the test set.
 
     Args:
         model: The trained sentence transformer model.
-        test_examples: The test examples.
+        test_dataset: The test dataset.
 
     Returns:
         The average cosine similarity on the test set.
     """
-    test_dataset = InputExampleDataset(list(test_examples.values()))
-    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=32)
+    test_dataloader = DataLoader(
+        test_dataset,
+        shuffle=False,
+        batch_size=32,
+        collate_fn=collate_fn,
+    )
 
     total_similarity = 0
-    n_test_examples = len(test_examples)
+    num_examples = 0
+
     for batch in test_dataloader:
-        question_embeddings = model.encode(batch[0])
-        content_embeddings = model.encode(batch[1])
+        question_texts, context_texts = batch
+        question_embeddings = model.encode(question_texts)
+        content_embeddings = model.encode(context_texts)
         similarity_scores = cosine_similarity(
             question_embeddings, content_embeddings
         )
         total_similarity += similarity_scores.diagonal().sum()
+        num_examples += len(question_texts)
 
-    average_similarity = total_similarity / n_test_examples
+    average_similarity = total_similarity / num_examples
     return average_similarity
