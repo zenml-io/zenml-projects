@@ -44,6 +44,7 @@ def finetune_embeddings() -> float:
         train_examples,
         model_path=MODEL_PATH,
         num_epochs=NUM_EPOCHS,
+        warmup_steps=WARMUP_STEPS,
     )
 
     test_examples = create_test_examples(test_dataset)

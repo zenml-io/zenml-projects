@@ -16,6 +16,7 @@
 
 from typing import Annotated, Dict, Tuple
 
+import torch
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
@@ -71,9 +72,12 @@ def create_train_examples(
 
 @step
 def train_model(
-    train_examples: Dict[str, InputExample], model_path: str, num_epochs: int
+    train_examples: Dict[str, InputExample],
+    model_path: str,
+    num_epochs: int,
+    warmup_steps: float,
 ) -> Annotated[SentenceTransformer, "trained_model"]:
-    """Train the sentence transformer model.
+    """Train the sentence transformer model using multiple GPUs.
 
     Args:
         train_examples: The training examples.
@@ -87,18 +91,29 @@ def train_model(
     num_train_steps = len(train_examples) * num_epochs
     warmup_steps = int(num_train_steps * warmup_steps)
 
+    # Initialize the model
     model = SentenceTransformer(model_path)
+
+    # Get the number of available GPUs
+    num_gpus = torch.cuda.device_count()
+
+    if num_gpus > 1:
+        # Move the model to multiple GPUs
+        model = torch.nn.DataParallel(model)
+
     train_dataloader = DataLoader(
-        list(train_examples.values()), shuffle=True, batch_size=32
+        list(train_examples.values()), shuffle=True, batch_size=32 * num_gpus
     )
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
 
-    model.fit(
+    # Train the model using multiple GPUs
+    model.module.fit(
         train_objectives=[(train_dataloader, train_loss)],
         epochs=num_epochs,
         warmup_steps=warmup_steps,
     )
-    return model
+
+    return model.module
 
 
 @step
