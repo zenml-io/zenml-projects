@@ -26,25 +26,29 @@ logger = get_logger(__name__)
 
 
 def create_comparison_chart(
-    labels: List[str], scores: List[float]
+    labels: List[str],
+    pretrained_similarity: float,
+    finetuned_similarity: float,
 ) -> PIL.Image.Image:
-    """Create a horizontal bar chart for model comparison, with scores represented as percentages.
+    """Create a horizontal bar chart for model comparison, with pretrained and finetuned similarities represented as percentages.
 
     Args:
-        labels: A list of labels for the chart.
-        scores: A list of scores for each label, assumed to be in the range 0-1.
+        labels: A list of labels for the chart, specifically ["Pretrained", "Finetuned"].
+        pretrained_similarity: The similarity score for the pretrained model, assumed to be in the range 0-1.
+        finetuned_similarity: The similarity score for the finetuned model, assumed to be in the range 0-1.
 
     Returns:
         A PIL Image object of the chart.
     """
     # Convert scores to percentages
-    scores_percent = [score * 100 for score in scores]
+    print(f"pretrained_similarity: {pretrained_similarity}, finetuned_similarity: {finetuned_similarity}")
+    scores_percent = [pretrained_similarity * 100, finetuned_similarity * 100]
 
     _, ax = plt.subplots(figsize=(10, 6))
     y_pos = np.arange(len(labels))
 
-    # Define colors for each bar based on the label
-    colors = ["blue" if "Pretrained" in label else "red" for label in labels]
+    # Define colors for each bar
+    colors = ["blue", "red"]  # blue for Pretrained, red for Finetuned
 
     bars = ax.barh(y_pos, scores_percent, align="center", color=colors)
     ax.set_yticks(y_pos)

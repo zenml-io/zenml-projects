@@ -30,24 +30,55 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
+def is_code_or_log(text: str, threshold: float = 0.03) -> bool:
+    """Check if a text string contains a high proportion of special characters.
+
+    Determine if a given text string contains a high proportion of special characters typical of code or logs.
+
+    Args:
+        text (str): The text to analyze.
+        threshold (float): The proportion of special characters above which the text is considered code or logs.
+
+    Returns:
+        bool: True if the proportion of special characters in the text exceeds the threshold, otherwise False.
+    """
+    special_chars = set("{}[]()<>|&;*#$/")
+    count = sum(1 for char in text if char in special_chars)
+    return count / len(text) > threshold
+
+
 @step
 def load_datasets(
-    dataset_name: str,
+    dataset_name: str, threshold: float = 0.008
 ) -> Tuple[
     Annotated[Dataset, "train_dataset"],
     Annotated[Dataset, "test_dataset"],
 ]:
-    """Load the train and test datasets.
+    """Load and filter the train and test datasets to exclude entries likely to be code or logs.
 
     Args:
         dataset_name: The name of the dataset to load.
+        threshold: The threshold for determining if text is code or log.
 
     Returns:
-        A tuple containing the train and test datasets.
+        A tuple containing the filtered train and test datasets.
     """
     train_dataset = load_dataset(dataset_name, split="train")
     test_dataset = load_dataset(dataset_name, split="test")
-    return train_dataset, test_dataset
+    print("train_dataset_length_raw", len(train_dataset))
+    print("test_dataset_length_raw", len(test_dataset))
+
+    # Filter datasets to remove entries that are likely to be code or logs
+    filtered_train_dataset = train_dataset.filter(
+        lambda example, threshold=threshold: not is_code_or_log(example["page_content"], threshold)
+    )
+    filtered_test_dataset = test_dataset.filter(
+        lambda example, threshold=threshold: not is_code_or_log(example["page_content"], threshold)
+    )
+    print("filtered_train_dataset_length", len(filtered_train_dataset))
+    print("filtered_test_dataset_length", len(filtered_test_dataset))
+
+    return filtered_train_dataset, filtered_test_dataset
 
 
 @step(enable_step_logs=False)
@@ -92,7 +123,7 @@ def train_model(
         model = torch.nn.DataParallel(model)
 
     train_dataloader = DataLoader(
-        list(train_examples.values()), shuffle=True, batch_size=32 * num_gpus
+        list(train_examples.values()), shuffle=True, batch_size=45 * num_gpus
     )
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
 
@@ -186,11 +217,12 @@ def evaluate_model(
 
     comparison_plot = create_comparison_chart(
         ["Pretrained Model", "Finetuned Model"],
-        [pretrained_average_similarity, finetuned_average_similarity],
+        pretrained_similarity=pretrained_average_similarity,
+        finetuned_similarity=finetuned_average_similarity,
     )
 
     return (
-        finetuned_average_similarity,
         pretrained_average_similarity,
+        finetuned_average_similarity,
         comparison_plot,
     )
