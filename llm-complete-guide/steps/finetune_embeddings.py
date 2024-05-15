@@ -142,7 +142,9 @@ def evaluate_model(
         A tuple containing the average cosine similarity for each model on the
         test set as well as an image visualising the comparison.
     """
-    pretrained_model = SentenceTransformer("all-MiniLM-L6-v2")
+    pretrained_model = SentenceTransformer(
+        "embedding-data/distilroberta-base-sentence-transformer"
+    )
 
     test_dataloader = DataLoader(
         test_dataset,
