@@ -17,9 +17,11 @@
 from typing import Annotated, Dict, Tuple
 
 from datasets import load_dataset
+from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
-from torch.utils.data import DataLoader, Dataset
+from structures import InputExampleDataset
+from torch.utils.data import DataLoader
 from zenml import step
 
 
@@ -27,7 +29,8 @@ from zenml import step
 def load_datasets(
     dataset_name: str,
 ) -> Tuple[
-    Annotated[Dataset, "train_dataset"], Annotated[Dataset, "test_dataset"]
+    Annotated[Dataset, "train_dataset"],
+    Annotated[Dataset, "test_dataset"],
 ]:
     """Load the train and test datasets.
 
@@ -120,18 +123,6 @@ def create_test_examples(
             texts=[example["generated_questions"][0], example["page_content"]]
         )
     return test_examples
-
-
-class InputExampleDataset(Dataset):
-    def __init__(self, examples):
-        self.examples = examples
-
-    def __len__(self):
-        return len(self.examples)
-
-    def __getitem__(self, idx):
-        example = self.examples[idx]
-        return example.texts
 
 
 @step

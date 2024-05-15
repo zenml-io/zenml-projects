@@ -13,10 +13,12 @@
 #  permissions and limitations under the License.
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
+from datasets.arrow_dataset import Dataset
 from pydantic import BaseModel
+from sentence_transformers import InputExample
 
 
 @dataclass
@@ -47,3 +49,15 @@ class TestResult(BaseModel):
     question: str
     keyword: str = ""
     response: str
+
+
+class InputExampleDataset(Dataset):
+    def __init__(self, examples: Dict[str, InputExample]):
+        self.examples = list(examples.values())
+
+    def __len__(self) -> int:
+        return len(self.examples)
+
+    def __getitem__(self, idx: int) -> List[str]:
+        example = self.examples[idx]
+        return example.texts
