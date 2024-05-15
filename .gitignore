@@ -150,3 +150,5 @@ zencoder/cloned_public_repos
 llm-lora-finetuning/ckpt/
 llm-lora-finetuning/data_generation/
 llm-lora-finetuning/datagen/
+fiftyone-ls-demo/
+llm-lora-finetuning/mistral-zenml-finetune/
