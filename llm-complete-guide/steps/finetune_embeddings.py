@@ -230,3 +230,183 @@ def evaluate_model(
         finetuned_average_similarity,
         comparison_plot,
     )
+
+
+
+
+
+@step
+def dummy_load_datasets(
+    dataset_name: str, threshold: float = 0.004
+) -> Tuple[
+    Annotated[Dataset, "train_dataset"],
+    Annotated[Dataset, "test_dataset"],
+]:
+    """Load and filter the train and test datasets to exclude entries likely to be code or logs.
+
+    Args:
+        dataset_name: The name of the dataset to load.
+        threshold: The threshold for determining if text is code or log.
+
+    Returns:
+        A tuple containing the filtered train and test datasets.
+    """
+    full_dataset = load_dataset(dataset_name, split="train")
+    full_dataset = full_dataset.shuffle()
+    
+    train_test_split = 0.7
+    train_size = int(len(full_dataset) * train_test_split)
+    
+    train_dataset = full_dataset.select(range(train_size))
+    test_dataset = full_dataset.select(range(train_size, len(full_dataset)))
+    
+    return train_dataset, test_dataset
+
+
+@step(enable_step_logs=False)
+def dummy_train_model(
+    train_dataset: Dataset,
+    model_path: str,
+    num_epochs: int,
+    warmup_steps: float,
+) -> Annotated[SentenceTransformer, "trained_model"]:
+    """Train the sentence transformer model using multiple GPUs.
+
+    Args:
+        train_dataset: The training dataset.
+        model_path: The path to the pre-trained model.
+        num_epochs: The number of training epochs.
+        warmup_steps: The number of warmup steps.
+
+    Returns:
+        The trained sentence transformer model.
+    """
+    # Initialize the model
+    model = SentenceTransformer(model_path)
+
+    train_examples = []
+    train_data = train_dataset['set']
+    n_examples = len(train_dataset)
+
+    for i in range(n_examples):
+        example = train_data[i]
+        train_examples.append(InputExample(texts=[example[0], example[1]]))
+
+    train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=64)
+    train_loss = losses.MultipleNegativesRankingLoss(model=model)
+
+    num_train_steps = len(train_dataloader) * num_epochs
+    warmup_steps = int(num_train_steps * warmup_steps)
+
+    # Train the model 
+    model.fit(train_objectives=[(train_dataloader, train_loss)],
+              epochs=num_epochs,
+              warmup_steps=warmup_steps)
+
+    return model
+
+
+def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
+    """
+    Custom collate function for the DataLoader.
+
+    Args:
+        batch: A list of examples from the dataset.
+
+    Returns:
+        A tuple containing two lists:
+            - question_texts: A list of question texts.
+            - context_texts: A list of context texts.
+    """
+    question_texts = [example["generated_questions"][0] for example in batch]
+    context_texts = [example["page_content"] for example in batch]
+    return question_texts, context_texts
+
+def dummy_collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
+    """
+    Custom collate function for the DataLoader.
+
+    Args:
+        batch: A list of examples from the dataset.
+
+    Returns:
+        A tuple containing two lists:
+            - question_texts: A list of question texts.
+            - context_texts: A list of context texts.
+    """
+    question_texts = [example["set"][0] for example in batch]
+    context_texts = [example["set"][1] for example in batch]
+    return question_texts, context_texts
+
+
+@step(enable_cache=False)
+def dummy_evaluate_model(
+    finetuned_model: SentenceTransformer,
+    comparison_model: str,
+    test_dataset: Dataset,
+) -> Tuple[
+    Annotated[float, "pretrained_average_similarity"],
+    Annotated[float, "finetuned_average_similarity"],
+    Annotated[PIL.Image.Image, "comparison_plot"],
+]:
+    """Compare two models on the test set.
+
+    Args:
+        finetuned_model: The finetuned sentence transformer model.
+        test_dataset: The test dataset.
+
+    Returns:
+        A tuple containing the average cosine similarity for each model on the
+        test set as well as an image visualising the comparison.
+    """
+    pretrained_model = SentenceTransformer(comparison_model)
+
+    test_dataloader = DataLoader(
+        test_dataset,
+        shuffle=False,
+        batch_size=32,
+        collate_fn=dummy_collate_fn,
+    )
+
+    finetuned_total_similarity = 0
+    pretrained_total_similarity = 0
+    num_examples = 0
+
+    for batch in test_dataloader:
+        question_texts, context_texts = batch
+        question_embeddings_finetuned = finetuned_model.encode(question_texts)
+        content_embeddings_finetuned = finetuned_model.encode(context_texts)
+        question_embeddings_pretrained = pretrained_model.encode(
+            question_texts
+        )
+        content_embeddings_pretrained = pretrained_model.encode(context_texts)
+
+        finetuned_similarity_scores = cosine_similarity(
+            question_embeddings_finetuned, content_embeddings_finetuned
+        )
+        pretrained_similarity_scores = cosine_similarity(
+            question_embeddings_pretrained, content_embeddings_pretrained
+        )
+
+        finetuned_total_similarity += (
+            finetuned_similarity_scores.diagonal().sum()
+        )
+        pretrained_total_similarity += (
+            pretrained_similarity_scores.diagonal().sum()
+        )
+        num_examples += len(question_texts)
+
+    finetuned_average_similarity = finetuned_total_similarity / num_examples
+    pretrained_average_similarity = pretrained_total_similarity / num_examples
+
+    comparison_plot = create_comparison_chart(
+        ["Pretrained Model", "Finetuned Model"],
+        pretrained_similarity=pretrained_average_similarity,
+        finetuned_similarity=finetuned_average_similarity,
+    )
+
+    return (
+        pretrained_average_similarity,
+        finetuned_average_similarity,
+        comparison_plot,
+    )

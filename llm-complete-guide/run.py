@@ -37,6 +37,7 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
 )
+from pipelines.finetune_embeddings import dummy_finetune_embeddings
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -114,6 +115,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Fine-tunes embeddings.",
 )
+@click.option(
+    "--dummyembeddings",
+    "dummyembeddings",
+    is_flag=True,
+    default=False,
+    help="Fine-tunes embeddings.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -123,6 +131,7 @@ def main(
     synthetic: bool = False,
     local: bool = False,
     embeddings: bool = False,
+    dummyembeddings: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -150,6 +159,8 @@ def main(
         generate_chunk_questions.with_options(**pipeline_args)()
     if embeddings:
         finetune_embeddings.with_options(**pipeline_args)()
+    if dummyembeddings:
+        dummy_finetune_embeddings.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":
