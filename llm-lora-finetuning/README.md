@@ -17,7 +17,7 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🌎 Inspiration and Credit
 
-This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) by the amazing people at Huggingface and the [`mistralai/Mistral-7B-v0.1`](https://huggingface.co/mistralai/Mistral-7B-v0.1) model from the amazing people at MistralAI.
+This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) by the amazing people at Huggingface and the [`microsoft/phi-2`](https://huggingface.co/microsoft/phi-2) model from the amazing people at Microsoft.
 
 ## 🏃 How to run
 
@@ -34,10 +34,10 @@ pip install -r requirements.txt
 
 ### 👷 Combined feature engineering and finetuning pipeline
 
-The easiest way to get started with just a single command is to run the finetuning pipeline with the `default_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
+The easiest way to get started with just a single command is to run the finetuning pipeline with the `orchestrator_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
 
 ```shell
-python run.py --config default_finetune.yaml
+python run.py --config orchestrator_finetune.yaml
 ```
 
 When running the pipeline like this, the trained model will be stored in the ZenML artifact store.
@@ -72,7 +72,7 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ```
 .
 ├── configs                         # pipeline configuration files
-│   ├── default_finetune.yaml       # default local configuration (or remote orchestrator)
+│   ├── orchestrator_finetune.yaml  # default local or remote orchestrator
 │   └── remote_finetune.yaml        # default step operator configuration
 ├── materializers
 │   └── directory_materializer.py   # custom materializer to push whole directories to the artifact store and back

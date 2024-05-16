@@ -27,6 +27,8 @@ from utils.logging import print_trainable_parameters
 def load_base_model(
     base_model_id: str,
     is_training: bool = True,
+    load_in_8bit: bool = False,
+    load_in_4bit: bool = False,
 ) -> Any:
     """Load the base model.
 
@@ -35,12 +37,15 @@ def load_base_model(
         is_training: Whether the model should be prepared for training or not.
             If True, the Lora parameters will be enabled and PEFT will be
             applied.
+        load_in_8bit: Whether to load the model in 8-bit mode.
+        load_in_4bit: Whether to load the model in 4-bit mode.
 
     Returns:
         The base model.
     """
     bnb_config = BitsAndBytesConfig(
-        load_in_8bit=True,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -78,17 +83,24 @@ def load_base_model(
     return model
 
 
-def load_pretrained_model(ft_model_dir: Path) -> AutoModelForCausalLM:
+def load_pretrained_model(
+    ft_model_dir: Path,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
+) -> AutoModelForCausalLM:
     """Load the finetuned model saved in the output directory.
 
     Args:
         ft_model_dir: The path to the finetuned model directory.
+        load_in_4bit: Whether to load the model in 4-bit mode.
+        load_in_8bit: Whether to load the model in 8-bit mode.
 
     Returns:
         The finetuned model.
     """
     bnb_config = BitsAndBytesConfig(
-        load_in_8bit=True,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,

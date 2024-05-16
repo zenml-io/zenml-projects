@@ -26,18 +26,23 @@ model:
 
 settings:
   docker:
-    parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
+    parent_image: pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
     requirements: requirements.txt
     python_package_installer: uv
+    environment:
+      PJRT_DEVICE: CUDA
+      USE_TORCH_XLA: "false"
+      MKL_SERVICE_FORCE_INTEL: "1"
 
 parameters:
   base_model_id: microsoft/phi-2
-  system_prompt: |
-    Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
-    This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
-    The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
   use_fast: False
   load_in_4bit: True
+  system_prompt: |
+      Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
+      This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
+      The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
+      
 
 steps:
   prepare_data:

@@ -48,6 +48,10 @@ def finetune(
     per_device_train_batch_size: int = 2,
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
+    bf16: bool = True,
+    use_fast: bool = True,
+    load_in_4bit: bool = False,
+    load_in_8bit: bool = False,
 ) -> Annotated[Path, "ft_model_dir"]:
     """Finetune the model using PEFT.
 
@@ -68,6 +72,10 @@ def finetune(
         per_device_train_batch_size: The batch size to use for training.
         gradient_accumulation_steps: The number of gradient accumulation steps.
         warmup_steps: The number of warmup steps.
+        bf16: Whether to use bf16.
+        use_fast: Whether to use the fast tokenizer.
+        load_in_4bit: Whether to load the model in 4bit mode.
+        load_in_8bit: Whether to load the model in 8bit mode.
 
     Returns:
         The path to the finetuned model directory.
@@ -78,12 +86,16 @@ def finetune(
     output_dir = "./" + run_name
 
     logger.info("Loading datasets...")
-    tokenizer = load_tokenizer(base_model_id)
+    tokenizer = load_tokenizer(base_model_id, use_fast=use_fast)
     tokenized_train_dataset = load_from_disk(dataset_dir / "train")
     tokenized_val_dataset = load_from_disk(dataset_dir / "val")
 
     logger.info("Loading base model...")
-    model = load_base_model(base_model_id)
+    model = load_base_model(
+        base_model_id,
+        load_in_4bit=load_in_4bit,
+        load_in_8bit=load_in_8bit,
+    )
 
     trainer = transformers.Trainer(
         model=model,
@@ -98,7 +110,7 @@ def finetune(
             max_steps=max_steps,
             learning_rate=lr,
             logging_steps=logging_steps,
-            bf16=True,
+            bf16=bf16,
             optim=optimizer,
             logging_dir="./logs",
             save_strategy="steps",

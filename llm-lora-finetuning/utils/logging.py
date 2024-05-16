@@ -16,12 +16,13 @@
 #
 
 from typing import Any
+
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def print_trainable_parameters(model:Any):
+def print_trainable_parameters(model: Any):
     """Prints the number of trainable parameters in the model."""
     trainable_params = 0
     all_param = 0

@@ -28,6 +28,7 @@ from zenml import get_step_context
 
 class ZenMLCallback(TrainerCallback):
     """Callback that logs metrics to ZenML."""
+
     def on_evaluate(
         self,
         args: TrainingArguments,
