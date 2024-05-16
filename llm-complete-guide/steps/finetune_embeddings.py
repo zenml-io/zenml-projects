@@ -82,7 +82,8 @@ def load_datasets(
     print("filtered_train_dataset_length", len(filtered_train_dataset))
     print("filtered_test_dataset_length", len(filtered_test_dataset))
 
-    return filtered_train_dataset, filtered_test_dataset
+    # return filtered_train_dataset, filtered_test_dataset
+    return train_dataset, test_dataset
 
 
 @step(enable_step_logs=False)
@@ -304,23 +305,6 @@ def dummy_train_model(
               warmup_steps=warmup_steps)
 
     return model
-
-
-def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
-    """
-    Custom collate function for the DataLoader.
-
-    Args:
-        batch: A list of examples from the dataset.
-
-    Returns:
-        A tuple containing two lists:
-            - question_texts: A list of question texts.
-            - context_texts: A list of context texts.
-    """
-    question_texts = [example["generated_questions"][0] for example in batch]
-    context_texts = [example["page_content"] for example in batch]
-    return question_texts, context_texts
 
 def dummy_collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     """
