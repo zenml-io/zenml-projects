@@ -3,7 +3,7 @@ torch>=2.2.0
 datasets<=2.18
 transformers
 peft
-bitsandbytes==0.41.0
+bitsandbytes==0.41.3
 scipy
 evaluate
 rouge_score
