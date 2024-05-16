@@ -49,7 +49,7 @@ def is_code_or_log(text: str, threshold: float = 0.03) -> bool:
 
 @step
 def load_datasets(
-    dataset_name: str, threshold: float = 0.008
+    dataset_name: str, threshold: float = 0.004
 ) -> Tuple[
     Annotated[Dataset, "train_dataset"],
     Annotated[Dataset, "test_dataset"],
@@ -70,10 +70,14 @@ def load_datasets(
 
     # Filter datasets to remove entries that are likely to be code or logs
     filtered_train_dataset = train_dataset.filter(
-        lambda example, threshold=threshold: not is_code_or_log(example["page_content"], threshold)
+        lambda example, threshold=threshold: not is_code_or_log(
+            example["page_content"], threshold
+        )
     )
     filtered_test_dataset = test_dataset.filter(
-        lambda example, threshold=threshold: not is_code_or_log(example["page_content"], threshold)
+        lambda example, threshold=threshold: not is_code_or_log(
+            example["page_content"], threshold
+        )
     )
     print("filtered_train_dataset_length", len(filtered_train_dataset))
     print("filtered_test_dataset_length", len(filtered_test_dataset))
@@ -106,6 +110,7 @@ def train_model(
     for i in range(n_examples):
         example = train_data[i]
         train_examples[str(i)] = InputExample(
+            #
             texts=[example["generated_questions"][0], example["page_content"]]
         )
 
@@ -123,7 +128,7 @@ def train_model(
         model = torch.nn.DataParallel(model)
 
     train_dataloader = DataLoader(
-        list(train_examples.values()), shuffle=True, batch_size=45 * num_gpus
+        list(train_examples.values()), shuffle=True, batch_size=80 * num_gpus
     )
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
 
@@ -157,6 +162,7 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
 @step(enable_cache=False)
 def evaluate_model(
     finetuned_model: SentenceTransformer,
+    comparison_model: str,
     test_dataset: Dataset,
 ) -> Tuple[
     Annotated[float, "pretrained_average_similarity"],
@@ -173,9 +179,7 @@ def evaluate_model(
         A tuple containing the average cosine similarity for each model on the
         test set as well as an image visualising the comparison.
     """
-    pretrained_model = SentenceTransformer(
-        "embedding-data/distilroberta-base-sentence-transformer"
-    )
+    pretrained_model = SentenceTransformer(comparison_model)
 
     test_dataloader = DataLoader(
         test_dataset,

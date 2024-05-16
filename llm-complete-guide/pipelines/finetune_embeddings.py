@@ -22,7 +22,7 @@ from steps.finetune_embeddings import (
 from zenml import pipeline
 
 DATASET_NAME = "zenml/rag_qa_embedding_questions"
-MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
+MODEL_PATH = "all-MiniLM-L6-v2"
 NUM_EPOCHS = 30
 WARMUP_STEPS = 0.1  # 10% of train data
 
@@ -39,4 +39,4 @@ def finetune_embeddings() -> float:
         warmup_steps=WARMUP_STEPS,
     )
 
-    evaluate_model(model, test_dataset)
+    evaluate_model(model, MODEL_PATH, test_dataset)
