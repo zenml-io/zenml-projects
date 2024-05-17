@@ -15,7 +15,7 @@ def preprocess_markdown_texts(markdown_texts: pl.DataFrame) -> pl.DataFrame:
     markdown_texts = markdown_texts.with_columns(
         pl.col("page_content")
         .str.replace_all(r"!\[.*\]\(.*\)", "")
-        .alias("content")
+        .alias("page_content")
     )
     markdown_texts = markdown_texts.with_columns(
         pl.col("page_content")

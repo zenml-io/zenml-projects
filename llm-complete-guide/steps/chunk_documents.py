@@ -35,7 +35,7 @@ def chunk_documents(
 ) -> pl.DataFrame:
     """Chunk documents."""
     documents: List[Document] = [
-        Document(filename=row["filename"], page_content=row["content"])
+        Document(filename=row["filename"], page_content=row["page_content"])
         for row in docs_df.to_dicts()
     ]
     if chunking_method == "default":
