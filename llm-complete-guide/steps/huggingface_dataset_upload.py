@@ -33,6 +33,5 @@ def upload_chunks_dataset_to_huggingface(
         repo_id=repo_name,
         private=True,
         token=hf_token,
-        create_pr=True,
     )
     return repo_name

@@ -59,7 +59,7 @@ def generate_questions(
 
     assert all(doc.generated_questions for doc in documents)
 
-    return pl.DataFrame(
+    final_df = pl.DataFrame(
         {
             "filename": [doc.filename for doc in documents],
             "page_content": [doc.page_content for doc in documents],
@@ -68,3 +68,4 @@ def generate_questions(
             ],
         }
     )
+    return final_df

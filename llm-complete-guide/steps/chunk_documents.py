@@ -38,23 +38,27 @@ def chunk_documents(
         Document(filename=row["filename"], page_content=row["page_content"])
         for row in docs_df.to_dicts()
     ]
-    if chunking_method == "default":
-        return split_and_return_docs(
-            documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
-        )
-    elif chunking_method == "split-by-document":
-        return docs_df
-    elif chunking_method == "split_by_header":
-        return pl.DataFrame()
-    elif chunking_method == "chunk_size_1000":
-        return split_and_return_docs(
-            documents, chunk_size=1000, chunk_overlap=100
-        )
-    elif chunking_method == "chunk_size_500":
-        return split_and_return_docs(
-            documents, chunk_size=500, chunk_overlap=50
-        )
-    elif chunking_method == "chunk_size_4000":
-        return split_and_return_docs(
-            documents, chunk_size=4000, chunk_overlap=400
-        )
+
+    match chunking_method:
+        case "default":
+            return split_and_return_docs(
+                documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
+            )
+        case "split-by-document":
+            return docs_df
+        case "split_by_header":
+            return pl.DataFrame()
+        case "chunk_size_1000":
+            return split_and_return_docs(
+                documents, chunk_size=1000, chunk_overlap=100
+            )
+        case "chunk_size_500":
+            return split_and_return_docs(
+                documents, chunk_size=500, chunk_overlap=50
+            )
+        case "chunk_size_4000":
+            return split_and_return_docs(
+                documents, chunk_size=4000, chunk_overlap=400
+            )
+        case _:
+            raise ValueError(f"Unknown chunking method: {chunking_method}")

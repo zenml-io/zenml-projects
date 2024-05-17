@@ -11,6 +11,7 @@ pandas
 numpy
 sentence-transformers
 litellm
+ollama
 tiktoken
 umap-learn
 matplotlib

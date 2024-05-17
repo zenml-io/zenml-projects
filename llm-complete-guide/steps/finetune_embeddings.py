@@ -18,7 +18,7 @@ from typing import Annotated, Any, Dict, List, Tuple
 
 import PIL
 import torch
-from datasets import load_dataset
+from datasets import DownloadMode, load_dataset
 from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
@@ -63,7 +63,9 @@ def load_datasets(
     Returns:
         A tuple containing the filtered train and test datasets.
     """
-    full_dataset = load_dataset(dataset_name)
+    full_dataset = load_dataset(
+        dataset_name, download_mode=DownloadMode.FORCE_REDOWNLOAD
+    )
 
     # Assuming the dataset has a 'train' split, access it from the DatasetDict
     train_dataset = full_dataset["train"]
@@ -134,7 +136,6 @@ def train_model(
 
     for i in range(n_examples):
         example = train_data[i]
-        breakpoint()
         train_examples[str(i)] = InputExample(
             #
             texts=[
