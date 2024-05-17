@@ -112,7 +112,7 @@ def train_model(
         example = train_data[i]
         train_examples[str(i)] = InputExample(
             #
-            texts=[example["generated_questions"][0], example["page_content"]]
+            texts=[example["page_content"], example["generated_questions"][0]]
         )
 
     num_train_steps = len(train_examples) * num_epochs
@@ -174,14 +174,14 @@ def evaluate_model(
 
     Args:
         finetuned_model: The finetuned sentence transformer model.
-        test_dataset: The test dataset.
+        comparison_model: The path to the pretrained model.
+        test_dataset: The dataset used for testing.
 
     Returns:
         A tuple containing the average cosine similarity for each model on the
         test set as well as an image visualising the comparison.
     """
     pretrained_model = SentenceTransformer(comparison_model)
-
     test_dataloader = DataLoader(
         test_dataset,
         shuffle=False,
@@ -189,51 +189,96 @@ def evaluate_model(
         collate_fn=collate_fn,
     )
 
+    finetuned_avg_sim, pretrained_avg_sim = calculate_average_similarities(
+        test_dataloader, finetuned_model, pretrained_model
+    )
+
+    comparison_plot = create_comparison_chart(
+        ["Pretrained Model", "Finetuned Model"],
+        pretrained_similarity=pretrained_avg_sim,
+        finetuned_similarity=finetuned_avg_sim,
+    )
+
+    return (
+        pretrained_avg_sim,
+        finetuned_avg_sim,
+        comparison_plot,
+    )
+
+
+def calculate_average_similarities(
+    dataloader: DataLoader,
+    finetuned_model: SentenceTransformer,
+    pretrained_model: SentenceTransformer,
+) -> Tuple[float, float]:
+    """Calculate average cosine similarities for both models across all batches.
+
+    Args:
+        dataloader: DataLoader containing the test dataset.
+        finetuned_model: The finetuned sentence transformer model.
+        pretrained_model: The pretrained sentence transformer model.
+
+    Returns:
+        A tuple of average similarities for the finetuned and pretrained models.
+    """
     finetuned_total_similarity = 0
     pretrained_total_similarity = 0
     num_examples = 0
 
-    for batch in test_dataloader:
+    for batch in dataloader:
         question_texts, context_texts = batch
-        question_embeddings_finetuned = finetuned_model.encode(question_texts)
-        content_embeddings_finetuned = finetuned_model.encode(context_texts)
-        question_embeddings_pretrained = pretrained_model.encode(
-            question_texts
-        )
-        content_embeddings_pretrained = pretrained_model.encode(context_texts)
-
-        finetuned_similarity_scores = cosine_similarity(
-            question_embeddings_finetuned, content_embeddings_finetuned
-        )
-        pretrained_similarity_scores = cosine_similarity(
-            question_embeddings_pretrained, content_embeddings_pretrained
+        finetuned_sim_scores, pretrained_sim_scores = (
+            calculate_batch_similarities(
+                question_texts,
+                context_texts,
+                finetuned_model,
+                pretrained_model,
+            )
         )
 
-        finetuned_total_similarity += (
-            finetuned_similarity_scores.diagonal().sum()
-        )
-        pretrained_total_similarity += (
-            pretrained_similarity_scores.diagonal().sum()
-        )
+        finetuned_total_similarity += finetuned_sim_scores
+        pretrained_total_similarity += pretrained_sim_scores
         num_examples += len(question_texts)
 
     finetuned_average_similarity = finetuned_total_similarity / num_examples
     pretrained_average_similarity = pretrained_total_similarity / num_examples
 
-    comparison_plot = create_comparison_chart(
-        ["Pretrained Model", "Finetuned Model"],
-        pretrained_similarity=pretrained_average_similarity,
-        finetuned_similarity=finetuned_average_similarity,
+    return finetuned_average_similarity, pretrained_average_similarity
+
+
+def calculate_batch_similarities(
+    question_texts: List[str],
+    context_texts: List[str],
+    finetuned_model: SentenceTransformer,
+    pretrained_model: SentenceTransformer,
+) -> Tuple[float, float]:
+    """Calculate cosine similarities for a single batch for both models.
+
+    Args:
+        question_texts: List of question texts from the batch.
+        context_texts: List of context texts from the batch.
+        finetuned_model: The finetuned sentence transformer model.
+        pretrained_model: The pretrained sentence transformer model.
+
+    Returns:
+        A tuple of summed diagonal similarity scores for the finetuned and pretrained models.
+    """
+    finetuned_question_embeddings = finetuned_model.encode(question_texts)
+    finetuned_content_embeddings = finetuned_model.encode(context_texts)
+    pretrained_question_embeddings = pretrained_model.encode(question_texts)
+    pretrained_content_embeddings = pretrained_model.encode(context_texts)
+
+    finetuned_similarity_scores = cosine_similarity(
+        finetuned_question_embeddings, finetuned_content_embeddings
+    )
+    pretrained_similarity_scores = cosine_similarity(
+        pretrained_question_embeddings, pretrained_content_embeddings
     )
 
     return (
-        pretrained_average_similarity,
-        finetuned_average_similarity,
-        comparison_plot,
+        finetuned_similarity_scores.diagonal().sum(),
+        pretrained_similarity_scores.diagonal().sum(),
     )
-
-
-
 
 
 @step
@@ -254,13 +299,13 @@ def dummy_load_datasets(
     """
     full_dataset = load_dataset(dataset_name, split="train")
     full_dataset = full_dataset.shuffle()
-    
+
     train_test_split = 0.7
     train_size = int(len(full_dataset) * train_test_split)
-    
+
     train_dataset = full_dataset.select(range(train_size))
     test_dataset = full_dataset.select(range(train_size, len(full_dataset)))
-    
+
     return train_dataset, test_dataset
 
 
@@ -286,7 +331,7 @@ def dummy_train_model(
     model = SentenceTransformer(model_path)
 
     train_examples = []
-    train_data = train_dataset['set']
+    train_data = train_dataset["set"]
     n_examples = len(train_dataset)
 
     for i in range(n_examples):
@@ -299,14 +344,19 @@ def dummy_train_model(
     num_train_steps = len(train_dataloader) * num_epochs
     warmup_steps = int(num_train_steps * warmup_steps)
 
-    # Train the model 
-    model.fit(train_objectives=[(train_dataloader, train_loss)],
-              epochs=num_epochs,
-              warmup_steps=warmup_steps)
+    # Train the model
+    model.fit(
+        train_objectives=[(train_dataloader, train_loss)],
+        epochs=num_epochs,
+        warmup_steps=warmup_steps,
+    )
 
     return model
 
-def dummy_collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
+
+def dummy_collate_fn(
+    batch: List[Dict[str, Any]],
+) -> Tuple[List[str], List[str]]:
     """
     Custom collate function for the DataLoader.
 

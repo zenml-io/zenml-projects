@@ -15,12 +15,12 @@
 # limitations under the License.
 
 from steps.finetune_embeddings import (
-    evaluate_model,
-    load_datasets,
-    train_model,
     dummy_evaluate_model,
     dummy_load_datasets,
     dummy_train_model,
+    evaluate_model,
+    load_datasets,
+    train_model,
 )
 from zenml import pipeline
 
@@ -33,6 +33,7 @@ DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
 # DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
 DUMMY_MODEL_PATH = "all-MiniLM-L6-v2"
 DUMMY_EPOCHS = 10
+
 
 @pipeline
 def finetune_embeddings() -> float:
@@ -47,6 +48,7 @@ def finetune_embeddings() -> float:
     )
 
     evaluate_model(model, MODEL_PATH, test_dataset)
+
 
 # TODO: FOR TESTING ONLY (remove after)
 @pipeline
