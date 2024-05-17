@@ -47,7 +47,7 @@ def is_code_or_log(text: str, threshold: float = 0.03) -> bool:
     return count / len(text) > threshold
 
 
-@step
+@step(enable_cache=False)
 def load_datasets(
     dataset_name: str, threshold: float = 0.004
 ) -> Tuple[
@@ -63,27 +63,51 @@ def load_datasets(
     Returns:
         A tuple containing the filtered train and test datasets.
     """
-    train_dataset = load_dataset(dataset_name, split="train")
-    test_dataset = load_dataset(dataset_name, split="test")
+    full_dataset = load_dataset(dataset_name)
+
+    # Assuming the dataset has a 'train' split, access it from the DatasetDict
+    train_dataset = full_dataset["train"]
+
+    # Split the train dataset into train and test
+    train_test_split = train_dataset.train_test_split(test_size=0.3)
+    train_dataset = train_test_split["train"]
+    test_dataset = train_test_split["test"]
+
     print("train_dataset_length_raw", len(train_dataset))
     print("test_dataset_length_raw", len(test_dataset))
 
-    # Filter datasets to remove entries that are likely to be code or logs
-    filtered_train_dataset = train_dataset.filter(
-        lambda example, threshold=threshold: not is_code_or_log(
-            example["page_content"], threshold
-        )
-    )
-    filtered_test_dataset = test_dataset.filter(
-        lambda example, threshold=threshold: not is_code_or_log(
-            example["page_content"], threshold
-        )
-    )
-    print("filtered_train_dataset_length", len(filtered_train_dataset))
-    print("filtered_test_dataset_length", len(filtered_test_dataset))
-
-    # return filtered_train_dataset, filtered_test_dataset
     return train_dataset, test_dataset
+    # full_dataset = load_dataset(dataset_name)
+    # # split the dataset into 70/30 train and test
+    # # the splits don't exist in the dataset already
+    # # so we have to do this manually
+    # train_size = int(0.7 * len(full_dataset))
+    # test_size = len(full_dataset) - train_size
+    # train_dataset, test_dataset = full_dataset.train_test_split(
+    #     test_size=test_size, train_size=train_size
+    # )
+
+    # # train_dataset = load_dataset(dataset_name, split="train")
+    # # test_dataset = load_dataset(dataset_name, split="test")
+    # print("train_dataset_length_raw", len(train_dataset))
+    # print("test_dataset_length_raw", len(test_dataset))
+
+    # # # Filter datasets to remove entries that are likely to be code or logs
+    # # filtered_train_dataset = train_dataset.filter(
+    # #     lambda example, threshold=threshold: not is_code_or_log(
+    # #         example["page_content"], threshold
+    # #     )
+    # # )
+    # # filtered_test_dataset = test_dataset.filter(
+    # #     lambda example, threshold=threshold: not is_code_or_log(
+    # #         example["page_content"], threshold
+    # #     )
+    # # )
+    # # print("filtered_train_dataset_length", len(filtered_train_dataset))
+    # # print("filtered_test_dataset_length", len(filtered_test_dataset))
+
+    # # return filtered_train_dataset, filtered_test_dataset
+    # return train_dataset, test_dataset
 
 
 @step(enable_step_logs=False)
@@ -110,9 +134,13 @@ def train_model(
 
     for i in range(n_examples):
         example = train_data[i]
+        breakpoint()
         train_examples[str(i)] = InputExample(
             #
-            texts=[example["page_content"], example["generated_questions"][0]]
+            texts=[
+                example["page_content"],
+                example["generated_questions"].split("\n")[0],
+            ]
         )
 
     num_train_steps = len(train_examples) * num_epochs
