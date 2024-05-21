@@ -1,7 +1,9 @@
 from typing import List
 
 import polars as pl
+import time
 from litellm import completion
+from litellm.exceptions import Timeout
 from structures import Document
 from zenml import step
 
@@ -19,17 +21,28 @@ def generate_question(chunk: str, local: bool = False) -> str:
         Generated question.
     """
     model = LOCAL_MODEL if local else "gpt-4o"
-    response = completion(
-        model=model,
-        messages=[
-            {
-                "content": f"This is some text from ZenML's documentation. Please generate a question that can be asked about this text: `{chunk}`",
-                "role": "user",
-            }
-        ],
-        api_base="http://localhost:11434" if local else None,
-    )
-    return response.choices[0].message.content
+    max_retries = 3
+    retry_delay = 5
+    
+    for attempt in range(max_retries):
+        try:
+            response = completion(
+                model=model,
+                messages=[
+                    {
+                        "content": f"This is some text from ZenML's documentation. Please generate a question that can be asked about this text: `{chunk}`",
+                        "role": "user",
+                    }
+                ],
+                api_base="http://localhost:11434" if local else None,
+            )
+            return response.choices[0].message.content
+        except Timeout as e:
+            if attempt < max_retries - 1:
+                print(f"Error generating question (attempt {attempt + 1}/{max_retries}): {e}, retrying in {retry_delay} seconds")
+                time.sleep(retry_delay)
+            else:
+                raise e
 
 
 @step
