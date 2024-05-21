@@ -112,6 +112,23 @@ def load_datasets(
     # return train_dataset, test_dataset
 
 
+def create_input_examples(train_data: Dataset) -> List[InputExample]:
+    """Create InputExample instances for each page_content and generated_question pair.
+
+    Args:
+        train_data: The training dataset.
+
+    Returns:
+        A list of InputExample instances.
+    """
+    input_examples = []
+    for example in train_data:
+        page_content = example["page_content"]
+        for question in example["generated_questions"]:
+            input_examples.append(InputExample(texts=[page_content, question]))
+    return input_examples
+
+
 @step(enable_step_logs=False)
 def train_model(
     train_dataset: Dataset,
@@ -122,7 +139,7 @@ def train_model(
     """Train the sentence transformer model using multiple GPUs.
 
     Args:
-        train_examples: The training examples.
+        train_dataset: The training dataset.
         model_path: The path to the pre-trained model.
         num_epochs: The number of training epochs.
         warmup_steps: The number of warmup steps.
@@ -130,19 +147,7 @@ def train_model(
     Returns:
         The trained sentence transformer model.
     """
-    train_examples = {}
-    train_data = train_dataset
-    n_examples = train_dataset.num_rows
-
-    for i in range(n_examples):
-        example = train_data[i]
-        train_examples[str(i)] = InputExample(
-            #
-            texts=[
-                example["page_content"],
-                example["generated_questions"].split("\n")[0],
-            ]
-        )
+    train_examples = create_input_examples(train_dataset)
 
     num_train_steps = len(train_examples) * num_epochs
     warmup_steps = int(num_train_steps * warmup_steps)
@@ -158,7 +163,7 @@ def train_model(
         model = torch.nn.DataParallel(model)
 
     train_dataloader = DataLoader(
-        list(train_examples.values()), shuffle=True, batch_size=80 * num_gpus
+        train_examples, shuffle=True, batch_size=80 * num_gpus
     )
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
 
