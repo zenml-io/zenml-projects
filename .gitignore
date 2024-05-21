@@ -152,3 +152,6 @@ llm-lora-finetuning/data_generation/
 llm-lora-finetuning/datagen/
 fiftyone-ls-demo/
 llm-lora-finetuning/mistral-zenml-finetune/
+
+# ollama ignores
+nohup.out
