@@ -83,7 +83,7 @@ def chunking_experiment() -> float:
         processed_docs, chunking_method=CHUNKING_METHOD
     )
     chunks_with_questions = generate_questions(
-        chunked_docs, local=True, num_generations=1
+        chunked_docs, local=True, num_generations=3
     )
     dataset_name = upload_chunks_dataset_to_huggingface(
         chunks_with_questions, CHUNKING_METHOD
