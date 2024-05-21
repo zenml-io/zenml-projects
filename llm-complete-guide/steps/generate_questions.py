@@ -1,29 +1,32 @@
+import time
 from typing import List
 
 import polars as pl
-import time
 from litellm import completion
 from litellm.exceptions import Timeout
+from rich import print
 from structures import Document
 from zenml import step
 
 LOCAL_MODEL = "ollama/mixtral"
 
 
-def generate_question(chunk: str, local: bool = False) -> str:
+def generate_question(
+    chunk: str, local: bool = False, max_retries: int = 3, retry_delay: int = 5
+) -> str:
     """Generate a question from a chunk.
 
     Args:
         chunk: Text chunk to generate a question from.
         local: Whether to use a local model.
+        max_retries: Maximum number of retries.
+        retry_delay: Delay in seconds between retries.
 
     Returns:
         Generated question.
     """
     model = LOCAL_MODEL if local else "gpt-4o"
-    max_retries = 3
-    retry_delay = 5
-    
+
     for attempt in range(max_retries):
         try:
             response = completion(
@@ -39,7 +42,9 @@ def generate_question(chunk: str, local: bool = False) -> str:
             return response.choices[0].message.content
         except Timeout as e:
             if attempt < max_retries - 1:
-                print(f"Error generating question (attempt {attempt + 1}/{max_retries}): {e}, retrying in {retry_delay} seconds")
+                print(
+                    f"Error generating question (attempt {attempt + 1}/{max_retries}): {e}, retrying in {retry_delay} seconds"
+                )
                 time.sleep(retry_delay)
             else:
                 raise e
