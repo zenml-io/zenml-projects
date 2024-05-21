@@ -47,7 +47,7 @@ def is_code_or_log(text: str, threshold: float = 0.03) -> bool:
     return count / len(text) > threshold
 
 
-@step(enable_cache=False)
+@step
 def load_datasets(
     dataset_name: str, threshold: float = 0.004
 ) -> Tuple[
@@ -124,7 +124,7 @@ def create_input_examples(train_data: Dataset) -> List[InputExample]:
     input_examples = []
     for example in train_data:
         page_content = example["page_content"]
-        for question in example["generated_questions"]:
+        for question in example["generated_questions"].split("\n"):
             input_examples.append(InputExample(texts=[page_content, question]))
     return input_examples
 
