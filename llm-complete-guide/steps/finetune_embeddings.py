@@ -191,6 +191,7 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     """
     question_texts = [example["generated_questions"][0] for example in batch]
     context_texts = [example["page_content"] for example in batch]
+    breakpoint()
     return question_texts, context_texts
 
 
@@ -199,6 +200,7 @@ def evaluate_model(
     finetuned_model: SentenceTransformer,
     comparison_model: str,
     test_dataset: Dataset,
+    num_generations: int,
 ) -> Tuple[
     Annotated[float, "pretrained_average_similarity"],
     Annotated[float, "finetuned_average_similarity"],
@@ -261,6 +263,7 @@ def calculate_average_similarities(
 
     for batch in dataloader:
         question_texts, context_texts = batch
+        breakpoint()
         finetuned_sim_scores, pretrained_sim_scores = (
             calculate_batch_similarities(
                 question_texts,

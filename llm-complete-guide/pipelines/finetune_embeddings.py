@@ -36,6 +36,7 @@ DATASET_NAME = f"zenml/rag_qa_embedding_questions_{CHUNKING_METHOD}"
 MODEL_PATH = "all-MiniLM-L6-v2"
 NUM_EPOCHS = 30
 WARMUP_STEPS = 0.1  # 10% of train data
+NUM_GENERATIONS = 3
 
 DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
 # DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
@@ -83,7 +84,7 @@ def chunking_experiment() -> float:
         processed_docs, chunking_method=CHUNKING_METHOD
     )
     chunks_with_questions = generate_questions(
-        chunked_docs, local=True, num_generations=3
+        chunked_docs, local=True, num_generations=NUM_GENERATIONS
     )
     dataset_name = upload_chunks_dataset_to_huggingface(
         chunks_with_questions, CHUNKING_METHOD
@@ -97,4 +98,6 @@ def chunking_experiment() -> float:
         warmup_steps=WARMUP_STEPS,
     )
 
-    evaluate_model(model, MODEL_PATH, test_dataset)
+    evaluate_model(
+        model, MODEL_PATH, test_dataset, num_generations=NUM_GENERATIONS
+    )
