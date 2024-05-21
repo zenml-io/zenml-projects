@@ -3,7 +3,7 @@ from typing import List
 
 import polars as pl
 from litellm import completion
-from litellm.exceptions import Timeout, APIConnectionError
+from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
 from zenml import step
