@@ -3,7 +3,7 @@ from typing import List
 
 import polars as pl
 from litellm import completion
-from litellm.exceptions import Timeout
+from litellm.exceptions import Timeout, APIConnectionError
 from rich import print
 from structures import Document
 from zenml import step
@@ -25,7 +25,7 @@ def generate_question(
     Returns:
         Generated question.
     """
-    model = LOCAL_MODEL if local else "gpt-4o"
+    model = LOCAL_MODEL if local else "gpt-4-turbo"
 
     for attempt in range(max_retries):
         try:
@@ -40,7 +40,7 @@ def generate_question(
                 api_base="http://localhost:11434" if local else None,
             )
             return response.choices[0].message.content
-        except Timeout as e:
+        except (Timeout, APIConnectionError) as e:
             if attempt < max_retries - 1:
                 print(
                     f"Error generating question (attempt {attempt + 1}/{max_retries}): {e}, retrying in {retry_delay} seconds"
