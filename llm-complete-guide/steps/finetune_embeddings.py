@@ -173,7 +173,7 @@ def train_model(
         model = torch.nn.DataParallel(model)
 
     train_dataloader = DataLoader(
-        train_examples, shuffle=True, batch_size=80 * num_gpus
+        train_examples, shuffle=True, batch_size=40 * num_gpus
     )
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
 
