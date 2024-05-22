@@ -2,7 +2,7 @@ import os
 import tempfile
 
 import polars as pl
-from zenml import step
+from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -45,6 +45,16 @@ def load_markdown_files(
                 f"Subfolder '{subfolder}' not found in the cloned repository."
             )
 
+    log_artifact_metadata(
+        artifact_name="markdown_files",
+        metadata={
+            "row_count": len(markdown_files),
+            "columns": ["filename", "page_content"],
+            "repo_url": git_repo_url,
+            "subfolder": subfolder,
+            "repo_temp_dir": temp_dir,
+        },
+    )
     # return a polars DataFrame that includes columns for the filename and the
     # content of the markdown file
     return pl.DataFrame(

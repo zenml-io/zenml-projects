@@ -7,7 +7,7 @@ from constants import (
 )
 from structures import Document
 from utils.llm_utils import split_documents
-from zenml import step
+from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -121,6 +121,14 @@ def chunk_documents(
     num_docs_after_chunking = len(chunked_docs)
     logger.info(
         f"Number of documents after chunking: {num_docs_after_chunking}"
+    )
+    log_artifact_metadata(
+        artifact_name="chunked_documents",
+        metadata={
+            "before_chunking_count": num_docs_before_chunking,
+            "after_chunking_count": num_docs_after_chunking,
+            "chunking_method": chunking_method,
+        },
     )
 
     return chunked_docs

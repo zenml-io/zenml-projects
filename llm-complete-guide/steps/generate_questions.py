@@ -6,7 +6,7 @@ from litellm import completion
 from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
-from zenml import step
+from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -92,4 +92,15 @@ def generate_questions(
     logger.info(
         f"Generated {len(final_df)} questions for {len(documents)} documents."
     )
+
+    log_artifact_metadata(
+        artifact_name="generated_questions",
+        metadata={
+            "num_documents": len(documents),
+            "num_questions_generated": len(final_df),
+            "generations_per_document": num_generations,
+            "local_generation": local,
+        },
+    )
+
     return final_df

@@ -24,7 +24,7 @@ from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from utils.visualization_utils import create_comparison_chart
-from zenml import step
+from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -77,6 +77,15 @@ def load_datasets(
 
     print("train_dataset_length_raw", len(train_dataset))
     print("test_dataset_length_raw", len(test_dataset))
+
+    log_artifact_metadata(
+        artifact_name="train_dataset",
+        metadata={"row_count": len(train_dataset)},
+    )
+    log_artifact_metadata(
+        artifact_name="test_dataset",
+        metadata={"row_count": len(test_dataset)},
+    )
 
     return train_dataset, test_dataset
     # full_dataset = load_dataset(dataset_name)
@@ -174,6 +183,19 @@ def train_model(
         warmup_steps=warmup_steps,
     )
 
+    log_artifact_metadata(
+        artifact_name="trained_model",
+        metadata={
+            "model_path": model_path,
+            "num_epochs": num_epochs,
+            "warmup_steps": warmup_steps,
+            "num_train_steps": num_train_steps,
+            "num_gpus": num_gpus,
+            "batch_size": 80 * num_gpus,
+            "shuffle": True,
+        },
+    )
+
     return model.module
 
 
@@ -233,6 +255,23 @@ def evaluate_model(
         ["Pretrained Model", "Finetuned Model"],
         pretrained_similarity=pretrained_avg_sim,
         finetuned_similarity=finetuned_avg_sim,
+    )
+
+    log_artifact_metadata(
+        artifact_name="evaluation_results",
+        metadata={
+            "pretrained_average_similarity": {
+                "value": pretrained_avg_sim,
+                "unit": "cosine similarity",
+            },
+            "finetuned_average_similarity": {
+                "value": finetuned_avg_sim,
+                "unit": "cosine similarity",
+            },
+            "num_generations": num_generations,
+            "comparison_model": comparison_model,
+            "len_test_dataset": len(test_dataset),
+        },
     )
 
     return (
