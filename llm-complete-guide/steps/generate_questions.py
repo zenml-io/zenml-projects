@@ -70,12 +70,16 @@ def generate_questions(
         Document(filename=row["filename"], page_content=row["page_content"])
         for row in docs_df.to_dicts()
     ]
+    logger.info("Generating questions for all documents...")
+    logger.info(f"Number of documents: {len(documents)}")
 
-    for doc in documents:
+    for i, doc in enumerate(documents, start=1):
         doc.generated_questions = [
             generate_question(doc.page_content, local)
             for _ in range(num_generations)
         ]
+        if i % 100 == 0:
+            logger.info(f"Generated questions for {i}/{len(documents)} documents")
 
     assert all(doc.generated_questions for doc in documents)
 
