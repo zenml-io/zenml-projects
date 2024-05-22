@@ -54,14 +54,19 @@ def generate_question(
 
 @step
 def generate_questions(
-    docs_df: pl.DataFrame, local: bool = False, num_generations: int = 3
+    docs_df: pl.DataFrame,
+    local: bool = False,
+    num_generations: int = 3,
+    logging_frequency: int = 50,
 ) -> Annotated[pl.DataFrame, "generated_questions"]:
     """Generates questions from a list of documents.
 
     Args:
         docs_df: DataFrame containing document data.
         local: Whether to use a local model.
-        num_generations: Number of questions to generate per document. Default is 3.
+        num_generations: Number of questions to generate per document.
+            Default is 3.
+        logging_frequency: Frequency of logging. Default is 50.
 
     Returns:
         DataFrame with generated questions added.
@@ -73,13 +78,27 @@ def generate_questions(
     logger.info("Generating questions for all documents...")
     logger.info(f"Number of documents: {len(documents)}")
 
+    start_time = time.time()
+
     for i, doc in enumerate(documents, start=1):
         doc.generated_questions = [
             generate_question(doc.page_content, local)
             for _ in range(num_generations)
         ]
-        if i % 100 == 0:
-            logger.info(f"Generated questions for {i}/{len(documents)} documents")
+        if i % logging_frequency == 0:
+            elapsed_time = time.time() - start_time
+            docs_processed = i
+            docs_remaining = len(documents) - i
+            time_per_doc = elapsed_time / docs_processed
+            estimated_remaining_time = docs_remaining * time_per_doc
+
+            logger.info(
+                f"Generated questions for {i}/{len(documents)} documents"
+            )
+            logger.info(f"Elapsed time: {elapsed_time:.2f} seconds")
+            logger.info(
+                f"Estimated remaining time: {estimated_remaining_time:.2f} seconds ({estimated_remaining_time/3600:.2f} hours)"
+            )
 
     assert all(doc.generated_questions for doc in documents)
 
