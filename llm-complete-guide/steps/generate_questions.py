@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import Annotated, List
 
 import polars as pl
 from litellm import completion
@@ -55,7 +55,7 @@ def generate_question(
 @step
 def generate_questions(
     docs_df: pl.DataFrame, local: bool = False, num_generations: int = 3
-) -> pl.DataFrame:
+) -> Annotated[pl.DataFrame, "generated_questions"]:
     """Generates questions from a list of documents.
 
     Args:

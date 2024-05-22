@@ -1,4 +1,4 @@
-from typing import List
+from typing import Annotated, List
 
 import polars as pl
 from constants import (
@@ -84,7 +84,7 @@ def split_by_header(documents: List[Document]) -> pl.DataFrame:
 @step
 def chunk_documents(
     docs_df: pl.DataFrame, chunking_method: str = "default"
-) -> pl.DataFrame:
+) -> Annotated[pl.DataFrame, "chunked_documents"]:
     """
     Chunk documents into smaller pieces based on the specified chunking method.
 

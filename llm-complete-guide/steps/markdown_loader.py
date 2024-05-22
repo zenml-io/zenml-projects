@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Annotated
 
 import polars as pl
 from zenml import log_artifact_metadata, step
@@ -12,7 +13,7 @@ logger = get_logger(__name__)
 def load_markdown_files(
     git_repo_url: str = "https://github.com/zenml-io/zenml",
     subfolder: str = "docs",
-) -> pl.DataFrame:
+) -> Annotated[pl.DataFrame, "markdown_files"]:
     """Loads markdown files from a given git repository URL."""
     with tempfile.TemporaryDirectory() as temp_dir:
         # clone the repository (top level of main branch only) into a temporary directory
