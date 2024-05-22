@@ -121,7 +121,7 @@ def generate_questions(
 
             logger.info(
                 f"Estimated completion time: {estimated_completion_time}, "
-                f"Rate for last 100 documents: {rate_last_100:.2f} docs/min"
+                f"Generation rate for last 100 documents: {rate_last_100:.2f} docs/min"
             )
 
     assert all(doc.generated_questions for doc in documents)
