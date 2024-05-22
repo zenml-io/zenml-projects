@@ -39,11 +39,12 @@ MODEL_NAME_MAP = {
 # CHUNKING_METHOD = "split-by-document"
 CHUNKING_METHOD = "split-by-header"
 DATASET_NAME = f"zenml/rag_qa_embedding_questions_{CHUNKING_METHOD}"
-MODEL_PATH = "all-MiniLM-L6-v2"
+# MODEL_PATH = "all-MiniLM-L6-v2"
+MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
 NUM_EPOCHS = 30
 WARMUP_STEPS = 0.1  # 10% of train data
 NUM_GENERATIONS = 3
-EVAL_BATCH_SIZE = 128
+EVAL_BATCH_SIZE = 64
 
 DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
 # DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
