@@ -27,15 +27,19 @@ def generate_question(
     Returns:
         Generated question.
     """
-    model = LOCAL_MODEL if local else "gpt-4-turbo"
+    # skip if the chunk is too short
+    if len(chunk) < 50:
+        return ""
+    model = LOCAL_MODEL if local else "gpt-3.5-turbo"
 
     for attempt in range(max_retries):
         try:
             response = completion(
                 model=model,
+                temperature=1.2,
                 messages=[
                     {
-                        "content": f"This is some text from ZenML's documentation. Please generate a question that can be asked about this text: `{chunk}`",
+                        "content": f"Here is a chunk of text from some documentation: <chunk>{chunk}</chunk>. Please read this text carefully. Think about what kinds of questions that a user of ZenML would ask where the chunk itself would contain the information needed to answer the question. Now, please generate a single question that can be answered using only the information provided in the chunk of text. Only output this question and nothing else.",
                         "role": "user",
                     }
                 ],

@@ -105,10 +105,11 @@ def chunk_documents(
     Raises:
         ValueError: If an unknown chunking method is provided.
     """
+    # TODO: REMOVE THE LIMITATION ON THE NUMBER OF DOCUMENTS
     documents: List[Document] = [
         Document(filename=row["filename"], page_content=row["page_content"])
         for row in docs_df.to_dicts()
-    ]
+    ][0:70]
 
     logger.info(f"Chunking documents using method: {chunking_method}")
     num_docs_before_chunking = len(documents)

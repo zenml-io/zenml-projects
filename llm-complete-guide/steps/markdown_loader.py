@@ -3,6 +3,7 @@ import tempfile
 from typing import Annotated
 
 import polars as pl
+from constants import FILES_TO_IGNORE
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
@@ -12,7 +13,7 @@ logger = get_logger(__name__)
 @step
 def load_markdown_files(
     git_repo_url: str = "https://github.com/zenml-io/zenml",
-    subfolder: str = "docs",
+    subfolder: str = "docs/book",
 ) -> Annotated[pl.DataFrame, "markdown_files"]:
     """Loads markdown files from a given git repository URL."""
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -29,7 +30,7 @@ def load_markdown_files(
         if os.path.exists(subfolder_path):
             for root, dirs, files in os.walk(subfolder_path):
                 for file in files:
-                    if file.endswith(".md"):
+                    if file.endswith(".md") and file not in FILES_TO_IGNORE:
                         file_path = os.path.join(root, file)
                         with open(file_path, "r") as f:
                             file_contents = f.read()

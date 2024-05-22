@@ -133,9 +133,12 @@ def create_input_examples(train_data: Dataset) -> List[InputExample]:
     """
     input_examples = []
     for example in train_data:
-        page_content = example["page_content"]
-        for question in example["generated_questions"].split("\n"):
-            input_examples.append(InputExample(texts=[page_content, question]))
+        if len(example["page_content"]) > 50:
+            page_content = example["page_content"]
+            for question in example["generated_questions"].split("\n"):
+                input_examples.append(
+                    InputExample(texts=[page_content, question])
+                )
     return input_examples
 
 
@@ -215,10 +218,11 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     question_texts = []
     context_texts = []
     for example in batch:
-        generated_questions = example["generated_questions"]
-        for question in generated_questions:
-            question_texts.append(question)
-            context_texts.append(example["page_content"])
+        if len(example["page_content"]) > 50:
+            generated_questions = example["generated_questions"].split("\n")
+            for question in generated_questions:
+                question_texts.append(question)
+                context_texts.append(example["page_content"])
 
     return question_texts, context_texts
 
@@ -251,6 +255,7 @@ def evaluate_model(
     logger.info("Loading the pretrained model and test data.")
 
     pretrained_model = SentenceTransformer(comparison_model)
+
     # Utilize multiple GPUs
     if torch.cuda.device_count() > 1:
         finetuned_model = torch.nn.DataParallel(finetuned_model)

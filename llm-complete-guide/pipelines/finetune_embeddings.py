@@ -15,11 +15,15 @@
 # limitations under the License.
 
 from constants import (
+    CHUNKING_METHOD,
     DATASET_NAME,
     MODEL_PATH,
     NUM_EPOCHS,
     NUM_GENERATIONS,
     WARMUP_STEPS,
+)
+from steps.chunk_documents import (
+    chunk_documents,
 )
 from steps.finetune_embeddings import (
     # dummy_evaluate_model,
@@ -29,6 +33,12 @@ from steps.finetune_embeddings import (
     load_datasets,
     train_model,
 )
+from steps.generate_questions import generate_questions
+from steps.huggingface_dataset_upload import (
+    upload_chunks_dataset_to_huggingface,
+)
+from steps.markdown_loader import load_markdown_files
+from steps.preprocess_markdown import preprocess_markdown_texts
 from zenml import pipeline
 
 
@@ -66,18 +76,18 @@ def finetune_embeddings() -> float:
 @pipeline
 def chunking_experiment() -> float:
     """Chunking experiments."""
-    # markdown_texts = load_markdown_files()
-    # processed_docs = preprocess_markdown_texts(markdown_texts)
-    # chunked_docs = chunk_documents(
-    #     processed_docs, chunking_method=CHUNKING_METHOD
-    # )
-    # chunks_with_questions = generate_questions(
-    #     chunked_docs, local=True, num_generations=NUM_GENERATIONS
-    # )
-    # dataset_name = upload_chunks_dataset_to_huggingface(
-    #     chunks_with_questions, CHUNKING_METHOD
-    # )
-    train_dataset, test_dataset = load_datasets(DATASET_NAME)
+    markdown_texts = load_markdown_files()
+    processed_docs = preprocess_markdown_texts(markdown_texts)
+    chunked_docs = chunk_documents(
+        processed_docs, chunking_method=CHUNKING_METHOD
+    )
+    chunks_with_questions = generate_questions(
+        chunked_docs, local=False, num_generations=NUM_GENERATIONS
+    )
+    dataset_name = upload_chunks_dataset_to_huggingface(
+        chunks_with_questions, CHUNKING_METHOD
+    )
+    train_dataset, test_dataset = load_datasets(dataset_name)
 
     model = train_model(
         train_dataset,
