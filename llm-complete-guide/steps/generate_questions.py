@@ -96,8 +96,20 @@ def generate_questions(
                 f"Generated questions for {i}/{len(documents)} documents"
             )
             logger.info(f"Elapsed time: {elapsed_time:.2f} seconds")
+            remaining_hours = int(estimated_remaining_time // 3600)
+            remaining_minutes = int((estimated_remaining_time % 3600) // 60)
             logger.info(
-                f"Estimated remaining time: {estimated_remaining_time:.2f} seconds ({estimated_remaining_time/3600:.2f} hours)"
+                f"Estimated remaining time: {estimated_remaining_time:.2f} seconds ({remaining_hours}h {remaining_minutes}m)"
+            )
+        if i % 200 == 0:
+            estimated_completion_time = time.strftime(
+                "%H:%M",
+                time.localtime(
+                    start_time + elapsed_time + estimated_remaining_time
+                ),
+            )
+            logger.info(
+                f"Estimated completion time: {estimated_completion_time}"
             )
 
     assert all(doc.generated_questions for doc in documents)
