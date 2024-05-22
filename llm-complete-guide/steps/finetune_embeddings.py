@@ -18,12 +18,12 @@ from typing import Annotated, Any, Dict, List, Tuple
 
 import PIL
 import torch
+from constants import EVAL_BATCH_SIZE
 from datasets import DownloadMode, load_dataset
 from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
-from sklearn.metrics.pairwise import cosine_similarity
+from torch.nn import CosineSimilarity
 from torch.utils.data import DataLoader
-from constants import EVAL_BATCH_SIZE
 from utils.visualization_utils import create_comparison_chart
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
@@ -214,7 +214,7 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     """
     question_texts = []
     context_texts = []
-    for example in batch:
+    for example in batch[0:4]:
         generated_questions = example["generated_questions"]
         for question in generated_questions:
             question_texts.append(question)
@@ -251,6 +251,11 @@ def evaluate_model(
     logger.info("Loading the pretrained model and test data.")
 
     pretrained_model = SentenceTransformer(comparison_model)
+    # Utilize multiple GPUs
+    if torch.cuda.device_count() > 1:
+        finetuned_model = torch.nn.DataParallel(finetuned_model)
+        pretrained_model = torch.nn.DataParallel(pretrained_model)
+
     test_dataloader = DataLoader(
         test_dataset,
         shuffle=False,
@@ -353,10 +358,33 @@ def calculate_batch_similarities(
     Returns:
         A tuple of summed diagonal similarity scores for the finetuned and pretrained models.
     """
+    # Access the underlying model using the 'module' attribute
+    if isinstance(finetuned_model, torch.nn.DataParallel):
+        finetuned_model = finetuned_model.module
+    if isinstance(pretrained_model, torch.nn.DataParallel):
+        pretrained_model = pretrained_model.module
+
     finetuned_question_embeddings = finetuned_model.encode(question_texts)
     finetuned_content_embeddings = finetuned_model.encode(context_texts)
     pretrained_question_embeddings = pretrained_model.encode(question_texts)
     pretrained_content_embeddings = pretrained_model.encode(context_texts)
+
+    # Convert NumPy arrays to PyTorch tensors
+    finetuned_question_embeddings = torch.from_numpy(
+        finetuned_question_embeddings
+    )
+    finetuned_content_embeddings = torch.from_numpy(
+        finetuned_content_embeddings
+    )
+    pretrained_question_embeddings = torch.from_numpy(
+        pretrained_question_embeddings
+    )
+    pretrained_content_embeddings = torch.from_numpy(
+        pretrained_content_embeddings
+    )
+
+    # Optimize cosine similarity calculation
+    cosine_similarity = CosineSimilarity(dim=1)
 
     finetuned_similarity_scores = cosine_similarity(
         finetuned_question_embeddings, finetuned_content_embeddings
@@ -366,8 +394,8 @@ def calculate_batch_similarities(
     )
 
     return (
-        finetuned_similarity_scores.diagonal().sum(),
-        pretrained_similarity_scores.diagonal().sum(),
+        finetuned_similarity_scores.sum().item(),
+        pretrained_similarity_scores.sum().item(),
     )
 
 

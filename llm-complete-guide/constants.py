@@ -43,7 +43,7 @@ MODEL_PATH = "all-MiniLM-L6-v2"
 NUM_EPOCHS = 30
 WARMUP_STEPS = 0.1  # 10% of train data
 NUM_GENERATIONS = 3
-EVAL_BATCH_SIZE = 32
+EVAL_BATCH_SIZE = 64
 
 DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
 # DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
