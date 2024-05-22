@@ -214,7 +214,7 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
     """
     question_texts = []
     context_texts = []
-    for example in batch[0:4]:
+    for example in batch:
         generated_questions = example["generated_questions"]
         for question in generated_questions:
             question_texts.append(question)
