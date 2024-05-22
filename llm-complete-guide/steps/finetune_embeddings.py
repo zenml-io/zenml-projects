@@ -23,6 +23,7 @@ from datasets.arrow_dataset import Dataset
 from sentence_transformers import InputExample, SentenceTransformer, losses
 from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
+from constants import EVAL_BATCH_SIZE
 from utils.visualization_utils import create_comparison_chart
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
@@ -211,9 +212,14 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Tuple[List[str], List[str]]:
             - question_texts: A list of question texts.
             - context_texts: A list of context texts.
     """
-    question_texts = [example["generated_questions"][0] for example in batch]
-    context_texts = [example["page_content"] for example in batch]
-    breakpoint()
+    question_texts = []
+    context_texts = []
+    for example in batch:
+        generated_questions = example["generated_questions"]
+        for question in generated_questions:
+            question_texts.append(question)
+            context_texts.append(example["page_content"])
+
     return question_texts, context_texts
 
 
@@ -226,7 +232,7 @@ def evaluate_model(
 ) -> Tuple[
     Annotated[float, "pretrained_average_similarity"],
     Annotated[float, "finetuned_average_similarity"],
-    Annotated[PIL.Image.Image, "comparison_plot"],
+    Annotated[PIL.Image.Image, "evaluation_results"],
 ]:
     """Compare two models on the test set.
 
@@ -239,18 +245,25 @@ def evaluate_model(
         A tuple containing the average cosine similarity for each model on the
         test set as well as an image visualising the comparison.
     """
+    logger.info("Evaluating the finetuned model on the test set.")
+    logger.info(f"Comparison model: {comparison_model}")
+    logger.info(f"Number of test examples: {len(test_dataset)}")
+    logger.info("Loading the pretrained model and test data.")
+
     pretrained_model = SentenceTransformer(comparison_model)
     test_dataloader = DataLoader(
         test_dataset,
         shuffle=False,
-        batch_size=32,
+        batch_size=EVAL_BATCH_SIZE,
         collate_fn=collate_fn,
     )
 
+    logger.info("Calculating average similarities for both models.")
     finetuned_avg_sim, pretrained_avg_sim = calculate_average_similarities(
         test_dataloader, finetuned_model, pretrained_model
     )
 
+    logger.info("Creating a comparison plot.")
     comparison_plot = create_comparison_chart(
         ["Pretrained Model", "Finetuned Model"],
         pretrained_similarity=pretrained_avg_sim,
@@ -271,6 +284,8 @@ def evaluate_model(
             "num_generations": num_generations,
             "comparison_model": comparison_model,
             "len_test_dataset": len(test_dataset),
+            "eval_batch_size": EVAL_BATCH_SIZE,
+            "shuffle": False,
         },
     )
 
@@ -302,7 +317,6 @@ def calculate_average_similarities(
 
     for batch in dataloader:
         question_texts, context_texts = batch
-        breakpoint()
         finetuned_sim_scores, pretrained_sim_scores = (
             calculate_batch_similarities(
                 question_texts,

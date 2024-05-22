@@ -35,3 +35,17 @@ MODEL_NAME_MAP = {
     "claude3": "claude-3-opus-20240229",
     "claudehaiku": "claude-3-haiku-20240307",
 }
+
+# CHUNKING_METHOD = "split-by-document"
+CHUNKING_METHOD = "split-by-header"
+DATASET_NAME = f"zenml/rag_qa_embedding_questions_{CHUNKING_METHOD}"
+MODEL_PATH = "all-MiniLM-L6-v2"
+NUM_EPOCHS = 30
+WARMUP_STEPS = 0.1  # 10% of train data
+NUM_GENERATIONS = 3
+EVAL_BATCH_SIZE = 32
+
+DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
+# DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
+DUMMY_MODEL_PATH = "all-MiniLM-L6-v2"
+DUMMY_EPOCHS = 10
