@@ -49,8 +49,8 @@ def load_markdown_files(
     log_artifact_metadata(
         artifact_name="markdown_files",
         metadata={
-            "row_count": len(markdown_files),
-            "columns": ["filename", "page_content"],
+            "num_markdown_files": len(markdown_files),
+            "columns": "filename, page_content",
             "repo_url": git_repo_url,
             "subfolder": subfolder,
             "repo_temp_dir": temp_dir,
