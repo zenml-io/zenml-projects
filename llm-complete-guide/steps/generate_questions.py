@@ -101,7 +101,8 @@ def generate_questions(
             logger.info(
                 f"Estimated remaining time: {estimated_remaining_time:.2f} seconds ({remaining_hours}h {remaining_minutes}m)"
             )
-        if i % 200 == 0:
+        # log the estimated completion time every 100 documents
+        if i % 100 == 0:
             estimated_completion_time = time.strftime(
                 "%H:%M",
                 time.localtime(
