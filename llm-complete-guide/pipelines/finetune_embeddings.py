@@ -31,7 +31,8 @@ from steps.markdown_loader import load_markdown_files
 from steps.preprocess_markdown import preprocess_markdown_texts
 from zenml import pipeline
 
-CHUNKING_METHOD = "split-by-document"
+# CHUNKING_METHOD = "split-by-document"
+CHUNKING_METHOD = "split-by-header"
 DATASET_NAME = f"zenml/rag_qa_embedding_questions_{CHUNKING_METHOD}"
 MODEL_PATH = "all-MiniLM-L6-v2"
 NUM_EPOCHS = 30

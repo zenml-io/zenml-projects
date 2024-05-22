@@ -29,6 +29,58 @@ def split_and_return_docs(
     )
 
 
+def split_by_header(documents: List[Document]) -> pl.DataFrame:
+    """
+    Split documents into sections based on headers.
+
+    This function takes a list of Document objects and splits each document's
+    content into sections based on the presence of header lines (lines starting
+    with '#'). Code blocks (delimited by '```') are ignored during the splitting
+    process.
+
+    Args:
+        documents (List[Document]): A list of Document objects to be split.
+
+    Returns:
+        pl.DataFrame: A DataFrame containing the split documents, with columns
+            'filename' and 'page_content'.
+    """
+    split_docs = []
+    for doc in documents:
+        lines = doc.page_content.split("\n")
+        sections = []
+        current_section = ""
+        in_code_block = False
+
+        for line in lines:
+            if line.startswith("```"):
+                in_code_block = not in_code_block
+                current_section += line + "\n"
+            elif not in_code_block and line.startswith("#"):
+                if current_section:
+                    sections.append(current_section.strip())
+                current_section = line + "\n"
+            else:
+                current_section += line + "\n"
+
+        if current_section:
+            sections.append(current_section.strip())
+
+        split_docs.extend(
+            [
+                Document(filename=doc.filename, page_content=section)
+                for section in sections
+            ]
+        )
+
+    return pl.DataFrame(
+        {
+            "filename": [doc.filename for doc in split_docs],
+            "page_content": [doc.page_content for doc in split_docs],
+        }
+    )
+
+
 @step
 def chunk_documents(
     docs_df: pl.DataFrame, chunking_method: str = "default"
@@ -46,17 +98,17 @@ def chunk_documents(
             )
         case "split-by-document":
             return docs_df
-        case "split_by_header":
-            return pl.DataFrame()
-        case "chunk_size_1000":
+        case "split-by-header":
+            return split_by_header(documents)
+        case "chunk-size-1000":
             return split_and_return_docs(
                 documents, chunk_size=1000, chunk_overlap=100
             )
-        case "chunk_size_500":
+        case "chunk-size-500":
             return split_and_return_docs(
                 documents, chunk_size=500, chunk_overlap=50
             )
-        case "chunk_size_4000":
+        case "chunk-size-4000":
             return split_and_return_docs(
                 documents, chunk_size=4000, chunk_overlap=400
             )
