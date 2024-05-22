@@ -101,7 +101,7 @@ def generate_questions(
             logger.info(
                 f"Estimated remaining time: {estimated_remaining_time:.2f} seconds ({remaining_hours}h {remaining_minutes}m)"
             )
-        # log the estimated completion time every 100 documents
+        # log the estimated completion time and rate every 100 documents
         if i % 100 == 0:
             estimated_completion_time = time.strftime(
                 "%H:%M",
@@ -109,8 +109,19 @@ def generate_questions(
                     start_time + elapsed_time + estimated_remaining_time
                 ),
             )
+            docs_processed_last_100 = min(100, i - (i // 100 - 1) * 100)
+            time_last_100 = (
+                time.time()
+                - start_time
+                - (elapsed_time - time_per_doc * docs_processed_last_100)
+            )
+            rate_last_100 = docs_processed_last_100 / (
+                time_last_100 / 60
+            )  # calculate docs per minute
+
             logger.info(
-                f"Estimated completion time: {estimated_completion_time}"
+                f"Estimated completion time: {estimated_completion_time}, "
+                f"Rate for last 100 documents: {rate_last_100:.2f} docs/min"
             )
 
     assert all(doc.generated_questions for doc in documents)
