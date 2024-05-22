@@ -1,5 +1,3 @@
-import re
-
 import polars as pl
 from zenml import step
 from zenml.logger import get_logger
@@ -35,7 +33,7 @@ def preprocess_markdown_texts(markdown_texts: pl.DataFrame) -> pl.DataFrame:
     )
     markdown_texts = markdown_texts.with_columns(
         pl.col("page_content")
-        .str.replace_all(r"---\n.*?\n---\n", "", flags=re.DOTALL)
+        .str.replace_all(r"---\n.*?\n---\n", "")
         .alias("page_content")
     )
 

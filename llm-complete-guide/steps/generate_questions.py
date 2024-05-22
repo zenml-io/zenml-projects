@@ -7,7 +7,9 @@ from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
 from zenml import step
+from zenml.logger import get_logger
 
+logger = get_logger(__name__)
 LOCAL_MODEL = "ollama/mixtral"
 
 
@@ -85,5 +87,9 @@ def generate_questions(
                 doc.generated_questions for doc in documents
             ],
         }
+    )
+    logger.info("Generated questions for all documents.")
+    logger.info(
+        f"Generated {len(final_df)} questions for {len(documents)} documents."
     )
     return final_df

@@ -85,19 +85,82 @@ def split_by_header(documents: List[Document]) -> pl.DataFrame:
 def chunk_documents(
     docs_df: pl.DataFrame, chunking_method: str = "default"
 ) -> pl.DataFrame:
-    """Chunk documents."""
+    """
+    Chunk documents into smaller pieces based on the specified chunking method.
+
+    Args:
+        docs_df (pl.DataFrame): DataFrame containing the documents to be chunked.
+        chunking_method (str): The method to use for chunking the documents.
+            Supported methods are:
+            - "default": Use the default chunking method with predefined chunk size and overlap.
+            - "split-by-document": Split documents by document boundaries.
+            - "split-by-header": Split documents by header sections.
+            - "chunk-size-1000": Chunk documents with a chunk size of 1000 and overlap of 100.
+            - "chunk-size-500": Chunk documents with a chunk size of 500 and overlap of 50.
+            - "chunk-size-4000": Chunk documents with a chunk size of 4000 and overlap of 400.
+
+    Returns:
+        pl.DataFrame: DataFrame containing the chunked documents.
+
+    Raises:
+        ValueError: If an unknown chunking method is provided.
+    """
     documents: List[Document] = [
         Document(filename=row["filename"], page_content=row["page_content"])
         for row in docs_df.to_dicts()
     ]
 
+    logger.info(f"Chunking documents using method: {chunking_method}")
+    num_docs_before_chunking = len(documents)
+    logger.info(
+        f"Number of documents before chunking: {num_docs_before_chunking}"
+    )
+
+    chunked_docs = chunk_documents_by_method(documents, chunking_method)
+
+    num_docs_after_chunking = len(chunked_docs)
+    logger.info(
+        f"Number of documents after chunking: {num_docs_after_chunking}"
+    )
+
+    return chunked_docs
+
+
+def chunk_documents_by_method(
+    documents: List[Document], chunking_method: str
+) -> pl.DataFrame:
+    """
+    Chunk documents based on the specified chunking method.
+
+    Args:
+        documents (List[Document]): List of documents to be chunked.
+        chunking_method (str): The method to use for chunking the documents.
+            Supported methods are:
+            - "default": Use the default chunking method with predefined chunk size and overlap.
+            - "split-by-document": Split documents by document boundaries.
+            - "split-by-header": Split documents by header sections.
+            - "chunk-size-1000": Chunk documents with a chunk size of 1000 and overlap of 100.
+            - "chunk-size-500": Chunk documents with a chunk size of 500 and overlap of 50.
+            - "chunk-size-4000": Chunk documents with a chunk size of 4000 and overlap of 400.
+
+    Returns:
+        pl.DataFrame: DataFrame containing the chunked documents.
+
+    Raises:
+        ValueError: If an unknown chunking method is provided.
+    """
     match chunking_method:
         case "default":
             return split_and_return_docs(
                 documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
             )
         case "split-by-document":
-            return docs_df
+            return pl.DataFrame(
+                {
+                    "filename": [doc.filename for doc in documents],
+                    "page_content": [doc.page_content for doc in documents],
+                }
+            )
         case "split-by-header":
             return split_by_header(documents)
         case "chunk-size-1000":
