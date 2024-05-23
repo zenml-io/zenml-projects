@@ -15,7 +15,12 @@
 # limitations under the License.
 #
 
-from .evaluate_model import evaluate_model
-from .finetune import finetune
-from .prepare_datasets import prepare_data
-from .promote import promote
+import gc
+
+import torch
+
+
+def cleanup_memory() -> None:
+    """Clean up GPU memory."""
+    while gc.collect():
+        torch.cuda.empty_cache()
