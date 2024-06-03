@@ -65,14 +65,14 @@ To finetune an LLM on remote infrastructure, you can either use a remote orchest
         [-s <STEP_OPERATOR_NAME>]
     ```
 
-## 🗂️ Bring your own data
+## 🗂️ Bring Your Own Data
 
-To finetune an LLM using your own datasets you can consider adjusting the [`prepare_data` step](steps/prepare_datasets.py) to match your needs:
-- This step loads, tokenizes and stores the dataset from external source to the artifact store defined in the ZenML Stack.
-- Dataset can be loaded from Huggingface by adjusting the `dataset_name` parameter in the configuration file. Default step code expect that this dataset has at least 3 splits: `train`, `validation` and `test`. If your dataset is based on different split naming - this has to be adjusted.
-- If you would like to retrieve dataset from other sources relevant code has to be created and splits has to be prepared in a Huggingface dataset format for further processing.
-- The tokenization happens in utility function [`generate_and_tokenize_prompt`](utils/tokenizer.py). It has default way to format the inputs before passing them into the model, if this default logic doesn't fit your use case - this function also has to be adjusted.
-- The return value is the path to the stored datasets (by default `train`, `val` and `test_raw` splits). Note: test set is not tokenized here and will be tokenized later on evaluation.
+To fine-tune an LLM using your own datasets, consider adjusting the [`prepare_data` step](steps/prepare_datasets.py) to match your needs:
+- This step loads, tokenizes, and stores the dataset from an external source to the artifact store defined in the ZenML Stack.
+- The dataset can be loaded from Hugging Face by adjusting the `dataset_name` parameter in the configuration file. By default, the step code expects the dataset to have at least three splits: `train`, `validation`, and `test`. If your dataset uses different split naming, you'll need to make the necessary adjustments.
+- If you want to retrieve the dataset from other sources, you'll need to create the relevant code and prepare the splits in a Hugging Face dataset format for further processing.
+- Tokenization occurs in the utility function [`generate_and_tokenize_prompt`](utils/tokenizer.py). It has a default way of formatting the inputs before passing them into the model. If this default logic doesn't fit your use case, you'll also need to adjust this function.
+- The return value is the path to the stored datasets (by default, `train`, `val`, and `test_raw` splits). Note: The test set is not tokenized here and will be tokenized later during evaluation.
 
 ## 📜 Project Structure
 
