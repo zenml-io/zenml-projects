@@ -65,6 +65,15 @@ To finetune an LLM on remote infrastructure, you can either use a remote orchest
         [-s <STEP_OPERATOR_NAME>]
     ```
 
+## 🗂️ Bring your own data
+
+To finetune an LLM using your own datasets you can consider adjusting the [`prepare_data` step](steps/prepare_datasets.py) to match your needs:
+- This step loads, tokenizes and stores the dataset from external source to the artifact store defined in the ZenML Stack.
+- Dataset can be loaded from Huggingface by adjusting the `dataset_name` parameter in the configuration file. Default step code expect that this dataset has at least 3 splits: `train`, `validation` and `test`. If your dataset is based on different split naming - this has to be adjusted.
+- If you would like to retrieve dataset from other sources relevant code has to be created and splits has to be prepared in a Huggingface dataset format for further processing.
+- The tokenization happens in utility function [`generate_and_tokenize_prompt`](utils/tokenizer.py). It has default way to format the inputs before passing them into the model, if this default logic doesn't fit your use case - this function also has to be adjusted.
+- The return value is the path to the stored datasets (by default `train`, `val` and `test_raw` splits). Note: test set is not tokenized here and will be tokenized later on evaluation.
+
 ## 📜 Project Structure
 
 The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices):
