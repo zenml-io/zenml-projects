@@ -1,0 +1,24 @@
+zenml
+langchain-community
+ratelimit
+langchain>=0.0.325
+langchain-openai
+pgvector
+psycopg2-binary
+beautifulsoup4
+unstructured
+pandas
+numpy
+sentence-transformers
+litellm
+tiktoken
+umap-learn
+matplotlib
+pyarrow
+rerankers[all]
+datasets
+
+# optional requirements for S3 artifact store
+# s3fs>2022.3.0
+# boto3
+# aws-profile-manager

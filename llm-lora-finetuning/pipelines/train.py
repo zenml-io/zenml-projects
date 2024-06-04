@@ -34,7 +34,6 @@ def llm_peft_full_finetune(
 
     It will run the following steps:
 
-    - configure: set the system prompt and base model id
     - prepare_data: prepare the datasets and tokenize them
     - finetune: finetune the model
     - evaluate_model: evaluate the base and finetuned model

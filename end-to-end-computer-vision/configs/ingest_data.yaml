@@ -1,0 +1,12 @@
+
+steps:
+  download_and_tile_dataset_from_hf:
+    enable_cache: True
+    enable_step_logs: False
+    parameters:
+      dataset: "datadrivenscience/ship-detection"
+      data_source: # Insert your bucket path here where the training images will live e.g. "gs://foo/bar"
+  upload_labels_to_label_studio:
+    enable_cache: False
+    parameters:
+      ls_project_id: 8

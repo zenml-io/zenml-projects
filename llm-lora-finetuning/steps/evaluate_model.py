@@ -68,9 +68,7 @@ def evaluate_model(
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
     tokenized_train_dataset = tokenize_for_eval(
-        test_dataset,
-        tokenizer,
-        system_prompt,
+        test_dataset, tokenizer, system_prompt
     )
 
     if ft_model_dir is None:
@@ -106,8 +104,7 @@ def evaluate_model(
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
     rouge_metrics = rouge.compute(
-        predictions=predictions,
-        references=ground_truths,
+        predictions=predictions, references=ground_truths
     )
     metadata = {prefix + k: float(v) for k, v in rouge_metrics.items()}
 
