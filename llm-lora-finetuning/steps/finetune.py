@@ -27,7 +27,6 @@ from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
 from zenml import logging as zenml_logging
 from zenml import step
-from zenml.integrations.accelerate import AccelerateScaler
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
@@ -38,10 +37,7 @@ zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
 )
 
 
-@step(
-    output_materializers=[DirectoryMaterializer, BuiltInMaterializer],
-    scaler=AccelerateScaler(),
-)
+@step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def finetune(
     base_model_id: str,
     dataset_dir: Path,
@@ -135,17 +131,13 @@ def finetune(
             max_steps=max_steps,
             learning_rate=lr,
             logging_steps=(
-                min(logging_steps, max_steps)
-                if max_steps >= 0
-                else logging_steps
+                min(logging_steps, max_steps) if max_steps >= 0 else logging_steps
             ),
             bf16=bf16,
             optim=optimizer,
             logging_dir="./logs",
             save_strategy="steps",
-            save_steps=min(save_steps, max_steps)
-            if max_steps >= 0
-            else save_steps,
+            save_steps=min(save_steps, max_steps) if max_steps >= 0 else save_steps,
             evaluation_strategy="steps",
             eval_steps=eval_steps,
             do_eval=True,
