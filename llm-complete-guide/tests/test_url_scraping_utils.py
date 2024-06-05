@@ -30,7 +30,7 @@ from steps.url_scraping_utils import extract_parent_section
             "user-guide",
         ),
         (
-            "https://docs.zenml.io/v/0.56.1/stacks-and-components/component-guide/integration-overview",
+            "https://docs.zenml.io/v/0.56.1/stack-components/integration-overview",
             "stacks-and-components",
         ),
     ],

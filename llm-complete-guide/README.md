@@ -125,10 +125,9 @@ the database to evaluate.
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
 the speed of the embeddings step you might want to consider using a cloud
-orchestrator. Please follow the instructions in [our basic cloud setup
-guides](https://docs.zenml.io/user-guide/cloud-guide) (currently available for
-[AWS](https://docs.zenml.io/user-guide/cloud-guide/aws-guide) and
-[GCP](https://docs.zenml.io/user-guide/cloud-guide/gcp-guide)) to learn how you
+orchestrator. Please follow the instructions in [documentation on popular integrations](https://docs.zenml.io/how-to/popular-integrations) (currently available for
+[AWS](https://docs.zenml.io/how-to/popular-integrations/aws-guide) and
+[GCP](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)) to learn how you
 can run the pipelines on a remote stack.
 
 If you run the pipeline using a cloud artifact store, logs from all the steps as
@@ -142,11 +141,11 @@ you can try out the platform without any cost. Visit the [ZenML Cloud
 dashboard](https://cloud.zenml.io/) to get started.
 
 You can also self-host the ZenML dashboard. Instructions are available in our
-[documentation](https://docs.zenml.io/deploying-zenml/zenml-self-hosted).
+[documentation](https://docs.zenml.io/getting-started/deploying-zenml).
 
 ## 📜 Project Structure
 
-The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices):
+The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices):
 
 ```
 .

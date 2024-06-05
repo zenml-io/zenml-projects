@@ -37,7 +37,7 @@ logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 question_doc_pairs = [
     {
         "question": "How do I get going with the Label Studio integration? What are the first steps?",
-        "url_ending": "stacks-and-components/component-guide/annotators/label-studio",
+        "url_ending": "stack-components/annotators/label-studio",
     },
     {
         "question": "How can I write my own custom materializer?",

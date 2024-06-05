@@ -31,7 +31,7 @@ One of the first jobs of somebody entering MLOps is to convert their manual scri
 2. Type annotating the steps properly
 3. Connecting the steps together in a pipeline
 4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guide/production-guide/configure-pipeline)
-5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/user-guide/advanced-guide/infrastructure-management/containerize-your-pipeline).
+5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/how-to/customize-docker-builds).
 
 Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
 
@@ -154,7 +154,7 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 - [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune_local.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings
 
 - [ ] Tests trained model on various metrics
-- [ ] Create a custom [model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
+- [ ] Create a custom [model deployer](https://docs.zenml.io/stack-components/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stack-components/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
 
 ## :bulb: More Applications
 
