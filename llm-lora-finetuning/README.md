@@ -91,7 +91,6 @@ The project loosely follows [the recommended ZenML project structure](https://do
 .
 ├── configs                                       # pipeline configuration files
 │   ├── orchestrator_finetune.yaml                # default local or remote orchestrator configuration
-│   ├── remote_accelerated_finetune.yaml          # default step operator with Accelerate configuration
 │   └── remote_finetune.yaml                      # default step operator configuration
 ├── materializers
 │   └── directory_materializer.py                 # custom materializer to push whole directories to the artifact store and back
