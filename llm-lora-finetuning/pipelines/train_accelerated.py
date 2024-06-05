@@ -18,6 +18,7 @@
 
 from steps import evaluate_model, finetune, prepare_data, promote
 from zenml import pipeline
+from zenml.integrations.huggingface.steps import run_with_accelerate
 
 
 @pipeline
@@ -49,9 +50,10 @@ def llm_peft_full_finetune(
         system_prompt=system_prompt,
         use_fast=use_fast,
     )
-    ft_model_dir = finetune(
-        base_model_id,
-        datasets_dir,
+
+    ft_model_dir = run_with_accelerate(finetune)(
+        base_model_id=base_model_id,
+        dataset_dir=datasets_dir,
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,

@@ -25,16 +25,12 @@ from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
 from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
-from zenml import logging as zenml_logging
 from zenml import step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 logger = get_logger(__name__)
-zenml_logging.STEP_LOGS_STORAGE_MAX_MESSAGES = (
-    10000  # workaround for https://github.com/zenml-io/zenml/issues/2252
-)
 
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
