@@ -25,7 +25,7 @@ from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
 from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
-from zenml import step
+from zenml import step, ArtifactConfig
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
@@ -51,7 +51,7 @@ def finetune(
     use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
-) -> Annotated[Path, "ft_model_dir"]:
+) -> Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]:
     """Finetune the model using PEFT.
 
     Base model will be derived from configure step and finetuned model will

@@ -16,7 +16,13 @@
 #
 
 
-from steps import evaluate_model, finetune, prepare_data, promote
+from steps import (
+    evaluate_model,
+    finetune,
+    prepare_data,
+    promote,
+    log_metadata_from_step_artifact,
+)
 from zenml import pipeline
 
 
@@ -49,6 +55,24 @@ def llm_peft_full_finetune(
         system_prompt=system_prompt,
         use_fast=use_fast,
     )
+
+    evaluate_model(
+        base_model_id,
+        system_prompt,
+        datasets_dir,
+        None,
+        use_fast=use_fast,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
+        id="evaluate_base",
+    )
+    log_metadata_from_step_artifact(
+        "evaluate_base",
+        "base_model_rouge_metrics",
+        after=["evaluate_base"],
+        id="log_metadata_evaluation_base"
+    )
+
     ft_model_dir = finetune(
         base_model_id,
         datasets_dir,
@@ -67,14 +91,11 @@ def llm_peft_full_finetune(
         load_in_4bit=load_in_4bit,
         id="evaluate_finetuned",
     )
-    evaluate_model(
-        base_model_id,
-        system_prompt,
-        datasets_dir,
-        None,
-        use_fast=use_fast,
-        load_in_8bit=load_in_8bit,
-        load_in_4bit=load_in_4bit,
-        id="evaluate_base",
+    log_metadata_from_step_artifact(
+        "evaluate_finetuned",
+        "finetuned_model_rouge_metrics",
+        after=["evaluate_finetuned"],
+        id="log_metadata_evaluation_finetuned"
     )
-    promote(after=["evaluate_finetuned", "evaluate_base"])
+
+    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])

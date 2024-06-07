@@ -26,7 +26,7 @@ from utils.loaders import (
     load_pretrained_model,
 )
 from utils.tokenizer import load_tokenizer, tokenize_for_eval
-from zenml import log_model_metadata, save_artifact, step
+from zenml import save_artifact, step
 from zenml.logger import get_logger
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
@@ -67,9 +67,7 @@ def evaluate_model(
     test_dataset = load_from_disk(datasets_dir / "test_raw")
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
-    tokenized_train_dataset = tokenize_for_eval(
-        test_dataset, tokenizer, system_prompt
-    )
+    tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
@@ -103,12 +101,8 @@ def evaluate_model(
     logger.info("Computing ROUGE metrics...")
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
-    rouge_metrics = rouge.compute(
-        predictions=predictions, references=ground_truths
-    )
-    metadata = {prefix + k: float(v) for k, v in rouge_metrics.items()}
+    rouge_metrics = rouge.compute(predictions=predictions, references=ground_truths)
 
-    log_model_metadata(metadata)
-    logger.info("Computed metrics: " + str(metadata))
+    logger.info("Computed metrics: " + str(rouge_metrics))
 
     save_artifact(rouge_metrics, prefix + "rouge_metrics")
