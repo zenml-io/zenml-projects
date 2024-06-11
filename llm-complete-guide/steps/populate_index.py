@@ -118,8 +118,7 @@ def generate_embeddings(
 def index_generator(
     documents: List[Document],
 ) -> None:
-    """
-    Generates an index for the given documents.
+    """Generates an index for the given documents.
 
     This function creates a database connection, installs the pgvector extension if not already installed,
     creates an embeddings table if it doesn't exist, and inserts the embeddings and document metadata into the table.
