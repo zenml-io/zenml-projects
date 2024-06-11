@@ -151,3 +151,5 @@ llm-lora-finetuning/ckpt/
 llm-lora-finetuning/data_generation/
 llm-lora-finetuning/datagen/
 nohup.out
+.flashrank_cache
+
