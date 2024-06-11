@@ -7,7 +7,12 @@ from PIL import Image
 from zenml import ArtifactConfig, get_step_context, step
 
 
-def create_image(labels: list, scores: list, title: str) -> Image.Image:
+def create_image(
+    labels: list,
+    scores: list,
+    title: str,
+    alternate_colours: bool = False,
+) -> Image.Image:
     """
     Create a horizontal bar chart image from the given labels, scores, and title.
 
@@ -15,6 +20,7 @@ def create_image(labels: list, scores: list, title: str) -> Image.Image:
         labels (list): List of labels for the y-axis.
         scores (list): List of scores corresponding to each label.
         title (str): Title of the chart.
+        alternate_colours (bool): Whether to alternate colours for the bars.
 
     Returns:
         Image.Image: The generated chart image.
@@ -24,7 +30,23 @@ def create_image(labels: list, scores: list, title: str) -> Image.Image:
 
     # Plot the horizontal bar chart
     y_pos = np.arange(len(labels))
-    ax.barh(y_pos, scores, align="center")
+    if alternate_colours:
+        colors = ["blue" if i % 2 == 0 else "red" for i in range(len(labels))]
+        ax.barh(y_pos, scores, align="center", color=colors)
+    else:
+        ax.barh(y_pos, scores, align="center")
+
+    # Display the actual value to the left of each bar
+    for i, v in enumerate(scores):
+        ax.text(
+            v - 0.3,
+            i,
+            f"{v:.1f}",
+            color="white",
+            va="center",
+            fontweight="bold",
+        )
+
     ax.set_yticks(y_pos)
     ax.set_yticklabels(labels)
     ax.invert_yaxis()  # Labels read top-to-bottom
@@ -132,6 +154,7 @@ def visualize_evaluation_results(
         image1_labels,
         image1_scores,
         f"Retrieval Evaluation Metrics for {pipeline_run_name}",
+        alternate_colours=True,
     )
     image2 = create_image(
         image2_labels,
