@@ -12,6 +12,7 @@ def create_image(
     scores: list,
     title: str,
     alternate_colours: bool = False,
+    percentage_scale: bool = False,
 ) -> Image.Image:
     """
     Create a horizontal bar chart image from the given labels, scores, and title.
@@ -21,6 +22,7 @@ def create_image(
         scores (list): List of scores corresponding to each label.
         title (str): Title of the chart.
         alternate_colours (bool): Whether to alternate colours for the bars.
+        percentage_scale (bool): Whether to use a percentage scale (0-100) for the x-axis.
 
     Returns:
         Image.Image: The generated chart image.
@@ -66,9 +68,13 @@ def create_image(
     ax.set_yticklabels(labels)
     ax.invert_yaxis()  # Labels read top-to-bottom
     ax.set_xlabel("Score")
-    ax.set_xlim(
-        0, max(scores) + 0.5
-    )  # Set x-axis limits based on maximum score
+    if percentage_scale:
+        ax.set_xlim(0, 100)  # Set x-axis limits to 0-100 for percentage scale
+        ax.set_xlabel("Percentage")
+    else:
+        ax.set_xlim(0, 5)  # Set x-axis limits based on maximum score
+        ax.set_xlabel("Score")
+
     ax.set_title(title)
 
     # Adjust the subplot parameters
@@ -177,6 +183,7 @@ def visualize_evaluation_results(
         image2_labels,
         image2_scores,
         f"Basic Generation Evaluation for {pipeline_run_name}",
+        percentage_scale=True,
     )
     image3 = create_image(
         image3_labels,
