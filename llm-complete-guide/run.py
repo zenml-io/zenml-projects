@@ -15,6 +15,8 @@
 # limitations under the License.
 import logging
 
+from rich.console import Console
+from rich.markdown import Markdown
 from utils.llm_utils import process_input_with_retrieval
 from zenml.logger import get_logger
 
@@ -126,7 +128,11 @@ def main(
 
     if query:
         response = process_input_with_retrieval(query, model=model)
-        print(response)
+
+        # print rich markdown to the console
+        console = Console()
+        md = Markdown(response)
+        console.print(md)
 
     if rag:
         llm_basic_rag.with_options(**pipeline_args)()
