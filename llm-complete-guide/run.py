@@ -13,6 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
+
+# Suppress the specific FutureWarning from huggingface_hub
+warnings.filterwarnings(
+    "ignore", category=FutureWarning, module="huggingface_hub.file_download"
+)
+
 import logging
 
 from rich.console import Console
