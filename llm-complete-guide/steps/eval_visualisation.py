@@ -25,8 +25,9 @@ def create_image(
     Returns:
         Image.Image: The generated chart image.
     """
-    # Create a new figure and axis
+    # Create a new figure and axis with a smaller left margin
     fig, ax = plt.subplots(figsize=(10, 6))
+    fig.subplots_adjust(left=0.2)  # Adjust left margin
 
     # Plot the horizontal bar chart
     y_pos = np.arange(len(labels))
@@ -36,30 +37,46 @@ def create_image(
     else:
         ax.barh(y_pos, scores, align="center")
 
-    # Display the actual value to the left of each bar
+    # Display the actual value to the left of each bar, or to the right if value is 0
     for i, v in enumerate(scores):
-        ax.text(
-            v - 0.3,
-            i,
-            f"{v:.1f}",
-            color="white",
-            va="center",
-            fontweight="bold",
-        )
+        if v == 0:
+            ax.text(
+                0.3,  # Position the text label slightly to the right of 0
+                i,
+                f"{v:.1f}",
+                color="black",
+                va="center",
+                fontweight="bold",
+            )
+        else:
+            bar_color = colors[i] if alternate_colours else "blue"
+            text_color = "white"
+            ax.text(
+                v
+                - 0.1,  # Adjust the x-position of the text labels to the left
+                i,
+                f"{v:.1f}",
+                color=text_color,
+                va="center",
+                fontweight="bold",
+                ha="right",  # Align the text to the right
+            )
 
     ax.set_yticks(y_pos)
     ax.set_yticklabels(labels)
     ax.invert_yaxis()  # Labels read top-to-bottom
     ax.set_xlabel("Score")
-    ax.set_xlim(0, 5)
+    ax.set_xlim(
+        0, max(scores) + 0.5
+    )  # Set x-axis limits based on maximum score
     ax.set_title(title)
 
-    # Adjust the layout
-    plt.tight_layout()
+    # Adjust the subplot parameters
+    plt.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
 
     # Save the plot to a BytesIO object
     buf = io.BytesIO()
-    plt.savefig(buf, format="png")
+    plt.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
 
     # Create a PIL Image object from the BytesIO object
