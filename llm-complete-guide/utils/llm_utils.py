@@ -452,7 +452,7 @@ def process_input_with_retrieval(
         {"role": "user", "content": f"{delimiter}{input}{delimiter}"},
         {
             "role": "assistant",
-            "content": f"Relevant ZenML documentation (in order of usefulness for this query): \n"
+            "content": f"Please use the input query and the following relevant ZenML documentation (in order of usefulness for this query) to answer the user query: \n"
             + "\n".join(context_content),
         },
     ]
