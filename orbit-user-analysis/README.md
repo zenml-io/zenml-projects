@@ -67,7 +67,7 @@ It is much more ideal to run a pipeline such as the
 `community_analysis_pipeline` on a regular schedule. In order to achieve that, 
 you have to [deploy ZenML](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml) 
 and set up a stack that supports 
-[our scheduling feature](https://docs.zenml.io/user-guide/advanced-guide/pipelining-features/schedule-pipeline-runs). 
+[our scheduling feature](https://docs.zenml.io/how-to/build-pipelines/schedule-a-pipeline). 
 Please check [our docs](https://docs.zenml.io/getting-started/introduction) 
 for more information.
 

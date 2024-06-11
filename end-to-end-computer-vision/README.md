@@ -66,31 +66,31 @@ providers.
 ### Follow our guide to set up your credential for GCP
 
 [Set up a GCP service
-connector](https://docs.zenml.io/stacks-and-components/auth-management/gcp-service-connector)
+connector](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
 
 ### Set up a bucket to persist your training data
 
 ### Set up a bucket to use as artifact store within ZenML
 
 [Learn how to set up a GCP artifact store stack component within zenml
-here](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores)
+here](https://docs.zenml.io/stack-components/artifact-stores)
 ### Set up vertex for pipeline orchestration
 
 [Learn how to set up a Vertex orchestrator stack component within zenml
-here](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators/vertex)
+here](https://docs.zenml.io/stack-components/orchestrators/vertex)
 ### For training on accelerators like GPUs/TPUs set up Vertex
 
 [Learn how to set up a Vertex step operator stack component within zenml
-here](https://docs.zenml.io/stacks-and-components/component-guide/step-operators/vertex)
+here](https://docs.zenml.io/stack-components/step-operators/vertex)
 ### Set up Container Registry
 
 [Learn how to set up a google cloud container registry component within zenml
-here](https://docs.zenml.io/stacks-and-components/component-guide/container-registries/gcp)
+here](https://docs.zenml.io/stack-components/container-registries/gcp)
 
 ## Label Studio
 
 ### [Start Label Studio locally](https://labelstud.io/guide/start)
-### [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stacks-and-components/component-guide/annotators/label-studio)
+### [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio)
 ### Create a project within Label Studio and name it `ship_detection_gcp`
 ### [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
 use the first bucket that you created to data persistence
