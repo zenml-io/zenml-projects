@@ -111,6 +111,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Uses a local LLM via Ollama.",
 )
+@click.option(
+    "--reranked",
+    "reranked",
+    is_flag=True,
+    default=False,
+    help="Whether to use the reranker.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -119,6 +126,7 @@ def main(
     no_cache: bool = False,
     synthetic: bool = False,
     local: bool = False,
+    reranked: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -134,7 +142,9 @@ def main(
     pipeline_args = {"enable_cache": not no_cache}
 
     if query:
-        response = process_input_with_retrieval(query, model=model)
+        response = process_input_with_retrieval(
+            query, model=model, use_reranking=reranked
+        )
 
         # print rich markdown to the console
         console = Console()

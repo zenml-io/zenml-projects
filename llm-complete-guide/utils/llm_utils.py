@@ -415,13 +415,18 @@ def process_input_with_retrieval(
 
     # Step 1: Get documents related to the user input from database
     related_docs = get_topn_similar_docs(
-        get_embeddings(input), get_db_conn(), n=n_items_retrieved
+        get_embeddings(input),
+        get_db_conn(),
+        n=n_items_retrieved,
+        include_metadata=use_reranking,
     )
 
     if use_reranking:
         # Rerank the documents based on the input
         # and take the top 5 only
-        context_content = rerank_documents(input, related_docs)[:5]
+        context_content = [
+            doc[0] for doc in rerank_documents(input, related_docs)[:5]
+        ]
     else:
         context_content = [doc[0] for doc in related_docs[:5]]
 
