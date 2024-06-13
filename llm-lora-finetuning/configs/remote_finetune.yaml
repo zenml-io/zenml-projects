@@ -54,7 +54,6 @@ steps:
       dataset_name: gem/viggo
 
   finetune:
-    enable_step_logs: False
     step_operator: gcp_a100
     retry:
       max_retries: 3

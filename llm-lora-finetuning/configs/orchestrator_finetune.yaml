@@ -54,7 +54,6 @@ steps:
       dataset_name: gem/viggo
 
   finetune:
-    enable_step_logs: False
     parameters:
       max_steps: 300
       eval_steps: 30
