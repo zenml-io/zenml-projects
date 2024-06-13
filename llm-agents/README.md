@@ -55,9 +55,9 @@ An agent is essentially the part of the LLM application that coordinates or orch
 
 We can choose to write an agent ourselves, or use any abstraction from one of the LLM frameworks like LangChain. We used the `ConversationalChatAgent` class defined by LangChain which is based on the base agent abstraction. We can customise the agent using the prompt that is supplied to it on creation. You can see that we use characters as a way to influence the style of output of the model.
 
-## ZenML Cloud
+## ZenML Pro
 
-The [ZenML Cloud](https://www.zenml.io/cloud) offers multi-tenant, fully-managed ZenML deployments. The servers come with a host of advanced features like built-in roles for access control, a new dashboard for monitoring and visualizing your pipelines, a model control plane that tracks your ML models across pipelines along with all the artifacts and metadata associated with them, and much more.
+[ZenML Pro](https://www.zenml.io/pro) offers multi-tenant, fully-managed ZenML deployments. The servers come with a host of advanced features like built-in roles for access control, a new dashboard for monitoring and visualizing your pipelines, a model control plane that tracks your ML models across pipelines along with all the artifacts and metadata associated with them, and much more.
 
 You can sign up for a free trial of the cloud at https://cloud.zenml.io. Once signed up you can connect to it using the command below.
 

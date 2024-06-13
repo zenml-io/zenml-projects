@@ -41,7 +41,7 @@ to observe your stacks, stack components and pipeline DAGs in a dashboard
 interface.
 
 You can either run this yourself locally, or you can use a hosted server on
-the [ZenML Cloud](https://zenml.io/cloud).
+[ZenML Pro](https://zenml.io/pro).
 In case you already have an account, here is how you connect to a deployed
 server.
 
@@ -147,7 +147,7 @@ Here is the full continuous deployment pipeline:
 In the deployment pipeline ZenML's Model Control Plane is used for
 logging attaching the evaluation metrics as metadata to the trained model. 
 
-Here is what this looks like in the ZenML Cloud Dashboard. 
+Here is what this looks like in the ZenML Pro Dashboard. 
 
 ![training_pipeline](_assets/ModelControlPlane.png)
 

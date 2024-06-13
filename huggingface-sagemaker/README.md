@@ -72,7 +72,7 @@ make setup
 
 After this, you should have ZenML and all the requirements of the project installed locally.
 Next thing to do is to connect to a [deployed ZenML instance](https://docs.zenml.io/deploying-zenml/). You can
-create a free trial using [ZenML Cloud](https://cloud.zenml.io) to get setup quickly.
+create a free trial using [ZenML Pro](https://cloud.zenml.io) to get setup quickly.
 
 Once you have your deployed ZenML ready, you can connect to it using:
 
@@ -199,7 +199,7 @@ This will train a model from Huggingface and register a new ZenML model on the M
 
 <img src="assets/mcp_1.png" alt="ZenML Model Control Plane" width="800">
 
-Please note the above screens are a cloud-only feature in [ZenML Cloud](https://zenml.io/cloud), and
+Please note the above screens are a cloud-only feature in [ZenML Pro](https://zenml.io/pro), and
 the CLI `zenml models list` should be used instead for OSS users.
 
 At the end of the pipeline, the model will also be pushed the Huggingface, and a link estabilished between the ZenML Control Plane and the Huggingface model repository.
