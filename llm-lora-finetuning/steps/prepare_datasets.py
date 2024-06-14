@@ -62,11 +62,23 @@ def prepare_data(
         system_prompt=system_prompt,
     )
 
-    train_dataset = load_dataset(dataset_name, split="train")
+    train_dataset = load_dataset(
+        dataset_name,
+        split="train",
+        trust_remote_code=True,
+    )
     tokenized_train_dataset = train_dataset.map(gen_and_tokenize)
-    eval_dataset = load_dataset(dataset_name, split="validation")
+    eval_dataset = load_dataset(
+        dataset_name,
+        split="validation",
+        trust_remote_code=True,
+    )
     tokenized_val_dataset = eval_dataset.map(gen_and_tokenize)
-    test_dataset = load_dataset(dataset_name, split="test")
+    test_dataset = load_dataset(
+        dataset_name,
+        split="test",
+        trust_remote_code=True,
+    )
 
     datasets_path = Path("datasets")
     tokenized_train_dataset.save_to_disk(str((datasets_path / "train").absolute()))
