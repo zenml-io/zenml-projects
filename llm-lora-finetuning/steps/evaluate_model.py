@@ -64,7 +64,7 @@ def evaluate_model(
         is_eval=True,
         use_fast=use_fast,
     )
-    test_dataset = load_from_disk(datasets_dir / "test_raw")
+    test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
     tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
