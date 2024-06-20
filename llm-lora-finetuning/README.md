@@ -58,15 +58,13 @@ When running the pipeline like this, the trained model will be stored in the Zen
 ### ⚡ Accelerate your finetuning
 
 Do you want to benefit from multi-GPU-training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this purpose.
-For example, `phi_accelerated_local_finetune.yaml` can run a finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
+For example, `orchestrator_finetune.yaml` can run a finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
 
 ```shell
-python run.py --config phi_accelerated_local_finetune.yaml # if your architecture doesn't support BF16
-# OR
-python run.py --config phi_accelerated_local_bf16_finetune.yaml # if your architecture support BF16
+python run.py --config orchestrator_finetune.yaml --accelerate
 ```
 
-Under the hood, the finetuning step will spin up the accelerated job using the finetuning script CLI wrapper (`scripts/finetune.py`), which will run on all available GPUs.
+Under the hood, the finetuning step will spin up the accelerated job using the step code, which will run on all available GPUs.
 
 ## ☁️ Running with a remote stack
 
@@ -99,11 +97,11 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ├── steps                                         # logically grouped `zenml.steps` implementations
 │   ├── evaluate_model.py                         # evaluate base and finetuned models using Rouge metrics
 │   ├── finetune.py                               # finetune the base model
+│   ├── log_metadata.py                           # helper step to ensure that model metadata is always logged
 │   ├── prepare_datasets.py                       # load and tokenize dataset
 │   └── promote.py                                # promote good models to target environment
 ├── utils                                         # utility functions
 │   ├── callbacks.py                              # custom callbacks
-│   ├── cuda.py                                   # helpers for CUDA
 │   ├── loaders.py                                # loaders for models and data
 │   ├── logging.py                                # logging helpers
 │   └── tokenizer.py                              # load and tokenize

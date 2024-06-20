@@ -93,8 +93,7 @@ def finetune(
         should_print = True
 
     project = "zenml-finetune"
-    base_model_name = "mistral"
-    run_name = base_model_name + "-" + project
+    run_name = base_model_id + "-" + project
     output_dir = "./" + run_name
 
     if should_print:
