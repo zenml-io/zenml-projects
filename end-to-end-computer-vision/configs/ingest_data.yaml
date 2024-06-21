@@ -1,6 +1,6 @@
 
 steps:
-  download_and_tile_dataset_from_hf:
+  process_hf_dataset:
     enable_cache: True
     enable_step_logs: False
     parameters:
