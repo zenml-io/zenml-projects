@@ -41,6 +41,7 @@ def train_model(
     batch_size: int = 16,
     imgsz: int = 640,
     is_quad_gpu_env: bool = False,
+    is_apple_silicon_env: bool = False,
 ) -> Tuple[
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
@@ -57,6 +58,7 @@ def train_model(
         dataset: Dataset to train the model on.
         data_source: Source where the data lives
         is_quad_gpu_env: Whether we are in an env with 4 gpus
+        is_apple_silicon_env: In case we are running on apple compute
 
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
@@ -74,6 +76,14 @@ def train_model(
             batch=batch_size,
             imgsz=imgsz,
             device=[0, 1, 2, 3],
+        )
+    elif is_apple_silicon_env:
+        model.train(
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz,
+            device="mps",
         )
     else:
         model.train(

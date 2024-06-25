@@ -32,7 +32,8 @@ deployed instance of zenml:
 
 ```bash
 pip install -r requirements.txt
-zenml integration install label_studio torch gcp mlflow -y
+zenml integration install torch gcp mlflow -y
+pip install label-studio
 pip uninstall wandb  # This comes in automatically
 ```
 
@@ -63,37 +64,47 @@ zenml connect --url <INSERT_ZENML_URL_HERE>
 We will use GCP in the commands listed below, but it will work for other cloud
 providers.
 
-### Follow our guide to set up your credential for GCP
+1) Follow our guide to set up your credentials for GCP [here](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
 
-[Set up a GCP service
-connector](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
+2) Set up a bucket in GCP to persist your training data
 
-### Set up a bucket to persist your training data
-
-### Set up a bucket to use as artifact store within ZenML
-
-[Learn how to set up a GCP artifact store stack component within zenml
-here](https://docs.zenml.io/stack-components/artifact-stores)
-### Set up vertex for pipeline orchestration
-
-[Learn how to set up a Vertex orchestrator stack component within zenml
-here](https://docs.zenml.io/stack-components/orchestrators/vertex)
-### For training on accelerators like GPUs/TPUs set up Vertex
-
-[Learn how to set up a Vertex step operator stack component within zenml
-here](https://docs.zenml.io/stack-components/step-operators/vertex)
-### Set up Container Registry
-
-[Learn how to set up a google cloud container registry component within zenml
-here](https://docs.zenml.io/stack-components/container-registries/gcp)
+3) Set up a bucket to use as artifact store within ZenML
+Learn how to set up a GCP artifact store stack component within zenml
+[here](https://docs.zenml.io/stack-components/artifact-stores)
+4) Set up vertex for pipeline orchestration
+Learn how to set up a Vertex orchestrator stack component within zenml
+[here](https://docs.zenml.io/stack-components/orchestrators/vertex)
+5) For training on accelerators like GPUs/TPUs set up Vertex
+Learn how to set up a Vertex step operator stack component within zenml
+[here](https://docs.zenml.io/stack-components/step-operators/vertex)
+6) Set up Container Registry in GCP. Learn how to set up a google cloud container registry component within zenml
+[here](https://docs.zenml.io/stack-components/container-registries/gcp)
 
 ## Label Studio
 
-### [Start Label Studio locally](https://labelstud.io/guide/start)
-### [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio)
-### Create a project within Label Studio and name it `ship_detection_gcp`
-### [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
-use the first bucket that you created to data persistence
+1) [Start Label Studio locally](https://labelstud.io/guide/start)
+```commandline
+label-studio start
+```
+2) [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio)
+3) Create a project within Label Studio and name it `ship_detection_gcp`
+![img.png](_assets/project_creation_label_studio.png)
+4) Configure your project to use `Object Detection with Bounding Boxes` as Labeling Setup
+![img.png](_assets/labeling_setup.png)
+In the following screen you now need to configure the labeling interface. This is where you define the different classes that you want to detect. In our case this should be a single `ship` class.
+![img.png](_assets/labeling_interface.png)
+Additionally you might want to allow users to zoom during labeling. This can be configured when you scroll down on this same screen.
+6) [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
+use the first bucket that you created for data persistence
+
+## Huggingface
+
+This specific project relies on a dataset loaded from huggingface. As such a free huggingface account is needed.
+
+1) Login in the CLI. Simply follow the instructions from this command.
+```commandline
+huggingface-cli login
+```
 
 ## ZenML Stacks
 
@@ -126,7 +137,7 @@ The project consists of the following pipelines:
 This pipeline downloads the [Ship Detection
 dataset](https://huggingface.co/datasets/datadrivenscience/ship-detection). This
 dataset contains some truly huge images with a few hundred million pixels. In
-order to make these useable, we break down all source images into manageable
+order to make these usable, we break down all source images into manageable
 tiles with a maximum height/width of 1000 pixels. After this preprocessing is
 done, the images are uploaded into a cloud bucket and the ground truth
 annotations are uploaded to a local Label Studio instance.
