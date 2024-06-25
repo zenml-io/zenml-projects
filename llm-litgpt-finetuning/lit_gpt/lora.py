@@ -383,7 +383,7 @@ class LoRAQKVLinear(LoRALinear):
         If the number of heads is equal to the number of query groups - grouped queries are disabled
         (see scheme in `lit_gpt/config.py:Config`). In this case the combined QKV matrix consists of equally sized
         query, key and value parts, which means we can utilize `groups` argument from `conv1d`: with this argument the
-        input and weight matrices will be splitted in equally sized parts and applied separately (like having multiple
+        input and weight matrices will be split in equally sized parts and applied separately (like having multiple
         conv layers side by side).
 
         Otherwise QKV matrix consists of unequally sized parts and thus we have to split input and weight matrices manually,
@@ -408,14 +408,14 @@ class LoRAQKVLinear(LoRALinear):
         # ⚬ C_output': embeddings size for each LoRA layer (not equal in size)
         # ⚬ r: rank of all LoRA layers (equal in size)
 
-        input_splitted = input.chunk(
+        input_split = input.chunk(
             sum(self.enable_lora), dim=1
         )  # N * (B, C // N, T)
-        weight_splitted = weight.split(
+        weight_split = weight.split(
             self.qkv_shapes
         )  # N * (C_output', r, 1)
         return torch.cat(
-            [F.conv1d(a, b) for a, b in zip(input_splitted, weight_splitted)],
+            [F.conv1d(a, b) for a, b in zip(input_split, weight_split)],
             dim=1,  # (B, C_output', T)
         )  # (B, C_output, T)
 

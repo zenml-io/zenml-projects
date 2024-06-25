@@ -26,6 +26,7 @@ Implicitly = "Implicitly"
 fo = "fo"
 mapp = "mapp"
 polution = "polution"
+magent = "magent"
 
 [default]
 locale = "en-us"
