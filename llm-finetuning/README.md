@@ -133,7 +133,7 @@ A working prototype has been trained and deployed as of Jan 19 2024. The model i
 
 The Weights & Biases logs for the latest training runs are available here: [Link](https://wandb.ai/zenmlcode/zenml-projects-zencoder?workspace=user-zenmlcodemonkey)
 
-The [ZenML Cloud](https://zenml.io/cloud) was used to manage the pipelines, models, and deployments. Here are some screenshots of the process:
+The [ZenML Pro](https://zenml.io/pro) was used to manage the pipelines, models, and deployments. Here are some screenshots of the process:
 
 <div align="center">
     <img src=".assets/zencoder_mcp_1.png">

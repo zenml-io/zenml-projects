@@ -133,11 +133,11 @@ can run the pipelines on a remote stack.
 If you run the pipeline using a cloud artifact store, logs from all the steps as
 well as assets like the visualizations will all be shown in the ZenML dashboard.
 
-### BONUS: Connect to ZenML Cloud
+### BONUS: Connect to ZenML Pro
 
-If you run the pipeline using ZenML Cloud you'll have access to the managed
+If you run the pipeline using ZenML Pro you'll have access to the managed
 dashboard which will allow you to get started quickly. We offer a free trial so
-you can try out the platform without any cost. Visit the [ZenML Cloud
+you can try out the platform without any cost. Visit the [ZenML Pro
 dashboard](https://cloud.zenml.io/) to get started.
 
 You can also self-host the ZenML dashboard. Instructions are available in our

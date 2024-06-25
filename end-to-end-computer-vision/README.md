@@ -25,7 +25,7 @@ things that you'll need to do.
 
 ## ZenML
 
-We recommend using our [ZenML Cloud offering](https://cloud.zenml.io/) to get a
+We recommend using our [ZenML Pro offering](https://cloud.zenml.io/) to get a
 deployed instance of zenml:
 
 ### Set up your environment
