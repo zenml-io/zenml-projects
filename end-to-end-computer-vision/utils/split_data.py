@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import shutil
@@ -37,7 +38,7 @@ def split_dataset(
         seed: Random seed for reproducibility.
     """
     # Ensure the ratio is correct
-    assert sum(ratio) == 1.0
+    assert math.isclose(sum(ratio), 1.0, rel_tol=1e-9)
 
     # Seed to get consistent results
     if seed is not None:
