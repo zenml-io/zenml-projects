@@ -152,6 +152,7 @@ llm-lora-finetuning/data_generation/
 llm-lora-finetuning/datagen/
 fiftyone-ls-demo/
 llm-lora-finetuning/mistral-zenml-finetune/
+.flashrank_cache
 
 # ollama ignores
 nohup.out
