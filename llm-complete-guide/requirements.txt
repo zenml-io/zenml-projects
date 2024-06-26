@@ -9,7 +9,8 @@ beautifulsoup4
 unstructured
 pandas
 numpy
-sentence-transformers
+sentence-transformers>=3
+transformers
 litellm
 ollama
 tiktoken
