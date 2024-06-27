@@ -154,6 +154,7 @@ fiftyone-ls-demo/
 llm-lora-finetuning/mistral-zenml-finetune/
 .flashrank_cache
 bge-base-financial-matryoshka/
+embeddings
 
 # ollama ignores
 nohup.out
