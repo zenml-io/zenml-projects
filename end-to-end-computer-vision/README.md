@@ -32,7 +32,7 @@ deployed instance of ZenML:
 
 ```bash
 pip install -r requirements.txt
-zenml integration install torch gcp mlflow label-studio -y
+zenml integration install torch gcp mlflow label_studio -y
 pip uninstall wandb  # This comes in automatically
 ```
 
