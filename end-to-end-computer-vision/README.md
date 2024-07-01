@@ -104,7 +104,7 @@ Use the first bucket that you created for data persistence
 
 ## Hugging Face
 
-This specific project relies on a dataset loaded from huggingface. As such a free huggingface account is needed.
+This specific project relies on a dataset loaded from Hugging Face. As such a free Hugging Face account is needed.
 
 1) Login in the CLI. Simply follow the instructions from this command.
 ```commandline
