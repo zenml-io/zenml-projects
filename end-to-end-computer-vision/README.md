@@ -102,7 +102,7 @@ Additionally you might want to allow users to zoom during labeling. This can be 
 6) [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
 Use the first bucket that you created for data persistence
 
-## Huggingface
+## Hugging Face
 
 This specific project relies on a dataset loaded from huggingface. As such a free huggingface account is needed.
 
