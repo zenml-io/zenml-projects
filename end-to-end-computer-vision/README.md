@@ -83,10 +83,15 @@ Learn how to set up a Vertex step operator stack component within zenml
 ## Label Studio
 
 1) [Start Label Studio locally](https://labelstud.io/guide/start)
-```commandline
-label-studio start
+For label studio we recommend using docker/docker-compose to deploy a local instance
+```bash
+zenml integration install label_studio
+
+git clone https://github.com/HumanSignal/label-studio.git
+cd label-studio
+docker-compose up -d # starts label studio at http://localhost:8080
 ```
-2) [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio)
+2) [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio#how-to-deploy-it)
 3) Create a project within Label Studio and name it `ship_detection_gcp`
 ![img.png](_assets/project_creation_label_studio.png)
 4) Configure your project to use `Object Detection with Bounding Boxes` as Labeling Setup
