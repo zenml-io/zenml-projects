@@ -5,7 +5,7 @@ steps:
     enable_step_logs: False
     parameters:
       dataset: "datadrivenscience/ship-detection"
-      data_source: "gs://zenml-internal-artifact-store/cv_ship_detection"
+      data_source: <INSERT_HERE>  # Replace this with our path to the data source
   upload_labels_to_label_studio:
     enable_cache: False
     parameters:

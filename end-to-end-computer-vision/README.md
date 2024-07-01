@@ -26,14 +26,13 @@ things that you'll need to do.
 ## ZenML
 
 We recommend using our [ZenML Pro offering](https://cloud.zenml.io/) to get a
-deployed instance of zenml:
+deployed instance of ZenML:
 
 ### Set up your environment
 
 ```bash
 pip install -r requirements.txt
-zenml integration install torch gcp mlflow -y
-pip install label-studio
+zenml integration install torch gcp mlflow label-studio -y
 pip uninstall wandb  # This comes in automatically
 ```
 
@@ -72,10 +71,10 @@ providers.
 Learn how to set up a GCP artifact store stack component within ZenML
 [here](https://docs.zenml.io/stack-components/artifact-stores)
 4) Set up Vertex for pipeline orchestration
-Learn how to set up a Vertex orchestrator stack component within zenml
+Learn how to set up a Vertex orchestrator stack component within ZenML
 [here](https://docs.zenml.io/stack-components/orchestrators/vertex)
 5) For training on accelerators like GPUs/TPUs set up Vertex
-Learn how to set up a Vertex step operator stack component within zenml
+Learn how to set up a Vertex step operator stack component within ZenML
 [here](https://docs.zenml.io/stack-components/step-operators/vertex)
 6) Set up a Container Registry in GCP. Learn how to set up a google cloud container registry component within ZenML
 [here](https://docs.zenml.io/stack-components/container-registries/gcp)
@@ -85,8 +84,6 @@ Learn how to set up a Vertex step operator stack component within zenml
 1) [Start Label Studio locally](https://labelstud.io/guide/start)
 For label studio we recommend using docker/docker-compose to deploy a local instance
 ```bash
-zenml integration install label_studio
-
 git clone https://github.com/HumanSignal/label-studio.git
 cd label-studio
 docker-compose up -d # starts label studio at http://localhost:8080
