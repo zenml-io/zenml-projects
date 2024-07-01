@@ -77,7 +77,7 @@ Learn how to set up a Vertex orchestrator stack component within zenml
 5) For training on accelerators like GPUs/TPUs set up Vertex
 Learn how to set up a Vertex step operator stack component within zenml
 [here](https://docs.zenml.io/stack-components/step-operators/vertex)
-6) Set up Container Registry in GCP. Learn how to set up a google cloud container registry component within zenml
+6) Set up a Container Registry in GCP. Learn how to set up a google cloud container registry component within ZenML
 [here](https://docs.zenml.io/stack-components/container-registries/gcp)
 
 ## Label Studio
