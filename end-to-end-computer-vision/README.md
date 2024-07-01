@@ -69,7 +69,7 @@ providers.
 2) Set up a bucket in GCP to persist your training data
 
 3) Set up a bucket to use as artifact store within ZenML
-Learn how to set up a GCP artifact store stack component within zenml
+Learn how to set up a GCP artifact store stack component within ZenML
 [here](https://docs.zenml.io/stack-components/artifact-stores)
 4) Set up Vertex for pipeline orchestration
 Learn how to set up a Vertex orchestrator stack component within zenml
