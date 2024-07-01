@@ -82,7 +82,7 @@ Learn how to set up a Vertex step operator stack component within ZenML
 ## Label Studio
 
 1) [Start Label Studio locally](https://labelstud.io/guide/start)
-For label studio we recommend using docker/docker-compose to deploy a local instance
+For Label Studio we recommend using docker/docker-compose to deploy a local instance
 ```bash
 git clone https://github.com/HumanSignal/label-studio.git
 cd label-studio
