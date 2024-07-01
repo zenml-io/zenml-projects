@@ -63,7 +63,7 @@ You can sign up for a free trial of the cloud at https://cloud.zenml.io. Once si
 
 ### Models Tab in the Dashboard
 
-The models tab acts as a central control plane for all of your models. You can view the different versions that get created implictly with your pipeline runs, check their metadata, deployments and more!
+The models tab acts as a central control plane for all of your models. You can view the different versions that get created implicitly with your pipeline runs, check their metadata, deployments and more!
 
 ![model versions](./assets/llm-agent/model_versions.png)
 

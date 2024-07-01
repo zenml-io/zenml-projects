@@ -160,7 +160,7 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 
 While the work here is solely based on the task of finetuning the model for the ZenML library, the pipeline can be changed with minimal effort to point to any set of repositories on GitHub. Theoretically, one could extend this work to point to proprietary codebases to learn from them for any use-case.
 
-For example, see how [VMWare fine-tuned StarCoder to learn their style](https://octo.vmware.com/fine-tuning-starcoder-to-learn-vmwares-coding-style/).
+For example, see how [VMWare fine-tuned StarCoder to learn their style](https://entreprenerdly.com/fine-tuning-starcoder-to-create-a-coding-assistant-that-adapts-to-your-coding-style/).
 
 Also, make sure to join our <a href="https://zenml.io/slack" target="_blank">
     <img width="15" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
