@@ -100,7 +100,7 @@ In the following screen you now need to configure the labeling interface. This i
 ![img.png](_assets/labeling_interface.png)
 Additionally you might want to allow users to zoom during labeling. This can be configured when you scroll down on this same screen.
 6) [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
-use the first bucket that you created for data persistence
+Use the first bucket that you created for data persistence
 
 ## Huggingface
 
