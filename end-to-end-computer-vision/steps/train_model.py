@@ -58,7 +58,7 @@ def train_model(
         dataset: Dataset to train the model on.
         data_source: Source where the data lives
         is_quad_gpu_env: Whether we are in an env with 4 gpus
-        is_apple_silicon_env: In case we are running on apple compute
+        is_apple_silicon_env: In case we are running on Apple compute
 
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
