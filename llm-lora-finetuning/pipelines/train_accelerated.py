@@ -80,6 +80,7 @@ def llm_peft_full_finetune(
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
+        use_accelerate=True
     )
 
     evaluate_model(
