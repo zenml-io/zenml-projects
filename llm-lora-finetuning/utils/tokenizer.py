@@ -40,6 +40,7 @@ def load_tokenizer(
             add_bos_token=True,
             device_map="auto",
             use_fast=use_fast,
+            trust_remote_code=True,
         )
         tokenizer.pad_token_id = 0
     else:
@@ -50,6 +51,7 @@ def load_tokenizer(
             add_eos_token=True,
             device_map="auto",
             use_fast=use_fast,
+            trust_remote_code=True,
         )
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
