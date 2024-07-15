@@ -10,3 +10,5 @@ nltk
 accelerate>=0.30.0
 urllib3<2
 tf-keras
+zenml
+torch
