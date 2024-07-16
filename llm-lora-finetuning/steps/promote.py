@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+from utils.promote_in_model_registry import promote_in_model_registry
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -42,6 +43,7 @@ def promote(
     base_metrics = context_model.load_artifact("base_model_rouge_metrics")
     ft_metrics = context_model.load_artifact("finetuned_model_rouge_metrics")
     staging_metrics = None
+    current_version_model_registry_number = None
     try:
         staging_model = Client().get_model_version(
             context_model.name, target_stage
@@ -49,6 +51,9 @@ def promote(
         staging_metrics = staging_model.get_artifact(
             "finetuned_model_rouge_metrics"
         ).load()
+        current_version_model_registry_number =  (
+            staging_model.run_metadata["model_registry_version"].value
+        )
     except KeyError:
         pass
 
@@ -72,6 +77,22 @@ def promote(
         else:
             logger.info(f"Promoting model to `{target_stage}`")
             get_step_context().model.set_stage(target_stage, True)
+            
+            if Client().active_stack.model_registry:
+                # Promote in Model Registry
+                latest_version_model_registry_number = context_model.run_metadata[
+                    "model_registry_version"
+                ].value
+                if current_version_model_registry_number is None:
+                    current_version_model_registry_number = (
+                        latest_version_model_registry_number
+                    )
+                promote_in_model_registry(
+                    latest_version=latest_version_model_registry_number,
+                    current_version=current_version_model_registry_number,
+                    model_name=context_model.name,
+                    target_env=target_stage.capitalize(),
+                )
     else:
         logger.info(
             "Skipping promotion: model does not outperform the base model."

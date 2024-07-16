@@ -16,6 +16,7 @@
 #
 
 from pathlib import Path
+from typing import Any, Dict, Tuple
 
 import transformers
 from accelerate import Accelerator
@@ -25,13 +26,12 @@ from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
 from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
-from zenml import step, ArtifactConfig
+from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 logger = get_logger(__name__)
-
 
 @step(output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def finetune(
@@ -51,7 +51,10 @@ def finetune(
     use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
-) -> Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]:
+) -> Tuple[
+    Annotated[Dict[str, Any], ArtifactConfig(name="trainer_args")],
+    Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]
+]:
     """Finetune the model using PEFT.
 
     Base model will be derived from configure step and finetuned model will
@@ -170,4 +173,4 @@ def finetune(
             save_function=accelerator.save,
         )
 
-    return ft_model_dir
+    return trainer.args.to_dict(), ft_model_dir

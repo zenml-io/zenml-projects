@@ -12,3 +12,4 @@ urllib3<2
 tf-keras
 zenml
 torch
+mlflow
