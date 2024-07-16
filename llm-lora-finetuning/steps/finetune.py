@@ -138,6 +138,7 @@ def finetune(
             eval_steps=eval_steps,
             do_eval=True,
             label_names=["input_ids"],
+            ddp_find_unused_parameters=False,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
             tokenizer, mlm=False

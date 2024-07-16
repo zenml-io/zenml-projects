@@ -67,7 +67,7 @@ def load_base_model(
     )
 
     model = AutoModelForCausalLM.from_pretrained(
-        base_model_id, quantization_config=bnb_config, device_map=device_map
+        base_model_id, quantization_config=bnb_config, device_map=device_map, trust_remote_code=True,
     )
 
     if is_training:
@@ -126,6 +126,6 @@ def load_pretrained_model(
         bnb_4bit_compute_dtype=torch.bfloat16,
     )
     model = AutoModelForCausalLM.from_pretrained(
-        ft_model_dir, quantization_config=bnb_config, device_map="auto"
+        ft_model_dir, quantization_config=bnb_config, device_map="auto", trust_remote_code=True,
     )
     return model
