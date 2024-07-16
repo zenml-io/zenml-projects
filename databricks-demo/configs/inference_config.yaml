@@ -24,7 +24,7 @@ settings:
       - sklearn
       - databricks
   orchestrator.databricks:
-    cluster_name: production_line_qa
+    cluster_name: production_line_quality_assurance
     node_type_id: Standard_D8ads_v5
 
 # configuration of steps  
@@ -35,7 +35,7 @@ steps:
 
 # configuration of the Model Control Plane
 model:
-  name: production_line_qa
+  name: production_line_quality_assurance
   version: staging
 
 # pipeline level extra configurations

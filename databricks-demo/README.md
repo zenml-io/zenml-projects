@@ -7,7 +7,7 @@ classification datasets provided by the scikit-learn library. The project was
 generated from the [E2E Batch ZenML project template](https://github.com/zenml-io/template-e2e-batch)
 with the following properties:
 - Project name: ZenML E2E project
-- Technical Name: production_line_qa
+- Technical Name: production_line_quality_assurance
 - Version: `0.0.1`
 - Licensed with apache to ZenML GmbH<info@zenml.io>
 - Deployment environment: `staging`
