@@ -1,4 +1,3 @@
-
 datasets>=2.19.1
 transformers>=4.42.2
 peft
@@ -9,6 +8,5 @@ rouge_score
 nltk
 accelerate>=0.30.0
 urllib3<2
-tf-keras
 zenml
-torch
+torch>=2.2.0
