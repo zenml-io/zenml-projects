@@ -39,9 +39,9 @@ kubernetes_settings = KubernetesOrchestratorSettings(
                 "requiredDuringSchedulingIgnoredDuringExecution": {
                     "nodeSelectorTerms": [
                         {"matchExpressions": [
-                            {"key": "node.kubernetes.io/name",
+                            {"key": "zenml.io/gpu",
                              "operator": "In",
-                             "values": ["gpu_nodes"]}
+                             "values": ["yes"]}
                         ]}
                     ]
                 }
@@ -103,7 +103,8 @@ def llm_peft_finetune(
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
-        use_accelerate=False
+        use_accelerate=False,
+        after=["evaluate_base"],
     )
 
     evaluate_model(

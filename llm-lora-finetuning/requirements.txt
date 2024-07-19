@@ -8,6 +8,8 @@ rouge_score
 nltk
 accelerate>=0.30.0
 urllib3<2
-zenml
+git+https://github.com/zenml-io/zenml.git@misc/without-notebook-error
 torch>=2.2.0
 sentencepiece
+pyOpenSSL==24.1.0
+protobuf

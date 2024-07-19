@@ -29,6 +29,8 @@ from zenml import step, ArtifactConfig
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
+from zenml.client import Client
+from zenml.utils import io_utils
 
 logger = get_logger(__name__)
 
@@ -99,8 +101,17 @@ def finetune(
     if should_print:
         logger.info("Loading datasets...")
     tokenizer = load_tokenizer(base_model_id, use_fast=use_fast)
-    tokenized_train_dataset = load_from_disk(str((dataset_dir / "train").absolute()))
-    tokenized_val_dataset = load_from_disk(str((dataset_dir / "val").absolute()))
+
+    client = Client()
+    datasets_dir = client.get_artifact_version(
+        name_id_or_prefix="datasets_dir"
+    ).load()
+    io_utils.makedirs("/tmp/datasets_dir")
+    io_utils.copy_dir(str(datasets_dir), "/tmp/datasets_dir", overwrite=True)
+    datasets_dir = Path("/tmp/datasets_dir")
+
+    tokenized_train_dataset = load_from_disk(str((datasets_dir / "train").absolute()))
+    tokenized_val_dataset = load_from_disk(str((datasets_dir / "val").absolute()))
 
     if should_print:
         logger.info("Loading base model...")

@@ -29,6 +29,8 @@ from utils.tokenizer import load_tokenizer, tokenize_for_eval
 from zenml import save_artifact, step
 from zenml.logger import get_logger
 from zenml.utils.cuda_utils import cleanup_gpu_memory
+from zenml.client import Client
+from zenml.utils import io_utils
 
 logger = get_logger(__name__)
 
@@ -64,7 +66,17 @@ def evaluate_model(
         is_eval=True,
         use_fast=use_fast,
     )
+
+    client = Client()
+    datasets_dir = client.get_artifact_version(
+        name_id_or_prefix="datasets_dir"
+    ).load()
+    io_utils.makedirs("/tmp/datasets_dir")
+    io_utils.copy_dir(str(datasets_dir), "/tmp/datasets_dir", overwrite=True)
+    datasets_dir = Path("/tmp/datasets_dir")
+
     test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
+
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
     tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
