@@ -74,12 +74,6 @@ def llm_peft_finetune(
     if load_in_4bit and load_in_8bit:
         raise ValueError("Only one of `load_in_8bit` and `load_in_4bit` can be True.")
 
-    # datasets_dir = prepare_data(
-    #     base_model_id=base_model_id,
-    #     system_prompt=system_prompt,
-    #     use_fast=use_fast,
-    # )
-
     evaluate_model(
         base_model_id,
         system_prompt,
@@ -104,7 +98,6 @@ def llm_peft_finetune(
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
         use_accelerate=False,
-        after=["evaluate_base"],
     )
 
     evaluate_model(
@@ -124,4 +117,4 @@ def llm_peft_finetune(
         id="log_metadata_evaluation_finetuned"
     )
 
-    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
+    # promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
