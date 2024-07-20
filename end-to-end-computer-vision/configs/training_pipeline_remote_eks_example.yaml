@@ -1,0 +1,69 @@
+parameters:
+  model_checkpoint: yolov8l.pt
+
+settings:
+  docker:
+    apt_packages:
+      - ffmpeg
+      - libsm6
+      - libxext6
+    required_integrations:
+      - s3
+      - github
+    requirements:
+      - ultralytics
+
+steps:
+  load_model:
+    enable_cache: True
+  train_model:
+    enable_cache: False
+    enable_step_logs: False
+    parameters:
+      data_source: "s3://<bucket-name>/<source-dir>" # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
+      batch_size: 8
+      imgsz: 736
+      epochs: 300
+      is_single_gpu_env: True
+    settings:
+      orchestrator.kubernetes:
+        pod_settings:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: eks.amazonaws.com/nodegroup
+                        operator: In
+                        values:
+                          - aws-nvidia-single-gpu-nodes
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+          tolerations:
+            - key: "eks.amazonaws.com/nodegroup"
+              operator: "Equal"
+              value: ""
+              effect: "NoSchedule"
+          volumes:
+          - emptyDir:
+              medium: Memory
+              sizeLimit: 1024Mi
+            name: dshm
+      docker:
+        parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
+        required_integrations:
+          - s3
+          - github
+        requirements:
+          - ultralytics
+          - zenml
+          - numpy
+
+
+# configuration of the Model Control Plane
+model:
+  name: ShipDetector
+  license: Apache 2.0
+  description: Object Detection Model.
+  tags: ["object detection"]
+  version: staging

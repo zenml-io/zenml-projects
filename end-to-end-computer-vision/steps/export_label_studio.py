@@ -58,7 +58,7 @@ def load_data_from_label_studio(
             "This step can only be used with the Label Studio annotator."
         )
 
-    if annotator and annotator._connection_available():
+    if annotator:
         try:
             dataset = annotator.get_dataset(dataset_name=dataset_name)
             ls_dataset = LabelStudioAnnotationExport()

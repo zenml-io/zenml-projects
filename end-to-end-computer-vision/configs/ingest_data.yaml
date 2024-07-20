@@ -1,4 +1,3 @@
-
 steps:
   process_hf_dataset:
     enable_cache: True
@@ -9,4 +8,5 @@ steps:
   upload_labels_to_label_studio:
     enable_cache: False
     parameters:
-      ls_project_id: 8
+      ls_project_id: 1
+      # storage_type: s3

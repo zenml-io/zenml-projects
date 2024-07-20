@@ -1,6 +1,8 @@
 *.pt
 !data/.gitkeep
 data/
+images
+loaded-images
 runs/
 **/tmp*
 runs_dir
