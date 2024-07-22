@@ -16,12 +16,12 @@
 # 
 
 model:
-  name: llm-peft-meta-Llama-3-8B
-  description: "Fine-tune `meta-llama/Meta-Llama-3-8B`."
+  name: llm-peft-microsoft-phi-2
+  description: "Fine-tune `microsoft/phi-2`."
   tags:
     - llm
     - peft
-    - meta-llama/Meta-Llama-3-8B
+    - microsoft/phi-2
   version: 300_steps
 
 settings:
@@ -37,59 +37,29 @@ settings:
       PJRT_DEVICE: CUDA
       USE_TORCH_XLA: "false"
       MKL_SERVICE_FORCE_INTEL: "1"
-  orchestrator.databricks:
-    spark_version : 15.3.x-gpu-ml-scala2.12
-    node_type_id : Standard_NC24ads_A100_v4
-    spark_env_vars:
-      HF_TOKEN: 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
-      MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING: "true"
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3-8B
+  base_model_id: microsoft/phi-2
   use_fast: False
   load_in_4bit: True
   system_prompt: |
-      Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+      Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
+      This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
+      The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
+      
 
 steps:
   prepare_data:
     parameters:
-      dataset_name: yahma/alpaca-cleaned
+      dataset_name: gem/viggo
 
   finetune:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
     parameters:
       max_steps: 300
       eval_steps: 30
       bf16: True
-      per_device_train_batch_size: 2
-      use_flash_attention2: False
-
-  evaluate_finetuned:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-
-  evaluate_base:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
 
   promote:
     parameters:
       metric: rouge2
       target_stage: staging
-
-  track_log_model:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-    parameters:
-      model_name: llm-peft-meta-Llama-3-8B
-      use_fast: False

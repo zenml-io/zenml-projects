@@ -19,15 +19,16 @@
 from steps import (
     evaluate_model,
     finetune,
+    log_metadata_from_step_artifact,
     prepare_data,
     promote,
-    log_metadata_from_step_artifact,
+    track_log_model,
 )
 from zenml import pipeline
 
 
 @pipeline
-def llm_peft_full_finetune(
+def llama_3_peft_full_finetune(
     system_prompt: str,
     base_model_id: str,
     use_fast: bool = True,
@@ -79,7 +80,9 @@ def llm_peft_full_finetune(
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
-        use_accelerate=False
+        use_accelerate=False,
+        use_flash_attention2=False,
+        after=["evaluate_base"],
     )
 
     evaluate_model(
@@ -92,6 +95,17 @@ def llm_peft_full_finetune(
         load_in_4bit=load_in_4bit,
         id="evaluate_finetuned",
     )
+    
+    track_log_model(
+        base_model_id=base_model_id,
+        system_prompt=system_prompt,
+        datasets_dir=datasets_dir,
+        ft_model_dir=ft_model_dir,
+        use_fast=use_fast,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
+    )
+        
     log_metadata_from_step_artifact(
         "evaluate_finetuned",
         "finetuned_model_rouge_metrics",
@@ -99,4 +113,4 @@ def llm_peft_full_finetune(
         id="log_metadata_evaluation_finetuned"
     )
 
-    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
+    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base", "track_log_model"])

@@ -33,6 +33,7 @@ def load_base_model(
     should_print: bool = True,
     load_in_8bit: bool = False,
     load_in_4bit: bool = False,
+    use_flash_attention2: bool = False,
 ) -> Union[Any, Tuple[Any, Dataset, Dataset]]:
     """Load the base model.
 
@@ -45,6 +46,7 @@ def load_base_model(
         should_print: Whether to print the trainable parameters.
         load_in_8bit: Whether to load the model in 8-bit mode.
         load_in_4bit: Whether to load the model in 4-bit mode.
+        use_flash_attention2: Whether to use the flash attention 2 implementation.
 
     Returns:
         The base model.
@@ -63,19 +65,24 @@ def load_base_model(
         load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_compute_dtype=torch.float16
     )
 
     model = AutoModelForCausalLM.from_pretrained(
-        base_model_id, quantization_config=bnb_config, device_map=device_map, trust_remote_code=True,
+        base_model_id,
+        quantization_config=bnb_config,
+        device_map=device_map,
+        trust_remote_code=True,
+        attn_implementation="sdpa"
     )
 
     if is_training:
-        model.gradient_checkpointing_enable()
+        model.config.pretraining_tp = 1
+        #model.gradient_checkpointing_enable()
         model = prepare_model_for_kbit_training(model)
 
         config = LoraConfig(
-            r=8,
+            r=16,
             lora_alpha=16,
             target_modules=[
                 "q_proj",
@@ -88,7 +95,7 @@ def load_base_model(
                 "lm_head",
             ],
             bias="none",
-            lora_dropout=0.05,  # Conventional
+            lora_dropout=0.1,  # Conventional
             task_type="CAUSAL_LM",
         )
 
@@ -105,6 +112,7 @@ def load_pretrained_model(
     ft_model_dir: Path,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
+    use_flash_attention2: bool = False,
 ) -> AutoModelForCausalLM:
     """Load the finetuned model saved in the output directory.
 
@@ -112,6 +120,7 @@ def load_pretrained_model(
         ft_model_dir: The path to the finetuned model directory.
         load_in_4bit: Whether to load the model in 4-bit mode.
         load_in_8bit: Whether to load the model in 8-bit mode.
+        use_flash_attention2: Whether to use the flash attention 2 implementation.
 
     Returns:
         The finetuned model.
@@ -123,7 +132,8 @@ def load_pretrained_model(
         load_in_4bit=load_in_4bit,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_compute_dtype=torch.bfloat16
+
     )
     model = AutoModelForCausalLM.from_pretrained(
         ft_model_dir, quantization_config=bnb_config, device_map="auto", trust_remote_code=True,

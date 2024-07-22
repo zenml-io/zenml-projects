@@ -69,6 +69,7 @@ def track_log_model(
     tokenizer = load_tokenizer(
         base_model_id,
         is_eval=True,
+        use_fast=use_fast,
     )
     model = load_pretrained_model(
         ft_model_dir,
@@ -80,18 +81,14 @@ def track_log_model(
     
     # MLflow infers schema from the provided sample input/output/params
     signature = infer_signature(
-        model_input=sample["instruction"],
-        model_output=sample["output"],
+        model_input=sample["Patient"],
+        model_output=sample["Doctor"],
         # Parameters are saved with default values if specified
-        params={"max_new_tokens": 100, "do_sample": True , "temperature": 0.5, "top_p": 0.5, "pad_token_id": tokenizer.eos_token_id},
+        params={"max_new_tokens": 100},
     )
-    prompt = (
-        "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.\n"
-        "### Instruction: {prompt}\n"
-        "### output:"
-    )
+    messages = [{"role": "user", "content": "Hello doctor, I have bad acne. How do I get rid of it?"}]
+    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
-    
     # If you interrupt the training, uncomment the following line to stop the MLflow run
     mlflow.transformers.log_model(
         transformers_model={"model": model, "tokenizer": tokenizer},

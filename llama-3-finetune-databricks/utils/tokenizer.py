@@ -16,6 +16,8 @@
 #
 
 
+from typing import List
+
 from transformers import AutoTokenizer
 
 
@@ -39,18 +41,14 @@ def load_tokenizer(
             base_model_id,
             add_bos_token=True,
             device_map="auto",
-            use_fast=use_fast,
             trust_remote_code=True,
         )
         tokenizer.pad_token_id = 0
     else:
         tokenizer = AutoTokenizer.from_pretrained(
             base_model_id,
-            model_max_length=512,
-            padding_side="right",
             add_eos_token=True,
             device_map="auto",
-            use_fast=use_fast,
             trust_remote_code=True,
         )
         tokenizer.pad_token = tokenizer.eos_token
@@ -79,32 +77,10 @@ def tokenize(
     result["labels"] = result["input_ids"].copy()
     return result
 
-def format_instruction(sample) -> str:
-    """Formats the instruction for evaluation.
-
-    Args:
-        sample: The sample to format.
-
-    Returns:
-        The formatted instruction.
-    """
-    return f"""
-Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-{sample['instruction']}
-
-### Input:
-{sample['input']}
-
-### Response:
-{sample['output']}
-"""
 
 def tokenize_for_eval(
-    data_points: dict,
+    data_points: List[str],
     tokenizer: AutoTokenizer,
-    system_prompt: str,
 ):
     """Tokenizes the prompts for evaluation.
 
@@ -118,7 +94,8 @@ def tokenize_for_eval(
     Returns:
         The tokenized prompt.
     """
-    eval_prompts = [format_instruction({"instruction": data_point, "input": "", "output": ""}) for data_point in data_points["instruction"]]
-    return tokenizer(eval_prompts, padding="longest", truncation=True, return_tensors="pt").to(
+    messages = [{"role": "user", "content": data_point} for data_point in data_points]
+    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    return tokenizer(prompt, padding=True, return_tensors="pt").to(
         "cuda"
     )

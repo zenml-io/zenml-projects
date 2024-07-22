@@ -22,6 +22,7 @@ import evaluate
 import torch
 from datasets import load_from_disk
 from utils.loaders import (
+    get_lora_config,
     load_base_model,
     load_pretrained_model,
 )
@@ -62,16 +63,18 @@ def evaluate_model(
     tokenizer = load_tokenizer(
         base_model_id,
         is_eval=True,
+        use_fast=use_fast,
     )
     test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
     test_dataset = test_dataset[:50]
-    ground_truths = test_dataset["output"]
-    tokenized_test_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
+    ground_truths = test_dataset["Patient"]
+    tokenized_test_dataset = tokenize_for_eval(test_dataset, tokenizer)
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
         model = load_base_model(
             base_model_id,
+            lora_config=get_lora_config(),
             is_training=False,
             load_in_4bit=load_in_4bit,
             load_in_8bit=load_in_8bit,
@@ -85,23 +88,18 @@ def evaluate_model(
         )
 
     model.eval()
-    with torch.inference_mode():
-        predictions = model.generate(
-            input_ids=tokenized_test_dataset["input_ids"],
-            pad_token_id=tokenizer.eos_token_id,
-            max_new_tokens=100,
-            do_sample=True,
-            top_p=0.5,
-            temperature=0.5,
-        )
+    with torch.no_grad():
+        predictions = model.generate(**tokenized_test_dataset,max_length=150, num_return_sequences=1)
     predictions = tokenizer.batch_decode(
-        predictions[:, tokenized_test_dataset["input_ids"].shape[1] :],
+        predictions[0],
         skip_special_tokens=True,
     )
 
     logger.info("Computing ROUGE metrics...")
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
+    print(predictions)
+    print(ground_truths)
     rouge_metrics = rouge.compute(predictions=predictions, references=ground_truths)
 
     logger.info("Computed metrics: " + str(rouge_metrics))

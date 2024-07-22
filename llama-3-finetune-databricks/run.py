@@ -78,9 +78,21 @@ def main(
 
     pipeline_args["config_path"] = os.path.join(config_folder, config)
     
-    from pipelines.train import llama_3_peft_full_finetune
+    if config == "databricks_finetune.yaml":
+        from pipelines.train_databricks import (
+            databricks_llm_peft_full_finetune,
+        )
 
-    llama_3_peft_full_finetune.with_options(**pipeline_args)()
+        databricks_llm_peft_full_finetune.with_options(**pipeline_args)()
+    else:
+        if accelerate:
+            from pipelines.train_accelerated import llm_peft_full_finetune
+
+            llm_peft_full_finetune.with_options(**pipeline_args)()
+        else:
+            from pipelines.train import llm_peft_full_finetune
+
+            llm_peft_full_finetune.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

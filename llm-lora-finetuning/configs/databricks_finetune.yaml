@@ -44,7 +44,6 @@ settings:
 parameters:
   base_model_id: microsoft/phi-2
   use_fast: False
-  is_eval: False
   load_in_4bit: True
   system_prompt: |
       Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
@@ -86,6 +85,7 @@ steps:
       backoff: 2
     parameters:
       model_name: llm-peft-microsoft-phi-2
+      use_fast: False
 
   promote:
     parameters:

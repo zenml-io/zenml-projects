@@ -9,10 +9,9 @@ rouge_score
 nltk
 accelerate>=0.30.0
 urllib3<2
-flash-attn
+#tf-keras
 torch
 mlflow
 databricks-sdk==0.28.0
 trl
-psutil
-pynvml
+flash-attn

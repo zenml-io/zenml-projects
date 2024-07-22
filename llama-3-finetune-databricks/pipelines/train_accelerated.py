@@ -19,17 +19,16 @@
 from steps import (
     evaluate_model,
     finetune,
-    log_metadata_from_step_artifact,
     prepare_data,
     promote,
-    track_log_model,
+    log_metadata_from_step_artifact,
 )
 from zenml import pipeline
 from zenml.integrations.huggingface.steps import run_with_accelerate
 
 
 @pipeline
-def databricks_llm_peft_full_finetune(
+def llm_peft_full_finetune(
     system_prompt: str,
     base_model_id: str,
     use_fast: bool = True,
@@ -72,39 +71,28 @@ def databricks_llm_peft_full_finetune(
         "evaluate_base",
         "base_model_rouge_metrics",
         after=["evaluate_base"],
-        id="log_metadata_evaluation_base",
+        id="log_metadata_evaluation_base"
     )
 
-    ft_model_dir = finetune(
+    ft_model_dir = run_with_accelerate(finetune)(
         base_model_id=base_model_id,
         dataset_dir=datasets_dir,
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
-        use_accelerate=False,
+        use_accelerate=True
     )
 
     evaluate_model(
-        base_model_id=base_model_id,
-        system_prompt=system_prompt,
-        datasets_dir=datasets_dir,
-        ft_model_dir=ft_model_dir,
+        base_model_id,
+        system_prompt,
+        datasets_dir,
+        ft_model_dir,
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
         id="evaluate_finetuned",
     )
-    
-    track_log_model(
-        base_model_id=base_model_id,
-        system_prompt=system_prompt,
-        datasets_dir=datasets_dir,
-        ft_model_dir=ft_model_dir,
-        use_fast=use_fast,
-        load_in_8bit=load_in_8bit,
-        load_in_4bit=load_in_4bit,
-    )
-    
     log_metadata_from_step_artifact(
         "evaluate_finetuned",
         "finetuned_model_rouge_metrics",

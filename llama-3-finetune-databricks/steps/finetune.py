@@ -22,12 +22,15 @@ import transformers
 from accelerate import Accelerator
 from datasets import load_from_disk
 from materializers.directory_materializer import DirectoryMaterializer
-from peft import LoraConfig
-from trl import SFTTrainer, SFTConfig
+from trl import SFTTrainer, setup_chat_format
 from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
-from utils.loaders import load_base_model
-from utils.tokenizer import format_instruction, load_tokenizer
+from utils.loaders import (
+    get_create_trainer_args,
+    get_lora_config,
+    load_base_model,
+)
+from utils.tokenizer import load_tokenizer
 from zenml import ArtifactConfig, step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -47,8 +50,8 @@ def finetune(
     logging_steps: int = 50,
     eval_steps: int = 50,
     save_steps: int = 50,
-    optimizer: str = "paged_adamw_8bit",
-    lr: float = 2e-4,
+    optimizer: str = "paged_adamw_32bit",
+    lr: float = 2.5e-5,
     per_device_train_batch_size: int = 2,
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
@@ -57,7 +60,6 @@ def finetune(
     use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
-    use_flash_attention2: bool = False,
 ) -> Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]:
     """Finetune the model using PEFT.
 
@@ -106,93 +108,54 @@ def finetune(
     if should_print:
         logger.info("Loading datasets...")
     tokenizer = load_tokenizer(base_model_id, use_fast=use_fast)
-    train_dataset = load_from_disk(str((dataset_dir / "train").absolute()))
-    eval_dataset = load_from_disk(str((dataset_dir / "val").absolute()))
+    tokenized_train_dataset = load_from_disk(str((dataset_dir / "train").absolute()))
+    tokenized_val_dataset = load_from_disk(str((dataset_dir / "val").absolute()))
 
     if should_print:
         logger.info("Loading base model...")
 
     model = load_base_model(
         base_model_id,
+        lora_config=get_lora_config(),
         use_accelerate=use_accelerate,
         should_print=should_print,
         load_in_4bit=load_in_4bit,
         load_in_8bit=load_in_8bit,
     )
-    args=SFTConfig(
+    trainer_args=get_create_trainer_args(
         output_dir=output_dir,
         warmup_steps=warmup_steps,
         per_device_train_batch_size=per_device_train_batch_size,
         gradient_checkpointing=True,
-        ddp_find_unused_parameters=False,
-        #gradient_checkpointing_kwargs={'use_reentrant':False} if use_accelerate else {},
         gradient_accumulation_steps=gradient_accumulation_steps,
         max_steps=max_steps,
+        gradient_checkpointing_kwargs={"use_reentrant":False} if use_accelerate else {},
         learning_rate=lr,
         logging_steps=(
             min(logging_steps, max_steps) if max_steps >= 0 else logging_steps
         ),
-        bf16=True,
-        optim=optimizer,
-        max_grad_norm=0.3,
-        logging_dir="./logs",
-        save_strategy="steps",
+        bf16=bf16,
+        optimizer=optimizer,
         save_steps=min(save_steps, max_steps) if max_steps >= 0 else save_steps,
-        evaluation_strategy="steps",
         eval_steps=eval_steps,
-        do_eval=True,
-        #label_names=["input_ids"],
-        lr_scheduler_type="linear",
-        report_to=["mlflow"],
-        disable_tqdm=False,
-        packing=True,
-        max_seq_length=2048,
     )
-    
-    peft_config = LoraConfig(
-        r=8,
-        lora_alpha=16,
-        target_modules=[
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-            "lm_head",
-        ],
-        bias="none",
-        lora_dropout=0.5,  # Conventional
-        task_type="CAUSAL_LM",
-    )
-    
-    test_sample = """    
-Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-Construct a survey question.
-
-
-### Input:
-Topic: Satisfaction with Online Shopping Experience
-
-
-### Response:
-On a scale of 1-5, with 5 being the highest level of satisfaction, how satisfied are you with your overall online shopping experience?
-"""
 
     trainer = SFTTrainer(
         model=model,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        peft_config=peft_config,
+        train_dataset=tokenized_train_dataset,
+        eval_dataset=tokenized_val_dataset,
+        peft_config=get_lora_config(),
+        max_seq_length=512,
+        dataset_text_field="text",
         tokenizer=tokenizer,
-        formatting_func=format_instruction,
-        args=args,
+        args=trainer_args,
+        packing= True,
         callbacks=[ZenMLCallback(accelerator=accelerator)],
+        dataset_kwargs={
+            "add_special_tokens": False,  # We template with special tokens
+            "append_concat_token": False,  # No need to add additional separator token
+        },
     )
-
     if not use_accelerate:
         model.config.use_cache = (
             False  # silence the warnings. Please re-enable for inference!
@@ -200,6 +163,7 @@ On a scale of 1-5, with 5 being the highest level of satisfaction, how satisfied
 
     if should_print:
         logger.info("Training model...")
+
     trainer.train()
 
     if should_print:

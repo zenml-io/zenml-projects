@@ -75,7 +75,7 @@ def databricks_llm_peft_full_finetune(
         id="log_metadata_evaluation_base",
     )
 
-    ft_model_dir = finetune(
+    ft_model_dir = run_with_accelerate(finetune)(
         base_model_id=base_model_id,
         dataset_dir=datasets_dir,
         use_fast=use_fast,
