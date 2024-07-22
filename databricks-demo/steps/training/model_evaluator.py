@@ -78,9 +78,10 @@ def model_evaluator(
         main_font = ImageFont.truetype("Arial.ttf", 30)
         small_font = ImageFont.truetype("Arial.ttf", 20)
     except IOError:
-        title_font = ImageFont.load_default().font_variant(size=40)
-        main_font = ImageFont.load_default().font_variant(size=30)
-        small_font = ImageFont.load_default().font_variant(size=20)
+        # Use default font with different sizes
+        title_font = ImageFont.load_default()
+        main_font = ImageFont.load_default()
+        small_font = ImageFont.load_default()
 
     # Draw title
     title = "Accuracy over Time"
