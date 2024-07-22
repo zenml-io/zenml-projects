@@ -9,4 +9,4 @@ steps:
     enable_cache: False
     parameters:
       ls_project_id: 1
-      # storage_type: s3
+      # storage_type: s3 # For AWS use "s3" instead of "gcp" (the default value)

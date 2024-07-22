@@ -1,6 +1,6 @@
 *.pt
+data/*
 !data/.gitkeep
-data/
 images
 loaded-images
 runs/

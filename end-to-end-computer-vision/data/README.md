@@ -1,0 +1,1 @@
+This directory serves as a place to store and access temporary datafiles.
