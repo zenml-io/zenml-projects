@@ -112,4 +112,4 @@ def train_model(
         metadata={"metrics": metrics.results_dict, "names": model.names},
     )
     
-    return model, metrics.results_dict, model.names #, service
+    return model, metrics.results_dict, model.names
