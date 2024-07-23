@@ -49,6 +49,9 @@ steps:
               medium: Memory
               sizeLimit: 1024Mi
             name: dshm
+          volume_mounts:
+          - mountPath: /dev/shm
+            name: dshm
       docker:
         parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
         required_integrations:
