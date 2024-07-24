@@ -19,13 +19,14 @@
 from steps import (
     evaluate_model,
     finetune,
+    log_metadata_from_step_artifact,
     prepare_data,
     promote,
-    log_metadata_from_step_artifact,
+    track_log_model,
 )
 from zenml import pipeline
-from zenml.integrations.huggingface.steps import run_with_accelerate
 from zenml.client import Client
+from zenml.integrations.huggingface.steps import run_with_accelerate
 
 
 @pipeline
