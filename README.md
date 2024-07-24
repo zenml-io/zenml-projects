@@ -97,7 +97,6 @@ By far the easiest and fastest way to get help is to:
 * Ask your questions in [our Slack group](https://zenml.io/slack/).
 * [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose)
   on our GitHub repo.
-* [Meet the team](https://zenml.io/meet) every week during our community meetup.
 
 # 🔥 About ZenML
 
