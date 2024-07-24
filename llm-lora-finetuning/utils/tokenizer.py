@@ -99,11 +99,11 @@ def generate_and_tokenize_prompt(
     """
     full_prompt = f"""{system_prompt}
 
-### Target sentence:
-{data_point["target"]}
+### user:
+{data_point["Patient"]}
 
-### Meaning representation:
-{data_point["meaning_representation"]}
+### assistant:
+{data_point["Doctor"]}
 """
     return tokenize(full_prompt, tokenizer)
 
@@ -128,10 +128,10 @@ def tokenize_for_eval(
     eval_prompts = [
         f"""{system_prompt}
 
-### Target sentence:
+### user:
 {data_point}
 
-### Meaning representation:
+### assistant:
 """
         for data_point in data_points["target"]
     ]
