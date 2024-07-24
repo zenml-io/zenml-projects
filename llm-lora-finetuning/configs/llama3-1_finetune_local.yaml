@@ -39,7 +39,8 @@ settings:
       MKL_SERVICE_FORCE_INTEL: "1"
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3.1-8B
+  # uses a 4-bit quantised version of llama-3.1 for local experimentation
+  base_model_id: unsloth/Meta-Llama-3.1-8B-bnb-4bit
   use_fast: False
   load_in_4bit: True
   system_prompt: |
