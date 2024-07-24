@@ -11,6 +11,4 @@ urllib3<2
 zenml>=0.62.0
 torch>=2.2.0
 sentencepiece
-pyOpenSSL==24.1.0
-protobuf
 huggingface_hub
