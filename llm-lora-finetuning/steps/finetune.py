@@ -134,7 +134,7 @@ def finetune(
             output_dir=output_dir,
             warmup_steps=warmup_steps,
             per_device_train_batch_size=per_device_train_batch_size,
-            gradient_checkpointing=True,
+            gradient_checkpointing=False,
             gradient_checkpointing_kwargs={'use_reentrant':False} if use_accelerate else {},
             gradient_accumulation_steps=gradient_accumulation_steps,
             max_steps=max_steps,
