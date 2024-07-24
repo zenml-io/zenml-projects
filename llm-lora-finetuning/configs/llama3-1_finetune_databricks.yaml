@@ -37,6 +37,10 @@ settings:
       PJRT_DEVICE: CUDA
       USE_TORCH_XLA: "false"
       MKL_SERVICE_FORCE_INTEL: "1"
+      MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING: "true"
+  orchestrator.databricks:
+    spark_version : 15.3.x-gpu-ml-scala2.12
+    node_type_id : Standard_NC24ads_A100_v4
 
 parameters:
   base_model_id: meta-llama/Meta-Llama-3.1-8B
