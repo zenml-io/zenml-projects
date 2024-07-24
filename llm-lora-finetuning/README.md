@@ -50,7 +50,7 @@ When running the pipeline like this, the trained model will be stored in the Zen
 <div align="center">
   <br/>
     <a href="https://cloud.zenml.io">
-      <img alt="Model version metadata" src=".assets/pipeline.png">
+      <img alt="Model version metadata" src=".assets/pipeline.png" width="70%">
     </a>
   <br/>
 </div>
