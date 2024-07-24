@@ -59,8 +59,8 @@ When running the pipeline like this, the trained model will be stored in the Zen
 > To finetune the Llama 3.1 base model, please use the alternative configuration
 > files provided in the `configs` folder.
 >
-> For a remote finetune you can use `llama3-1_finetune_remote.yaml` and for a
-> local finetune you can use `llama3-1_finetune_local.yaml`.
+> For a remote finetune you can use [`llama3-1_finetune_remote.yaml`](configs/llama3-1_finetune_remote.yaml) and for a
+> local finetune you can use [`llama3-1_finetune_local.yaml`](configs/llama3-1_finetune_local.yaml).
 
 ### ⚡ Accelerate your finetuning
 
