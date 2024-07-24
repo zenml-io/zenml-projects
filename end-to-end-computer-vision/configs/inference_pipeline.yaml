@@ -8,7 +8,7 @@ settings:
       - libxext6
       - libcurl4
     required_integrations:
-      - gcp
+      - gcp # For AWS use "s3" instead of "gcp"
       - github
     requirements:
       - ultralytics
