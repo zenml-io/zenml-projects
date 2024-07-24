@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 
+import os
 from pathlib import Path
 from typing import Optional
 
 import evaluate
+import huggingface_hub
 import torch
 from datasets import load_from_disk
 from utils.loaders import (
@@ -27,6 +29,7 @@ from utils.loaders import (
 )
 from utils.tokenizer import load_tokenizer, tokenize_for_eval
 from zenml import save_artifact, step
+from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
@@ -56,6 +59,17 @@ def evaluate_model(
         load_in_8bit: Whether to load the model in 8bit mode.
     """
     cleanup_gpu_memory(force=True)
+
+    # authenticate with Hugging Face for gated repos
+    client = Client()
+
+    if not os.getenv("HF_TOKEN"):
+        try:
+            hf_token = client.get_secret("hf_token").secret_values['token']
+            huggingface_hub.login(token=hf_token)
+        except Exception as e:
+            logger.warning(f"Error authenticating with Hugging Face: {e}")
+
     logger.info("Evaluating model...")
 
     logger.info("Loading dataset...")
