@@ -25,6 +25,7 @@ from steps import (
 )
 from zenml import pipeline
 from zenml.integrations.huggingface.steps import run_with_accelerate
+from zenml.client import Client
 
 
 @pipeline
@@ -100,4 +101,15 @@ def llm_peft_full_finetune(
         id="log_metadata_evaluation_finetuned"
     )
 
+    if Client().active_stack.model_registry:
+        track_log_model(
+            base_model_id=base_model_id,
+            system_prompt=system_prompt,
+            datasets_dir=datasets_dir,
+            ft_model_dir=ft_model_dir,
+            use_fast=use_fast,
+            load_in_8bit=load_in_8bit,
+            load_in_4bit=load_in_4bit,
+        )
+        
     promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
