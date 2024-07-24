@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ### 👷 Combined feature engineering and finetuning pipeline
 
-> [!TIP]  
+> [!WARNING]  
 > All steps of this pipeline have a `clean_gpu_memory(force=True)` at the beginning. This is used to ensure that the memory is properly cleared after previous steps.
 >
 > This functionality might affect other GPU processes running on the same environment, so if you don't want to clean the GPU memory between the steps, you can delete those utility calls from all steps.
@@ -55,7 +55,7 @@ When running the pipeline like this, the trained model will be stored in the Zen
   <br/>
 </div>
 
-> [!INFO]  
+> [!TIP]  
 > To finetune the Llama 3.1 base model, please use the alternative configuration
 > files provided in the `configs` folder.
 >
