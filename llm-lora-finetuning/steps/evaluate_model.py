@@ -65,7 +65,7 @@ def evaluate_model(
 
     if not os.getenv("HF_TOKEN"):
         try:
-            hf_token = client.get_secret("hf_token").secret_values['token']
+            hf_token = client.get_secret("hf_token").secret_values["token"]
             huggingface_hub.login(token=hf_token)
         except Exception as e:
             logger.warning(f"Error authenticating with Hugging Face: {e}")

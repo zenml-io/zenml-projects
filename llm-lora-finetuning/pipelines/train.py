@@ -101,7 +101,7 @@ def llm_peft_full_finetune(
         id="log_metadata_evaluation_finetuned"
     )
     
-    if Client().active_stack.model_registry:
+    if Client().active_stack.experiment_tracker and Client().active_stack.model_registry:
         track_log_model(
             base_model_id=base_model_id,
             system_prompt=system_prompt,
@@ -111,6 +111,8 @@ def llm_peft_full_finetune(
             load_in_8bit=load_in_8bit,
             load_in_4bit=load_in_4bit,
         )
-        
+        promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base", "track_log_model"])
+    
+    else: 
+        promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
 
-    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])

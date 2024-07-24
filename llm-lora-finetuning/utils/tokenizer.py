@@ -133,7 +133,7 @@ def tokenize_for_eval(
 
 ### assistant:
 """
-        for data_point in data_points["target"]
+        for data_point in data_points["Doctor"]
     ]
     return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to(
         "cuda"
