@@ -74,6 +74,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
 | [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs                           | `openai` `supabase`  |
+| [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
 
 # 💻 System Requirements
 
