@@ -33,12 +33,14 @@ from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
-experiment_tracker = Client().active_stack.experiment_tracker
+experiment_tracker = None
+if Client().active_stack.experiment_tracker:
+    experiment_tracker = Client().active_stack.experiment_tracker.name
 
 logger = get_logger(__name__)
 
 
-@step(experiment_tracker=experiment_tracker.name, output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
+@step(experiment_tracker=experiment_tracker, output_materializers=[DirectoryMaterializer, BuiltInMaterializer])
 def track_log_model(
     base_model_id: str,
     system_prompt: str,
@@ -87,8 +89,8 @@ def track_log_model(
     )
     prompt = (
         "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.\n"
-        "### Instruction: {prompt}\n"
-        "### output:"
+        "### user: {prompt}\n"
+        "### assistant:"
     )
 
     
