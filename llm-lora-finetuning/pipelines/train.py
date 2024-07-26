@@ -20,6 +20,7 @@ from steps import (
     evaluate_model,
     finetune,
     log_metadata_from_step_artifact,
+    merge_adapter_base_model,
     prepare_data,
     promote,
     track_log_model,
@@ -99,6 +100,13 @@ def llm_peft_full_finetune(
         "finetuned_model_rouge_metrics",
         after=["evaluate_finetuned"],
         id="log_metadata_evaluation_finetuned"
+    )
+    
+    merge_adapter_base_model(
+        base_model_id=base_model_id,
+        ft_model_dir=ft_model_dir,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
     )
     
     if Client().active_stack.experiment_tracker and Client().active_stack.model_registry:

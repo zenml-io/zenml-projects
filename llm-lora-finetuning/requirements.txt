@@ -1,5 +1,5 @@
 datasets>=2.19.1
-transformers>=4.43.1
+transformers>=4.43.2
 peft
 bitsandbytes>=0.41.3
 scipy
@@ -12,3 +12,5 @@ zenml>=0.62.0
 torch>=2.2.0
 sentencepiece
 huggingface_hub
+mlflow>=2.14.3
+vllm>=0.5.3.post1

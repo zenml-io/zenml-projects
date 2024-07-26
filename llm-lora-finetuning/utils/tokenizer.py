@@ -43,11 +43,12 @@ def load_tokenizer(
             trust_remote_code=True,
         )
         tokenizer.pad_token_id = 0
+        tokenizer.pad_token = tokenizer.eos_token
     else:
         tokenizer = AutoTokenizer.from_pretrained(
             base_model_id,
             model_max_length=512,
-            padding_side="left",
+            padding_side="right",
             add_eos_token=True,
             device_map="auto",
             use_fast=use_fast,
@@ -133,7 +134,7 @@ def tokenize_for_eval(
 
 ### assistant:
 """
-        for data_point in data_points["Doctor"]
+        for data_point in data_points["Patient"]
     ]
     return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to(
         "cuda"

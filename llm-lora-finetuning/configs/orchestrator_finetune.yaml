@@ -41,17 +41,14 @@ settings:
 parameters:
   base_model_id: microsoft/phi-2
   use_fast: False
-  load_in_4bit: True
+  load_in_8bit: True
   system_prompt: |
-      Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
-      This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
-      The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
-      
+    You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.
 
 steps:
   prepare_data:
     parameters:
-      dataset_name: gem/viggo
+      dataset_name: ruslanmv/ai-medical-chatbot
 
   finetune:
     parameters:

@@ -80,7 +80,7 @@ def evaluate_model(
     )
     test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
     test_dataset = test_dataset[:50]
-    ground_truths = test_dataset["meaning_representation"]
+    ground_truths = test_dataset["Doctor"]
     tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
 
     if ft_model_dir is None:
@@ -108,7 +108,7 @@ def evaluate_model(
             pad_token_id=2,
         )
     predictions = tokenizer.batch_decode(
-        predictions[:, tokenized_train_dataset["input_ids"].shape[1] :],
+        predictions,
         skip_special_tokens=True,
     )
 

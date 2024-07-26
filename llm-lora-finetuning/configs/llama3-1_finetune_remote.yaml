@@ -22,6 +22,8 @@ model:
     - llm
     - peft
     - llama-3.1
+    - remote
+    - ai-medical-chatbot
   version: 300_steps
 
 settings:
@@ -41,7 +43,7 @@ settings:
 parameters:
   base_model_id: meta-llama/Meta-Llama-3.1-8B
   use_fast: False
-  load_in_4bit: True
+  load_in_8bit: True
   system_prompt: |
     You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.
     
@@ -80,8 +82,14 @@ steps:
     parameters:
       metric: rouge2
       target_stage: staging
+    
+  merge_adapter_base_model:
+    step_operator: gcp_a100
+    parameters:
+      model_name: llm-peft-llama-3-1
 
   track_log_model:
+    step_operator: gcp_a100
     retry:
       max_retries: 3
       delay: 10

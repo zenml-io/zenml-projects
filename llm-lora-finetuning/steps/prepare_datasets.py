@@ -30,7 +30,7 @@ from zenml.utils.cuda_utils import cleanup_gpu_memory
 def prepare_data(
     base_model_id: str,
     system_prompt: str,
-    dataset_name: str = "gem/viggo",
+    dataset_name: str = "ruslanmv/ai-medical-chatbot",
     use_fast: bool = True,
 ) -> Annotated[Path, "datasets_dir"]:
     """Prepare the datasets for finetuning.
@@ -45,7 +45,6 @@ def prepare_data(
         The path to the datasets directory.
     """
     from datasets import load_dataset
-
     cleanup_gpu_memory(force=True)
 
     log_model_metadata(
@@ -64,7 +63,8 @@ def prepare_data(
     
     # Load the dataset
     dataset = load_dataset(dataset_name, split="all")
-    dataset = dataset.train_test_split(test_size=0.2)
+    dataset = dataset.shuffle(seed=63).select(range(10000))
+    dataset = dataset.train_test_split(test_size=0.1)
     
     # Extract the train dataset
     train_dataset = dataset["train"]
@@ -74,11 +74,6 @@ def prepare_data(
     eval_test_dataset = dataset["test"]
     eval_test_dataset = eval_test_dataset.train_test_split(test_size=0.1)
     eval_dataset = eval_test_dataset["train"]
-    eval_dataset = load_dataset(
-        dataset_name,
-        split="validation",
-        trust_remote_code=True,
-    )
     tokenized_val_dataset = eval_dataset.map(gen_and_tokenize)
     
     

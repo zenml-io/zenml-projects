@@ -18,20 +18,20 @@
 import os
 from pathlib import Path
 
+import huggingface_hub
+import transformers
 from accelerate import Accelerator
 from datasets import load_from_disk
-import huggingface_hub
 from materializers.directory_materializer import DirectoryMaterializer
-import transformers
 from typing_extensions import Annotated
 from utils.callbacks import ZenMLCallback
 from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
-from zenml import step, ArtifactConfig
+from zenml import ArtifactConfig, step
+from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
-from zenml.client import Client
 
 logger = get_logger(__name__)
 
@@ -44,11 +44,11 @@ def finetune(
     logging_steps: int = 50,
     eval_steps: int = 50,
     save_steps: int = 50,
-    optimizer: str = "paged_adamw_8bit",
-    lr: float = 2.5e-5,
+    optimizer: str = "paged_adamw_32bit",
+    lr: float = 2e-4,
     per_device_train_batch_size: int = 2,
     gradient_accumulation_steps: int = 4,
-    warmup_steps: int = 5,
+    warmup_steps: int = 10,
     bf16: bool = True,
     use_accelerate: bool = False,
     use_fast: bool = True,
@@ -90,7 +90,7 @@ def finetune(
 
     if not os.getenv("HF_TOKEN"):
         try:
-            hf_token = client.get_secret("hf_token").secret_values['token']
+            hf_token = client.get_secret("hf_token").secret_values["token"]
             huggingface_hub.login(token=hf_token)
         except Exception as e:
             logger.warning(f"Error authenticating with Hugging Face: {e}")
@@ -135,7 +135,7 @@ def finetune(
             warmup_steps=warmup_steps,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_checkpointing=False,
-            gradient_checkpointing_kwargs={'use_reentrant':False} if use_accelerate else {},
+            gradient_checkpointing_kwargs={"use_reentrant":False} if use_accelerate else {},
             gradient_accumulation_steps=gradient_accumulation_steps,
             max_steps=max_steps,
             learning_rate=lr,

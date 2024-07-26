@@ -39,7 +39,7 @@ settings:
       MKL_SERVICE_FORCE_INTEL: "1"
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3.1-8B
+  base_model_id: microsoft/phi-2
   use_fast: False
   load_in_4bit: True
   system_prompt: |
@@ -50,7 +50,7 @@ parameters:
 steps:
   prepare_data:
     parameters:
-      dataset_name: gem/viggo
+      dataset_name: ruslanmv/ai-medical-chatbot
 
   finetune:
     step_operator: gcp_a100
