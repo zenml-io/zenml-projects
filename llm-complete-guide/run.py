@@ -36,6 +36,7 @@ from pipelines import (
     generate_chunk_questions,
     llm_basic_rag,
     llm_eval,
+    generate_synthetic_data,
 )
 from pipelines.finetune_embeddings import chunking_experiment
 from structures import Document
@@ -156,7 +157,7 @@ def main(
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
-        generate_chunk_questions.with_options(**pipeline_args)()
+        generate_synthetic_data.with_options(**pipeline_args)()
     if embeddings:
         finetune_embeddings.with_options(**pipeline_args)()
     if dummyembeddings:
