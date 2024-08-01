@@ -155,6 +155,9 @@ llm-lora-finetuning/mistral-zenml-finetune/
 .flashrank_cache
 bge-base-financial-matryoshka/
 embeddings
-
+llm-lora-finetuning/meta-llama/
+llm-lora-finetuning/microsoft/
+llm-lora-finetuning/unsloth/
+llm-lora-finetuning/configs/shopify.yaml
 # ollama ignores
 nohup.out
