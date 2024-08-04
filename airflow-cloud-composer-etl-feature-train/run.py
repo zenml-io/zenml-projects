@@ -19,6 +19,7 @@ import os
 
 import click
 from pipelines import (
+    etl_pipeline,
     feature_engineering_pipeline,
     model_training_pipeline,
 )
@@ -84,7 +85,7 @@ Examples:
     help="Disable caching for the pipeline run.",
 )
 def main(
-    etl_pipeline: bool = False,
+    etl: bool = False,
     feature: bool = False,
     training: bool = False,
     mode: str = "develop",
@@ -97,7 +98,7 @@ def main(
     )
 
     # Execute ETL Pipeline
-    if etl_pipeline:
+    if etl:
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False

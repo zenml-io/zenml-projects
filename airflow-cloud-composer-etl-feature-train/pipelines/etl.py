@@ -26,7 +26,7 @@ from zenml import pipeline
 
 
 @pipeline
-def load_data_to_bq(mode: str = "develop") -> str:
+def etl_pipeline(mode: str = "develop") -> str:
     """Model deployment pipeline.
 
     This is a pipeline that loads data to BigQuery.

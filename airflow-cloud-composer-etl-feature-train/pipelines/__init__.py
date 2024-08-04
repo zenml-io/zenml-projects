@@ -17,4 +17,4 @@
 
 from .etl import etl_pipeline
 from .feature_engineering import feature_engineering_pipeline
-from .training import training_pipeline
+from .training import model_training_pipeline
