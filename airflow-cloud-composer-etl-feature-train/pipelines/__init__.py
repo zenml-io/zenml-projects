@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-
-from .batch_inference import e2e_use_case_batch_inference
-from .training import e2e_use_case_training
-from .deployment import e2e_use_case_deployment
+from .etl import etl_pipeline
+from .feature_engineering import feature_engineering_pipeline
+from .training import training_pipeline

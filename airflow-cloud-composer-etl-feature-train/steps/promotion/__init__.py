@@ -14,7 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .compute_performance_metrics_on_current_data import (
-    compute_performance_metrics_on_current_data,
-)
-from .promote_with_metric_compare import promote_with_metric_compare
+
+from .promote import promote_model

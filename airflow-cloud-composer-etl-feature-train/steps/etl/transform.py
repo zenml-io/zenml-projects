@@ -15,5 +15,25 @@
 # limitations under the License.
 #
 
+from datetime import datetime, timezone
 
-from .notify_on import notify_on_failure, notify_on_success
+import pandas as pd
+from zenml import step
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+@step
+def transform_identity(df: pd.DataFrame) -> pd.DataFrame:
+    """Transform the data by adding a processed column and a load timestamp.
+
+    Args:
+        df: Input dataframe.
+
+    Returns:
+        pd.DataFrame: Transformed dataframe.
+    """
+    df["processed"] = 1
+    df["load_timestamp"] = datetime.now(timezone.utc).isoformat()
+    return df

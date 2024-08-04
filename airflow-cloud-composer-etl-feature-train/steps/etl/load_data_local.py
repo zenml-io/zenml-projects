@@ -15,22 +15,28 @@
 # limitations under the License.
 #
 
+import os
 
-from sklearn.base import ClassifierMixin
+import pandas as pd
+from zenml import step
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
-def get_model_from_config(
-    model_package: str, model_class: str
-) -> ClassifierMixin:
-    if model_package == "sklearn.ensemble":
-        import sklearn.ensemble as package
+@step
+def load_data_local(df: pd.DataFrame, filename: str) -> str:
+    """Load data locally, to mock bigquery loader.
 
-        model_class = getattr(package, model_class)
-    elif model_package == "sklearn.tree":
-        import sklearn.tree as package
+    Args:
+        df: Dataframe to be loaded.
+        filename: Path to the data source.
 
-        model_class = getattr(package, model_class)
-    else:
-        raise ValueError(f"Unsupported model package: {model_package}")
-
-    return model_class
+    Returns:
+        str: Path to the saved file.
+    """
+    if not os.path.exists("tmp"):
+        os.makedirs("tmp")
+    data_path = f"tmp/{filename}"
+    df.to_csv(data_path, index=False)
+    return data_path

@@ -1,0 +1,22 @@
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - xgboost
+    requirements:
+      - zenml[server]
+      - pandas
+      - xgboost
+      - google-cloud-bigquery
+      - pyarrow
+
+# configuration of the Model Control Plane
+model:
+  name: ecb_interest_rate_model
+  version: latest
+  license: Apache 2.0
+  description: An ECB interest rate prediction model
+  tags: ["ecb", "interest_rate", "prediction", "xgboost"]
+
+# pipeline configuration
+mode: develop

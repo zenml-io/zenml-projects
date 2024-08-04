@@ -15,23 +15,22 @@
 # limitations under the License.
 #
 
-from steps import deployment_deploy, notify_on_failure, notify_on_success
+import pandas as pd
+from zenml import step
+from zenml.logger import get_logger
 
-from zenml import pipeline
+logger = get_logger(__name__)
 
 
-@pipeline(on_failure=notify_on_failure)
-def e2e_use_case_deployment():
+@step
+def load_latest_data_local(data_path: str) -> pd.DataFrame:
+    """Load the latest data from the data source.
+
+    Args:
+        data_path: Path to the data source.
+
+    Returns:
+        pd.Datafram: Dataframe containing the data.
     """
-    Model deployment pipeline.
-
-    This is a pipeline deploys trained model for future inference.
-    """
-    ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
-    # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-    ########## Deployment stage ##########
-    deployment_deploy()
-
-    notify_on_success(after=["deployment_deploy"])
-    ### YOUR CODE ENDS HERE ###
+    df = pd.read_csv(data_path)
+    return df[df["load_timestamp"] == df["load_timestamp"].max()]

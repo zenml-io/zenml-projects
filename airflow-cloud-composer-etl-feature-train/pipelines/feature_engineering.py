@@ -16,28 +16,35 @@
 #
 
 from steps import (
+    augment_data,
+    load_data_bq,
+    load_data_local,
     load_latest_data_bq,
     load_latest_data_local,
-    promote_model,
-    train_xgboost_model,
 )
 from zenml import pipeline
 
 
 @pipeline
-def model_training_pipeline(
-    data_path: str = "tmp/augmented_data.csv", mode: str = "develop"
+def feature_engineering_pipeline(
+    data_path: str = "tmp/transformed_data.csv", mode: str = "develop"
 ):
-    """A pipeline to train an XGBoost model and promote it.
+    """A pipeline to augment data and load it into BigQuery or locally.
 
     Args:
-        data_path: str: The path to the data. Defaults to "tmp/augmented_data.csv".
-        mode: str: The mode in which the pipeline is run. Defaults to "develop
+        data_path: str: The path to the data. Defaults to "tmp/transformed_data.csv".
+        mode: str: The mode in which the pipeline is run. Defaults to "develop".
+
+    Returns:
+        str: The path to the data.
     """
     if mode == "develop":
-        augmented_data = load_latest_data_local(data_path)
+        raw_data = load_latest_data_local(data_path)
+        augmented_data = augment_data(raw_data)
+        data_path = load_data_local(augmented_data, "augmented_data.csv")
     else:
-        augmented_data = load_latest_data_bq(table_id=data_path)
+        raw_data = load_latest_data_bq(table_id=data_path)
+        augmented_data = augment_data(raw_data)
+        data_path = load_data_bq(augmented_data)
 
-    _, metrics = train_xgboost_model(augmented_data)
-    promote_model(metrics)
+    return data_path
