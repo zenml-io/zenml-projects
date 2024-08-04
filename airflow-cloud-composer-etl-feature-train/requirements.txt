@@ -1,0 +1,5 @@
+zenml[server]
+pandas 
+xgboost
+google-cloud-bigquery
+pyarrow
