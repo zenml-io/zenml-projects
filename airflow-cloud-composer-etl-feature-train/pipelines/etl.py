@@ -41,7 +41,7 @@ def etl_pipeline(mode: str = "develop") -> str:
         raw_data = extract_data_local()
         transformed_data = transform_identity(raw_data)
         data_path = load_data_local(
-            transformed_data, data_path="transformed_data.csv"
+            transformed_data, "transformed_data.csv"
         )
     else:
         raw_data = extract_data_remote()
