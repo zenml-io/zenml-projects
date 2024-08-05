@@ -117,7 +117,7 @@ def evaluate_base_model(dataset: DatasetDict):
 @step
 def finetune(
     dataset: DatasetDict,
-) -> None:  # TODO: return the model
+) -> None:
     # load model with SDPA for using Flash Attention 2
     model = SentenceTransformer(
         MODEL_ID,
@@ -183,15 +183,17 @@ def finetune(
     # start training, the model will be automatically saved to the hub and the output directory
     trainer.train()
 
-    # save the best model
-    trainer.save_model()
+    # # save the best model
+    # trainer.save_model()
+
+    # return trainer.model
 
     # push model to hub
-    # trainer.model.push_to_hub("finetuned-matryoshka")
+    trainer.model.push_to_hub("strickvl/finetuned-matryoshka")
 
 
 @step
-def evaluate_finetuned_model():
+def evaluate_finetuned_model(model: SentenceTransformer):
     pass
 
 
