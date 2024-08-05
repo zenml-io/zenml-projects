@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 
 @step
-def extract_data_remote(data_path: str = "gs://yourpath") -> pd.DataFrame:
+def extract_data_bq(data_path: str = "gs://yourpath") -> pd.DataFrame:
     """Extract data from remote source.
 
     Args:

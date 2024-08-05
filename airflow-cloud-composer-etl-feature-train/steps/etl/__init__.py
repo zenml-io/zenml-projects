@@ -16,8 +16,8 @@
 #
 
 
-from .data_loader_local import extract_data_local
-from .data_loader_remote import extract_data_remote
+from .extract_data_local import extract_data_local
+from .extract_data_bq import extract_data_bq
 from .load_data_bq import load_data_bq
 from .load_data_local import load_data_local
 from .transform import transform_identity
