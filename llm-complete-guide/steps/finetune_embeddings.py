@@ -22,9 +22,12 @@ from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
 from zenml import step
 
-MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+# MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+# FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
+MODEL_ID = "Snowflake/snowflake-arctic-embed-l"
+FINETUNED_MODEL_ID = "zenml/finetuned-snowflake-arctic-embed-l"
+
 MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
-FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
 
 
 @step
