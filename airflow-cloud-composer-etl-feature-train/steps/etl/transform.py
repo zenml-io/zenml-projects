@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 @step
 def transform_csv(
     df: pd.DataFrame, filename: str = "transformed_data.csv"
-) -> Annotated[CSVDataset, "ecb_transformed_data"]:
+) -> Annotated[CSVDataset, "ecb_transformed_dataset"]:
     """Transform the data by adding a processed column and a load timestamp.
 
     Args:
@@ -46,13 +46,13 @@ def transform_csv(
         os.makedirs("tmp")
     data_path = f"tmp/{filename}"
 
-    return CSVDataset(df, data_path)
+    return CSVDataset(data_path, df)
 
 
 @step
 def transform_bq(
     df: pd.DataFrame, table_id: str, bq_config: Optional[dict]
-) -> Annotated[BigQueryDataset, "ecb_transformed_data"]:
+) -> Annotated[BigQueryDataset, "ecb_transformed_dataset"]:
     """Transform the data by adding a processed column and a load timestamp.
 
     Args:

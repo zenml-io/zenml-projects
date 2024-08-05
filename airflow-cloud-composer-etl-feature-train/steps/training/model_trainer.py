@@ -18,7 +18,8 @@
 from typing import Dict, Tuple
 
 import xgboost as xgb
-from materializers import Dataset
+from materializers import CSVDataset, BigQueryDataset
+from typing import Union
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
@@ -28,7 +29,7 @@ logger = get_logger(__name__)
 
 @step
 def train_xgboost_model(
-    dataset: Dataset,
+    dataset: Union[BigQueryDataset, CSVDataset],
 ) -> Tuple[
     Annotated[
         xgb.Booster, ArtifactConfig(name="xgb_model", is_model_artifact=True)

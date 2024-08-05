@@ -18,7 +18,7 @@ import json
 import os
 from typing import Type
 
-from bq_dataset import BigQueryDataset
+from materializers import BigQueryDataset
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.logger import get_logger

@@ -18,7 +18,7 @@ import json
 import os
 from typing import Type
 
-from csv_dataset import CSVDataset
+from materializers import CSVDataset
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.logger import get_logger

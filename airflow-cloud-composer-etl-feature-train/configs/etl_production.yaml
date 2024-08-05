@@ -1,4 +1,5 @@
 # environment configuration
+enable_cache: false
 settings:
   docker:
     required_integrations:
@@ -13,8 +14,6 @@ settings:
 # pipeline configuration
 model:
   name: ecb_interest_rate_model
-  version: latest
-  license: Apache 2.0
   description: An ECB interest rate prediction model
   tags: ["ecb", "interest_rate", "prediction", "xgboost"]
 
