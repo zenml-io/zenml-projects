@@ -19,6 +19,7 @@ import pandas as pd
 from zenml import step
 from zenml.io import fileio
 from zenml.logger import get_logger
+import gcsfs
 
 logger = get_logger(__name__)
 
@@ -33,5 +34,7 @@ def extract_data_remote(data_path: str = "gs://yourpath") -> pd.DataFrame:
     Returns:
         pd.DataFrame: Dataframe containing the data.
     """
-    with fileio.open(data_path, "r") as f:
+    fs = gcsfs.GCSFileSystem()
+
+    with fs.open(data_path, "r") as f:
         return pd.read_csv(f)
