@@ -24,7 +24,7 @@ from zenml import step
 
 MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
-FINETUNED_MODEL_ID = "zenml/finetuned-all-MiniLM-L6-v2"
+FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
 
 
 @step
@@ -91,22 +91,6 @@ def get_evaluator(
     return SequentialEvaluator(matryoshka_evaluators)
 
 
-def evaluate_model(
-    dataset: DatasetDict, model: SentenceTransformer
-) -> Annotated[Dict[str, float], "evaluation_results"]:
-    """Evaluate the given model on the dataset."""
-    evaluator = get_evaluator(dataset, model)
-    results = evaluator(model)
-
-    print(results)
-
-    for dim in MATRYOSHKA_DIMENSIONS:
-        key = f"dim_{dim}_cosine_ndcg@10"
-        print(f"{key}: {results[key]}")
-
-    return results
-
-
 @step
 def finetune(dataset: DatasetDict) -> None:
     """Finetune the model on the given dataset."""
@@ -117,7 +101,7 @@ def finetune(dataset: DatasetDict) -> None:
         model_card_data=SentenceTransformerModelCardData(
             language="en",
             license="apache-2.0",
-            model_name=FINETUNED_MODEL_ID,
+            model_name=f"zenml/{FINETUNED_MODEL_ID}",
         ),
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
@@ -155,7 +139,7 @@ def finetune(dataset: DatasetDict) -> None:
         save_total_limit=3,  # save only the last 3 models
         load_best_model_at_end=True,  # load the best model when training ends
         metric_for_best_model="eval_dim_128_cosine_ndcg@10",  # Optimizing for the best ndcg@10 score for the 128 dimension
-        report_to='none', # turn of wandb tracking
+        report_to="wandb",  # turn off wandb tracking
     )
 
     trainer = SentenceTransformerTrainer(
@@ -169,27 +153,40 @@ def finetune(dataset: DatasetDict) -> None:
     )
 
     trainer.train()
-    trainer.model.push_to_hub(FINETUNED_MODEL_ID, exist_ok=True)
+    trainer.model.push_to_hub(f"zenml/{FINETUNED_MODEL_ID}", exist_ok=True)
+
+
+def evaluate_model(dataset: DatasetDict, model: SentenceTransformer):
+    """Evaluate the given model on the dataset."""
+    evaluator = get_evaluator(dataset, model)
+    results = evaluator(model)
+
+    print(results)
+
+    for dim in MATRYOSHKA_DIMENSIONS:
+        key = f"dim_{dim}_cosine_ndcg@10"
+        print(f"{key}: {results[key]}")
 
 
 @step
 def evaluate_base_model(
     dataset: DatasetDict,
-) -> Annotated[Dict[str, float], "evaluation_results"]:
+):
     """Evaluate the base model on the given dataset."""
     model = SentenceTransformer(
         MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
     )
-    return evaluate_model(dataset, model)
+    evaluate_model(dataset, model)
 
 
 @step
 def evaluate_finetuned_model(
     dataset: DatasetDict,
-) -> Annotated[Dict[str, float], "evaluation_results"]:
+):
     """Evaluate the finetuned model on the given dataset."""
     fine_tuned_model = SentenceTransformer(
-        FINETUNED_MODEL_ID,
+        f"zenml/{FINETUNED_MODEL_ID}",
         device="cuda" if torch.cuda.is_available() else "cpu",
+        revision="main",
     )
-    return evaluate_model(dataset, fine_tuned_model)
+    evaluate_model(dataset, fine_tuned_model)
