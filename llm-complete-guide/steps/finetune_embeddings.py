@@ -1,6 +1,6 @@
 import os
 import tempfile
-from typing import Annotated
+from typing import Annotated, Dict
 
 import torch
 from datasets import DatasetDict, concatenate_datasets, load_dataset
@@ -26,8 +26,10 @@ MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
 FINETUNED_MODEL_ID = "zenml/finetuned-all-MiniLM-L6-v2"
 
+
 @step
 def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
+    """Load and prepare the dataset for training and evaluation."""
     # Load dataset from the hub
     dataset = load_dataset(
         "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="train"
@@ -45,6 +47,7 @@ def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
 def get_evaluator(
     dataset: DatasetDict, model: SentenceTransformer
 ) -> SequentialEvaluator:
+    """Create a SequentialEvaluator for the given dataset and model."""
     temp_dir = tempfile.TemporaryDirectory()
     train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
     test_dataset_path = os.path.join(temp_dir.name, "test_dataset.json")
@@ -53,7 +56,7 @@ def get_evaluator(
     dataset["train"].to_json(train_dataset_path, orient="records")
     dataset["test"].to_json(test_dataset_path, orient="records")
 
-    # load test dataset
+    # load datasets
     test_dataset = load_dataset(
         "json", data_files=test_dataset_path, split="train"
     )
@@ -71,14 +74,10 @@ def get_evaluator(
     )  # Our queries (qid => question)
 
     # Create a mapping of relevant document (1 in our case) for each query
-    relevant_docs = {}  # Query ID to relevant documents (qid => set([relevant_cids])
-    for q_id in queries:
-        relevant_docs[q_id] = [q_id]
+    relevant_docs: Dict[str, list] = {q_id: [q_id] for q_id in queries}
 
-    matryoshka_evaluators = []
-    # Iterate over the different dimensions
-    for dim in MATRYOSHKA_DIMENSIONS:
-        ir_evaluator = InformationRetrievalEvaluator(
+    matryoshka_evaluators = [
+        InformationRetrievalEvaluator(
             queries=queries,
             corpus=corpus,
             relevant_docs=relevant_docs,
@@ -86,38 +85,31 @@ def get_evaluator(
             truncate_dim=dim,  # Truncate the embeddings to a certain dimension
             score_functions={"cosine": cos_sim},
         )
-        matryoshka_evaluators.append(ir_evaluator)
+        for dim in MATRYOSHKA_DIMENSIONS
+    ]
 
-    # Create a sequential evaluator
     return SequentialEvaluator(matryoshka_evaluators)
 
 
-@step
-def evaluate_base_model(dataset: DatasetDict):
-    model = SentenceTransformer(
-        MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
-    )
-
-    # Create a sequential evaluator
+def evaluate_model(
+    dataset: DatasetDict, model: SentenceTransformer
+) -> Annotated[Dict[str, float], "evaluation_results"]:
+    """Evaluate the given model on the dataset."""
     evaluator = get_evaluator(dataset, model)
-
-    # Evaluate the model
     results = evaluator(model)
 
-    # # COMMENT IN for full results
     print(results)
 
-    # Print the main score
     for dim in MATRYOSHKA_DIMENSIONS:
         key = f"dim_{dim}_cosine_ndcg@10"
-        print
         print(f"{key}: {results[key]}")
+
+    return results
 
 
 @step
-def finetune(
-    dataset: DatasetDict,
-) -> None:
+def finetune(dataset: DatasetDict) -> None:
+    """Finetune the model on the given dataset."""
     # load model with SDPA for using Flash Attention 2
     model = SentenceTransformer(
         MODEL_ID,
@@ -137,18 +129,13 @@ def finetune(
 
     temp_dir = tempfile.TemporaryDirectory()
     train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
-
-    # save datasets to disk
     dataset["train"].to_json(train_dataset_path, orient="records")
-
-    # load train dataset again
     train_dataset = load_dataset(
         "json", data_files=train_dataset_path, split="train"
     )
 
     evaluator = get_evaluator(dataset, model)
 
-    # define training arguments
     args = SentenceTransformerTrainingArguments(
         output_dir=FINETUNED_MODEL_ID,  # output directory and hugging face model ID
         num_train_epochs=4,  # number of epochs
@@ -168,6 +155,7 @@ def finetune(
         save_total_limit=3,  # save only the last 3 models
         load_best_model_at_end=True,  # load the best model when training ends
         metric_for_best_model="eval_dim_128_cosine_ndcg@10",  # Optimizing for the best ndcg@10 score for the 128 dimension
+        report_to='none', # turn of wandb tracking
     )
 
     trainer = SentenceTransformerTrainer(
@@ -180,29 +168,28 @@ def finetune(
         evaluator=evaluator,
     )
 
-    # start training, the model will be automatically saved to the hub
     trainer.train()
-
-    # push model to hub
     trainer.model.push_to_hub(FINETUNED_MODEL_ID, exist_ok=True)
 
 
 @step
-def evaluate_finetuned_model(dataset: DatasetDict):
+def evaluate_base_model(
+    dataset: DatasetDict,
+) -> Annotated[Dict[str, float], "evaluation_results"]:
+    """Evaluate the base model on the given dataset."""
+    model = SentenceTransformer(
+        MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
+    )
+    return evaluate_model(dataset, model)
+
+
+@step
+def evaluate_finetuned_model(
+    dataset: DatasetDict,
+) -> Annotated[Dict[str, float], "evaluation_results"]:
+    """Evaluate the finetuned model on the given dataset."""
     fine_tuned_model = SentenceTransformer(
         FINETUNED_MODEL_ID,
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
-
-    evaluator = get_evaluator(dataset, fine_tuned_model)
-
-    # Evaluate the model
-    results = evaluator(fine_tuned_model)
-
-    # # COMMENT IN for full results
-    print(results)
-
-    # Print the main score
-    for dim in MATRYOSHKA_DIMENSIONS:
-        key = f"dim_{dim}_cosine_ndcg@10"
-        print(f"{key}: {results[key]}")
+    return evaluate_model(dataset, fine_tuned_model)
