@@ -51,8 +51,9 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     api_key = zenml_client.get_secret("argilla_hf").secret_values["api_key"]
     api_url = zenml_client.get_secret("argilla_hf").secret_values["api_url"]
 
-    model_id = "sentence-transformers/all-MiniLM-L6-v2"
+    dataset_name = "rag_qa_embedding_questions_0_60_0_distilabel"
 
+    model_id = "sentence-transformers/all-MiniLM-L6-v2"
     model = SentenceTransformer(
         model_id, device="cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -76,15 +77,13 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
             )
         ],
     )
-    ds = rg.Dataset(
-        name="rag_qa_embedding_questions_0_60_0_distilabel", settings=settings
-    )
+    ds = rg.Dataset(name=dataset_name, settings=settings)
 
     # skip if dataset already exists
     try:
         ds.create()
     except ConflictError:
-        pass
+        ds = client.datasets(dataset_name)
 
     # process original HF dataset
     dataset = train_dataset.map(format_data, batched=True, batch_size=1000)
@@ -97,8 +96,18 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
                 id=idx,
                 fields={"anchor": entry["anchor"]},
                 suggestions=[
-                    rg.Suggestion("positive", value=entry["positive"]),
-                    rg.Suggestion("negative", value=entry["negative"]),
+                    rg.Suggestion(
+                        "positive",
+                        value=entry["positive"],
+                        agent="gpt-4o",
+                        type="model",
+                    ),
+                    rg.Suggestion(
+                        "negative",
+                        value=entry["negative"],
+                        agent="gpt-4o",
+                        type="model",
+                    ),
                 ],
                 metadata={
                     "parent_section": entry["parent_section"],
@@ -113,8 +122,8 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
                         "similarity-anchor-negative"
                     ],
                 },
-                vectors={"question-vector": entry["question-vector"]},
+                vectors={"anchor-vector": entry["anchor-vector"]},
             )
         )
-    # breakpoint()
+
     ds.records.log(records)
