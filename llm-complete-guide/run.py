@@ -33,10 +33,9 @@ from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
-    generate_chunk_questions,
+    generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
-    generate_synthetic_data,
 )
 from pipelines.finetune_embeddings import chunking_experiment
 from structures import Document
