@@ -12,10 +12,10 @@ def load_hf_dataset() -> (
     Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
 ):
     train_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="train"
+        "zenml/rag_qa_embedding_questions_0_60_0", split="train"
     )
     test_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="test"
+        "zenml/rag_qa_embedding_questions_0_60_0", split="test"
     )
     return train_dataset, test_dataset
 

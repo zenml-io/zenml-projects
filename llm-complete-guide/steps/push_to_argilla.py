@@ -16,33 +16,17 @@ def format_data(batch):
     )
 
     def get_embeddings(batch_column):
-        # Filter out None values from the batch_column
-        batch_column = [item for item in batch_column if item is not None]
-        if not batch_column:
-            # If all values are None, return an empty list
-            return []
         vectors = model.encode(batch_column)
         return [vector.tolist() for vector in vectors]
 
-    # Get indices of non-None values in the anchor column
-    valid_indices = [
-        i for i, item in enumerate(batch["anchor"]) if item is not None
-    ]
-
-    # Filter out None values from the batch columns using valid_indices
-    batch["anchor"] = [batch["anchor"][i] for i in valid_indices]
-    batch["positive"] = [batch["positive"][i] for i in valid_indices]
-    batch["negative"] = [batch["negative"][i] for i in valid_indices]
-
     batch["anchor-vector"] = get_embeddings(batch["anchor"])
+    batch["question-vector"] = get_embeddings(batch["anchor"])
     batch["positive-vector"] = get_embeddings(batch["positive"])
     batch["negative-vector"] = get_embeddings(batch["negative"])
-    batch["question-vector"] = batch[
-        "positive-vector"
-    ]  # Assuming 'positive' is the question
 
     def get_similarities(a, b):
         similarities = []
+
         for pos_vec, neg_vec in zip(a, b):
             similarity = cosine_similarity([pos_vec], [neg_vec])[0][0]
             similarities.append(similarity)
@@ -92,7 +76,6 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
             )
         ],
     )
-
     ds = rg.Dataset(
         name="rag_qa_embedding_questions_0_60_0_distilabel", settings=settings
     )
@@ -133,4 +116,5 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
                 vectors={"question-vector": entry["question-vector"]},
             )
         )
+    # breakpoint()
     ds.records.log(records)
