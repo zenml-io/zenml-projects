@@ -33,11 +33,11 @@ from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
-    generate_chunk_questions,
+    generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
 )
-from pipelines.finetune_embeddings import chunking_experiment
+from pipelines.finetune_embeddings_legacy import chunking_experiment
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -156,7 +156,7 @@ def main(
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
-        generate_chunk_questions.with_options(**pipeline_args)()
+        generate_synthetic_data.with_options(**pipeline_args)()
     if embeddings:
         finetune_embeddings.with_options(**pipeline_args)()
     if dummyembeddings:
