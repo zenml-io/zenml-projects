@@ -1,6 +1,5 @@
-from datasets import Dataset
+from datasets import Dataset, DatasetDict
 from zenml import step
-from datasets import DatasetDict
 
 
 @step

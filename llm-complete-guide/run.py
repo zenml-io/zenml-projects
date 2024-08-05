@@ -37,7 +37,7 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
 )
-from pipelines.finetune_embeddings import chunking_experiment
+from pipelines.finetune_embeddings_legacy import chunking_experiment
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 

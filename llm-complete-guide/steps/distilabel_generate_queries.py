@@ -26,7 +26,7 @@ def generate_synthetic_queries(
 
     with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(
-            num_examples=15,  # uncomment this for demo purposes
+            num_examples=15,  # use this for demo purposes
             output_mappings={"page_content": "anchor"},
         )
         generate_sentence_pair = GenerateSentencePair(
