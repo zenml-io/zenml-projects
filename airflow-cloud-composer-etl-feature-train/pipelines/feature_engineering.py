@@ -20,19 +20,23 @@ from steps import (
     augment_csv,
 )
 from zenml import pipeline
+from zenml.client import Client
 
 
 @pipeline
-def feature_engineering_pipeline(mode: str = "develop"):
+def feature_engineering_pipeline(
+    transformed_dataset_id: str, mode: str = "develop"
+):
     """A pipeline to augment data and load it into BigQuery or locally.
 
     Args:
-        data_path: str: The path to the data. Defaults to "tmp/transformed_data.csv".
+        transformed_dataset_id: str: The ID of the transformed dataset.
         mode: str: The mode in which the pipeline is run. Defaults to "develop".
 
     Returns:
         str: The path to the data.
     """
+    transformed_dataset = Client().get_artifact_version(transformed_dataset_id)
     if mode == "develop":
         augmented_data = augment_csv(transformed_dataset)
     else:

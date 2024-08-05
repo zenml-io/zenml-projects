@@ -20,17 +20,17 @@ from steps import (
     train_xgboost_model,
 )
 from zenml import pipeline
+from zenml.client import Client
 
 
 @pipeline
-def model_training_pipeline(
-    data_path: str = "tmp/augmented_data.csv", mode: str = "develop"
-):
+def model_training_pipeline(augmented_dataset_id, mode: str = "develop"):
     """A pipeline to train an XGBoost model and promote it.
 
     Args:
-        data_path: str: The path to the data. Defaults to "tmp/augmented_data.csv".
+        augmented_dataset_id: str: The ID of the augmented dataset.
         mode: str: The mode in which the pipeline is run. Defaults to "develop
     """
+    augmented_data = Client().get_artifact_version(augmented_dataset_id)
     _, metrics = train_xgboost_model(augmented_data)
     promote_model(metrics)

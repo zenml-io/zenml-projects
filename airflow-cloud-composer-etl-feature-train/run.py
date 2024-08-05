@@ -1,20 +1,3 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2024. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 import os
 
 import click
@@ -23,9 +6,11 @@ from pipelines import (
     feature_engineering_pipeline,
     model_training_pipeline,
 )
+from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
+client = Client()
 
 
 @click.command(
@@ -41,16 +26,12 @@ Examples:
     python run.py --etl
 
   \b
-  # Run the feature engineering pipeline
-    python run.py --feature
+  # Run the feature engineering pipeline with a specific transformed dataset version
+    python run.py --feature --transformed_dataset_version "v1"
   
   \b
-  # Run the model training pipeline
-    python run.py --training
-
-  \b
-  # Run all pipelines in sequence
-    python run.py --etl --feature --training
+  # Run the model training pipeline with a specific augmented dataset version
+    python run.py --training --augmented_dataset_version "v1"
 
 """
 )
@@ -84,12 +65,26 @@ Examples:
     default=False,
     help="Disable caching for the pipeline run.",
 )
+@click.option(
+    "--transformed_dataset_version",
+    type=str,
+    default=None,
+    help="Version of the transformed dataset to use for feature engineering. Defaults to latest.",
+)
+@click.option(
+    "--augmented_dataset_version",
+    type=str,
+    default=None,
+    help="Version of the augmented dataset to use for model training. Defaults to latest.",
+)
 def main(
     etl: bool = False,
     feature: bool = False,
     training: bool = False,
     mode: str = "develop",
     no_cache: bool = False,
+    transformed_dataset_version: str = None,
+    augmented_dataset_version: str = None,
 ):
     """Main entry point for the pipeline execution."""
     config_folder = os.path.join(
@@ -110,24 +105,54 @@ def main(
 
     # Execute Feature Engineering Pipeline
     if feature:
+        run_args_feature = {}
+        try:
+            transformed_dataset_artifact_version = client.get_artifact_version(
+                "ecb_transformed_dataset", transformed_dataset_version
+            )
+            run_args_feature["transformed_dataset_id"] = (
+                transformed_dataset_artifact_version.id
+            )
+        except KeyError:
+            logger.error(
+                f"Transformed dataset version '{transformed_dataset_version}' not found. Using the latest version."
+            )
+            raise
+
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"feature_engineering_{mode}.yaml"
         )
-        feature_engineering_pipeline.with_options(**pipeline_args)()
+        feature_engineering_pipeline.with_options(**pipeline_args)(
+            **run_args_feature
+        )
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
     # Execute Model Training Pipeline
     if training:
+        run_args_train = {}
+        try:
+            augmented_dataset_artifact_version = client.get_artifact_version(
+                "ecb_augmented_dataset", augmented_dataset_version
+            )
+            run_args_train["augmented_dataset_id"] = (
+                augmented_dataset_artifact_version.id
+            )
+        except KeyError:
+            logger.error(
+                f"Augmented dataset version '{augmented_dataset_version}' not found. Using the latest version."
+            )
+            raise
+
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"training_{mode}.yaml"
         )
-        model_training_pipeline.with_options(**pipeline_args)()
+        model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
         logger.info("Model Training pipeline finished successfully!\n")
 
 
