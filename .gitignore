@@ -159,5 +159,7 @@ llm-lora-finetuning/meta-llama/
 llm-lora-finetuning/microsoft/
 llm-lora-finetuning/unsloth/
 llm-lora-finetuning/configs/shopify.yaml
+finetuned-matryoshka/
+
 # ollama ignores
 nohup.out
