@@ -139,7 +139,7 @@ def finetune(dataset: DatasetDict) -> None:
         save_total_limit=3,  # save only the last 3 models
         load_best_model_at_end=True,  # load the best model when training ends
         metric_for_best_model="eval_dim_128_cosine_ndcg@10",  # Optimizing for the best ndcg@10 score for the 128 dimension
-        report_to="wandb",  # turn off wandb tracking
+        report_to="none",  # turn off wandb tracking
     )
 
     trainer = SentenceTransformerTrainer(
