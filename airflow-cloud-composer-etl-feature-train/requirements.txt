@@ -4,3 +4,4 @@ xgboost
 google-cloud-bigquery
 pyarrow
 gradio
+db-dtypes

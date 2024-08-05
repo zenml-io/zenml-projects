@@ -42,16 +42,16 @@ def augment_csv(
     df = dataset.df
     df["augmented_rate"] = (
         df[
-            "Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"
+            "main_refinancing_operations"
         ]
         * 2
     )
     df["rate_diff"] = (
         df[
-            "Marginal lending facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.MLFR.LEV)"
+            "marginal_lending_facility"
         ]
         - df[
-            "Deposit facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.DFR.LEV)"
+            "deposit_facility"
         ]
     )
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()
@@ -79,16 +79,16 @@ def augment_csv(
     df = dataset.df
     df["augmented_rate"] = (
         df[
-            "Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"
+            "main_refinancing_operations"
         ]
         * 2
     )
     df["rate_diff"] = (
         df[
-            "Marginal lending facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.MLFR.LEV)"
+            "marginal_lending_facility"
         ]
         - df[
-            "Deposit facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.DFR.LEV)"
+            "deposit_facility"
         ]
     )
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()
@@ -116,16 +116,16 @@ def augment_bq(
     df = dataset.df
     df["augmented_rate"] = (
         df[
-            "Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"
+            "main_refinancing_operations"
         ]
         * 2
     )
     df["rate_diff"] = (
         df[
-            "Marginal lending facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.MLFR.LEV)"
+            "marginal_lending_facility"
         ]
         - df[
-            "Deposit facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.DFR.LEV)"
+            "deposit_facility"
         ]
     )
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()

@@ -42,7 +42,8 @@ class BigQueryDataset(Dataset):
         query = f"""
         SELECT * FROM `{self.table_id}`
         """
-        return self.client.query(query).to_dataframe()
+        self.df = self.client.query(query).to_dataframe()
+        return self.df
 
     def write_data(self) -> None:
         job_config = bigquery.LoadJobConfig(

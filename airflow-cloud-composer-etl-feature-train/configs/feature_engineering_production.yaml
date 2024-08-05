@@ -17,5 +17,7 @@ model:
   description: An ECB interest rate prediction model
   tags: ["ecb", "interest_rate", "prediction", "xgboost"]
 
-# pipeline configuration
-mode: develop
+steps:
+  augment_bq:
+    parameters:
+      table_id: zenml-core.ecb_experiments.ecb_augmented_dataset

@@ -126,7 +126,6 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"feature_engineering_{mode}.yaml"
         )
-        pipeline_args["mode"] = mode
         feature_engineering_pipeline.with_options(**pipeline_args)(
             **run_args_feature
         )
@@ -154,7 +153,6 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"training_{mode}.yaml"
         )
-        pipeline_args["mode"] = mode
         model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
         logger.info("Model Training pipeline finished successfully!\n")
 

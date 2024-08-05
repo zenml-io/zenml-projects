@@ -1,4 +1,4 @@
-"DATE","TIME PERIOD","Deposit facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.DFR.LEV)","Marginal lending facility - date of changes (raw data) - Level (FM.D.U2.EUR.4F.KR.MLFR.LEV)","Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"
+"date","time_period","deposit_facility","marginal_lending_facility","main_refinancing_operations"
 "1999-01-01","01 Jan 1999","2.0000","4.5000","3.0000"
 "1999-01-02","02 Jan 1999","2.0000","4.5000","3.0000"
 "1999-01-03","03 Jan 1999","2.0000","4.5000","3.0000"

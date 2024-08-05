@@ -47,7 +47,7 @@ def train_xgboost_model(
     df = dataset.read_data()
     X = df[["augmented_rate", "rate_diff"]]
     y = df[
-        "Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"
+        "main_refinancing_operations"
     ]
 
     dtrain = xgb.DMatrix(X, label=y)

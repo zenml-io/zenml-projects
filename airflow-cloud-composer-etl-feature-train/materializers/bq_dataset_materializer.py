@@ -35,12 +35,14 @@ class BigQueryDatasetMaterializer(BaseMaterializer):
         logger.info(f"Loading BigQueryDataset from {self.uri}")
         with fileio.open(os.path.join(self.uri, "metadata.json"), "r") as f:
             metadata = json.load(f)
-        return BigQueryDataset(
+        dataset = BigQueryDataset(
             table_id=metadata["table_id"],
             write_disposition=metadata["write_disposition"],
             project=metadata.get("project"),
             dataset=metadata.get("dataset"),
         )
+        dataset.read_data()
+        return dataset
 
     def save(self, bq_dataset: BigQueryDataset) -> None:
         logger.info(f"Saving BigQueryDataset to {self.uri}")

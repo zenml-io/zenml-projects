@@ -10,6 +10,7 @@ settings:
       - xgboost
       - google-cloud-bigquery
       - pyarrow
+      - db-dtypes
 
 # pipeline configuration
 model:
@@ -25,4 +26,4 @@ steps:
 
   transform_bq:
     parameters:
-      table_id: zenml-core.ecb_experiments.ecb_raw_dataset
+      table_id: zenml-core.ecb_experiments.ecb_transformed_dataset
