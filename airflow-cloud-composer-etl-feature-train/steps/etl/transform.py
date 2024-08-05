@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 
+import os
 from datetime import datetime, timezone
+from typing import Annotated, Optional
 
 import pandas as pd
-from materializers.dataset import Dataset
+from materializers import BigQueryDataset, CSVDataset
 from zenml import step
 from zenml.logger import get_logger
 
@@ -26,7 +28,9 @@ logger = get_logger(__name__)
 
 
 @step
-def transform_identity(df: pd.DataFrame) -> Dataset:
+def transform_csv(
+    df: pd.DataFrame, filename: str = "transformed_data.csv"
+) -> Annotated[CSVDataset, "ecb_transformed_data"]:
     """Transform the data by adding a processed column and a load timestamp.
 
     Args:
@@ -37,4 +41,26 @@ def transform_identity(df: pd.DataFrame) -> Dataset:
     """
     df["processed"] = 1
     df["load_timestamp"] = datetime.now(timezone.utc).isoformat()
-    return df
+
+    if not os.path.exists("tmp"):
+        os.makedirs("tmp")
+    data_path = f"tmp/{filename}"
+
+    return CSVDataset(df, data_path)
+
+
+@step
+def transform_bq(
+    df: pd.DataFrame, table_id: str, bq_config: Optional[dict]
+) -> Annotated[BigQueryDataset, "ecb_transformed_data"]:
+    """Transform the data by adding a processed column and a load timestamp.
+
+    Args:
+        df: Input dataframe.
+
+    Returns:
+        pd.DataFrame: Transformed dataframe.
+    """
+    df["processed"] = 1
+    df["load_timestamp"] = datetime.now(timezone.utc).isoformat()
+    return BigQueryDataset(df=df, table_id=table_id, **bq_config)

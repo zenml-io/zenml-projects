@@ -26,6 +26,7 @@ class BigQueryDataset(Dataset):
     def __init__(
         self,
         table_id: str,
+        df: Optional[pd.DataFrame] = None,
         write_disposition: str = "WRITE_TRUNCATE",
         project: Optional[str] = None,
         dataset: Optional[str] = None,
@@ -35,21 +36,19 @@ class BigQueryDataset(Dataset):
         self.project = project
         self.dataset = dataset
         self.client = bigquery.Client(project=project)
+        self.df = df
 
-    def fetch_data(self) -> pd.DataFrame:
+    def read_data(self) -> pd.DataFrame:
         query = f"""
         SELECT * FROM `{self.table_id}`
         """
         return self.client.query(query).to_dataframe()
 
-    def load_data(self, df: pd.DataFrame) -> None:
+    def write_data(self) -> None:
         job_config = bigquery.LoadJobConfig(
             write_disposition=self.write_disposition
         )
         job = self.client.load_table_from_dataframe(
-            df, self.table_id, job_config=job_config
+            self.df, self.table_id, job_config=job_config
         )
         job.result()  # Wait for the job to complete
-
-    def execute_query(self, query: str) -> pd.DataFrame:
-        return self.client.query(query).to_dataframe()

@@ -17,8 +17,8 @@
 
 from typing import Dict, Tuple
 
-import pandas as pd
 import xgboost as xgb
+from materializers import Dataset
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 @step
 def train_xgboost_model(
-    df: pd.DataFrame,
+    dataset: Dataset,
 ) -> Tuple[
     Annotated[
         xgb.Booster, ArtifactConfig(name="xgb_model", is_model_artifact=True)
@@ -43,6 +43,7 @@ def train_xgboost_model(
     Returns:
         Tuple[xgb.Booster, Dict[str, float]]: Trained model and metrics.
     """
+    df = dataset.read_data()
     X = df[["augmented_rate", "rate_diff"]]
     y = df[
         "Main refinancing operations - Minimum bid rate/fixed rate (date of changes) - Level (FM.D.U2.EUR.4F.KR.MRR_RT.LEV)"

@@ -21,7 +21,10 @@ from typing import Type
 from bq_dataset import BigQueryDataset
 from zenml.enums import ArtifactType
 from zenml.io import fileio
+from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
+
+logger = get_logger(__name__)
 
 
 class BigQueryDatasetMaterializer(BaseMaterializer):
@@ -29,6 +32,7 @@ class BigQueryDatasetMaterializer(BaseMaterializer):
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
 
     def load(self, data_type: Type[BigQueryDataset]) -> BigQueryDataset:
+        logger.info(f"Loading BigQueryDataset from {self.uri}")
         with fileio.open(os.path.join(self.uri, "metadata.json"), "r") as f:
             metadata = json.load(f)
         return BigQueryDataset(
@@ -39,6 +43,7 @@ class BigQueryDatasetMaterializer(BaseMaterializer):
         )
 
     def save(self, bq_dataset: BigQueryDataset) -> None:
+        logger.info(f"Saving BigQueryDataset to {self.uri}")
         metadata = {
             "table_id": bq_dataset.table_id,
             "write_disposition": bq_dataset.write_disposition,
@@ -47,3 +52,8 @@ class BigQueryDatasetMaterializer(BaseMaterializer):
         }
         with fileio.open(os.path.join(self.uri, "metadata.json"), "w") as f:
             json.dump(metadata, f)
+
+        # Write the table if the dataframe is not None
+        if bq_dataset.dataframe is not None:
+            logger.info(f"Writing BigQuery table {bq_dataset.table_id}")
+            bq_dataset.write_table()

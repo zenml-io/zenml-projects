@@ -16,28 +16,22 @@
 #
 
 import pandas as pd
-from google.cloud import bigquery
 from zenml import step
+from zenml.io import fileio
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 @step
-def load_latest_data_bq(
-    table_id: str = "your-project.your_dataset.ecb_raw_data",
-) -> pd.DataFrame:
-    """Load the latest data from the data source.
+def extract_data_remote(data_path: str = "gs://yourpath") -> pd.DataFrame:
+    """Extract data from remote source.
 
     Args:
-        table_id: Table ID to load the data from.
+        data_path: Loads data from remote storage. Defaults to "gs://yourpath".
 
     Returns:
-        pd.Datafram: Dataframe containing the data.
+        pd.DataFrame: Dataframe containing the data.
     """
-    client = bigquery.Client()
-    query = f"""
-    SELECT * FROM {table_id}
-    WHERE load_timestamp = (SELECT MAX(load_timestamp) FROM `your-project.your_dataset.ecb_raw_data`)
-    """
-    return client.query(query).to_dataframe()
+    with fileio.open(data_path, "r") as f:
+        return pd.read_csv(f)

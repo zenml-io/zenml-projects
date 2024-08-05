@@ -16,6 +16,4 @@
 #
 
 
-from .augment import augment_data
-from .load_latest_data_bq import load_latest_data_bq
-from .load_latest_data_local import load_latest_data_local
+from .augment import augment_bq, augment_csv

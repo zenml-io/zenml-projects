@@ -16,19 +16,14 @@
 #
 
 from steps import (
-    augment_data,
-    load_data_bq,
-    load_data_local,
-    load_latest_data_bq,
-    load_latest_data_local,
+    augment_bq,
+    augment_csv,
 )
 from zenml import pipeline
 
 
 @pipeline
-def feature_engineering_pipeline(
-    data_path: str = "tmp/transformed_data.csv", mode: str = "develop"
-):
+def feature_engineering_pipeline(mode: str = "develop"):
     """A pipeline to augment data and load it into BigQuery or locally.
 
     Args:
@@ -39,12 +34,8 @@ def feature_engineering_pipeline(
         str: The path to the data.
     """
     if mode == "develop":
-        raw_data = load_latest_data_local(data_path)
-        augmented_data = augment_data(raw_data)
-        data_path = load_data_local(augmented_data, "augmented_data.csv")
+        augmented_data = augment_csv(transformed_dataset)
     else:
-        raw_data = load_latest_data_bq(table_id=data_path)
-        augmented_data = augment_data(raw_data)
-        data_path = load_data_bq(augmented_data)
+        augmented_data = augment_bq(transformed_dataset)
 
-    return data_path
+    return augmented_data

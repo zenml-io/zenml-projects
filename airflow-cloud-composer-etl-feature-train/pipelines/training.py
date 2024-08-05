@@ -16,8 +16,6 @@
 #
 
 from steps import (
-    load_latest_data_bq,
-    load_latest_data_local,
     promote_model,
     train_xgboost_model,
 )
@@ -34,10 +32,5 @@ def model_training_pipeline(
         data_path: str: The path to the data. Defaults to "tmp/augmented_data.csv".
         mode: str: The mode in which the pipeline is run. Defaults to "develop
     """
-    if mode == "develop":
-        augmented_data = load_latest_data_local(data_path)
-    else:
-        augmented_data = load_latest_data_bq(table_id=data_path)
-
     _, metrics = train_xgboost_model(augmented_data)
     promote_model(metrics)

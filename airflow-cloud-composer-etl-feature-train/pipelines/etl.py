@@ -15,18 +15,18 @@
 # limitations under the License.
 #
 
+from materializers.dataset import Dataset
 from steps import (
-    extract_data_bq,
     extract_data_local,
-    load_data_bq,
-    load_data_local,
-    transform_identity,
+    extract_data_remote,
+    transform_bq,
+    transform_csv,
 )
 from zenml import pipeline
 
 
 @pipeline
-def etl_pipeline(mode: str = "develop") -> str:
+def etl_pipeline(mode: str = "develop") -> Dataset:
     """Model deployment pipeline.
 
     This is a pipeline that loads data to BigQuery.
@@ -35,14 +35,12 @@ def etl_pipeline(mode: str = "develop") -> str:
         mode: str: The mode in which the pipeline is run. Defaults to "develop".
 
     Returns:
-        str: The path to the data.
+        Dataset: The transformed data.
     """
     if mode == "develop":
         raw_data = extract_data_local()
-        transformed_data = transform_identity(raw_data)
-        data_path = load_data_local(transformed_data, "transformed_data.csv")
+        transformed_data = transform_csv(raw_data)
     else:
-        raw_data = extract_data_bq()
-        transformed_data = transform_identity(raw_data)
-        data_path = load_data_bq(transformed_data)
-    return data_path
+        raw_data = extract_data_remote()
+        transformed_data = transform_bq(raw_data)
+    return transformed_data

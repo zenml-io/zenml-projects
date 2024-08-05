@@ -18,6 +18,6 @@
 
 from .bq_dataset import BigQueryDataset
 from .bq_dataset_materializer import BigQueryDatasetMaterializer
+from .csv_dataset import CSVDataset
+from .csv_dataset_materializer import CSVDatasetMaterializer
 from .dataset import Dataset
-from .local_dataset import LocalDataset
-from .local_dataset_materializer import LocalDatasetMaterializer

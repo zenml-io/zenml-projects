@@ -13,30 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-import os
+from typing import Optional
 
 import pandas as pd
-from zenml import step
-from zenml.logger import get_logger
 
-logger = get_logger(__name__)
+from materializers.dataset import Dataset
 
 
-@step
-def load_data_local(df: pd.DataFrame, filename: str) -> str:
-    """Load data locally, to mock bigquery loader.
+class CSVDataset(Dataset):
+    def __init__(self, data_path: str, df: Optional[pd.DataFrame] = None):
+        self.data_path = data_path
+        if df is not None:
+            self.df = df
+        else:
+            self.df = self.read_data()
 
-    Args:
-        df: Dataframe to be loaded.
-        filename: Path to the data source.
-
-    Returns:
-        str: Path to the saved file.
-    """
-    if not os.path.exists("tmp"):
-        os.makedirs("tmp")
-    data_path = f"tmp/{filename}"
-    df.to_csv(data_path, index=False)
-    return data_path
+    def read_data(self) -> pd.DataFrame:
+        return pd.read_csv(self.data_path)

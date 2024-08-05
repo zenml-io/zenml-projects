@@ -25,5 +25,5 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
-    def fetch_data(self) -> pd.DataFrame:
+    def read_data(self) -> pd.DataFrame:
         pass

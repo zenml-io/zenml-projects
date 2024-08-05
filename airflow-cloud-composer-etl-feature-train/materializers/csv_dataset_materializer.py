@@ -18,22 +18,33 @@ import json
 import os
 from typing import Type
 
-from local_dataset import LocalDataset
+from csv_dataset import CSVDataset
 from zenml.enums import ArtifactType
 from zenml.io import fileio
+from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
 
+logger = get_logger(__name__)
 
-class LocalDatasetMaterializer(BaseMaterializer):
-    ASSOCIATED_TYPES = (LocalDataset,)
+
+class CSVDatasetMaterializer(BaseMaterializer):
+    ASSOCIATED_TYPES = (CSVDataset,)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
 
-    def load(self, data_type: Type[LocalDataset]) -> LocalDataset:
+    def load(self, data_type: Type[CSVDataset]) -> CSVDataset:
+        logger.info(f"Loading CSVDataset from {self.uri}")
         with fileio.open(os.path.join(self.uri, "metadata.json"), "r") as f:
             metadata = json.load(f)
-        return LocalDataset(metadata["data_path"])
+        return CSVDataset(metadata["data_path"])
 
-    def save(self, local_dataset: LocalDataset) -> None:
-        metadata = {"data_path": local_dataset.data_path}
+    def save(self, csv_dataset: CSVDataset) -> None:
+        logger.info(f"Saving CSVDataset to {self.uri}")
+        metadata = {"data_path": csv_dataset.data_path}
         with fileio.open(os.path.join(self.uri, "metadata.json"), "w") as f:
             json.dump(metadata, f)
+
+        # Write the dataframe if it is not None
+        if csv_dataset.df is not None:
+            logger.info(f"Writing CSV file {csv_dataset.data_path}")
+            with fileio.open(csv_dataset.data_path, "w") as f:
+                csv_dataset.df.to_csv(f)
