@@ -4,13 +4,26 @@ from typing import Annotated
 
 import torch
 from datasets import DatasetDict, concatenate_datasets, load_dataset
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import (
+    SentenceTransformer,
+    SentenceTransformerModelCardData,
+    SentenceTransformerTrainer,
+    SentenceTransformerTrainingArguments,
+)
 from sentence_transformers.evaluation import (
     InformationRetrievalEvaluator,
     SequentialEvaluator,
 )
+from sentence_transformers.losses import (
+    MatryoshkaLoss,
+    MultipleNegativesRankingLoss,
+)
+from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
 from zenml import step
+
+MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
 
 
 @step
@@ -29,9 +42,9 @@ def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
     return dataset
 
 
-@step
-def evaluate_base_model(dataset: DatasetDict):
-    # make temp dir
+def get_evaluator(
+    dataset: DatasetDict, model: SentenceTransformer
+) -> SequentialEvaluator:
     temp_dir = tempfile.TemporaryDirectory()
     train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
     test_dataset_path = os.path.join(temp_dir.name, "test_dataset.json")
@@ -39,16 +52,6 @@ def evaluate_base_model(dataset: DatasetDict):
     # save datasets to disk
     dataset["train"].to_json(train_dataset_path, orient="records")
     dataset["test"].to_json(test_dataset_path, orient="records")
-
-    model_id = (
-        "sentence-transformers/all-MiniLM-L6-v2"  # Hugging Face model ID
-    )
-    matryoshka_dimensions = [384, 256, 128, 64]  # Important: large to small
-
-    # Load a model
-    model = SentenceTransformer(
-        model_id, device="cuda" if torch.cuda.is_available() else "cpu"
-    )
 
     # load test dataset
     test_dataset = load_dataset(
@@ -74,7 +77,7 @@ def evaluate_base_model(dataset: DatasetDict):
 
     matryoshka_evaluators = []
     # Iterate over the different dimensions
-    for dim in matryoshka_dimensions:
+    for dim in MATRYOSHKA_DIMENSIONS:
         ir_evaluator = InformationRetrievalEvaluator(
             queries=queries,
             corpus=corpus,
@@ -86,7 +89,17 @@ def evaluate_base_model(dataset: DatasetDict):
         matryoshka_evaluators.append(ir_evaluator)
 
     # Create a sequential evaluator
-    evaluator = SequentialEvaluator(matryoshka_evaluators)
+    return SequentialEvaluator(matryoshka_evaluators)
+
+
+@step
+def evaluate_base_model(dataset: DatasetDict):
+    model = SentenceTransformer(
+        MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
+    )
+
+    # Create a sequential evaluator
+    evaluator = get_evaluator(dataset, model)
 
     # Evaluate the model
     results = evaluator(model)
@@ -95,15 +108,86 @@ def evaluate_base_model(dataset: DatasetDict):
     print(results)
 
     # Print the main score
-    for dim in matryoshka_dimensions:
+    for dim in MATRYOSHKA_DIMENSIONS:
         key = f"dim_{dim}_cosine_ndcg@10"
         print
         print(f"{key}: {results[key]}")
 
 
 @step
-def finetune_embeddings():
-    pass
+def finetune(
+    dataset: DatasetDict,
+) -> None:  # TODO: return the model
+    # load model with SDPA for using Flash Attention 2
+    model = SentenceTransformer(
+        MODEL_ID,
+        model_kwargs={"attn_implementation": "sdpa"},
+        model_card_data=SentenceTransformerModelCardData(
+            language="en",
+            license="apache-2.0",
+            model_name="finetuned-matryoshka",
+        ),
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    )
+
+    inner_train_loss = MultipleNegativesRankingLoss(model)
+    train_loss = MatryoshkaLoss(
+        model, inner_train_loss, matryoshka_dims=MATRYOSHKA_DIMENSIONS
+    )
+
+    temp_dir = tempfile.TemporaryDirectory()
+    train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
+
+    # save datasets to disk
+    dataset["train"].to_json(train_dataset_path, orient="records")
+
+    # load train dataset again
+    train_dataset = load_dataset(
+        "json", data_files=train_dataset_path, split="train"
+    )
+
+    evaluator = get_evaluator(dataset, model)
+
+    # define training arguments
+    args = SentenceTransformerTrainingArguments(
+        output_dir="finetuned-matryoshka",  # output directory and hugging face model ID
+        num_train_epochs=4,  # number of epochs
+        per_device_train_batch_size=32,  # train batch size
+        gradient_accumulation_steps=16,  # for a global batch size of 512
+        per_device_eval_batch_size=16,  # evaluation batch size
+        warmup_ratio=0.1,  # warmup ratio
+        learning_rate=2e-5,  # learning rate, 2e-5 is a good value
+        lr_scheduler_type="cosine",  # use constant learning rate scheduler
+        optim="adamw_torch_fused",  # use fused adamw optimizer
+        tf32=True,  # use tf32 precision
+        bf16=True,  # use bf16 precision
+        batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
+        eval_strategy="epoch",  # evaluate after each epoch
+        save_strategy="epoch",  # save after each epoch
+        logging_steps=10,  # log every 10 steps
+        save_total_limit=3,  # save only the last 3 models
+        load_best_model_at_end=True,  # load the best model when training ends
+        metric_for_best_model="eval_dim_128_cosine_ndcg@10",  # Optimizing for the best ndcg@10 score for the 128 dimension
+    )
+
+    trainer = SentenceTransformerTrainer(
+        model=model,
+        args=args,  # training arguments
+        train_dataset=train_dataset.select_columns(
+            ["positive", "anchor"]
+        ),  # training dataset
+        loss=train_loss,
+        evaluator=evaluator,
+    )
+
+    # start training, the model will be automatically saved to the hub and the output directory
+    trainer.train()
+
+    # save the best model
+    trainer.save_model()
+
+    # push model to hub
+    # trainer.model.push_to_hub("finetuned-matryoshka")
 
 
 @step
