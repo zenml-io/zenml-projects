@@ -24,7 +24,7 @@ from zenml import step
 
 MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
-
+FINETUNED_MODEL_ID = "zenml/finetuned-all-MiniLM-L6-v2"
 
 @step
 def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
@@ -125,7 +125,7 @@ def finetune(
         model_card_data=SentenceTransformerModelCardData(
             language="en",
             license="apache-2.0",
-            model_name="finetuned-matryoshka",
+            model_name=FINETUNED_MODEL_ID,
         ),
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
@@ -150,7 +150,7 @@ def finetune(
 
     # define training arguments
     args = SentenceTransformerTrainingArguments(
-        output_dir="finetuned-matryoshka",  # output directory and hugging face model ID
+        output_dir=FINETUNED_MODEL_ID,  # output directory and hugging face model ID
         num_train_epochs=4,  # number of epochs
         per_device_train_batch_size=32,  # train batch size
         gradient_accumulation_steps=16,  # for a global batch size of 512
@@ -180,23 +180,29 @@ def finetune(
         evaluator=evaluator,
     )
 
-    # start training, the model will be automatically saved to the hub and the output directory
+    # start training, the model will be automatically saved to the hub
     trainer.train()
 
-    # # save the best model
-    # trainer.save_model()
-
-    # return trainer.model
-
     # push model to hub
-    trainer.model.push_to_hub("strickvl/finetuned-matryoshka")
+    trainer.model.push_to_hub(FINETUNED_MODEL_ID, exist_ok=True)
 
 
 @step
-def evaluate_finetuned_model(model: SentenceTransformer):
-    pass
+def evaluate_finetuned_model(dataset: DatasetDict):
+    fine_tuned_model = SentenceTransformer(
+        FINETUNED_MODEL_ID,
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    )
 
+    evaluator = get_evaluator(dataset, fine_tuned_model)
 
-@step
-def promote_model():
-    pass
+    # Evaluate the model
+    results = evaluator(fine_tuned_model)
+
+    # # COMMENT IN for full results
+    print(results)
+
+    # Print the main score
+    for dim in MATRYOSHKA_DIMENSIONS:
+        key = f"dim_{dim}_cosine_ndcg@10"
+        print(f"{key}: {results[key]}")
