@@ -156,7 +156,9 @@ def finetune(dataset: DatasetDict) -> None:
     trainer.model.push_to_hub(f"zenml/{FINETUNED_MODEL_ID}", exist_ok=True)
 
 
-def evaluate_model(dataset: DatasetDict, model: SentenceTransformer):
+def evaluate_model(
+    dataset: DatasetDict, model: SentenceTransformer
+) -> Dict[str, float]:
     """Evaluate the given model on the dataset."""
     evaluator = get_evaluator(dataset, model)
     results = evaluator(model)
@@ -167,26 +169,30 @@ def evaluate_model(dataset: DatasetDict, model: SentenceTransformer):
         key = f"dim_{dim}_cosine_ndcg@10"
         print(f"{key}: {results[key]}")
 
+    return results
+
 
 @step
 def evaluate_base_model(
     dataset: DatasetDict,
-):
+) -> Annotated[Dict[str, float], "evaluation_results"]:
     """Evaluate the base model on the given dataset."""
     model = SentenceTransformer(
         MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
     )
-    evaluate_model(dataset, model)
+
+    return evaluate_model(dataset, model)
 
 
 @step
 def evaluate_finetuned_model(
     dataset: DatasetDict,
-):
+) -> Annotated[Dict[str, float], "evaluation_results"]:
     """Evaluate the finetuned model on the given dataset."""
     fine_tuned_model = SentenceTransformer(
         f"zenml/{FINETUNED_MODEL_ID}",
         device="cuda" if torch.cuda.is_available() else "cpu",
         revision="main",
     )
-    evaluate_model(dataset, fine_tuned_model)
+
+    return evaluate_model(dataset, fine_tuned_model)
