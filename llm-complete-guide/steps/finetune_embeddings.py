@@ -21,11 +21,12 @@ from sentence_transformers.losses import (
 from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
 from zenml import step
+from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 # MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 # FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
-MODEL_ID = "Snowflake/snowflake-arctic-embed-l"
-FINETUNED_MODEL_ID = "zenml/finetuned-snowflake-arctic-embed-l"
+MODEL_ID = "Snowflake/snowflake-arctic-embed-m"
+FINETUNED_MODEL_ID = "finetuned-snowflake-arctic-embed-m"
 
 MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
 
@@ -97,6 +98,8 @@ def get_evaluator(
 @step
 def finetune(dataset: DatasetDict) -> None:
     """Finetune the model on the given dataset."""
+    cleanup_gpu_memory(force=True)
+
     # load model with SDPA for using Flash Attention 2
     model = SentenceTransformer(
         MODEL_ID,
@@ -163,6 +166,8 @@ def evaluate_model(
     dataset: DatasetDict, model: SentenceTransformer
 ) -> Dict[str, float]:
     """Evaluate the given model on the dataset."""
+    cleanup_gpu_memory(force=True)
+
     evaluator = get_evaluator(dataset, model)
     results = evaluator(model)
 
