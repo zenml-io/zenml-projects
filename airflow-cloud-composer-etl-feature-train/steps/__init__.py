@@ -17,8 +17,8 @@
 
 
 from .etl import (
-    extract_data_local,
     extract_data_bq,
+    extract_data_local,
     load_data_bq,
     load_data_local,
     transform_identity,

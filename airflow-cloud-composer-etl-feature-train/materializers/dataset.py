@@ -13,11 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+from abc import ABC, abstractmethod
+
+import pandas as pd
 
 
-from .extract_data_bq import extract_data_bq
-from .extract_data_local import extract_data_local
-from .load_data_bq import load_data_bq
-from .load_data_local import load_data_local
-from .transform import transform_identity
+class Dataset(ABC):
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def fetch_data(self) -> pd.DataFrame:
+        pass

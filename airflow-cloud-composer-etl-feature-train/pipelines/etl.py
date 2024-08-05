@@ -16,8 +16,8 @@
 #
 
 from steps import (
-    extract_data_local,
     extract_data_bq,
+    extract_data_local,
     load_data_bq,
     load_data_local,
     transform_identity,
@@ -40,9 +40,7 @@ def etl_pipeline(mode: str = "develop") -> str:
     if mode == "develop":
         raw_data = extract_data_local()
         transformed_data = transform_identity(raw_data)
-        data_path = load_data_local(
-            transformed_data, "transformed_data.csv"
-        )
+        data_path = load_data_local(transformed_data, "transformed_data.csv")
     else:
         raw_data = extract_data_bq()
         transformed_data = transform_identity(raw_data)

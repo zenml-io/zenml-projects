@@ -13,11 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+import pandas as pd
+
+from materializers.dataset import Dataset
 
 
-from .extract_data_bq import extract_data_bq
-from .extract_data_local import extract_data_local
-from .load_data_bq import load_data_bq
-from .load_data_local import load_data_local
-from .transform import transform_identity
+class LocalDataset(Dataset):
+    def __init__(self, data_path: str):
+        self.data_path = data_path
+        self.data = pd.read_csv(data_path)
+
+    def fetch_data(self) -> pd.DataFrame:
+        return self.data

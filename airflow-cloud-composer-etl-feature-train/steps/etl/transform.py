@@ -18,6 +18,7 @@
 from datetime import datetime, timezone
 
 import pandas as pd
+from materializers.dataset import Dataset
 from zenml import step
 from zenml.logger import get_logger
 
@@ -25,7 +26,7 @@ logger = get_logger(__name__)
 
 
 @step
-def transform_identity(df: pd.DataFrame) -> pd.DataFrame:
+def transform_identity(df: pd.DataFrame) -> Dataset:
     """Transform the data by adding a processed column and a load timestamp.
 
     Args:
