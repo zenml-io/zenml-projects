@@ -9,6 +9,7 @@ settings:
       - xgboost
       - google-cloud-bigquery
       - pyarrow
+      - db-dtypes
 
 # configuration of the Model Control Plane
 model:

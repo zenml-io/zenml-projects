@@ -9,6 +9,7 @@ settings:
       - xgboost
       - google-cloud-bigquery
       - pyarrow
+      - db-dtypes
 
 # configuration of the Model Control Plane
 model:
@@ -16,6 +17,3 @@ model:
   version: latest
   description: An ECB interest rate prediction model
   tags: ["ecb", "interest_rate", "prediction", "xgboost"]
-
-# pipeline configuration
-mode: develop
