@@ -160,6 +160,7 @@ llm-lora-finetuning/microsoft/
 llm-lora-finetuning/unsloth/
 llm-lora-finetuning/configs/shopify.yaml
 finetuned-matryoshka/
+finetuned-all-MiniLM-L6-v2/
 
 # ollama ignores
 nohup.out
