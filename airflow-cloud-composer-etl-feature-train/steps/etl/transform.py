@@ -51,7 +51,7 @@ def transform_csv(
 
 @step
 def transform_bq(
-    df: pd.DataFrame, table_id: str, bq_config: Optional[dict]
+    df: pd.DataFrame, table_id: str, bq_config: Optional[dict] = {}
 ) -> Annotated[BigQueryDataset, "ecb_transformed_dataset"]:
     """Transform the data by adding a processed column and a load timestamp.
 

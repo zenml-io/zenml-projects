@@ -54,6 +54,6 @@ class BigQueryDatasetMaterializer(BaseMaterializer):
             json.dump(metadata, f)
 
         # Write the table if the dataframe is not None
-        if bq_dataset.dataframe is not None:
+        if bq_dataset.df is not None:
             logger.info(f"Writing BigQuery table {bq_dataset.table_id}")
-            bq_dataset.write_table()
+            bq_dataset.write_data()

@@ -95,17 +95,18 @@ def main(
     # Execute ETL Pipeline
     if etl:
         pipeline_args = {}
+        run_args_etl = {"mode": mode}
         if no_cache:
             pipeline_args["enable_cache"] = False
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"etl_{mode}.yaml"
         )
-        etl_pipeline.with_options(**pipeline_args)()
+        etl_pipeline.with_options(**pipeline_args)(**run_args_etl)
         logger.info("ETL pipeline finished successfully!\n")
 
     # Execute Feature Engineering Pipeline
     if feature:
-        run_args_feature = {}
+        run_args_feature = {"mode": mode}
         try:
             transformed_dataset_artifact_version = client.get_artifact_version(
                 "ecb_transformed_dataset", transformed_dataset_version
@@ -125,6 +126,7 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"feature_engineering_{mode}.yaml"
         )
+        pipeline_args["mode"] = mode
         feature_engineering_pipeline.with_options(**pipeline_args)(
             **run_args_feature
         )
@@ -132,7 +134,7 @@ def main(
 
     # Execute Model Training Pipeline
     if training:
-        run_args_train = {}
+        run_args_train = {"mode": mode}
         try:
             augmented_dataset_artifact_version = client.get_artifact_version(
                 "ecb_augmented_dataset", augmented_dataset_version
@@ -152,6 +154,7 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"training_{mode}.yaml"
         )
+        pipeline_args["mode"] = mode
         model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
         logger.info("Model Training pipeline finished successfully!\n")
 

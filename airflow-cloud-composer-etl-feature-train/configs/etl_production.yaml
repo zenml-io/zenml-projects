@@ -19,6 +19,10 @@ model:
 
 
 steps:
-  extract_data_local:
+  extract_data_remote:
     parameters:
-      data_path: data/raw_data.csv
+      data_path: gs://zenml-internal-artifact-store/raw_data.csv
+
+  transform_bq:
+    parameters:
+      table_id: zenml-core.ecb_experiments.ecb_raw_dataset

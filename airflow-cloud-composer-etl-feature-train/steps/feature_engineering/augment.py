@@ -102,7 +102,7 @@ def augment_csv(
 
 @step
 def augment_bq(
-    dataset: BigQueryDataset, table_id: str, bq_config: Optional[dict]
+    dataset: BigQueryDataset, table_id: str, bq_config: Optional[dict] = {}
 ) -> Annotated[BigQueryDataset, "ecb_augmented_dataset"]:
     """Augment the data with additional features.
 
