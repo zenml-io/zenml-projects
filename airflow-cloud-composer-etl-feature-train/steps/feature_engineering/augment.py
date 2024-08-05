@@ -40,20 +40,8 @@ def augment_csv(
     """
     logger.info("Augmenting data...")
     df = dataset.df
-    df["augmented_rate"] = (
-        df[
-            "main_refinancing_operations"
-        ]
-        * 2
-    )
-    df["rate_diff"] = (
-        df[
-            "marginal_lending_facility"
-        ]
-        - df[
-            "deposit_facility"
-        ]
-    )
+    df["augmented_rate"] = df["main_refinancing_operations"] * 2
+    df["rate_diff"] = df["marginal_lending_facility"] - df["deposit_facility"]
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()
     logger.info("Data augmentation complete.")
 
@@ -77,20 +65,8 @@ def augment_csv(
     """
     logger.info("Augmenting data...")
     df = dataset.df
-    df["augmented_rate"] = (
-        df[
-            "main_refinancing_operations"
-        ]
-        * 2
-    )
-    df["rate_diff"] = (
-        df[
-            "marginal_lending_facility"
-        ]
-        - df[
-            "deposit_facility"
-        ]
-    )
+    df["augmented_rate"] = df["main_refinancing_operations"] * 2
+    df["rate_diff"] = df["marginal_lending_facility"] - df["deposit_facility"]
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()
     logger.info("Data augmentation complete.")
 
@@ -114,20 +90,8 @@ def augment_bq(
     """
     logger.info("Augmenting data...")
     df = dataset.df
-    df["augmented_rate"] = (
-        df[
-            "main_refinancing_operations"
-        ]
-        * 2
-    )
-    df["rate_diff"] = (
-        df[
-            "marginal_lending_facility"
-        ]
-        - df[
-            "deposit_facility"
-        ]
-    )
+    df["augmented_rate"] = df["main_refinancing_operations"] * 2
+    df["rate_diff"] = df["marginal_lending_facility"] - df["deposit_facility"]
     df["augment_timestamp"] = datetime.now(timezone.utc).isoformat()
     logger.info("Data augmentation complete.")
 

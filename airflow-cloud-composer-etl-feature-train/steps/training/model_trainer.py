@@ -15,11 +15,10 @@
 # limitations under the License.
 #
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 import xgboost as xgb
-from materializers import CSVDataset, BigQueryDataset
-from typing import Union
+from materializers import BigQueryDataset, CSVDataset
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
 from zenml.logger import get_logger
@@ -46,9 +45,7 @@ def train_xgboost_model(
     """
     df = dataset.read_data()
     X = df[["augmented_rate", "rate_diff"]]
-    y = df[
-        "main_refinancing_operations"
-    ]
+    y = df["main_refinancing_operations"]
 
     dtrain = xgb.DMatrix(X, label=y)
     params = {"max_depth": 3, "eta": 0.1, "objective": "reg:squarederror"}

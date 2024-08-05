@@ -111,8 +111,8 @@ def main(
             transformed_dataset_artifact_version = client.get_artifact_version(
                 "ecb_transformed_dataset", transformed_dataset_version
             )
-            run_args_feature["transformed_dataset_id"] = (
-                str(transformed_dataset_artifact_version.id)
+            run_args_feature["transformed_dataset_id"] = str(
+                transformed_dataset_artifact_version.id
             )
         except KeyError:
             logger.error(
@@ -138,8 +138,8 @@ def main(
             augmented_dataset_artifact_version = client.get_artifact_version(
                 "ecb_augmented_dataset", augmented_dataset_version
             )
-            run_args_train["augmented_dataset_id"] = (
-                str(augmented_dataset_artifact_version.id)
+            run_args_train["augmented_dataset_id"] = str(
+                augmented_dataset_artifact_version.id
             )
         except KeyError:
             logger.error(

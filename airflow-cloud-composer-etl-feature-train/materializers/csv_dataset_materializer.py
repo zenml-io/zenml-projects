@@ -18,11 +18,12 @@ import json
 import os
 from typing import Type
 
-from materializers import CSVDataset
 from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
+
+from materializers import CSVDataset
 
 logger = get_logger(__name__)
 

@@ -15,11 +15,10 @@
 # limitations under the License.
 #
 
+import gcsfs
 import pandas as pd
 from zenml import step
-from zenml.io import fileio
 from zenml.logger import get_logger
-import gcsfs
 
 logger = get_logger(__name__)
 
