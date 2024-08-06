@@ -48,7 +48,7 @@ zenml integration install gcp airflow
 
 - In `develop` mode, the default stack can be used, no changes needed.
 - In `production` mode, the default stack can be used as well, but you can build a remote stack like:
-  -  A [Cloud Composer pipelines orchestrator](https://docs.zenml.io/stack-components/orchestrators/vertex) or a [Cloud Composer orchestrator ](https://docs.zenml.io/stack-components/orchestrators/airflow)
+  -  A [Cloud Composer pipelines orchestrator](https://docs.zenml.io/stack-components/orchestrators/vertex)
   - A [Vertex AI](https://docs.zenml.io/stack-components/step-operators/vertex) step operator
   - A [GCS artifact store](https://docs.zenml.io/stack-components/artifact-stores/gcp)
   - A [GCP container registry](https://docs.zenml.io/stack-components/container-registries/gcp)
