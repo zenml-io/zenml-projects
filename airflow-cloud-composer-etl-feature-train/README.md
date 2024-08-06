@@ -1,6 +1,6 @@
 # ZenML ECB Interest Rate Project
 
-This project uses ZenML to create production-ready machine learning pipelines for predicting European Central Bank (ECB) interest rates. It demonstrates best practices for building and iterating on ML pipelines using ZenML's framework and integrations.
+This project uses ZenML to create production-ready machine learning pipelines for predicting European Central Bank (ECB) interest rates. It demonstrates best practices for building and iterating on ML pipelines using ZenML's framework and integrations.The [dataset](data/raw_data.csv) is a slightly modified (column names) version of the one available at the [European Central Bank website](https://data.ecb.europa.eu/main-figures/ecb-interest-rates-and-exchange-rates/key-ecb-interest-rates).
 
 ## 📊 Project Overview
 
@@ -18,7 +18,7 @@ The project consists of three main pipelines:
    - `augment`: Augments the dataset with additional features
    - Output: `ecb_augmented_dataset`
 
-3. **Model Training Pipeline** (Runs on Vertex AI)
+3. **Model Training Pipeline** (Runs on Airflow but the trainer step runs on Vertex AI)
    - Input: `ecb_augmented_dataset` 
    - `train_xgboost_model`: Trains an XGBoost regression model
    - `promote_model`: Evaluates and potentially promotes the new model
