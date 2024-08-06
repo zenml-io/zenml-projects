@@ -116,6 +116,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Fine-tunes embeddings.",
 )
 @click.option(
+    "--argilla",
+    "argilla",
+    is_flag=True,
+    default=False,
+    help="Uses Argilla annotations.",
+)
+@click.option(
     "--dummyembeddings",
     "dummyembeddings",
     is_flag=True,
@@ -132,6 +139,7 @@ def main(
     local: bool = False,
     embeddings: bool = False,
     dummyembeddings: bool = False,
+    argilla: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -144,8 +152,17 @@ def main(
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
+        argilla (bool): If `True`, the Argilla annotations will be used.
     """
     pipeline_args = {"enable_cache": not no_cache}
+    embeddings_finetune_args = {
+        "enable_cache": not no_cache,
+        "steps": {
+            "prepare_load_data": {
+                "parameters": {"use_argilla_annotations": argilla}
+            }
+        },
+    }
 
     if query:
         response = process_input_with_retrieval(query, model=model)
@@ -158,7 +175,7 @@ def main(
     if synthetic:
         generate_synthetic_data.with_options(**pipeline_args)()
     if embeddings:
-        finetune_embeddings.with_options(**pipeline_args)()
+        finetune_embeddings.with_options(**embeddings_finetune_args)()
     if dummyembeddings:
         chunking_experiment.with_options(**pipeline_args)()
 

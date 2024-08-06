@@ -21,6 +21,7 @@ from sentence_transformers.losses import (
 from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
 from zenml import ArtifactConfig, log_model_metadata, step
+from zenml.client import Client
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 # MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
@@ -32,15 +33,25 @@ MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
 
 
 @step
-def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
+def prepare_load_data(
+    use_argilla_annotations: bool = False,
+) -> Annotated[DatasetDict, "full_dataset"]:
     """Load and prepare the dataset for training and evaluation."""
-    # Load dataset from the hub
-    dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="train"
-    )
-
-    # Add an id column to the dataset
-    dataset = dataset.add_column("id", range(len(dataset)))
+    if use_argilla_annotations:
+        zenml_client = Client()
+        annotator = zenml_client.active_stack.annotator
+        if not annotator:
+            raise RuntimeError("No annotator found in the active stack.")
+        dataset = annotator.get_labeled_data(
+            dataset_name="rag_qa_embedding_questions_0_60_0_distilabel"
+        )
+    else:
+        # Load dataset from the hub
+        dataset = load_dataset(
+            "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="train"
+        )
+        # Add an id column to the dataset
+        dataset = dataset.add_column("id", range(len(dataset)))
 
     # split dataset into a 10% test set
     dataset = dataset.train_test_split(test_size=0.1)
