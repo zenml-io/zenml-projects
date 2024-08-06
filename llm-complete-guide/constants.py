@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+from zenml import Model
+from zenml.model.model import ModelStages
 
 # Vector Store constants
 CHUNK_SIZE = 2000
@@ -55,3 +56,23 @@ DUMMY_EPOCHS = 10
 FILES_TO_IGNORE = [
     "toc.md",
 ]
+
+EMBEDDINGS_MODEL = Model(
+    name="finetuned-zenml-docs-embeddings",
+    license="Apache",
+    description="A fine-tuned embeddings model for ZenML documentation. Used for RAG retrieval.",
+    use_cases="RAG retrieval",
+    audience="ZenML users",
+    tags=[
+        "RAG",
+        "embeddings",
+        "finetuning",
+        "llm",
+        "internal",
+        "synthetic-data",
+    ],
+    limitations="Only works for ZenML documentation. Not generalizable to other domains. Entirely build with synthetic data. The data is also quite noisy on account of how the chunks were split.",
+    trade_offs="Focused on a specific RAG retrieval use case. Not generalizable to other domains.",
+    ethics="The data is entirely synthetic.",
+    version=ModelStages.LATEST,
+)

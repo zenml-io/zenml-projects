@@ -1,3 +1,4 @@
+from constants import EMBEDDINGS_MODEL
 from steps.finetune_embeddings import (
     evaluate_base_model,
     evaluate_finetuned_model,
@@ -7,7 +8,9 @@ from steps.finetune_embeddings import (
 from zenml import pipeline
 
 
-@pipeline
+@pipeline(
+    model=EMBEDDINGS_MODEL,
+)
 def finetune_embeddings():
     data = prepare_load_data()
     evaluate_base_model(data)
