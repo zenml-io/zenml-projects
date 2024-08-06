@@ -1,6 +1,21 @@
+#  Copyright (c) ZenML GmbH 2024. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at:
+#
+#       https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+#  or implied. See the License for the specific language governing
+#  permissions and limitations under the License.
+
 import argilla as rg
 import torch
 from argilla._exceptions import ConflictError
+from constants import ARGILLA_DATASET_NAME
 from datasets import Dataset
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -51,8 +66,6 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset, dataset_name:
     api_key = zenml_client.get_secret("argilla_hf").secret_values["api_key"]
     api_url = zenml_client.get_secret("argilla_hf").secret_values["api_url"]
 
-    dataset_name = "rag_qa_embedding_questions_0_60_0_distilabel"
-
     model_id = "sentence-transformers/all-MiniLM-L6-v2"
     model = SentenceTransformer(
         model_id, device="cuda" if torch.cuda.is_available() else "cpu"
@@ -83,7 +96,7 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset, dataset_name:
     try:
         ds.create()
     except ConflictError:
-        ds = client.datasets(dataset_name)
+        ds = client.datasets(ARGILLA_DATASET_NAME)
 
     # process original HF dataset
     dataset = train_dataset.map(format_data, batched=True, batch_size=1000)

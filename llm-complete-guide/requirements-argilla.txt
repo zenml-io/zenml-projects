@@ -1,28 +1,8 @@
 zenml[server]>=0.63.0
-# langchain-community
-# ratelimit
-# langchain>=0.0.325
-# langchain-openai
-# pgvector
-# psycopg2-binary
-# beautifulsoup4
-# unstructured
-# pandas
-# numpy
 sentence-transformers>=3
 transformers
 litellm
 ollama
-# tiktoken
-# umap-learn
-# matplotlib
-# pyarrow
-# rerankers[all]
 polars
 datasets
 argilla
-
-# optional requirements for S3 artifact store
-# s3fs>2022.3.0
-# boto3
-# aws-profile-manager
