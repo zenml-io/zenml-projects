@@ -65,4 +65,6 @@ OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS = {
     "temperature": 0.7,
     "max_new_tokens": 512,
 }
-EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDINGS_MODEL_NAME_BASELINE = "Snowflake/snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_NAME_FINE_TUNED = "finetuned-snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_MATRYOSHKA_DIMENSIONS: list[int] = [384, 256, 128, 64]  # Important: large to small
