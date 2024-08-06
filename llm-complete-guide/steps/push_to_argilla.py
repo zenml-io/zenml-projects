@@ -77,7 +77,7 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
             )
         ],
     )
-    ds = rg.Dataset(name=dataset_name, settings=settings)
+    ds = rg.Dataset(name=dataset_name, settings=settings, workspace=client.workspaces.default)
 
     # skip if dataset already exists
     try:
