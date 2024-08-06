@@ -48,11 +48,38 @@ zenml integration install gcp airflow
 
 - In `develop` mode, the default stack can be used, no changes needed.
 - In `production` mode, the default stack can be used as well, but you can build a remote stack like:
-  -  A [Vertex AI pipelines orchestrator](https://docs.zenml.io/stack-components/orchestrators/vertex) or a [Cloud Composer orchestrator ](https://docs.zenml.io/stack-components/orchestrators/airflow)
+  -  A [Cloud Composer pipelines orchestrator](https://docs.zenml.io/stack-components/orchestrators/vertex) or a [Cloud Composer orchestrator ](https://docs.zenml.io/stack-components/orchestrators/airflow)
+  - A [Vertex AI](https://docs.zenml.io/stack-components/step-operators/vertex) step operator
   - A [GCS artifact store](https://docs.zenml.io/stack-components/artifact-stores/gcp)
   - A [GCP container registry](https://docs.zenml.io/stack-components/container-registries/gcp)
 
-To learn more about stacks, read the [ZenML documentation.](https://docs.zenml.io/how-to/stack-deployment)
+This is very simple using the ZenML [GCP Stack Terraform module](https://registry.terraform.io/modules/zenml-io/zenml-stack/gcp/latest):
+
+```hcl
+module "zenml_stack" {
+  source  = "zenml-io/zenml-stack/gcp"
+
+  project_id = "your-gcp-project-id"
+  region = "europe-west1"
+  orchestrator = "vertex" # or "skypilot" or "airflow"
+  zenml_server_url = "https://your-zenml-server-url.com"
+  zenml_api_key = "ZENKEY_1234567890..."
+}
+output "zenml_stack_id" {
+  value = module.zenml_stack.zenml_stack_id
+}
+output "zenml_stack_name" {
+  value = module.zenml_stack.zenml_stack_name
+}
+```
+
+To learn more about the terraform script, read the [ZenML documentation.](https://docs.zenml.io/how-to/stack-deployment/deploy-a-cloud-stack-with-terraform) or see
+the [Terraform registry](https://registry.terraform.io/modules/zenml-io/zenml-stack).
+
+Looking for a different way to register or provision a stack? Check out the
+[in-browser stack deployment wizard](https://docs.zenml.io/how-to/stack-deployment/deploy-a-cloud-stack), or
+the [stack registration wizard](https://docs.zenml.io/how-to/stack-deployment/register-a-cloud-stack),
+for a shortcut on how to deploy & register a cloud stack.
 
 3. Configure your pipelines:
 
