@@ -57,3 +57,4 @@ FILES_TO_IGNORE = [
 
 # embeddings finetuning constants
 EMBEDDINGS_MODEL_NAME_ZENML = "finetuned-zenml-docs-embeddings"
+ARGILLA_DATASET_NAME = "rag_qa_embedding_questions_0_60_0_distilabel"

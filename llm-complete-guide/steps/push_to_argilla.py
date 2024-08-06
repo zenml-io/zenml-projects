@@ -1,6 +1,7 @@
 import argilla as rg
 import torch
 from argilla._exceptions import ConflictError
+from constants import ARGILLA_DATASET_NAME
 from datasets import Dataset
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -51,8 +52,6 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     api_key = zenml_client.get_secret("argilla_hf").secret_values["api_key"]
     api_url = zenml_client.get_secret("argilla_hf").secret_values["api_url"]
 
-    dataset_name = "rag_qa_embedding_questions_0_60_0_distilabel"
-
     model_id = "sentence-transformers/all-MiniLM-L6-v2"
     model = SentenceTransformer(
         model_id, device="cuda" if torch.cuda.is_available() else "cpu"
@@ -77,13 +76,17 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
             )
         ],
     )
-    ds = rg.Dataset(name=dataset_name, settings=settings)
+    ds = rg.Dataset(
+        name=ARGILLA_DATASET_NAME,
+        settings=settings,
+        workspace=client.workspaces.default,
+    )
 
     # skip if dataset already exists
     try:
         ds.create()
     except ConflictError:
-        ds = client.datasets(dataset_name)
+        ds = client.datasets(ARGILLA_DATASET_NAME)
 
     # process original HF dataset
     dataset = train_dataset.map(format_data, batched=True, batch_size=1000)

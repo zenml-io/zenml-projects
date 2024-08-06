@@ -3,6 +3,7 @@ import tempfile
 from typing import Annotated, Dict
 
 import torch
+from constants import ARGILLA_DATASET_NAME
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from sentence_transformers import (
     SentenceTransformer,
@@ -42,14 +43,10 @@ def prepare_load_data(
         annotator = zenml_client.active_stack.annotator
         if not annotator:
             raise RuntimeError("No annotator found in the active stack.")
-        dataset = annotator.get_labeled_data(
-            dataset_name="rag_qa_embedding_questions_0_60_0_distilabel"
-        )
+        dataset = annotator.get_labeled_data(dataset_name=ARGILLA_DATASET_NAME)
     else:
         # Load dataset from the hub
-        dataset = load_dataset(
-            "zenml/rag_qa_embedding_questions_0_60_0_distilabel", split="train"
-        )
+        dataset = load_dataset(f"zenml/{ARGILLA_DATASET_NAME}", split="train")
         # Add an id column to the dataset
         dataset = dataset.add_column("id", range(len(dataset)))
 
