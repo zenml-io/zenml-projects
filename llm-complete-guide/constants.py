@@ -57,3 +57,12 @@ FILES_TO_IGNORE = [
 
 # embeddings finetuning constants
 EMBEDDINGS_MODEL_NAME_ZENML = "finetuned-zenml-docs-embeddings"
+DATASET_NAME_EMBEDDINGS = "zenml/rag_qa_embedding_questions_0_60_0"
+DATASET_NAME_DISTILABEL_EMBEDDINGS = f"{DATASET_NAME_EMBEDDINGS}_distilabel"
+DATASET_NAME_ARGILLA_EMBEDDINGS = DATASET_NAME_EMBEDDINGS.replace("zenml/", "")
+OPENAI_MODEL_EMBEDDINGS = "gpt-4o"
+OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS = {
+    "temperature": 0.7,
+    "max_new_tokens": 512,
+}
+EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH = "sentence-transformers/all-MiniLM-L6-v2"

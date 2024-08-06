@@ -17,12 +17,12 @@ Along with prose explanations, the text chunk may include code snippets and logs
 
 @step
 def generate_synthetic_queries(
-    train_dataset: Dataset, test_dataset: Dataset
+    train_dataset: Dataset, test_dataset: Dataset, dataset_name: str, model: str, generation_kwargs: dict
 ) -> Tuple[
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
-    llm = OpenAILLM(model="gpt-4o", api_key=os.getenv("OPENAI_API_KEY"))
+    llm = OpenAILLM(model=model, api_key=os.getenv("OPENAI_API_KEY"))
 
     with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(
@@ -42,15 +42,12 @@ def generate_synthetic_queries(
     train_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": "zenml/rag_qa_embedding_questions_0_60_0",
+                "repo_id": dataset_name,
                 "split": "train",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": {
-                        "temperature": 0.7,
-                        "max_new_tokens": 512,
-                    }
+                    "generation_kwargs": generation_kwargs
                 }
             },
         },
@@ -60,15 +57,12 @@ def generate_synthetic_queries(
     test_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": "zenml/rag_qa_embedding_questions_0_60_0",
+                "repo_id": dataset_name,
                 "split": "test",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": {
-                        "temperature": 0.7,
-                        "max_new_tokens": 512,
-                    }
+                    "generation_kwargs": generation_kwargs
                 }
             },
         },

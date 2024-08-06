@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from constants import EMBEDDINGS_MODEL_NAME_ZENML
+from constants import (
+    DATASET_NAME_ARGILLA_EMBEDDINGS,
+    DATASET_NAME_DISTILABEL_EMBEDDINGS,
+    DATASET_NAME_EMBEDDINGS,
+    EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH,
+    EMBEDDINGS_MODEL_NAME_ZENML,
+    OPENAI_MODEL_EMBEDDINGS,
+    OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS,
+)
 from steps.distilabel_generate_queries import generate_synthetic_queries
 from steps.hf_dataset_loader import load_hf_dataset
 from steps.push_to_argilla import push_to_argilla
@@ -30,12 +38,28 @@ model_definition = Model(
 
 @pipeline(model=model_definition)
 def generate_synthetic_data():
-    train_dataset, test_dataset = load_hf_dataset()
-    train_with_queries, test_with_queries = generate_synthetic_queries(
-        train_dataset, test_dataset
+    train_dataset, test_dataset = load_hf_dataset(
+        dataset_nama=DATASET_NAME_EMBEDDINGS
     )
-    push_to_hf(train_with_queries, test_with_queries)
-    push_to_argilla(train_with_queries, test_with_queries)
+    train_with_queries, test_with_queries = generate_synthetic_queries(
+        train_dataset=train_dataset,
+        test_dataset=test_dataset,
+        dataset_name=DATASET_NAME_EMBEDDINGS,
+        model=OPENAI_MODEL_EMBEDDINGS,
+        generation_kwargs=OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS
+    )
+    push_to_hf(
+        train_dataset=train_with_queries,
+        test_dataset=test_with_queries,
+        dataset_name=DATASET_NAME_DISTILABEL_EMBEDDINGS
+    )
+    push_to_argilla(
+        train_dataset=train_with_queries,
+        test_dataset=test_with_queries,
+        dataset_name=DATASET_NAME_ARGILLA_EMBEDDINGS,
+        model_name_embeddings=EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH,
+        model_name_generation=OPENAI_MODEL_EMBEDDINGS
+    )
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ def format_data(batch):
 
 
 @step
-def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
+def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset, dataset_name: str, model_name_embeddings: str, model_name_generation: str) -> None:
     # get secrets for argilla connection
     zenml_client = Client()
     api_key = zenml_client.get_secret("argilla_hf").secret_values["api_key"]

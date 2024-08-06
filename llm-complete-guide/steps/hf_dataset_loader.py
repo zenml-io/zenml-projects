@@ -8,14 +8,16 @@ from zenml.integrations.huggingface.materializers.huggingface_datasets_materiali
 
 
 @step(output_materializers=HFDatasetMaterializer)
-def load_hf_dataset() -> (
+def load_hf_dataset(dataset_nama: str) -> (
     Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
 ):
     train_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0", split="train"
+        dataset_nama,
+        split="train"
     )
     test_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0", split="test"
+        dataset_nama,
+        split="test"
     )
     return train_dataset, test_dataset
 
