@@ -24,13 +24,6 @@ from zenml import ArtifactConfig, log_model_metadata, step
 from zenml.client import Client
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
-# MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
-# FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
-MODEL_ID = "Snowflake/snowflake-arctic-embed-m"
-FINETUNED_MODEL_ID = "finetuned-snowflake-arctic-embed-m"
-
-MATRYOSHKA_DIMENSIONS: list[int] = [384, 256, 128, 64]  # Important: large to small
-
 
 @step
 def prepare_load_data(
