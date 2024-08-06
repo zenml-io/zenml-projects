@@ -62,9 +62,6 @@ def generate_synthetic_data():
     push_to_argilla(
         train_dataset=train_with_queries,
         test_dataset=test_with_queries,
-        dataset_name=DATASET_NAME_ARGILLA_EMBEDDINGS,
-        model_name_embeddings=EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH,
-        model_name_generation=OPENAI_MODEL_EMBEDDINGS
     )
 
 
