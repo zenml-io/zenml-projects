@@ -1,0 +1,25 @@
+# environment configuration
+enable_cache: false
+settings:
+  docker:
+    required_integrations:
+      - xgboost
+    requirements:
+      - zenml[server]
+      - pandas
+      - xgboost
+      - google-cloud-bigquery
+      - pyarrow
+      - db-dtypes
+
+# pipeline configuration
+model:
+  name: ecb_interest_rate_model
+  description: An ECB interest rate prediction model
+  tags: ["ecb", "interest_rate", "prediction", "xgboost"]
+
+
+steps:
+  extract_data_local:
+    parameters:
+      data_path: data/raw_data.csv
