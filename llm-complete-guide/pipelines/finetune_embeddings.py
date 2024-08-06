@@ -1,3 +1,4 @@
+from constants import EMBEDDINGS_MODEL_NAME_ZENML
 from steps.finetune_embeddings import (
     evaluate_base_model,
     evaluate_finetuned_model,
@@ -8,7 +9,7 @@ from zenml import Model, pipeline
 from zenml.model.model import ModelStages
 
 model_definition = Model(
-    name="finetuned-zenml-docs-embeddings",
+    name=EMBEDDINGS_MODEL_NAME_ZENML,
     version=ModelStages.LATEST,
 )
 
