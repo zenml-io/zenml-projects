@@ -12,14 +12,14 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from constants import ARGILLA_DATASET_NAME
+from constants import DATASET_NAME_DISTILABEL
 from datasets import Dataset, DatasetDict
 from zenml import step
 
 
 @step
-def push_to_hf(train_dataset: Dataset, test_dataset: Dataset, dataset_name: str):
+def push_to_hf(train_dataset: Dataset, test_dataset: Dataset):
     combined_dataset = DatasetDict(
         {"train": train_dataset, "test": test_dataset}
     )
-    combined_dataset.push_to_hub(dataset_name)
+    combined_dataset.push_to_hub(DATASET_NAME_DISTILABEL)

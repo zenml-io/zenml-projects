@@ -14,6 +14,7 @@
 
 from typing import Annotated, Tuple
 
+from constants import DATASET_NAME_DEFAULT
 from datasets import Dataset, load_dataset
 from zenml import step
 from zenml.integrations.huggingface.materializers.huggingface_datasets_materializer import (
@@ -22,15 +23,15 @@ from zenml.integrations.huggingface.materializers.huggingface_datasets_materiali
 
 
 @step(output_materializers=HFDatasetMaterializer)
-def load_hf_dataset(dataset_nama: str) -> (
+def load_hf_dataset() -> (
     Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
 ):
     train_dataset = load_dataset(
-        dataset_nama,
+        DATASET_NAME_DEFAULT,
         split="train"
     )
     test_dataset = load_dataset(
-        dataset_nama,
+        DATASET_NAME_DEFAULT,
         split="test"
     )
     return train_dataset, test_dataset

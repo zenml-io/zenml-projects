@@ -15,6 +15,11 @@
 import os
 from typing import Annotated, Tuple
 
+from constants import (
+    DATASET_NAME_DEFAULT,
+    OPENAI_MODEL_GEN,
+    OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS,
+)
 from datasets import Dataset
 from distilabel.llms import OpenAILLM
 from distilabel.pipeline import Pipeline
@@ -31,12 +36,12 @@ Along with prose explanations, the text chunk may include code snippets and logs
 
 @step
 def generate_synthetic_queries(
-    train_dataset: Dataset, test_dataset: Dataset, dataset_name: str, model: str, generation_kwargs: dict
+    train_dataset: Dataset, test_dataset: Dataset
 ) -> Tuple[
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
-    llm = OpenAILLM(model=model, api_key=os.getenv("OPENAI_API_KEY"))
+    llm = OpenAILLM(model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY"))
 
     with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(
@@ -56,12 +61,12 @@ def generate_synthetic_queries(
     train_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": dataset_name,
+                "repo_id": DATASET_NAME_DEFAULT,
                 "split": "train",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": generation_kwargs
+                    "generation_kwargs": OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS
                 }
             },
         },
@@ -71,12 +76,12 @@ def generate_synthetic_queries(
     test_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": dataset_name,
+                "repo_id": DATASET_NAME_DEFAULT,
                 "split": "test",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": generation_kwargs
+                    "generation_kwargs": OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS
                 }
             },
         },
