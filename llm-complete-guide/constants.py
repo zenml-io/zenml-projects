@@ -54,3 +54,6 @@ DUMMY_EPOCHS = 10
 FILES_TO_IGNORE = [
     "toc.md",
 ]
+
+# embeddings finetuning constants
+EMBEDDINGS_MODEL_NAME_ZENML = "finetuned-zenml-docs-embeddings"
