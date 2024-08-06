@@ -1,15 +1,20 @@
-from constants import EMBEDDINGS_MODEL
 from steps.finetune_embeddings import (
     evaluate_base_model,
     evaluate_finetuned_model,
     finetune,
     prepare_load_data,
 )
-from zenml import pipeline
+from zenml import Model, pipeline
+from zenml.model.model import ModelStages
+
+model_definition = Model(
+    name="finetuned-zenml-docs-embeddings",
+    version=ModelStages.LATEST,
+)
 
 
 @pipeline(
-    model=EMBEDDINGS_MODEL,
+    model=model_definition,
 )
 def finetune_embeddings():
     data = prepare_load_data()
