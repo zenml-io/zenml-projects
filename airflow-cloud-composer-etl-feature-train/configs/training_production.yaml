@@ -17,3 +17,12 @@ model:
   version: latest
   description: An ECB interest rate prediction model
   tags: ["ecb", "interest_rate", "prediction", "xgboost"]
+
+steps:
+  train_xgboost_model:
+    step_operator: gcp_airflow_vertex
+    settings:
+      step_operator.vertex:
+        accelerator_type: "NVIDIA_TESLA_T4" 
+        accelerator_count: 1
+        machine_type: "n1-standard-8"
