@@ -11,11 +11,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-
 import os
 import tempfile
+from io import BytesIO
 from typing import Annotated, Dict
 
+import matplotlib.pyplot as plt
 import torch
 from constants import (
     DATASET_NAME_ARGILLA,
@@ -340,4 +341,58 @@ def visualize_results(
     finetuned_results: Dict[str, float],
 ) -> Annotated[Image.Image, "evaluation_chart"]:
     """Visualize the results of the evaluation."""
-    pass
+    # extract out the key results only
+    simple_finetuned_results = {
+        f"dim_{dim}_cosine_ndcg@10": float(
+            finetuned_results[f"dim_{dim}_cosine_ndcg@10"]
+        )
+        * 100
+        for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
+    }
+    simple_base_results = {
+        f"dim_{dim}_cosine_ndcg@10": float(
+            base_results[f"dim_{dim}_cosine_ndcg@10"]
+        )
+        * 100
+        for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
+    }
+
+    dimensions = list(simple_base_results.keys())
+    base_values = list(simple_base_results.values())
+    finetuned_values = list(simple_finetuned_results.values())
+
+    y = range(len(dimensions))
+    height = 0.35
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(
+        [i - height / 2 for i in y],
+        base_values,
+        height,
+        label="Base Model",
+        color="blue",
+    )
+    ax.barh(
+        [i + height / 2 for i in y],
+        finetuned_values,
+        height,
+        label="Finetuned Model",
+        color="red",
+    )
+
+    ax.set_xlabel("Scores (%)")
+    ax.set_title("Evaluation Results")
+    ax.set_yticks(y)
+    ax.set_yticklabels(dimensions)
+    ax.set_xlim(0, 100)
+    ax.legend()
+
+    fig.tight_layout()
+
+    # Convert the plot to a PIL Image
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img = Image.open(buf)
+
+    return img
