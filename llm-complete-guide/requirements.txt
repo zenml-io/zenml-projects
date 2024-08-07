@@ -1,4 +1,4 @@
-zenml[server]==0.58.2
+zenml[server]>=0.63.0
 langchain-community
 ratelimit
 langchain>=0.0.325

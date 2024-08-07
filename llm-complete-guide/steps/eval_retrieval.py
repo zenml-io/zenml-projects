@@ -37,11 +37,11 @@ logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 question_doc_pairs = [
     {
         "question": "How do I get going with the Label Studio integration? What are the first steps?",
-        "url_ending": "stacks-and-components/component-guide/annotators/label-studio",
+        "url_ending": "stack-components/annotators/label-studio",
     },
     {
         "question": "How can I write my own custom materializer?",
-        "url_ending": "user-guide/advanced-guide/data-management/handle-custom-data-types",
+        "url_ending": "how-to/handle-data-artifacts/handle-custom-data-types",
     },
     {
         "question": "How do I generate embeddings as part of a RAG pipeline when using ZenML?",
@@ -49,11 +49,11 @@ question_doc_pairs = [
     },
     {
         "question": "How do I use failure hooks in my ZenML pipeline?",
-        "url_ending": "user-guide/advanced-guide/pipelining-features/use-failure-success-hooks",
+        "url_ending": "how-to/build-pipelines/use-failure-success-hooks",
     },
     {
         "question": "Can I deploy ZenML self-hosted with Helm? How do I do it?",
-        "url_ending": "deploying-zenml/zenml-self-hosted/deploy-with-helm",
+        "url_ending": "getting-started/deploying-zenml/deploy-with-helm",
     },
 ]
 

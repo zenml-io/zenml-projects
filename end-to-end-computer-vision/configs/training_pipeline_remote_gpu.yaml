@@ -26,6 +26,7 @@ steps:
       imgsz: 720
       epochs: 50000
       is_quad_gpu_env: True
+      is_apple_silicon_env: False
     settings:
       step_operator.vertex:
         accelerator_type: NVIDIA_TESLA_T4 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType

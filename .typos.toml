@@ -7,7 +7,12 @@ extend-exclude = [
     "customer-satisfaction/streamlit_app.py",
     "nba-pipeline/Building and Using An MLOPs Stack With ZenML.ipynb",
     "customer-satisfaction/tests/data_test.py",
-    "end-to-end-computer-vision/**/*.ipynb"
+    "end-to-end-computer-vision/**/*.ipynb",
+    "classifier-e2e/run_skip_basics.ipynb",
+    "classifier-e2e/run_full.ipynb",
+    "classifier-e2e/run_skip_basics.ipynb",
+    "classifier-e2e/run_full.ipynb",
+    "classifier-e2e/run_skip_basics.ipynb"
 ]
 
 [default.extend-identifiers]
@@ -26,6 +31,7 @@ Implicitly = "Implicitly"
 fo = "fo"
 mapp = "mapp"
 polution = "polution"
+magent = "magent"
 
 [default]
 locale = "en-us"

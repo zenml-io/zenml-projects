@@ -42,7 +42,7 @@ We showcase two solutions to this problem:
 
 ## Deploy pipelines to production using orchestrator Pipelines
 
-We will be using ZenML's [Kubeflow](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
+We will be using ZenML's [Kubeflow](https://docs.zenml.io/stack-components/orchestrators/kubeflow) integration to deploy pipelines to production using Kubeflow Pipelines on the cloud.
 
 Our training pipeline `run_kubeflow_pipeline.py` will be built using the following steps:
 
@@ -154,11 +154,11 @@ Seldon Core. The following diagram shows the flow of the whole pipeline:
 
 ## Continuous model deployment with Seldon Core
 
-While building the real-world workflow for predicting whether a customer will churn or not, you might not want to train the model once and deploy it to production. Instead, you might want to train the model and deploy it to production when something gets triggered. This is where one of our recent integrations is valuable: [Seldon Core](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/seldon).
+While building the real-world workflow for predicting whether a customer will churn or not, you might not want to train the model once and deploy it to production. Instead, you might want to train the model and deploy it to production when something gets triggered. This is where one of our recent integrations is valuable: [Seldon Core](https://docs.zenml.io/stack-components/model-deployers/seldon).
 
 [Seldon Core](https://github.com/SeldonIO/seldon-core) is a production-grade open-source model serving platform. It packs a wide range of features built around deploying models to REST/GRPC microservices, including monitoring and logging, model explainers, outlier detectors, and various continuous deployment strategies such as A/B testing and canary deployments, and more.
 
-In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out our [docs](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/seldon). The following diagram shows the flow of the whole pipeline:
+In this project, we build a continuous deployment pipeline that trains a model and then serves it with Seldon Core as the industry-ready model deployment tool of choice. If you are interested in learning more about Seldon Core, you can check out our [docs](https://docs.zenml.io/stack-components/model-deployers/seldon). The following diagram shows the flow of the whole pipeline:
 ![seldondeployment](_assets/seldoncondeploy.gif)
 
 

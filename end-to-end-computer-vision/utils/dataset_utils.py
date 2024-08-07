@@ -45,6 +45,20 @@ def load_images_from_folder(folder):
     return images
 
 
+def load_images_from_source(data_source, download_dir, filenames):
+    total_images = len(filenames)
+    for index, filename in enumerate(filenames):
+        src_path = f"{data_source}/{filename}.png"
+        dst_path = os.path.join(download_dir, f"{filename}.png")
+        if not os.path.exists(dst_path):
+            fileio.copy(src_path, dst_path)
+
+        if (index + 1) % 100 == 0 or index == total_images - 1:
+            logger.info(
+                f"{index + 1} of {total_images} images have been downloaded..."
+            )
+
+
 def load_and_split_data(
     dataset: LabelStudioAnnotationExport, data_source: str
 ) -> str:
@@ -71,21 +85,33 @@ def load_and_split_data(
         if f.endswith(".txt")
     ]
 
-    # Download corresponding images from gcp bucket
-    images_folder = os.path.join(extract_location, "images")
+    # Download images from source bucket and if successful keep them to reuse for future runs
+    load_images = False
+    download_dir = os.path.join(os.getcwd(), "images")  # Temporary dirname that represents a still incomplete download
+    loaded_images = os.path.join(os.getcwd(), "loaded-images")  # The dirname used once the download fully completes
+    images_folder = os.path.join(extract_location, "images")  # tmp dirpath used for the current run only
+
+    # Check that images have not already been downloaded
+    if not os.path.exists(loaded_images):
+        os.makedirs(download_dir, exist_ok=True)
+        load_images = True
+
+    # Checks that new images have not been added since previous download
+    if os.path.exists(loaded_images):
+        if len(os.listdir(loaded_images)) != len(filenames):
+            download_dir = loaded_images
+            load_images = True
+
+    if load_images:
+        logger.info(f"Downloading images from {data_source}")
+        load_images_from_source(data_source, download_dir, filenames)
+        os.rename(download_dir, loaded_images)
+
     os.makedirs(images_folder, exist_ok=True)
 
-    total_images = len(filenames)
-    logger.info(f"Downloading images from {data_source}")
-    for index, filename in enumerate(filenames):
-        src_path = f"{data_source}/{filename}.png"
-        dst_path = os.path.join(images_folder, f"{filename}.png")
-        fileio.copy(src_path, dst_path)
+    logger.info(f"Copy images to {images_folder}")
+    load_images_from_source(loaded_images, images_folder, filenames)
 
-        if (index + 1) % 100 == 0 or index == total_images - 1:
-            logger.info(
-                f"{index + 1} of {total_images} images have been downloaded..."
-            )
     split_dataset(extract_location, ratio=(0.7, 0.15, 0.15), seed=42)
     yaml_path = generate_yaml(extract_location)
     return yaml_path

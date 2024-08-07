@@ -41,11 +41,14 @@ def train_model(
     batch_size: int = 16,
     imgsz: int = 640,
     is_quad_gpu_env: bool = False,
+    is_single_gpu_env: bool = False,
+    is_apple_silicon_env: bool = False,
 ) -> Tuple[
     Annotated[
         YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
     ],
     Annotated[Dict[str, Any], "validation_metrics"],
+    Annotated[Dict[str, Any], "model_names"],
 ]:
     """Trains a model on a dataset.
 
@@ -57,6 +60,8 @@ def train_model(
         dataset: Dataset to train the model on.
         data_source: Source where the data lives
         is_quad_gpu_env: Whether we are in an env with 4 gpus
+        is_single_gpu_env: Whether we are in an env with a single gpu
+        is_apple_silicon_env: In case we are running on Apple compute
 
     Returns:
         Tuple[YOLO, Dict[str, Any]]: Trained model and validation metrics.
@@ -75,6 +80,22 @@ def train_model(
             imgsz=imgsz,
             device=[0, 1, 2, 3],
         )
+    elif is_single_gpu_env:
+        model.train(
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz,
+            device=[0],
+        )
+    elif is_apple_silicon_env:
+        model.train(
+            data=data_path,
+            epochs=epochs,
+            batch=batch_size,
+            imgsz=imgsz,
+            device="mps",
+        )
     else:
         model.train(
             data=data_path,
@@ -85,10 +106,10 @@ def train_model(
 
     logger.info("Evaluating model...")
     metrics = model.val()  # evaluate model performance on the validation set
-
+    
     log_artifact_metadata(
         artifact_name="Trained_YOLO",
-        metadata={"metrics": metrics.results_dict},
+        metadata={"metrics": metrics.results_dict, "names": model.names},
     )
-
-    return model, metrics.results_dict
+    
+    return model, metrics.results_dict, model.names

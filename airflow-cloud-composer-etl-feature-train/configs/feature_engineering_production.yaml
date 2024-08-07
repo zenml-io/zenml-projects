@@ -1,0 +1,24 @@
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - xgboost
+    requirements:
+      - zenml[server]
+      - pandas
+      - xgboost
+      - google-cloud-bigquery
+      - pyarrow
+      - db-dtypes
+
+# configuration of the Model Control Plane
+model:
+  name: ecb_interest_rate_model
+  version: latest
+  description: An ECB interest rate prediction model
+  tags: ["ecb", "interest_rate", "prediction", "xgboost"]
+
+steps:
+  augment_bq:
+    parameters:
+      table_id: zenml-core.ecb_experiments.ecb_augmented_dataset

@@ -74,6 +74,8 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
 | [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs                           | `openai` `supabase`  |
+| [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
+| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/)               | Regression, Airflow                           | `cloud-composer` `airflow` |
 
 # 💻 System Requirements
 
@@ -96,7 +98,6 @@ By far the easiest and fastest way to get help is to:
 * Ask your questions in [our Slack group](https://zenml.io/slack/).
 * [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose)
   on our GitHub repo.
-* [Meet the team](https://zenml.io/meet) every week during our community meetup.
 
 # 🔥 About ZenML
 
@@ -142,7 +143,7 @@ the Apache License Version 2.0.
 | 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
 | 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
 
-[ZenML 101]: https://docs.zenml.io/
+[ZenML 101]: https://docs.zenml.io/user-guide/starter-guide
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
 [Our latest release]: https://github.com/zenml-io/zenml/releases
 [Vote for Features]: https://zenml.io/discussion

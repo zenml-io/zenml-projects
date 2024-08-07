@@ -37,7 +37,7 @@ def training_pipeline(model_checkpoint: str = "yolov8l.pt"):
     mv = get_pipeline_context().model
     dataset = mv.get_artifact(LABELED_DATASET_NAME)
 
-    trained_model, metrics = train_model(
+    trained_model, metrics, names = train_model(
         model=model,
         dataset=dataset,
     )

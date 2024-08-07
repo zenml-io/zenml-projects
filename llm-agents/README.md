@@ -55,15 +55,15 @@ An agent is essentially the part of the LLM application that coordinates or orch
 
 We can choose to write an agent ourselves, or use any abstraction from one of the LLM frameworks like LangChain. We used the `ConversationalChatAgent` class defined by LangChain which is based on the base agent abstraction. We can customise the agent using the prompt that is supplied to it on creation. You can see that we use characters as a way to influence the style of output of the model.
 
-## ZenML Cloud
+## ZenML Pro
 
-The [ZenML Cloud](https://www.zenml.io/cloud) offers multi-tenant, fully-managed ZenML deployments. The servers come with a host of advanced features like built-in roles for access control, a new dashboard for monitoring and visualizing your pipelines, a model control plane that tracks your ML models across pipelines along with all the artifacts and metadata associated with them, and much more.
+[ZenML Pro](https://www.zenml.io/pro) offers multi-tenant, fully-managed ZenML deployments. The servers come with a host of advanced features like built-in roles for access control, a new dashboard for monitoring and visualizing your pipelines, a model control plane that tracks your ML models across pipelines along with all the artifacts and metadata associated with them, and much more.
 
 You can sign up for a free trial of the cloud at https://cloud.zenml.io. Once signed up you can connect to it using the command below.
 
 ### Models Tab in the Dashboard
 
-The models tab acts as a central control plane for all of your models. You can view the different versions that get created implictly with your pipeline runs, check their metadata, deployments and more!
+The models tab acts as a central control plane for all of your models. You can view the different versions that get created implicitly with your pipeline runs, check their metadata, deployments and more!
 
 ![model versions](./assets/llm-agent/model_versions.png)
 
@@ -101,13 +101,13 @@ artifacts for your own data, you can change values as appropriate.
 ## Running it on GCP
 
 It is much more ideal to run a pipeline like the agent creation pipeline on a regular schedule. In order to achieve that, 
-you have to [deploy ZenML](https://docs.zenml.io/user-guide/starter-guide/switch-to-production) 
+you have to [deploy ZenML](https://docs.zenml.io/user-guide/production-guide/deploying-zenml) 
 and set up a stack that supports 
 [our scheduling
-feature](https://docs.zenml.io/user-guide/advanced-guide/pipelining-features/schedule-pipeline-runs). If you
+feature](https://docs.zenml.io/how-to/build-pipelines/schedule-a-pipeline). If you
 wish to deploy the slack bot on GCP Cloud Run as described above, you'll also
 need to be using [a Google Cloud Storage Artifact
-Store](https://docs.zenml.io/stacks-and-components/component-guide/artifact-stores/gcp). Note that
+Store](https://docs.zenml.io/stack-components/artifact-stores/gcp). Note that
 certain code artifacts like the `Dockerfile` for this project will also need to
-be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices) 
+be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices) 
 for more information.

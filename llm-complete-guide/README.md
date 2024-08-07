@@ -21,6 +21,12 @@ This project contains all the pipeline and step code necessary to follow along
 with the guide. You'll need a PostgreSQL database to store the embeddings; full
 instructions are provided below for how to set that up.
 
+## 📽️ Watch the webinars
+
+We've recently been holding some webinars about this repository and project. Watche the videos below if you want an introduction and context around the code and ideas covered in this project.
+
+[![Building and Optimizing RAG Pipelines: Data Preprocessing, Embeddings, and Evaluation with ZenML](https://github.com/user-attachments/assets/1aea2bd4-8079-4ea2-98e1-8da6ba9aeebe)](https://www.youtube.com/watch?v=PazRMY8bo3U)
+
 ## 🏃 How to run
 
 This project showcases production-ready pipelines so we use some cloud
@@ -144,28 +150,27 @@ python run.py --embeddings
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
 the speed of the embeddings step you might want to consider using a cloud
-orchestrator. Please follow the instructions in [our basic cloud setup
-guides](https://docs.zenml.io/user-guide/cloud-guide) (currently available for
-[AWS](https://docs.zenml.io/user-guide/cloud-guide/aws-guide) and
-[GCP](https://docs.zenml.io/user-guide/cloud-guide/gcp-guide)) to learn how you
+orchestrator. Please follow the instructions in [documentation on popular integrations](https://docs.zenml.io/how-to/popular-integrations) (currently available for
+[AWS](https://docs.zenml.io/how-to/popular-integrations/aws-guide) and
+[GCP](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)) to learn how you
 can run the pipelines on a remote stack.
 
 If you run the pipeline using a cloud artifact store, logs from all the steps as
 well as assets like the visualizations will all be shown in the ZenML dashboard.
 
-### BONUS: Connect to ZenML Cloud
+### BONUS: Connect to ZenML Pro
 
-If you run the pipeline using ZenML Cloud you'll have access to the managed
+If you run the pipeline using ZenML Pro you'll have access to the managed
 dashboard which will allow you to get started quickly. We offer a free trial so
-you can try out the platform without any cost. Visit the [ZenML Cloud
+you can try out the platform without any cost. Visit the [ZenML Pro
 dashboard](https://cloud.zenml.io/) to get started.
 
 You can also self-host the ZenML dashboard. Instructions are available in our
-[documentation](https://docs.zenml.io/deploying-zenml/zenml-self-hosted).
+[documentation](https://docs.zenml.io/getting-started/deploying-zenml).
 
 ## 📜 Project Structure
 
-The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/user-guide/starter-guide/follow-best-practices):
+The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices):
 
 ```
 .
