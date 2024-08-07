@@ -36,9 +36,10 @@ class BigQueryDataset(Dataset):
         self.project = project
         self.dataset = dataset
         if project is None:
+            # Split up the table_id to get the project
+            self.project = table_id.split(".")[0]
             self.client = bigquery.Client()
-        else:
-            self.client = bigquery.Client(project=project)
+        self.client = bigquery.Client(project=self.project)
         self.df = df
 
     def read_data(self) -> pd.DataFrame:
