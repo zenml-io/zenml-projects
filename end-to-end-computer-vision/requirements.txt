@@ -10,5 +10,5 @@ huggingface_hub>=0.20.0
 fiftyone
 datasets
 albumentations
-pillow>=10.*.*
+pillow>=10.0.0
 dill

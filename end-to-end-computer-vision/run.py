@@ -29,8 +29,6 @@ from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME, ZENML_MODEL_NAME
 
 logger = get_logger(__name__)
 
-REMOTE_STACK_ID = UUID("20ed5311-ffc6-45d0-b339-6ec35af9501e")
-
 
 @click.command()
 @click.option(

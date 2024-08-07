@@ -1,0 +1,28 @@
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - xgboost
+    requirements:
+      - zenml[server]
+      - pandas
+      - xgboost
+      - google-cloud-bigquery
+      - pyarrow
+      - db-dtypes
+
+# configuration of the Model Control Plane
+model:
+  name: ecb_interest_rate_model
+  version: latest
+  description: An ECB interest rate prediction model
+  tags: ["ecb", "interest_rate", "prediction", "xgboost"]
+
+steps:
+  train_xgboost_model:
+    step_operator: gcp_airflow_vertex
+    settings:
+      step_operator.vertex:
+        accelerator_type: "NVIDIA_TESLA_P100" 
+        accelerator_count: 1
+        machine_type: "n1-standard-8"

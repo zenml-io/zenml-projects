@@ -41,7 +41,7 @@ to observe your stacks, stack components and pipeline DAGs in a dashboard
 interface.
 
 You can either run this yourself locally, or you can use a hosted server on
-the [ZenML Cloud](https://zenml.io/cloud).
+[ZenML Pro](https://zenml.io/pro).
 In case you already have an account, here is how you connect to a deployed
 server.
 
@@ -105,7 +105,7 @@ model and model parameters, and prediction outputs. ZenML helps us to build such
 a pipeline in a simple, yet powerful, way.
 
 In this Project, we give special consideration to
-the [MLflow integration](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/mlflow)
+the [MLflow integration](https://docs.zenml.io/stack-components/experiment-trackers/mlflow)
 of ZenML. In particular, we utilize MLflow tracking to track our metrics and
 parameters, and MLflow deployment to deploy our model. We also
 use [Streamlit](https://streamlit.io/) to showcase how this model will be used
@@ -147,7 +147,7 @@ Here is the full continuous deployment pipeline:
 In the deployment pipeline ZenML's Model Control Plane is used for
 logging attaching the evaluation metrics as metadata to the trained model. 
 
-Here is what this looks like in the ZenML Cloud Dashboard. 
+Here is what this looks like in the ZenML Pro Dashboard. 
 
 ![training_pipeline](_assets/ModelControlPlane.png)
 
@@ -178,7 +178,7 @@ service.predict(...)  # Predict on incoming data from the application
 
 While this ZenML Project trains and deploys a model locally, other ZenML
 integrations such as
-the [Seldon](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/seldon)
+the [Seldon](https://docs.zenml.io/stack-components/model-deployers/seldon)
 deployer can also be used in a similar manner to deploy the model in a more
 production setting (such as on a Kubernetes cluster). We use MLflow here for the
 convenience of its local deployment.

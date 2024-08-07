@@ -61,9 +61,6 @@ class UltralyticsMaterializer(PyTorchModuleMaterializer):
             model: A ultralytics YOLO model.
         """
         filepath = os.path.join(self.uri, DEFAULT_FILENAME)
+        modelpath = "runs/detect/train/weights/best.pt"
 
-        # Make a temporary phantom artifact
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
-            model.save(f.name)
-            # Copy it into artifact store
-            fileio.copy(f.name, filepath)
+        fileio.copy(modelpath, filepath)

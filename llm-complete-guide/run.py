@@ -13,8 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
+
+# Suppress the specific FutureWarning from huggingface_hub
+warnings.filterwarnings(
+    "ignore", category=FutureWarning, module="huggingface_hub.file_download"
+)
+
 import logging
 
+from rich.console import Console
+from rich.markdown import Markdown
 from utils.llm_utils import process_input_with_retrieval
 from zenml.logger import get_logger
 
@@ -129,6 +138,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Fine-tunes embeddings.",
 )
+@click.option(
+    "--reranked",
+    "reranked",
+    is_flag=True,
+    default=False,
+    help="Whether to use the reranker.",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -140,6 +156,7 @@ def main(
     embeddings: bool = False,
     dummyembeddings: bool = False,
     argilla: bool = False,
+    reranked: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -165,8 +182,14 @@ def main(
     }
 
     if query:
-        response = process_input_with_retrieval(query, model=model)
-        print(response)
+        response = process_input_with_retrieval(
+            query, model=model, use_reranking=reranked
+        )
+
+        # print rich markdown to the console
+        console = Console()
+        md = Markdown(response)
+        console.print(md)
 
     if rag:
         llm_basic_rag.with_options(**pipeline_args)()

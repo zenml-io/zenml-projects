@@ -19,7 +19,7 @@ In order to build a model that can detect and recognize the American Sign Langua
 
 1. Download the dataset from [Roboflow](https://public.roboflow.com/object-detection/american-sign-language-alphabet)
 2. Augment the training and valdiation sets using [Albumentations](https://albumentations.ai/)
-3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/stacks-and-components/component-guide/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/stacks-and-components/component-guide/orchestrators/vertex) stack component.
+3. Train the model using a pretrained model from [Yolov5](https://github.com/ultralytics/yolov5) while tracking the hyperparameters and metrics using [MLflow](https://docs.zenml.io/stack-components/experiment-trackers/mlflow) within a GPU environment by leveraging [Google's Vertex AI Step Operator](https://docs.zenml.io/stack-components/orchestrators/vertex) stack component.
 4. Load the model in a different pipeline that deploys the model using [BentoML](https://www.bentoml.com/) and the provided ZenML integration.
 5. Create an inference pipeline that will use the deployed model to detect and recognize the American Sign Language alphabet in test images from the first pipeline.
 
@@ -270,7 +270,7 @@ The Inference pipeline is made up of the following steps:
 
 # 📜 References
 
-- Documentation on [Step Operators](https://docs.zenml.io/stacks-and-components/component-guide/step-operators)
+- Documentation on [Step Operators](https://docs.zenml.io/stack-components/step-operators)
 - More on [Step Operators](https://blog.zenml.io/step-operators-training/)
 - Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
 - ZenML CLI [documentation](https://apidocs.zenml.io/latest/cli/)

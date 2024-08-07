@@ -31,7 +31,7 @@ One of the first jobs of somebody entering MLOps is to convert their manual scri
 2. Type annotating the steps properly
 3. Connecting the steps together in a pipeline
 4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guide/production-guide/configure-pipeline)
-5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/user-guide/advanced-guide/infrastructure-management/containerize-your-pipeline).
+5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/how-to/customize-docker-builds).
 
 Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
 
@@ -133,7 +133,7 @@ A working prototype has been trained and deployed as of Jan 19 2024. The model i
 
 The Weights & Biases logs for the latest training runs are available here: [Link](https://wandb.ai/zenmlcode/zenml-projects-zencoder?workspace=user-zenmlcodemonkey)
 
-The [ZenML Cloud](https://zenml.io/cloud) was used to manage the pipelines, models, and deployments. Here are some screenshots of the process:
+The [ZenML Pro](https://zenml.io/pro) was used to manage the pipelines, models, and deployments. Here are some screenshots of the process:
 
 <div align="center">
     <img src=".assets/zencoder_mcp_1.png">
@@ -154,13 +154,13 @@ This project recently did a [call of volunteers](https://www.linkedin.com/feed/u
 - [ ] Create a Dockerfile for the training pipeline with all requirements installed including ZenML, torch, CUDA etc. CUrrently I am having trouble creating this in this [config file](configs/finetune_local.yaml). Probably might make sense to create a docker imag with the right CUDA and requirements including ZenML. See here: https://sdkdocs.zenml.io/0.54.0/integration_code_docs/integrations-aws/#zenml.integrations.aws.flavors.sagemaker_step_operator_flavor.SagemakerStepOperatorSettings
 
 - [ ] Tests trained model on various metrics
-- [ ] Create a custom [model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stacks-and-components/component-guide/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
+- [ ] Create a custom [model deployer](https://docs.zenml.io/stack-components/model-deployers) that deploys a huggingface model from the hub to a huggingface inference endpoint. This would involve creating a [custom model deployer](https://docs.zenml.io/stack-components/model-deployers/custom) and editing the [deployment pipeline accordingly](pipelines/deployment.py)
 
 ## :bulb: More Applications
 
 While the work here is solely based on the task of finetuning the model for the ZenML library, the pipeline can be changed with minimal effort to point to any set of repositories on GitHub. Theoretically, one could extend this work to point to proprietary codebases to learn from them for any use-case.
 
-For example, see how [VMWare fine-tuned StarCoder to learn their style](https://octo.vmware.com/fine-tuning-starcoder-to-learn-vmwares-coding-style/).
+For example, see how [VMWare fine-tuned StarCoder to learn their style](https://entreprenerdly.com/fine-tuning-starcoder-to-create-a-coding-assistant-that-adapts-to-your-coding-style/).
 
 Also, make sure to join our <a href="https://zenml.io/slack" target="_blank">
     <img width="15" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
