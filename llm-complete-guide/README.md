@@ -121,6 +121,25 @@ python run.py --evaluation
 You'll need to have first run the RAG pipeline to have the necessary assets in
 the database to evaluate.
 
+### Run the `distilabel` synthetic data generation pipeline
+
+To run the `distilabel` synthetic data generation pipeline, you can use the following command:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --synthetic
+```
+
+### Finetune the embeddings
+
+To run the pipeline for finetuning the embeddings, you can use the following
+commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --embeddings
+```
+
 ## ☁️ Running in your own VPC
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
