@@ -110,7 +110,7 @@ Note that Claude will require a different API key from Anthropic. See [the
 `litellm` docs](https://docs.litellm.ai/docs/providers/anthropic) on how to set
 this up.
 
-### Run the evaluation pipeline
+### Run the LLM RAG evaluation pipeline
 
 To run the evaluation pipeline, you can use the following command:
 
@@ -123,7 +123,7 @@ the database to evaluate.
 
 ### Run the `distilabel` synthetic data generation pipeline
 
-To run the `distilabel` synthetic data generation pipeline, you can use the following command:
+To run the `distilabel` synthetic data generation pipeline, you can use the following commands:
 
 ```shell
 pip install -r requirements-argilla.txt # special requirements
