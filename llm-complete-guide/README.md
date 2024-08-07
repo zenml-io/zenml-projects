@@ -21,6 +21,12 @@ This project contains all the pipeline and step code necessary to follow along
 with the guide. You'll need a PostgreSQL database to store the embeddings; full
 instructions are provided below for how to set that up.
 
+## 📽️ Watch the webinars
+
+We've recently been holding some webinars about this repository and project. Watche the videos below if you want an introduction and context around the code and ideas covered in this project:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PazRMY8bo3U?si=_wG9-54aO5XjqrYc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## 🏃 How to run
 
 This project showcases production-ready pipelines so we use some cloud
