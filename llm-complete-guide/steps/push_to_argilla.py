@@ -12,7 +12,6 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from functools import partial
 
 import argilla as rg
 import torch
@@ -20,7 +19,6 @@ from argilla._exceptions import ConflictError
 from constants import (
     DATASET_NAME_ARGILLA,
     EMBEDDINGS_MODEL_ID_BASELINE,
-    EMBEDDINGS_MODEL_ID_FINE_TUNED,
     OPENAI_MODEL_GEN,
 )
 from datasets import Dataset
@@ -30,7 +28,12 @@ from zenml import step
 from zenml.client import Client
 
 
-def format_data(model, batch):
+def format_data(batch):
+    model = SentenceTransformer(
+        EMBEDDINGS_MODEL_ID_BASELINE,
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    )
+
     def get_embeddings(batch_column):
         vectors = model.encode(batch_column)
         return [vector.tolist() for vector in vectors]
@@ -106,15 +109,13 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     # process original HF dataset
     try:
         model = SentenceTransformer(
-            EMBEDDINGS_MODEL_ID_FINE_TUNED,
+            EMBEDDINGS_MODEL_ID_BASELINE,
             device="cuda" if torch.cuda.is_available() else "cpu",
         )
     except Exception:
         pass
-    format_data_with_model = partial(format_data, model=model)
-    dataset = train_dataset.map(
-        format_data_with_model, batched=True, batch_size=1000
-    )
+
+    dataset = train_dataset.map(format_data, batched=True, batch_size=1000)
 
     # log records to argilla
     records = []
