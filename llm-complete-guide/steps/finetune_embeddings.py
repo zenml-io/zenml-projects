@@ -23,7 +23,6 @@ from constants import (
     EMBEDDINGS_MODEL_ID_BASELINE,
     EMBEDDINGS_MODEL_ID_FINE_TUNED,
     EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
-    USE_ARGILLA_ANNOTATIONS,
 )
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from datasets.arrow_dataset import Dataset
@@ -51,9 +50,11 @@ from zenml.utils.cuda_utils import cleanup_gpu_memory
 
 
 @step
-def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
+def prepare_load_data(
+    use_argilla_annotations: bool = False,
+) -> Annotated[DatasetDict, "full_dataset"]:
     """Load and prepare the dataset for training and evaluation."""
-    if USE_ARGILLA_ANNOTATIONS:
+    if use_argilla_annotations:
         zenml_client = Client()
         annotator = zenml_client.active_stack.annotator
         if not annotator:
@@ -234,7 +235,11 @@ def finetune(
     )
 
     inner_train_loss = MultipleNegativesRankingLoss(model)
-    train_loss = MatryoshkaLoss(model, inner_train_loss)
+    train_loss = MatryoshkaLoss(
+        model=model,
+        loss=inner_train_loss,
+        matryoshka_dims=EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
+    )
 
     temp_dir = tempfile.TemporaryDirectory()
     train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
