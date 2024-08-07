@@ -25,6 +25,8 @@ instructions are provided below for how to set that up.
 
 We've recently been holding some webinars about this repository and project. Watche the videos below if you want an introduction and context around the code and ideas covered in this project.
 
+[![Building and Optimizing RAG Pipelines: Data Preprocessing, Embeddings, and Evaluation with ZenML](https://github.com/user-attachments/assets/1aea2bd4-8079-4ea2-98e1-8da6ba9aeebe)](https://www.youtube.com/watch?v=PazRMY8bo3U)
+
 ## 🏃 How to run
 
 This project showcases production-ready pipelines so we use some cloud
