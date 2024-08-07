@@ -15,6 +15,11 @@
 import os
 from typing import Annotated, Tuple
 
+from constants import (
+    DATASET_NAME_DEFAULT,
+    OPENAI_MODEL_GEN,
+    OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS,
+)
 from datasets import Dataset
 from distilabel.llms import OpenAILLM
 from distilabel.pipeline import Pipeline
@@ -36,7 +41,7 @@ def generate_synthetic_queries(
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
-    llm = OpenAILLM(model="gpt-4o", api_key=os.getenv("OPENAI_API_KEY"))
+    llm = OpenAILLM(model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY"))
 
     with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(
@@ -56,15 +61,12 @@ def generate_synthetic_queries(
     train_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": "zenml/rag_qa_embedding_questions_0_60_0",
+                "repo_id": DATASET_NAME_DEFAULT,
                 "split": "train",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": {
-                        "temperature": 0.7,
-                        "max_new_tokens": 512,
-                    }
+                    "generation_kwargs": OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS
                 }
             },
         },
@@ -74,15 +76,12 @@ def generate_synthetic_queries(
     test_distiset = pipeline.run(
         parameters={
             load_dataset.name: {
-                "repo_id": "zenml/rag_qa_embedding_questions_0_60_0",
+                "repo_id": DATASET_NAME_DEFAULT,
                 "split": "test",
             },
             generate_sentence_pair.name: {
                 "llm": {
-                    "generation_kwargs": {
-                        "temperature": 0.7,
-                        "max_new_tokens": 512,
-                    }
+                    "generation_kwargs": OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS
                 }
             },
         },

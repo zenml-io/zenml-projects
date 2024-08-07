@@ -33,10 +33,9 @@ model_definition = Model(
 )
 def finetune_embeddings():
     data = prepare_load_data()
-    evaluate_base_model(data)
-    finetune(data)
-    evaluate_finetuned_model(data, after="finetune")
-
+    evaluate_base_model(dataset=data)
+    finetune(dataset=data)
+    evaluate_finetuned_model(dataset=data, after="finetune")
 
 if __name__ == "__main__":
     finetune_embeddings()

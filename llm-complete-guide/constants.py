@@ -57,4 +57,15 @@ FILES_TO_IGNORE = [
 
 # embeddings finetuning constants
 EMBEDDINGS_MODEL_NAME_ZENML = "finetuned-zenml-docs-embeddings"
-ARGILLA_DATASET_NAME = "rag_qa_embedding_questions_0_60_0_distilabel"
+DATASET_NAME_DEFAULT = "zenml/rag_qa_embedding_questions_0_60_0"
+DATASET_NAME_DISTILABEL = f"{DATASET_NAME_DEFAULT}_distilabel"
+DATASET_NAME_ARGILLA = DATASET_NAME_DEFAULT.replace("zenml/", "")
+OPENAI_MODEL_GEN = "gpt-4o"
+OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS = {
+    "temperature": 0.7,
+    "max_new_tokens": 512,
+}
+EMBEDDINGS_MODEL_ID_BASELINE = "Snowflake/snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_ID_FINE_TUNED = "finetuned-snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [384, 256, 128, 64]  # Important: large to small
+USE_ARGILLA_ANNOTATIONS = False

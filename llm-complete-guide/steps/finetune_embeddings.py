@@ -14,11 +14,21 @@
 
 import os
 import tempfile
-from typing import Annotated, Dict
+from typing import Annotated, Dict, List
 
 import torch
-from constants import ARGILLA_DATASET_NAME
+from constants import (
+    DATASET_NAME_ARGILLA,
+    DATASET_NAME_DISTILABEL,
+    EMBEDDINGS_MODEL_ID_BASELINE,
+    EMBEDDINGS_MODEL_ID_FINE_TUNED,
+    EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
+    USE_ARGILLA_ANNOTATIONS,
+)
 from datasets import DatasetDict, concatenate_datasets, load_dataset
+from datasets.arrow_dataset import Dataset
+from datasets.dataset_dict import IterableDatasetDict
+from datasets.iterable_dataset import IterableDataset
 from sentence_transformers import (
     SentenceTransformer,
     SentenceTransformerModelCardData,
@@ -39,28 +49,23 @@ from zenml import ArtifactConfig, log_model_metadata, step
 from zenml.client import Client
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
-# MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
-# FINETUNED_MODEL_ID = "finetuned-all-MiniLM-L6-v2"
-MODEL_ID = "Snowflake/snowflake-arctic-embed-m"
-FINETUNED_MODEL_ID = "finetuned-snowflake-arctic-embed-m"
-
-MATRYOSHKA_DIMENSIONS = [384, 256, 128, 64]  # Important: large to small
-
 
 @step
-def prepare_load_data(
-    use_argilla_annotations: bool = False,
-) -> Annotated[DatasetDict, "full_dataset"]:
+def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
     """Load and prepare the dataset for training and evaluation."""
-    if use_argilla_annotations:
+    if USE_ARGILLA_ANNOTATIONS:
         zenml_client = Client()
         annotator = zenml_client.active_stack.annotator
         if not annotator:
             raise RuntimeError("No annotator found in the active stack.")
-        dataset = annotator.get_labeled_data(dataset_name=ARGILLA_DATASET_NAME)
+        dataset = annotator.get_labeled_data(
+            dataset_name=DATASET_NAME_ARGILLA
+        )
     else:
         # Load dataset from the hub
-        dataset = load_dataset(f"zenml/{ARGILLA_DATASET_NAME}", split="train")
+        dataset: DatasetDict | Dataset | IterableDatasetDict | IterableDataset = load_dataset(
+            DATASET_NAME_DISTILABEL, split="train"
+        )
         # Add an id column to the dataset
         dataset = dataset.add_column("id", range(len(dataset)))
 
@@ -71,7 +76,8 @@ def prepare_load_data(
 
 
 def get_evaluator(
-    dataset: DatasetDict, model: SentenceTransformer
+    dataset: DatasetDict,
+    model: SentenceTransformer,
 ) -> SequentialEvaluator:
     """Create a SequentialEvaluator for the given dataset and model."""
     temp_dir = tempfile.TemporaryDirectory()
@@ -111,7 +117,7 @@ def get_evaluator(
             truncate_dim=dim,  # Truncate the embeddings to a certain dimension
             score_functions={"cosine": cos_sim},
         )
-        for dim in MATRYOSHKA_DIMENSIONS
+        for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
     ]
 
     return SequentialEvaluator(matryoshka_evaluators)
@@ -123,10 +129,13 @@ def evaluate_model(
     """Evaluate the given model on the dataset."""
     cleanup_gpu_memory(force=True)
 
-    evaluator = get_evaluator(dataset, model)
+    evaluator = get_evaluator(
+        dataset=dataset,
+        model=model,
+    )
     results = evaluator(model)
 
-    for dim in MATRYOSHKA_DIMENSIONS:
+    for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS:
         key = f"dim_{dim}_cosine_ndcg@10"
         print(f"{key}: {results[key]}")
 
@@ -139,10 +148,13 @@ def evaluate_base_model(
 ) -> Annotated[Dict[str, float], "evaluation_results"]:
     """Evaluate the base model on the given dataset."""
     model = SentenceTransformer(
-        MODEL_ID, device="cuda" if torch.cuda.is_available() else "cpu"
+        EMBEDDINGS_MODEL_ID_BASELINE, device="cuda" if torch.cuda.is_available() else "cpu"
     )
 
-    results = evaluate_model(dataset, model)
+    results = evaluate_model(
+        dataset=dataset,
+        model=model,
+    )
 
     # Convert numpy.float64 values to regular Python floats
     # (needed for serialization)
@@ -150,7 +162,7 @@ def evaluate_base_model(
         f"dim_{dim}_cosine_ndcg@10": float(
             results[f"dim_{dim}_cosine_ndcg@10"]
         )
-        for dim in MATRYOSHKA_DIMENSIONS
+        for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
     }
 
     log_model_metadata(
@@ -166,12 +178,15 @@ def evaluate_finetuned_model(
 ) -> Annotated[Dict[str, float], "evaluation_results"]:
     """Evaluate the finetuned model on the given dataset."""
     fine_tuned_model = SentenceTransformer(
-        f"zenml/{FINETUNED_MODEL_ID}",
+        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
         device="cuda" if torch.cuda.is_available() else "cpu",
         revision="main",
     )
 
-    results = evaluate_model(dataset, fine_tuned_model)
+    results = evaluate_model(
+        dataset=dataset,
+        model=fine_tuned_model,
+    )
 
     # Convert numpy.float64 values to regular Python floats
     # (needed for serialization)
@@ -180,7 +195,7 @@ def evaluate_finetuned_model(
         f"dim_{dim}_cosine_ndcg@10": float(
             results[f"dim_{dim}_cosine_ndcg@10"]
         )
-        for dim in MATRYOSHKA_DIMENSIONS
+        for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
     }
 
     log_model_metadata(
@@ -209,19 +224,19 @@ def finetune(
 
     # load model with SDPA for using Flash Attention 2
     model = SentenceTransformer(
-        MODEL_ID,
+        EMBEDDINGS_MODEL_ID_BASELINE,
         model_kwargs={"attn_implementation": "sdpa"},
         model_card_data=SentenceTransformerModelCardData(
             language="en",
             license="apache-2.0",
-            model_name=f"zenml/{FINETUNED_MODEL_ID}",
+            model_name=f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
         ),
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
     inner_train_loss = MultipleNegativesRankingLoss(model)
     train_loss = MatryoshkaLoss(
-        model, inner_train_loss, matryoshka_dims=MATRYOSHKA_DIMENSIONS
+        model, inner_train_loss
     )
 
     temp_dir = tempfile.TemporaryDirectory()
@@ -231,10 +246,13 @@ def finetune(
         "json", data_files=train_dataset_path, split="train"
     )
 
-    evaluator = get_evaluator(dataset, model)
+    evaluator = get_evaluator(
+        dataset=dataset,
+        model=model,
+    )
 
     args = SentenceTransformerTrainingArguments(
-        output_dir=FINETUNED_MODEL_ID,  # output directory and hugging face model ID
+        output_dir=EMBEDDINGS_MODEL_ID_FINE_TUNED,  # output directory and hugging face model ID
         num_train_epochs=epochs,  # number of epochs
         per_device_train_batch_size=batch_size,  # train batch size
         gradient_accumulation_steps=16,  # for a global batch size of 512
@@ -266,7 +284,7 @@ def finetune(
     )
 
     trainer.train()
-    trainer.model.push_to_hub(f"zenml/{FINETUNED_MODEL_ID}", exist_ok=True)
+    trainer.model.push_to_hub(f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}", exist_ok=True)
 
     log_model_metadata(
         metadata={
@@ -274,8 +292,8 @@ def finetune(
                 "num_train_epochs": epochs,
                 "batch_size": batch_size,
                 "learning_rate": learning_rate,
-                "base_model": MODEL_ID,
-                "matryoshka_dims": MATRYOSHKA_DIMENSIONS,
+                "base_model": EMBEDDINGS_MODEL_ID_BASELINE,
+                "EMBEDDINGS_MODEL_MATRYOSHKA_DIMS": EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
                 "optimizer": optimizer,
             },
             "hardware": {
@@ -302,7 +320,7 @@ def finetune(
     torch.save(trainer.model.state_dict(), temp_model_path)
 
     # Load the model from the temporary file
-    rehydrated_model = SentenceTransformer(MODEL_ID)
+    rehydrated_model = SentenceTransformer(EMBEDDINGS_MODEL_ID_BASELINE)
     rehydrated_model.load_state_dict(torch.load(temp_model_path))
 
     # Clean up the temporary directory

@@ -14,6 +14,7 @@
 
 from typing import Annotated, Tuple
 
+from constants import DATASET_NAME_DEFAULT
 from datasets import Dataset, load_dataset
 from zenml import step
 from zenml.integrations.huggingface.materializers.huggingface_datasets_materializer import (
@@ -26,10 +27,12 @@ def load_hf_dataset() -> (
     Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
 ):
     train_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0", split="train"
+        DATASET_NAME_DEFAULT,
+        split="train"
     )
     test_dataset = load_dataset(
-        "zenml/rag_qa_embedding_questions_0_60_0", split="test"
+        DATASET_NAME_DEFAULT,
+        split="test"
     )
     return train_dataset, test_dataset
 
