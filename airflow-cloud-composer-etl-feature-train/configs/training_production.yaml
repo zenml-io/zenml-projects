@@ -23,4 +23,6 @@ steps:
     step_operator: gcp_airflow_vertex
     settings:
       step_operator.vertex:
-        machine_type: "n1-highmem-8"
+        accelerator_type: "NVIDIA_TESLA_P100" 
+        accelerator_count: 1
+        machine_type: "n1-standard-8"
