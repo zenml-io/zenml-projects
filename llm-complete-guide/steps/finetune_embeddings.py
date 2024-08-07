@@ -367,17 +367,17 @@ def visualize_results(
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.barh(
         [i - height / 2 for i in y],
-        base_values,
-        height,
-        label="Base Model",
-        color="blue",
-    )
-    ax.barh(
-        [i + height / 2 for i in y],
         finetuned_values,
         height,
         label="Finetuned Model",
         color="red",
+    )
+    ax.barh(
+        [i + height / 2 for i in y],
+        base_values,
+        height,
+        label="Base Model",
+        color="blue",
     )
 
     ax.set_xlabel("Scores (%)")
