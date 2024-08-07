@@ -29,9 +29,7 @@ model_definition = Model(
 )
 
 
-@pipeline(
-    model=model_definition,
-)
+@pipeline(model=model_definition)
 def finetune_embeddings():
     data = prepare_load_data()
     base_results = evaluate_base_model(dataset=data)
