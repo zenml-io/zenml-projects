@@ -41,7 +41,9 @@ def generate_synthetic_queries(
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
-    llm = OpenAILLM(model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY"))
+    llm = OpenAILLM(
+        model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY")
+    )
 
     with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(

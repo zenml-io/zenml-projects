@@ -14,7 +14,7 @@
 
 import os
 import tempfile
-from typing import Annotated, Dict, List
+from typing import Annotated, Dict
 
 import torch
 from constants import (
@@ -58,14 +58,12 @@ def prepare_load_data() -> Annotated[DatasetDict, "full_dataset"]:
         annotator = zenml_client.active_stack.annotator
         if not annotator:
             raise RuntimeError("No annotator found in the active stack.")
-        dataset = annotator.get_labeled_data(
-            dataset_name=DATASET_NAME_ARGILLA
-        )
+        dataset = annotator.get_labeled_data(dataset_name=DATASET_NAME_ARGILLA)
     else:
         # Load dataset from the hub
-        dataset: DatasetDict | Dataset | IterableDatasetDict | IterableDataset = load_dataset(
-            DATASET_NAME_DISTILABEL, split="train"
-        )
+        dataset: (
+            DatasetDict | Dataset | IterableDatasetDict | IterableDataset
+        ) = load_dataset(DATASET_NAME_DISTILABEL, split="train")
         # Add an id column to the dataset
         dataset = dataset.add_column("id", range(len(dataset)))
 
@@ -148,7 +146,8 @@ def evaluate_base_model(
 ) -> Annotated[Dict[str, float], "evaluation_results"]:
     """Evaluate the base model on the given dataset."""
     model = SentenceTransformer(
-        EMBEDDINGS_MODEL_ID_BASELINE, device="cuda" if torch.cuda.is_available() else "cpu"
+        EMBEDDINGS_MODEL_ID_BASELINE,
+        device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
     results = evaluate_model(
@@ -235,9 +234,7 @@ def finetune(
     )
 
     inner_train_loss = MultipleNegativesRankingLoss(model)
-    train_loss = MatryoshkaLoss(
-        model, inner_train_loss
-    )
+    train_loss = MatryoshkaLoss(model, inner_train_loss)
 
     temp_dir = tempfile.TemporaryDirectory()
     train_dataset_path = os.path.join(temp_dir.name, "train_dataset.json")
@@ -284,7 +281,9 @@ def finetune(
     )
 
     trainer.train()
-    trainer.model.push_to_hub(f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}", exist_ok=True)
+    trainer.model.push_to_hub(
+        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}", exist_ok=True
+    )
 
     log_model_metadata(
         metadata={

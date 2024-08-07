@@ -15,11 +15,7 @@
 from datetime import datetime
 
 from constants import (
-    DATASET_NAME_ARGILLA_EMBEDDINGS,
-    DATASET_NAME_DISTILABEL_EMBEDDINGS,
-    EMBEDDINGS_MODEL_NAME_VECTOR_SEARCH,
     EMBEDDINGS_MODEL_NAME_ZENML,
-    OPENAI_MODEL_EMBEDDINGS,
 )
 from steps.distilabel_generate_queries import generate_synthetic_queries
 from steps.hf_dataset_loader import load_hf_dataset
@@ -52,8 +48,7 @@ model_definition = Model(
 def generate_synthetic_data():
     train_dataset, test_dataset = load_hf_dataset()
     train_with_queries, test_with_queries = generate_synthetic_queries(
-        train_dataset=train_dataset,
-        test_dataset=test_dataset
+        train_dataset=train_dataset, test_dataset=test_dataset
     )
     push_to_hf(
         train_dataset=train_with_queries,

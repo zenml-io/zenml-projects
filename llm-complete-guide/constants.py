@@ -67,5 +67,10 @@ OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS = {
 }
 EMBEDDINGS_MODEL_ID_BASELINE = "Snowflake/snowflake-arctic-embed-m"
 EMBEDDINGS_MODEL_ID_FINE_TUNED = "finetuned-snowflake-arctic-embed-m"
-EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [384, 256, 128, 64]  # Important: large to small
+EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
+    384,
+    256,
+    128,
+    64,
+]  # Important: large to small
 USE_ARGILLA_ANNOTATIONS = False

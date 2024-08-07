@@ -37,5 +37,6 @@ def finetune_embeddings():
     finetune(dataset=data)
     evaluate_finetuned_model(dataset=data, after="finetune")
 
+
 if __name__ == "__main__":
     finetune_embeddings()

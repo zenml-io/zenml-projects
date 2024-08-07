@@ -68,7 +68,8 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     api_url = zenml_client.get_secret("argilla_hf").secret_values["api_url"]
 
     model = SentenceTransformer(
-        EMBEDDINGS_MODEL_ID_BASELINE, device="cuda" if torch.cuda.is_available() else "cpu"
+        EMBEDDINGS_MODEL_ID_BASELINE,
+        device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
     client = rg.Argilla(api_url=api_url, api_key=api_key)
@@ -90,7 +91,11 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
             )
         ],
     )
-    ds = rg.Dataset(name=DATASET_NAME_ARGILLA, settings=settings, workspace=client.workspaces.default)
+    ds = rg.Dataset(
+        name=DATASET_NAME_ARGILLA,
+        settings=settings,
+        workspace=client.workspaces.default,
+    )
 
     # skip if dataset already exists
     try:
@@ -101,12 +106,15 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     # process original HF dataset
     try:
         model = SentenceTransformer(
-            EMBEDDINGS_MODEL_ID_FINE_TUNED, device="cuda" if torch.cuda.is_available() else "cpu"
+            EMBEDDINGS_MODEL_ID_FINE_TUNED,
+            device="cuda" if torch.cuda.is_available() else "cpu",
         )
     except Exception:
         pass
     format_data_with_model = partial(format_data, model=model)
-    dataset = train_dataset.map(format_data_with_model, batched=True, batch_size=1000)
+    dataset = train_dataset.map(
+        format_data_with_model, batched=True, batch_size=1000
+    )
 
     # log records to argilla
     records = []
