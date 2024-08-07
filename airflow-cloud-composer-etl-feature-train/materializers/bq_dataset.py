@@ -35,7 +35,10 @@ class BigQueryDataset(Dataset):
         self.write_disposition = write_disposition
         self.project = project
         self.dataset = dataset
-        self.client = bigquery.Client(project=project)
+        if project is None:
+            self.client = bigquery.Client()
+        else:
+            self.client = bigquery.Client(project=project)
         self.df = df
 
     def read_data(self) -> pd.DataFrame:
