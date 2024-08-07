@@ -28,6 +28,7 @@ from datasets import DatasetDict, concatenate_datasets, load_dataset
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import IterableDatasetDict
 from datasets.iterable_dataset import IterableDataset
+from PIL import Image
 from sentence_transformers import (
     SentenceTransformer,
     SentenceTransformerModelCardData,
@@ -144,7 +145,7 @@ def evaluate_model(
 @step
 def evaluate_base_model(
     dataset: DatasetDict,
-) -> Annotated[Dict[str, float], "evaluation_results"]:
+) -> Annotated[Dict[str, float], "base_model_evaluation_results"]:
     """Evaluate the base model on the given dataset."""
     model = SentenceTransformer(
         EMBEDDINGS_MODEL_ID_BASELINE,
@@ -175,7 +176,7 @@ def evaluate_base_model(
 @step
 def evaluate_finetuned_model(
     dataset: DatasetDict,
-) -> Annotated[Dict[str, float], "evaluation_results"]:
+) -> Annotated[Dict[str, float], "finetuned_evaluation_results"]:
     """Evaluate the finetuned model on the given dataset."""
     fine_tuned_model = SentenceTransformer(
         f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
@@ -331,3 +332,12 @@ def finetune(
     temp_dir.cleanup()
 
     return rehydrated_model
+
+
+@step
+def visualize_results(
+    base_results: Dict[str, float],
+    finetuned_results: Dict[str, float],
+) -> Annotated[Image.Image, "evaluation_chart"]:
+    """Visualize the results of the evaluation."""
+    pass

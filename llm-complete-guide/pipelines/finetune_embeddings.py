@@ -18,6 +18,7 @@ from steps.finetune_embeddings import (
     evaluate_finetuned_model,
     finetune,
     prepare_load_data,
+    visualize_results,
 )
 from zenml import Model, pipeline
 from zenml.model.model import ModelStages
@@ -33,9 +34,12 @@ model_definition = Model(
 )
 def finetune_embeddings():
     data = prepare_load_data()
-    evaluate_base_model(dataset=data)
+    base_results = evaluate_base_model(dataset=data)
     finetune(dataset=data)
-    evaluate_finetuned_model(dataset=data, after="finetune")
+    finetuned_results = evaluate_finetuned_model(
+        dataset=data, after="finetune"
+    )
+    visualize_results(base_results, finetuned_results)
 
 
 if __name__ == "__main__":

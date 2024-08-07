@@ -14,9 +14,10 @@
 
 from typing import List
 
-from steps.url_scraping_utils import get_all_pages
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
+
+from steps.url_scraping_utils import get_all_pages
 
 
 @step
