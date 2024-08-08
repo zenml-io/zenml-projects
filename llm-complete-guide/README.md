@@ -116,7 +116,7 @@ Note that Claude will require a different API key from Anthropic. See [the
 `litellm` docs](https://docs.litellm.ai/docs/providers/anthropic) on how to set
 this up.
 
-### Run the evaluation pipeline
+### Run the LLM RAG evaluation pipeline
 
 To run the evaluation pipeline, you can use the following command:
 
@@ -126,6 +126,52 @@ python run.py --evaluation
 
 You'll need to have first run the RAG pipeline to have the necessary assets in
 the database to evaluate.
+
+## Embeddings finetuning
+
+For embeddings finetuning we first generate synthetic data and then finetune the
+embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guide/llmops-guide/finetuning-embeddings) and
+instructions for how to run them are provided below.
+
+### Run the `distilabel` synthetic data generation pipeline
+
+To run the `distilabel` synthetic data generation pipeline, you can use the following commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --synthetic
+```
+
+You will also need to have set up and connected to an Argilla instance for this
+to work. Please follow the instructions in the [Argilla
+documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
+Argilla integration
+documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
+will guide you through the process of connecting to your instance as a stack
+component.
+
+### Finetune the embeddings
+
+To run the pipeline for finetuning the embeddings, you can use the following
+commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --embeddings
+```
+
+As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
+to work. Please follow the instructions in the [Argilla
+documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
+Argilla integration
+documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
+will guide you through the process of connecting to your instance as a stack
+component.
+
+*Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
+loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) which we adapted for this project.*
 
 ## ☁️ Running in your own VPC
 

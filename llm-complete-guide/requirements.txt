@@ -1,4 +1,4 @@
-zenml
+zenml[server]>=0.63.0
 langchain-community
 ratelimit
 langchain>=0.0.325
@@ -9,8 +9,10 @@ beautifulsoup4
 unstructured
 pandas
 numpy
-sentence-transformers
+sentence-transformers>=3
+transformers
 litellm
+ollama
 tiktoken
 umap-learn
 matplotlib

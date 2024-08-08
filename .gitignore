@@ -150,6 +150,18 @@ zencoder/cloned_public_repos
 llm-lora-finetuning/ckpt/
 llm-lora-finetuning/data_generation/
 llm-lora-finetuning/datagen/
-nohup.out
+fiftyone-ls-demo/
+llm-lora-finetuning/mistral-zenml-finetune/
 .flashrank_cache
+bge-base-financial-matryoshka/
+embeddings
+llm-lora-finetuning/meta-llama/
+llm-lora-finetuning/microsoft/
+llm-lora-finetuning/unsloth/
+llm-lora-finetuning/configs/shopify.yaml
+finetuned-matryoshka/
+finetuned-all-MiniLM-L6-v2/
+finetuned-snowflake-arctic-embed-m/
 
+# ollama ignores
+nohup.out
