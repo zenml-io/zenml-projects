@@ -1,0 +1,22 @@
+model:
+  name: llm-finetuning-distilgpt2-small
+  description: "Fine-tune DistilGPT-2 on smaller computer."
+  tags:
+    - llm
+    - finetuning
+    - distilgpt2
+
+parameters:
+  base_model_id: distilgpt2
+
+steps:
+  prepare_data:
+    parameters:
+      dataset_name: squad
+      dataset_size: 100
+      max_length: 128
+
+  finetune:
+    parameters:
+      num_train_epochs: 1
+      per_device_train_batch_size: 4

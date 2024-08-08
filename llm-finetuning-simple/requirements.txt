@@ -1,0 +1,14 @@
+datasets>=2.19.1
+transformers>=4.43.1
+peft
+bitsandbytes>=0.41.3
+scipy
+evaluate
+rouge_score
+nltk
+accelerate>=0.30.0
+urllib3<2
+zenml>=0.62.0
+torch>=2.2.0
+sentencepiece
+huggingface_hub
