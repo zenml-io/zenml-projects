@@ -372,6 +372,8 @@ def visualize_results(
         label="Finetuned Model",
         color="red",
     )
+    for i, v in enumerate(finetuned_values):
+        ax.text(v + 1, i - height / 2, f"{v:.1f}", va="center")
     ax.barh(
         [i + height / 2 for i in y],
         base_values,
@@ -379,6 +381,8 @@ def visualize_results(
         label="Base Model",
         color="blue",
     )
+    for i, v in enumerate(base_values):
+        ax.text(v + 1, i + height / 2, f"{v:.1f}", va="center")
 
     ax.set_xlabel("Scores (%)")
     ax.set_title("Evaluation Results")
