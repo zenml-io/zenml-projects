@@ -73,7 +73,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
 | [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
-| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs                           | `openai` `supabase`  |
+| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs, embeddings, finetuning                           | `openai` `supabase` `huggingface` `argilla`  |
 | [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
 | [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/)               | Regression, Airflow                           | `cloud-composer` `airflow` |
 
