@@ -127,6 +127,12 @@ python run.py --evaluation
 You'll need to have first run the RAG pipeline to have the necessary assets in
 the database to evaluate.
 
+## Embeddings finetuning
+
+For embeddings finetuning we first generate synthetic data and then finetune the
+embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guide/llmops-guide/finetuning-embeddings) and
+instructions for how to run them are provided below.
+
 ### Run the `distilabel` synthetic data generation pipeline
 
 To run the `distilabel` synthetic data generation pipeline, you can use the following commands:
