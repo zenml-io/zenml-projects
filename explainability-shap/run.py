@@ -34,6 +34,7 @@ from zenml.logger import get_logger
 from zenml import log_artifact_metadata, log_model_metadata
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
+from zenml import DockerSettings
 from zenml.materializers.base_materializer import BaseMaterializer
 
 logger = get_logger(__name__)
@@ -220,7 +221,7 @@ def detect_data_drift(
     
     return drift_metrics
 
-@pipeline(enable_cache=False, model=Model(name="high_risk_classification"))
+@pipeline(enable_cache=False, settings={"docker": DockerSettings(requirements="requirements.txt")}, model=Model(name="high_risk_classification"))
 def iris_classification_pipeline():
     X_train, X_test, y_train, y_test = load_data()
     model = train_model(X_train, y_train)
