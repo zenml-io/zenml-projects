@@ -136,6 +136,15 @@ pip install -r requirements-argilla.txt # special requirements
 python run.py --synthetic
 ```
 
+You will also need to have set up and connected to an Argilla instance for this
+to work. Please follow the instructions in the [Argilla
+documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
+Argilla integration
+documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
+will guide you through the process of connecting to your instance as a stack
+component.
+
 ### Finetune the embeddings
 
 To run the pipeline for finetuning the embeddings, you can use the following
@@ -145,6 +154,15 @@ commands:
 pip install -r requirements-argilla.txt # special requirements
 python run.py --embeddings
 ```
+
+As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
+to work. Please follow the instructions in the [Argilla
+documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
+Argilla integration
+documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
+will guide you through the process of connecting to your instance as a stack
+component.
 
 ## ☁️ Running in your own VPC
 
