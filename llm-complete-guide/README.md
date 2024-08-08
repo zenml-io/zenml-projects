@@ -164,6 +164,9 @@ documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
 
+*Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
+loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) which we adapted for this project.*
+
 ## ☁️ Running in your own VPC
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
