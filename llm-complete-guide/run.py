@@ -40,7 +40,13 @@ from typing import Optional
 import click
 from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
-from pipelines import generate_chunk_questions, llm_basic_rag, llm_eval
+from pipelines import (
+    finetune_embeddings,
+    generate_synthetic_data,
+    llm_basic_rag,
+    llm_eval,
+)
+from pipelines.finetune_embeddings_legacy import chunking_experiment
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -112,6 +118,27 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Uses a local LLM via Ollama.",
 )
 @click.option(
+    "--embeddings",
+    "embeddings",
+    is_flag=True,
+    default=False,
+    help="Fine-tunes embeddings.",
+)
+@click.option(
+    "--argilla",
+    "argilla",
+    is_flag=True,
+    default=False,
+    help="Uses Argilla annotations.",
+)
+@click.option(
+    "--dummyembeddings",
+    "dummyembeddings",
+    is_flag=True,
+    default=False,
+    help="Fine-tunes embeddings.",
+)
+@click.option(
     "--reranked",
     "reranked",
     is_flag=True,
@@ -126,6 +153,9 @@ def main(
     no_cache: bool = False,
     synthetic: bool = False,
     local: bool = False,
+    embeddings: bool = False,
+    dummyembeddings: bool = False,
+    argilla: bool = False,
     reranked: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -138,8 +168,18 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
+        embeddings (bool): If `True`, the embeddings will be fine-tuned.
+        argilla (bool): If `True`, the Argilla annotations will be used.
     """
     pipeline_args = {"enable_cache": not no_cache}
+    embeddings_finetune_args = {
+        "enable_cache": not no_cache,
+        "steps": {
+            "prepare_load_data": {
+                "parameters": {"use_argilla_annotations": argilla}
+            }
+        },
+    }
 
     if query:
         response = process_input_with_retrieval(
@@ -156,7 +196,11 @@ def main(
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
-        generate_chunk_questions.with_options(**pipeline_args)()
+        generate_synthetic_data.with_options(**pipeline_args)()
+    if embeddings:
+        finetune_embeddings.with_options(**embeddings_finetune_args)()
+    if dummyembeddings:
+        chunking_experiment.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":

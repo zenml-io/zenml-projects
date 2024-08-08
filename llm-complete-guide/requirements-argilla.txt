@@ -1,0 +1,9 @@
+zenml[server]>=0.63.0
+sentence-transformers>=3
+transformers
+litellm
+ollama
+polars
+datasets
+git+https://github.com/argilla-io/argilla.git@releases/2.0.1#subdirectory=argilla # replace once released
+distilabel
