@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 import os
 import io
@@ -34,10 +33,11 @@ from zenml.logger import get_logger
 from zenml import log_artifact_metadata, log_model_metadata
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
-from zenml import DockerSettings
+from zenml.config import DockerSettings
 from zenml.materializers.base_materializer import BaseMaterializer
 
 logger = get_logger(__name__)
+
 
 # Custom class to hold SHAP visualization data
 class SHAPVisualization:
@@ -45,29 +45,31 @@ class SHAPVisualization:
         self.shap_values = shap_values
         self.feature_names = feature_names
 
+
 # Custom materializer for SHAPVisualization
 class SHAPVisualizationMaterializer(BaseMaterializer):
     ASSOCIATED_TYPES = (SHAPVisualization,)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA_ANALYSIS
 
     def save_visualizations(
-        self, data: SHAPVisualization
+            self, data: SHAPVisualization
     ) -> Dict[str, VisualizationType]:
         plt.figure(figsize=(10, 6))
         shap.summary_plot(data.shap_values, feature_names=data.feature_names, plot_type="bar", show=False)
         plt.title("SHAP Feature Importance")
-        
+
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
+
         visualization_path = os.path.join(self.uri, "shap_summary_plot.png")
         with fileio.open(visualization_path, 'wb') as f:
             f.write(buf.getvalue())
-        
+
         plt.close()
-        
+
         return {visualization_path: VisualizationType.IMAGE}
+
 
 def safe_metadata(data: Any) -> Dict[str, Any]:
     """Create metadata dict with only supported types."""
@@ -75,6 +77,7 @@ def safe_metadata(data: Any) -> Dict[str, Any]:
     if isinstance(data, pd.DataFrame):
         metadata["columns"] = list(data.columns)
     return metadata
+
 
 @step
 def load_data() -> Tuple[
@@ -88,14 +91,15 @@ def load_data() -> Tuple[
     X = iris.data
     y = iris.target
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
+
     for name, data in [("X_train", X_train), ("X_test", X_test), ("y_train", y_train), ("y_test", y_test)]:
         log_artifact_metadata(
             artifact_name=name,
             metadata={"dataset_info": safe_metadata(data)}
         )
-    
+
     return X_train, X_test, y_train, y_test
+
 
 @step
 def train_model(
@@ -106,7 +110,7 @@ def train_model(
     model = SVC(kernel='rbf', probability=True)
     model.fit(X_train, y_train)
     train_accuracy = model.score(X_train, y_train)
-    
+
     log_model_metadata(
         metadata={
             "training_metrics": {
@@ -118,7 +122,7 @@ def train_model(
             }
         }
     )
-    
+
     log_artifact_metadata(
         artifact_name="model",
         metadata={
@@ -129,8 +133,9 @@ def train_model(
             }
         }
     )
-    
+
     return model
+
 
 @step
 def evaluate_model(
@@ -145,7 +150,7 @@ def evaluate_model(
     test_accuracy = model.score(X_test, y_test)
     predictions = model.predict(X_test)
     probabilities = model.predict_proba(X_test)
-    
+
     log_model_metadata(
         metadata={
             "evaluation_metrics": {
@@ -153,7 +158,7 @@ def evaluate_model(
             }
         }
     )
-    
+
     log_artifact_metadata(
         artifact_name="predictions",
         metadata={
@@ -163,7 +168,7 @@ def evaluate_model(
             }
         }
     )
-    
+
     log_artifact_metadata(
         artifact_name="probabilities",
         metadata={
@@ -174,8 +179,9 @@ def evaluate_model(
             }
         }
     )
-    
+
     return predictions, probabilities
+
 
 @step
 def explain_model(
@@ -185,7 +191,7 @@ def explain_model(
     """Generate SHAP values for model explainability and create a visualization."""
     explainer = shap.KernelExplainer(model.predict_proba, shap.sample(X_train, 100))
     shap_values = explainer.shap_values(X_train.iloc[:100])
-    
+
     log_artifact_metadata(
         artifact_name="shap_values",
         metadata={
@@ -196,8 +202,9 @@ def explain_model(
             }
         }
     )
-    
+
     return SHAPVisualization(shap_values, X_train.columns)
+
 
 @step
 def detect_data_drift(
@@ -209,7 +216,7 @@ def detect_data_drift(
     for column in X_train.columns:
         _, p_value = ks_2samp(X_train[column], X_test[column])
         drift_metrics[column] = p_value
-    
+
     log_artifact_metadata(
         artifact_name="drift_metrics",
         metadata={
@@ -218,10 +225,15 @@ def detect_data_drift(
             }
         }
     )
-    
+
     return drift_metrics
 
-@pipeline(enable_cache=False, settings={"docker": DockerSettings(requirements="requirements.txt")}, model=Model(name="high_risk_classification"))
+
+@pipeline(
+    enable_cache=False,
+    settings={"docker": DockerSettings(requirements="requirements.txt")},
+    model=Model(name="high_risk_classification")
+)
 def iris_classification_pipeline():
     X_train, X_test, y_train, y_test = load_data()
     model = train_model(X_train, y_train)
