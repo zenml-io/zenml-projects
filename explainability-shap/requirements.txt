@@ -2,3 +2,4 @@ scikit-learn
 shap
 matplotlib
 scipy
+zenml
