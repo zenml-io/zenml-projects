@@ -3,3 +3,5 @@ shap
 matplotlib
 scipy
 zenml
+pyarrow
+fastparquet
