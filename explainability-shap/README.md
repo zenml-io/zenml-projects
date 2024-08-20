@@ -33,7 +33,7 @@ pip install -r requirements.txt
 To run the Iris Classification pipeline:
 
 ```shell
-python iris_classification_pipeline.py
+python run.py
 ```
 
 ## 🧩 Pipeline Steps
@@ -50,7 +50,7 @@ The pipeline generates a SHAP summary plot to explain feature importance:
 
 <div align="center">
   <br/>
-    <img alt="SHAP Summary Plot" src="path_to_shap_summary_plot.png" width="70%">
+    <img alt="SHAP Summary Plot" src=".assets/shap_visualization.png" width="70%">
   <br/>
 </div>
 
