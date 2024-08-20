@@ -67,7 +67,7 @@ You can customize various aspects of the pipeline:
 
 ```
 .
-├── iris_classification_pipeline.py   # Main pipeline file
+├── run.py                            # Main pipeline file
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # This file
 ```
