@@ -75,7 +75,8 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
 | [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs, embeddings, finetuning                           | `openai` `supabase` `huggingface` `argilla`  |
 | [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
-| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/)               | Regression, Airflow                           | `cloud-composer` `airflow` |
+| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/README.md)               | Regression, Airflow                           | `cloud-composer` `airflow` |
+| [Simple LLM finetuning with Lightning Studio](simple-llm-finetuning/README.md)               | Lightning AI Studio, LLMs                           | `cloud-composer` `airflow` |
 
 # 💻 System Requirements
 
