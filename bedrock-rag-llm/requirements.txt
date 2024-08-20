@@ -1,3 +1,4 @@
 uv
 ruff
 zenml
+litellm
