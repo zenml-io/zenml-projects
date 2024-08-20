@@ -17,6 +17,9 @@ from typing import List, Optional
 
 import numpy as np
 from pydantic import BaseModel
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass

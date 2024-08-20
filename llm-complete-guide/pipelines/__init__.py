@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pipelines.distilabel_generation import generate_synthetic_data
+from pipelines.finetune_embeddings import finetune_embeddings
 from pipelines.generate_chunk_questions import generate_chunk_questions
 from pipelines.llm_basic_rag import llm_basic_rag
 from pipelines.llm_eval import llm_eval

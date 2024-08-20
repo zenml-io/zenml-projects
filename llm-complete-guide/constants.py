@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-
 # Vector Store constants
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 50
@@ -35,3 +34,43 @@ MODEL_NAME_MAP = {
     "claude3": "claude-3-opus-20240229",
     "claudehaiku": "claude-3-haiku-20240307",
 }
+
+# CHUNKING_METHOD = "split-by-document"
+CHUNKING_METHOD = "split-by-header"
+DATASET_NAME = f"zenml/rag_qa_embedding_questions_{CHUNKING_METHOD}"
+MODEL_PATH = "all-MiniLM-L6-v2"
+# MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
+NUM_EPOCHS = 30
+WARMUP_STEPS = 0.1  # 10% of train data
+NUM_GENERATIONS = 2
+EVAL_BATCH_SIZE = 64
+
+DUMMY_DATASET_NAME = "embedding-data/sentence-compression"
+# DUMMY_MODEL_PATH = "embedding-data/distilroberta-base-sentence-transformer"
+DUMMY_MODEL_PATH = "all-MiniLM-L6-v2"
+DUMMY_EPOCHS = 10
+
+# Markdown Loader constants
+FILES_TO_IGNORE = [
+    "toc.md",
+]
+
+# embeddings finetuning constants
+EMBEDDINGS_MODEL_NAME_ZENML = "finetuned-zenml-docs-embeddings"
+DATASET_NAME_DEFAULT = "zenml/rag_qa_embedding_questions_0_60_0"
+DATASET_NAME_DISTILABEL = f"{DATASET_NAME_DEFAULT}_distilabel"
+DATASET_NAME_ARGILLA = DATASET_NAME_DEFAULT.replace("zenml/", "")
+OPENAI_MODEL_GEN = "gpt-4o"
+OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS = {
+    "temperature": 0.7,
+    "max_new_tokens": 512,
+}
+EMBEDDINGS_MODEL_ID_BASELINE = "Snowflake/snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_ID_FINE_TUNED = "finetuned-snowflake-arctic-embed-m"
+EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
+    384,
+    256,
+    128,
+    64,
+]  # Important: large to small
+USE_ARGILLA_ANNOTATIONS = False
