@@ -1,3 +1,4 @@
+from steps.basic_inference import basic_inference
 from zenml import pipeline
 
 
