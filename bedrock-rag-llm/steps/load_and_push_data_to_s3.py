@@ -37,11 +37,12 @@ def load_and_push_data_to_s3(bucket_name: str):
     logger.info("Connecting to S3")
     zc = Client()
     sc_client = zc.get_service_connector_client(
-        name_id_or_prefix="0b04bcae-efc9-4044-a1c2-b86281cb0820",
+        name_id_or_prefix="0b04bcae-efc9-4044-a1c2-b86281cb0820",  # TODO: pull this out into config file
         resource_type="aws-generic",
     ).connect()
     s3 = sc_client.resource("s3")
     bucket = s3.Bucket(bucket_name)
+
     if not bucket.creation_date:
         logger.info("Creating S3 bucket %s", bucket_name)
         bucket.create()

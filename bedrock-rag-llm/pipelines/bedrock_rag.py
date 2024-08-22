@@ -1,10 +1,6 @@
+from steps.create_and_sync_knowledge_base import create_and_sync_knowledge_base
 from steps.load_and_push_data_to_s3 import load_and_push_data_to_s3
 from zenml import pipeline, step
-
-
-@step
-def create_and_sync_knowledge_base():
-    pass
 
 
 @step
