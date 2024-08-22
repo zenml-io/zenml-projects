@@ -21,6 +21,7 @@ from pathlib import Path
 from materializers.directory_materializer import DirectoryMaterializer
 from typing_extensions import Annotated
 from utils.tokenizer import generate_and_tokenize_prompt, load_tokenizer
+
 from zenml import log_model_metadata, step
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
@@ -81,7 +82,9 @@ def prepare_data(
     )
 
     datasets_path = Path("datasets")
-    tokenized_train_dataset.save_to_disk(str((datasets_path / "train").absolute()))
+    tokenized_train_dataset.save_to_disk(
+        str((datasets_path / "train").absolute())
+    )
     tokenized_val_dataset.save_to_disk(str((datasets_path / "val").absolute()))
     test_dataset.save_to_disk(str((datasets_path / "test_raw").absolute()))
 
