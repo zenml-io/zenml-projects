@@ -20,7 +20,12 @@ from typing import Any, Tuple, Union
 
 import torch
 from datasets import Dataset
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import (
+    LoraConfig,
+    LoraRuntimeConfig,
+    get_peft_model,
+    prepare_model_for_kbit_training,
+)
 from transformers import AutoModelForCausalLM
 
 from utils.logging import print_trainable_parameters
@@ -67,7 +72,10 @@ def load_base_model(
     )
 
     model = AutoModelForCausalLM.from_pretrained(
-        base_model_id, quantization_config=bnb_config, device_map=device_map, trust_remote_code=True,
+        base_model_id,
+        quantization_config=bnb_config,
+        device_map=device_map,
+        trust_remote_code=True,
     )
 
     if is_training:
@@ -90,6 +98,8 @@ def load_base_model(
             bias="none",
             lora_dropout=0.05,  # Conventional
             task_type="CAUSAL_LM",
+            use_dora=True,
+            runtime_config=LoraRuntimeConfig(ephemeral_gpu_offload=True),
         )
 
         model = get_peft_model(model, config)
@@ -126,6 +136,9 @@ def load_pretrained_model(
         bnb_4bit_compute_dtype=torch.bfloat16,
     )
     model = AutoModelForCausalLM.from_pretrained(
-        ft_model_dir, quantization_config=bnb_config, device_map="auto", trust_remote_code=True,
+        ft_model_dir,
+        quantization_config=bnb_config,
+        device_map="auto",
+        trust_remote_code=True,
     )
     return model
