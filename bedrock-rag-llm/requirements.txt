@@ -2,3 +2,6 @@ uv
 ruff
 zenml
 litellm
+opensearch-py
+boto3
+retrying
