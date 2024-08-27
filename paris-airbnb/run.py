@@ -6,9 +6,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing_extensions import Annotated, Tuple
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import gc
 
 from zenml import pipeline, step
-from zenml.config import DockerSettings
 
 
 @step
@@ -22,6 +24,7 @@ def ingest_data():
 
 from typing import List
 
+
 @step
 def preprocess_data(
     data: pd.DataFrame,
@@ -34,9 +37,11 @@ def preprocess_data(
 ]:
     def safe_convert_to_float(series: pd.Series) -> pd.Series:
         try:
-            return pd.to_numeric(series.str.replace('$', '').str.replace(',', ''), errors='coerce')
+            return pd.to_numeric(
+                series.str.replace("$", "").str.replace(",", ""), errors="coerce"
+            )
         except AttributeError:
-            return pd.to_numeric(series, errors='coerce')
+            return pd.to_numeric(series, errors="coerce")
 
     # Select relevant features
     features = [
@@ -48,20 +53,20 @@ def preprocess_data(
         "latitude",
         "longitude",
     ]
-    
+
     # Check if these features exist in the dataframe
     existing_features = [f for f in features if f in data.columns]
     print(f"\nExisting features: {existing_features}")
-    
+
     X = data[existing_features]
-    
+
     # Convert all feature columns to float, handling errors
     for col in X.columns:
         X[col] = safe_convert_to_float(X[col])
-    
+
     # Convert price to numeric, removing the dollar sign and converting to float
-    if 'price' in data.columns:
-        y = safe_convert_to_float(data['price'])
+    if "price" in data.columns:
+        y = safe_convert_to_float(data["price"])
     else:
         raise ValueError("'price' column not found in the dataframe")
 
@@ -85,6 +90,7 @@ def preprocess_data(
     X_test_scaled = scaler.transform(X_test)
 
     return X_train_scaled, X_test_scaled, y_train.values, y_test.values, scaler
+
 
 @step
 def train_model(
@@ -114,41 +120,86 @@ def evaluate_model(
     return mse
 
 
-@step
+@step(enable_cache=False)
 def generate_description(
-    model: RandomForestRegressor, X_test: np.ndarray, y_test: np.ndarray, scaler: StandardScaler
+    model: RandomForestRegressor,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    scaler: StandardScaler,
 ) -> Annotated[str, "paris_airbnb_description"]:
-    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
-    lm_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
+    # Check if CUDA is available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
-    # Generate a description for a random listing
-    random_index = np.random.randint(len(X_test))
-    listing_features = X_test[random_index]
-    true_price = y_test[random_index]
-    predicted_price = model.predict([listing_features])[0]
+    # Configure PyTorch to use less memory
+    torch.cuda.empty_cache()
+    gc.collect()
+    torch.cuda.set_per_process_memory_fraction(
+        0.7
+    )  # Use up to 70% of available GPU memory
 
-    # Inverse transform to get original feature values
-    original_features = scaler.inverse_transform([listing_features])[0]
+    try:
+        # Load model with low memory usage settings
+        tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
+        lm_model = AutoModelForCausalLM.from_pretrained(
+            "mistralai/Mistral-7B-v0.1",
+            torch_dtype=torch.float16,
+            low_cpu_mem_usage=True,
+            device_map="auto",
+            offload_folder="offload",
+        )
 
-    prompt = f"""
-    Describe a charming Parisian Airbnb listing with the following features:
-    - Accommodates: {int(original_features[0])} guests
-    - Bedrooms: {int(original_features[1])}
-    - Beds: {int(original_features[2])}
-    - Number of reviews: {int(original_features[3])}
-    - Review score: {original_features[4]:.1f}/5
-    - Location: Latitude {original_features[5]:.4f}, Longitude {original_features[6]:.4f}
-    - Actual price: €{true_price:.2f} per night
-    - Predicted price by our model: €{predicted_price:.2f} per night
+        # Generate a description for a random listing
+        random_index = np.random.randint(len(X_test))
+        listing_features = X_test[random_index]
+        true_price = y_test[random_index]
+        predicted_price = model.predict([listing_features])[0]
 
-    Make it sound whimsical and charming, like a Parisian host with a poetic flair.
-    """
+        # Inverse transform to get original feature values
+        original_features = scaler.inverse_transform([listing_features])[0]
 
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = lm_model.generate(**inputs, max_new_tokens=200)
-    description = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        prompt = f"""
+        Describe a charming Parisian Airbnb listing with the following features:
+        - Accommodates: {int(original_features[0])} guests
+        - Bedrooms: {int(original_features[1])}
+        - Beds: {int(original_features[2])}
+        - Number of reviews: {int(original_features[3])}
+        - Review score: {original_features[4]:.1f}/5
+        - Location: Latitude {original_features[5]:.4f}, Longitude {original_features[6]:.4f}
+        - Actual price: €{true_price:.2f} per night
+        - Predicted price by our model: €{predicted_price:.2f} per night
+
+        Make it sound whimsical and charming, like a Parisian host with a poetic flair.
+        """
+
+        inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+        # Generate with reduced memory usage
+        with torch.no_grad():
+            outputs = lm_model.generate(
+                **inputs,
+                max_new_tokens=150,
+                do_sample=True,
+                top_k=50,
+                top_p=0.95,
+                temperature=0.7,
+                num_return_sequences=1,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+
+        description = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    except Exception as e:
+        print(f"Error in generate_description: {e}")
+        description = "Unable to generate description due to an error."
+
+    finally:
+        # Clear cache
+        torch.cuda.empty_cache()
+        gc.collect()
 
     return description
+
 
 @pipeline(enable_cache=True)
 def paris_airbnb_pipeline():
