@@ -1,0 +1,23 @@
+# ZenML 
+zenml[server]
+pyarrow
+
+# Data processing and machine learning
+pandas
+numpy
+scikit-learn
+
+# Deep learning and NLP
+torch
+transformers
+
+# Visualization (optional, but useful for demonstration)
+matplotlib
+seaborn
+
+# Jupyter (optional, for interactive development)
+jupyter
+
+# Additional dependencies
+requests
+
