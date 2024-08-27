@@ -124,7 +124,7 @@ def generate_description(
     # Generate a description for a random listing
     random_index = np.random.randint(len(X_test))
     listing_features = X_test[random_index]
-    true_price = y_test.iloc[random_index]
+    true_price = y_test[random_index]
     predicted_price = model.predict([listing_features])[0]
 
     # Inverse transform to get original feature values
@@ -149,7 +149,6 @@ def generate_description(
     description = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     return description
-
 
 @pipeline(enable_cache=True)
 def paris_airbnb_pipeline():
