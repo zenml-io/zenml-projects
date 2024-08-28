@@ -3,7 +3,9 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
-
+from diffusers import StableDiffusionPipeline
+import torch
+from accelerate.utils import write_basic_config
 import PIL.Image
 from smart_open import open
 
@@ -76,8 +78,6 @@ def load_data():
 
 @step(step_operator="k8s_step_operator")
 def train_model(instance_example_urls: List[str]):
-    from accelerate.utils import write_basic_config
-
     config = TrainConfig()
 
     # load data locally
@@ -133,9 +133,6 @@ def train_model(instance_example_urls: List[str]):
 
 @step(step_operator="k8s_step_operator")
 def batch_inference(model_path: str):
-    from diffusers import StableDiffusionPipeline
-    import torch
-
     pipe = StableDiffusionPipeline.from_pretrained(
         model_path, torch_dtype=torch.float16
     ).to("cuda")
