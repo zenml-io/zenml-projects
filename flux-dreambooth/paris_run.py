@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
+import PIL
 import torch
 from accelerate.utils import write_basic_config
 from diffusers import StableDiffusionPipeline
@@ -63,7 +64,7 @@ def load_data() -> List[Path]:
     return instance_example_paths
 
 
-@step(step_operator="k8s_step_operator")
+@step(step_operator="modal")
 def train_model(instance_example_urls: List[str]):
     config = TrainConfig()
 
@@ -118,8 +119,8 @@ def train_model(instance_example_urls: List[str]):
     )
 
 
-@step(step_operator="k8s_step_operator")
-def batch_inference(model_path: str):
+@step(step_operator="modal")
+def batch_inference(model_path: str) -> PIL.Image.Image:
     pipe = StableDiffusionPipeline.from_pretrained(
         model_path, torch_dtype=torch.float16
     ).to("cuda")
@@ -131,23 +132,35 @@ def batch_inference(model_path: str):
         "A photo of blupus cat playing with a toy Eiffel Tower",
         "A photo of blupus cat sleeping on a French balcony",
         "A photo of blupus cat chasing pigeons in the Jardin des Tuileries",
-        "A photo of blupus cat perched on a windowsill overlooking the Paris skyline",
-        "A photo of blupus cat curled up on a cozy Parisian apartment sofa",
-        "A photo of blupus cat playing with a red laser pointer in the Louvre",
-        "A photo of blupus cat sitting in a vintage Louis Vuitton trunk",
-        "A photo of blupus cat wearing a tiny beret and a French flag bow tie",
-        "A photo of blupus cat stretching on a yoga mat with the Arc de Triomphe in the background",
-        "A photo of blupus cat peeking out from under a Parisian hotel bed",
-        "A photo of blupus cat chasing its tail on the Champs-Élysées",
-        "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
+        # "A photo of blupus cat perched on a windowsill overlooking the Paris skyline",
+        # "A photo of blupus cat curled up on a cozy Parisian apartment sofa",
+        # "A photo of blupus cat playing with a red laser pointer in the Louvre",
+        # "A photo of blupus cat sitting in a vintage Louis Vuitton trunk",
+        # "A photo of blupus cat wearing a tiny beret and a French flag bow tie",
+        # "A photo of blupus cat stretching on a yoga mat with the Arc de Triomphe in the background",
+        # "A photo of blupus cat peeking out from under a Parisian hotel bed",
+        # "A photo of blupus cat chasing its tail on the Champs-Élysées",
+        # "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
     ]
 
-    for i, prompt in enumerate(prompts):
+    images = []
+    for prompt in prompts:
         image = pipe(
             prompt, num_inference_steps=70, guidance_scale=7.5
         ).images[0]
-        image.save(f"blupus_{i}.png")
+        images.append(image)
 
+    width, height = images[0].size
+    rows = 3
+    cols = 5
+    gallery = PIL.Image.new('RGB', (width * cols, height * rows))
+
+    for i, image in enumerate(images):
+        row = i // cols
+        col = i % cols
+        gallery.paste(image, (col * width, row * height))
+
+    return gallery
 
 @pipeline
 def dreambooth_pipeline():
