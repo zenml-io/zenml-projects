@@ -166,3 +166,4 @@ cython_debug/
 models/
 data/dog-class/
 data/ginger-class/
+diffusers/
