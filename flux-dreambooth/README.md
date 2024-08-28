@@ -7,6 +7,7 @@ clicks.
 
 ![](assets/blupus-demo.png)
 
+
 ## Overview
 
 The project tackles the technical challenges of scaling generative AI services and leverages open-source tools like ZenML to construct pipelines for mass AI personalization on any cloud platform. It covers various aspects, including:
@@ -37,6 +38,14 @@ The project is structured as follows:
 - `config/`: Directory for configuration files.
 - `models/`: Directory for storing trained models.
 - `outputs/`: Directory for storing generated outputs (e.g., images).
+
+## Frontend
+
+The project ships with a streamlit frontend to showcase how you can juggle between the models:
+
+![](assets/app_screenshot_1.png)
+![](assets/app_screenshot_2.png)
+![](assets/app_screenshot_3.png)
 
 ## Contributing
 
