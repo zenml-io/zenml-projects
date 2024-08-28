@@ -1,11 +1,12 @@
-from zenml import step, pipeline
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
 import PIL.Image
 from smart_open import open
+
+from zenml import pipeline, step
+
 
 @dataclass
 class SharedConfig:
@@ -15,9 +16,10 @@ class SharedConfig:
     instance_name: str = "blupus cat"
     # That proper noun is usually a member of some class (person, bird),
     # and sharing that information with the model helps it generalize better.
-    class_name: str = "ginger cat"  
+    class_name: str = "ginger cat"
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
+
 
 @dataclass
 class TrainConfig(SharedConfig):
@@ -44,9 +46,11 @@ class TrainConfig(SharedConfig):
     checkpointing_steps: int = 1000
     seed: int = 117
 
+
 # load paths to all of the images in a specific directory
 def load_image_paths(image_dir: Path) -> List[Path]:
     return list(image_dir.glob("*.png"))
+
 
 def load_images(image_urls: List[str]) -> Path:
     img_path = Path("./img")
@@ -66,9 +70,11 @@ def load_images(image_urls: List[str]) -> Path:
 def load_data():
     pass
 
+
 @step(step_operator="k8s_step_operator")
 def train_model():
     pass
+
 
 @step(step_operator="k8s_step_operator")
 def batch_inference():

@@ -1,13 +1,15 @@
-from zenml import step, pipeline
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
-from diffusers import StableDiffusionPipeline
+
+import PIL.Image
 import torch
 from accelerate.utils import write_basic_config
-import PIL.Image
+from diffusers import StableDiffusionPipeline
 from smart_open import open
+
+from zenml import pipeline, step
 
 
 @dataclass
