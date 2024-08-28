@@ -3,11 +3,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-import PIL.Image
 import torch
 from accelerate.utils import write_basic_config
 from diffusers import StableDiffusionPipeline
-from smart_open import open
 
 from zenml import pipeline, step
 
@@ -33,9 +31,9 @@ class TrainConfig(SharedConfig):
     prefix: str = "a photo of"
     postfix: str = ""
 
-    # locator for plaintext file with urls for images of target instance
-    instance_example_urls_file: str = str(
-        Path(__file__).parent / "instance_example_urls.txt"
+    # locator for directory containing images of target instance
+    instance_example_dir: str = str(
+        Path(__file__).parent / "instance_examples"
     )
 
     # Hyperparameters/constants from the huggingface training example
@@ -56,26 +54,13 @@ def load_image_paths(image_dir: Path) -> List[Path]:
     return list(image_dir.glob("*.png"))
 
 
-def load_images(image_urls: List[str]) -> Path:
-    img_path = Path("./img")
-
-    img_path.mkdir(parents=True, exist_ok=True)
-    num_images = 0
-    for num_images, url in enumerate(image_urls, start=1):
-        with open(url, "rb") as f:
-            image = PIL.Image.open(f)
-            image.save(img_path / f"{num_images - 1}.png")
-    print(f"{num_images} images loaded")
-
-    return img_path
-
-
 @step
-def load_data():
-    # Load image URLs from the instance_example_urls_file
-    with open(TrainConfig().instance_example_urls_file) as f:
-        instance_example_urls = f.read().splitlines()
-    return instance_example_urls
+def load_data() -> List[Path]:
+    # Load image paths from the instance_example_dir
+    instance_example_paths: List[Path] = load_image_paths(
+        Path(TrainConfig().instance_example_dir)
+    )
+    return instance_example_paths
 
 
 @step(step_operator="k8s_step_operator")
