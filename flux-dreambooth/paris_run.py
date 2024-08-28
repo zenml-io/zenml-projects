@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -28,6 +29,8 @@ class SharedConfig:
 class TrainConfig(SharedConfig):
     """Configuration for the finetuning step."""
 
+    hf_repo_suffix: str = "flux-dreambooth"
+
     # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
     prefix: str = "a photo of"
     postfix: str = ""
@@ -56,20 +59,26 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step
-def load_data() -> List[Path]:
+def load_data() -> List[PIL.Image.Image]:
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
         Path(TrainConfig().instance_example_dir)
     )
-    return instance_example_paths
+    return [PIL.Image.open(path) for path in instance_example_paths]
 
 
 @step(step_operator="modal")
-def train_model(instance_example_urls: List[str]):
+def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     config = TrainConfig()
 
-    # load data locally
-    img_path = load_images(instance_example_urls)
+    # Save images to a temporary directory that can persist
+    image_dir = Path(tempfile.mkdtemp(prefix="instance_images_"))
+    for i, image in enumerate(instance_example_images):
+        image_path = image_dir / f"image_{i}.png"
+        image.save(image_path)
+
+    # Return the path to the directory containing the saved images
+    images_dir_path = str(image_dir)
 
     # set up hugging face accelerate library for fast training
     write_basic_config(mixed_precision="bf16")
@@ -95,7 +104,7 @@ def train_model(instance_example_urls: List[str]):
             raise subprocess.CalledProcessError(exitcode, "\n".join(cmd))
 
     # run training -- see huggingface accelerate docs for details
-    print("launching dreambooth training script")
+    print("Launching dreambooth training script")
     _exec_subprocess(
         [
             "accelerate",
@@ -103,8 +112,8 @@ def train_model(instance_example_urls: List[str]):
             "/home/strickvl/coding/zenml-projects/flux-dreambooth/diffusers/examples/dreambooth/train_dreambooth.py",
             "--mixed_precision=bf16",  # half-precision floats most of the time for faster training
             f"--pretrained_model_name_or_path={config.model_name}",
-            f"--instance_data_dir={img_path}",
-            f"--output_dir=./model",
+            f"--instance_data_dir={images_dir_path}",
+            f"--output_dir=./{config.hf_repo_suffix}",
             f"--instance_prompt={prompt}",
             f"--resolution={config.resolution}",
             f"--train_batch_size={config.train_batch_size}",
@@ -120,7 +129,8 @@ def train_model(instance_example_urls: List[str]):
 
 
 @step(step_operator="modal")
-def batch_inference(model_path: str) -> PIL.Image.Image:
+def batch_inference() -> PIL.Image.Image:
+    model_path = "strickvl/model"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_path, torch_dtype=torch.float16
     ).to("cuda")
@@ -153,7 +163,7 @@ def batch_inference(model_path: str) -> PIL.Image.Image:
     width, height = images[0].size
     rows = 3
     cols = 5
-    gallery = PIL.Image.new('RGB', (width * cols, height * rows))
+    gallery = PIL.Image.new("RGB", (width * cols, height * rows))
 
     for i, image in enumerate(images):
         row = i // cols
@@ -162,8 +172,13 @@ def batch_inference(model_path: str) -> PIL.Image.Image:
 
     return gallery
 
+
 @pipeline
 def dreambooth_pipeline():
     data = load_data()
     train_model(data)
-    batch_inference()
+    batch_inference(after=train_model)
+
+
+if __name__ == "__main__":
+    dreambooth_pipeline()

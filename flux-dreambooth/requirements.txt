@@ -8,4 +8,4 @@ torchvision~=0.16
 triton~=2.2.0
 peft
 smart_open
-git+https://github.com/zenml-io/zenml.git@develop
+git+https://github.com/zenml-io/zenml.git@feature/modal-step-operator
