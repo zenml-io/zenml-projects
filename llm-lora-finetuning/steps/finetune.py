@@ -32,6 +32,7 @@ from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 from zenml.client import Client
+from zenml.integrations.huggingface.steps import run_with_accelerate
 
 logger = get_logger(__name__)
 
@@ -184,3 +185,6 @@ def finetune(
         )
 
     return ft_model_dir
+
+
+finetune_accelerated = run_with_accelerate(finetune, num_processes=2, multi_gpu=True, mixed_precision="bf16")
