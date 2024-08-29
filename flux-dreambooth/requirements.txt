@@ -9,3 +9,10 @@ triton~=2.2.0
 peft
 smart_open
 git+https://github.com/zenml-io/zenml.git@feature/modal-step-operator
+git@github.com:huggingface/diffusers.git@main
+
+
+
+ftfy
+tensorboard
+Jinja2

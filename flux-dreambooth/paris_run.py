@@ -17,7 +17,7 @@ class SharedConfig:
     """Configuration information shared across project components."""
 
     # The instance name is the "proper noun" we're teaching the model
-    instance_name: str = "blupus cat"
+    instance_name: str = "sks cat"
     # That proper noun is usually a member of some class (person, bird),
     # and sharing that information with the model helps it generalize better.
     class_name: str = "ginger cat"
@@ -29,28 +29,26 @@ class SharedConfig:
 class TrainConfig(SharedConfig):
     """Configuration for the finetuning step."""
 
-    hf_repo_suffix: str = "flux-dreambooth"
+    hf_repo_suffix: str = "sd-dreambooth-blupus"
 
     # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
     prefix: str = "a photo of"
     postfix: str = ""
 
     # locator for directory containing images of target instance
-    instance_example_dir: str = str(
-        Path(__file__).parent / "instance_examples"
-    )
+    instance_example_dir: str = "data/blupus"
+    class_example_dir: str = "data/ginger-class"
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 3
-    rank: int = 16  # lora rank
+    train_batch_size: int = 1
     gradient_accumulation_steps: int = 1
-    learning_rate: float = 4e-4
+    learning_rate: float = 2e-6
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    max_train_steps: int = 500
-    checkpointing_steps: int = 1000
-    seed: int = 117
+    num_class_images: int = 200
+    max_train_steps: int = 800
+    push_to_hub: bool = True
 
 
 # load paths to all of the images in a specific directory
@@ -67,7 +65,8 @@ def load_data() -> List[PIL.Image.Image]:
     return [PIL.Image.open(path) for path in instance_example_paths]
 
 
-@step(step_operator="modal")
+# @step(step_operator="modal")
+@step
 def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     config = TrainConfig()
 
@@ -84,8 +83,8 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     write_basic_config(mixed_precision="bf16")
 
     # define the training prompt
-    instance_phrase = f"{config.instance_name} the {config.class_name}"
-    prompt = f"{config.prefix} {instance_phrase} {config.postfix}".strip()
+    instance_prompt = f"{config.prefix} {config.instance_name}"
+    class_prompt = f"{config.prefix} {config.class_name}"
 
     # the model training is packaged as a script, so we have to execute it as a subprocess, which adds some boilerplate
     def _exec_subprocess(cmd: List[str]):
@@ -109,28 +108,35 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
         [
             "accelerate",
             "launch",
-            "/home/strickvl/coding/zenml-projects/flux-dreambooth/diffusers/examples/dreambooth/train_dreambooth.py",
+            "/home/strickvl/coding/zenml-projects/flux-dreambooth/diffusers/examples/dreambooth/test_dreambooth.py",
             "--mixed_precision=bf16",  # half-precision floats most of the time for faster training
             f"--pretrained_model_name_or_path={config.model_name}",
+            "--train_text_encoder",
             f"--instance_data_dir={images_dir_path}",
+            f"--class_data_dir={config.class_example_dir}",
             f"--output_dir=./{config.hf_repo_suffix}",
-            f"--instance_prompt={prompt}",
+            "--with_prior_preservation",
+            "--prior_loss_weight=1.0",
+            f"--instance_prompt={instance_prompt}",
+            f"--class_prompt={class_prompt}",
             f"--resolution={config.resolution}",
             f"--train_batch_size={config.train_batch_size}",
-            f"--gradient_accumulation_steps={config.gradient_accumulation_steps}",
+            "--use_8bit_adam",
+            "--gradient_checkpointing",
             f"--learning_rate={config.learning_rate}",
             f"--lr_scheduler={config.lr_scheduler}",
             f"--lr_warmup_steps={config.lr_warmup_steps}",
+            f"--num_class_images={config.num_class_images}",
             f"--max_train_steps={config.max_train_steps}",
-            f"--checkpointing_steps={config.checkpointing_steps}",
-            f"--seed={config.seed}",  # increased reproducibility by seeding the RNG
+            "--push_to_hub" if config.push_to_hub else "",
         ]
     )
 
 
-@step(step_operator="modal")
+# @step(step_operator="modal")
+@step
 def batch_inference() -> PIL.Image.Image:
-    model_path = "strickvl/model"
+    model_path = "strickvl/models"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_path, torch_dtype=torch.float16
     ).to("cuda")
@@ -173,11 +179,11 @@ def batch_inference() -> PIL.Image.Image:
     return gallery
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def dreambooth_pipeline():
     data = load_data()
     train_model(data)
-    batch_inference(after=train_model)
+    batch_inference(after="train_model")
 
 
 if __name__ == "__main__":
