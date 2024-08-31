@@ -71,7 +71,7 @@ class SharedConfig:
     """Configuration information shared across project components."""
 
     # The instance name is the "proper noun" we're teaching the model
-    instance_name: str = "sks cat"
+    instance_name: str = "sks hamza"
 
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
@@ -81,14 +81,14 @@ class SharedConfig:
 class TrainConfig(SharedConfig):
     """Configuration for the finetuning step."""
 
-    hf_repo_suffix: str = "flux-schnell-dreambooth-blupus"
+    hf_repo_suffix: str = "flux-schnell-dreambooth-hamza"
 
     # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
     prefix: str = "a photo of"
     postfix: str = ""
 
     # locator for directory containing images of target instance
-    instance_example_dir: str = "data/blupus-instance-images"
+    instance_example_dir: str = "data/hamza-instance-images"
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
@@ -213,29 +213,29 @@ def batch_inference() -> PILImage.Image:
     )
 
     prompts = [
-        "A photo of blupus cat wearing a beret in front of the Eiffel Tower",
-        "A portrait photo of blupus cat on a busy Paris street",
-        "A photo of blupus cat sitting at a Parisian cafe",
-        "A photo of blupus cat playing with a toy Eiffel Tower",
-        "A photo of blupus cat sleeping on a French balcony",
-        "A photo of blupus cat chasing pigeons in the Jardin des Tuileries",
-        "A photo of blupus cat perched on a windowsill overlooking the Paris skyline",
-        "A photo of blupus cat curled up on a cozy Parisian apartment sofa",
-        "A photo of blupus cat playing with a red laser pointer in the Louvre",
-        "A photo of blupus cat sitting in a vintage Louis Vuitton trunk",
-        "A photo of blupus cat wearing a tiny beret and a French flag bow tie",
-        "A photo of blupus cat stretching on a yoga mat with the Arc de Triomphe in the background",
-        "A photo of blupus cat peeking out from under a Parisian hotel bed",
-        "A photo of blupus cat chasing its tail on the Champs-Élysées",
-        "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
+        "A photo of sks hamza wearing a beret in front of the Eiffel Tower",
+        "A portrait photo of sks hamza on a busy Paris street",
+        "A photo of sks hamza sitting at a Parisian cafe",
+        "A photo of sks hamza posing with the Eiffel Tower in the background",
+        "A photo of sks hamza leaning on a French balcony railing",
+        "A photo of sks hamza walking through the Jardin des Tuileries",
+        "A photo of sks hamza looking out a window at the Paris skyline",
+        "A photo of sks hamza relaxing on a cozy Parisian apartment sofa",
+        "A photo of sks hamza admiring art in the Louvre",
+        "A photo of sks hamza sitting on a vintage Louis Vuitton trunk",
+        "A photo of sks hamza wearing a tiny beret and a French flag scarf",
+        "A photo of sks hamza doing yoga with the Arc de Triomphe in the background",
+        "A photo of sks hamza waking up in a Parisian hotel bed",
+        "A photo of sks hamza walking down the Champs-Élysées",
+        "A photo of sks hamza window shopping at a Parisian pet store",
     ]
 
     images = pipe(
         prompt=prompts,
         num_inference_steps=50,
         guidance_scale=7.5,
-        height=256,
-        width=256,
+        height=512,
+        width=512,
     ).images
 
     width, height = images[0].size
@@ -269,7 +269,7 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="A portrait photo of blupus cat on a busy Paris street",
+        prompt="A portrait photo of sks hamza on a busy Paris street",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
@@ -339,7 +339,7 @@ def image_to_video() -> (
         video_pipeline, image, optimal_width, optimal_height
     )
 
-    output_file = "generated_blupus_cat_video.mp4"
+    output_file = "generated_hamza_video.mp4"
     export_to_video(frames, output_file, fps=7)
 
     with open(output_file, "rb") as file:
@@ -348,7 +348,7 @@ def image_to_video() -> (
     html_visualization_str = f"""
     <html>
     <body>
-        <h1>Generated Blupus Cat Video</h1>
+        <h1>Generated Hamza Video</h1>
         <video width="{optimal_width}" height="{optimal_height}" controls>
             <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
             Your browser does not support the video tag.
