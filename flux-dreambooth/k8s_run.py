@@ -317,11 +317,15 @@ def convert_video_to_gif(video_path: str) -> str:
     frames = []
     for i, frame in enumerate(video):
         frame_path = f"frame_{i:04d}.png"
-        imageio.imwrite(frame_path, frame)
+        frame = Image.fromarray(frame)  # Convert frame to PIL Image
+        frame.save(frame_path)  # Save frame as PNG
         frames.append(frame_path)
 
     gif_path = "generated_blupus_cat_video.gif"
-    imageio.mimsave(gif_path, frames, duration=0.1)
+    with imageio.get_writer(gif_path, mode='I', duration=0.1) as writer:
+        for frame_path in frames:
+            frame = imageio.imread(frame_path)  # Read frame as numpy array
+            writer.append_data(frame)  # Append frame to GIF writer
 
     return gif_path
 

@@ -15,4 +15,5 @@ tensorboard
 Jinja2
 bitsandbytes
 imageio
+imageio-ffmpeg
 pygifsicle
