@@ -16,20 +16,20 @@ from zenml.integrations.kubernetes.flavors import (
 )
 
 docker_settings = DockerSettings(
+    parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
+    environment={
+        "PJRT_DEVICE": "CUDA",
+        "USE_TORCH_XLA": "false",
+        "MKL_SERVICE_FORCE_INTEL": 1,
+        "HF_TOKEN": os.environ["HF_TOKEN"],
+    },
     python_package_installer="uv",
     requirements="requirements.txt",
-    parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
     prevent_build_reuse=True,
     python_package_installer_args={
         "system": None,
     },
     apt_packages=["git"],
-    environment={
-        "PJRT_DEVICE": "CUDA",
-        "USE_TORCH_XLA": "false",
-        "MKL_SERVICE_FORCE_INTEL": "1",
-        "HF_TOKEN": os.environ["HF_TOKEN"],
-    },
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
@@ -103,7 +103,9 @@ def load_image_paths(image_dir: Path) -> List[Path]:
     )
 
 
-@step
+@step(
+    settings={"orchestrator.kubernetes": kubernetes_settings},
+)
 def load_data() -> List[PIL.Image.Image]:
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
@@ -231,7 +233,7 @@ def batch_inference() -> PIL.Image.Image:
 @pipeline(settings={"docker": docker_settings}, enable_cache=False)
 def dreambooth_pipeline():
     data = load_data()
-    train_model(data)
+    train_model(data, after="load_data")
     batch_inference(after="train_model")
 
 
