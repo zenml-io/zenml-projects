@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -14,6 +15,9 @@ from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
     KubernetesOrchestratorSettings,
 )
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
 
 docker_settings = DockerSettings(
     parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
@@ -79,8 +83,8 @@ class TrainConfig(SharedConfig):
     postfix: str = ""
 
     # locator for directory containing images of target instance
-    instance_example_dir: str = "data/blupus"
-    class_example_dir: str = "data/ginger-class"
+    instance_example_dir: str = "/app/code/blupus"
+    class_example_dir: str = "/app/code/ginger-class"
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
@@ -96,22 +100,41 @@ class TrainConfig(SharedConfig):
 
 # load paths to all of the images in a specific directory
 def load_image_paths(image_dir: Path) -> List[Path]:
-    return (
-        list(image_dir.glob("*.png"))
-        + list(image_dir.glob("*.jpg"))
-        + list(image_dir.glob("*.jpeg"))
+    logger.info(f"Loading images from {image_dir}")
+
+    # print current working directory
+    logger.info(f"Current working directory: {os.getcwd()}")
+
+    # LIST all the files inside the   `data` directory, recursively
+    image_paths = (
+        list(image_dir.glob("**/*.png"))
+        + list(image_dir.glob("**/*.jpg"))
+        + list(image_dir.glob("**/*.jpeg"))
     )
+    logger.info(f"Image paths: {image_paths}")
+    return image_paths
 
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
 def load_data() -> List[PIL.Image.Image]:
+    # print current working directory
+    logger.info(f"Current working directory: {os.getcwd()}")
+
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
         Path(TrainConfig().instance_example_dir)
     )
-    return [PIL.Image.open(path) for path in instance_example_paths]
+
+    logger.info(f"Loaded {len(instance_example_paths)} images")
+
+    images = [PIL.Image.open(path) for path in instance_example_paths]
+    logger.info(f"Returning {len(images)} images")
+
+    # time.sleep(600)
+
+    return images
 
 
 @step(
@@ -120,11 +143,15 @@ def load_data() -> List[PIL.Image.Image]:
 def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     config = TrainConfig()
 
+    logger.info(f"Training model with {len(instance_example_images)} images")
+
     # Save images to a temporary directory that can persist
     image_dir = Path(tempfile.mkdtemp(prefix="instance_images_"))
     for i, image in enumerate(instance_example_images):
         image_path = image_dir / f"image_{i}.png"
         image.save(image_path)
+
+    logger.info(f"Saved images to {image_dir}")
 
     # Return the path to the directory containing the saved images
     images_dir_path = str(image_dir)
