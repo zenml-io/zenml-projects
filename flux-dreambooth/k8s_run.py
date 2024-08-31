@@ -72,9 +72,7 @@ class SharedConfig:
 
     # The instance name is the "proper noun" we're teaching the model
     instance_name: str = "sks cat"
-    # That proper noun is usually a member of some class (person, bird),
-    # and sharing that information with the model helps it generalize better.
-    class_name: str = "ginger cat"
+
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
 
@@ -158,7 +156,6 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
 
     # define the training prompt
     instance_prompt = f"{config.prefix} {config.instance_name}"
-    class_prompt = f"{config.prefix} {config.class_name}"
 
     # the model training is packaged as a script, so we have to execute it as a subprocess, which adds some boilerplate
     def _exec_subprocess(cmd: List[str]):
