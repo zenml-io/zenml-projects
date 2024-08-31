@@ -36,7 +36,7 @@ docker_settings = DockerSettings(
         "system": None,
     },
     apt_packages=["git", "ffmpeg", "gifsicle"],
-    # prevent_build_reuse=True,
+    prevent_build_reuse=True,
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
@@ -74,7 +74,7 @@ class SharedConfig:
     instance_name: str = "sks htahir1"
 
     # identifier for pretrained models on Hugging Face
-    model_name: str = "black-forest-labs/FLUX.1-schnell"
+    model_name: str = "black-forest-labs/FLUX.1-dev"
 
     # hf_username
     hf_username: str = "strickvl"
