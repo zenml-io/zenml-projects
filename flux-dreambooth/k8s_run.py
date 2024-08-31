@@ -71,7 +71,7 @@ class SharedConfig:
     """Configuration information shared across project components."""
 
     # The instance name is the "proper noun" we're teaching the model
-    instance_name: str = "sks hamza"
+    instance_name: str = "htahir1"
 
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
@@ -100,7 +100,7 @@ class TrainConfig(SharedConfig):
     learning_rate: float = 4e-4
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    max_train_steps: int = 500
+    max_train_steps: int = 1000
     push_to_hub: bool = True
     checkpointing_steps: int = 1000
     seed: int = 117
@@ -216,21 +216,21 @@ def batch_inference() -> PILImage.Image:
     )
 
     prompts = [
-        "A photo of sks hamza wearing a beret in front of the Eiffel Tower",
-        "A portrait photo of sks hamza on a busy Paris street",
-        "A photo of sks hamza sitting at a Parisian cafe",
-        "A photo of sks hamza posing with the Eiffel Tower in the background",
-        "A photo of sks hamza leaning on a French balcony railing",
-        "A photo of sks hamza walking through the Jardin des Tuileries",
-        "A photo of sks hamza looking out a window at the Paris skyline",
-        "A photo of sks hamza relaxing on a cozy Parisian apartment sofa",
-        "A photo of sks hamza admiring art in the Louvre",
-        "A photo of sks hamza sitting on a vintage Louis Vuitton trunk",
-        "A photo of sks hamza wearing a tiny beret and a French flag scarf",
-        "A photo of sks hamza doing yoga with the Arc de Triomphe in the background",
-        "A photo of sks hamza waking up in a Parisian hotel bed",
-        "A photo of sks hamza walking down the Champs-Élysées",
-        "A photo of sks hamza window shopping at a Parisian pet store",
+        "A photo of htahir1 wearing a beret in front of the Eiffel Tower",
+        "A portrait photo of htahir1 on a busy Paris street",
+        "A photo of htahir1 sitting at a Parisian cafe",
+        "A photo of htahir1 posing with the Eiffel Tower in the background",
+        "A photo of htahir1 leaning on a French balcony railing",
+        "A photo of htahir1 walking through the Jardin des Tuileries",
+        "A photo of htahir1 looking out a window at the Paris skyline",
+        "A photo of htahir1 relaxing on a cozy Parisian apartment sofa",
+        "A photo of htahir1 admiring art in the Louvre",
+        "A photo of htahir1 sitting on a vintage Louis Vuitton trunk",
+        "A photo of htahir1 wearing a tiny beret and a French flag scarf",
+        "A photo of htahir1 doing yoga with the Arc de Triomphe in the background",
+        "A photo of htahir1 waking up in a Parisian hotel bed",
+        "A photo of htahir1 walking down the Champs-Élysées",
+        "A photo of htahir1 window shopping at a Parisian pet store",
     ]
 
     images = pipe(
@@ -272,7 +272,7 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="A portrait photo of sks hamza on a busy Paris street",
+        prompt="A portrait photo of htahir1 on a busy Paris street",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
