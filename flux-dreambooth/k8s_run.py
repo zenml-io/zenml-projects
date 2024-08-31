@@ -12,8 +12,9 @@ from diffusers import AutoPipelineForText2Image, StableVideoDiffusionPipeline
 from diffusers.utils import export_to_video
 from PIL import Image
 from PIL import Image as PILImage
-from pygifsicle import optimize
+from rich import print
 from zenml import pipeline, step
+from zenml.client import Client
 from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
     KubernetesOrchestratorSettings,
@@ -35,7 +36,7 @@ docker_settings = DockerSettings(
     python_package_installer_args={
         "system": None,
     },
-    apt_packages=["git"],
+    apt_packages=["git", "gifsicle"],
     # prevent_build_reuse=True,
 )
 
@@ -322,7 +323,7 @@ def convert_video_to_gif(video_path: str) -> str:
         frames.append(frame_path)
 
     gif_path = "generated_blupus_cat_video.gif"
-    with imageio.get_writer(gif_path, mode='I', duration=0.1) as writer:
+    with imageio.get_writer(gif_path, mode="I", duration=0.1) as writer:
         for frame_path in frames:
             frame = imageio.imread(frame_path)  # Read frame as numpy array
             writer.append_data(frame)  # Append frame to GIF writer
@@ -333,7 +334,7 @@ def convert_video_to_gif(video_path: str) -> str:
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
-def image_to_video() -> PILImage.Image:
+def image_to_video() -> bytes:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
@@ -355,13 +356,10 @@ def image_to_video() -> PILImage.Image:
     output_file = "generated_blupus_cat_video.mp4"
     export_to_video(frames, output_file, fps=24)
 
-    gif_path = convert_video_to_gif(output_file)
+    with open(output_file, "rb") as file:
+        video_data = file.read()
 
-    optimize(gif_path)
-
-    gif_image = Image.open(gif_path)
-
-    return gif_image
+    return video_data
 
 
 @pipeline(settings={"docker": docker_settings})
@@ -374,3 +372,6 @@ def dreambooth_pipeline():
 
 if __name__ == "__main__":
     dreambooth_pipeline()
+    zc = Client()
+    last_run = zc.get_pipeline("dreambooth_pipeline").last_successful_run
+    print(last_run)
