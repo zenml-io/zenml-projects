@@ -168,3 +168,6 @@ data/dog-class/
 diffusers/
 .venv/
 sd-dreambooth-blupus/
+data/cat-class/
+data/dog/
+data/aria/
