@@ -71,7 +71,7 @@ class SharedConfig:
     """Configuration information shared across project components."""
 
     # The instance name is the "proper noun" we're teaching the model
-    instance_name: str = "htahir1"
+    instance_name: str = "sks htahir1"
 
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
@@ -84,10 +84,10 @@ class SharedConfig:
 class TrainConfig(SharedConfig):
     """Configuration for the finetuning step."""
 
-    hf_repo_suffix: str = "flux-schnell-dreambooth-hamza"
+    hf_repo_suffix: str = "flux-dreambooth-hamza"
 
     # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
-    prefix: str = "a photo of"
+    prefix: str = "A photo of"
     postfix: str = ""
 
     # locator for directory containing images of target instance
@@ -95,7 +95,7 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 1
+    train_batch_size: int = 2
     gradient_accumulation_steps: int = 1
     learning_rate: float = 4e-4
     lr_scheduler: str = "constant"
@@ -216,21 +216,21 @@ def batch_inference() -> PILImage.Image:
     )
 
     prompts = [
-        "A photo of htahir1 wearing a beret in front of the Eiffel Tower",
-        "A portrait photo of htahir1 on a busy Paris street",
-        "A photo of htahir1 sitting at a Parisian cafe",
-        "A photo of htahir1 posing with the Eiffel Tower in the background",
-        "A photo of htahir1 leaning on a French balcony railing",
-        "A photo of htahir1 walking through the Jardin des Tuileries",
-        "A photo of htahir1 looking out a window at the Paris skyline",
-        "A photo of htahir1 relaxing on a cozy Parisian apartment sofa",
-        "A photo of htahir1 admiring art in the Louvre",
-        "A photo of htahir1 sitting on a vintage Louis Vuitton trunk",
-        "A photo of htahir1 wearing a tiny beret and a French flag scarf",
-        "A photo of htahir1 doing yoga with the Arc de Triomphe in the background",
-        "A photo of htahir1 waking up in a Parisian hotel bed",
-        "A photo of htahir1 walking down the Champs-Élysées",
-        "A photo of htahir1 window shopping at a Parisian pet store",
+        "A photo of sks htahir1 wearing a beret in front of the Eiffel Tower",
+        "A photo of sks htahir1 on a busy Paris street",
+        "A photo of sks htahir1 sitting at a Parisian cafe",
+        "A photo of sks htahir1 posing with the Eiffel Tower in the background",
+        "A photo of sks htahir1 leaning on a French balcony railing",
+        "A photo of sks htahir1 walking through the Jardin des Tuileries",
+        "A photo of sks htahir1 looking out a window at the Paris skyline",
+        "A photo of sks htahir1 relaxing on a cozy Parisian apartment sofa",
+        "A photo of sks htahir1 admiring art in the Louvre",
+        "A photo of sks htahir1 sitting on a vintage Louis Vuitton trunk",
+        "A photo of sks htahir1 wearing a tiny beret and a French flag scarf",
+        "A photo of sks htahir1 doing yoga with the Arc de Triomphe in the background",
+        "A photo of sks htahir1 waking up in a Parisian hotel bed",
+        "A photo of sks htahir1 walking down the Champs-Élysées",
+        "A photo of sks htahir1 window shopping at a Parisian pet store",
     ]
 
     images = pipe(
@@ -272,7 +272,7 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="A portrait photo of htahir1 on a busy Paris street",
+        prompt="A photo of sks htahir1 on a busy Paris street",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
