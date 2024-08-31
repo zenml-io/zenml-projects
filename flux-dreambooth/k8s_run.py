@@ -101,16 +101,13 @@ class TrainConfig(SharedConfig):
 def load_image_paths(image_dir: Path) -> List[Path]:
     logger.info(f"Loading images from {image_dir}")
 
-    # print current working directory
-    logger.info(f"Current working directory: {os.getcwd()}")
-
     # LIST all the files inside the   `data` directory, recursively
     image_paths = (
         list(image_dir.glob("**/*.png"))
         + list(image_dir.glob("**/*.jpg"))
         + list(image_dir.glob("**/*.jpeg"))
     )
-    logger.info(f"Image paths: {image_paths}")
+
     return image_paths
 
 
@@ -118,9 +115,6 @@ def load_image_paths(image_dir: Path) -> List[Path]:
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
 def load_data() -> List[PIL.Image.Image]:
-    # print current working directory
-    logger.info(f"Current working directory: {os.getcwd()}")
-
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
         Path(TrainConfig().instance_example_dir)
@@ -129,10 +123,6 @@ def load_data() -> List[PIL.Image.Image]:
     logger.info(f"Loaded {len(instance_example_paths)} images")
 
     images = [PIL.Image.open(path) for path in instance_example_paths]
-    logger.info(f"Returning {len(images)} images")
-
-    # time.sleep(600)
-
     return images
 
 
@@ -184,7 +174,7 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
         [
             "accelerate",
             "launch",
-            "train_dreambooth.py",
+            "train_dreambooth_lora_flux.py",
             "--mixed_precision=bf16",  # half-precision floats most of the time for faster training
             f"--pretrained_model_name_or_path={config.model_name}",
             "--train_text_encoder",
