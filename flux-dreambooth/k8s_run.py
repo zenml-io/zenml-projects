@@ -1,3 +1,4 @@
+import base64
 import os
 import subprocess
 import tempfile
@@ -316,6 +317,7 @@ def generate_video_frames(
 def image_to_video() -> (
     Tuple[
         Annotated[PILImage.Image, "generated_image"],
+        Annotated[bytes, "video_data"],
         Annotated[HTMLString, "video_html"],
     ]
 ):
@@ -347,11 +349,22 @@ def image_to_video() -> (
     with open(output_file, "rb") as file:
         video_data = file.read()
 
+    html_visualization_str = f"""
+    <html>
+    <body>
+        <h1>Generated Blupus Cat Video</h1>
+        <video width="{optimal_width}" height="{optimal_height}" controls>
+            <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </body>
+    </html>
+    """
+
     return (
         image,
-        HTMLString(
-            f"<video src='data:video/mp4;base64,{base64.b64encode(video_data).decode()}'></video>"
-        ),
+        video_data,
+        HTMLString(html_visualization_str),
     )
 
 
