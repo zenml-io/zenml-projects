@@ -76,6 +76,10 @@ class SharedConfig:
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-schnell"
 
+    # hf_username
+    hf_username: str = "strickvl"
+
+
 
 @dataclass
 class TrainConfig(SharedConfig):
@@ -203,7 +207,7 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
 def batch_inference() -> PILImage.Image:
-    model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
+    model_path = f"{TrainConfig().hf_username}/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
         "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
@@ -317,7 +321,7 @@ def image_to_video() -> (
         Annotated[HTMLString, "video_html"],
     ]
 ):
-    model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
+    model_path = f"{TrainConfig().hf_username}/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
         "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
