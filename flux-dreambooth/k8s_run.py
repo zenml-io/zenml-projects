@@ -8,7 +8,6 @@ from typing import List
 import PIL
 import torch
 from accelerate.utils import write_basic_config
-from diffusers import StableDiffusionPipeline
 from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
@@ -75,7 +74,7 @@ class SharedConfig:
 class TrainConfig(SharedConfig):
     """Configuration for the finetuning step."""
 
-    hf_repo_suffix: str = "sd-dreambooth-blupus"
+    hf_repo_suffix: str = "flux-schnell-dreambooth-blupus"
 
     # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
     prefix: str = "a photo of"
@@ -87,14 +86,15 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 1
+    train_batch_size: int = 3
     gradient_accumulation_steps: int = 1
-    learning_rate: float = 2e-6
+    learning_rate: float = 4e-4
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    num_class_images: int = 200
-    max_train_steps: int = 800
+    max_train_steps: int = 500
     push_to_hub: bool = True
+    checkpointing_steps: int = 1000
+    seed: int = 117
 
 
 # load paths to all of the images in a specific directory
@@ -177,23 +177,18 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
             "train_dreambooth_lora_flux.py",
             "--mixed_precision=bf16",  # half-precision floats most of the time for faster training
             f"--pretrained_model_name_or_path={config.model_name}",
-            "--train_text_encoder",
             f"--instance_data_dir={images_dir_path}",
-            f"--class_data_dir={config.class_example_dir}",
             f"--output_dir=./{config.hf_repo_suffix}",
-            "--with_prior_preservation",
-            "--prior_loss_weight=1.0",
             f"--instance_prompt={instance_prompt}",
-            f"--class_prompt={class_prompt}",
             f"--resolution={config.resolution}",
             f"--train_batch_size={config.train_batch_size}",
-            "--use_8bit_adam",
-            "--gradient_checkpointing",
+            f"--gradient_accumulation_steps={config.gradient_accumulation_steps}",
             f"--learning_rate={config.learning_rate}",
             f"--lr_scheduler={config.lr_scheduler}",
             f"--lr_warmup_steps={config.lr_warmup_steps}",
-            f"--num_class_images={config.num_class_images}",
             f"--max_train_steps={config.max_train_steps}",
+            f"--checkpointing_steps={config.checkpointing_steps}",
+            f"--seed={config.seed}",  # increased reproducibility by seeding the RNG
             "--push_to_hub" if config.push_to_hub else "",
         ]
     )
@@ -204,9 +199,13 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
 )
 def batch_inference() -> PIL.Image.Image:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
-    pipe = StableDiffusionPipeline.from_pretrained(
-        model_path, torch_dtype=torch.float16
+
+    pipe = AutoPipelineForText2Image.from_pretrained(
+        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
     ).to("cuda")
+    pipe.load_lora_weights(
+        model_path, weight_name="pytorch_lora_weights.safetensors"
+    )
 
     prompts = [
         "A photo of blupus cat wearing a beret in front of the Eiffel Tower",
@@ -246,7 +245,7 @@ def batch_inference() -> PIL.Image.Image:
     return gallery
 
 
-@pipeline(settings={"docker": docker_settings}, enable_cache=False)
+@pipeline(settings={"docker": docker_settings})
 def dreambooth_pipeline():
     data = load_data()
     train_model(data, after="load_data")
