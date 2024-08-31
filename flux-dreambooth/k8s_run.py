@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
+from typing import Annotated, List, Tuple
 
 import imageio
 import torch
@@ -211,7 +211,7 @@ def batch_inference() -> PILImage.Image:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
-        TrainConfig.model_name, torch_dtype=torch.bfloat16
+        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
     ).to("cuda")
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
@@ -234,13 +234,6 @@ def batch_inference() -> PILImage.Image:
         "A photo of blupus cat chasing its tail on the Champs-Élysées",
         "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
     ]
-
-    # images = []
-    # for prompt in prompts:
-    #     image = pipe(
-    #         prompt, num_inference_steps=70, guidance_scale=7.5
-    #     ).images[0]
-    #     images.append(image)
 
     images = pipe(
         prompt=prompts,
@@ -281,11 +274,11 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="Photorealistic cute photo of blupus cat wearing a red beret in front of the Eiffel Tower",
-        num_inference_steps=50,
+        prompt="A photo of blupus cat wearing a red beret in front of the Eiffel Tower",
+        num_inference_steps=70,
         guidance_scale=7.5,
-        height=256,
-        width=256,
+        height=512,
+        width=512,
     ).images[0]
 
 
@@ -300,15 +293,21 @@ def load_video_pipeline() -> StableVideoDiffusionPipeline:
 
 
 def generate_video_frames(
-    video_pipeline: StableVideoDiffusionPipeline, image: PILImage.Image
+    video_pipeline: StableVideoDiffusionPipeline,
+    image: PILImage.Image,
+    width: int,
+    height: int,
 ) -> List[PILImage.Image]:
     generator = torch.manual_seed(42)
+
     return video_pipeline(
         image,
-        num_frames=100,
-        num_inference_steps=25,
+        # num_frames=100,
+        num_inference_steps=50,
         decode_chunk_size=8,
         generator=generator,
+        height=height,
+        width=width,
     ).frames[0]
 
 
@@ -333,12 +332,18 @@ def convert_video_to_gif(video_path: str) -> str:
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
+    enable_cache=False,
 )
-def image_to_video() -> bytes:
+def image_to_video() -> (
+    Tuple[
+        Annotated[bytes, "video_data"],
+        Annotated[PILImage.Image, "generated_image"],
+    ]
+):
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
-        TrainConfig.model_name, torch_dtype=torch.bfloat16
+        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
     ).to("cuda")
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
@@ -351,7 +356,11 @@ def image_to_video() -> bytes:
     optimal_size = get_optimal_size(image)
     image = image.resize(optimal_size)
 
-    frames = generate_video_frames(video_pipeline, image)
+    optimal_width, optimal_height = optimal_size
+
+    frames = generate_video_frames(
+        video_pipeline, image, optimal_width, optimal_height
+    )
 
     output_file = "generated_blupus_cat_video.mp4"
     export_to_video(frames, output_file, fps=24)
@@ -359,7 +368,7 @@ def image_to_video() -> bytes:
     with open(output_file, "rb") as file:
         video_data = file.read()
 
-    return video_data
+    return (video_data, image)
 
 
 @pipeline(settings={"docker": docker_settings})
@@ -374,4 +383,8 @@ if __name__ == "__main__":
     dreambooth_pipeline()
     zc = Client()
     last_run = zc.get_pipeline("dreambooth_pipeline").last_successful_run
-    print(last_run)
+    video_byte_data = (
+        last_run.steps["image_to_video"].outputs["video_data"].load()
+    )
+    with open("generated_blupus_cat_video.mp4", "wb") as file:
+        file.write(video_byte_data)
