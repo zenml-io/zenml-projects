@@ -69,7 +69,7 @@ class SharedConfig:
     # and sharing that information with the model helps it generalize better.
     class_name: str = "ginger cat"
     # identifier for pretrained models on Hugging Face
-    model_name: str = "CompVis/stable-diffusion-v1-4"
+    model_name: str = "black-forest-labs/FLUX.1-dev"
 
 
 @dataclass
@@ -83,8 +83,8 @@ class TrainConfig(SharedConfig):
     postfix: str = ""
 
     # locator for directory containing images of target instance
-    instance_example_dir: str = "blupus"
-    class_example_dir: str = "ginger-class"
+    instance_example_dir: str = "data/blupus-instance-images"
+    class_example_dir: str = "data/ginger-class"
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
@@ -132,7 +132,7 @@ def load_data() -> List[PIL.Image.Image]:
     images = [PIL.Image.open(path) for path in instance_example_paths]
     logger.info(f"Returning {len(images)} images")
 
-    time.sleep(600)
+    # time.sleep(600)
 
     return images
 
@@ -260,8 +260,8 @@ def batch_inference() -> PIL.Image.Image:
 @pipeline(settings={"docker": docker_settings}, enable_cache=False)
 def dreambooth_pipeline():
     data = load_data()
-    # train_model(data, after="load_data")
-    # batch_inference(after="train_model")
+    train_model(data, after="load_data")
+    batch_inference(after="train_model")
 
 
 if __name__ == "__main__":
