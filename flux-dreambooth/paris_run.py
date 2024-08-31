@@ -1,3 +1,4 @@
+import os
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -19,8 +20,8 @@ docker_settings = DockerSettings(
     build_context_root="/home/strickvl/coding/zenml/",
     python_package_installer="uv",
     requirements="requirements.txt",
-    environment={"HF_TOKEN": "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"},
-    # prevent_build_reuse=True,
+    environment={"HF_TOKEN": os.environ["HF_TOKEN"]},
+    prevent_build_reuse=True,
 )
 
 # modal_resource_settings = ResourceSettings(cpu_count=1.25, gpu_count=1)
@@ -85,15 +86,14 @@ def load_data() -> List[PIL.Image.Image]:
     return [PIL.Image.open(path) for path in instance_example_paths]
 
 
-
-# @step
-@step(
-    step_operator="modal",
-    settings={
-        "step_operator.modal": modal_settings,
-        # "resources": modal_resource_settings,
-    },
-)
+# @step(
+#     step_operator="modal",
+#     settings={
+#         "step_operator.modal": modal_settings,
+#         # "resources": modal_resource_settings,
+#     },
+# )
+@step
 def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     config = TrainConfig()
 
@@ -160,14 +160,14 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     )
 
 
-# @step
-@step(
-    step_operator="modal",
-    settings={
-        "step_operator.modal": modal_settings,
-        # "resources": modal_resource_settings,
-    },
-)
+# @step(
+#     step_operator="modal",
+#     settings={
+#         "step_operator.modal": modal_settings,
+#         # "resources": modal_resource_settings,
+#     },
+# )
+@step
 def batch_inference() -> PIL.Image.Image:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
     pipe = StableDiffusionPipeline.from_pretrained(

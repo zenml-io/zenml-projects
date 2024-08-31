@@ -13,3 +13,4 @@ git+https://github.com/huggingface/diffusers.git@main
 pillow
 tensorboard
 Jinja2
+bitsandbytes
