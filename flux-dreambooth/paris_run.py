@@ -8,9 +8,18 @@ import PIL
 import torch
 from accelerate.utils import write_basic_config
 from diffusers import StableDiffusionPipeline
+from zenml.config import DockerSettings
 
 from zenml import pipeline, step
 
+zenml_git_root = Path(zenml.__file__).parents[2]
+
+docker_settings = DockerSettings(
+    dockerfile="/home/strickvl/coding/zenml/docker/zenml-dev.Dockerfile",
+    build_context_root=str(zenml_git_root),
+    python_package_installer="uv",
+    prevent_build_reuse=True,
+)
 
 @dataclass
 class SharedConfig:

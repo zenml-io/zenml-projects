@@ -165,5 +165,5 @@ cython_debug/
 # Specific to this project
 models/
 data/dog-class/
-data/ginger-class/
+# data/ginger-class/
 diffusers/
