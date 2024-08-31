@@ -15,3 +15,5 @@ tensorboard
 Jinja2
 bitsandbytes
 opencv-python
+imageio
+imageio-ffmpeg

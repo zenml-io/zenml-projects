@@ -35,7 +35,7 @@ docker_settings = DockerSettings(
     python_package_installer_args={
         "system": None,
     },
-    apt_packages=["git"],
+    apt_packages=["git", "ffmpeg", "gifsicle"],
     # prevent_build_reuse=True,
 )
 
