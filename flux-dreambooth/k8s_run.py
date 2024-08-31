@@ -19,16 +19,16 @@ docker_settings = DockerSettings(
     python_package_installer="uv",
     requirements="requirements.txt",
     parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
-    environment={"HF_TOKEN": os.environ["HF_TOKEN"]},
     prevent_build_reuse=True,
     python_package_installer_args={
-        "system": "null",
-        "apt_packages": ["git"],
-        "environment": {
-            "PJRT_DEVICE": "CUDA",
-            "USE_TORCH_XLA": "false",
-            "MKL_SERVICE_FORCE_INTEL": "1",
-        },
+        "system": None,
+    },
+    apt_packages=["git"],
+    environment={
+        "PJRT_DEVICE": "CUDA",
+        "USE_TORCH_XLA": "false",
+        "MKL_SERVICE_FORCE_INTEL": "1",
+        "HF_TOKEN": os.environ["HF_TOKEN"],
     },
 )
 
