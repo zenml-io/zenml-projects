@@ -3,12 +3,16 @@ import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
+import imageio
 import torch
 from accelerate.utils import write_basic_config
-from diffusers import AutoPipelineForText2Image
+from diffusers import AutoPipelineForText2Image, StableVideoDiffusionPipeline
+from diffusers.utils import export_to_video
+from PIL import Image
 from PIL import Image as PILImage
+from pygifsicle import optimize
 from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
@@ -206,7 +210,7 @@ def batch_inference() -> PILImage.Image:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
-        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
+        TrainConfig.model_name, torch_dtype=torch.bfloat16
     ).to("cuda")
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
@@ -258,11 +262,110 @@ def batch_inference() -> PILImage.Image:
     return gallery_img
 
 
+def get_optimal_size(
+    image: PILImage.Image, max_size: int = 1024
+) -> Tuple[int, int]:
+    width, height = image.size
+    aspect_ratio = width / height
+
+    if width > height:
+        new_width = min(width, max_size)
+        new_height = int(new_width / aspect_ratio)
+    else:
+        new_height = min(height, max_size)
+        new_width = int(new_height * aspect_ratio)
+
+    return (new_width, new_height)
+
+
+def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
+    return pipe(
+        prompt="Photorealistic cute photo of blupus cat wearing a red beret in front of the Eiffel Tower",
+        num_inference_steps=50,
+        guidance_scale=7.5,
+        height=256,
+        width=256,
+    ).images[0]
+
+
+def load_video_pipeline() -> StableVideoDiffusionPipeline:
+    video_pipeline = StableVideoDiffusionPipeline.from_pretrained(
+        "stabilityai/stable-video-diffusion-img2vid-xt",
+        torch_dtype=torch.float16,
+        variant="fp16",
+    )
+    video_pipeline.enable_model_cpu_offload()
+    return video_pipeline
+
+
+def generate_video_frames(
+    video_pipeline: StableVideoDiffusionPipeline, image: PILImage.Image
+) -> List[PILImage.Image]:
+    generator = torch.manual_seed(42)
+    return video_pipeline(
+        image,
+        num_frames=100,
+        num_inference_steps=25,
+        decode_chunk_size=8,
+        generator=generator,
+    ).frames[0]
+
+
+def convert_video_to_gif(video_path: str) -> str:
+    video = imageio.get_reader(video_path)
+
+    frames = []
+    for i, frame in enumerate(video):
+        frame_path = f"frame_{i:04d}.png"
+        imageio.imwrite(frame_path, frame)
+        frames.append(frame_path)
+
+    gif_path = "generated_blupus_cat_video.gif"
+    imageio.mimsave(gif_path, frames, duration=0.1)
+
+    return gif_path
+
+
+@step(
+    settings={"orchestrator.kubernetes": kubernetes_settings},
+)
+def image_to_video() -> PILImage.Image:
+    model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
+
+    pipe = AutoPipelineForText2Image.from_pretrained(
+        TrainConfig.model_name, torch_dtype=torch.bfloat16
+    ).to("cuda")
+    pipe.load_lora_weights(
+        model_path, weight_name="pytorch_lora_weights.safetensors"
+    )
+
+    image = generate_image(pipe)
+
+    video_pipeline = load_video_pipeline()
+
+    optimal_size = get_optimal_size(image)
+    image = image.resize(optimal_size)
+
+    frames = generate_video_frames(video_pipeline, image)
+
+    output_file = "generated_blupus_cat_video.mp4"
+    export_to_video(frames, output_file, fps=24)
+
+    gif_path = convert_video_to_gif(output_file)
+
+    optimize(gif_path)
+
+    gif_image = Image.open(gif_path)
+
+    return gif_image
+
+
 @pipeline(settings={"docker": docker_settings})
 def dreambooth_pipeline():
     data = load_data()
     train_model(data, after="load_data")
     batch_inference(after="train_model")
+    image_to_video(after="batch_inference")
 
 
 if __name__ == "__main__":

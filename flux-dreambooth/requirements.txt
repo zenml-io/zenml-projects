@@ -14,3 +14,5 @@ pillow
 tensorboard
 Jinja2
 bitsandbytes
+imageio
+pygifsicle
