@@ -91,7 +91,6 @@ class TrainConfig(SharedConfig):
 
     # locator for directory containing images of target instance
     instance_example_dir: str = "data/blupus-instance-images"
-    class_example_dir: str = "data/ginger-class"
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
