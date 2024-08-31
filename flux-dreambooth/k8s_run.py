@@ -5,21 +5,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, List, Tuple
 
-import imageio
 import torch
 from accelerate.utils import write_basic_config
 from diffusers import AutoPipelineForText2Image, StableVideoDiffusionPipeline
 from diffusers.utils import export_to_video
-from PIL import Image
 from PIL import Image as PILImage
 from rich import print
 from zenml import pipeline, step
-from zenml.client import Client
 from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
     KubernetesOrchestratorSettings,
 )
 from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 logger = get_logger(__name__)
 
@@ -36,7 +34,7 @@ docker_settings = DockerSettings(
     python_package_installer_args={
         "system": None,
     },
-    apt_packages=["git", "gifsicle"],
+    apt_packages=["git"],
     # prevent_build_reuse=True,
 )
 
@@ -274,7 +272,7 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="A photo of blupus cat wearing a red beret in front of the Eiffel Tower",
+        prompt="A portrait photo of blupus cat on a busy Paris street",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
@@ -302,7 +300,7 @@ def generate_video_frames(
 
     return video_pipeline(
         image,
-        # num_frames=100,
+        num_frames=100,
         num_inference_steps=50,
         decode_chunk_size=8,
         generator=generator,
@@ -311,33 +309,14 @@ def generate_video_frames(
     ).frames[0]
 
 
-def convert_video_to_gif(video_path: str) -> str:
-    video = imageio.get_reader(video_path)
-
-    frames = []
-    for i, frame in enumerate(video):
-        frame_path = f"frame_{i:04d}.png"
-        frame = Image.fromarray(frame)  # Convert frame to PIL Image
-        frame.save(frame_path)  # Save frame as PNG
-        frames.append(frame_path)
-
-    gif_path = "generated_blupus_cat_video.gif"
-    with imageio.get_writer(gif_path, mode="I", duration=0.1) as writer:
-        for frame_path in frames:
-            frame = imageio.imread(frame_path)  # Read frame as numpy array
-            writer.append_data(frame)  # Append frame to GIF writer
-
-    return gif_path
-
-
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
     enable_cache=False,
 )
 def image_to_video() -> (
     Tuple[
-        Annotated[bytes, "video_data"],
         Annotated[PILImage.Image, "generated_image"],
+        Annotated[HTMLString, "video_html"],
     ]
 ):
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
@@ -363,12 +342,17 @@ def image_to_video() -> (
     )
 
     output_file = "generated_blupus_cat_video.mp4"
-    export_to_video(frames, output_file, fps=24)
+    export_to_video(frames, output_file, fps=7)
 
     with open(output_file, "rb") as file:
         video_data = file.read()
 
-    return (video_data, image)
+    return (
+        image,
+        HTMLString(
+            f"<video src='data:video/mp4;base64,{base64.b64encode(video_data).decode()}'></video>"
+        ),
+    )
 
 
 @pipeline(settings={"docker": docker_settings})
@@ -381,10 +365,3 @@ def dreambooth_pipeline():
 
 if __name__ == "__main__":
     dreambooth_pipeline()
-    zc = Client()
-    last_run = zc.get_pipeline("dreambooth_pipeline").last_successful_run
-    video_byte_data = (
-        last_run.steps["image_to_video"].outputs["video_data"].load()
-    )
-    with open("generated_blupus_cat_video.mp4", "wb") as file:
-        file.write(video_byte_data)
