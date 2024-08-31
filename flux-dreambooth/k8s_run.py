@@ -5,9 +5,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-import PIL
 import torch
 from accelerate.utils import write_basic_config
+from diffusers import AutoPipelineForText2Image
+from PIL import Image as PILImage
 from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import (
@@ -53,6 +54,10 @@ kubernetes_settings = KubernetesOrchestratorSettings(
                 }
             }
         },
+        # "resources": {
+        #     "requests": {"nvidia.com/gpu": "3"},
+        #     "limits": {"nvidia.com/gpu": "3"},
+        # },
     },
 )
 
@@ -67,7 +72,7 @@ class SharedConfig:
     # and sharing that information with the model helps it generalize better.
     class_name: str = "ginger cat"
     # identifier for pretrained models on Hugging Face
-    model_name: str = "black-forest-labs/FLUX.1-dev"
+    model_name: str = "black-forest-labs/FLUX.1-schnell"
 
 
 @dataclass
@@ -86,7 +91,7 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 3
+    train_batch_size: int = 1
     gradient_accumulation_steps: int = 1
     learning_rate: float = 4e-4
     lr_scheduler: str = "constant"
@@ -112,9 +117,9 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step(
-    settings={"orchestrator.kubernetes": kubernetes_settings},
+    # settings={"orchestrator.kubernetes": kubernetes_settings},
 )
-def load_data() -> List[PIL.Image.Image]:
+def load_data() -> List[PILImage.Image]:
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
         Path(TrainConfig().instance_example_dir)
@@ -122,14 +127,14 @@ def load_data() -> List[PIL.Image.Image]:
 
     logger.info(f"Loaded {len(instance_example_paths)} images")
 
-    images = [PIL.Image.open(path) for path in instance_example_paths]
+    images = [PILImage.open(path) for path in instance_example_paths]
     return images
 
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
-def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
+def train_model(instance_example_images: List[PILImage.Image]) -> None:
     config = TrainConfig()
 
     logger.info(f"Training model with {len(instance_example_images)} images")
@@ -197,7 +202,7 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
 )
-def batch_inference() -> PIL.Image.Image:
+def batch_inference() -> PILImage.Image:
     model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
@@ -214,28 +219,34 @@ def batch_inference() -> PIL.Image.Image:
         "A photo of blupus cat playing with a toy Eiffel Tower",
         "A photo of blupus cat sleeping on a French balcony",
         "A photo of blupus cat chasing pigeons in the Jardin des Tuileries",
-        # "A photo of blupus cat perched on a windowsill overlooking the Paris skyline",
-        # "A photo of blupus cat curled up on a cozy Parisian apartment sofa",
-        # "A photo of blupus cat playing with a red laser pointer in the Louvre",
-        # "A photo of blupus cat sitting in a vintage Louis Vuitton trunk",
-        # "A photo of blupus cat wearing a tiny beret and a French flag bow tie",
-        # "A photo of blupus cat stretching on a yoga mat with the Arc de Triomphe in the background",
-        # "A photo of blupus cat peeking out from under a Parisian hotel bed",
-        # "A photo of blupus cat chasing its tail on the Champs-Élysées",
-        # "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
+        "A photo of blupus cat perched on a windowsill overlooking the Paris skyline",
+        "A photo of blupus cat curled up on a cozy Parisian apartment sofa",
+        "A photo of blupus cat playing with a red laser pointer in the Louvre",
+        "A photo of blupus cat sitting in a vintage Louis Vuitton trunk",
+        "A photo of blupus cat wearing a tiny beret and a French flag bow tie",
+        "A photo of blupus cat stretching on a yoga mat with the Arc de Triomphe in the background",
+        "A photo of blupus cat peeking out from under a Parisian hotel bed",
+        "A photo of blupus cat chasing its tail on the Champs-Élysées",
+        "A photo of blupus cat sitting next to a fishbowl in a Parisian pet shop window",
     ]
 
-    images = []
-    for prompt in prompts:
-        image = pipe(
-            prompt, num_inference_steps=70, guidance_scale=7.5
-        ).images[0]
-        images.append(image)
+    # images = []
+    # for prompt in prompts:
+    #     image = pipe(
+    #         prompt, num_inference_steps=70, guidance_scale=7.5
+    #     ).images[0]
+    #     images.append(image)
+
+    images = pipe(
+        prompt=prompts,
+        num_inference_steps=50,
+        guidance_scale=7.5
+    ).images
 
     width, height = images[0].size
     rows = 3
     cols = 5
-    gallery = PIL.Image.new("RGB", (width * cols, height * rows))
+    gallery = PILImage.new("RGB", (width * cols, height * rows))
 
     for i, image in enumerate(images):
         row = i // cols
