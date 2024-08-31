@@ -301,7 +301,7 @@ def generate_video_frames(
 
     return video_pipeline(
         image,
-        num_frames=100,
+        # num_frames=100,
         num_inference_steps=50,
         decode_chunk_size=8,
         generator=generator,
