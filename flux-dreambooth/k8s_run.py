@@ -240,20 +240,22 @@ def batch_inference() -> PILImage.Image:
     images = pipe(
         prompt=prompts,
         num_inference_steps=50,
-        guidance_scale=7.5
+        guidance_scale=7.5,
+        height=256,
+        width=256,
     ).images
 
     width, height = images[0].size
     rows = 3
     cols = 5
-    gallery = PILImage.new("RGB", (width * cols, height * rows))
+    gallery_img = PILImage.new("RGB", (width * cols, height * rows))
 
     for i, image in enumerate(images):
         row = i // cols
         col = i % cols
-        gallery.paste(image, (col * width, row * height))
+        gallery_img.paste(image, (col * width, row * height))
 
-    return gallery
+    return gallery_img
 
 
 @pipeline(settings={"docker": docker_settings})
