@@ -8,18 +8,25 @@ import PIL
 import torch
 from accelerate.utils import write_basic_config
 from diffusers import StableDiffusionPipeline
-from zenml.config import DockerSettings
-
 from zenml import pipeline, step
-
-zenml_git_root = Path(zenml.__file__).parents[2]
+from zenml.config import DockerSettings
+from zenml.integrations.modal.flavors.modal_step_operator_flavor import (
+    ModalStepOperatorSettings,
+)
 
 docker_settings = DockerSettings(
     dockerfile="/home/strickvl/coding/zenml/docker/zenml-dev.Dockerfile",
-    build_context_root=str(zenml_git_root),
+    build_context_root="/home/strickvl/coding/zenml/",
     python_package_installer="uv",
-    prevent_build_reuse=True,
+    requirements="requirements.txt",
+    environment={"HF_TOKEN": "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"},
+    # prevent_build_reuse=True,
 )
+
+# modal_resource_settings = ResourceSettings(cpu_count=1.25, gpu_count=1)
+
+modal_settings = ModalStepOperatorSettings(gpu="A100")
+
 
 @dataclass
 class SharedConfig:
@@ -62,7 +69,11 @@ class TrainConfig(SharedConfig):
 
 # load paths to all of the images in a specific directory
 def load_image_paths(image_dir: Path) -> List[Path]:
-    return list(image_dir.glob("*.png"))
+    return (
+        list(image_dir.glob("*.png"))
+        + list(image_dir.glob("*.jpg"))
+        + list(image_dir.glob("*.jpeg"))
+    )
 
 
 @step
@@ -74,8 +85,15 @@ def load_data() -> List[PIL.Image.Image]:
     return [PIL.Image.open(path) for path in instance_example_paths]
 
 
-# @step(step_operator="modal")
-@step
+
+# @step
+@step(
+    step_operator="modal",
+    settings={
+        "step_operator.modal": modal_settings,
+        # "resources": modal_resource_settings,
+    },
+)
 def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     config = TrainConfig()
 
@@ -117,7 +135,7 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
         [
             "accelerate",
             "launch",
-            "/home/strickvl/coding/zenml-projects/flux-dreambooth/diffusers/examples/dreambooth/test_dreambooth.py",
+            "train_dreambooth.py",
             "--mixed_precision=bf16",  # half-precision floats most of the time for faster training
             f"--pretrained_model_name_or_path={config.model_name}",
             "--train_text_encoder",
@@ -142,10 +160,16 @@ def train_model(instance_example_images: List[PIL.Image.Image]) -> None:
     )
 
 
-# @step(step_operator="modal")
-@step
+# @step
+@step(
+    step_operator="modal",
+    settings={
+        "step_operator.modal": modal_settings,
+        # "resources": modal_resource_settings,
+    },
+)
 def batch_inference() -> PIL.Image.Image:
-    model_path = "strickvl/models"
+    model_path = f"strickvl/{TrainConfig().hf_repo_suffix}"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_path, torch_dtype=torch.float16
     ).to("cuda")
@@ -188,7 +212,7 @@ def batch_inference() -> PIL.Image.Image:
     return gallery
 
 
-@pipeline(enable_cache=False)
+@pipeline(settings={"docker": docker_settings}, enable_cache=False)
 def dreambooth_pipeline():
     data = load_data()
     train_model(data)
