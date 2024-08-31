@@ -167,3 +167,5 @@ models/
 data/dog-class/
 # data/ginger-class/
 diffusers/
+.venv/
+sd-dreambooth-blupus/
