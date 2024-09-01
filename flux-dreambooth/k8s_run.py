@@ -99,7 +99,7 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 1
+    train_batch_size: int = 3
     rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
     learning_rate: float = 4e-4
@@ -221,6 +221,8 @@ def batch_inference() -> PILImage.Image:
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
     )
+
+    config = TrainConfig()
 
     instance_phrase = f"{config.instance_name} the {config.class_name}"
 
@@ -376,7 +378,7 @@ def image_to_video() -> (
     )
 
 
-@pipeline(settings={"docker": docker_settings}, enable_cache=False)
+@pipeline(settings={"docker": docker_settings})
 def dreambooth_pipeline():
     data = load_data()
     train_model(data, after="load_data")
