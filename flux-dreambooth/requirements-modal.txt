@@ -17,3 +17,7 @@ bitsandbytes
 opencv-python
 imageio
 imageio-ffmpeg
+grpcio
+grpcio-status
+modal
+h2

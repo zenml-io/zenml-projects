@@ -1,17 +1,25 @@
+import base64
 import os
 import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Annotated, List, Tuple
+from zenml.integrations.constants import MODAL, AZURE
 
 import torch
 from accelerate.utils import write_basic_config
+from diffusers import AutoPipelineForText2Image, StableVideoDiffusionPipeline
+from diffusers.utils import export_to_video
+from PIL import Image as PILImage
+from rich import print
 from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.integrations.modal.flavors.modal_step_operator_flavor import (
     ModalStepOperatorSettings,
 )
+from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 logger = get_logger(__name__)
 
@@ -28,6 +36,7 @@ docker_settings = DockerSettings(
     python_package_installer_args={
         "system": None,
     },
+    required_integrations=[AZURE, MODAL],
     apt_packages=["git", "ffmpeg", "gifsicle"],
     prevent_build_reuse=True,
 )
@@ -97,7 +106,7 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step(
-    # settings={"step_operator.modal": modal_settings},
+    settings={"step_operator.modal": modal_settings},
 )
 def load_data() -> List[PILImage.Image]:
     # Load image paths from the instance_example_dir
