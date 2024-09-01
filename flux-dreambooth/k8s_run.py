@@ -164,7 +164,7 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
 
     # define the training prompt
     instance_phrase = f"{config.instance_name} the {config.class_name}"
-    prompt = f"{config.prefix} {instance_phrase}".strip()
+    instance_prompt = f"{config.prefix} {instance_phrase}".strip()
 
     # the model training is packaged as a script, so we have to execute it as a subprocess, which adds some boilerplate
     def _exec_subprocess(cmd: List[str]):
