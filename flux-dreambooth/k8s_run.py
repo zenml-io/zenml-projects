@@ -105,9 +105,9 @@ class TrainConfig(SharedConfig):
     learning_rate: float = 1e-6
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    max_train_steps: int = 500
+    max_train_steps: int = 1600
     push_to_hub: bool = True
-    checkpointing_steps: int = 1600
+    checkpointing_steps: int = 1000
     seed: int = 117
 
 
