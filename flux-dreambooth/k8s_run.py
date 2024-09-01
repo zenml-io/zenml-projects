@@ -36,7 +36,7 @@ docker_settings = DockerSettings(
         "system": None,
     },
     apt_packages=["git", "ffmpeg", "gifsicle"],
-    prevent_build_reuse=True,
+    # prevent_build_reuse=True,
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
@@ -71,7 +71,11 @@ class SharedConfig:
     """Configuration information shared across project components."""
 
     # The instance name is the "proper noun" we're teaching the model
-    instance_name: str = "sks htahir1"
+    instance_name: str = "htahir1"
+
+    # That proper noun is usually a member of some class (person, bird),
+    # and sharing that information with the model helps it generalize better.
+    class_name: str = "Pakistani man"
 
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-dev"
@@ -86,7 +90,7 @@ class TrainConfig(SharedConfig):
 
     hf_repo_suffix: str = "flux-dreambooth-hamza"
 
-    # training prompt looks like `{PREFIX} {INSTANCE_NAME} the {CLASS_NAME} {POSTFIX}`
+    # training prompt looks like `{PREFIX} {INSTANCE_NAME}`
     prefix: str = "A photo of"
     postfix: str = ""
 
@@ -95,12 +99,13 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 2
+    train_batch_size: int = 1
+    rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
     learning_rate: float = 4e-4
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    max_train_steps: int = 600
+    max_train_steps: int = 500
     push_to_hub: bool = True
     checkpointing_steps: int = 1000
     seed: int = 117
@@ -158,7 +163,8 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
     write_basic_config(mixed_precision="bf16")
 
     # define the training prompt
-    instance_prompt = f"{config.prefix} {config.instance_name}"
+    instance_phrase = f"{config.instance_name} the {config.class_name}"
+    prompt = f"{config.prefix} {instance_phrase}".strip()
 
     # the model training is packaged as a script, so we have to execute it as a subprocess, which adds some boilerplate
     def _exec_subprocess(cmd: List[str]):
@@ -192,6 +198,7 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
             f"--train_batch_size={config.train_batch_size}",
             f"--gradient_accumulation_steps={config.gradient_accumulation_steps}",
             f"--learning_rate={config.learning_rate}",
+            f"--rank={config.rank}",
             f"--lr_scheduler={config.lr_scheduler}",
             f"--lr_warmup_steps={config.lr_warmup_steps}",
             f"--max_train_steps={config.max_train_steps}",
@@ -215,22 +222,24 @@ def batch_inference() -> PILImage.Image:
         model_path, weight_name="pytorch_lora_weights.safetensors"
     )
 
+    instance_phrase = f"{config.instance_name} the {config.class_name}"
+
     prompts = [
-        "A photo of sks htahir1 wearing a beret in front of the Eiffel Tower",
-        "A photo of sks htahir1 on a busy Paris street",
-        "A photo of sks htahir1 sitting at a Parisian cafe",
-        "A photo of sks htahir1 posing with the Eiffel Tower in the background",
-        "A photo of sks htahir1 leaning on a French balcony railing",
-        "A photo of sks htahir1 walking through the Jardin des Tuileries",
-        "A photo of sks htahir1 looking out a window at the Paris skyline",
-        "A photo of sks htahir1 relaxing on a cozy Parisian apartment sofa",
-        "A photo of sks htahir1 admiring art in the Louvre",
-        "A photo of sks htahir1 sitting on a vintage Louis Vuitton trunk",
-        "A photo of sks htahir1 wearing a tiny beret and a French flag scarf",
-        "A photo of sks htahir1 doing yoga with the Arc de Triomphe in the background",
-        "A photo of sks htahir1 waking up in a Parisian hotel bed",
-        "A photo of sks htahir1 walking down the Champs-Élysées",
-        "A photo of sks htahir1 window shopping at a Parisian pet store",
+        f"A photo of {instance_phrase} wearing a beret in front of the Eiffel Tower",
+        f"A photo of {instance_phrase} on a busy Paris street",
+        f"A photo of {instance_phrase} sitting at a Parisian cafe",
+        f"A photo of {instance_phrase} posing with the Eiffel Tower in the background",
+        f"A photo of {instance_phrase} leaning on a French balcony railing",
+        f"A photo of {instance_phrase} walking through the Jardin des Tuileries",
+        f"A photo of {instance_phrase} looking out a window at the Paris skyline",
+        f"A photo of {instance_phrase} relaxing on a cozy Parisian apartment sofa",
+        f"A photo of {instance_phrase} admiring art in the Louvre",
+        f"A photo of {instance_phrase} sitting on a vintage Louis Vuitton trunk",
+        f"A photo of {instance_phrase} wearing a tiny beret and a French flag scarf",
+        f"A photo of {instance_phrase} doing yoga with the Arc de Triomphe in the background",
+        f"A photo of {instance_phrase} waking up in a Parisian hotel bed",
+        f"A photo of {instance_phrase} walking down the Champs-Élysées",
+        f"A photo of {instance_phrase} window shopping at a Parisian pet store",
     ]
 
     images = pipe(
@@ -272,7 +281,7 @@ def get_optimal_size(
 
 def generate_image(pipe: AutoPipelineForText2Image) -> PILImage.Image:
     return pipe(
-        prompt="A photo of sks htahir1 on a busy Paris street",
+        prompt="A photo of htahir1 on a busy Paris street",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
