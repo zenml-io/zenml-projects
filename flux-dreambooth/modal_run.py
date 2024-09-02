@@ -361,7 +361,7 @@ def image_to_video() -> (
     )
 
 
-@pipeline(settings={"docker": docker_settings})
+@pipeline(settings={"docker": docker_settings}, enable_cache=False)
 def dreambooth_pipeline():
     data = load_data()
     train_model(data, after="load_data")
