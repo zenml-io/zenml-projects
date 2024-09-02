@@ -92,6 +92,8 @@ check_min_version("0.31.0.dev0")
 
 logger = get_logger(__name__)
 
+args = None
+
 
 def save_model_card(
     repo_id: str,
@@ -1157,7 +1159,9 @@ def encode_prompt(
     return prompt_embeds, pooled_prompt_embeds, text_ids
 
 
-def main(args):
+def main(in_args):
+    global args 
+    args = in_args
     if args.report_to == "wandb" and args.hub_token is not None:
         raise ValueError(
             "You cannot use both --report_to=wandb and --hub_token due to a security risk of exposing your token."
