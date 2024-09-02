@@ -102,7 +102,7 @@ class TrainConfig(SharedConfig):
     train_batch_size: int = 3
     rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
-    learning_rate: float = 1e-6
+    learning_rate: float = 0.0004
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
     max_train_steps: int = 1600
