@@ -5,7 +5,6 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, List, Tuple
-from zenml.integrations.constants import MODAL, AZURE
 
 import torch
 from accelerate.utils import write_basic_config
@@ -14,7 +13,8 @@ from diffusers.utils import export_to_video
 from PIL import Image as PILImage
 from rich import print
 from zenml import pipeline, step
-from zenml.config import DockerSettings
+from zenml.config import DockerSettings, ResourceSettings
+from zenml.integrations.constants import AZURE, MODAL
 from zenml.integrations.modal.flavors.modal_step_operator_flavor import (
     ModalStepOperatorSettings,
 )
@@ -41,7 +41,7 @@ docker_settings = DockerSettings(
     prevent_build_reuse=True,
 )
 
-# modal_resource_settings = ResourceSettings(cpu_count=1.25, gpu_count=1)
+modal_resource_settings = ResourceSettings(memory="80GB")
 
 modal_settings = ModalStepOperatorSettings(gpu="A100")
 
@@ -79,13 +79,13 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 3
+    train_batch_size: int = 1
     rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
-    learning_rate: float = 1e-6
+    learning_rate: float = 0.0004
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
-    max_train_steps: int = 1600
+    max_train_steps: int = 1000
     push_to_hub: bool = True
     checkpointing_steps: int = 1000
     seed: int = 117
@@ -359,7 +359,13 @@ def image_to_video() -> (
     )
 
 
-@pipeline(settings={"docker": docker_settings}, enable_cache=False)
+@pipeline(
+    settings={
+        "docker": docker_settings,
+        "resources": modal_resource_settings,
+    },
+    enable_cache=False,
+)
 def dreambooth_pipeline():
     data = load_data()
     train_model(data, after="load_data")

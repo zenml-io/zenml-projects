@@ -36,7 +36,7 @@ docker_settings = DockerSettings(
         "system": None,
     },
     apt_packages=["git", "ffmpeg", "gifsicle"],
-    # prevent_build_reuse=True,
+    prevent_build_reuse=True,
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
@@ -99,7 +99,7 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 3
+    train_batch_size: int = 1
     rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
     learning_rate: float = 1e-6
@@ -126,7 +126,8 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step(
-    # settings={"orchestrator.kubernetes": kubernetes_settings},
+    settings={"orchestrator.kubernetes": kubernetes_settings},
+    enable_cache=False,
 )
 def load_data() -> List[PILImage.Image]:
     # Load image paths from the instance_example_dir
