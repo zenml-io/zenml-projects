@@ -22,6 +22,8 @@ from zenml.types import HTMLString
 
 logger = get_logger(__name__)
 
+MNT_PATH = "/mnt/data"
+
 docker_settings = DockerSettings(
     parent_image="pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime",
     environment={
@@ -58,9 +60,26 @@ kubernetes_settings = KubernetesOrchestratorSettings(
                 }
             }
         },
+        "volumes": [
+            {
+                "name": "data-volume",
+                "persistentVolumeClaim": {
+                    "claimName": "pvc-managed-premium"
+                }
+            }
+        ],
+        "volume_mounts": [
+            {
+                "name": "data-volume",
+                "mountPath": MNT_PATH
+            }
+        ],
     },
 )
 
+def setup_hf_cache():
+    if os.path.exists(MNT_PATH):
+        os.environ["HF_HOME"] = MNT_PATH
 
 def load_image_paths(image_dir: Path) -> List[Path]:
     logger.info(f"Loading images from {image_dir}")
@@ -107,6 +126,7 @@ def train_model(
     checkpointing_steps: int,
     seed: int,
 ) -> None:
+    setup_hf_cache()
     image_dir = Path(tempfile.mkdtemp(prefix="instance_images_"))
     for i, image in enumerate(instance_example_images):
         image.save(image_dir / f"image_{i}.png")
@@ -156,6 +176,7 @@ def batch_inference(
     instance_name: str,
     class_name: str,
 ) -> PILImage.Image:
+    setup_hf_cache()
     model_path = f"{hf_username}/{hf_repo_suffix}"
     pipe = AutoPipelineForText2Image.from_pretrained(
         "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
@@ -228,6 +249,7 @@ def image_to_video(
     Annotated[bytes, "video_data"],
     Annotated[HTMLString, "video_html"],
 ]:
+    setup_hf_cache()
     model_path = f"{hf_username}/{hf_repo_suffix}"
     pipe = AutoPipelineForText2Image.from_pretrained(
         "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
