@@ -36,7 +36,7 @@ docker_settings = DockerSettings(
         "system": None,
     },
     apt_packages=["git", "ffmpeg", "gifsicle"],
-    prevent_build_reuse=True,
+    # prevent_build_reuse=True,
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(

@@ -45,12 +45,19 @@ from diffusers import (
     FluxTransformer2DModel,
 )
 from diffusers.optimization import get_scheduler
-from diffusers.training_utils import (
-    _set_state_dict_into_text_encoder,
-    cast_training_params,
-    compute_density_for_timestep_sampling,
-    compute_loss_weighting_for_sd3,
-)
+try:
+    from diffusers.training_utils import (
+        _set_state_dict_into_text_encoder,
+        cast_training_params,
+        compute_density_for_timestep_sampling,
+        compute_loss_weighting_for_sd3,
+    )
+except:
+    pass
+try:
+    from torchvision import transforms
+except:
+    pass
 from diffusers.utils import (
     check_min_version,
     convert_unet_state_dict_to_peft,
@@ -68,8 +75,11 @@ from peft.utils import get_peft_model_state_dict
 from PIL import Image
 from PIL.ImageOps import exif_transpose
 from torch.utils.data import Dataset
-from torchvision import transforms
-from torchvision.transforms.functional import crop
+
+try:
+    from torchvision.transforms.functional import crop
+except:
+    pass
 from tqdm.auto import tqdm
 from transformers import CLIPTokenizer, PretrainedConfig, T5TokenizerFast
 
