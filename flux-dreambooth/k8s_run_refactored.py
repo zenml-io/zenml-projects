@@ -1,15 +1,15 @@
 import base64
 import os
-from typing import Annotated, List, Tuple
+from typing import Annotated, Tuple
 
 import torch
-from accelerate.utils import write_basic_config
 from diffusers import AutoPipelineForText2Image, StableVideoDiffusionPipeline
 from diffusers.utils import export_to_video
 from PIL import Image as PILImage
 from rich import print
 from train_dreambooth_lora_flux import main as dreambooth_main
 from zenml import pipeline, step
+from zenml.client import Client
 from zenml.config import DockerSettings
 from zenml.integrations.huggingface.steps import run_with_accelerate
 from zenml.integrations.kubernetes.flavors import (
@@ -18,7 +18,6 @@ from zenml.integrations.kubernetes.flavors import (
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 from zenml.utils import io_utils
-from zenml.client import Client
 
 logger = get_logger(__name__)
 
@@ -77,7 +76,6 @@ def setup_hf_cache():
         os.environ["HF_HOME"] = MNT_PATH
 
 
-
 @run_with_accelerate(
     num_processes=1, multi_gpu=False, mixed_precision="bf16"
 )  # Adjust num_processes as needed
@@ -122,7 +120,9 @@ def train_model(
     class Args:
         def __init__(self, **kwargs):
             self.mixed_precision = kwargs.get("mixed_precision", "bf16")
-            self.pretrained_model_name_or_path = kwargs.get("pretrained_model_name_or_path")
+            self.pretrained_model_name_or_path = kwargs.get(
+                "pretrained_model_name_or_path"
+            )
             self.revision = kwargs.get("revision", None)
             self.variant = kwargs.get("variant", None)
             self.dataset_name = kwargs.get("dataset_name", None)
@@ -141,7 +141,9 @@ def train_model(
             self.num_validation_images = kwargs.get("num_validation_images", 4)
             self.validation_epochs = kwargs.get("validation_epochs", 50)
             self.rank = kwargs.get("rank", 4)
-            self.with_prior_preservation = kwargs.get("with_prior_preservation", False)
+            self.with_prior_preservation = kwargs.get(
+                "with_prior_preservation", False
+            )
             self.prior_loss_weight = kwargs.get("prior_loss_weight", 1.0)
             self.num_class_images = kwargs.get("num_class_images", 100)
             self.seed = kwargs.get("seed", None)
@@ -154,10 +156,18 @@ def train_model(
             self.num_train_epochs = kwargs.get("num_train_epochs", 1)
             self.max_train_steps = kwargs.get("max_train_steps", None)
             self.checkpointing_steps = kwargs.get("checkpointing_steps", 500)
-            self.checkpoints_total_limit = kwargs.get("checkpoints_total_limit", None)
-            self.resume_from_checkpoint = kwargs.get("resume_from_checkpoint", None)
-            self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-            self.gradient_checkpointing = kwargs.get("gradient_checkpointing", False)
+            self.checkpoints_total_limit = kwargs.get(
+                "checkpoints_total_limit", None
+            )
+            self.resume_from_checkpoint = kwargs.get(
+                "resume_from_checkpoint", None
+            )
+            self.gradient_accumulation_steps = kwargs.get(
+                "gradient_accumulation_steps", 1
+            )
+            self.gradient_checkpointing = kwargs.get(
+                "gradient_checkpointing", False
+            )
             self.learning_rate = kwargs.get("learning_rate", 1e-4)
             self.guidance_scale = kwargs.get("guidance_scale", 3.5)
             self.text_encoder_lr = kwargs.get("text_encoder_lr", 5e-6)
@@ -166,7 +176,9 @@ def train_model(
             self.lr_warmup_steps = kwargs.get("lr_warmup_steps", 500)
             self.lr_num_cycles = kwargs.get("lr_num_cycles", 1)
             self.lr_power = kwargs.get("lr_power", 1.0)
-            self.dataloader_num_workers = kwargs.get("dataloader_num_workers", 0)
+            self.dataloader_num_workers = kwargs.get(
+                "dataloader_num_workers", 0
+            )
             self.weighting_scheme = kwargs.get("weighting_scheme", "none")
             self.logit_mean = kwargs.get("logit_mean", 0.0)
             self.logit_std = kwargs.get("logit_std", 1.0)
@@ -178,10 +190,16 @@ def train_model(
             self.prodigy_beta3 = kwargs.get("prodigy_beta3", None)
             self.prodigy_decouple = kwargs.get("prodigy_decouple", True)
             self.adam_weight_decay = kwargs.get("adam_weight_decay", 1e-04)
-            self.adam_weight_decay_text_encoder = kwargs.get("adam_weight_decay_text_encoder", 1e-03)
+            self.adam_weight_decay_text_encoder = kwargs.get(
+                "adam_weight_decay_text_encoder", 1e-03
+            )
             self.adam_epsilon = kwargs.get("adam_epsilon", 1e-08)
-            self.prodigy_use_bias_correction = kwargs.get("prodigy_use_bias_correction", True)
-            self.prodigy_safeguard_warmup = kwargs.get("prodigy_safeguard_warmup", True)
+            self.prodigy_use_bias_correction = kwargs.get(
+                "prodigy_use_bias_correction", True
+            )
+            self.prodigy_safeguard_warmup = kwargs.get(
+                "prodigy_safeguard_warmup", True
+            )
             self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
             self.push_to_hub = kwargs.get("push_to_hub", False)
             self.hub_token = kwargs.get("hub_token", None)
@@ -190,7 +208,9 @@ def train_model(
             self.allow_tf32 = kwargs.get("allow_tf32", False)
             self.report_to = kwargs.get("report_to", "tensorboard")
             self.local_rank = kwargs.get("local_rank", -1)
-            self.prior_generation_precision = kwargs.get("prior_generation_precision", None)
+            self.prior_generation_precision = kwargs.get(
+                "prior_generation_precision", None
+            )
 
     # Usage example:
     args = Args(
@@ -298,6 +318,7 @@ def image_to_video(
     Annotated[HTMLString, "video_html"],
 ]:
     setup_hf_cache()
+
     model_path = f"{hf_username}/{hf_repo_suffix}"
     pipe = AutoPipelineForText2Image.from_pretrained(
         "black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16
@@ -308,9 +329,9 @@ def image_to_video(
 
     image = pipe(
         prompt=f"A portrait photo of {instance_name} with the Eiffel Tower in the background",
-        num_inference_steps=70,
-        guidance_scale=7.5,
-        height=512,
+        num_inference_steps=25,
+        guidance_scale=8.5,
+        height=256,
         width=512,
     ).images[0]
 
@@ -360,17 +381,17 @@ def dreambooth_pipeline(
     instance_name: str = "sks htahir1",
     class_name: str = "man",
     model_name: str = "black-forest-labs/FLUX.1-dev",
-    hf_username: str = "htahir1",
+    hf_username: str = "strickvl",
     hf_repo_suffix: str = "flux-dreambooth-hamza",
     prefix: str = "A portrait photo of",
     resolution: int = 512,
     train_batch_size: int = 1,
-    rank: int = 16,
+    rank: int = 32,
     gradient_accumulation_steps: int = 1,
-    learning_rate: float = 0.0004,
+    learning_rate: float = 0.0002,
     lr_scheduler: str = "constant",
     lr_warmup_steps: int = 0,
-    max_train_steps: int = 1000,
+    max_train_steps: int = 1500,
     push_to_hub: bool = True,
     checkpointing_steps: int = 1000,
     seed: int = 117,

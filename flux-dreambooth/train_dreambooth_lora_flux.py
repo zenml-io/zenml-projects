@@ -1160,7 +1160,7 @@ def encode_prompt(
 
 
 def main(in_args):
-    global args 
+    global args
     args = in_args
     if args.report_to == "wandb" and args.hub_token is not None:
         raise ValueError(
