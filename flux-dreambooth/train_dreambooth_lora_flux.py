@@ -45,6 +45,7 @@ from diffusers import (
     FluxTransformer2DModel,
 )
 from diffusers.optimization import get_scheduler
+
 try:
     from diffusers.training_utils import (
         _set_state_dict_into_text_encoder,

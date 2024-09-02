@@ -1,7 +1,5 @@
 import base64
 import os
-import tempfile
-from pathlib import Path
 from typing import Annotated, List, Tuple
 
 import torch
@@ -19,6 +17,7 @@ from zenml.integrations.kubernetes.flavors import (
 )
 from zenml.logger import get_logger
 from zenml.types import HTMLString
+from zenml.utils import io_utils
 
 logger = get_logger(__name__)
 
@@ -63,31 +62,17 @@ kubernetes_settings = KubernetesOrchestratorSettings(
         "volumes": [
             {
                 "name": "data-volume",
-                "persistentVolumeClaim": {
-                    "claimName": "pvc-managed-premium"
-                }
+                "persistentVolumeClaim": {"claimName": "pvc-managed-premium"},
             }
         ],
-        "volume_mounts": [
-            {
-                "name": "data-volume",
-                "mountPath": MNT_PATH
-            }
-        ],
+        "volume_mounts": [{"name": "data-volume", "mountPath": MNT_PATH}],
     },
 )
+
 
 def setup_hf_cache():
     if os.path.exists(MNT_PATH):
         os.environ["HF_HOME"] = MNT_PATH
-
-def load_image_paths(image_dir: Path) -> List[Path]:
-    logger.info(f"Loading images from {image_dir}")
-    return (
-        list(image_dir.glob("**/*.png"))
-        + list(image_dir.glob("**/*.jpg"))
-        + list(image_dir.glob("**/*.jpeg"))
-    )
 
 
 @step(
@@ -95,9 +80,10 @@ def load_image_paths(image_dir: Path) -> List[Path]:
     enable_cache=False,
 )
 def load_data(instance_example_dir: str) -> List[PILImage.Image]:
-    instance_example_paths = load_image_paths(Path(instance_example_dir))
-    logger.info(f"Loaded {len(instance_example_paths)} images")
-    return [PILImage.open(path) for path in instance_example_paths]
+    io_utils.copy_dir(
+        source_dir="./data/hamza-faces",
+        destination_dir="az://demo-zenmlartifactstore/hamza-faces",
+    )
 
 
 @run_with_accelerate(
@@ -127,12 +113,14 @@ def train_model(
     seed: int,
 ) -> None:
     setup_hf_cache()
-    image_dir = Path(tempfile.mkdtemp(prefix="instance_images_"))
-    for i, image in enumerate(instance_example_images):
-        image.save(image_dir / f"image_{i}.png")
 
-    logger.info(f"Saved images to {image_dir}")
-    images_dir_path = str(image_dir)
+    images_dir_path = "/tmp/hamza-faces/"
+
+    io_utils.copy_dir(
+        destination_dir=images_dir_path,
+        source_dir="az://demo-zenmlartifactstore/hamza-faces",
+        overwrite=True,
+    )
 
     write_basic_config(mixed_precision="bf16")
 
