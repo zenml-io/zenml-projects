@@ -105,9 +105,7 @@ def load_image_paths(image_dir: Path) -> List[Path]:
     return image_paths
 
 
-@step(
-    settings={"step_operator.modal": modal_settings},
-)
+@step
 def load_data() -> List[PILImage.Image]:
     # Load image paths from the instance_example_dir
     instance_example_paths: List[Path] = load_image_paths(
