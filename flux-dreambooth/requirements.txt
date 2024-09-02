@@ -7,7 +7,7 @@ torch~=2.2.0
 torchvision~=0.16
 peft
 smart_open
-zenml
+git+https://github.com/zenml-io/zenml.git@develop
 git+https://github.com/huggingface/diffusers.git@main
 pillow
 tensorboard
