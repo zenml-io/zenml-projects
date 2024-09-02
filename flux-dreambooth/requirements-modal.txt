@@ -1,13 +1,10 @@
 git+https://github.com/huggingface/accelerate.git@main
 datasets
-ftfy~=6.1.0
 transformers~=4.41.2
 sentencepiece>=0.1.91,!=0.1.92
 torch~=2.2.0
 torchvision~=0.16
-triton~=2.2.0
 peft
-smart_open
 git+https://github.com/zenml-io/zenml.git@feature/modal-step-operator
 git+https://github.com/huggingface/diffusers.git@main
 pillow
@@ -17,7 +14,4 @@ bitsandbytes
 opencv-python
 imageio
 imageio-ffmpeg
-grpcio
-grpcio-status
 modal
-h2

@@ -121,6 +121,7 @@ def load_data() -> List[PILImage.Image]:
 
 
 @step(
+    step_operator="modal",
     settings={"step_operator.modal": modal_settings},
 )
 def train_model(instance_example_images: List[PILImage.Image]) -> None:
@@ -190,6 +191,7 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
 
 
 @step(
+    step_operator="modal",
     settings={"step_operator.modal": modal_settings},
 )
 def batch_inference() -> PILImage.Image:
@@ -301,6 +303,7 @@ def generate_video_frames(
 
 
 @step(
+    step_operator="modal",
     settings={"step_operator.modal": modal_settings},
     enable_cache=False,
 )
