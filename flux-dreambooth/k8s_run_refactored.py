@@ -227,7 +227,7 @@ def batch_inference(
     setup_hf_cache()
     model_path = f"{hf_username}/{hf_repo_suffix}"
     pipe = AutoPipelineForText2Image.from_pretrained(
-        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
+        "black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16
     ).to("cuda")
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
@@ -235,29 +235,29 @@ def batch_inference(
 
     instance_phrase = f"{instance_name} the {class_name}"
     prompts = [
-        f"A photo of {instance_phrase} wearing a beret in front of the Eiffel Tower",
-        f"A photo of {instance_phrase} on a busy Paris street",
-        f"A photo of {instance_phrase} sitting at a Parisian cafe",
-        f"A photo of {instance_phrase} posing with the Eiffel Tower in the background",
-        f"A photo of {instance_phrase} leaning on a French balcony railing",
-        f"A photo of {instance_phrase} walking through the Jardin des Tuileries",
-        f"A photo of {instance_phrase} looking out a window at the Paris skyline",
-        f"A photo of {instance_phrase} relaxing on a cozy Parisian apartment sofa",
-        f"A photo of {instance_phrase} admiring art in the Louvre",
-        f"A photo of {instance_phrase} sitting on a vintage Louis Vuitton trunk",
-        f"A photo of {instance_phrase} wearing a tiny beret and a French flag scarf",
-        f"A photo of {instance_phrase} doing yoga with the Arc de Triomphe in the background",
-        f"A photo of {instance_phrase} waking up in a Parisian hotel bed",
-        f"A photo of {instance_phrase} walking down the Champs-Élysées",
-        f"A photo of {instance_phrase} window shopping at a Parisian pet store",
+        f"A close-up portrait photo of {instance_phrase} with a big smile in front of the Eiffel Tower during the day",
+        f"A portrait photo of {instance_phrase} with a furrowed brow on a sunny Parisian balcony with the city in the background",
+        f"A portrait photo of {instance_phrase} with their head thrown back in laughter at an outdoor Parisian cafe",
+        f"A portrait photo of {instance_phrase} with a hand on their chin, deep in thought, walking along the Seine river",
+        f"A portrait photo of {instance_phrase} with wide eyes and an open mouth in the grand hall of the Louvre",
+        f"A portrait photo of {instance_phrase} looking out over the Paris skyline from the steps of Sacre-Coeur in Montmartre",
+        f"A portrait photo of {instance_phrase} with a sly smile in the Tuileries Garden with flowers in the foreground",
+        f"A close-up portrait photo of {instance_phrase} looking straight at the camera on the busy Champs-Élysées",
+        f"A portrait photo of {instance_phrase} with a faraway look, sitting by a window in a cozy Parisian apartment",
+        f"A full-body portrait photo of {instance_phrase} with arms crossed confidently at the base of the Arc de Triomphe",
+        f"A portrait photo of {instance_phrase} with a soft smile sitting on a bench in a lush green Parisian park",
+        f"A portrait photo of {instance_phrase} with a thoughtful expression browsing books in a quaint Parisian bookstore",
+        f"A close-up portrait photo of {instance_phrase} with one eye closed in a playful wink at a colorful Parisian market stall",
+        f"A portrait photo of {instance_phrase} with a peaceful expression surrounded by flowers in the Luxembourg Gardens",
+        f"A portrait photo of {instance_phrase} with their head tilted to the side, studying a painting in a bright Parisian art gallery",
     ]
 
     images = pipe(
         prompt=prompts,
-        num_inference_steps=50,
-        guidance_scale=7.5,
-        height=512,
-        width=512,
+        num_inference_steps=25,
+        guidance_scale=8.5,
+        height=256,
+        width=256,
     ).images
 
     width, height = images[0].size
@@ -300,14 +300,14 @@ def image_to_video(
     setup_hf_cache()
     model_path = f"{hf_username}/{hf_repo_suffix}"
     pipe = AutoPipelineForText2Image.from_pretrained(
-        "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
+        "black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16
     ).to("cuda")
     pipe.load_lora_weights(
         model_path, weight_name="pytorch_lora_weights.safetensors"
     )
 
     image = pipe(
-        prompt=f"A photo of {instance_name} on a busy Paris street",
+        prompt=f"A portrait photo of {instance_name} with the Eiffel Tower in the background",
         num_inference_steps=70,
         guidance_scale=7.5,
         height=512,
@@ -357,10 +357,10 @@ def image_to_video(
 @pipeline(settings={"docker": docker_settings})
 def dreambooth_pipeline(
     instance_example_dir: str = "data/hamza-instance-images",
-    instance_name: str = "htahir1",
+    instance_name: str = "sks htahir1",
     class_name: str = "man",
     model_name: str = "black-forest-labs/FLUX.1-dev",
-    hf_username: str = "htahir1",
+    hf_username: str = "strickvl",
     hf_repo_suffix: str = "flux-dreambooth-hamza",
     prefix: str = "A portrait photo of",
     resolution: int = 512,
