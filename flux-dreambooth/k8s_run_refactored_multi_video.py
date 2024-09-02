@@ -402,7 +402,7 @@ def dreambooth_pipeline(
     learning_rate: float = 0.0002,
     lr_scheduler: str = "constant",
     lr_warmup_steps: int = 0,
-    max_train_steps: int = 1500,
+    max_train_steps: int = 1300,
     push_to_hub: bool = True,
     checkpointing_steps: int = 1000,
     seed: int = 117,
