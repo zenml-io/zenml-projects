@@ -55,7 +55,7 @@ class SharedConfig:
 
     # That proper noun is usually a member of some class (person, bird),
     # and sharing that information with the model helps it generalize better.
-    class_name: str = "Pakistani man"
+    class_name: str = "man"
 
     # identifier for pretrained models on Hugging Face
     model_name: str = "black-forest-labs/FLUX.1-dev"
