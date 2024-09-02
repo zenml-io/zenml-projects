@@ -360,7 +360,7 @@ def dreambooth_pipeline(
     instance_name: str = "sks htahir1",
     class_name: str = "man",
     model_name: str = "black-forest-labs/FLUX.1-dev",
-    hf_username: str = "strickvl",
+    hf_username: str = "htahir1",
     hf_repo_suffix: str = "flux-dreambooth-hamza",
     prefix: str = "A portrait photo of",
     resolution: int = 512,
