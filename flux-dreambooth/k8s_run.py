@@ -36,7 +36,7 @@ docker_settings = DockerSettings(
         "system": None,
     },
     apt_packages=["git", "ffmpeg", "gifsicle"],
-    prevent_build_reuse=True,
+    # prevent_build_reuse=True,
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
@@ -81,7 +81,7 @@ class SharedConfig:
     model_name: str = "black-forest-labs/FLUX.1-dev"
 
     # hf_username
-    hf_username: str = "strickvl"
+    hf_username: str = "htahir1"
 
 
 @dataclass
@@ -99,10 +99,10 @@ class TrainConfig(SharedConfig):
 
     # Hyperparameters/constants from the huggingface training example
     resolution: int = 512
-    train_batch_size: int = 1
+    train_batch_size: int = 3
     rank: int = 16  # lora rank
     gradient_accumulation_steps: int = 1
-    learning_rate: float = 0.0004
+    learning_rate: float = 1e-6
     lr_scheduler: str = "constant"
     lr_warmup_steps: int = 0
     max_train_steps: int = 1600
@@ -126,8 +126,7 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step(
-    settings={"orchestrator.kubernetes": kubernetes_settings},
-    enable_cache=False,
+    # settings={"orchestrator.kubernetes": kubernetes_settings},
 )
 def load_data() -> List[PILImage.Image]:
     # Load image paths from the instance_example_dir
@@ -135,7 +134,7 @@ def load_data() -> List[PILImage.Image]:
         Path(TrainConfig().instance_example_dir)
     )
 
-    logger.info(f"Loaded {len(instance_example_paths)} images")
+    logger.info(f"Loaded: {len(instance_example_paths)} images")
 
     images = [PILImage.open(path) for path in instance_example_paths]
     return images
@@ -143,7 +142,7 @@ def load_data() -> List[PILImage.Image]:
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
-    enable_cache=False,
+    enable_cache=True,
 )
 def train_model(instance_example_images: List[PILImage.Image]) -> None:
     config = TrainConfig()
@@ -213,6 +212,7 @@ def train_model(instance_example_images: List[PILImage.Image]) -> None:
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
+    enable_cache=False,
 )
 def batch_inference() -> PILImage.Image:
     model_path = f"{TrainConfig().hf_username}/{TrainConfig().hf_repo_suffix}"
@@ -364,7 +364,6 @@ def image_to_video() -> (
     html_visualization_str = f"""
     <html>
     <body>
-        <h1>Generated Hamza Video</h1>
         <video width="{optimal_width}" height="{optimal_height}" controls>
             <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
             Your browser does not support the video tag.
