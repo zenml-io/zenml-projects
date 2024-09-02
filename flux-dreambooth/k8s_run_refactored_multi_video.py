@@ -327,18 +327,19 @@ def image_to_video(
     )
 
     prompts = [
-        f"A photo of {instance_name} in front of the Eiffel Tower during the day",
-        f"A photo of {instance_name} on a sunny Parisian balcony with the city in the background",
-        f"A photo of {instance_name} in a busy Paris street",
-        f"A photo of {instance_name} in a Paris fish market",
-        f"A photo of {instance_name} in a Parisian cafe",
+        f"A photo of {instance_name} the man in front of the Eiffel Tower during the day",
+        f"A photo of {instance_name} the man on a sunny Parisian balcony with the city in the background",
+        f"A photo of {instance_name} the man in a busy Paris street",
+        f"A photo of {instance_name} the man in a Paris fish market",
+        f"A photo of {instance_name} the man in a Parisian cafe",
+        f"A photo of {instance_name} the man in the Louvre",
     ]
 
     images = pipe(
         prompt=prompts,
-        num_inference_steps=25,
+        num_inference_steps=40,
         guidance_scale=8.5,
-        height=256,
+        height=512,
         width=512,
     ).images
 
@@ -351,21 +352,16 @@ def image_to_video(
 
     video_data_list = []
     for i, image in enumerate(images):
-        optimal_size = get_optimal_size(image)
-        image = image.resize(optimal_size)
-        optimal_width, optimal_height = optimal_size
-
         frames = video_pipeline(
             image,
-            num_inference_steps=50,
-            decode_chunk_size=8,
-            generator=torch.manual_seed(42),
-            height=optimal_height,
-            width=optimal_width,
+            num_inference_steps=80,
+            generator=torch.manual_seed(77),
+            height=512,
+            width=512,
         ).frames[0]
 
         output_file = f"generated_video_{i}.mp4"
-        export_to_video(frames, output_file, fps=7)
+        export_to_video(frames, output_file, fps=5)
 
         with open(output_file, "rb") as file:
             video_data = file.read()
@@ -377,10 +373,10 @@ def image_to_video(
     """
     for i, video_data in enumerate(video_data_list):
         html_visualization_str += f"""
-        <video width="{optimal_width}" height="{optimal_height}" controls>
+        <video width="512" height="512" controls>
             <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
             Your browser does not support the video tag.
-        </video>
+        </video><br><br>
         """
     html_visualization_str += """
     </body>
