@@ -1,7 +1,6 @@
 import base64
 import os
 import subprocess
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, List, Tuple
@@ -20,6 +19,7 @@ from zenml.integrations.modal.flavors.modal_step_operator_flavor import (
 )
 from zenml.logger import get_logger
 from zenml.types import HTMLString
+from zenml.utils import io_utils
 
 logger = get_logger(__name__)
 
@@ -109,37 +109,29 @@ def load_image_paths(image_dir: Path) -> List[Path]:
 
 
 @step
-def load_data() -> List[PILImage.Image]:
-    # Load image paths from the instance_example_dir
-    instance_example_paths: List[Path] = load_image_paths(
-        Path(TrainConfig().instance_example_dir)
+def load_data() -> None:
+    io_utils.copy_dir(
+        source_dir="./data/hamza-faces",
+        destination_dir="az://demo-zenmlartifactstore/hamza-faces",
     )
-
-    logger.info(f"Loaded {len(instance_example_paths)} images")
-
-    images = [PILImage.open(path) for path in instance_example_paths]
-    return images
 
 
 @step(
     step_operator="modal",
     settings={"step_operator.modal": modal_settings},
 )
-def train_model(instance_example_images: List[PILImage.Image]) -> None:
+def train_model() -> None:
     config = TrainConfig()
 
-    logger.info(f"Training model with {len(instance_example_images)} images")
+    images_dir_path = "/tmp/hamza-faces/"
 
-    # Save images to a temporary directory that can persist
-    image_dir = Path(tempfile.mkdtemp(prefix="instance_images_"))
-    for i, image in enumerate(instance_example_images):
-        image_path = image_dir / f"image_{i}.png"
-        image.save(image_path)
+    io_utils.copy_dir(
+        destination_dir=images_dir_path,
+        source_dir="az://demo-zenmlartifactstore/hamza-faces",
+        overwrite=True,
+    )
 
     logger.info(f"Saved images to {image_dir}")
-
-    # Return the path to the directory containing the saved images
-    images_dir_path = str(image_dir)
 
     # set up hugging face accelerate library for fast training
     write_basic_config(mixed_precision="bf16")
@@ -371,9 +363,9 @@ def image_to_video() -> (
 )
 def dreambooth_pipeline():
     data = load_data()
-    train_model(data, after="load_data")
-    batch_inference(after="train_model")
-    image_to_video(after="batch_inference")
+    # train_model(data, after="load_data")
+    # batch_inference(after="train_model")
+    # image_to_video(after="batch_inference")
 
 
 if __name__ == "__main__":
