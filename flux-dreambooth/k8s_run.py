@@ -142,6 +142,7 @@ def load_data() -> List[PILImage.Image]:
 
 @step(
     settings={"orchestrator.kubernetes": kubernetes_settings},
+    enable_cache=False,
 )
 def train_model(instance_example_images: List[PILImage.Image]) -> None:
     config = TrainConfig()
