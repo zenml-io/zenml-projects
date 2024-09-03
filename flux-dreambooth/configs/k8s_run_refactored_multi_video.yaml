@@ -42,7 +42,7 @@ steps:
           PJRT_DEVICE: "CUDA"
           USE_TORCH_XLA: "false"
           MKL_SERVICE_FORCE_INTEL: 1
-          HF_TOKEN: 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
+          HF_TOKEN: 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
           HF_HOME: "/mnt/data"
         python_package_installer: "uv"
         requirements: "requirements.txt"
@@ -78,7 +78,7 @@ steps:
           PJRT_DEVICE: "CUDA"
           USE_TORCH_XLA: "false"
           MKL_SERVICE_FORCE_INTEL: 1
-          HF_TOKEN: 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
+          HF_TOKEN: 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
           HF_HOME: "/mnt/data"
         python_package_installer: "uv"
         requirements: "requirements.txt"
@@ -115,7 +115,7 @@ steps:
           PJRT_DEVICE: "CUDA"
           USE_TORCH_XLA: "false"
           MKL_SERVICE_FORCE_INTEL: 1
-          HF_TOKEN: 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
+          HF_TOKEN: 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
           HF_HOME: "/mnt/data"
         python_package_installer: "uv"
         requirements: "requirements.txt"
