@@ -254,26 +254,26 @@ def batch_inference(
 
     instance_phrase = f"{instance_name} the {class_name}"
     prompts = [
-        f"A close-up portrait photo of {instance_phrase} with a big smile in front of the Eiffel Tower during the day",
-        f"A portrait photo of {instance_phrase} with a furrowed brow on a sunny Parisian balcony with the city in the background",
-        f"A portrait photo of {instance_phrase} with their head thrown back in laughter at an outdoor Parisian cafe",
-        f"A portrait photo of {instance_phrase} with a hand on their chin, deep in thought, walking along the Seine river",
-        f"A portrait photo of {instance_phrase} with wide eyes and an open mouth in the grand hall of the Louvre",
-        f"A portrait photo of {instance_phrase} looking out over the Paris skyline from the steps of Sacre-Coeur in Montmartre",
-        f"A portrait photo of {instance_phrase} with a sly smile in the Tuileries Garden with flowers in the foreground",
-        f"A close-up portrait photo of {instance_phrase} looking straight at the camera on the busy Champs-Élysées",
-        f"A portrait photo of {instance_phrase} with a faraway look, sitting by a window in a cozy Parisian apartment",
-        f"A full-body portrait photo of {instance_phrase} with arms crossed confidently at the base of the Arc de Triomphe",
-        f"A portrait photo of {instance_phrase} with a soft smile sitting on a bench in a lush green Parisian park",
-        f"A portrait photo of {instance_phrase} with a thoughtful expression browsing books in a quaint Parisian bookstore",
-        f"A close-up portrait photo of {instance_phrase} with one eye closed in a playful wink at a colorful Parisian market stall",
-        f"A portrait photo of {instance_phrase} with a peaceful expression surrounded by flowers in the Luxembourg Gardens",
-        f"A portrait photo of {instance_phrase} with their head tilted to the side, studying a painting in a bright Parisian art gallery",
+        f"A portrait photo of {instance_phrase} in a Superman pose",
+        f"A portrait photo of {instance_phrase} flying like Superman",
+        f"A portrait photo of {instance_phrase} standing like Superman",
+        f"A portrait photo of {instance_phrase} as a football player in an action pose",
+        f"A portrait photo of {instance_phrase} as a firefighter in a heroic stance",
+        f"A portrait photo of {instance_phrase} in a spacesuit in space",
+        f"A portrait photo of {instance_phrase} on the Moon",
+        f"A portrait photo of {instance_phrase} as an astronaut working on a satellite",
+        f"A portrait photo of {instance_phrase} as an astronaut looking out a spacecraft window",
+        f"A portrait photo of {instance_phrase} as an astronaut on a spacewalk",
+        f"A portrait photo of {instance_phrase} in a heroic Superman pose",
+        f"A portrait photo of {instance_phrase} as an astronaut on Mars",
+        f"A portrait photo of {instance_phrase} flying like Superman",
+        f"A portrait photo of {instance_phrase} as an astronaut floating in zero gravity",
+        f"A portrait photo of {instance_phrase} as a superhero in a powerful stance",
     ]
 
     images = pipe(
         prompt=prompts,
-        num_inference_steps=25,
+        num_inference_steps=35,
         guidance_scale=8.5,
         height=256,
         width=256,
@@ -326,13 +326,15 @@ def image_to_video(
         model_path, weight_name="pytorch_lora_weights.safetensors"
     )
 
+    instance_phrase = f"{instance_name} the man"
     prompts = [
-        f"A photo of {instance_name} the man in front of the Eiffel Tower during the day",
-        f"A photo of {instance_name} the man on a sunny Parisian balcony with the city in the background",
-        f"A photo of {instance_name} the man in a busy Paris street",
-        f"A photo of {instance_name} the man in a Paris fish market",
-        f"A photo of {instance_name} the man in a Parisian cafe",
-        f"A photo of {instance_name} the man in the Louvre",
+        f"A portrait photo of {instance_phrase} in a Superman pose",
+        f"A portrait photo of {instance_phrase} flying like Superman",
+        f"A portrait photo of {instance_phrase} standing like Superman",
+        f"A portrait photo of {instance_phrase} as a football player in an action pose",
+        f"A portrait photo of {instance_phrase} as a firefighter in a heroic stance",
+        f"A portrait photo of {instance_phrase} in a spacesuit in space",
+        f"A portrait photo of {instance_phrase} on the Moon",
     ]
 
     images = pipe(
@@ -369,20 +371,26 @@ def image_to_video(
 
     html_visualization_str = """
     <html>
+    <head>
+    </head>
     <body>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 0;">
     """
     for i, video_data in enumerate(video_data_list):
         html_visualization_str += f"""
-        <video width="512" height="512" controls>
-            <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video><br><br>
+            <div style="margin-bottom: 20px;">
+                <video width="512" height="512" controls autoplay loop>
+                    <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
         """
     html_visualization_str += """
+        </div>
     </body>
     </html>
     """
-
+    
     return (images, video_data_list, HTMLString(html_visualization_str))
 
 
