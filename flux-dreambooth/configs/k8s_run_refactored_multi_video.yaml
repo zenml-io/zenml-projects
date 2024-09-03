@@ -1,0 +1,143 @@
+# Specify the "ZenML Model"
+model:
+  name: "flux_personalized_model"
+  audience: "ML Engineers and Researchers"
+  description: "Personalized image generation model using DreamBooth and Flux.1"
+  ethics: "Ensure responsible use of generated images"
+  license: "Apache 2.0"
+  limitations: "Limited to the trained subject and style"
+  tags: ["dreambooth", "flux", "stable-diffusion-image2video"]
+
+# Parameters of the pipeline 
+parameters:
+  instance_example_dir: "az://demo-zenmlartifactstore/hamza-faces"
+  instance_name: "sks htahir1"
+  class_name: "man"
+  model_name: "black-forest-labs/FLUX.1-dev"
+  hf_username: "htahir1"
+  hf_repo_suffix: "flux-dreambooth-hamza"
+  prefix: "A portrait photo of"
+  resolution: 512
+  train_batch_size: 1
+  rank: 32
+  gradient_accumulation_steps: 1
+  learning_rate: 0.0002
+  lr_scheduler: "constant"
+  lr_warmup_steps: 0
+  max_train_steps: 1300
+  push_to_hub: True
+  checkpointing_steps: 1000
+  seed: 117
+
+# Per step configuration
+steps:
+  train_model:
+    enable_cache: True
+    # Real-time settings for Docker and resources
+    settings:
+      # Controls Docker building
+      docker:
+        parent_image: "pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime"
+        environment:
+          PJRT_DEVICE: "CUDA"
+          USE_TORCH_XLA: "false"
+          MKL_SERVICE_FORCE_INTEL: 1
+          HF_TOKEN: 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
+          HF_HOME: "/mnt/data"
+        python_package_installer: "uv"
+        requirements: "requirements.txt"
+        python_package_installer_args:
+          system: null
+        apt_packages: ["git", "ffmpeg", "gifsicle"]
+      
+      # Kubernetes settings
+      orchestrator.kubernetes:
+        pod_settings:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "zenml.io/gpu"
+                        operator: "In"
+                        values: ["yes"]
+          volumes:
+            - name: "data-volume"
+              persistentVolumeClaim:
+                claimName: "pvc-managed-premium"
+          volume_mounts:
+            - name: "data-volume"
+              mountPath: "/mnt/data"
+
+  batch_inference:
+    settings:
+      # Controls Docker building
+      docker:
+        parent_image: "pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime"
+        environment:
+          PJRT_DEVICE: "CUDA"
+          USE_TORCH_XLA: "false"
+          MKL_SERVICE_FORCE_INTEL: 1
+          HF_TOKEN: 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
+          HF_HOME: "/mnt/data"
+        python_package_installer: "uv"
+        requirements: "requirements.txt"
+        python_package_installer_args:
+          system: null
+        apt_packages: ["git", "ffmpeg", "gifsicle"]
+      
+      # Kubernetes settings
+      orchestrator.kubernetes:
+        pod_settings:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "zenml.io/gpu"
+                        operator: "In"
+                        values: ["yes"]
+          volumes:
+            - name: "data-volume"
+              persistentVolumeClaim:
+                claimName: "pvc-managed-premium"
+          volume_mounts:
+            - name: "data-volume"
+              mountPath: "/mnt/data"
+
+  image_to_video:
+    enable_cache: False
+    settings:
+      # Controls Docker building
+      docker:
+        parent_image: "pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime"
+        environment:
+          PJRT_DEVICE: "CUDA"
+          USE_TORCH_XLA: "false"
+          MKL_SERVICE_FORCE_INTEL: 1
+          HF_TOKEN: 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
+          HF_HOME: "/mnt/data"
+        python_package_installer: "uv"
+        requirements: "requirements.txt"
+        python_package_installer_args:
+          system: null
+        apt_packages: ["git", "ffmpeg", "gifsicle"]
+      
+      # Kubernetes settings
+      orchestrator.kubernetes:
+        pod_settings:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "zenml.io/gpu"
+                        operator: "In"
+                        values: ["yes"]
+          volumes:
+            - name: "data-volume"
+              persistentVolumeClaim:
+                claimName: "pvc-managed-premium"
+          volume_mounts:
+            - name: "data-volume"
+              mountPath: "/mnt/data"
