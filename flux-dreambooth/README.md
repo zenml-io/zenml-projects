@@ -8,11 +8,11 @@ applications.
 
 ![](assets/batch-dreambooth.png)
 
-DreamBooth is a technique that allows for the creation of custom text-to-image models by finetuning a pre-trained model on a small dataset of images featuring a specific subject. In this case, we used a dataset of cropped portrait photos of the ZenML co-founder to create a personalized model capable of generating novel images of him in various styles and contexts.
+[DreamBooth](https://huggingface.co/docs/diffusers/v0.30.2/training/dreambooth) is a technique that allows for the creation of custom text-to-image models by finetuning a pre-trained model on a small dataset of images featuring a specific subject. In this case, we used a dataset of cropped portrait photos of the ZenML co-founder to create a personalized model capable of generating novel images of him in various styles and contexts.
 
 To make the finetuning process more efficient, we employed LoRA (Low-Rank Adaptation) adapters. LoRA allows for faster finetuning by only updating a small fraction of the model's weights, which can then be saved separately from the original model. The resulting LoRA adapters for this project have been pushed to the Hugging Face repository at [https://huggingface.co/strickvl/flux-dreambooth-hamza](https://huggingface.co/strickvl/flux-dreambooth-hamza).
 
-While we finetuned the Flux.1-dev model for training, we switched to the Flux-Schnell model for inference. Flux-Schnell is a faster variant of the Flux model that maintains comparable quality, making it an excellent choice for efficient batch inference. The LoRA adapters worked seamlessly with Flux-Schnell, allowing us to generate high-quality personalized images quickly.
+While we finetuned the [Flux.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) model for training, we switched to the [Flux-Schnell](https://huggingface.co/spaces/black-forest-labs/FLUX.1-schnell) model for inference. Flux-Schnell is a faster variant of the Flux model that maintains comparable quality, making it an excellent choice for efficient batch inference. The LoRA adapters worked seamlessly with Flux-Schnell, allowing us to generate high-quality personalized images quickly.
 
 Crafting effective prompts was a crucial aspect of this project. We experimented
 with various prompts to find those that worked best with the finetuned model.
