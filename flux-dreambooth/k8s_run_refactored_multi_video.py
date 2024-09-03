@@ -371,14 +371,30 @@ def image_to_video(
 
     html_visualization_str = """
     <html>
+    <head>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+            }
+            video {
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
     <body>
     """
     for i, video_data in enumerate(video_data_list):
         html_visualization_str += f"""
-        <video width="512" height="512" controls>
+        <video width="512" height="512" controls autoplay loop>
             <source src="data:video/mp4;base64,{base64.b64encode(video_data).decode()}" type="video/mp4">
             Your browser does not support the video tag.
-        </video><br><br>
+        </video>
         """
     html_visualization_str += """
     </body>
