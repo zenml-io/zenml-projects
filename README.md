@@ -77,6 +77,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
 | [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/README.md)               | Regression, Airflow                           | `cloud-composer` `airflow` |
 | [Simple LLM finetuning with Lightning Studio](simple-llm-finetuning/README.md)               | Lightning AI Studio, LLMs                           | `cloud-composer` `airflow` |
+| [Flux Dreambooth](flux-dreambooth/README.md)               | Flux, Dreambooth, LLMs                           | `modal` `kubernetes` |
 
 # 💻 System Requirements
 
