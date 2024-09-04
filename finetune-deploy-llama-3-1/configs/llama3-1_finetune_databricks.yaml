@@ -16,12 +16,16 @@
 # 
 
 model:
-  name: llm-peft-microsoft-phi-2
-  description: "Fine-tune `microsoft/phi-2`."
+  name: databricks-llama-3-1-ai-doctor
+  description: "Fine-tune `llama-3.1`."
   tags:
     - llm
     - peft
-    - microsoft/phi-2
+    - lora
+    - llama-3.1
+    - remote
+    - ai-medical-chatbot
+    - databricks
   version: 300_steps
 
 settings:
@@ -37,44 +41,42 @@ settings:
       PJRT_DEVICE: CUDA
       USE_TORCH_XLA: "false"
       MKL_SERVICE_FORCE_INTEL: "1"
-  orchestrator.lightning:
-    machine_type: A10G
+      MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING: "true"
+  orchestrator.databricks:
+    spark_version : 15.3.x-gpu-ml-scala2.12
+    node_type_id : Standard_NC24ads_A100_v4
+    autoscale:
+      - 0
+      - 1
 
 parameters:
-  base_model_id: microsoft/phi-2
-  use_fast: False
+  base_model_id: meta-llama/Meta-Llama-3.1-8B
   load_in_4bit: True
   system_prompt: |
-      Given a target sentence construct the underlying meaning representation of the input sentence as a single function with attributes and attribute values.
-      This function should describe the target string accurately and the function must be one of the following ['inform', 'request', 'give_opinion', 'confirm', 'verify_attribute', 'suggest', 'request_explanation', 'recommend', 'request_attribute'].
-      The attributes must be one of the following: ['name', 'exp_release_date', 'release_year', 'developer', 'esrb', 'rating', 'genres', 'player_perspective', 'has_multiplayer', 'platforms', 'available_on_steam', 'has_linux_release', 'has_mac_release', 'specifier']
-      
+    You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.
+    
 
 steps:
   prepare_data:
     parameters:
-      dataset_name: gem/viggo
+      dataset_name: ruslanmv/ai-medical-chatbot
 
   finetune:
-    #step_operator: gcp_a100
     retry:
       max_retries: 3
       delay: 10
       backoff: 2
     parameters:
-      max_steps: 300
-      eval_steps: 30
-      bf16: True
+      eval_steps: 100
+      epochs: 2
 
   evaluate_finetuned:
-    #step_operator: gcp_a100
     retry:
       max_retries: 3
       delay: 10
       backoff: 2
 
   evaluate_base:
-    #step_operator: gcp_a100
     retry:
       max_retries: 3
       delay: 10
@@ -84,3 +86,11 @@ steps:
     parameters:
       metric: rouge2
       target_stage: staging
+
+  merge_and_log_model:
+    retry:
+      max_retries: 3
+      delay: 10
+      backoff: 2
+    parameters:
+      model_name: databricks-llama-3-1-ai-doctor

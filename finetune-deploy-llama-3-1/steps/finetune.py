@@ -56,11 +56,10 @@ def finetune(
     save_steps: int = 50,
     optimizer: str = "paged_adamw_32bit",
     lr: float = 2e-4,
-    per_device_train_batch_size: int = 2,
-    gradient_accumulation_steps: int = 4,
+    per_device_train_batch_size: int = 32,
+    gradient_accumulation_steps: int = 8,
     warmup_steps: int = 10,
-    bf16: bool = True,
-    use_fast: bool = True,
+    epochs: int = 2,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
 ) -> Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]:
@@ -84,9 +83,9 @@ def finetune(
         gradient_accumulation_steps: The number of gradient accumulation steps.
         warmup_steps: The number of warmup steps.
         bf16: Whether to use bf16.
-        use_fast: Whether to use the fast tokenizer.
         load_in_4bit: Whether to load the model in 4bit mode.
         load_in_8bit: Whether to load the model in 8bit mode.
+        epochs: The number of epochs to train for.
 
     Returns:
         The path to the finetuned model directory.
@@ -116,8 +115,6 @@ def finetune(
         logger.info("Loading datasets...")
     tokenizer = load_tokenizer(
         base_model_id,  
-        is_eval=False,
-        use_fast=False,
     )
     tokenized_train_dataset = load_from_disk(str((dataset_dir / "train").absolute()))
     tokenized_val_dataset = load_from_disk(str((dataset_dir / "val").absolute()))
@@ -132,12 +129,11 @@ def finetune(
         per_device_train_batch_size=per_device_train_batch_size,
         gradient_accumulation_steps=gradient_accumulation_steps,
         ddp_find_unused_parameters=False,
-        #max_steps=max_steps,
         learning_rate=lr,
         logging_steps=(
             min(logging_steps, max_steps) if max_steps >= 0 else logging_steps
         ),
-        bf16=False,
+        bf16=True,
         fp16=False,
         optim=optimizer,
         logging_dir="./logs",
@@ -146,13 +142,13 @@ def finetune(
         evaluation_strategy="steps",
         eval_steps=eval_steps,
         group_by_length=True,
-        num_train_epochs=3,
+        num_train_epochs=epochs,
     )
     
     # Define the peft LoRa configuration
     peft_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
+        r=32,
+        lora_alpha=64,
         target_modules=[
             "q_proj",
             "k_proj",

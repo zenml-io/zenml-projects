@@ -40,7 +40,6 @@ def prepare_data(
     base_model_id: str,
     system_prompt: str,
     dataset_name: str = "ruslanmv/ai-medical-chatbot",
-    use_fast: bool = True,
 ) -> Annotated[Path, "datasets_dir"]:
     """Prepare the datasets for finetuning.
 
@@ -48,7 +47,6 @@ def prepare_data(
         base_model_id: The base model id to use.
         system_prompt: The system prompt to use.
         dataset_name: The name of the dataset to use.
-        use_fast: Whether to use the fast tokenizer.
 
     Returns:
         The path to the datasets directory.
@@ -74,14 +72,14 @@ def prepare_data(
     )
     
     # Load the tokenizer
-    tokenizer = load_tokenizer(base_model_id, False, False)
+    tokenizer = load_tokenizer(base_model_id)
     
     # Format the chat template
     formatted_chat_template = partial(format_chat_template, tokenizer=tokenizer)
 
     # Load the dataset
     dataset = load_dataset(dataset_name, split="all")
-    dataset = dataset.shuffle(seed=63).select(range(3000))
+    dataset = dataset.shuffle(seed=63).select(range(20000))
     dataset = dataset.train_test_split(test_size=0.1)
     
     # Extract the train dataset

@@ -15,10 +15,30 @@
 # limitations under the License.
 #
 
-from .evaluate_model import evaluate_model
-from .finetune import finetune
-from .prepare_datasets import prepare_data
-from .promote import promote
-from .log_metadata import log_metadata_from_step_artifact
-from .track_log_model import track_log_model
-from .merge_model import merge_adapter_base_model
+
+from steps import (
+    deploy_to_databricks,
+)
+from zenml import pipeline
+from zenml.client import Client
+from zenml.logger import get_logger
+
+logger = get_logger(__name__)
+
+@pipeline
+def deploy_pipeline(
+    platform: str,
+):
+    """Pipeline for deploying the LLM model."""
+    if platform == "databricks":
+        deployment_service = deploy_to_databricks()
+    elif platform == "local":
+        logger.info("Will be added soon")
+    elif platform == "huggingface":
+        logger.info("Will be added soon")
+    elif platform == "bentoml":
+        logger.info("Will be added soon")
+    
+        
+    
+    

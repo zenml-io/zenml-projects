@@ -20,10 +20,10 @@ from steps import (
     evaluate_model,
     finetune,
     log_metadata_from_step_artifact,
-    merge_adapter_base_model,
+    merge_and_log_model,
+    opitmize_model,
     prepare_data,
     promote,
-    track_log_model,
 )
 from zenml import pipeline
 from zenml.client import Client
@@ -33,7 +33,6 @@ from zenml.client import Client
 def llm_peft_full_finetune(
     system_prompt: str,
     base_model_id: str,
-    use_fast: bool = True,
     load_in_8bit: bool = False,
     load_in_4bit: bool = False,
 ):
@@ -56,7 +55,6 @@ def llm_peft_full_finetune(
     datasets_dir = prepare_data(
         base_model_id=base_model_id,
         system_prompt=system_prompt,
-        use_fast=use_fast,
     )
 
     evaluate_model(
@@ -64,7 +62,6 @@ def llm_peft_full_finetune(
         system_prompt,
         datasets_dir,
         None,
-        use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
         id="evaluate_base",
@@ -79,7 +76,6 @@ def llm_peft_full_finetune(
     ft_model_dir = finetune(
         base_model_id,
         datasets_dir,
-        use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
     )
@@ -89,7 +85,6 @@ def llm_peft_full_finetune(
         system_prompt,
         datasets_dir,
         ft_model_dir,
-        use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
         id="evaluate_finetuned",
@@ -101,25 +96,12 @@ def llm_peft_full_finetune(
         id="log_metadata_evaluation_finetuned"
     )
     
-    merge_adapter_base_model(
+    mg_model_dir = merge_and_log_model(
         base_model_id=base_model_id,
         ft_model_dir=ft_model_dir,
-        load_in_8bit=load_in_8bit,
-        load_in_4bit=load_in_4bit,
     )
+    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base", "merge_and_log_model"])
     
-    if Client().active_stack.experiment_tracker and Client().active_stack.model_registry:
-        track_log_model(
-            base_model_id=base_model_id,
-            system_prompt=system_prompt,
-            datasets_dir=datasets_dir,
-            ft_model_dir=ft_model_dir,
-            use_fast=use_fast,
-            load_in_8bit=load_in_8bit,
-            load_in_4bit=load_in_4bit,
-        )
-        promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base", "track_log_model"])
-    
-    else: 
-        promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
-
+    opitmize_model(
+        merged_model_dir=mg_model_dir,
+    )

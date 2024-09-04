@@ -43,7 +43,6 @@ def evaluate_model(
     system_prompt: str,
     datasets_dir: Path,
     ft_model_dir: Optional[Path],
-    use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
 ) -> None:
@@ -55,7 +54,6 @@ def evaluate_model(
         datasets_dir: The path to the datasets directory.
         ft_model_dir: The path to the finetuned model directory. If None, the
             base model will be used.
-        use_fast: Whether to use the fast tokenizer.
         load_in_4bit: Whether to load the model in 4bit mode.
         load_in_8bit: Whether to load the model in 8bit mode.
     """
@@ -76,8 +74,6 @@ def evaluate_model(
     logger.info("Loading dataset...")
     tokenizer = load_tokenizer(
         base_model_id,
-        is_eval=False,
-        use_fast=False,
     )
     test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
     test_dataset = test_dataset[:50]
@@ -98,18 +94,11 @@ def evaluate_model(
     else:
         model = base_model
     
-    tokenized_test_dataset = tokenize_for_eval(ground_truths, tokenizer, system_prompt)
+    tokenized_test_dataset = tokenize_for_eval(ground_truths, tokenizer)
     predictions = model.generate(
         **tokenized_test_dataset,
         max_length=512, 
-        #max_seq_length=512,
-        #num_return_sequences=1,
-        #max_new_tokens=200,
-        temperature=0.7,
         num_return_sequences=1
-        #top_k=50, 
-        #top_p=0.95,
-        #repetition_penalty=2.5,
     )
     predictions = tokenizer.batch_decode(
         predictions,
@@ -119,7 +108,6 @@ def evaluate_model(
 
     results = []
     for pred in predictions:
-        logger.info("Generated response: " + pred)
         results.append(pred.split("assistant")[1])
 
     logger.info("Computing ROUGE metrics...")

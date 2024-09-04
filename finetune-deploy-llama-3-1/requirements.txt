@@ -13,5 +13,5 @@ torch>=2.2.0
 sentencepiece
 huggingface_hub
 mlflow>=2.14.3
-vllm>=0.5.3.post1
+skypilot-nightly
 trl

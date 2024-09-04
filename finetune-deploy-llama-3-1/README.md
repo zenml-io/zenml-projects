@@ -1,9 +1,7 @@
 # ☮️ Fine-tuning open source LLMs using MLOps pipelines with PEFT
 
-Welcome to your newly generated "ZenML LLM PEFT Finetuning project" project! This is
-a great way to get hands-on with ZenML using production-like template. 
-The project contains a collection of ZenML steps, pipelines and other artifacts
-and useful resources that can serve as a solid starting point for finetuning open-source LLMs using ZenML.
+Welcome to the "ZenML Llama 3.1 Finetuning and deployment project"! This project demonstrates how to use ZenML for fine-tuning and deploying the Llama 3.1 model. It provides a collection of ZenML steps, pipelines, and other artifacts that serve as a solid starting point for fine-tuning large language models and deploying them into different platforms like Databricks,Hugging Face, BentoML, and locally.
+
 
 Using these pipelines, we can run the data-preparation and model finetuning with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guide/production-guide/configure-pipeline) and letting ZenML take care of tracking our metadata and [containerizing our pipelines](https://docs.zenml.io/how-to/customize-docker-builds).
 
@@ -17,11 +15,11 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🌎 Inspiration and Credit
 
-This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) by the amazing people at Huggingface and the [`microsoft/phi-2`](https://huggingface.co/microsoft/phi-2) model from the amazing people at Microsoft.
+This project heavily relies on the [Fine-tune Llama 3 8B on Medical Dataset](https://www.kaggle.com/code/kingabzpro/fine-tune-llama-3-8b-on-medical-dataset) and the [`Meta-Llama-3.1-8B`](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B) model from the amazing people at Meta.
 
 ## 🏃 How to run
 
-In this project, we provide a predefined configuration file to finetune models on the [Viggio](https://huggingface.co/datasets/GEM/viggo) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
+In this project, we provide a predefined configuration file to finetune models on the [Meta-Llama-3.1-8B](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
 
 ```bash
 # Set up a Python virtual environment, if you haven't already
@@ -60,18 +58,6 @@ When running the pipeline like this, the trained model will be stored in the Zen
 > files provided in the `configs` folder.
 >
 > For a remote finetune you can use [`llama3-1_finetune_remote.yaml`](configs/llama3-1_finetune_remote.yaml) and for a
-> local finetune you can use [`llama3-1_finetune_local.yaml`](configs/llama3-1_finetune_local.yaml).
-
-### ⚡ Accelerate your finetuning
-
-Do you want to benefit from multi-GPU-training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this purpose.
-For example, `orchestrator_finetune.yaml` can run a finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
-
-```shell
-python run.py --config orchestrator_finetune.yaml --accelerate
-```
-
-Under the hood, the finetuning step will spin up the accelerated job using the step code, which will run on all available GPUs.
 
 ## ☁️ Running with a remote stack
 
@@ -109,18 +95,26 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ├── materializers
 │   └── directory_materializer.py                 # custom materializer to push whole directories to the artifact store and back
 ├── pipelines                                     # `zenml.pipeline` implementations
-│   └── train.py                                  # Finetuning and evaluation pipeline
+│   ├── train.py                                  # Finetuning and evaluation pipeline
+|   └── deployment.py                              # deployment pipeline
 ├── steps                                         # logically grouped `zenml.steps` implementations
 │   ├── evaluate_model.py                         # evaluate base and finetuned models using Rouge metrics
 │   ├── finetune.py                               # finetune the base model
 │   ├── log_metadata.py                           # helper step to ensure that model metadata is always logged
 │   ├── prepare_datasets.py                       # load and tokenize dataset
-│   └── promote.py                                # promote good models to target environment
+│   |── promote.py                                # promote good models to target environment
+|   |-- merge_and_log_model.py                    # merge and log the model into the model registry if it exists
+│   |── deploy_to_databricks.py                   # deploy to databricks
+│   |── deploy_to_huggingface.py                  # deploy to huggingface
+│   |── deploy_to_bentoml.py                      # deploy to bentoml
+|   └── optimize_model.py                         # optimize the model using llama cpp
 ├── utils                                         # utility functions
 │   ├── callbacks.py                              # custom callbacks
 │   ├── loaders.py                                # loaders for models and data
 │   ├── logging.py                                # logging helpers
-│   └── tokenizer.py                              # load and tokenize
+│   |── tokenizer.py                              # load and tokenize
+│   |── llama_cpp.py                              # llama cpp utilities for model optimization
+│   └── test_model.py                             # test the model
 ├── .dockerignore
 ├── README.md                                     # this file
 ├── requirements.txt                              # extra Python dependencies 

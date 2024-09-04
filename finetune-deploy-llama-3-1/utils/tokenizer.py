@@ -20,15 +20,11 @@ from transformers import AutoTokenizer
 
 def load_tokenizer(
     base_model_id: str,
-    is_eval: bool = False,
-    use_fast: bool = True,
 ) -> AutoTokenizer:
     """Loads the tokenizer for the given base model id.
 
     Args:
         base_model_id: The base model id to use.
-        is_eval: Whether to load the tokenizer for evaluation.
-        use_fast: Whether to use the fast tokenizer.
 
     Returns:
         The tokenizer.
@@ -79,7 +75,6 @@ def tokenize(
 def tokenize_for_eval(
     data_points: List,
     tokenizer: AutoTokenizer,
-    system_prompt: str,
 ):
     """Tokenizes the prompts for evaluation.
 
