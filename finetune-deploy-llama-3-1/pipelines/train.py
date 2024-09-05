@@ -101,7 +101,3 @@ def llm_peft_full_finetune(
         ft_model_dir=ft_model_dir,
     )
     promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base", "merge_and_log_model"])
-    
-    opitmize_model(
-        merged_model_dir=mg_model_dir,
-    )

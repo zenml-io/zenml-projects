@@ -40,7 +40,7 @@ settings:
 
 parameters:
   # uses a 4-bit quantised version of llama-3.1 for local experimentation
-  base_model_id: meta-llama/Meta-Llama-3.1-8B
+  base_model_id: meta-llama/Meta-Llama-3.1-8B-Instruct
   use_fast: False
   load_in_4bit: True
   system_prompt: |

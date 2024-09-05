@@ -49,10 +49,16 @@ settings:
     #retry_until_up: True
     docker_run_args: 
       - "--gpus=all"
+  orchestrator.databricks:
+    spark_version : 15.3.x-gpu-ml-scala2.12
+    node_type_id : Standard_NC24ads_A100_v4
+    autoscale:
+      - 0
+      - 1
     
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3.1-8B
+  base_model_id: meta-llama/Meta-Llama-3.1-8B-Instruct
   load_in_4bit: True
   system_prompt: |
     You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.

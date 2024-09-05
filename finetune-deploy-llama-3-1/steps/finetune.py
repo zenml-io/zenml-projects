@@ -59,7 +59,7 @@ def finetune(
     per_device_train_batch_size: int = 32,
     gradient_accumulation_steps: int = 8,
     warmup_steps: int = 10,
-    epochs: int = 2,
+    epochs: int = 1,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
 ) -> Annotated[Path, ArtifactConfig(name="ft_model_dir", is_model_artifact=True)]:

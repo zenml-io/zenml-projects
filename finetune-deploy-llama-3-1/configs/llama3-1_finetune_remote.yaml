@@ -41,7 +41,7 @@ settings:
       MKL_SERVICE_FORCE_INTEL: "1"
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3.1-8B
+  base_model_id: meta-llama/Meta-Llama-3.1-8B-Instruct
   load_in_4bit: True
   system_prompt: |
     You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.

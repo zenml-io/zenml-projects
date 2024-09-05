@@ -15,42 +15,38 @@
 # limitations under the License.
 # 
 
+# environment configuration
 model:
-  name: databricks-llama-3-1-ai-doctor
-  description: "Fine-tune `llama-3.1`."
-  tags:
-    - llm
-    - peft
-    - lora
-    - llama-3.1
-    - remote
-    - ai-medical-chatbot
-    - databricks
-  version: 300_steps
+  name: llama-3-1-ai-doctor
+  version: staging
 
+  
 settings:
-  docker:
+  docker: 
     parent_image: pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
     requirements: requirements.txt
     python_package_installer: uv
     python_package_installer_args:
       system: null
     apt_packages: 
+      - openssh-server
       - git
     environment:
       PJRT_DEVICE: CUDA
       USE_TORCH_XLA: "false"
       MKL_SERVICE_FORCE_INTEL: "1"
-      MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING: "true"
-  orchestrator.databricks:
-    spark_version : 15.3.x-gpu-ml-scala2.12
-    node_type_id : Standard_NC24ads_A100_v4
-    autoscale:
-      - 0
-      - 1
+  orchestrator.vm_azure:
+    instance_type: Standard_NC24ads_A100_v4
+    region: westeurope
+    idle_minutes_to_autostop: 60
+    down: True
+    stream_logs: True
+    #retry_until_up: True
+    docker_run_args: 
+      - "--gpus=all"
 
 parameters:
-  base_model_id: meta-llama/Meta-Llama-3.1-8B-Instruct
+  base_model_id: 
   load_in_4bit: True
   system_prompt: |
     You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.
@@ -58,39 +54,8 @@ parameters:
 
 steps:
   prepare_data:
-    parameters:
-      dataset_name: ruslanmv/ai-medical-chatbot
 
-  finetune:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-    parameters:
-      eval_steps: 100
-      epochs: 1
+# pipeline level extra configurations
+extra:
+  notify_on_failure: True
 
-  evaluate_finetuned:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-
-  evaluate_base:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-
-  promote:
-    parameters:
-      metric: rouge2
-      target_stage: staging
-
-  merge_and_log_model:
-    retry:
-      max_retries: 3
-      delay: 10
-      backoff: 2
-    parameters:
-      model_name: databricks-llama-3-1-ai-doctor

@@ -41,7 +41,7 @@ Examples:
 @click.option(
     "--config",
     type=str,
-    default="default_finetune.yaml",
+    default="llama3-1_finetune_databricks.yaml",
     help="Path to the YAML config file.",
 )
 @click.option(
@@ -50,9 +50,23 @@ Examples:
     default=False,
     help="Disable caching for the pipeline run.",
 )
+@click.option(
+    "--train",
+    is_flag=True,
+    default=False,
+    help="Run the training pipeline.",
+)
+@click.option(
+    "--deploy",
+    is_flag=True,
+    default=False,
+    help="Deploy the model after training.",
+)
 def main(
     config: Optional[str] = None,
     no_cache: bool = False,
+    train: bool = False,
+    deploy: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -60,20 +74,33 @@ def main(
         config: Path to the YAML config file.
         no_cache: If `True` cache will be disabled.
     """
-    config_folder = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "configs",
-    )
-    pipeline_args = {"enable_cache": not no_cache}
-    if not config:
-        raise RuntimeError("Config file is required to run a pipeline.")
+    if train:
+        config_folder = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+        )
+        pipeline_args = {"enable_cache": not no_cache}
+        if not config:
+            raise RuntimeError("Config file is required to run a pipeline.")
 
-    pipeline_args["config_path"] = os.path.join(config_folder, config)
+        pipeline_args["config_path"] = os.path.join(config_folder, config)
 
-    from pipelines.train import llm_peft_full_finetune
+        from pipelines.train import llm_peft_full_finetune
 
-    llm_peft_full_finetune.with_options(**pipeline_args)()
+        llm_peft_full_finetune.with_options(**pipeline_args)()
+    elif deploy:
+        config_folder = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+        )
+        pipeline_args = {"enable_cache": not no_cache}
 
+        pipeline_args["config_path"] = os.path.join(config_folder, "llama3-1_deploy_databricks.yaml")
+
+        from pipelines.deployment import deploy_to_databricks
+
+        deploy_to_databricks.with_options(**pipeline_args)()
+    
 
 if __name__ == "__main__":
     main()

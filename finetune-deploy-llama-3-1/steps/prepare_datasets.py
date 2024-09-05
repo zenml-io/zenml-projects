@@ -79,7 +79,7 @@ def prepare_data(
 
     # Load the dataset
     dataset = load_dataset(dataset_name, split="all")
-    dataset = dataset.shuffle(seed=63).select(range(20000))
+    dataset = dataset.shuffle(seed=63).select(range(5000))
     dataset = dataset.train_test_split(test_size=0.1)
     
     # Extract the train dataset

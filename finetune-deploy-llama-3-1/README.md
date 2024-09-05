@@ -15,7 +15,7 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🌎 Inspiration and Credit
 
-This project heavily relies on the [Fine-tune Llama 3 8B on Medical Dataset](https://www.kaggle.com/code/kingabzpro/fine-tune-llama-3-8b-on-medical-dataset) and the [`Meta-Llama-3.1-8B`](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B) model from the amazing people at Meta.
+This project heavily relies on the [Fine-tune Llama 3 8B on Medical Dataset](https://www.kaggle.com/code/kingabzpro/fine-tune-llama-3-8b-on-medical-dataset) and the [`Meta-Llama-3.1-8B`](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct-Instruct) model from the amazing people at Meta.
 
 ## 🏃 How to run
 

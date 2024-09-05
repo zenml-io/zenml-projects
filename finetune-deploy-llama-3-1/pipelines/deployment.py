@@ -30,14 +30,8 @@ def deploy_pipeline(
     platform: str,
 ):
     """Pipeline for deploying the LLM model."""
-    if platform == "databricks":
-        deployment_service = deploy_to_databricks()
-    elif platform == "local":
-        logger.info("Will be added soon")
-    elif platform == "huggingface":
-        logger.info("Will be added soon")
-    elif platform == "bentoml":
-        logger.info("Will be added soon")
+    deploy_to_databricks()
+    
     
         
     
