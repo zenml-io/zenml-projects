@@ -5,6 +5,7 @@ from pathlib import Path
 
 import tiktoken
 from constants import (
+    AWS_CUSTOM_MODEL_BUCKET_NAME,
     AWS_CUSTOM_MODEL_CUSTOMIZATION_TYPE,
     AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME,
     AWS_CUSTOM_MODEL_ROLE_ARN,
@@ -13,7 +14,10 @@ from constants import (
 )
 from zenml import pipeline, step
 from zenml.client import Client
+from zenml.logger import get_logger
 from zenml.service_connectors.service_connector import ServiceConnector
+
+logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore")
 
@@ -66,7 +70,7 @@ def load_split_push_data_to_s3(dataset_dir: str) -> str:
 
     upload_to_s3(
         tmp_file_path,
-        AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME,
+        AWS_CUSTOM_MODEL_BUCKET_NAME,
         AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME,
     )
 
@@ -84,18 +88,16 @@ def finetune_model(
 
     response = bedrock_client.create_model_customization_job(
         jobName=f"my-custom-model-finetune-job-{ts}",
-        customModelName=f"my-custom-model-{base_model_id.replace('.', '-')}-{ts}",
+        customModelName=f"amazon-titan-text-express-v1-{ts}",
         customizationType=AWS_CUSTOM_MODEL_CUSTOMIZATION_TYPE,
         roleArn=AWS_CUSTOM_MODEL_ROLE_ARN,
-        baseModelIdentifier=base_model_id,
+        baseModelIdentifier=base_model_identifier,
         jobTags=[{"key": "z-owner", "value": "alex-strick"}],
         customModelTags=[{"key": "z-owner", "value": "alex-strick"}],
         trainingDataConfig={
-            "s3Uri": f"s3://{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME}/{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME}"
+            "s3Uri": f"s3://{AWS_CUSTOM_MODEL_BUCKET_NAME}/{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME}"
         },
-        outputDataConfig={
-            "s3Uri": f"s3://{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME}"
-        },
+        outputDataConfig={"s3Uri": f"s3://{AWS_CUSTOM_MODEL_BUCKET_NAME}"},
         hyperParameters={
             "learningRate": "0.00001",
             "epochCount": "5",
@@ -105,6 +107,7 @@ def finetune_model(
     )
 
     job_arn = response["jobArn"]
+    logger.info(f"Finetuning job ARN: {job_arn}")
     return job_arn
 
 
