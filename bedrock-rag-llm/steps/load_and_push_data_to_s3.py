@@ -1,9 +1,9 @@
 import os
 
+from constants import AWS_SERVICE_CONNECTOR_ID
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
-from constants import AWS_SERVICE_CONNECTOR_ID
 
 logger = get_logger(__name__)
 

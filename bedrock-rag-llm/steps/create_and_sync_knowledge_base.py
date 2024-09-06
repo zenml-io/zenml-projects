@@ -1,6 +1,7 @@
+from constants import AWS_SERVICE_CONNECTOR_ID
 from zenml import step
 from zenml.client import Client
-from constants import AWS_SERVICE_CONNECTOR_ID
+
 
 @step
 def create_and_sync_knowledge_base(

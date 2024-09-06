@@ -1,10 +1,10 @@
 from botocore.exceptions import ClientError
+from constants import AWS_SERVICE_CONNECTOR_ID
 from rich import print
 from utils import generate_message
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
-from constants import AWS_SERVICE_CONNECTOR_ID
 
 logger = get_logger(__name__)
 

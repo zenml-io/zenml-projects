@@ -2,13 +2,18 @@ import argparse
 
 from constants import CLAUDE_3_HAIKU_MODEL_ID
 from pipelines.bedrock_basic_inference import bedrock_basic_inference
+from pipelines.bedrock_custom_model_finetuning import (
+    bedrock_custom_model_finetuning,
+)
 from pipelines.bedrock_rag import bedrock_rag
-from zenml.logger import get_logger
 from zenml.client import Client
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
-sample_prompt = "What is the capital of France and what is the capital of Germany?"
+sample_prompt = (
+    "What is the capital of France and what is the capital of Germany?"
+)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -21,7 +26,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--pipeline",
-        choices=["inference", "rag"],
+        choices=["inference", "rag", "finetune"],
         default="inference",
         help="The pipeline to run (default: inference)",
     )
@@ -34,11 +39,6 @@ if __name__ == "__main__":
         "--query",
         default=sample_prompt,
         help="The query to use for RAG (default: sample_prompt)",
-    )
-    parser.add_argument(
-        "--finetune",
-        default=False,
-        help="Whether to finetune a model  on the knowledge base (default: False)",
     )
     parser.add_argument(
         "--dataset",
@@ -54,7 +54,12 @@ if __name__ == "__main__":
             prompt=args.query,
         )
         zc = Client()
-        output = zc.get_pipeline("bedrock_basic_inference").last_successful_run.steps['basic_inference'].outputs['output'].load()
+        output = (
+            zc.get_pipeline("bedrock_basic_inference")
+            .last_successful_run.steps["basic_inference"]
+            .outputs["output"]
+            .load()
+        )
         print(f"Answer: '{output}'")
     elif args.pipeline == "rag":
         if args.provision:
@@ -65,4 +70,4 @@ if __name__ == "__main__":
             # inference on your bedrock knowledge base
             bedrock_rag(provision=False, query=args.query)
     elif args.pipeline == "finetune":
-        bedrock_custom_model_finetuning(dataset_dir=args.dataset_dir)
+        bedrock_custom_model_finetuning(dataset_dir=args.dataset)
