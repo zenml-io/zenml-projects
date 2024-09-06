@@ -25,16 +25,44 @@ if __name__ == "__main__":
         default="inference",
         help="The pipeline to run (default: inference)",
     )
+    parser.add_argument(
+        "--provision",
+        default=False,
+        help="Whether to provision the RAG stack on Bedrock (default: False)",
+    )
+    parser.add_argument(
+        "--query",
+        default=sample_prompt,
+        help="The query to use for RAG (default: sample_prompt)",
+    )
+    parser.add_argument(
+        "--finetune",
+        default=False,
+        help="Whether to finetune a model  on the knowledge base (default: False)",
+    )
+    parser.add_argument(
+        "--dataset",
+        default="data",
+        help="The directory to use for the dataset (default: data)",
+    )
     args = parser.parse_args()
 
     if args.pipeline == "inference":
-        print("Asking model: ", sample_prompt)
+        print("Asking model: ", args.query)
         bedrock_basic_inference(
             model_id=args.model_id,
-            prompt=sample_prompt,
+            prompt=args.query,
         )
         zc = Client()
         output = zc.get_pipeline("bedrock_basic_inference").last_successful_run.steps['basic_inference'].outputs['output'].load()
         print(f"Answer: '{output}'")
     elif args.pipeline == "rag":
-        bedrock_rag()
+        if args.provision:
+            # sets up permissions
+            # creates knowledge base + ingests data
+            bedrock_rag(provision=True)
+        else:
+            # inference on your bedrock knowledge base
+            bedrock_rag(provision=False, query=args.query)
+    elif args.pipeline == "finetune":
+        bedrock_custom_model_finetuning(dataset_dir=args.dataset_dir)

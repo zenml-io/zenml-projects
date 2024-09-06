@@ -3,6 +3,7 @@ import os
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
+from constants import AWS_SERVICE_CONNECTOR_ID
 
 logger = get_logger(__name__)
 
@@ -37,7 +38,7 @@ def load_and_push_data_to_s3(bucket_name: str):
     logger.info("Connecting to S3")
     zc = Client()
     sc_client = zc.get_service_connector_client(
-        name_id_or_prefix="0b04bcae-efc9-4044-a1c2-b86281cb0820",  # TODO: pull this out into config file
+        name_id_or_prefix=AWS_SERVICE_CONNECTOR_ID,
         resource_type="aws-generic",
     ).connect()
     s3 = sc_client.resource("s3")

@@ -1,6 +1,6 @@
 from zenml import step
 from zenml.client import Client
-
+from constants import AWS_SERVICE_CONNECTOR_ID
 
 @step
 def create_and_sync_knowledge_base(
@@ -8,7 +8,7 @@ def create_and_sync_knowledge_base(
 ) -> str:
     zc = Client()
     sc_client = zc.get_service_connector_client(
-        name_id_or_prefix="0b04bcae-efc9-4044-a1c2-b86281cb0820",  # TODO: pull this out into config file
+        name_id_or_prefix=AWS_SERVICE_CONNECTOR_ID,
         resource_type="aws-generic",
     ).connect()
     brc = sc_client.client("bedrock-agent")

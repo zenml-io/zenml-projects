@@ -1,1 +1,3 @@
 CLAUDE_3_HAIKU_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+
+AWS_SERVICE_CONNECTOR_ID = "0b04bcae-efc9-4044-a1c2-b86281cb0820"
