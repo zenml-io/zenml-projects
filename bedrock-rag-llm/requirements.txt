@@ -6,3 +6,4 @@ opensearch-py
 boto3
 retrying
 tiktoken
+jsonlines

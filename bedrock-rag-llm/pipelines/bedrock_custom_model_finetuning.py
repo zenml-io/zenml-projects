@@ -1,8 +1,8 @@
-import json
 import warnings
 from datetime import datetime
 from pathlib import Path
 
+import jsonlines
 import tiktoken
 from constants import (
     AWS_CUSTOM_MODEL_BUCKET_NAME,
@@ -61,12 +61,11 @@ def load_split_push_data_to_s3(dataset_dir: str) -> str:
         with open(path, "r") as file:
             text = file.read()
             chunks = split_text(text)
-            data.extend(
-                json.dumps({"input": chunk}) + "\n" for chunk in chunks
-            )
+            data.extend({"input": chunk} for chunk in chunks)
+
     tmp_file_path = Path("/tmp") / AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME
-    with open(tmp_file_path, "w") as f:
-        f.writelines(data)
+    with jsonlines.open(tmp_file_path, mode="w") as writer:
+        writer.write_all(data)
 
     upload_to_s3(
         tmp_file_path,
@@ -74,11 +73,11 @@ def load_split_push_data_to_s3(dataset_dir: str) -> str:
         AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME,
     )
 
-    return "".join(data)
+    return "".join(chunk["input"] for chunk in data)
 
 
 @step
-def finetune_model(
+def submit_model_customization_request(
     base_model_identifier: str = "amazon.titan-text-express-v1:0:8k",
 ) -> str:
     ts = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -114,4 +113,4 @@ def finetune_model(
 @pipeline
 def bedrock_custom_model_finetuning(dataset_dir: str):
     _ = load_split_push_data_to_s3(dataset_dir)
-    finetune_model(after="load_split_push_data_to_s3")
+    submit_model_customization_request(after="load_split_push_data_to_s3")
