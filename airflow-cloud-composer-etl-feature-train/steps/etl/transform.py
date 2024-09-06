@@ -17,7 +17,8 @@
 
 import os
 from datetime import datetime, timezone
-from typing import Annotated, Optional
+from typing import Optional
+from typing_extensions import Annotated
 
 import pandas as pd
 from materializers import BigQueryDataset, CSVDataset

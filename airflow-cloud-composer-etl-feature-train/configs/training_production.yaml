@@ -20,7 +20,7 @@ model:
 
 steps:
   train_xgboost_model:
-    step_operator: gcp_airflow_vertex
+    step_operator: gcp-airflow-step-operator
     settings:
       step_operator.vertex:
         accelerator_type: "NVIDIA_TESLA_P100" 

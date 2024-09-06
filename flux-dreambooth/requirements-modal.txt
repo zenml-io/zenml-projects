@@ -1,0 +1,17 @@
+git+https://github.com/huggingface/accelerate.git@main
+datasets
+transformers~=4.41.2
+sentencepiece>=0.1.91,!=0.1.92
+torch~=2.2.0
+torchvision~=0.16
+peft
+git+https://github.com/zenml-io/zenml.git@feature/modal-step-operator
+git+https://github.com/huggingface/diffusers.git@main
+pillow
+tensorboard
+Jinja2
+bitsandbytes
+opencv-python
+imageio
+imageio-ffmpeg
+modal

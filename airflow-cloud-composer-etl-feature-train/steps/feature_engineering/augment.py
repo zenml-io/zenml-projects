@@ -17,7 +17,8 @@
 
 import os
 from datetime import datetime, timezone
-from typing import Annotated, Optional
+from typing import Optional
+from typing_extensions import Annotated
 
 from materializers import BigQueryDataset, CSVDataset
 from zenml import step
