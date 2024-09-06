@@ -1,14 +1,21 @@
 import json
+import warnings
+from datetime import datetime
 from pathlib import Path
 
 import tiktoken
-from constants import AWS_SERVICE_CONNECTOR_ID
+from constants import (
+    AWS_CUSTOM_MODEL_CUSTOMIZATION_TYPE,
+    AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME,
+    AWS_CUSTOM_MODEL_ROLE_ARN,
+    AWS_REGION,
+    AWS_SERVICE_CONNECTOR_ID,
+)
 from zenml import pipeline, step
 from zenml.client import Client
 from zenml.service_connectors.service_connector import ServiceConnector
 
-pretraining_data_filename = "pretraining_inputs.jsonl"
-bucket_name = "bedrock-zenml-rag-docs"
+warnings.filterwarnings("ignore")
 
 
 def get_boto_client() -> ServiceConnector:
@@ -53,35 +60,48 @@ def load_split_push_data_to_s3(dataset_dir: str) -> str:
             data.extend(
                 json.dumps({"input": chunk}) + "\n" for chunk in chunks
             )
-    tmp_file_path = Path("/tmp") / pretraining_data_filename
+    tmp_file_path = Path("/tmp") / AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME
     with open(tmp_file_path, "w") as f:
         f.writelines(data)
 
-    upload_to_s3(tmp_file_path, bucket_name, pretraining_data_filename)
+    upload_to_s3(
+        tmp_file_path,
+        AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME,
+        AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME,
+    )
 
     return "".join(data)
 
 
 @step
-def finetune_model():
+def finetune_model(
+    base_model_identifier: str = "amazon.titan-text-express-v1:0:8k",
+) -> str:
+    ts = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
     boto_client = get_boto_client()
-    bedrock_client = boto_client.client("bedrock")
+    bedrock_client = boto_client.client("bedrock", region_name=AWS_REGION)
 
     response = bedrock_client.create_model_customization_job(
-        jobName="my-finetune-job",
-        customModelName="my-custom-model",
-        roleArn="arn:aws:iam::123456789012:role/BedRockRole",
-        baseModelIdentifier="my-base-model",
+        jobName=f"my-custom-model-finetune-job-{ts}",
+        customModelName=f"my-custom-model-{base_model_id.replace('.', '-')}-{ts}",
+        customizationType=AWS_CUSTOM_MODEL_CUSTOMIZATION_TYPE,
+        roleArn=AWS_CUSTOM_MODEL_ROLE_ARN,
+        baseModelIdentifier=base_model_id,
+        jobTags=[{"key": "z-owner", "value": "alex-strick"}],
+        customModelTags=[{"key": "z-owner", "value": "alex-strick"}],
         trainingDataConfig={
-            "s3Uri": f"s3://{bucket_name}/{pretraining_data_filename}"
+            "s3Uri": f"s3://{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME}/{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME}"
         },
         outputDataConfig={
-            "s3Uri": "s3://my-bucket/output/"
+            "s3Uri": f"s3://{AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAMEAWS_CUSTOM_MODEL_BUCKET_NAME}"
         },
         hyperParameters={
-            "learning_rate": "5e-5",
-            "num_train_epochs": "3"
-        }
+            "learningRate": "0.00001",
+            "epochCount": "5",
+            "batchSize": "1",
+            "learningRateWarmupSteps": "5",
+        },
     )
 
     job_arn = response["jobArn"]
