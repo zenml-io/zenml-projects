@@ -64,7 +64,28 @@ def load_split_push_data_to_s3(dataset_dir: str) -> str:
 
 @step
 def finetune_model():
-    pass
+    boto_client = get_boto_client()
+    bedrock_client = boto_client.client("bedrock")
+
+    response = bedrock_client.create_model_customization_job(
+        jobName="my-finetune-job",
+        customModelName="my-custom-model",
+        roleArn="arn:aws:iam::123456789012:role/BedRockRole",
+        baseModelIdentifier="my-base-model",
+        trainingDataConfig={
+            "s3Uri": f"s3://{bucket_name}/{pretraining_data_filename}"
+        },
+        outputDataConfig={
+            "s3Uri": "s3://my-bucket/output/"
+        },
+        hyperParameters={
+            "learning_rate": "5e-5",
+            "num_train_epochs": "3"
+        }
+    )
+
+    job_arn = response["jobArn"]
+    return job_arn
 
 
 @pipeline
