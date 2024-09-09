@@ -1,19 +1,22 @@
-from steps.create_and_sync_knowledge_base import create_and_sync_knowledge_base
-from steps.load_and_push_data_to_s3 import load_and_push_data_to_s3
-from zenml import pipeline, step
+from constants import AWS_REGION, CLAUDE_3_HAIKU_MODEL_ARN
+from zenml import step
 
 
 @step
 def evaluate_rag(knowledge_base_id: str) -> str:
+    bedrock_agent_runtime_client = boto3_session.client(
+        "bedrock-agent-runtime", region_name=AWS_REGION
+    )
     query = "What orchestrators does ZenML support?"
     logger.info(f"Evaluating RAG with query: {query}")
+
     response = bedrock_agent_runtime_client.retrieve_and_generate(
         input={"text": query},
         retrieveAndGenerateConfiguration={
             "type": "KNOWLEDGE_BASE",
             "knowledgeBaseConfiguration": {
-                "knowledgeBaseId": kb_id,
-                "modelArn": model_arn,
+                "knowledgeBaseId": knowledge_base_id,
+                "modelArn": CLAUDE_3_HAIKU_MODEL_ARN,
             },
         },
     )
@@ -34,7 +37,7 @@ def evaluate_rag(knowledge_base_id: str) -> str:
     logger.info("Retrieving relevant documents:")
     relevant_documents = bedrock_agent_runtime_client.retrieve(
         retrievalQuery={"text": query},
-        knowledgeBaseId=kb_id,
+        knowledgeBaseId=knowledge_base_id,
         retrievalConfiguration={
             "vectorSearchConfiguration": {
                 "numberOfResults": 3  # will fetch top 3 documents which matches closely with the query.
@@ -45,10 +48,3 @@ def evaluate_rag(knowledge_base_id: str) -> str:
     logger.info("Printing out relevant documents:")
     for doc in relevant_documents["retrievalResults"]:
         logger.info(doc["content"]["text"])
-
-
-@pipeline
-def bedrock_rag():
-    load_and_push_data_to_s3(bucket_name="bedrock-zenml-rag-docs")
-    create_and_sync_knowledge_base()
-    evaluate_rag()
