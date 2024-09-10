@@ -2,7 +2,7 @@ from botocore.exceptions import ClientError
 from constants import AWS_SERVICE_CONNECTOR_ID
 from rich import print
 from utils import generate_message
-from zenml import step
+from zenml import log_model_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -32,6 +32,16 @@ def basic_inference(model_id: str, prompt: str) -> str:
             brt, model_id, system_prompt, messages, max_tokens
         )
         logger.debug(response)
+
+        log_model_metadata(
+            metadata={
+                "basic_inference": {
+                    "model_id": model_id,
+                    "prompt": prompt,
+                    "response": response,
+                }
+            }
+        )
 
         return response["content"][0]["text"]
 

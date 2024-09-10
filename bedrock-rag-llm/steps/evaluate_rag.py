@@ -1,5 +1,5 @@
 from constants import AWS_REGION, CLAUDE_3_HAIKU_MODEL_ARN
-from zenml import step
+from zenml import log_model_metadata, step
 from zenml.logger import get_logger
 
 from steps.create_and_sync_knowledge_base import get_boto_client
@@ -7,7 +7,7 @@ from steps.create_and_sync_knowledge_base import get_boto_client
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def evaluate_rag(knowledge_base_id: str) -> None:
     boto3_session = get_boto_client()
     bedrock_agent_runtime_client = boto3_session.client(
@@ -54,3 +54,14 @@ def evaluate_rag(knowledge_base_id: str) -> None:
     logger.info("Printing out relevant documents:")
     for doc in relevant_documents["retrievalResults"]:
         logger.info(doc["content"]["text"])
+
+    log_model_metadata(
+        metadata={
+            "bedrock_rag": {
+                "knowledge_base_id": knowledge_base_id,
+                "query": query,
+                "generated_text": generated_text,
+                "model_arn": CLAUDE_3_HAIKU_MODEL_ARN,
+            }
+        }
+    )

@@ -11,7 +11,7 @@ from constants import (
 )
 from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
 from retrying import retry
-from zenml import step
+from zenml import log_model_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.service_connectors.service_connector import ServiceConnector
@@ -201,11 +201,15 @@ def create_and_sync_knowledge_base(
         },
     }
 
+    chunking_strategy = "FIXED_SIZE"
+    max_tokens = 512
+    overlap_percentage = 20
+
     chunkingStrategyConfiguration = {
-        "chunkingStrategy": "FIXED_SIZE",
+        "chunkingStrategy": chunking_strategy,
         "fixedSizeChunkingConfiguration": {
-            "maxTokens": 512,
-            "overlapPercentage": 20,
+            "maxTokens": max_tokens,
+            "overlapPercentage": overlap_percentage,
         },
     }
 
@@ -281,5 +285,25 @@ def create_and_sync_knowledge_base(
         time.sleep(10)
 
     logger.info("Ingestion job completed successfully")
+
+    log_model_metadata(
+        metadata={
+            "bedrock_rag": {
+                "knowledge_base_id": kb_id,
+                "knowledge_base_name": name,
+                "knowledge_base_description": description,
+                "data_source_id": ds["dataSourceId"],
+                "data_source_name": name,
+                "data_source_description": description,
+                "ingestion_job_id": job["ingestionJobId"],
+                "ingestion_job_status": job["status"],
+                "vector_store_name": vector_store_name,
+                "vector_store_id": collection_id,
+                "chunking_strategy": chunking_strategy,
+                "max_tokens": max_tokens,
+                "overlap_percentage": overlap_percentage,
+            }
+        }
+    )
 
     return kb_id

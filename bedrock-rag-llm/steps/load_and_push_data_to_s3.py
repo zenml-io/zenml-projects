@@ -1,7 +1,7 @@
 import os
 
 from constants import AWS_SERVICE_CONNECTOR_ID
-from zenml import step
+from zenml import log_model_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -56,5 +56,14 @@ def load_and_push_data_to_s3(bucket_name: str):
         file_name = os.path.relpath(file_path, ".")
         logger.info("Uploading %s", file_name)
         bucket.upload_file(file_path, file_name)
+
+    log_model_metadata(
+        metadata={
+            "bedrock_rag": {
+                "source_data_bucket_name": bucket_name,
+                "source_data_num_files": len(md_files),
+            }
+        }
+    )
 
     logger.info("Finished load_and_push_data_to_s3 step")
