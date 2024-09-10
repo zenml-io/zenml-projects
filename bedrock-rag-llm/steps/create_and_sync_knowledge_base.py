@@ -1,9 +1,11 @@
 import json
 import time
 import warnings
+from typing import Dict
 
 from constants import (
     AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
+    AWS_CUSTOM_MODEL_BUCKET_NAME,
     AWS_REGION,
     AWS_SERVICE_CONNECTOR_ID,
 )
@@ -28,7 +30,7 @@ def get_boto_client() -> ServiceConnector:
 
 
 # suffix = random.randrange(200, 900)
-suffix = 504
+suffix = 392
 
 logger.info("Initializing AWS clients...")
 boto3_session = get_boto_client()
@@ -67,19 +69,23 @@ s3_policy_name = f"AmazonBedrockS3PolicyForKnowledgeBase_{suffix}"
 sm_policy_name = f"AmazonBedrockSecretPolicyForKnowledgeBase_{suffix}"
 oss_policy_name = f"AmazonBedrockOSSPolicyForKnowledgeBase_{suffix}"
 
-bucket_name = "bedrock-zenml-rag-docs"
-
 vector_store_name = f"bedrock-vectordb-rag-{suffix}"
 index_name = f"bedrock-vectordb-rag-index-{suffix}"
 aoss_client = boto3_session.client(
     "opensearchserverless", region_name=AWS_REGION
 )
 
-bedrock_kb_execution_role_arn = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN
 
+@retry(wait_random_min=1000, wait_random_max=2000, stop_max_attempt_number=3)
+def create_knowledge_base_func(
+    name: str,
+    description: str,
+    roleArn: str,
+    region_name: str,
+    opensearch_serverless_configuration: Dict[str, str],
+):
+    embeddingModelArn = f"arn:aws:bedrock:{region_name}::foundation-model/amazon.titan-embed-text-v1"
 
-@retry(wait_random_min=1000, wait_random_max=2000, stop_max_attempt_number=7)
-def create_knowledge_base_func():
     logger.info("Creating knowledge base...")
     create_kb_response = bedrock_agent_client.create_knowledge_base(
         name=name,
@@ -93,7 +99,7 @@ def create_knowledge_base_func():
         },
         storageConfiguration={
             "type": "OPENSEARCH_SERVERLESS",
-            "opensearchServerlessConfiguration": opensearchServerlessConfiguration,
+            "opensearchServerlessConfiguration": opensearch_serverless_configuration,
         },
     )
     return create_kb_response["knowledgeBase"]
@@ -103,7 +109,7 @@ def create_knowledge_base_func():
 def create_and_sync_knowledge_base(
     kb_name: str = vector_store_name,
     kb_description: str = "Bedrock RAG",
-    role_arn: str = bedrock_kb_execution_role_arn,
+    role_arn: str = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
 ) -> str:
     logger.info("Starting creation of knowledge base and synchronization...")
     try:
@@ -112,17 +118,24 @@ def create_and_sync_knowledge_base(
             name=vector_store_name, type="VECTORSEARCH"
         )
         collection_id = collection["createCollectionDetail"]["id"]
+        collection = collection["createCollectionDetail"]
     except Exception as err:
         if err.response["Error"]["Code"] == "ConflictException":
             logger.info("Collection already exists. Skipping creation.")
             collections = aoss_client.list_collections(maxResults=15)
             collection = next(
-                (c for c in collections["collectionSummaries"] if c["name"] == vector_store_name),
-                None
+                (
+                    c
+                    for c in collections["collectionSummaries"]
+                    if c["name"] == vector_store_name
+                ),
+                None,
             )
             collection_id = collection["id"]
             if collection is None:
-                raise ValueError(f"Collection {vector_store_name} not found") from err
+                raise ValueError(
+                    f"Collection {vector_store_name} not found"
+                ) from err
 
     host = f"{collection_id}.{AWS_REGION}.aoss.amazonaws.com"
 
@@ -130,7 +143,6 @@ def create_and_sync_knowledge_base(
     credentials = get_boto_client().get_credentials()
     awsauth = auth = AWSV4SignerAuth(credentials, AWS_REGION, service)
 
-    breakpoint()
     index_name = f"bedrock-sample-index-{suffix}"
     body_json = {
         "settings": {"index.knn": "true"},
@@ -152,7 +164,7 @@ def create_and_sync_knowledge_base(
         },
     }
 
-    logger.info("Building OpenSearch client...")
+    logger.info("Loading OpenSearch client...")
     oss_client = OpenSearch(
         hosts=[{"host": host, "port": 443}],
         http_auth=awsauth,
@@ -162,16 +174,25 @@ def create_and_sync_knowledge_base(
         timeout=300,
     )
     logger.info("Waiting for data access rules to be enforced...")
-    time.sleep(60)
+    time.sleep(10)
 
     logger.info("Creating index...")
-    response = oss_client.indices.create(
-        index=index_name, body=json.dumps(body_json)
-    )
+    try:
+        response = oss_client.indices.create(
+            index=index_name, body=json.dumps(body_json)
+        )
+    except Exception as err:
+        if "resource_already_exists_exception" in str(err):
+            logger.info(
+                f"Index {index_name} already exists. Continuing with existing index."
+            )
+        else:
+            logger.error(f"Error creating index: {err=}, {type(err)=}")
+            raise
 
     logger.info("Setting up knowledge base configuration...")
     opensearchServerlessConfiguration = {
-        "collectionArn": collection["createCollectionDetail"]["arn"],
+        "collectionArn": collection["arn"],
         "vectorIndexName": index_name,
         "fieldMapping": {
             "vectorField": "vector",
@@ -189,22 +210,28 @@ def create_and_sync_knowledge_base(
     }
 
     s3Configuration = {
-        "bucketArn": f"arn:aws:s3:::{bucket_name}",
+        "bucketArn": f"arn:aws:s3:::{AWS_CUSTOM_MODEL_BUCKET_NAME}",
     }
 
     embeddingModelArn = f"arn:aws:bedrock:{AWS_REGION}::foundation-model/amazon.titan-embed-text-v1"
 
     name = f"bedrock-sample-knowledge-base-{suffix}"
     description = "Bedrock Knowledge Bases for Web URL and S3 Connector"
-    roleArn = bedrock_kb_execution_role_arn
+    roleArn = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN
 
-    logger.info("Creating knowledge base...")
-    try:
-        kb = create_knowledge_base_func()
-    except Exception as err:
-        logger.error(f"Error creating knowledge base: {err=}, {type(err)=}")
+    # try:
+    #     kb = create_knowledge_base_func(
+    #         name=name,
+    #         description=description,
+    #         roleArn=roleArn,
+    #         region_name=AWS_REGION,
+    #         opensearch_serverless_configuration=opensearchServerlessConfiguration,
+    #     )
+    # except Exception as err:
+    #     logger.error(f"Error creating knowledge base: {err=}, {type(err)=}")
 
-    kb_id = kb["knowledgeBaseId"]
+    kb_id = "FFXX2JSM7L"
+    # kb_id = kb["knowledgeBaseId"]
 
     logger.info("Retrieving knowledge base...")
     get_kb_response = bedrock_agent_client.get_knowledge_base(
@@ -215,7 +242,7 @@ def create_and_sync_knowledge_base(
     create_ds_response = bedrock_agent_client.create_data_source(
         name=name,
         description=description,
-        knowledgeBaseId=kb["knowledgeBaseId"],
+        knowledgeBaseId=kb_id,
         dataDeletionPolicy="DELETE",
         dataSourceConfiguration={
             "type": "S3",
@@ -230,14 +257,14 @@ def create_and_sync_knowledge_base(
 
     logger.info("Retrieving S3 datasource...")
     bedrock_agent_client.get_data_source(
-        knowledgeBaseId=kb["knowledgeBaseId"], dataSourceId=ds["dataSourceId"]
+        knowledgeBaseId=kb_id, dataSourceId=ds["dataSourceId"]
     )
 
     time.sleep(10)
 
     logger.info("Starting ingestion job...")
     start_job_response = bedrock_agent_client.start_ingestion_job(
-        knowledgeBaseId=kb["knowledgeBaseId"], dataSourceId=ds["dataSourceId"]
+        knowledgeBaseId=kb_id, dataSourceId=ds["dataSourceId"]
     )
 
     job = start_job_response["ingestionJob"]
@@ -245,7 +272,7 @@ def create_and_sync_knowledge_base(
     logger.info("Monitoring ingestion job status...")
     while job["status"] != "COMPLETE":
         get_job_response = bedrock_agent_client.get_ingestion_job(
-            knowledgeBaseId=kb["knowledgeBaseId"],
+            knowledgeBaseId=kb_id,
             dataSourceId=ds["dataSourceId"],
             ingestionJobId=job["ingestionJobId"],
         )
@@ -255,4 +282,4 @@ def create_and_sync_knowledge_base(
 
     logger.info("Ingestion job completed successfully")
 
-    return kb["knowledgeBaseId"]
+    return kb_id

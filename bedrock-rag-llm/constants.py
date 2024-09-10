@@ -13,5 +13,6 @@ AWS_CUSTOM_MODEL_CUSTOMIZATION_TYPE = "CONTINUED_PRE_TRAINING"
 AWS_CUSTOM_MODEL_BUCKET_NAME = "bedrock-zenml-rag-docs"
 AWS_CUSTOM_MODEL_PRETRAINING_DATA_FILENAME = "pretraining_inputs.jsonl"
 AWS_BEDROCK_KB_EXECUTION_ROLE_ARN = (
-    "AmazonBedrockExecutionRoleForKnowledgeBase_504"
+    "AmazonBedrockExecutionRoleForKnowledgeBase_392"
+    # "AmazonBedrockExecutionRoleForKnowledgeBase_96gjm"
 )
