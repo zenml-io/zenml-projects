@@ -65,10 +65,9 @@ if __name__ == "__main__":
         if args.provision:
             # sets up permissions (based on whether flag is passed)
             # creates knowledge base + ingests data
-            bedrock_rag(provision=True)
+            bedrock_rag()
         else:
-            # inference on your bedrock knowledge base
-            bedrock_rag(provision=False, query=args.query)
+            bedrock_rag()
     elif args.pipeline == "finetune":
         # TODO: if some 'setup' flag is passed, then do all the IAM stuff here /
         # now + pass those details to the pipeline

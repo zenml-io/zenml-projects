@@ -1,5 +1,4 @@
 import json
-import random
 import time
 import warnings
 
@@ -9,13 +8,15 @@ from constants import (
     AWS_SERVICE_CONNECTOR_ID,
 )
 from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
+from retrying import retry
 from zenml import step
 from zenml.client import Client
+from zenml.logger import get_logger
 from zenml.service_connectors.service_connector import ServiceConnector
 
 warnings.filterwarnings("ignore")
 
-from retrying import retry
+logger = get_logger(__name__)
 
 
 def get_boto_client() -> ServiceConnector:
@@ -26,7 +27,10 @@ def get_boto_client() -> ServiceConnector:
     ).connect()
 
 
-suffix = random.randrange(200, 900)
+# suffix = random.randrange(200, 900)
+suffix = 504
+
+logger.info("Initializing AWS clients...")
 boto3_session = get_boto_client()
 iam_client = boto3_session.client("iam", region_name=AWS_REGION)
 account_number = (
@@ -51,6 +55,7 @@ s3_client = boto3_session.client("s3")
 account_id = sts_client.get_caller_identity()["Account"]
 s3_suffix = f"{AWS_REGION}-{account_id}"
 
+logger.info("Setting up policy and role names...")
 encryption_policy_name = f"bedrock-sample-rag-sp-{suffix}"
 network_policy_name = f"bedrock-sample-rag-np-{suffix}"
 access_policy_name = f"bedrock-sample-rag-ap-{suffix}"
@@ -75,6 +80,7 @@ bedrock_kb_execution_role_arn = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN
 
 @retry(wait_random_min=1000, wait_random_max=2000, stop_max_attempt_number=7)
 def create_knowledge_base_func():
+    logger.info("Creating knowledge base...")
     create_kb_response = bedrock_agent_client.create_knowledge_base(
         name=name,
         description=description,
@@ -99,18 +105,32 @@ def create_and_sync_knowledge_base(
     kb_description: str = "Bedrock RAG",
     role_arn: str = bedrock_kb_execution_role_arn,
 ) -> str:
-    # CREATE COLLECTION USING AWS OPEN SEARCH SERVERLESS
-    collection = aoss_client.create_collection(
-        name=vector_store_name, type="VECTORSEARCH"
-    )
-    time.sleep(10)
-    collection_id = collection["createCollectionDetail"]["id"]
+    logger.info("Starting creation of knowledge base and synchronization...")
+    try:
+        logger.info("Creating collection using AWS OpenSearch Serverless...")
+        collection = aoss_client.create_collection(
+            name=vector_store_name, type="VECTORSEARCH"
+        )
+        collection_id = collection["createCollectionDetail"]["id"]
+    except Exception as err:
+        if err.response["Error"]["Code"] == "ConflictException":
+            logger.info("Collection already exists. Skipping creation.")
+            collections = aoss_client.list_collections(maxResults=15)
+            collection = next(
+                (c for c in collections["collectionSummaries"] if c["name"] == vector_store_name),
+                None
+            )
+            collection_id = collection["id"]
+            if collection is None:
+                raise ValueError(f"Collection {vector_store_name} not found") from err
+
     host = f"{collection_id}.{AWS_REGION}.aoss.amazonaws.com"
 
-    # CREATE VECTOR INDEX
+    logger.info("Creating vector index...")
     credentials = get_boto_client().get_credentials()
     awsauth = auth = AWSV4SignerAuth(credentials, AWS_REGION, service)
 
+    breakpoint()
     index_name = f"bedrock-sample-index-{suffix}"
     body_json = {
         "settings": {"index.knn": "true"},
@@ -132,7 +152,7 @@ def create_and_sync_knowledge_base(
         },
     }
 
-    # Build the OpenSearch client
+    logger.info("Building OpenSearch client...")
     oss_client = OpenSearch(
         hosts=[{"host": host, "port": 443}],
         http_auth=awsauth,
@@ -141,15 +161,15 @@ def create_and_sync_knowledge_base(
         connection_class=RequestsHttpConnection,
         timeout=300,
     )
-    # # It can take up to a minute for data access rules to be enforced
+    logger.info("Waiting for data access rules to be enforced...")
     time.sleep(60)
 
-    # Create index
+    logger.info("Creating index...")
     response = oss_client.indices.create(
         index=index_name, body=json.dumps(body_json)
     )
 
-    # Create Knowledge Base
+    logger.info("Setting up knowledge base configuration...")
     opensearchServerlessConfiguration = {
         "collectionArn": collection["createCollectionDetail"]["arn"],
         "vectorIndexName": index_name,
@@ -160,7 +180,6 @@ def create_and_sync_knowledge_base(
         },
     }
 
-    # # FIXED_SIZE Chunking
     chunkingStrategyConfiguration = {
         "chunkingStrategy": "FIXED_SIZE",
         "fixedSizeChunkingConfiguration": {
@@ -169,7 +188,6 @@ def create_and_sync_knowledge_base(
         },
     }
 
-    # S3
     s3Configuration = {
         "bucketArn": f"arn:aws:s3:::{bucket_name}",
     }
@@ -180,31 +198,28 @@ def create_and_sync_knowledge_base(
     description = "Bedrock Knowledge Bases for Web URL and S3 Connector"
     roleArn = bedrock_kb_execution_role_arn
 
+    logger.info("Creating knowledge base...")
     try:
         kb = create_knowledge_base_func()
     except Exception as err:
-        print(f"{err=}, {type(err)=}")
+        logger.error(f"Error creating knowledge base: {err=}, {type(err)=}")
 
     kb_id = kb["knowledgeBaseId"]
 
-    # Get KnowledgeBase
+    logger.info("Retrieving knowledge base...")
     get_kb_response = bedrock_agent_client.get_knowledge_base(
         knowledgeBaseId=kb_id
     )
 
-    # Create a S3 DataSource in KnowledgeBase
+    logger.info("Creating S3 DataSource in KnowledgeBase...")
     create_ds_response = bedrock_agent_client.create_data_source(
         name=name,
         description=description,
         knowledgeBaseId=kb["knowledgeBaseId"],
         dataDeletionPolicy="DELETE",
         dataSourceConfiguration={
-            # # For S3
             "type": "S3",
             "s3Configuration": s3Configuration,
-            # # For Web URL
-            # "type": "WEB",
-            # "webConfiguration":webConfiguration
         },
         vectorIngestionConfiguration={
             "chunkingConfiguration": chunkingStrategyConfiguration
@@ -213,20 +228,21 @@ def create_and_sync_knowledge_base(
 
     ds = create_ds_response["dataSource"]
 
-    # get s3 datasource
+    logger.info("Retrieving S3 datasource...")
     bedrock_agent_client.get_data_source(
         knowledgeBaseId=kb["knowledgeBaseId"], dataSourceId=ds["dataSourceId"]
     )
 
     time.sleep(10)
 
-    # Start an ingestion job
+    logger.info("Starting ingestion job...")
     start_job_response = bedrock_agent_client.start_ingestion_job(
         knowledgeBaseId=kb["knowledgeBaseId"], dataSourceId=ds["dataSourceId"]
     )
 
     job = start_job_response["ingestionJob"]
 
+    logger.info("Monitoring ingestion job status...")
     while job["status"] != "COMPLETE":
         get_job_response = bedrock_agent_client.get_ingestion_job(
             knowledgeBaseId=kb["knowledgeBaseId"],
@@ -234,9 +250,9 @@ def create_and_sync_knowledge_base(
             ingestionJobId=job["ingestionJobId"],
         )
         job = get_job_response["ingestionJob"]
-        print(job["status"])
+        logger.info(f"Ingestion job status: {job['status']}")
         time.sleep(10)
 
-    print("Ingestion job completed")
+    logger.info("Ingestion job completed successfully")
 
     return kb["knowledgeBaseId"]

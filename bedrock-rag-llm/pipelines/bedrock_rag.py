@@ -50,5 +50,5 @@ def evaluate_rag(knowledge_base_id: str) -> str:
 @pipeline
 def bedrock_rag():
     load_and_push_data_to_s3(bucket_name="bedrock-zenml-rag-docs")
-    create_and_sync_knowledge_base()
-    evaluate_rag()
+    kb_id = create_and_sync_knowledge_base()
+    evaluate_rag(kb_id)
