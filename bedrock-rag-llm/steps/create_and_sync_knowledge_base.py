@@ -1,7 +1,7 @@
 import json
 import time
 import warnings
-from typing import Dict
+from typing import Annotated, Dict, Optional, Tuple
 
 from constants import (
     AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
@@ -105,12 +105,16 @@ def create_knowledge_base_func(
     return create_kb_response["knowledgeBase"]
 
 
-@step
-def create_and_sync_knowledge_base(
+@step(enable_cache=False)
+def create_aoss_collection(
     kb_name: str = vector_store_name,
     kb_description: str = "Bedrock RAG",
     role_arn: str = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
-) -> str:
+) -> Tuple[
+    Annotated[str, "host"],
+    Annotated[str, "collection_id"],
+    Annotated[str, "collection_arn"],
+]:
     logger.info("Starting creation of knowledge base and synchronization...")
     try:
         logger.info("Creating collection using AWS OpenSearch Serverless...")
@@ -138,7 +142,19 @@ def create_and_sync_knowledge_base(
                 ) from err
 
     host = f"{collection_id}.{AWS_REGION}.aoss.amazonaws.com"
+    collection_arn = collection["arn"]
 
+    return host, collection_id, collection_arn
+
+
+@step(enable_cache=False)
+def create_vector_index(
+    host: str,
+    collection_id: str,
+    kb_name: str = vector_store_name,
+    kb_description: str = "Bedrock RAG",
+    role_arn: str = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
+) -> Optional[Dict[str, str]]:
     logger.info("Creating vector index...")
     credentials = get_boto_client().get_credentials()
     awsauth = auth = AWSV4SignerAuth(credentials, AWS_REGION, service)
@@ -186,13 +202,25 @@ def create_and_sync_knowledge_base(
             logger.info(
                 f"Index {index_name} already exists. Continuing with existing index."
             )
+            return None
         else:
             logger.error(f"Error creating index: {err=}, {type(err)=}")
             raise
 
+    return response
+
+
+@step(enable_cache=False)
+def create_and_sync_knowledge_base(
+    collection_arn: str,
+    collection_id: str,
+    kb_name: str = vector_store_name,
+    kb_description: str = "Bedrock RAG",
+    role_arn: str = AWS_BEDROCK_KB_EXECUTION_ROLE_ARN,
+) -> str:
     logger.info("Setting up knowledge base configuration...")
     opensearchServerlessConfiguration = {
-        "collectionArn": collection["arn"],
+        "collectionArn": collection_arn,
         "vectorIndexName": index_name,
         "fieldMapping": {
             "vectorField": "vector",
