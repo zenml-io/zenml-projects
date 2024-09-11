@@ -22,12 +22,20 @@ AWS_BEDROCK_KB_EXECUTION_ROLE_ARN = (
 
 
 MODEL_DEFINITION = Model(
-    name="aws-bedrock",
-    description="Bedrock use cases for GenAI",
-    audience="Anyone interested in using Bedrock for RAG",
-    use_cases="Use this model to answer questions about Bedrock use cases for GenAI",
-    limitations="The dataset is limited to ZenML documentation",
-    trade_offs="Some parts of this model and project are experimental",
-    tags=["bedrock", "rag", "genai", "llm", "aws"],
+    name="aws-bedrock-doordash-usa",
+    description="DoorDash's integration of AWS Bedrock and Amazon Connect for enhancing self-service offerings in their contact center",
+    audience="DoorDash customer support staff and developers working on improving customer service efficiency",
+    use_cases="Use this model to power generative AI-driven self-service solutions, enhancing customer support interactions and efficiency",
+    limitations="The model's effectiveness may vary depending on the complexity of customer queries and specific food delivery industry jargon",
+    trade_offs="Improved customer support efficiency through AI-driven self-service may require ongoing model updates to accommodate new types of customer inquiries",
+    tags=[
+        "bedrock",
+        "doordash",
+        "generative-ai",
+        "customer-support",
+        "food-delivery",
+        "aws",
+        "amazon-connect",
+    ],
     version=ModelStages.LATEST,
 )
