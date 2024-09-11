@@ -1,0 +1,5 @@
+git+https://github.com/zenml-io/zenml.git@develop#egg=zenml[server]
+datasets
+pillow
+ruff
+ipykernel
