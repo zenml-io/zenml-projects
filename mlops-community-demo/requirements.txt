@@ -15,3 +15,4 @@ azure-mgmt-containerservice>=20.0.0
 azure-storage-blob==12.17.0 
 kubernetes
 azure-ai-ml==1.18.0
+albumentations
