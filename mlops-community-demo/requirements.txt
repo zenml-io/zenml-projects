@@ -1,4 +1,4 @@
-git+https://github.com/zenml-io/zenml.git@develop#egg=zenml[server]
+zenml[server]==0.65.0
 datasets
 pillow
 ruff
@@ -16,3 +16,18 @@ azure-storage-blob==12.17.0
 kubernetes
 azure-ai-ml==1.18.0
 albumentations
+git+https://github.com/huggingface/accelerate.git@main
+datasets
+ftfy~=6.1.0
+transformers~=4.41.2
+sentencepiece>=0.1.91,!=0.1.92
+torch~=2.2.0
+torchvision~=0.16
+peft
+git+https://github.com/huggingface/diffusers.git@main
+tensorboard
+Jinja2
+bitsandbytes
+opencv-python
+imageio
+imageio-ffmpeg
