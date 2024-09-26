@@ -1,9 +1,7 @@
 zenml[server]==0.65.0
 datasets
 pillow
-ruff
 ipykernel
-Pillow>=9.2.0 
 kubernetes>=21.7,<26 
 ipywidgets>=8.0.0 
 adlfs>=2021.10.0
@@ -13,11 +11,9 @@ azure-identity
 azureml-core==1.56.0
 azure-mgmt-containerservice>=20.0.0 
 azure-storage-blob==12.17.0 
-kubernetes
 azure-ai-ml==1.18.0
 albumentations
 git+https://github.com/huggingface/accelerate.git@main
-datasets
 ftfy~=6.1.0
 transformers~=4.41.2
 sentencepiece>=0.1.91,!=0.1.92
