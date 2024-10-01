@@ -71,6 +71,7 @@ def main(
     pipeline_args["config_path"] = os.path.join(config_folder, config)
 
     from pipelines.deploy_pipeline import deploy_vllm_pipeline
+
     deploy_vllm_pipeline.with_options(**pipeline_args)()
 
 

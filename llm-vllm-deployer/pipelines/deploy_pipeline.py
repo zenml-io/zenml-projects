@@ -16,15 +16,14 @@
 #
 
 from zenml import pipeline
-from zenml import Model
 from typing import Annotated
 from steps.vllm_deployer import vllm_model_deployer_step
 from zenml.integrations.vllm.services.vllm_deployment import VLLMDeploymentService
 
 
-@pipeline(model=Model(name="gpt2"))
+@pipeline()
 def deploy_vllm_pipeline(
-    model: str = "gpt2",
+    model: str,
     timeout: int = 1200,
 ) -> Annotated[VLLMDeploymentService, "GPT2"]:
     service = vllm_model_deployer_step(
