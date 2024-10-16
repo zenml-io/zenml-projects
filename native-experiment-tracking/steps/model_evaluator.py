@@ -109,11 +109,8 @@ def model_evaluator(
 
     client = Client()
     mv = get_step_context().model
-    print("got mv")
     m = client.list_model_versions(model_name_or_id=mv.model_id, size=1)
-    print("got m")
     number_of_versions = m.total
-    print(f"num mv {number_of_versions}")
 
     # Initialize a list to store test accuracies
     versions = [str(mv.number)]
@@ -124,7 +121,6 @@ def model_evaluator(
 
     # Fetch test accuracies until we have 10 versions or reach the start
     while len(versions) < 15 and index > 0:
-        print(f"getting index: {index}")
         zenml_model_version = client.get_model_version("breast_cancer_classifier", index, hydrate=False)
         if zenml_model_version.run_metadata:
             test_accuracy = zenml_model_version.run_metadata['test_accuracy'].value

@@ -18,7 +18,6 @@ import os
 
 import click
 
-from zenml.client import Client
 from zenml.logger import get_logger
 
 from pipelines import training
@@ -46,8 +45,6 @@ def main(
     Args:
         no_cache: If `True` cache will be disabled.
     """
-    client = Client()
-
     config_folder = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
@@ -61,7 +58,7 @@ def main(
     )
     training.with_options(**pipeline_args)()
     training.with_options(**pipeline_args)()
-    logger.info("Training pipeline with SGD finished successfully!\n\n")
+    logger.info("Training pipeline finished successfully!\n\n")
 
 if __name__ == "__main__":
     main()
