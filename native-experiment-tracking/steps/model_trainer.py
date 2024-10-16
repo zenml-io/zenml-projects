@@ -14,41 +14,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Optional, List, Tuple
+import random
+from typing import Optional, Tuple
 
 import pandas as pd
-import sys
-from io import StringIO, BytesIO
+from io import BytesIO
+
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.utils._param_validation import InvalidParameterError
 from typing_extensions import Annotated
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from zenml import ArtifactConfig, step
+from zenml import ArtifactConfig, step, log_model_metadata, get_step_context
+from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
-
-@step
+@step(enable_cache=False)
 def model_trainer(
-    dataset_trn: pd.DataFrame,
-    model_type: str = "sgd",
-    target: Optional[str] = "target",
+        dataset_trn: pd.DataFrame,
+        alpha_value: float,
+        penalty: str,
+        loss: str,
+        target: Optional[str] = "target",
 ) -> Tuple[
-        Annotated[
-            ClassifierMixin,
-            ArtifactConfig(name="sklearn_classifier", is_model_artifact=True)
-        ],
-        Annotated[
-            List[float], "training_loss"
-        ],
-        Annotated[
-            Image.Image, "training_loss_graph"
-        ]
+    Annotated[
+        ClassifierMixin,
+        ArtifactConfig(name="sklearn_classifier", is_model_artifact=True)
+    ],
+    Annotated[
+        Image.Image, "confusion_matrix"
+    ]
 ]:
     """Configure and train a model on the training dataset.
 
@@ -59,8 +61,10 @@ def model_trainer(
 
     Args:
         dataset_trn: The preprocessed train dataset.
-        model_type: The type of model to train.
         target: The name of the target column in the dataset.
+        alpha_value: Alpha value to use for the train step,
+        penalty: Penalty to use for sgd,
+        loss: Loss function to be used for sgd,
 
     Returns:
         The trained model artifact.
@@ -68,41 +72,58 @@ def model_trainer(
     Raises:
         ValueError: If the model type is not supported.
     """
-    # Initialize the model with the hyperparameters indicated in the step
-    # parameters and train it on the training set.
-    old_stdout = sys.stdout
-    sys.stdout = mystdout = StringIO()
+    client = Client()
 
-
-    model = SGDClassifier(verbose=1)
-    logger.info(f"Training model {model}...")
-
-    model.fit(
-        dataset_trn.drop(columns=[target]),
-        dataset_trn[target],
+    log_model_metadata(
+        metadata={
+            "alpha_value": alpha_value,
+            "penalty": penalty,
+            "loss": loss,
+        }
     )
 
-    sys.stdout = old_stdout
+    model = SGDClassifier(
+        max_iter=1000,
+        penalty=penalty,
+        alpha=alpha_value,
+        loss=loss
+    )
 
-    loss_history = mystdout.getvalue()
-    loss_list = []
-    for line in loss_history.split('\n'):
-        if (len(line.split("loss: ")) == 1):
-            continue
-        loss_list.append(float(line.split("loss: ")[-1]))
+    try:
+        model.fit(
+            dataset_trn.drop(columns=[target]),
+            dataset_trn[target]
+        )
+    except InvalidParameterError:
+        logger.info("Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
 
-    plt.figure()
-    plt.plot(np.arange(len(loss_list)), loss_list)
-    plt.xlabel("Time in epochs")
-    plt.ylabel("Loss")
+        model = get_step_context().model
+        client.delete_model_version(
+            model_version_id=model.model_version_id
+        )
+        raise RuntimeError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
 
+    logger.info(f"Training model {model}...")
+
+    y_pred = model.predict(dataset_trn.drop(columns=[target]))
+
+    cm = confusion_matrix(dataset_trn[target], y_pred)
+
+    cm_img = generate_cm(model, cm)
+
+    return model, cm_img
+
+
+
+def generate_cm(best_model, cm):
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_model.classes_)
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix")
     # Save the plot to a BytesIO object
     buf = BytesIO()
     plt.savefig(buf, format='png')
     plt.close()
-
     # Convert the BytesIO object to a PIL Image
     buf.seek(0)
-    img = Image.open(buf)
-
-    return model, loss_list, img
+    cm_img = Image.open(buf)
+    return cm_img

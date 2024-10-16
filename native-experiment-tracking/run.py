@@ -17,12 +17,15 @@
 import os
 
 import click
-
+from sklearn.utils._param_validation import InvalidParameterError
+from zenml import Model
+from zenml.client import Client
 from zenml.logger import get_logger
 
 from pipelines import training
 
 logger = get_logger(__name__)
+
 
 @click.option(
     "--no-cache",
@@ -31,7 +34,7 @@ logger = get_logger(__name__)
     help="Disable caching for the pipeline run.",
 )
 def main(
-    no_cache: bool = False,
+        no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -45,20 +48,34 @@ def main(
     Args:
         no_cache: If `True` cache will be disabled.
     """
-    config_folder = os.path.join(
+    client = Client()
+    config_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
+        "training.yaml"
     )
+    enable_cache = not no_cache
 
-    pipeline_args = {}
-    if no_cache:
-        pipeline_args["enable_cache"] = False
-    pipeline_args["config_path"] = os.path.join(
-        config_folder, "training.yaml"
-    )
-    training.with_options(**pipeline_args)()
-    training.with_options(**pipeline_args)()
-    logger.info("Training pipeline finished successfully!\n\n")
+    alpha_values = [0.0001, 0.001, 0.01]
+    penalties = ["l2", "l1", "elasticnet"]
+    losses = ["hinge", "squared_hinge", "modified_huber"]
+    for penalty in penalties:
+        for loss in losses:
+            for alpha_value in alpha_values:
+                logger.info(f"Training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
+
+                model = Model(
+                    name="breast_cancer_classifier",
+                    tags=[f"alpha: {alpha_value}", f"penalty: {penalty}", f"loss: {loss}"]
+                )
+                try:
+                    training.with_options(config_path=config_path, enable_cache=enable_cache, model=model)(
+                        alpha_value=alpha_value, penalty=penalty, loss=loss)
+                except RuntimeError:
+                    pass
+                else:
+                    logger.info("Training pipeline finished successfully!\n\n")
+
 
 if __name__ == "__main__":
     main()

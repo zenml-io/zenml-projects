@@ -33,6 +33,3 @@ from .model_promoter import (
 from .model_trainer import (
     model_trainer,
 )
-from .model_grid_search import (
-    model_grid_searcher
-)

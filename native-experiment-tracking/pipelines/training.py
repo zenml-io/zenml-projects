@@ -18,7 +18,7 @@
 from typing import Optional
 from uuid import UUID
 
-from steps import model_evaluator, model_promoter, model_trainer, model_grid_searcher
+from steps import model_evaluator, model_promoter, model_trainer
 
 from pipelines import (
     feature_engineering,
@@ -33,8 +33,9 @@ logger = get_logger(__name__)
 
 @pipeline
 def training(
-    train_dataset_id: Optional[UUID] = None,
-    test_dataset_id: Optional[UUID] = None,
+    alpha_value: float,
+    penalty: str,
+    loss: str,
     target: Optional[str] = "target",
 ):
     """
@@ -47,27 +48,19 @@ def training(
     model version.
 
     Args:
-        train_dataset_id: ID of the train dataset produced by feature engineering.
-        test_dataset_id: ID of the test dataset produced by feature engineering.
         target: Name of target column in dataset.
+        alpha_value: Alpha value to use for the train step,
+        penalty: Penalty to use for sgd,
+        loss: Loss function to be used for sgd,
     """
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
 
     # Execute Feature Engineering Pipeline
-    if train_dataset_id is None or test_dataset_id is None:
-        dataset_trn, dataset_tst = feature_engineering()
-    else:
-        client = Client()
-        dataset_trn = client.get_artifact_version(
-            name_id_or_prefix=train_dataset_id
-        )
-        dataset_tst = client.get_artifact_version(
-            name_id_or_prefix=test_dataset_id
-        )
+    dataset_trn, dataset_tst = feature_engineering()
 
-    model, _, _ = model_grid_searcher(
-        dataset_trn=dataset_trn, target=target
+    model, _ = model_trainer(
+        dataset_trn=dataset_trn, target=target, alpha_value=alpha_value, penalty=penalty, loss=loss
     )
 
     acc, _ = model_evaluator(
@@ -76,5 +69,3 @@ def training(
         dataset_tst=dataset_tst,
         target=target,
     )
-
-    model_promoter(accuracy=acc)
