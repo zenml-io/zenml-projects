@@ -16,27 +16,23 @@
 #
 
 from typing import Optional
-from uuid import UUID
-
-from steps import model_evaluator, model_promoter, model_trainer
 
 from pipelines import (
     feature_engineering,
 )
+from steps import model_evaluator, model_trainer
 from zenml import pipeline
-from zenml.client import Client
 from zenml.logger import get_logger
-
 
 logger = get_logger(__name__)
 
 
 @pipeline
 def training(
-    alpha_value: float,
-    penalty: str,
-    loss: str,
-    target: Optional[str] = "target",
+        alpha_value: float,
+        penalty: str,
+        loss: str,
+        target: Optional[str] = "target",
 ):
     """
     Model training pipeline.
@@ -63,9 +59,10 @@ def training(
         dataset_trn=dataset_trn, target=target, alpha_value=alpha_value, penalty=penalty, loss=loss
     )
 
-    acc, _ = model_evaluator(
+    test_acc = model_evaluator(
         model=model,
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
         target=target,
     )
+    return test_acc

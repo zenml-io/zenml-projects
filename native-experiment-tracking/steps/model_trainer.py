@@ -101,7 +101,7 @@ def model_trainer(
         client.delete_model_version(
             model_version_id=model.model_version_id
         )
-        raise RuntimeError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
+        raise ValueError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
 
     logger.info(f"Training model {model}...")
 

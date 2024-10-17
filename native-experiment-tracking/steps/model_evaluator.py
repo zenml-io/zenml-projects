@@ -37,16 +37,10 @@ def model_evaluator(
     min_train_accuracy: float = 0.0,
     min_test_accuracy: float = 0.0,
     target: Optional[str] = "target",
-) -> Tuple[
-    Annotated[
+) -> Annotated[
         float,
         "test_accuracy"
-    ],
-    Annotated[
-        Image.Image,
-        "accuracy_history"
-    ]
-]:
+    ]:
     """Evaluate a trained model.
 
     This is an example of a model evaluation step that takes in a model artifact
@@ -107,70 +101,10 @@ def model_evaluator(
         for message in messages:
             logger.warning(message)
 
-    client = Client()
-    mv = get_step_context().model
-    m = client.list_model_versions(model_name_or_id=mv.model_id, size=1)
-    number_of_versions = m.total
-
-    # Initialize a list to store test accuracies
-    versions = [str(mv.number)]
-    test_accuracies = [tst_acc]
-
-    # Start with the latest version and iterate backwards
-    index = number_of_versions - 1
-
-    # Fetch test accuracies until we have 10 versions or reach the start
-    while len(versions) < 15 and index > 0:
-        zenml_model_version = client.get_model_version("breast_cancer_classifier", index, hydrate=False)
-        if zenml_model_version.run_metadata:
-            test_accuracy = zenml_model_version.run_metadata['test_accuracy'].value
-            versions.append(str(zenml_model_version.number))
-            test_accuracies.append(test_accuracy)
-
-        index -= 1  # Move to the previous version
-
-    # Find the index of the model version in the version list
-    if mv.version in versions:
-        highlight_index = versions.index(mv.version)
-    else:
-        highlight_index = None
-        print(f"{mv.version} not found in version list.")
-
-    chronological_versions = versions[::-1]
-    chronological_test_accuracies = test_accuracies[::-1]
-
-    # Create a line plot for the test accuracies
-    plt.figure(figsize=(10, 5))
-    plt.plot(chronological_versions, chronological_test_accuracies, marker='o', linestyle='-', color='b', label='Test Accuracy')
-
-    # If the highlight_version was found, highlight the specific point
-    if highlight_index is not None:
-        plt.scatter(versions[highlight_index], chronological_test_accuracies[highlight_index], color='red', s=100, zorder=5,
-                    label='Current Run')
-        plt.annotate(f'{versions[highlight_index]}: {chronological_test_accuracies[highlight_index]:.2f}',
-                     (versions[highlight_index], chronological_test_accuracies[highlight_index]),
-                     textcoords="offset points", xytext=(0, 10), ha='center', color='red')
-
-    # Customize axis labels and titles
-    plt.xlabel('Model Version')
-    plt.ylabel('Test Accuracy')
-    plt.title('Test Accuracy for the Last 10 Runs')
-    plt.xticks(chronological_versions)  # Display model versions on the x-axis
-    plt.ylim(0, 1)  # Assuming test accuracy is between 0 and 1
-    plt.grid(True)  # Add a grid for better readability
-    plt.legend(loc='lower right')
-
-    buf = BytesIO()
-    plt.savefig(buf, format='png')
-    plt.close()
-    # Convert the BytesIO object to a PIL Image
-    buf.seek(0)
-    history = Image.open(buf)
-
     log_model_metadata(
         metadata={
             "train_accuracy": float(trn_acc),
             "test_accuracy": float(tst_acc),
         }
     )
-    return float(tst_acc), history
+    return float(tst_acc)
