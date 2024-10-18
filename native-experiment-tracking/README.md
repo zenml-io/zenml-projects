@@ -74,6 +74,7 @@ In case you want to create your own visualization, check out the implementation
 at `native-experiment-tracking/steps/model_trainer.py:generate_cm`. Basically, just create a 
 matplotlib plot, convert it into a `PIL.Image` and return it from your
 step. Don't forget to annotate your [step output accordingly](https://docs.zenml.io/how-to/build-pipelines/step-output-typing-and-annotation.
+
 ```python
 from typing import Tuple
 from typing_extensions import Annotated
