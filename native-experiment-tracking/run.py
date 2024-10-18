@@ -77,7 +77,7 @@ def main(
 
     # Run the feature engineering pipeline, this way all invocations within the training pipelines
     # will use the cached output from this pipeline
-    # feature_engineering()
+    feature_engineering()
 
     # Here is our set of parameters that we want to explore to find the best combination
     alpha_values = [0.0001, 0.001, 0.01]
