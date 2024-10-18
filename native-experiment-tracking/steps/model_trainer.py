@@ -22,15 +22,14 @@ from io import BytesIO
 
 from sklearn.base import ClassifierMixin
 from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.utils._param_validation import InvalidParameterError
 from typing_extensions import Annotated
 import matplotlib.pyplot as plt
-import numpy as np
+
 from PIL import Image
 
-from zenml import ArtifactConfig, step, log_model_metadata, get_step_context
+from zenml import ArtifactConfig, step, log_model_metadata, get_step_context, log_artifact_metadata
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -81,6 +80,14 @@ def model_trainer(
             "loss": loss,
         }
     )
+    log_artifact_metadata(
+        metadata={
+            "alpha_value": alpha_value,
+            "penalty": penalty,
+            "loss": loss,
+        },
+        artifact_name="sklearn_classifier"
+    )
 
     model = SGDClassifier(
         max_iter=1000,
@@ -101,7 +108,7 @@ def model_trainer(
         client.delete_model_version(
             model_version_id=model.model_version_id
         )
-        raise ValueError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
+        raise InvalidParameterError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
 
     logger.info(f"Training model {model}...")
 

@@ -9,7 +9,7 @@ import pandas as pd
 def main():
     client = Client()
 
-    model_versions = client.list_model_versions(model_name_or_id="breast_cancer_classifier", size=30, hydrate=True)
+    model_versions = client.list_model_versions(model_name_or_id="breast_cancer_classifier", size=27, hydrate=True)
 
     alpha_values = []
     losses = []
@@ -41,8 +41,6 @@ def generate_2d_plots(alpha_values, losses, penalties, test_accuracies):
 
     # Get unique values
     unique_penalties = df['Penalty'].unique()
-    unique_losses = df['Loss'].unique()
-    unique_alphas = sorted(df['Alpha'].unique())
 
     # Create a figure with subplots for each penalty
     fig, axes = plt.subplots(1, len(unique_penalties), figsize=(20, 6), sharey=True)

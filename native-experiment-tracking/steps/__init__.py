@@ -27,9 +27,6 @@ from .data_splitter import (
 from .model_evaluator import (
     model_evaluator,
 )
-from .model_promoter import (
-    model_promoter,
-)
 from .model_trainer import (
     model_trainer,
 )

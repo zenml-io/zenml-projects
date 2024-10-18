@@ -21,6 +21,7 @@ import traceback
 from itertools import product
 
 import click
+from sklearn.utils._param_validation import InvalidParameterError
 from zenml import Model
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -36,9 +37,22 @@ logger = get_logger(__name__)
     default=False,
     help="Disable caching for the pipeline run.",
 )
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Run training across the complete parameter grid in parallel.",
+)
+@click.option(
+    "--single_run",
+    is_flag=True,
+    default=False,
+    help="Run only one permutation of parameters.",
+)
 def main(
     no_cache: bool = False,
-    parallel: bool = False
+    parallel: bool = False,
+    single_run: bool = False
 ):
     """Main entry point for the pipeline execution.
 
@@ -52,8 +66,8 @@ def main(
     Args:
         no_cache: If `True` cache will be disabled.
         parallel: If `True` multiprocessing will be used for running hyperparameter tuning in parallel
+        single_run: if `True` only one training run will be started
     """
-    client = Client()
     config_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
@@ -63,22 +77,26 @@ def main(
 
     # Run the feature engineering pipeline, this way all invocations within the training pipelines
     # will use the cached output from this pipeline
-    feature_engineering()
+    # feature_engineering()
 
     # Here is our set of parameters that we want to explore to find the best combination
-    alpha_values = [0.0001, 0.001] # , 0.01]
-    penalties = ["l2", "l1"] # , "elasticnet"]
-    losses = ["hinge", "squared_hinge"] #, "modified_huber"]
+    alpha_values = [0.0001, 0.001, 0.01]
+    penalties = ["l2", "l1", "elasticnet"]
+    losses = ["hinge", "squared_hinge", "modified_huber"]
 
-    # Lets loop over these
-    # Create a list of all parameter combinations
-    parameter_combinations = list(product(alpha_values, penalties, losses))
 
-    if parallel:
-        parallel_training(config_path, enable_cache, parameter_combinations)
+    if single_run:
+        train_model(alpha_values[0], penalties[0], losses[0], config_path, enable_cache)
     else:
-        for alpha_value, penalty, loss in parameter_combinations:
-            train_model(alpha_value, penalty, loss, config_path, enable_cache)
+        # Lets loop over these
+        # Create a list of all parameter combinations
+        parameter_combinations = list(product(alpha_values, penalties, losses))
+
+        if parallel:
+            parallel_training(config_path, enable_cache, parameter_combinations)
+        else:
+            for alpha_value, penalty, loss in parameter_combinations:
+                train_model(alpha_value, penalty, loss, config_path, enable_cache)
 
 
 def parallel_training(config_path, enable_cache, parameter_combinations):
@@ -110,9 +128,9 @@ def train_model(alpha_value: float, penalty: str, loss: str, config_path: str, e
         )
 
         logger.info(f"Training finished successfully for alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
-    # except ValueError:
-    #     logger.info("Pipeline run aborted!\n\n")
-    #     pass
+    except InvalidParameterError:
+        logger.info("Pipeline run aborted due to parameter mismatch!\n\n")
+        pass
     except Exception as e:
         logger.error(f"Error in training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
         logger.error(f"Exception: {str(e)}")

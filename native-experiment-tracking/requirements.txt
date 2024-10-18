@@ -6,3 +6,4 @@ pandas
 pillow
 matplotlib
 numpy
+seaborn

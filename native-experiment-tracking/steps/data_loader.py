@@ -19,7 +19,7 @@ import pandas as pd
 from sklearn.datasets import load_breast_cancer
 from typing_extensions import Annotated
 
-from zenml import step
+from zenml import step, log_artifact_metadata
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -62,4 +62,5 @@ def data_loader(
         dataset.drop(inference_subset.index, inplace=True)
     dataset.reset_index(drop=True, inplace=True)
     logger.info(f"Dataset with {len(dataset)} records loaded!")
+
     return dataset
