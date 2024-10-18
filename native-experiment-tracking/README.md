@@ -6,6 +6,7 @@ This project aims to show these capabilities.
 
 ## 🎯 Project Overview
 We're tackling a simple classification task using the breast cancer dataset. Our goal is to showcase how ZenML can effortlessly track experiments, hyperparameters, and results throughout the machine learning workflow.
+
 ### 🔍 What We're Doing
 
 In this project, we begin by preparing the breast cancer dataset for our model through data preprocessing. For our machine learning task, we've chosen to use an SGDClassifier. Rather than relying on sklearn's GridSearchCV, we implement our own hyperparameter tuning process to showcase ZenML's robust tracking capabilities. Finally, we conduct a thorough analysis of the results, visualizing how various hyperparameters influence the model's accuracy. This approach allows us to demonstrate the power of ZenML in tracking and managing the machine learning workflow.
