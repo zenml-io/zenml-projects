@@ -1,0 +1,10 @@
+model:
+  name: openai-community/gpt2
+  description: "Deploy `openai-community/gpt2` using vllm."
+  tags:
+    - llm
+    - vllm
+    - openai-community/gpt2
+
+parameters:
+  model: openai-community/gpt2
