@@ -128,7 +128,3 @@ Contributions to improve the pipeline are welcome! Please feel free to submit a 
 ## 📄 License
 
 This project is licensed under the Apache License 2.0. See the LICENSE file for details.
-
-
-
-
