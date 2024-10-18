@@ -14,42 +14,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import random
+from io import BytesIO
 from typing import Optional, Tuple
 
+import matplotlib.pyplot as plt
 import pandas as pd
-from io import BytesIO
-
+from PIL import Image
 from sklearn.base import ClassifierMixin
 from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.utils._param_validation import InvalidParameterError
 from typing_extensions import Annotated
-import matplotlib.pyplot as plt
-
-from PIL import Image
-
-from zenml import ArtifactConfig, step, log_model_metadata, get_step_context, log_artifact_metadata
+from zenml import (
+    ArtifactConfig,
+    get_step_context,
+    log_artifact_metadata,
+    log_model_metadata,
+    step,
+)
 from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @step(enable_cache=False)
 def model_trainer(
-        dataset_trn: pd.DataFrame,
-        alpha_value: float,
-        penalty: str,
-        loss: str,
-        target: Optional[str] = "target",
+    dataset_trn: pd.DataFrame,
+    alpha_value: float,
+    penalty: str,
+    loss: str,
+    target: Optional[str] = "target",
 ) -> Tuple[
     Annotated[
         ClassifierMixin,
-        ArtifactConfig(name="sklearn_classifier", is_model_artifact=True)
+        ArtifactConfig(name="sklearn_classifier", is_model_artifact=True),
     ],
-    Annotated[
-        Image.Image, "confusion_matrix"
-    ]
+    Annotated[Image.Image, "confusion_matrix"],
 ]:
     """Configure and train a model on the training dataset.
 
@@ -86,29 +87,25 @@ def model_trainer(
             "penalty": penalty,
             "loss": loss,
         },
-        artifact_name="sklearn_classifier"
+        artifact_name="sklearn_classifier",
     )
 
     model = SGDClassifier(
-        max_iter=1000,
-        penalty=penalty,
-        alpha=alpha_value,
-        loss=loss
+        max_iter=1000, penalty=penalty, alpha=alpha_value, loss=loss
     )
 
     try:
-        model.fit(
-            dataset_trn.drop(columns=[target]),
-            dataset_trn[target]
-        )
+        model.fit(dataset_trn.drop(columns=[target]), dataset_trn[target])
     except InvalidParameterError:
-        logger.info("Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
+        logger.info(
+            "Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n"
+        )
 
         model = get_step_context().model
-        client.delete_model_version(
-            model_version_id=model.model_version_id
+        client.delete_model_version(model_version_id=model.model_version_id)
+        raise InvalidParameterError(
+            f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n"
         )
-        raise InvalidParameterError(f"Invalid parameter combination: alpha: {alpha_value}, penalty: {penalty}, loss: {loss}!\n\n")
 
     logger.info(f"Training model {model}...")
 
@@ -121,14 +118,15 @@ def model_trainer(
     return model, cm_img
 
 
-
 def generate_cm(best_model, cm):
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_model.classes_)
+    disp = ConfusionMatrixDisplay(
+        confusion_matrix=cm, display_labels=best_model.classes_
+    )
     disp.plot(cmap=plt.cm.Blues)
     plt.title("Confusion Matrix")
     # Save the plot to a BytesIO object
     buf = BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format="png")
     plt.close()
     # Convert the BytesIO object to a PIL Image
     buf.seek(0)

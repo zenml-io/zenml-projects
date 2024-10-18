@@ -17,22 +17,23 @@
 
 from typing import Optional
 
-from pipelines import (
-    feature_engineering,
-)
 from steps import model_evaluator, model_trainer
 from zenml import pipeline
 from zenml.logger import get_logger
+
+from pipelines import (
+    feature_engineering,
+)
 
 logger = get_logger(__name__)
 
 
 @pipeline
 def training(
-        alpha_value: float,
-        penalty: str,
-        loss: str,
-        target: Optional[str] = "target",
+    alpha_value: float,
+    penalty: str,
+    loss: str,
+    target: Optional[str] = "target",
 ):
     """
     Model training pipeline.
@@ -56,7 +57,11 @@ def training(
     dataset_trn, dataset_tst = feature_engineering()
 
     model, _ = model_trainer(
-        dataset_trn=dataset_trn, target=target, alpha_value=alpha_value, penalty=penalty, loss=loss
+        dataset_trn=dataset_trn,
+        target=target,
+        alpha_value=alpha_value,
+        penalty=penalty,
+        loss=loss,
     )
 
     test_acc = model_evaluator(

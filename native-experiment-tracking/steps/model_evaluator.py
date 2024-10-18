@@ -14,16 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from io import BytesIO
-from typing import Optional, Tuple, Annotated
+from typing import Annotated, Optional
 
 import pandas as pd
-from PIL import Image
 from sklearn.base import ClassifierMixin
-import matplotlib.pyplot as plt
-
-from zenml import step, log_model_metadata, get_step_context
-from zenml.client import Client
+from zenml import log_model_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,10 +32,7 @@ def model_evaluator(
     min_train_accuracy: float = 0.0,
     min_test_accuracy: float = 0.0,
     target: Optional[str] = "target",
-) -> Annotated[
-        float,
-        "test_accuracy"
-    ]:
+) -> Annotated[float, "test_accuracy"]:
     """Evaluate a trained model.
 
     This is an example of a model evaluation step that takes in a model artifact

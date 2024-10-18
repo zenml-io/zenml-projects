@@ -22,7 +22,6 @@ from steps import (
     data_preprocessor,
     data_splitter,
 )
-
 from zenml import pipeline
 from zenml.logger import get_logger
 

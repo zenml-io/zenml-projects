@@ -21,12 +21,10 @@ import traceback
 from itertools import product
 
 import click
+from pipelines import feature_engineering, training
 from sklearn.utils._param_validation import InvalidParameterError
 from zenml import Model
-from zenml.client import Client
 from zenml.logger import get_logger
-
-from pipelines import training, feature_engineering
 
 logger = get_logger(__name__)
 
@@ -50,9 +48,7 @@ logger = get_logger(__name__)
     help="Run only one permutation of parameters.",
 )
 def main(
-    no_cache: bool = False,
-    parallel: bool = False,
-    single_run: bool = False
+    no_cache: bool = False, parallel: bool = False, single_run: bool = False
 ):
     """Main entry point for the pipeline execution.
 
@@ -69,9 +65,7 @@ def main(
         single_run: if `True` only one training run will be started
     """
     config_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "configs",
-        "training.yaml"
+        os.path.dirname(os.path.realpath(__file__)), "configs", "training.yaml"
     )
     enable_cache = not no_cache
 
@@ -84,55 +78,78 @@ def main(
     penalties = ["l2", "l1", "elasticnet"]
     losses = ["hinge", "squared_hinge", "modified_huber"]
 
-
     if single_run:
-        train_model(alpha_values[0], penalties[0], losses[0], config_path, enable_cache)
+        train_model(
+            alpha_values[0], penalties[0], losses[0], config_path, enable_cache
+        )
     else:
         # Lets loop over these
         # Create a list of all parameter combinations
         parameter_combinations = list(product(alpha_values, penalties, losses))
 
         if parallel:
-            parallel_training(config_path, enable_cache, parameter_combinations)
+            parallel_training(
+                config_path, enable_cache, parameter_combinations
+            )
         else:
             for alpha_value, penalty, loss in parameter_combinations:
-                train_model(alpha_value, penalty, loss, config_path, enable_cache)
+                train_model(
+                    alpha_value, penalty, loss, config_path, enable_cache
+                )
 
 
 def parallel_training(config_path, enable_cache, parameter_combinations):
     # Determine the number of CPU cores to use
     num_cores = multiprocessing.cpu_count()
     # Use ProcessPoolExecutor for CPU-bound tasks
-    with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=num_cores
+    ) as executor:
         # Submit all tasks to the executor
-        futures = [executor.submit(train_model, alpha, penalty, loss, config_path, enable_cache)
-                   for alpha, penalty, loss in parameter_combinations]
+        futures = [
+            executor.submit(
+                train_model, alpha, penalty, loss, config_path, enable_cache
+            )
+            for alpha, penalty, loss in parameter_combinations
+        ]
 
         # Wait for all tasks to complete
         concurrent.futures.wait(futures)
 
 
-def train_model(alpha_value: float, penalty: str, loss: str, config_path: str, enable_cache: bool):
-    logger.info(f"Training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
+def train_model(
+    alpha_value: float,
+    penalty: str,
+    loss: str,
+    config_path: str,
+    enable_cache: bool,
+):
+    logger.info(
+        f"Training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}"
+    )
 
     model = Model(
         name="breast_cancer_classifier",
-        tags=[f"alpha: {alpha_value}", f"penalty: {penalty}", f"loss: {loss}"]
+        tags=[f"alpha: {alpha_value}", f"penalty: {penalty}", f"loss: {loss}"],
     )
     try:
-        logger.info(f"Starting training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
+        logger.info(
+            f"Starting training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}"
+        )
         training.with_options(
             config_path=config_path, enable_cache=enable_cache, model=model
-        )(
-            alpha_value=alpha_value, penalty=penalty, loss=loss
-        )
+        )(alpha_value=alpha_value, penalty=penalty, loss=loss)
 
-        logger.info(f"Training finished successfully for alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
+        logger.info(
+            f"Training finished successfully for alpha: {alpha_value}, penalty: {penalty}, loss: {loss}"
+        )
     except InvalidParameterError:
         logger.info("Pipeline run aborted due to parameter mismatch!\n\n")
         pass
     except Exception as e:
-        logger.error(f"Error in training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}")
+        logger.error(
+            f"Error in training with alpha: {alpha_value}, penalty: {penalty}, loss: {loss}"
+        )
         logger.error(f"Exception: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
     else:
