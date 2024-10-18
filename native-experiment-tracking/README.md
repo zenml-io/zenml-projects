@@ -14,6 +14,7 @@ In this project, we begin by preparing the breast cancer dataset for our model t
 We are by no means claiming that our solution outperforms GridSearchCV, spoiler alert, this demo won't, rather, this project demonstrates how you would do hyperparameter tuning and experiment tracking  with ZenML on large deep learning problems. 
 
 ### 🛠 The Pipeline
+
 Our ZenML pipeline consists of the following steps:
 
 The feature_engineering pipeline:
