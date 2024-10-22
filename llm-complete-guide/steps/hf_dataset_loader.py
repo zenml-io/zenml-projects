@@ -30,5 +30,3 @@ def load_hf_dataset() -> (
     test_dataset = load_dataset(DATASET_NAME_DEFAULT, split="test")
     return train_dataset, test_dataset
 
-
-load_hf_dataset()
