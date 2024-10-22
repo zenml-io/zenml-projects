@@ -20,7 +20,7 @@ from zenml import log_artifact_metadata, step
 from steps.url_scraping_utils import get_all_pages
 
 
-@step
+@step(enable_cache=True)
 def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
@@ -31,7 +31,6 @@ def url_scraper(
     Args:
         docs_url: URL to the documentation.
         repo_url: URL to the repository.
-        release_notes_url: URL to the release notes.
         website_url: URL to the website.
 
     Returns:

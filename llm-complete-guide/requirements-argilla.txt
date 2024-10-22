@@ -5,5 +5,5 @@ litellm
 ollama
 polars
 datasets
-git+https://github.com/argilla-io/argilla.git@releases/2.0.1#subdirectory=argilla # replace once released
+argilla
 distilabel

@@ -95,7 +95,7 @@ def generate_embeddings(
         model = SentenceTransformer(EMBEDDINGS_MODEL)
 
         log_artifact_metadata(
-            artifact_name="embeddings",
+            artifact_name="documents_with_embeddings",
             metadata={
                 "embedding_type": EMBEDDINGS_MODEL,
                 "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,

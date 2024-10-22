@@ -1,4 +1,4 @@
-zenml[server]>=0.63.0
+zenml[server]>=0.67.0
 langchain-community
 ratelimit
 langchain>=0.0.325
@@ -19,6 +19,7 @@ matplotlib
 pyarrow
 rerankers[all]
 datasets
+torch
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0
