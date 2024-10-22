@@ -17,7 +17,7 @@ tiktoken
 umap-learn
 matplotlib
 pyarrow
-rerankers[all]
+rerankers[flashrank]
 datasets
 
 # optional requirements for S3 artifact store
