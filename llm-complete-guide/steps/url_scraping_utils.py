@@ -48,6 +48,18 @@ def is_valid_url(url: str, base: str) -> bool:
     return not re.search(version_pattern, url)
 
 
+def strip_query_params(url: str) -> str:
+    """Strip query parameters from a URL.
+
+    Args:
+        url (str): The URL to strip query parameters from.
+
+    Returns:
+        str: The URL without query parameters.
+    """
+    return url.split("?")[0]
+
+
 def get_all_pages(url: str) -> List[str]:
     """
     Retrieve all pages with the same base as the given URL.
@@ -60,10 +72,23 @@ def get_all_pages(url: str) -> List[str]:
     """
     logger.info(f"Scraping all pages from {url}...")
     base_url = urlparse(url).netloc
-    pages = crawl(url, base_url)
-    logger.info(f"Found {len(pages)} pages.")
+
+    # Use a queue-based approach instead of recursion
+    pages = set()
+    queue = [url]
+    while queue:
+        current_url = queue.pop(0)
+        if current_url not in pages:
+            pages.add(current_url)
+            links = get_all_links(current_url, base_url)
+            queue.extend(links)
+            sleep(1 / RATE_LIMIT)  # Rate limit the requests
+
+    stripped_pages = [strip_query_params(page) for page in pages]
+
+    logger.info(f"Found {len(stripped_pages)} pages.")
     logger.info("Done scraping pages.")
-    return list(pages)
+    return list(stripped_pages)
 
 
 def crawl(url: str, base: str, visited: Set[str] = None) -> Set[str]:
@@ -118,6 +143,7 @@ def get_all_links(url: str, base: str) -> List[str]:
         parsed_url = urlparse(full_url)
         cleaned_url = parsed_url._replace(fragment="").geturl()
         if is_valid_url(cleaned_url, base):
+            print(cleaned_url)
             links.append(cleaned_url)
 
     logger.debug(f"Found {len(links)} valid links from {url}")
