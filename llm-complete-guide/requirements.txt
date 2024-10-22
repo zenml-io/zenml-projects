@@ -17,7 +17,7 @@ tiktoken
 umap-learn
 matplotlib
 pyarrow
-rerankers[all]
+rerankers[flashrank]
 datasets
 torch
 

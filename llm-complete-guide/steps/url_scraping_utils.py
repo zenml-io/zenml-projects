@@ -48,6 +48,10 @@ def is_valid_url(url: str, base: str) -> bool:
     return not re.search(version_pattern, url)
 
 
+def strip_query_params(url):
+    return url.split('?')[0]
+
+
 def get_all_pages(url: str) -> List[str]:
     """
     Retrieve all pages with the same base as the given URL.
@@ -61,9 +65,11 @@ def get_all_pages(url: str) -> List[str]:
     logger.info(f"Scraping all pages from {url}...")
     base_url = urlparse(url).netloc
     pages = crawl(url, base_url)
-    logger.info(f"Found {len(pages)} pages.")
+    stripped_pages = [strip_query_params(page) for page in pages]
+
+    logger.info(f"Found {len(stripped_pages)} pages.")
     logger.info("Done scraping pages.")
-    return list(pages)
+    return list(stripped_pages)
 
 
 def crawl(url: str, base: str, visited: Set[str] = None) -> Set[str]:

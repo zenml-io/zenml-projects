@@ -42,6 +42,7 @@ from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
+    generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
 )
@@ -103,6 +104,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Disable cache.",
 )
 @click.option(
+    "--synthetic",
+    "synthetic",
+    is_flag=True,
+    default=False,
+    help="Run the synthetic data pipeline.",
+)
+@click.option(
     "--local",
     "local",
     is_flag=True,
@@ -143,6 +151,7 @@ def main(
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
+    synthetic: bool = False,
     local: bool = False,
     embeddings: bool = False,
     dummyembeddings: bool = False,
@@ -157,6 +166,7 @@ def main(
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
         no_cache (bool): If `True`, cache will be disabled.
+        synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
         dummyembeddings (bool): If `True`, dummyembeddings will be used
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
@@ -188,6 +198,8 @@ def main(
         llm_basic_rag.with_options(**pipeline_args)()
     if evaluation:
         llm_eval.with_options(**pipeline_args)()
+    if synthetic:
+        generate_synthetic_data.with_options(**pipeline_args)()
     if embeddings:
         finetune_embeddings.with_options(**embeddings_finetune_args)()
     if dummyembeddings:

@@ -43,6 +43,8 @@ environment and install the dependencies using the following command:
 pip install -r requirements.txt
 ```
 
+blah blah if it fails  FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation
+
 In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as another environment variable:
 
