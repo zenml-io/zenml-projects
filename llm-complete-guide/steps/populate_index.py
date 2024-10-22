@@ -108,16 +108,19 @@ def generate_embeddings(
             },
         )
 
-        document_texts = [doc.page_content for doc in split_documents]
+        # Parse the JSON string into a list of Document objects
+        document_list = [
+            Document(**doc) for doc in json.loads(split_documents)
+        ]
+
+        document_texts = [doc.page_content for doc in document_list]
         embeddings = model.encode(document_texts)
 
-        for doc, embedding in zip(split_documents, embeddings):
-            doc.embedding = (
-                embedding.tolist()
-            )  # Convert numpy array to list for JSON serialization
+        for doc, embedding in zip(document_list, embeddings):
+            doc.embedding = embedding.tolist()
 
         # Convert the list of Document objects to a JSON string
-        documents_json = json.dumps([doc.__dict__ for doc in split_documents])
+        documents_json = json.dumps([doc.__dict__ for doc in document_list])
 
         return documents_json
     except Exception as e:
@@ -166,14 +169,14 @@ def index_generator(
 
             register_vector(conn)
 
-            # load the documents from the JSON string
-            documents = json.loads(documents)
+            # Parse the JSON string into a list of Document objects
+            document_list = [Document(**doc) for doc in json.loads(documents)]
 
             # Insert data only if it doesn't already exist
-            for doc in documents:
+            for doc in document_list:
                 content = doc.page_content
                 token_count = doc.token_count
-                embedding = doc.embedding.tolist()
+                embedding = doc.embedding
                 filename = doc.filename
                 parent_section = doc.parent_section
                 url = doc.url
