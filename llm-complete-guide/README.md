@@ -156,14 +156,6 @@ component.
 
 ### Finetune the embeddings
 
-To run the pipeline for finetuning the embeddings, you can use the following
-commands:
-
-```shell
-pip install -r requirements-argilla.txt # special requirements
-python run.py --embeddings
-```
-
 As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
 to work. Please follow the instructions in the [Argilla
 documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
@@ -172,6 +164,14 @@ Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
+
+To run the pipeline for finetuning the embeddings, you can use the following
+commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --embeddings
+```
 
 *Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
 loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) which we adapted for this project.*

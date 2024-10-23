@@ -197,6 +197,8 @@ def main(
     if rag:
         llm_basic_rag.with_options(**pipeline_args)()
     if evaluation:
+        pipeline_args["enable_cache"] = False
+        print(f"We disabled caching generally for the evaluation pipeline.")
         llm_eval.with_options(**pipeline_args)()
     if synthetic:
         generate_synthetic_data.with_options(**pipeline_args)()

@@ -131,6 +131,7 @@ def index_generator(
     Raises:
         Exception: If an error occurs during the index generation.
     """
+    conn = None
     try:
         conn = get_db_conn()
         with conn.cursor() as cur:
