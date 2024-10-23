@@ -19,10 +19,10 @@ from zenml import ExternalArtifact, pipeline
 from zenml.client import Client
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def generate_chunk_questions():
     """Pipeline to generate questions from chunks."""
-    local_setting = ExternalArtifact(value=True)
+    local_setting = ExternalArtifact(value=False)
     client = Client()
     docs_with_embeddings = client.get_artifact_version(
         name_id_or_prefix="documents_with_embeddings"

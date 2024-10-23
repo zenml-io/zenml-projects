@@ -19,9 +19,10 @@
 # https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
 # for providing the base implementation for this indexing functionality
 
+import json
 import logging
 import math
-from typing import Annotated, List
+from typing import Annotated
 
 from constants import (
     CHUNK_OVERLAP,
@@ -41,16 +42,16 @@ logger = logging.getLogger(__name__)
 
 @step
 def preprocess_documents(
-    documents: List[Document],
-) -> Annotated[List[Document], ArtifactConfig(name="split_chunks")]:
+    documents: str,
+) -> Annotated[str, ArtifactConfig(name="split_chunks")]:
     """
-    Preprocesses a list of documents by splitting them into chunks.
+    Preprocesses a JSON string of documents by splitting them into chunks.
 
     Args:
-        documents (List[Document]): A list of documents to be preprocessed.
+        documents (str): A JSON string containing a list of documents to be preprocessed.
 
     Returns:
-        Annotated[List[Document], ArtifactConfig(name="split_chunks")]: A list of preprocessed documents annotated with an ArtifactConfig.
+        Annotated[str, ArtifactConfig(name="split_chunks")]: A JSON string containing a list of preprocessed documents annotated with an ArtifactConfig.
 
     Raises:
         Exception: If an error occurs during preprocessing.
@@ -64,10 +65,17 @@ def preprocess_documents(
             },
         )
 
+        # Parse the JSON string into a list of Document objects
+        document_list = [Document(**doc) for doc in json.loads(documents)]
+
         split_docs = split_documents(
-            documents, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
+            document_list, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
-        return split_docs
+
+        # Convert the list of Document objects back to a JSON string
+        split_docs_json = json.dumps([doc.__dict__ for doc in split_docs])
+
+        return split_docs_json
     except Exception as e:
         logger.error(f"Error in preprocess_documents: {e}")
         raise
@@ -75,10 +83,8 @@ def preprocess_documents(
 
 @step
 def generate_embeddings(
-    split_documents: List[Document],
-) -> Annotated[
-    List[Document], ArtifactConfig(name="documents_with_embeddings")
-]:
+    split_documents: str,
+) -> Annotated[str, ArtifactConfig(name="documents_with_embeddings")]:
     """
     Generates embeddings for a list of split documents using a SentenceTransformer model.
 
@@ -86,7 +92,7 @@ def generate_embeddings(
         split_documents (List[Document]): A list of Document objects that have been split into chunks.
 
     Returns:
-        Annotated[List[Document], ArtifactConfig(name="embeddings")]: The list of Document objects with generated embeddings, annotated with an ArtifactConfig.
+        Annotated[str, ArtifactConfig(name="documents_with_embeddings")]: A JSON string containing the Document objects with generated embeddings, annotated with an ArtifactConfig.
 
     Raises:
         Exception: If an error occurs during the generation of embeddings.
@@ -102,13 +108,21 @@ def generate_embeddings(
             },
         )
 
-        document_texts = [doc.page_content for doc in split_documents]
+        # Parse the JSON string into a list of Document objects
+        document_list = [
+            Document(**doc) for doc in json.loads(split_documents)
+        ]
+
+        document_texts = [doc.page_content for doc in document_list]
         embeddings = model.encode(document_texts)
 
-        for doc, embedding in zip(split_documents, embeddings):
-            doc.embedding = embedding
+        for doc, embedding in zip(document_list, embeddings):
+            doc.embedding = embedding.tolist()
 
-        return split_documents
+        # Convert the list of Document objects to a JSON string
+        documents_json = json.dumps([doc.__dict__ for doc in document_list])
+
+        return documents_json
     except Exception as e:
         logger.error(f"Error in generate_embeddings: {e}")
         raise
@@ -116,7 +130,7 @@ def generate_embeddings(
 
 @step
 def index_generator(
-    documents: List[Document],
+    documents: str,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -126,7 +140,7 @@ def index_generator(
     using the cosine distance measure.
 
     Args:
-        documents (List[Document]): The list of Document objects with generated embeddings.
+        documents (str): A JSON string containing the Document objects with generated embeddings.
 
     Raises:
         Exception: If an error occurs during the index generation.
@@ -156,11 +170,14 @@ def index_generator(
 
             register_vector(conn)
 
+            # Parse the JSON string into a list of Document objects
+            document_list = [Document(**doc) for doc in json.loads(documents)]
+
             # Insert data only if it doesn't already exist
-            for doc in documents:
+            for doc in document_list:
                 content = doc.page_content
                 token_count = doc.token_count
-                embedding = doc.embedding.tolist()
+                embedding = doc.embedding
                 filename = doc.filename
                 parent_section = doc.parent_section
                 url = doc.url
