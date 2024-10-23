@@ -373,7 +373,14 @@ def visualize_results(
         color="red",
     )
     for i, v in enumerate(finetuned_values):
-        ax.text(v - 1.5, i - height / 2, f"{v:.1f}", va="center", ha="right", color="white")
+        ax.text(
+            v - 1.5,
+            i - height / 2,
+            f"{v:.1f}",
+            va="center",
+            ha="right",
+            color="white",
+        )
     ax.barh(
         [i + height / 2 for i in y],
         base_values,
@@ -382,7 +389,14 @@ def visualize_results(
         color="blue",
     )
     for i, v in enumerate(base_values):
-        ax.text(v - 1.5, i + height / 2, f"{v:.1f}", va="center", ha="right", color="white")
+        ax.text(
+            v - 1.5,
+            i + height / 2,
+            f"{v:.1f}",
+            va="center",
+            ha="right",
+            color="white",
+        )
 
     ax.set_xlabel("Scores (%)")
     ax.set_title("Evaluation Results")

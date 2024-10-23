@@ -13,20 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-from steps.synthetic_data import generate_questions_from_chunks
-from zenml import ExternalArtifact, pipeline
-from zenml.client import Client
-
-
-@pipeline(enable_cache=False)
-def generate_chunk_questions():
-    """Pipeline to generate questions from chunks."""
-    local_setting = ExternalArtifact(value=False)
-    client = Client()
-    docs_with_embeddings = client.get_artifact_version(
-        name_id_or_prefix="documents_with_embeddings"
-    )
-    generate_questions_from_chunks(
-        docs_with_embeddings=docs_with_embeddings, local=local_setting
-    )
+from .data_loader import (
+    data_loader,
+)
+from .data_preprocessor import (
+    data_preprocessor,
+)
+from .data_splitter import (
+    data_splitter,
+)
+from .model_evaluator import (
+    model_evaluator,
+)
+from .model_trainer import (
+    model_trainer,
+)
