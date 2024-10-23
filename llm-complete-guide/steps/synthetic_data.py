@@ -14,15 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+import json
+import logging
+from typing import Annotated
 
 import pandas as pd
 from datasets import Dataset
 from huggingface_hub import create_repo
 from litellm import completion
 from structures import Document
-from zenml import step
+from zenml import ArtifactConfig, step
 from zenml.client import Client
+
+logger = logging.getLogger(__name__)
 
 LOCAL_MODEL = "ollama/mixtral"
 
@@ -36,7 +40,7 @@ def generate_question(chunk: str, local: bool = False) -> str:
     Returns:
         Generated question.
     """
-    model = LOCAL_MODEL if local else "gpt-3.5-turbo"
+    model = LOCAL_MODEL if local else "gpt-4o"
     response = completion(
         model=model,
         messages=[
@@ -52,28 +56,37 @@ def generate_question(chunk: str, local: bool = False) -> str:
 
 @step
 def generate_questions_from_chunks(
-    docs_with_embeddings: List[Document],
+    docs_with_embeddings: str,
     local: bool = False,
-) -> List[Document]:
+    logging_interval: int = 10,
+) -> Annotated[str, ArtifactConfig(name="synthetic_questions")]:
     """Generate questions from chunks.
 
     Args:
-        docs_with_embeddings: List of documents with embeddings.
+        docs_with_embeddings: JSON string containing a list of Document objects with embeddings.
         local: Whether to run the pipeline with a local LLM.
 
     Returns:
-        List of documents with generated questions added.
+        JSON string containing a list of documents with generated questions added.
     """
-    for doc in docs_with_embeddings:
-        doc.generated_questions = [generate_question(doc.page_content, local)]
+    document_list = [
+        Document(**doc) for doc in json.loads(docs_with_embeddings)
+    ]
 
-    assert all(doc.generated_questions for doc in docs_with_embeddings)
+    for i, doc in enumerate(document_list, 1):
+        doc.generated_questions = [generate_question(doc.page_content, local)]
+        if i % logging_interval == 0:
+            logger.info(
+                f"Progress: {i}/{len(document_list)} documents processed"
+            )
+            logger.info(
+                f"Generated question for document {i}: {doc.generated_questions[0]}"
+            )
+
+    assert all(doc.generated_questions for doc in document_list)
 
     # Convert List[Document] to DataFrame
-    df = pd.DataFrame([doc.__dict__ for doc in docs_with_embeddings])
-
-    # Convert numpy arrays to lists
-    df["embedding"] = df["embedding"].apply(lambda x: x.tolist())
+    df = pd.DataFrame([doc.__dict__ for doc in document_list])
 
     # upload the parquet file to a private dataset on the huggingface hub
     client = Client()
@@ -83,14 +96,15 @@ def generate_questions_from_chunks(
         "zenml/rag_qa_embedding_questions",
         token=hf_token,
         exist_ok=True,
-        private=True,
         repo_type="dataset",
     )
+
+    # add an extra `__pydantic_initialised__` column to the dataframe
+    df["__pydantic_initialised__"] = True
 
     dataset = Dataset.from_pandas(df)
     dataset.push_to_hub(
         repo_id="zenml/rag_qa_embedding_questions",
-        private=True,
         token=hf_token,
         create_pr=True,
     )

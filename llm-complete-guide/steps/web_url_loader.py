@@ -12,7 +12,8 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Annotated, List
+import json
+from typing import Annotated
 
 from structures import Document
 from unstructured.partition.html import partition_html
@@ -23,18 +24,19 @@ from steps.url_scraping_utils import extract_parent_section
 
 @step
 def web_url_loader(
-    urls: List[str],
-) -> Annotated[List[Document], ArtifactConfig(name="documents_from_urls")]:
+    urls: str,
+) -> Annotated[str, ArtifactConfig(name="documents_from_urls")]:
     """Loads documents from a list of URLs.
 
     Args:
-        urls: List of URLs to load documents from.
+        urls: JSON string containing a list of URL strings to load documents from.
 
     Returns:
-        List of custom Document objects.
+        JSON string containing a list of custom Document objects.
     """
+    url_list = json.loads(urls)
     documents = []
-    for url in urls:
+    for url in url_list:
         elements = partition_html(url=url)
         text = "\n\n".join([str(el) for el in elements])
 
@@ -48,4 +50,4 @@ def web_url_loader(
         )
         documents.append(document)
 
-    return documents
+    return json.dumps([doc.__dict__ for doc in documents])

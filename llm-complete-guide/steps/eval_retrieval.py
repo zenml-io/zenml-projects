@@ -198,7 +198,7 @@ def perform_retrieval_evaluation(
 
         if all(url_ending not in url for url in urls):
             logging.error(
-                f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
+                f"Failed for question: {question}. Expected URL containing: {url_ending}. Got: {urls}"
             )
             failures += 1
 

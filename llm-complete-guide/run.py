@@ -42,6 +42,7 @@ from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
+    generate_chunk_questions,
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
@@ -145,6 +146,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=False,
     help="Whether to use the reranker.",
 )
+@click.option(
+    "--chunks",
+    "chunks",
+    is_flag=True,
+    default=False,
+    help="Generate chunks for Hugging Face dataset",
+)
 def main(
     rag: bool = False,
     evaluation: bool = False,
@@ -157,6 +165,7 @@ def main(
     dummyembeddings: bool = False,
     argilla: bool = False,
     reranked: bool = False,
+    chunks: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -170,6 +179,7 @@ def main(
         local (bool): If `True`, the local LLM via Ollama will be used.
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
         argilla (bool): If `True`, the Argilla annotations will be used.
+        chunks (bool): If `True`, the chunks pipeline will be run.
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -201,6 +211,8 @@ def main(
         finetune_embeddings.with_options(**embeddings_finetune_args)()
     if dummyembeddings:
         chunking_experiment.with_options(**pipeline_args)()
+    if chunks:
+        generate_chunk_questions.with_options(**pipeline_args)()
 
 
 if __name__ == "__main__":
