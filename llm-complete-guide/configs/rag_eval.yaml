@@ -1,0 +1,14 @@
+enable_cache: False
+
+# environment configuration
+settings:
+  docker:
+    requirements:
+      - unstructured
+      - sentence-transformers>=3
+      - pgvector
+      - datasets
+      - litellm
+      - numpy
+      - psycopg2-binary
+      - tiktoken

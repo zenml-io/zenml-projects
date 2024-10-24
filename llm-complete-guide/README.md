@@ -165,6 +165,9 @@ documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
 
+The pipeline assumes that your argilla secret is stored within a ZenML secret called `argilla_secrets`. 
+![Argilla Secret](.assets/argilla_secret.png)
+
 To run the pipeline for finetuning the embeddings, you can use the following
 commands:
 

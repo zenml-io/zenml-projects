@@ -66,15 +66,16 @@ def format_data(batch):
 def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     # get secrets for argilla connection
     zenml_client = Client()
-    api_key = zenml_client.get_secret("argilla_hf").secret_values["api_key"]
-    api_url = zenml_client.get_secret("argilla_hf").secret_values["api_url"]
+    api_key = zenml_client.get_secret("argilla_secrets").secret_values["api_key"]
+    api_url = zenml_client.get_secret("argilla_secrets").secret_values["api_url"]
+    hf_token = zenml_client.get_secret("argilla_secrets").secret_values["hf_token"]
 
     model = SentenceTransformer(
         EMBEDDINGS_MODEL_ID_BASELINE,
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
-    client = rg.Argilla(api_url=api_url, api_key=api_key)
+    client = rg.Argilla(api_url=api_url, api_key=api_key, headers={"Authorization": f"Bearer {hf_token}"})
 
     settings = rg.Settings(
         fields=[rg.TextField("anchor")],

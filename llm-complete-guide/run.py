@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import warnings
 
 # Suppress the specific FutureWarning from huggingface_hub
@@ -205,15 +206,26 @@ def main(
 
     print(f"Running Pipeline with pipeline args: {pipeline_args}")
     if rag:
-        llm_basic_rag.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "rag.yaml"
+        )
+        llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
     if evaluation:
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "rag_eval.yaml"
+        )
         pipeline_args["enable_cache"] = False
-        print(f"We disabled caching generally for the evaluation pipeline.")
-        llm_eval.with_options(**pipeline_args)()
+        llm_eval.with_options(config_path=config_path)()
     if synthetic:
-        generate_synthetic_data.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "synthetic.yaml"
+        )
+        generate_synthetic_data.with_options(config_path=config_path, **pipeline_args)()
     if embeddings:
-        finetune_embeddings.with_options(**embeddings_finetune_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "embeddings.yaml"
+        )
+        finetune_embeddings.with_options(config_path=config_path, **embeddings_finetune_args)()
     if dummyembeddings:
         chunking_experiment.with_options(**pipeline_args)()
     if chunks:
