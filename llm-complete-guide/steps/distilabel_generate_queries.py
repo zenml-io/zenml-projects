@@ -15,7 +15,6 @@
 import os
 from typing import Annotated, Tuple
 
-import distilabel
 from constants import (
     DATASET_NAME_DEFAULT,
     OPENAI_MODEL_GEN,
@@ -25,6 +24,7 @@ from datasets import Dataset
 from distilabel.llms import OpenAILLM
 from distilabel.steps import LoadDataFromHub
 from distilabel.steps.tasks import GenerateSentencePair
+from distilabel.pipeline import Pipeline
 from zenml import step
 
 synthetic_generation_context = """
@@ -45,7 +45,7 @@ def generate_synthetic_queries(
         model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY")
     )
 
-    with distilabel.pipeline.Pipeline(
+    with Pipeline(
         name="generate_embedding_queries"
     ) as pipeline:
         load_dataset = LoadDataFromHub(
@@ -74,7 +74,7 @@ def generate_synthetic_queries(
                 }
             },
         },
-        # use_cache=False, # comment out for demo
+        use_cache=False, # comment out for demo
     )
 
     test_distiset = pipeline.run(
@@ -89,7 +89,7 @@ def generate_synthetic_queries(
                 }
             },
         },
-        # use_cache=False, # comment out for demo
+        use_cache=False, # comment out for demo
     )
 
     train_dataset = train_distiset["default"]["train"]

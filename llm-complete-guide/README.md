@@ -43,6 +43,9 @@ environment and install the dependencies using the following command:
 pip install -r requirements.txt
 ```
 
+Depending on your setup you may run into some issues when running the pip install command with the
+`flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` could help you.
+
 In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as another environment variable:
 
@@ -153,14 +156,6 @@ component.
 
 ### Finetune the embeddings
 
-To run the pipeline for finetuning the embeddings, you can use the following
-commands:
-
-```shell
-pip install -r requirements-argilla.txt # special requirements
-python run.py --embeddings
-```
-
 As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
 to work. Please follow the instructions in the [Argilla
 documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
@@ -169,6 +164,17 @@ Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
+
+The pipeline assumes that your argilla secret is stored within a ZenML secret called `argilla_secrets`. 
+![Argilla Secret](.assets/argilla_secret.png)
+
+To run the pipeline for finetuning the embeddings, you can use the following
+commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --embeddings
+```
 
 *Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
 loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) which we adapted for this project.*

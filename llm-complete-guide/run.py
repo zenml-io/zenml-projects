@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import warnings
 
 # Suppress the specific FutureWarning from huggingface_hub
@@ -177,9 +178,11 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
+        dummyembeddings (bool): If `True`, dummyembeddings will be used
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
         argilla (bool): If `True`, the Argilla annotations will be used.
         chunks (bool): If `True`, the chunks pipeline will be run.
+        reranked (bool): If `True`, rerankers will be used
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -201,14 +204,28 @@ def main(
         md = Markdown(response)
         console.print(md)
 
+    print(f"Running Pipeline with pipeline args: {pipeline_args}")
     if rag:
-        llm_basic_rag.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "rag.yaml"
+        )
+        llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
     if evaluation:
-        llm_eval.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "rag_eval.yaml"
+        )
+        pipeline_args["enable_cache"] = False
+        llm_eval.with_options(config_path=config_path)()
     if synthetic:
-        generate_synthetic_data.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "synthetic.yaml"
+        )
+        generate_synthetic_data.with_options(config_path=config_path, **pipeline_args)()
     if embeddings:
-        finetune_embeddings.with_options(**embeddings_finetune_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "configs", "embeddings.yaml"
+        )
+        finetune_embeddings.with_options(config_path=config_path, **embeddings_finetune_args)()
     if dummyembeddings:
         chunking_experiment.with_options(**pipeline_args)()
     if chunks:
