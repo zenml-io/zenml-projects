@@ -31,6 +31,7 @@ logger = get_logger(__name__)
 @step(enable_cache=False)
 def vllm_model_deployer_step(
     model: str,
+    port: int = 8000,
     tokenizer: Optional[str] = None,
     timeout: int = 1200,
     deploy_decision: bool = True,
@@ -41,6 +42,7 @@ def vllm_model_deployer_step(
 
     Args:
         model: Name or path to huggingface model
+        port: Port used by vllm server
         tokenizer: Name or path of the huggingface tokenizer to use.
             If unspecified, model name or path will be used.
         timeout: the number of seconds to wait for the service to start/stop.
@@ -62,6 +64,7 @@ def vllm_model_deployer_step(
     # create a config for the new model service
     predictor_cfg = VLLMServiceConfig(
         model=model,
+        port=port,
         tokenizer=tokenizer,
         model_name="default",  # Required for ServiceConfig
     )
