@@ -48,7 +48,6 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
 )
-from pipelines.finetune_embeddings_legacy import chunking_experiment
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -190,7 +189,7 @@ def main(
     print(f"Running Pipeline with pipeline args: {pipeline_args}")
     if rag:
         config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "configs", "rag.yaml"
+            os.path.dirname(os.path.realpath(__file__)), "configs", "rag_local_dev.yaml"
         )
         llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
     if evaluation:

@@ -21,6 +21,8 @@
 
 import logging
 
+from zenml.cli import secret
+
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -212,33 +214,7 @@ def split_documents(
     return chunked_documents
 
 
-def get_local_db_connection_details() -> Dict[str, str]:
-    """Returns the connection details for the local database.
-
-    Returns:
-        dict: A dictionary containing the connection details for the local
-        database.
-
-    Raises:
-        RuntimeError: If the environment variables ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, or ZENML_POSTGRES_PORT are not set.
-    """
-    user = os.getenv("ZENML_POSTGRES_USER")
-    host = os.getenv("ZENML_POSTGRES_HOST")
-    port = os.getenv("ZENML_POSTGRES_PORT")
-
-    if not user or not host or not port:
-        raise RuntimeError(
-            "Please make sure to set the environment variables: ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, and ZENML_POSTGRES_PORT"
-        )
-
-    return {
-        "user": user,
-        "host": host,
-        "port": port,
-    }
-
-
-def get_db_password() -> str:
+def get_db_password(secret_name: str) -> str:
     """Returns the password for the PostgreSQL database.
 
     Returns:
@@ -250,10 +226,64 @@ def get_db_password() -> str:
 
         password = (
             Client()
-            .get_secret("supabase_postgres_db")
+            .get_secret(secret_name)
             .secret_values["password"]
         )
     return password
+
+
+def get_db_user(secret_name: str) -> str:
+    """Returns the user for the PostgreSQL database.
+
+    Returns:
+        str: The user for the PostgreSQL database.
+    """
+    user = os.getenv("ZENML_POSTGRES_USER")
+    if not user:
+        from zenml.client import Client
+
+        user = (
+            Client()
+            .get_secret(secret_name)
+            .secret_values["user"]
+        )
+    return user
+
+
+def get_db_host(secret_name: str) -> str:
+    """Returns the host for the PostgreSQL database.
+
+    Returns:
+        str: The host for the PostgreSQL database.
+    """
+    host = os.getenv("ZENML_POSTGRES_HOST")
+    if not host:
+        from zenml.client import Client
+
+        host = (
+            Client()
+            .get_secret(secret_name)
+            .secret_values["host"]
+        )
+    return host
+
+
+def get_db_port(secret_name: str) -> str:
+    """Returns the port for the PostgreSQL database.
+
+    Returns:
+        str: The port for the PostgreSQL database.
+    """
+    port = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
+    if not port:
+        from zenml.client import Client
+
+        port = (
+            Client()
+            .get_secret("supabase_postgres_db")
+            .secret_values["port"]
+        )
+    return port
 
 
 def get_db_conn() -> connection:
@@ -265,15 +295,19 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = get_db_password()
+    secret_name = os.getenv("ZENML_SUPABASE_SECRET_NAME")
 
-    local_database_connection = get_local_db_connection_details()
+    if not secret_name:
+        raise RuntimeError(
+            "Please make sure to set the environment variable: ZENML_SUPABASE_SECRET_NAME to point at the secret that "
+            "contains your supabase connection details."
+        )
 
     CONNECTION_DETAILS = {
-        "user": local_database_connection["user"],
-        "password": pg_password,
-        "host": local_database_connection["host"],
-        "port": local_database_connection["port"],
+        "user": get_db_user(secret_name),
+        "password": get_db_password(secret_name),
+        "host": get_db_host(secret_name),
+        "port": get_db_port(secret_name),
         "dbname": "postgres",
     }
 

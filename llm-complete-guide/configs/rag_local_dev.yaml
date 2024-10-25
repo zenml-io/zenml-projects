@@ -1,0 +1,30 @@
+# environment configuration
+settings:
+  docker:
+    requirements:
+      - unstructured
+      - sentence-transformers>=3
+      - pgvector
+      - datasets
+      - litellm
+      - numpy
+      - psycopg2-binary
+      - tiktoken
+      - ratelimit
+    environment:
+      ZENML_SUPABASE_SECRET_NAME: alexej_supabase_postgres_db
+      ZENML_OPENAI_SECRET_NAME: alexej_openai
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
+
+steps:
+  url_scraper:
+    parameters:
+      docs_url: https://docs.zenml.io/stack-components/orchestrators
+#  generate_embeddings:
+#    step_operator: "terraform-gcp-6c0fd52233ca"
+#    settings:
+#      step_operator.vertex:
+#        accelerator_type: "NVIDIA_TESLA_P100"
+#        accelerator_count: 1
+#        machine_type: "n1-standard-8"

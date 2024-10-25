@@ -27,6 +27,8 @@ from distilabel.steps.tasks import GenerateSentencePair
 from distilabel.pipeline import Pipeline
 from zenml import step
 
+from utils.openai_utils import get_openai_api_key
+
 synthetic_generation_context = """
 The text is a chunk from technical documentation of ZenML.
 ZenML is an MLOps + LLMOps framework that makes your infrastructure and workflow metadata accessible to data science teams.
@@ -42,7 +44,7 @@ def generate_synthetic_queries(
     Annotated[Dataset, "test_with_queries"],
 ]:
     llm = OpenAILLM(
-        model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY")
+        model=OPENAI_MODEL_GEN, api_key=get_openai_api_key()
     )
 
     with Pipeline(

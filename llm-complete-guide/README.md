@@ -49,8 +49,10 @@ Depending on your setup you may run into some issues when running the `pip insta
 In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as another environment variable:
 
+zenml secret create supabase_postgres_db --password="YOUR_PASSWORD" --user="YOU_USER" --host="YOUR_HOST" --port="YOUR_PORT"
+
 ```shell
-export OPENAI_API_KEY=<your-openai-api-key>
+zenml secret create openai --api_key=<your-openai-api-key>
 ```
 
 ### Setting up Supabase
@@ -66,22 +68,15 @@ You'll want to save the Supabase database password as a ZenML secret so that it
 isn't stored in plaintext. You can do this by running the following command:
 
 ```shell
-zenml secret create supabase_postgres_db --password="YOUR_PASSWORD"
+zenml secret create supabase_postgres_db --password="YOUR_PASSWORD" --user="YOU_USER" --host="YOUR_HOST" --port="YOUR_PORT"
 ```
 
-You'll then want to connect to this database instance by getting the connection
+You can get the user, host and port for this database instance by getting the connection
 string from the Supabase dashboard.
 
 ![](.assets/supabase-connection-string.png)
 
-You can use these details to populate some environment variables where the
-pipeline code expects them:
-
-```shell
-export ZENML_POSTGRES_USER=<your-supabase-user>
-export ZENML_POSTGRES_HOST=<your-supabase-host>
-export ZENML_POSTGRES_PORT=<your-supabase-port>
-```
+Alternatively you can use a different database as the backend. 
 
 ### Running the RAG pipeline
 

@@ -22,11 +22,15 @@ from steps.populate_index import (
 )
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
-from zenml import pipeline
+from zenml import pipeline, Model
+
+model_definition = Model(
+    name=""
+)
 
 
 @pipeline
-def llm_basic_rag() -> None:
+def llm_basic_rag(model=model_definition) -> None:
     """Executes the pipeline to train a basic RAG model.
 
     This function performs the following steps:
