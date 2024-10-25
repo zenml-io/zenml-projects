@@ -12,10 +12,11 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
+
+import json
 
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, step
+from zenml import ArtifactConfig, log_artifact_metadata, step
 
 from steps.url_scraping_utils import get_all_pages
 
@@ -25,17 +26,16 @@ def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
     website_url: str = "https://zenml.io",
-) -> Annotated[List[str], "urls"]:
+) -> Annotated[str, ArtifactConfig(name="urls")]:
     """Generates a list of relevant URLs to scrape.
 
     Args:
         docs_url: URL to the documentation.
         repo_url: URL to the repository.
-        release_notes_url: URL to the release notes.
         website_url: URL to the website.
 
     Returns:
-        List of URLs to scrape.
+        JSON string containing a list of URLs to scrape.
     """
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
@@ -44,8 +44,9 @@ def url_scraper(
     # all_urls = docs_urls + website_urls + examples_readme_urls
     all_urls = docs_urls
     log_artifact_metadata(
+        artifact_name="urls",
         metadata={
             "count": len(all_urls),
         },
     )
-    return all_urls
+    return json.dumps(all_urls)

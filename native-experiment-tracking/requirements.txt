@@ -1,0 +1,9 @@
+zenml[server]>=0.67.0
+notebook
+scikit-learn
+pyarrow
+pandas
+pillow
+matplotlib
+numpy
+seaborn
