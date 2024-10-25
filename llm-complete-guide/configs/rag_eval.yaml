@@ -3,6 +3,7 @@ enable_cache: False
 # environment configuration
 settings:
   docker:
+    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
       - unstructured
       - sentence-transformers>=3

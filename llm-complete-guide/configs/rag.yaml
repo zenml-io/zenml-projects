@@ -1,6 +1,7 @@
 # environment configuration
 settings:
   docker:
+    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
       - unstructured
       - sentence-transformers>=3
@@ -10,3 +11,6 @@ settings:
       - numpy
       - psycopg2-binary
       - tiktoken
+    environment:
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
