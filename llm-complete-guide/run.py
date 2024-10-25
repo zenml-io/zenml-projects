@@ -113,13 +113,6 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Run the synthetic data pipeline.",
 )
 @click.option(
-    "--local",
-    "local",
-    is_flag=True,
-    default=False,
-    help="Uses a local LLM via Ollama.",
-)
-@click.option(
     "--embeddings",
     "embeddings",
     is_flag=True,
@@ -132,13 +125,6 @@ Run the ZenML LLM RAG complete guide project pipelines.
     is_flag=True,
     default=False,
     help="Uses Argilla annotations.",
-)
-@click.option(
-    "--dummyembeddings",
-    "dummyembeddings",
-    is_flag=True,
-    default=False,
-    help="Fine-tunes embeddings.",
 )
 @click.option(
     "--reranked",
@@ -161,9 +147,7 @@ def main(
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
     synthetic: bool = False,
-    local: bool = False,
     embeddings: bool = False,
-    dummyembeddings: bool = False,
     argilla: bool = False,
     reranked: bool = False,
     chunks: bool = False,
@@ -178,7 +162,6 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         synthetic (bool): If `True`, the synthetic data pipeline will be run.
         local (bool): If `True`, the local LLM via Ollama will be used.
-        dummyembeddings (bool): If `True`, dummyembeddings will be used
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
         argilla (bool): If `True`, the Argilla annotations will be used.
         chunks (bool): If `True`, the chunks pipeline will be run.
@@ -226,8 +209,6 @@ def main(
             os.path.dirname(os.path.realpath(__file__)), "configs", "embeddings.yaml"
         )
         finetune_embeddings.with_options(config_path=config_path, **embeddings_finetune_args)()
-    if dummyembeddings:
-        chunking_experiment.with_options(**pipeline_args)()
     if chunks:
         generate_chunk_questions.with_options(**pipeline_args)()
 
