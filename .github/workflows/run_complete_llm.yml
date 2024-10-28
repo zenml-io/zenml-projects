@@ -10,7 +10,6 @@ concurrency:
 
 jobs:
   run-staging-workflow:
-    runs-on: ubuntu-dind-runners
     env:
       ZENML_HOST: ${{ secrets.ZENML_HOST }}
       ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
