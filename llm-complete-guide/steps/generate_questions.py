@@ -23,6 +23,8 @@ from structures import Document
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
+from utils.openai_utils import get_openai_api_key
+
 logger = get_logger(__name__)
 LOCAL_MODEL = "ollama/mixtral"
 
@@ -58,6 +60,7 @@ def generate_question(
                     }
                 ],
                 api_base="http://localhost:11434" if local else None,
+                api_key=get_openai_api_key()
             )
             return response.choices[0].message.content
         except (Timeout, APIConnectionError) as e:

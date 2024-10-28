@@ -23,6 +23,8 @@ import logging
 
 from zenml.cli import secret
 
+from utils.openai_utils import get_openai_api_key
+
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -34,7 +36,7 @@ logging.getLogger().setLevel(logging.ERROR)
 
 import os
 import re
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import litellm
 import numpy as np
@@ -377,6 +379,7 @@ def get_completion_from_messages(
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
+        api_key=get_openai_api_key()
     )
     return completion_response.choices[0].message.content
 

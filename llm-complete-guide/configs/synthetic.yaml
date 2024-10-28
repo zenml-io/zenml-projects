@@ -1,3 +1,5 @@
+# enable_cache: False
+
 # environment configuration
 settings:
   docker:
@@ -24,3 +26,7 @@ settings:
       - rerankers[flashrank]
       - datasets
       - torch
+      - distilabel
+    environment:
+      ZENML_SUPABASE_SECRET_NAME: supabase_postgres_db
+      ZENML_OPENAI_SECRET_NAME: openai

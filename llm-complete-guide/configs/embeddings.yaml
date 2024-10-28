@@ -1,3 +1,5 @@
+enable_cache: False
+
 # environment configuration
 settings:
   docker:
@@ -14,7 +16,7 @@ settings:
       - pandas
       - numpy
       - sentence-transformers>=3
-      - transformers
+      - transformers[torch]
       - litellm
       - ollama
       - tiktoken

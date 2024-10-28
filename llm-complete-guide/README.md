@@ -43,16 +43,16 @@ environment and install the dependencies using the following command:
 pip install -r requirements.txt
 ```
 
-Depending on your setup you may run into some issues when running the `pip install` command with the
-`flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` could help you.
+Depending on your hardware you may run into some issues when running the `pip install` command with the
+`flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` 
+could help you.
 
 In order to use the default LLM for this query, you'll need an account and an
-API key from OpenAI specified as another environment variable:
-
-zenml secret create supabase_postgres_db --password="YOUR_PASSWORD" --user="YOU_USER" --host="YOUR_HOST" --port="YOUR_PORT"
+API key from OpenAI specified as a ZenML secret:
 
 ```shell
 zenml secret create openai --api_key=<your-openai-api-key>
+export ZENML_OPENAI_SECRET_NAME=openai
 ```
 
 ### Setting up Supabase
@@ -69,6 +69,7 @@ isn't stored in plaintext. You can do this by running the following command:
 
 ```shell
 zenml secret create supabase_postgres_db --password="YOUR_PASSWORD" --user="YOU_USER" --host="YOUR_HOST" --port="YOUR_PORT"
+export ZENML_SUPABASE_SECRET_NAME=supabase_postgres_db
 ```
 
 You can get the user, host and port for this database instance by getting the connection
@@ -76,7 +77,7 @@ string from the Supabase dashboard.
 
 ![](.assets/supabase-connection-string.png)
 
-Alternatively you can use a different database as the backend. 
+In case supabase is not an option for you, you can use a different database as the backend. 
 
 ### Running the RAG pipeline
 

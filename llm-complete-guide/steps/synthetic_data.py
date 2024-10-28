@@ -26,6 +26,8 @@ from structures import Document
 from zenml import ArtifactConfig, step
 from zenml.client import Client
 
+from utils.openai_utils import get_openai_api_key
+
 logger = logging.getLogger(__name__)
 
 LOCAL_MODEL = "ollama/mixtral"
@@ -50,6 +52,7 @@ def generate_question(chunk: str, local: bool = False) -> str:
             }
         ],
         api_base="http://localhost:11434" if local else None,
+        api_key=get_openai_api_key()
     )
     return response.choices[0].message.content
 
