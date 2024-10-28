@@ -11,7 +11,7 @@ Using these pipelines, we can run the data-preparation and model finetuning with
 
 ## 🏃 How to run
 
-In this project, we will deploy the [gpt-2](https://huggingface.co/openai-community/gpt2) model using [vLLM](https://github.com/vllm-project/vllm). Before we're able to run any pipeline, we need to set up our environment as follows:
+In this project, we will deploy the [gpt-2](https://huggingface.co/openai-community/gpt2) model using [vLLM](https://docs.vllm.ai/en/latest/). Before we're able to run any pipeline, we need to set up our environment as follows:
 
 ```bash
 # Set up a Python virtual environment, if you haven't already
