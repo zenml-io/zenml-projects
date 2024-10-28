@@ -18,7 +18,8 @@ import torch
 from constants import (
     DATASET_NAME_ARGILLA,
     EMBEDDINGS_MODEL_ID_BASELINE,
-    OPENAI_MODEL_GEN, SECRET_NAME,
+    OPENAI_MODEL_GEN,
+    SECRET_NAME,
 )
 from datasets import Dataset
 from sentence_transformers import SentenceTransformer
@@ -66,8 +67,12 @@ def format_data(batch):
 def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     # get secrets for argilla connection
     zenml_client = Client()
-    api_key = zenml_client.get_secret(SECRET_NAME).secret_values["argilla_api_key"]
-    api_url = zenml_client.get_secret(SECRET_NAME).secret_values["argilla_api_url"]
+    api_key = zenml_client.get_secret(SECRET_NAME).secret_values[
+        "argilla_api_key"
+    ]
+    api_url = zenml_client.get_secret(SECRET_NAME).secret_values[
+        "argilla_api_url"
+    ]
     hf_token = zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"]
 
     model = SentenceTransformer(
@@ -75,7 +80,11 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
-    client = rg.Argilla(api_url=api_url, api_key=api_key, headers={"Authorization": f"Bearer {hf_token}"})
+    client = rg.Argilla(
+        api_url=api_url,
+        api_key=api_key,
+        headers={"Authorization": f"Bearer {hf_token}"},
+    )
 
     settings = rg.Settings(
         fields=[rg.TextField("anchor")],
@@ -101,7 +110,7 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     )
 
     # skip if dataset already exists
-    #try:
+    # try:
     ds.create()
     # except ConflictError:
     #    ds = client.datasets(DATASET_NAME_ARGILLA)

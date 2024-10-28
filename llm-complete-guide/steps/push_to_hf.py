@@ -27,5 +27,5 @@ def push_to_hf(train_dataset: Dataset, test_dataset: Dataset):
     )
     combined_dataset.push_to_hub(
         DATASET_NAME_DISTILABEL,
-        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"]
+        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"],
     )
