@@ -45,12 +45,10 @@ jobs:
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
-        if: ${{ github.base_ref == 'staging' }}
         run: |
           zenml stack set ${{ env.ZENML_STAGING_STACK }}
 
       - name: Run pipeline (Staging)
         working-directory: ./llm-complete-guide
-        if: ${{ github.base_ref == 'staging' }}
         run: |
           python run.py --rag --evaluation --no-cache
