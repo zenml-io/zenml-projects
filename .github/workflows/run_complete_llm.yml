@@ -30,25 +30,26 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Change directory
-        run: cd llm-complete-guide
-
       - name: Install requirements
+        working-directory: ./llm-complete-guide
         run: |
           pip3 install -r requirements.txt
           zenml integration install gcp -y
 
       - name: Connect to ZenML server
+        working-directory: ./llm-complete-guide
         run: |
           zenml init
           zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
 
       - name: Set stack (Staging)
+        working-directory: ./llm-complete-guide
         if: ${{ github.base_ref == 'staging' }}
         run: |
           zenml stack set ${{ env.ZENML_STAGING_STACK }}
 
       - name: Run pipeline (Staging)
+        working-directory: ./llm-complete-guide
         if: ${{ github.base_ref == 'staging' }}
         run: |
           python run.py --rag --evaluation --no-cache
