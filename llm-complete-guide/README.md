@@ -151,7 +151,7 @@ component.
 
 Please use the secret from above to track all the secrets:
 
-```
+```bash
 zenml secret update llm-complete -v '{"argilla_api_key": "YOUR_ARGILLA_API_KEY", "argilla_api_url": "YOUR_ARGILLA_API_URL", "hf_token": "YOUR_HF_TOKEN"}'
 ```
 
