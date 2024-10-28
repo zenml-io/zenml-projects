@@ -18,7 +18,7 @@ import torch
 from constants import (
     DATASET_NAME_ARGILLA,
     EMBEDDINGS_MODEL_ID_BASELINE,
-    OPENAI_MODEL_GEN,
+    OPENAI_MODEL_GEN, SECRET_NAME,
 )
 from datasets import Dataset
 from sentence_transformers import SentenceTransformer
@@ -66,9 +66,9 @@ def format_data(batch):
 def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     # get secrets for argilla connection
     zenml_client = Client()
-    api_key = zenml_client.get_secret("argilla_secrets").secret_values["api_key"]
-    api_url = zenml_client.get_secret("argilla_secrets").secret_values["api_url"]
-    hf_token = zenml_client.get_secret("argilla_secrets").secret_values["hf_token"]
+    api_key = zenml_client.get_secret(SECRET_NAME).secret_values["argilla_api_key"]
+    api_url = zenml_client.get_secret(SECRET_NAME).secret_values["argilla_api_url"]
+    hf_token = zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"]
 
     model = SentenceTransformer(
         EMBEDDINGS_MODEL_ID_BASELINE,

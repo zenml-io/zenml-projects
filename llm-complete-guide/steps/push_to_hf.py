@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 from zenml.client import Client
 
-from constants import DATASET_NAME_DISTILABEL
+from constants import DATASET_NAME_DISTILABEL, SECRET_NAME
 from datasets import Dataset, DatasetDict
 from zenml import step
 
@@ -27,5 +27,5 @@ def push_to_hf(train_dataset: Dataset, test_dataset: Dataset):
     )
     combined_dataset.push_to_hub(
         DATASET_NAME_DISTILABEL,
-        token=zenml_client.get_secret("argilla_secrets").secret_values["hf_token"]
+        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"]
     )

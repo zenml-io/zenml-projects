@@ -12,8 +12,7 @@ settings:
       - tiktoken
       - ratelimit
     environment:
-      ZENML_SUPABASE_SECRET_NAME: supabase_postgres_db
-      ZENML_OPENAI_SECRET_NAME: openai
+      ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
 
@@ -28,3 +27,10 @@ steps:
         accelerator_type: "NVIDIA_TESLA_P100"
         accelerator_count: 1
         machine_type: "n1-standard-8"
+
+# configuration of the Model Control Plane
+model:
+  name: finetuned-zenml-docs-embeddings
+  license: Apache 2.0
+  description: Finetuned LLM on ZenML docs
+  tags: ["rag", "finetuned"]

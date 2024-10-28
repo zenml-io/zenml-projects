@@ -22,6 +22,7 @@
 import logging
 
 from zenml.cli import secret
+from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
 
@@ -42,7 +43,7 @@ import litellm
 import numpy as np
 import psycopg2
 import tiktoken
-from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
+from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL, SECRET_NAME
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from rerankers import Reranker
@@ -216,78 +217,6 @@ def split_documents(
     return chunked_documents
 
 
-def get_db_password(secret_name: str) -> str:
-    """Returns the password for the PostgreSQL database.
-
-    Returns:
-        str: The password for the PostgreSQL database.
-    """
-    password = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
-    if not password:
-        from zenml.client import Client
-
-        password = (
-            Client()
-            .get_secret(secret_name)
-            .secret_values["password"]
-        )
-    return password
-
-
-def get_db_user(secret_name: str) -> str:
-    """Returns the user for the PostgreSQL database.
-
-    Returns:
-        str: The user for the PostgreSQL database.
-    """
-    user = os.getenv("ZENML_POSTGRES_USER")
-    if not user:
-        from zenml.client import Client
-
-        user = (
-            Client()
-            .get_secret(secret_name)
-            .secret_values["user"]
-        )
-    return user
-
-
-def get_db_host(secret_name: str) -> str:
-    """Returns the host for the PostgreSQL database.
-
-    Returns:
-        str: The host for the PostgreSQL database.
-    """
-    host = os.getenv("ZENML_POSTGRES_HOST")
-    if not host:
-        from zenml.client import Client
-
-        host = (
-            Client()
-            .get_secret(secret_name)
-            .secret_values["host"]
-        )
-    return host
-
-
-def get_db_port(secret_name: str) -> str:
-    """Returns the port for the PostgreSQL database.
-
-    Returns:
-        str: The port for the PostgreSQL database.
-    """
-    port = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
-    if not port:
-        from zenml.client import Client
-
-        port = (
-            Client()
-            .get_secret("supabase_postgres_db")
-            .secret_values["port"]
-        )
-    return port
-
-
 def get_db_conn() -> connection:
     """Establishes and returns a connection to the PostgreSQL database.
 
@@ -297,19 +226,13 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    secret_name = os.getenv("ZENML_SUPABASE_SECRET_NAME")
 
-    if not secret_name:
-        raise RuntimeError(
-            "Please make sure to set the environment variable: ZENML_SUPABASE_SECRET_NAME to point at the secret that "
-            "contains your supabase connection details."
-        )
-
+    client = Client()
     CONNECTION_DETAILS = {
-        "user": get_db_user(secret_name),
-        "password": get_db_password(secret_name),
-        "host": get_db_host(secret_name),
-        "port": get_db_port(secret_name),
+        "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+        "password": client.get_secret(SECRET_NAME).secret_values["supabase_password"],
+        "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+        "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
         "dbname": "postgres",
     }
 

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 
 # Vector Store constants
 CHUNK_SIZE = 2000
@@ -75,3 +76,11 @@ EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
     64,
 ]  # Important: large to small
 USE_ARGILLA_ANNOTATIONS = False
+
+SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME")
+
+if not SECRET_NAME:
+    raise RuntimeError(
+        "Please make sure to set the environment variable: ZENML_SECRET_NAME to point at the secret that "
+        "contains your supabase connection details."
+    )
