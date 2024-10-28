@@ -163,6 +163,7 @@ finetuned-matryoshka/
 finetuned-all-MiniLM-L6-v2/
 finetuned-snowflake-arctic-embed-m/
 finetuned-snowflake-arctic-embed-m-v1.5/
+.gradio/
 
 # ollama ignores
 nohup.out
