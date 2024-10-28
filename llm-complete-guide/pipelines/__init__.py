@@ -19,3 +19,4 @@ from pipelines.finetune_embeddings import finetune_embeddings
 from pipelines.generate_chunk_questions import generate_chunk_questions
 from pipelines.llm_basic_rag import llm_basic_rag
 from pipelines.llm_eval import llm_eval
+from pipelines.rag_deployment import rag_deployment

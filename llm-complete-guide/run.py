@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import warnings
 
 # Suppress the specific FutureWarning from huggingface_hub
@@ -46,8 +47,8 @@ from pipelines import (
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
+    rag_deployment,
 )
-from pipelines.finetune_embeddings_legacy import chunking_experiment
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
 
@@ -67,6 +68,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
+)
+@click.option(
+    "--deploy",
+    "deploy",
+    is_flag=True,
+    default=False,
+    help="Whether to deploy a Gradio app to serve the RAG functionality.",
 )
 @click.option(
     "--evaluation",
@@ -112,13 +120,6 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Run the synthetic data pipeline.",
 )
 @click.option(
-    "--local",
-    "local",
-    is_flag=True,
-    default=False,
-    help="Uses a local LLM via Ollama.",
-)
-@click.option(
     "--embeddings",
     "embeddings",
     is_flag=True,
@@ -131,13 +132,6 @@ Run the ZenML LLM RAG complete guide project pipelines.
     is_flag=True,
     default=False,
     help="Uses Argilla annotations.",
-)
-@click.option(
-    "--dummyembeddings",
-    "dummyembeddings",
-    is_flag=True,
-    default=False,
-    help="Fine-tunes embeddings.",
 )
 @click.option(
     "--reranked",
@@ -155,14 +149,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 def main(
     rag: bool = False,
+    deploy: bool = False,
     evaluation: bool = False,
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
     synthetic: bool = False,
-    local: bool = False,
     embeddings: bool = False,
-    dummyembeddings: bool = False,
     argilla: bool = False,
     reranked: bool = False,
     chunks: bool = False,
@@ -171,6 +164,7 @@ def main(
 
     Args:
         rag (bool): If `True`, the basic RAG pipeline will be run.
+        deploy (bool): If `True`, a Gradio app will be deployed to serve the RAG functionality.
         evaluation (bool): If `True`, the evaluation pipeline will be run.
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
@@ -180,6 +174,7 @@ def main(
         embeddings (bool): If `True`, the embeddings will be fine-tuned.
         argilla (bool): If `True`, the Argilla annotations will be used.
         chunks (bool): If `True`, the chunks pipeline will be run.
+        reranked (bool): If `True`, rerankers will be used
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -201,16 +196,46 @@ def main(
         md = Markdown(response)
         console.print(md)
 
+    print(f"Running Pipeline with pipeline args: {pipeline_args}")
     if rag:
-        llm_basic_rag.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "rag_local_dev.yaml",
+        )
+        llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
+        if deploy:
+            rag_deployment.with_options(
+                config_path=config_path, **pipeline_args
+            )()
+    if deploy:
+        rag_deployment.with_options(**pipeline_args)()
     if evaluation:
-        llm_eval.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "rag_eval.yaml",
+        )
+        pipeline_args["enable_cache"] = False
+        llm_eval.with_options(config_path=config_path)()
     if synthetic:
-        generate_synthetic_data.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "synthetic.yaml",
+        )
+        generate_synthetic_data.with_options(
+            config_path=config_path, **pipeline_args
+        )()
     if embeddings:
-        finetune_embeddings.with_options(**embeddings_finetune_args)()
-    if dummyembeddings:
-        chunking_experiment.with_options(**pipeline_args)()
+        config_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "embeddings.yaml",
+        )
+        finetune_embeddings.with_options(
+            config_path=config_path, **embeddings_finetune_args
+        )()
     if chunks:
         generate_chunk_questions.with_options(**pipeline_args)()
 

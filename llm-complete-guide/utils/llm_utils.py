@@ -21,6 +21,11 @@
 
 import logging
 
+from zenml.cli import secret
+from zenml.client import Client
+
+from utils.openai_utils import get_openai_api_key
+
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -32,13 +37,18 @@ logging.getLogger().setLevel(logging.ERROR)
 
 import os
 import re
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import litellm
 import numpy as np
 import psycopg2
 import tiktoken
-from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL
+from constants import (
+    EMBEDDINGS_MODEL,
+    MODEL_NAME_MAP,
+    OPENAI_MODEL,
+    SECRET_NAME,
+)
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from rerankers import Reranker
@@ -212,50 +222,6 @@ def split_documents(
     return chunked_documents
 
 
-def get_local_db_connection_details() -> Dict[str, str]:
-    """Returns the connection details for the local database.
-
-    Returns:
-        dict: A dictionary containing the connection details for the local
-        database.
-
-    Raises:
-        RuntimeError: If the environment variables ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, or ZENML_POSTGRES_PORT are not set.
-    """
-    user = os.getenv("ZENML_POSTGRES_USER")
-    host = os.getenv("ZENML_POSTGRES_HOST")
-    port = os.getenv("ZENML_POSTGRES_PORT")
-
-    if not user or not host or not port:
-        raise RuntimeError(
-            "Please make sure to set the environment variables: ZENML_POSTGRES_USER, ZENML_POSTGRES_HOST, and ZENML_POSTGRES_PORT"
-        )
-
-    return {
-        "user": user,
-        "host": host,
-        "port": port,
-    }
-
-
-def get_db_password() -> str:
-    """Returns the password for the PostgreSQL database.
-
-    Returns:
-        str: The password for the PostgreSQL database.
-    """
-    password = os.getenv("ZENML_POSTGRES_DB_PASSWORD")
-    if not password:
-        from zenml.client import Client
-
-        password = (
-            Client()
-            .get_secret("supabase_postgres_db")
-            .secret_values["password"]
-        )
-    return password
-
-
 def get_db_conn() -> connection:
     """Establishes and returns a connection to the PostgreSQL database.
 
@@ -265,15 +231,15 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-    pg_password = get_db_password()
 
-    local_database_connection = get_local_db_connection_details()
-
+    client = Client()
     CONNECTION_DETAILS = {
-        "user": local_database_connection["user"],
-        "password": pg_password,
-        "host": local_database_connection["host"],
-        "port": local_database_connection["port"],
+        "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+        "password": client.get_secret(SECRET_NAME).secret_values[
+            "supabase_password"
+        ],
+        "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+        "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
         "dbname": "postgres",
     }
 
@@ -343,6 +309,7 @@ def get_completion_from_messages(
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
+        api_key=get_openai_api_key(),
     )
     return completion_response.choices[0].message.content
 

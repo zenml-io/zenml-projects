@@ -25,7 +25,7 @@ from steps.eval_visualisation import visualize_evaluation_results
 from zenml import pipeline
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def llm_eval() -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
     # Retrieval evals

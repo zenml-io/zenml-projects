@@ -43,11 +43,16 @@ environment and install the dependencies using the following command:
 pip install -r requirements.txt
 ```
 
+Depending on your hardware you may run into some issues when running the `pip install` command with the
+`flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` 
+could help you.
+
 In order to use the default LLM for this query, you'll need an account and an
-API key from OpenAI specified as another environment variable:
+API key from OpenAI specified as a ZenML secret:
 
 ```shell
-export OPENAI_API_KEY=<your-openai-api-key>
+zenml secret create llm-complete --openai_api_key=<your-openai-api-key>
+export ZENML_PROJECT_SECRET_NAME=llm-complete
 ```
 
 ### Setting up Supabase
@@ -63,22 +68,15 @@ You'll want to save the Supabase database password as a ZenML secret so that it
 isn't stored in plaintext. You can do this by running the following command:
 
 ```shell
-zenml secret create supabase_postgres_db --password="YOUR_PASSWORD"
+zenml secret update llm-complete -v '{"supabase_password": "YOUR_PASSWORD", "supabase_user": "YOUR_USER", "supabase_host": "YOUR_HOST", "supabase_port": "YOUR_PORT"}'
 ```
 
-You'll then want to connect to this database instance by getting the connection
+You can get the user, host and port for this database instance by getting the connection
 string from the Supabase dashboard.
 
 ![](.assets/supabase-connection-string.png)
 
-You can use these details to populate some environment variables where the
-pipeline code expects them:
-
-```shell
-export ZENML_POSTGRES_USER=<your-supabase-user>
-export ZENML_POSTGRES_HOST=<your-supabase-host>
-export ZENML_POSTGRES_PORT=<your-supabase-port>
-```
+In case supabase is not an option for you, you can use a different database as the backend. 
 
 ### Running the RAG pipeline
 
@@ -151,15 +149,16 @@ documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
 
-### Finetune the embeddings
+Please use the secret from above to track all the secrets. Here we are also
+setting a Huggingface write key. In order to make the rest of the pipeline work for you, you
+will need to change the hf repo urls to a space you have permissions to.
 
-To run the pipeline for finetuning the embeddings, you can use the following
-commands:
-
-```shell
-pip install -r requirements-argilla.txt # special requirements
-python run.py --embeddings
+```bash
+zenml secret update llm-complete -v '{"argilla_api_key": "YOUR_ARGILLA_API_KEY", "argilla_api_url": "YOUR_ARGILLA_API_URL", "hf_token": "YOUR_HF_TOKEN"}'
 ```
+
+
+### Finetune the embeddings
 
 As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
 to work. Please follow the instructions in the [Argilla
@@ -169,6 +168,17 @@ Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
+
+The pipeline assumes that your argilla secret is stored within a ZenML secret called `argilla_secrets`. 
+![Argilla Secret](.assets/argilla_secret.png)
+
+To run the pipeline for finetuning the embeddings, you can use the following
+commands:
+
+```shell
+pip install -r requirements-argilla.txt # special requirements
+python run.py --embeddings
+```
 
 *Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
 loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) which we adapted for this project.*

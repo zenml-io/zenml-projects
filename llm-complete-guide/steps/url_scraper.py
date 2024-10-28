@@ -21,7 +21,7 @@ from zenml import ArtifactConfig, log_artifact_metadata, step
 from steps.url_scraping_utils import get_all_pages
 
 
-@step
+@step(enable_cache=True)
 def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",

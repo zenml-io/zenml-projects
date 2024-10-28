@@ -22,9 +22,13 @@ import pandas as pd
 from datasets import Dataset
 from huggingface_hub import create_repo
 from litellm import completion
+
+from constants import SECRET_NAME
 from structures import Document
 from zenml import ArtifactConfig, step
 from zenml.client import Client
+
+from utils.openai_utils import get_openai_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +54,7 @@ def generate_question(chunk: str, local: bool = False) -> str:
             }
         ],
         api_base="http://localhost:11434" if local else None,
+        api_key=get_openai_api_key(),
     )
     return response.choices[0].message.content
 
@@ -90,7 +95,7 @@ def generate_questions_from_chunks(
 
     # upload the parquet file to a private dataset on the huggingface hub
     client = Client()
-    hf_token = client.get_secret("huggingface_datasets").secret_values["token"]
+    hf_token = client.get_secret(SECRET_NAME).secret_values["hf_token"]
 
     create_repo(
         "zenml/rag_qa_embedding_questions",

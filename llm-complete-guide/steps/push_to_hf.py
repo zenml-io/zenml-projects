@@ -11,15 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from zenml.client import Client
 
-from constants import DATASET_NAME_DISTILABEL
+from constants import DATASET_NAME_DISTILABEL, SECRET_NAME
 from datasets import Dataset, DatasetDict
 from zenml import step
 
 
 @step
 def push_to_hf(train_dataset: Dataset, test_dataset: Dataset):
+    zenml_client = Client()
+
     combined_dataset = DatasetDict(
         {"train": train_dataset, "test": test_dataset}
     )
-    combined_dataset.push_to_hub(DATASET_NAME_DISTILABEL)
+    combined_dataset.push_to_hub(
+        DATASET_NAME_DISTILABEL,
+        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"],
+    )
