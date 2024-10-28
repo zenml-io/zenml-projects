@@ -27,7 +27,7 @@ EMBEDDING_DIMENSIONALITY = (
 RATE_LIMIT = 5  # Maximum number of requests per second
 
 # LLM Utils constants
-OPENAI_MODEL = "gpt-3.5-turbo"
+OPENAI_MODEL = "gpt-4o"
 EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L12-v2"
 MODEL_NAME_MAP = {
     "gpt4": "gpt-4",
