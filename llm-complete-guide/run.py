@@ -47,6 +47,7 @@ from pipelines import (
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
+    rag_deployment,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
@@ -67,6 +68,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     is_flag=True,
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
+)
+@click.option(
+    "--deploy",
+    "deploy",
+    is_flag=True,
+    default=False,
+    help="Whether to deploy a Gradio app to serve the RAG functionality.",
 )
 @click.option(
     "--evaluation",
@@ -141,6 +149,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 def main(
     rag: bool = False,
+    deploy: bool = False,
     evaluation: bool = False,
     query: Optional[str] = None,
     model: str = OPENAI_MODEL,
@@ -155,6 +164,7 @@ def main(
 
     Args:
         rag (bool): If `True`, the basic RAG pipeline will be run.
+        deploy (bool): If `True`, a Gradio app will be deployed to serve the RAG functionality.
         evaluation (bool): If `True`, the evaluation pipeline will be run.
         query (Optional[str]): If provided, the RAG model will be queried with this string.
         model (str): The model to use for the completion. Default is OPENAI_MODEL.
@@ -192,6 +202,10 @@ def main(
             os.path.dirname(os.path.realpath(__file__)), "configs", "rag_local_dev.yaml"
         )
         llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
+        if deploy:
+            rag_deployment.with_options(config_path=config_path, **pipeline_args)()
+    if deploy:
+        rag_deployment.with_options(**pipeline_args)()
     if evaluation:
         config_path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "configs", "rag_eval.yaml"
