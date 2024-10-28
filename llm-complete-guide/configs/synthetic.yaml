@@ -3,7 +3,6 @@
 # environment configuration
 settings:
   docker:
-    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
       - langchain-community
       - ratelimit

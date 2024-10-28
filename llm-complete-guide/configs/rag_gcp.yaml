@@ -12,8 +12,8 @@ settings:
       - tiktoken
       - ratelimit
     environment:
-      ZENML_SUPABASE_SECRET_NAME: alexej_supabase_postgres_db
-      ZENML_OPENAI_SECRET_NAME: alexej_openai
+      ZENML_SUPABASE_SECRET_NAME: supabase_postgres_db
+      ZENML_OPENAI_SECRET_NAME: openai
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
 
