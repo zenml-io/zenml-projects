@@ -11,11 +11,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-from zenml.client import Client
-
 from constants import DATASET_NAME_DISTILABEL, SECRET_NAME
 from datasets import Dataset, DatasetDict
 from zenml import step
+from zenml.client import Client
 
 
 @step

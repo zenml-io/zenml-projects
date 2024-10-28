@@ -21,7 +21,6 @@
 
 import logging
 
-from zenml.cli import secret
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
@@ -35,7 +34,6 @@ logging.getLogger("transformers").setLevel(logging.CRITICAL)
 # Configure the logging level for the root logger
 logging.getLogger().setLevel(logging.ERROR)
 
-import os
 import re
 from typing import List, Tuple
 

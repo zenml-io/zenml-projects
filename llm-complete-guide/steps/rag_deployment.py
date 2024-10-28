@@ -1,16 +1,27 @@
-from zenml import step
 import time
+
 import gradio as gr
+from utils.llm_utils import process_input_with_retrieval
+from zenml import step
 
 
-def slow_echo(message, history):
-    for i in range(len(message)):
-        time.sleep(0.05)
-        yield "You typed: " + message[: i + 1]
-
+def predict(message, history):
+    return process_input_with_retrieval(
+        input=message,
+        n_items_retrieved=20,
+        use_reranking=True,
+    )
 
 
 @step
-def gradio_rag_deployment():
-    demo = gr.ChatInterface(slow_echo, type="messages")
-    demo.launch()
+def gradio_rag_deployment() -> None:
+    """Launches a Gradio chat interface with the slow echo demo.
+
+    Starts a web server with a chat interface that echoes back user messages.
+    The server runs indefinitely until manually stopped.
+    """
+    demo = gr.ChatInterface(predict, type="messages")
+    demo.launch(share=True, inbrowser=True)
+    # Keep the step running
+    while True:
+        time.sleep(1)

@@ -1,5 +1,5 @@
-from zenml import pipeline
 from steps.rag_deployment import gradio_rag_deployment
+from zenml import pipeline
 
 
 @pipeline(enable_cache=False)

@@ -13,12 +13,11 @@
 #  permissions and limitations under the License.
 
 import polars as pl
+from constants import SECRET_NAME
 from datasets import Dataset
 from huggingface_hub import create_repo
 from zenml import step
 from zenml.client import Client
-
-from constants import SECRET_NAME
 
 
 @step
