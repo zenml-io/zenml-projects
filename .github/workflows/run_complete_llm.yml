@@ -30,6 +30,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Change directory
+        run: cd llm-complete-guide
+
       - name: Install requirements
         run: |
           pip3 install -r requirements.txt
@@ -37,6 +40,7 @@ jobs:
 
       - name: Connect to ZenML server
         run: |
+          zenml init
           zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
 
       - name: Set stack (Staging)
