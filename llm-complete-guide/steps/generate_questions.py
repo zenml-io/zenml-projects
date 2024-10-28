@@ -60,7 +60,7 @@ def generate_question(
                     }
                 ],
                 api_base="http://localhost:11434" if local else None,
-                api_key=get_openai_api_key()
+                api_key=get_openai_api_key(),
             )
             return response.choices[0].message.content
         except (Timeout, APIConnectionError) as e:

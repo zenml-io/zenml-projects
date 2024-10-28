@@ -199,29 +199,43 @@ def main(
     print(f"Running Pipeline with pipeline args: {pipeline_args}")
     if rag:
         config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "configs", "rag_local_dev.yaml"
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "rag_local_dev.yaml",
         )
         llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
         if deploy:
-            rag_deployment.with_options(config_path=config_path, **pipeline_args)()
+            rag_deployment.with_options(
+                config_path=config_path, **pipeline_args
+            )()
     if deploy:
         rag_deployment.with_options(**pipeline_args)()
     if evaluation:
         config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "configs", "rag_eval.yaml"
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "rag_eval.yaml",
         )
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(config_path=config_path)()
     if synthetic:
         config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "configs", "synthetic.yaml"
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "synthetic.yaml",
         )
-        generate_synthetic_data.with_options(config_path=config_path, **pipeline_args)()
+        generate_synthetic_data.with_options(
+            config_path=config_path, **pipeline_args
+        )()
     if embeddings:
         config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "configs", "embeddings.yaml"
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "embeddings.yaml",
         )
-        finetune_embeddings.with_options(config_path=config_path, **embeddings_finetune_args)()
+        finetune_embeddings.with_options(
+            config_path=config_path, **embeddings_finetune_args
+        )()
     if chunks:
         generate_chunk_questions.with_options(**pipeline_args)()
 

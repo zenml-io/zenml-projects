@@ -210,8 +210,9 @@ def llm_judged_test_e2e(
     """
     logging.debug("Prompt created.")
     response = completion(
-        model="gpt-4-turbo", messages=[{"content": prompt, "role": "user"}], api_key=get_openai_api_key()
-
+        model="gpt-4-turbo",
+        messages=[{"content": prompt, "role": "user"}],
+        api_key=get_openai_api_key(),
     )
 
     json_output = response["choices"][0]["message"]["content"].strip()
