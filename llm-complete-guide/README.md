@@ -149,7 +149,9 @@ documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
 
-Please use the secret from above to track all the secrets:
+Please use the secret from above to track all the secrets. Here we are also
+setting a Huggingface write key. In order to make the rest of the pipeline work for you, you
+will need to change the hf repo urls to a space you have permissions to.
 
 ```bash
 zenml secret update llm-complete -v '{"argilla_api_key": "YOUR_ARGILLA_API_KEY", "argilla_api_url": "YOUR_ARGILLA_API_URL", "hf_token": "YOUR_HF_TOKEN"}'
