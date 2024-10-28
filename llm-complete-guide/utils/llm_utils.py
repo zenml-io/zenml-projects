@@ -282,7 +282,7 @@ def get_db_port(secret_name: str) -> str:
 
         port = (
             Client()
-            .get_secret("supabase_postgres_db")
+            .get_secret(secret_name)
             .secret_values["port"]
         )
     return port
