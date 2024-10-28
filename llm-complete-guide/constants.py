@@ -77,10 +77,4 @@ EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
 ]  # Important: large to small
 USE_ARGILLA_ANNOTATIONS = False
 
-SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME")
-
-if not SECRET_NAME:
-    raise RuntimeError(
-        "Please make sure to set the environment variable: ZENML_SECRET_NAME to point at the secret that "
-        "contains your supabase connection details."
-    )
+SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME", "llm-complete")
