@@ -12,7 +12,6 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import os
 from typing import Annotated, Tuple
 
 from constants import (
@@ -22,12 +21,11 @@ from constants import (
 )
 from datasets import Dataset
 from distilabel.llms import OpenAILLM
+from distilabel.pipeline import Pipeline
 from distilabel.steps import LoadDataFromHub
 from distilabel.steps.tasks import GenerateSentencePair
-from distilabel.pipeline import Pipeline
-from zenml import step
-
 from utils.openai_utils import get_openai_api_key
+from zenml import step
 
 synthetic_generation_context = """
 The text is a chunk from technical documentation of ZenML.

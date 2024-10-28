@@ -20,10 +20,9 @@ from litellm import completion
 from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
+from utils.openai_utils import get_openai_api_key
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
-
-from utils.openai_utils import get_openai_api_key
 
 logger = get_logger(__name__)
 LOCAL_MODEL = "ollama/mixtral"
