@@ -8,8 +8,8 @@ from zenml import step
 def predict(message, history):
     return process_input_with_retrieval(
         input=message,
-        n_items_retrieved=5,
-        use_reranking=False,
+        n_items_retrieved=20,
+        use_reranking=True,
     )
 
 

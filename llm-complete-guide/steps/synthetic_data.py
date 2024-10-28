@@ -19,16 +19,14 @@ import logging
 from typing import Annotated
 
 import pandas as pd
+from constants import SECRET_NAME
 from datasets import Dataset
 from huggingface_hub import create_repo
 from litellm import completion
-
-from constants import SECRET_NAME
 from structures import Document
+from utils.openai_utils import get_openai_api_key
 from zenml import ArtifactConfig, step
 from zenml.client import Client
-
-from utils.openai_utils import get_openai_api_key
 
 logger = logging.getLogger(__name__)
 

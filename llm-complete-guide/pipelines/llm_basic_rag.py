@@ -22,7 +22,7 @@ from steps.populate_index import (
 )
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
-from zenml import pipeline, Model
+from zenml import pipeline
 
 
 @pipeline

@@ -1,8 +1,5 @@
-import os
-
-from zenml.client import Client
-
 from constants import SECRET_NAME
+from zenml.client import Client
 
 
 def get_openai_api_key():
