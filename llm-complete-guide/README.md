@@ -51,8 +51,8 @@ In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as a ZenML secret:
 
 ```shell
-zenml secret create openai --api_key=<your-openai-api-key>
-export ZENML_OPENAI_SECRET_NAME=openai
+zenml secret create llm-complete --openai_api_key=<your-openai-api-key>
+export ZENML_PROJECT_SECRET_NAME=llm-complete
 ```
 
 ### Setting up Supabase
@@ -68,8 +68,7 @@ You'll want to save the Supabase database password as a ZenML secret so that it
 isn't stored in plaintext. You can do this by running the following command:
 
 ```shell
-zenml secret create supabase_postgres_db --password="YOUR_PASSWORD" --user="YOU_USER" --host="YOUR_HOST" --port="YOUR_PORT"
-export ZENML_SUPABASE_SECRET_NAME=supabase_postgres_db
+zenml secret update llm-complete -v '{"supabase_password": "YOUR_PASSWORD", "supabase_user": "YOUR_USER", "supabase_host": "YOUR_HOST", "supabase_port": "YOUR_PORT"}'
 ```
 
 You can get the user, host and port for this database instance by getting the connection
@@ -149,6 +148,13 @@ Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
 will guide you through the process of connecting to your instance as a stack
 component.
+
+Please use the secret from above to track all the secrets:
+
+```
+zenml secret update llm-complete -v '{"argilla_api_key": "YOUR_ARGILLA_API_KEY", "argilla_api_url": "YOUR_ARGILLA_API_URL", "hf_token": "YOUR_HF_TOKEN"}'
+```
+
 
 ### Finetune the embeddings
 
