@@ -43,7 +43,12 @@ import litellm
 import numpy as np
 import psycopg2
 import tiktoken
-from constants import EMBEDDINGS_MODEL, MODEL_NAME_MAP, OPENAI_MODEL, SECRET_NAME
+from constants import (
+    EMBEDDINGS_MODEL,
+    MODEL_NAME_MAP,
+    OPENAI_MODEL,
+    SECRET_NAME,
+)
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
 from rerankers import Reranker
@@ -230,7 +235,9 @@ def get_db_conn() -> connection:
     client = Client()
     CONNECTION_DETAILS = {
         "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
-        "password": client.get_secret(SECRET_NAME).secret_values["supabase_password"],
+        "password": client.get_secret(SECRET_NAME).secret_values[
+            "supabase_password"
+        ],
         "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
         "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
         "dbname": "postgres",
@@ -302,7 +309,7 @@ def get_completion_from_messages(
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
-        api_key=get_openai_api_key()
+        api_key=get_openai_api_key(),
     )
     return completion_response.choices[0].message.content
 
