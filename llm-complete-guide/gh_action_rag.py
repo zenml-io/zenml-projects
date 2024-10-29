@@ -14,12 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
 import click
+import yaml
 from zenml.client import Client
 
 from pipelines.llm_basic_rag import llm_basic_rag
@@ -75,6 +77,9 @@ def main(
     client = Client()
     config_path = Path(__file__).parent / "configs" / config
 
+    with (open(config_path,"r") as file):
+        config = yaml.safe_load(file)
+
     if create_template:
         # run pipeline
         run = llm_basic_rag.with_options(
@@ -90,7 +95,8 @@ def main(
         client.update_action(
             name_id_or_prefix=UUID(action_id),
             configuration={
-                "template_id": str(rt.id)
+                "template_id": str(rt.id),
+                "run_config": config
             }
         )
 
