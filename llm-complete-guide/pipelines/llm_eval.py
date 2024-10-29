@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from pathlib import Path
 from typing import Optional
 
 import click
@@ -94,13 +95,10 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         config (str): The path to the configuration file.
     """
-    config_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "configs",
-        config,
-    )
+    config_path = Path(__file__).parent.parent / "configs" / config
+
     llm_eval.with_options(
-        config_path=config_path,
+        config_path=str(config_path),
         enable_cache=not no_cache
     )()
 
