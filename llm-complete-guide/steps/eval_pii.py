@@ -1,8 +1,11 @@
+import io
 import re
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Annotated, Dict, List, Tuple, Union
 
+import matplotlib.pyplot as plt
 from datasets import Dataset
+from PIL import Image
 from zenml import log_artifact_metadata, step
 
 
@@ -209,8 +212,68 @@ class PIIDetector:
         return results
 
 
+def plot_pii_results(
+    train_results: Dict[str, Dict], test_results: Dict[str, Dict]
+) -> Image:
+    total_findings = {
+        "Emails": (
+            train_results["statistics"]["total_findings"]["emails"]
+            + test_results["statistics"]["total_findings"]["emails"]
+        ),
+        "Phone Numbers": (
+            train_results["statistics"]["total_findings"]["phones"]
+            + test_results["statistics"]["total_findings"]["phones"]
+        ),
+        "SSNs": (
+            train_results["statistics"]["total_findings"]["ssns"]
+            + test_results["statistics"]["total_findings"]["ssns"]
+        ),
+        "Credit Cards": (
+            train_results["statistics"]["total_findings"]["credit_cards"]
+            + test_results["statistics"]["total_findings"]["credit_cards"]
+        ),
+        "Dates": (
+            train_results["statistics"]["total_findings"]["dates"]
+            + test_results["statistics"]["total_findings"]["dates"]
+        ),
+        "IP Addresses": (
+            train_results["statistics"]["total_findings"]["ips"]
+            + test_results["statistics"]["total_findings"]["ips"]
+        ),
+    }
+
+    plt.figure(figsize=(10, 8))
+    labels = [f"{k}\n({v})" for k, v in total_findings.items() if v > 0]
+    values = [v for v in total_findings.values() if v > 0]
+
+    if values:  # Only create pie chart if there are findings
+        plt.pie(values, labels=labels, autopct="%1.1f%%")
+        plt.title("Distribution of PII Findings in Dataset")
+    else:
+        plt.text(
+            0.5,
+            0.5,
+            "No PII Found",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+
+    # Convert plot to PIL Image
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", bbox_inches="tight")
+    buf.seek(0)
+    plt.close()  # Clean up matplotlib figure
+    return Image.open(buf)
+
+
 @step
-def eval_pii(train_dataset: Dataset, test_dataset: Dataset) -> None:
+def eval_pii(
+    train_dataset: Dataset, test_dataset: Dataset
+) -> Tuple[
+    Annotated[Dict[str, Dict], "train_results"],
+    Annotated[Dict[str, Dict], "test_results"],
+    Annotated[Image, "PII chart"],
+]:
     detector = PIIDetector()
     train_results = detector.scan_dataset(
         dataset=train_dataset,
@@ -222,7 +285,7 @@ def eval_pii(train_dataset: Dataset, test_dataset: Dataset) -> None:
     test_results = detector.scan_dataset(
         dataset=test_dataset, columns=["text"], max_samples=1000
     )
-    # Log train results
+
     train_metadata = {
         "samples_scanned": train_results["statistics"][
             "total_samples_scanned"
@@ -244,7 +307,6 @@ def eval_pii(train_dataset: Dataset, test_dataset: Dataset) -> None:
         metadata=train_metadata, artifact_name="train_pii_results"
     )
 
-    # Log test results
     test_metadata = {
         "samples_scanned": test_results["statistics"]["total_samples_scanned"],
         "emails_found": test_results["statistics"]["total_findings"]["emails"],
@@ -260,4 +322,6 @@ def eval_pii(train_dataset: Dataset, test_dataset: Dataset) -> None:
         metadata=test_metadata, artifact_name="test_pii_results"
     )
 
-    return train_results, test_results
+    pii_chart = plot_pii_results(train_results, test_results)
+
+    return train_results, test_results, pii_chart
