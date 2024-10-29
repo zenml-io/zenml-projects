@@ -13,6 +13,7 @@ settings:
       - psycopg2-binary
       - tiktoken
       - ratelimit
+      - rerankers
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE

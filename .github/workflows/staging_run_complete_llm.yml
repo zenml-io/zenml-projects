@@ -10,6 +10,7 @@ concurrency:
 
 jobs:
   run-staging-workflow:
+    runs-on: ubuntu-latest
     env:
       ZENML_HOST: ${{ secrets.ZENML_HOST }}
       ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
@@ -20,6 +21,7 @@ jobs:
       ZENML_ANALYTICS_OPT_IN: false
       ZENML_LOGGING_VERBOSITY: INFO
       ZENML_PROJECT_SECRET_NAME: llm-complete
+      ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
 
     steps:
       - name: Check out repository code
@@ -30,20 +32,24 @@ jobs:
           python-version: '3.11'
 
       - name: Install requirements
+        working-directory: ./llm-complete-guide
         run: |
           pip3 install -r requirements.txt
+          pip3 install -r requirements-argilla.txt
           zenml integration install gcp -y
 
       - name: Connect to ZenML server
+        working-directory: ./llm-complete-guide
         run: |
+          zenml init
           zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
 
       - name: Set stack (Staging)
-        if: ${{ github.base_ref == 'staging' }}
+        working-directory: ./llm-complete-guide
         run: |
           zenml stack set ${{ env.ZENML_STAGING_STACK }}
 
       - name: Run pipeline (Staging)
-        if: ${{ github.base_ref == 'staging' }}
+        working-directory: ./llm-complete-guide
         run: |
-          python run.py --rag --evaluation --no-cache
+          python gh_action_rag.py --no-cache
