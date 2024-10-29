@@ -73,7 +73,7 @@ def main(
         action_id (str): The action ID.
     """
     client = Client()
-    config_path = Path(__file__).parent.parent / "configs" / config
+    config_path = Path(__file__).parent / "configs" / config
 
     if create_template:
         # run pipeline
