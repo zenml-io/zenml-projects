@@ -1,8 +1,10 @@
-name: Staging Trigger LLM-COMPLETE
+name: Production LLM-COMPLETE
 on:
-  pull_request:
-    types: [opened, synchronize]
-    branches: [staging, main]
+  push:
+    branches:
+      - main
+    paths:
+      - 'llm-complete-guide/**'
 concurrency:
   # New commit on branch cancels running workflows of the same branch
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,16 +12,19 @@ concurrency:
 
 jobs:
   run-staging-workflow:
+    runs-on: ubuntu-latest
     env:
       ZENML_HOST: ${{ secrets.ZENML_HOST }}
       ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
-      ZENML_STAGING_STACK: 51a49786-b82a-4646-bde7-a460efb0a9c5
+      ZENML_PRODUCTION_STACK : 51a49786-b82a-4646-bde7-a460efb0a9c5
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
       ZENML_DEBUG: true
       ZENML_ANALYTICS_OPT_IN: false
       ZENML_LOGGING_VERBOSITY: INFO
       ZENML_PROJECT_SECRET_NAME: llm-complete
+      ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
+      ZENML_ACTION_ID: 23a4d58c-bd2b-47d5-a41d-0a845d2982f8
 
     steps:
       - name: Check out repository code
@@ -30,20 +35,24 @@ jobs:
           python-version: '3.11'
 
       - name: Install requirements
+        working-directory: ./llm-complete-guide
         run: |
           pip3 install -r requirements.txt
+          pip3 install -r requirements-argilla.txt
           zenml integration install gcp -y
 
       - name: Connect to ZenML server
+        working-directory: ./llm-complete-guide
         run: |
+          zenml init
           zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
 
-      - name: Set stack (Staging)
-        if: ${{ github.base_ref == 'staging' }}
+      - name: Set stack (Production)
+        working-directory: ./llm-complete-guide
         run: |
-          zenml stack set ${{ env.ZENML_STAGING_STACK }}
+          zenml stack set ${{ env.ZENML_PRODUCTION_STACK }}
 
-      - name: Run pipeline (Staging)
-        if: ${{ github.base_ref == 'staging' }}
+      - name: Run pipeline, create pipeline, configure trigger (Production)
+        working-directory: ./llm-complete-guide
         run: |
-          python run.py --rag --evaluation --no-cache
+          python gh_action_rag.py --no-cache --create-template --action-id  ${{ env.ZENML_ACTION_ID }} --config rag_gcp.yaml

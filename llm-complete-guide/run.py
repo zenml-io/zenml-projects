@@ -208,7 +208,6 @@ def main(
             rag_deployment.with_options(
                 config_path=config_path, **pipeline_args
             )()
-
     if deploy:
         rag_deployment.with_options(**pipeline_args)()
     if evaluation:

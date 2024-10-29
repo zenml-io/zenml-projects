@@ -1,0 +1,55 @@
+name: Staging Trigger LLM-COMPLETE
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [staging, main]
+concurrency:
+  # New commit on branch cancels running workflows of the same branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-staging-workflow:
+    runs-on: ubuntu-latest
+    env:
+      ZENML_HOST: ${{ secrets.ZENML_HOST }}
+      ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
+      ZENML_STAGING_STACK: 51a49786-b82a-4646-bde7-a460efb0a9c5
+      ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
+      ZENML_DEBUG: true
+      ZENML_ANALYTICS_OPT_IN: false
+      ZENML_LOGGING_VERBOSITY: INFO
+      ZENML_PROJECT_SECRET_NAME: llm-complete
+      ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install requirements
+        working-directory: ./llm-complete-guide
+        run: |
+          pip3 install -r requirements.txt
+          pip3 install -r requirements-argilla.txt
+          zenml integration install gcp -y
+
+      - name: Connect to ZenML server
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml init
+          zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
+
+      - name: Set stack (Staging)
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml stack set ${{ env.ZENML_STAGING_STACK }}
+
+      - name: Run pipeline (Staging)
+        working-directory: ./llm-complete-guide
+        run: |
+          python gh_action_rag.py --no-cache --config rag_gcp.yaml
