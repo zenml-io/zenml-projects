@@ -14,12 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-from pathlib import Path
-from typing import Optional
 
-import click
-from litellm import enable_cache
+from zenml import pipeline
 
 from steps.populate_index import (
     generate_embeddings,
@@ -28,7 +24,6 @@ from steps.populate_index import (
 )
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
-from zenml import pipeline
 
 
 @pipeline
@@ -47,39 +42,3 @@ def llm_basic_rag() -> None:
     processed_docs = preprocess_documents(documents=docs)
     embedded_docs = generate_embeddings(split_documents=processed_docs)
     index_generator(documents=embedded_docs)
-
-
-@click.option(
-    "--no-cache",
-    "no_cache",
-    is_flag=True,
-    default=False,
-    help="Disable cache.",
-)
-@click.option(
-    "--config",
-    "config",
-    default="rag_local_dev.yaml",
-    help="Specify a configuration file"
-)
-def main(
-    no_cache: bool = False,
-    config: Optional[str]= "rag_local_dev.yaml"
-):
-    """
-    Executes the pipeline to train a basic RAG model.
-
-    Args:
-        no_cache (bool): If `True`, cache will be disabled.
-        config (str): The path to the configuration file.
-    """
-    config_path = Path(__file__).parent.parent / "configs" / config
-
-    llm_basic_rag.with_options(
-        config_path=str(config_path),
-        enable_cache=not no_cache
-    )()
-
-
-if __name__ == "__main__":
-    main()
