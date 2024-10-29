@@ -272,7 +272,7 @@ def eval_pii(
 ) -> Tuple[
     Annotated[Dict[str, Dict], "train_results"],
     Annotated[Dict[str, Dict], "test_results"],
-    Annotated[Image, "PII chart"],
+    Annotated[Image.Image, "PII chart"],
 ]:
     detector = PIIDetector()
     train_results = detector.scan_dataset(

@@ -48,7 +48,7 @@ model_definition = Model(
 @pipeline(model=model_definition)
 def generate_synthetic_data():
     train_dataset, test_dataset = load_hf_dataset()
-    train_pii_results, test_pii_results = eval_pii(
+    _, _, _ = eval_pii(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
     )
