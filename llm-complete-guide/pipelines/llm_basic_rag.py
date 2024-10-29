@@ -62,9 +62,16 @@ def llm_basic_rag() -> None:
     help="Specify a configuration file"
 )
 def main(
-    no_cache: bool,
+    no_cache: bool = False,
     config: Optional[str]= "rag_local_dev.yaml"
 ):
+    """
+    Executes the pipeline to train a basic RAG model.
+
+    Args:
+        no_cache (bool): If `True`, cache will be disabled.
+        config (str): The path to the configuration file.
+    """
     config_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "configs",
