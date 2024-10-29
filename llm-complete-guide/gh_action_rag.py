@@ -96,7 +96,7 @@ def main(
             name_id_or_prefix=UUID(action_id),
             configuration={
                 "template_id": str(rt.id),
-                "run_config": config
+                "run_config": pop_restricted_configs(config)
             }
         )
 
@@ -106,6 +106,32 @@ def main(
             enable_cache=not no_cache
         )()
 
+
+def pop_restricted_configs(run_configuration: dict) -> dict:
+    """Removes restricted configuration items from a run configuration dictionary.
+
+    Args:
+        run_configuration: Dictionary containing run configuration settings
+
+    Returns:
+        Modified dictionary with restricted items removed
+    """
+    # Pop top-level restricted items
+    run_configuration.pop('parameters', None)
+    run_configuration.pop('build', None)
+    run_configuration.pop('schedule', None)
+
+    # Pop docker settings if they exist
+    if 'settings' in run_configuration:
+        run_configuration['settings'].pop('docker', None)
+
+    # Pop docker settings from steps if they exist
+    if 'steps' in run_configuration:
+        for step in run_configuration['steps'].values():
+            if 'settings' in step:
+                step['settings'].pop('docker', None)
+
+    return run_configuration
 
 if __name__ == "__main__":
     main()
