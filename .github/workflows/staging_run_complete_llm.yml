@@ -52,4 +52,4 @@ jobs:
       - name: Run pipeline (Staging)
         working-directory: ./llm-complete-guide
         run: |
-          python scripts/gh_action_rag.py --no-cache
+          python gh_action_rag.py --no-cache

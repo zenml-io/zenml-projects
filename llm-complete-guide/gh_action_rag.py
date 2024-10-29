@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -23,7 +22,7 @@ from uuid import UUID
 import click
 from zenml.client import Client
 
-from pipelines import llm_basic_rag
+from pipelines.llm_basic_rag import llm_basic_rag
 
 
 @click.command(
