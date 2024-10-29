@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+from typing import Optional
+
+import click
+from litellm import enable_cache
 
 from steps.populate_index import (
     generate_embeddings,
@@ -41,3 +46,35 @@ def llm_basic_rag() -> None:
     processed_docs = preprocess_documents(documents=docs)
     embedded_docs = generate_embeddings(split_documents=processed_docs)
     index_generator(documents=embedded_docs)
+
+
+@click.option(
+    "--no-cache",
+    "no_cache",
+    is_flag=True,
+    default=False,
+    help="Disable cache.",
+)
+@click.option(
+    "--config",
+    "config",
+    default="rag_local_dev.yaml",
+    help="Specify a configuration file"
+)
+def main(
+    no_cache: bool,
+    config: Optional[str]= "rag_local_dev.yaml"
+):
+    config_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "configs",
+        config,
+    )
+    llm_basic_rag.with_options(
+        config_path=config_path,
+        enable_cache=not no_cache
+    )()
+
+
+if __name__ == "__main__":
+    main()
