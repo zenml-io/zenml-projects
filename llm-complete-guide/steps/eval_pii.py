@@ -270,20 +270,22 @@ def plot_pii_results(
 def eval_pii(
     train_dataset: Dataset, test_dataset: Dataset
 ) -> Tuple[
-    Annotated[Dict[str, Dict], "train_results"],
-    Annotated[Dict[str, Dict], "test_results"],
+    Annotated[Dict[str, Dict], "train_pii_results"],
+    Annotated[Dict[str, Dict], "test_pii_results"],
     Annotated[Image.Image, "PII chart"],
 ]:
     detector = PIIDetector()
     train_results = detector.scan_dataset(
         dataset=train_dataset,
-        columns=[
-            "text"
-        ],  # specify columns to scan, or None for all string columns
-        max_samples=1000,  # optional: limit number of samples to scan
+        # columns=[
+        #     "text"
+        # ],  # specify columns to scan, or None for all string columns
+        # max_samples=1000,  # optional: limit number of samples to scan
     )
     test_results = detector.scan_dataset(
-        dataset=test_dataset, columns=["text"], max_samples=1000
+        dataset=test_dataset,
+        # columns=["text"],
+        # max_samples=1000,  # optional: limit number of samples to scan
     )
 
     train_metadata = {
