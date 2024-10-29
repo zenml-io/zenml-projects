@@ -13,6 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+from pathlib import Path
+from typing import Optional
+
+import click
 
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
@@ -64,3 +69,39 @@ def llm_eval() -> None:
         average_helpfulness_score,
         average_relevance_score,
     )
+
+
+@click.option(
+    "--no-cache",
+    "no_cache",
+    is_flag=True,
+    default=False,
+    help="Disable cache.",
+)
+@click.option(
+    "--config",
+    "config",
+    default="rag_local_dev.yaml",
+    help="Specify a configuration file"
+)
+def main(
+        no_cache: bool = False,
+        config: Optional[str] = "rag_eval.yaml"
+):
+    """
+    Executes the pipeline to train a basic RAG model.
+
+    Args:
+        no_cache (bool): If `True`, cache will be disabled.
+        config (str): The path to the configuration file.
+    """
+    config_path = Path(__file__).parent.parent / "configs" / config
+
+    llm_eval.with_options(
+        config_path=str(config_path),
+        enable_cache=not no_cache
+    )()
+
+
+if __name__ == "__main__":
+    main()
