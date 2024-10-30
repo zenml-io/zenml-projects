@@ -36,7 +36,7 @@ jobs:
         run: |
           pip3 install -r requirements.txt
           pip3 install -r requirements-argilla.txt
-          zenml integration install gcp -y
+          zenml integration install aws s3 -y
 
       - name: Connect to ZenML server
         working-directory: ./llm-complete-guide
