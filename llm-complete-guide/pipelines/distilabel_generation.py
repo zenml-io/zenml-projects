@@ -18,6 +18,7 @@ from constants import (
     EMBEDDINGS_MODEL_NAME_ZENML,
 )
 from steps.distilabel_generate_queries import generate_synthetic_queries
+from steps.eval_pii import eval_pii
 from steps.hf_dataset_loader import load_hf_dataset
 from steps.push_to_argilla import push_to_argilla
 from steps.push_to_hf import push_to_hf
@@ -47,16 +48,22 @@ model_definition = Model(
 @pipeline(model=model_definition)
 def generate_synthetic_data():
     train_dataset, test_dataset = load_hf_dataset()
+    _, _, _ = eval_pii(
+        train_dataset=train_dataset,
+        test_dataset=test_dataset,
+    )
     train_with_queries, test_with_queries = generate_synthetic_queries(
         train_dataset=train_dataset, test_dataset=test_dataset
     )
     push_to_hf(
         train_dataset=train_with_queries,
         test_dataset=test_with_queries,
+        after="eval_pii",
     )
     push_to_argilla(
         train_dataset=train_with_queries,
         test_dataset=test_with_queries,
+        after="eval_pii",
     )
 
 
