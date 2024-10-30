@@ -16,7 +16,7 @@ settings:
       - pandas
       - numpy
       - sentence-transformers>=3
-      - transformers[torch]
+      - transformers[torch]==4.43.1
       - litellm
       - ollama
       - tiktoken
