@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ZENML_HOST: ${{ secrets.ZENML_PROJECTS_HOST }}
-      ZENML_API_KEY: ${{ secrets.ZENML_PROJECT_API_KEY }}
+      ZENML_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
       ZENML_PRODUCTION_STACK: b3951d43-0fb2-4d32-89c5-3399374e7c7e # Set this to your production stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
