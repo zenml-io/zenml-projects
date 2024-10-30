@@ -268,7 +268,7 @@ def finetune(
         tf32=False,  # use tf32 precision
         bf16=False,  # use bf16 precision
         batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
-        eval_strategy="epoch",  # evaluate after each epoch
+        eval_strategy="no",  # evaluate after each epoch
         save_strategy="epoch",  # save after each epoch
         logging_steps=10,  # log every 10 steps
         save_total_limit=3,  # save only the last 3 models

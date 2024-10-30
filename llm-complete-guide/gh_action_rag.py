@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -132,6 +131,7 @@ def pop_restricted_configs(run_configuration: dict) -> dict:
                 step['settings'].pop('docker', None)
 
     return run_configuration
+
 
 if __name__ == "__main__":
     main()
