@@ -104,15 +104,15 @@ def create_charts(stats: Dict[str, Dict[str, int]]) -> Image.Image:
     draw = ImageDraw.Draw(image)
 
     # Draw the histogram of chunk sizes
-    histogram_width = 400
-    histogram_height = 300
+    histogram_width = 600
+    histogram_height = 250
     histogram_data = [
         document_stats["min_chunk_size"],
         document_stats["avg_chunk_size"],
         document_stats["max_chunk_size"],
     ]
     histogram_labels = ["Min", "Avg", "Max"]
-    histogram_x = 50
+    histogram_x = (image_width - histogram_width) // 2
     histogram_y = 50
     draw_histogram(
         draw,
@@ -125,12 +125,12 @@ def create_charts(stats: Dict[str, Dict[str, int]]) -> Image.Image:
     )
 
     # Draw the bar chart of chunk counts per section
-    bar_chart_width = 400
-    bar_chart_height = 300
+    bar_chart_width = 600
+    bar_chart_height = 250
     bar_chart_data = list(chunks_per_section.values())
     bar_chart_labels = list(chunks_per_section.keys())
-    bar_chart_x = 450
-    bar_chart_y = 50
+    bar_chart_x = (image_width - bar_chart_width) // 2
+    bar_chart_y = histogram_y + histogram_height + 50
     draw_bar_chart(
         draw,
         bar_chart_x,
@@ -143,8 +143,10 @@ def create_charts(stats: Dict[str, Dict[str, int]]) -> Image.Image:
 
     # Add a title to the combined image
     title_text = "Document Chunk Statistics"
-    title_font = ImageFont.truetype("arial.ttf", 24)
-    title_width, title_height = draw.textsize(title_text, font=title_font)
+    title_font = ImageFont.load_default(size=24)
+    title_bbox = draw.textbbox((0, 0), title_text, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_height = title_bbox[3] - title_bbox[1]
     title_x = (image_width - title_width) // 2
     title_y = 10
     draw.text((title_x, title_y), title_text, font=title_font, fill="black")
@@ -190,18 +192,20 @@ def draw_histogram(
 
         # Draw the label below the bar
         label_text = labels[i]
-        label_font = ImageFont.truetype("arial.ttf", 12)
-        label_width, label_height = draw.textsize(label_text, font=label_font)
+        label_font = ImageFont.load_default(size=12)
+        label_bbox = draw.textbbox((0, 0), label_text, font=label_font)
+        label_width = label_bbox[2] - label_bbox[0]
+        label_height = label_bbox[3] - label_bbox[1]
         label_x = bar_x + (bar_width - label_width) // 2
         label_y = y + height + 5
-        draw.text(
-            (label_x, label_y), label_text, font=label_font, fill="black"
-        )
+        draw.text((label_x, label_y), label_text, font=label_font, fill="black")
 
     # Draw the title above the histogram
     title_text = "Chunk Size Distribution"
-    title_font = ImageFont.truetype("arial.ttf", 16)
-    title_width, title_height = draw.textsize(title_text, font=title_font)
+    title_font = ImageFont.load_default(size=16)
+    title_bbox = draw.textbbox((0, 0), title_text, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_height = title_bbox[3] - title_bbox[1]
     title_x = x + (width - title_width) // 2
     title_y = y - title_height - 10
     draw.text((title_x, title_y), title_text, font=title_font, fill="black")
@@ -245,18 +249,20 @@ def draw_bar_chart(
 
         # Draw the label below the bar
         label_text = labels[i]
-        label_font = ImageFont.truetype("arial.ttf", 12)
-        label_width, label_height = draw.textsize(label_text, font=label_font)
+        label_font = ImageFont.load_default(size=12)
+        label_bbox = draw.textbbox((0, 0), label_text, font=label_font)
+        label_width = label_bbox[2] - label_bbox[0]
+        label_height = label_bbox[3] - label_bbox[1]
         label_x = bar_x + (bar_width - label_width) // 2
         label_y = y + height + 5
-        draw.text(
-            (label_x, label_y), label_text, font=label_font, fill="black"
-        )
+        draw.text((label_x, label_y), label_text, font=label_font, fill="black")
 
     # Draw the title above the bar chart
     title_text = "Chunk Counts per Section"
-    title_font = ImageFont.truetype("arial.ttf", 16)
-    title_width, title_height = draw.textsize(title_text, font=title_font)
+    title_font = ImageFont.load_default(size=16)
+    title_bbox = draw.textbbox((0, 0), title_text, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_height = title_bbox[3] - title_bbox[1]
     title_x = x + (width - title_width) // 2
     title_y = y - title_height - 10
     draw.text((title_x, title_y), title_text, font=title_font, fill="black")
