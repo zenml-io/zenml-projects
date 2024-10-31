@@ -15,12 +15,13 @@
 # limitations under the License.
 #
 
+import os
 from typing import Optional
 
 from gradio.aws_helper import get_sagemaker_role, get_sagemaker_session
 from sagemaker.huggingface import HuggingFaceModel
 from typing_extensions import Annotated
-from zenml import get_step_context, step
+from zenml import get_step_context, log_artifact_metadata, step
 from zenml.logger import get_logger
 
 # Initialize logger
@@ -35,7 +36,7 @@ def deploy_hf_to_sagemaker(
     pytorch_version: str = "1.13.1",
     py_version: str = "py39",
     hf_task: str = "text-classification",
-    instance_type: str = "ml.g5.2xlarge",
+    instance_type: str = "ml.t2.medium",
     container_startup_health_check_timeout: int = 300,
 ) -> Annotated[str, "sagemaker_endpoint_name"]:
     """
@@ -83,4 +84,18 @@ def deploy_hf_to_sagemaker(
     )
     endpoint_name = predictor.endpoint_name
     logger.info(f"Model deployed to SageMaker: {endpoint_name}")
+
+    # get region from env variable
+    region = os.environ["AWS_REGION"] or "eu-central-1"
+    invocation_url = f"https://runtime.sagemaker.{region}.amazonaws.com/endpoints/{endpoint_name}/invocations"
+
+    log_artifact_metadata(
+        artifact_name="sagemaker_endpoint_name",
+        metadata={
+            "invocation_url": invocation_url,
+            "endpoint_name": endpoint_name,
+        },
+    )
+
+
     return endpoint_name
