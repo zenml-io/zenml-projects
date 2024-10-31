@@ -85,7 +85,7 @@ to run the pipelines in the correct order. You can run the script with the
 following command:
 
 ```shell
-python run.py --rag
+python run.py rag
 ```
 
 This will run the basic RAG pipeline, which scrapes the ZenML documentation and
@@ -100,7 +100,7 @@ use for the LLM.
 When you're ready to make the query, run the following command:
 
 ```shell
-python run.py --query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+python run.py query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
 ```
 
 Alternative options for LLMs to use include:
@@ -119,7 +119,7 @@ this up.
 To run the evaluation pipeline, you can use the following command:
 
 ```shell
-python run.py --evaluation
+python run.py evaluation
 ```
 
 You'll need to have first run the RAG pipeline to have the necessary assets in
@@ -137,7 +137,7 @@ To run the `distilabel` synthetic data generation pipeline, you can use the foll
 
 ```shell
 pip install -r requirements-argilla.txt # special requirements
-python run.py --synthetic
+python run.py synthetic
 ```
 
 You will also need to have set up and connected to an Argilla instance for this
@@ -177,7 +177,7 @@ commands:
 
 ```shell
 pip install -r requirements-argilla.txt # special requirements
-python run.py --embeddings
+python run.py embeddings
 ```
 
 *Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka
