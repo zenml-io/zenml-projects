@@ -26,6 +26,7 @@ settings:
       - rerankers[flashrank]
       - datasets
       - torch
+      - github
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
 
