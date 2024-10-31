@@ -24,7 +24,7 @@ settings:
       - datasets
       - torch
       - distilabel
-      - github
+      - pygithub
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
 

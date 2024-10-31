@@ -12,7 +12,7 @@ settings:
       - numpy
       - psycopg2-binary
       - tiktoken
-      - github
+      - pygithub
 
 # configuration of the Model Control Plane
 model:
