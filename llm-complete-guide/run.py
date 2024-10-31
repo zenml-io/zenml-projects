@@ -15,6 +15,7 @@
 # limitations under the License.
 import os
 import warnings
+from pathlib import Path
 
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
@@ -62,33 +63,18 @@ ZenML LLM Complete Guide project CLI v0.1.0.
 Run the ZenML LLM RAG complete guide project pipelines.
 """
 )
-@click.option(
-    "--rag",
-    "rag",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that creates the dataset.",
-)
-@click.option(
-    "--deploy",
-    "deploy",
-    is_flag=True,
-    default=False,
-    help="Whether to deploy a Gradio app to serve the RAG functionality.",
-)
-@click.option(
-    "--evaluation",
-    "evaluation",
-    is_flag=True,
-    default=False,
-    help="Whether to run the evaluation pipeline.",
-)
-@click.option(
-    "--query",
-    "query",
-    type=str,
-    required=False,
-    help="Query the RAG model.",
+@click.argument(
+    "pipeline",
+    type=click.Choice([
+        "rag",
+        "deploy",
+        "evaluation",
+        "query",
+        "synthetic",
+        "embeddings",
+        "chunks"
+    ]),
+    required=True
 )
 @click.option(
     "--model",
@@ -113,39 +99,18 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Disable cache.",
 )
 @click.option(
-    "--synthetic",
-    "synthetic",
-    is_flag=True,
-    default=False,
-    help="Run the synthetic data pipeline.",
-)
-@click.option(
-    "--embeddings",
-    "embeddings",
-    is_flag=True,
-    default=False,
-    help="Fine-tunes embeddings.",
-)
-@click.option(
     "--argilla",
-    "argilla",
+    "use_argilla",
     is_flag=True,
     default=False,
     help="Uses Argilla annotations.",
 )
 @click.option(
     "--reranked",
-    "reranked",
+    "use_reranker",
     is_flag=True,
     default=False,
     help="Whether to use the reranker.",
-)
-@click.option(
-    "--chunks",
-    "chunks",
-    is_flag=True,
-    default=False,
-    help="Generate chunks for Hugging Face dataset",
 )
 @click.option(
     "--config",
@@ -154,107 +119,91 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Generate chunks for Hugging Face dataset",
 )
 def main(
-    rag: bool = False,
-    deploy: bool = False,
-    evaluation: bool = False,
-    query: Optional[str] = None,
+    pipeline: str,
+    query_text: Optional[str] = None,
     model: str = OPENAI_MODEL,
     no_cache: bool = False,
-    synthetic: bool = False,
-    embeddings: bool = False,
-    argilla: bool = False,
-    reranked: bool = False,
-    chunks: bool = False,
-    config: str = None,
+    use_argilla: bool = False,
+    use_reranker: bool = False,
+    config: Optional[str] = None,
 ):
     """Main entry point for the pipeline execution.
 
     Args:
-        rag (bool): If `True`, the basic RAG pipeline will be run.
-        deploy (bool): If `True`, a Gradio app will be deployed to serve the RAG functionality.
-        evaluation (bool): If `True`, the evaluation pipeline will be run.
-        query (Optional[str]): If provided, the RAG model will be queried with this string.
-        model (str): The model to use for the completion. Default is OPENAI_MODEL.
-        no_cache (bool): If `True`, cache will be disabled.
-        synthetic (bool): If `True`, the synthetic data pipeline will be run.
-        embeddings (bool): If `True`, the embeddings will be fine-tuned.
-        argilla (bool): If `True`, the Argilla annotations will be used.
-        chunks (bool): If `True`, the chunks pipeline will be run.
-        reranked (bool): If `True`, rerankers will be used
-        config (str: Path to config
+        pipeline (str): The pipeline to execute (rag, deploy, evaluation, etc.)
+        query_text (Optional[str]): Query text when using 'query' command
+        model (str): The model to use for the completion
+        no_cache (bool): If True, cache will be disabled
+        use_argilla (bool): If True, Argilla annotations will be used
+        use_reranker (bool): If True, rerankers will be used
+        config (Optional[str]): Path to config file
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
         "enable_cache": not no_cache,
         "steps": {
             "prepare_load_data": {
-                "parameters": {"use_argilla_annotations": argilla}
+                "parameters": {"use_argilla_annotations": use_argilla}
             }
         },
     }
 
-    if query:
-        response = process_input_with_retrieval(
-            query, model=model, use_reranking=reranked
-        )
+    # Handle config path
+    config_path = None
+    if config:
+        config_path = Path(__file__).parent / "configs" / config
 
-        # print rich markdown to the console
+    # Set default config paths based on pipeline
+    if not config_path:
+        config_mapping = {
+            "rag": "dev/rag.yaml",
+            "evaluation": "dev/rag_eval.yaml",
+            "synthetic": "dev/synthetic.yaml",
+            "embeddings": "dev/embeddings.yaml"
+        }
+        if pipeline in config_mapping:
+            config_path = Path(__file__).parent / "configs" / config_mapping[pipeline]
+
+
+    # Execute query
+    if pipeline == "query":
+        if not query_text:
+            raise click.UsageError("--query-text is required when using 'query' command")
+        response = process_input_with_retrieval(
+            query_text, model=model, use_reranking=use_reranker
+        )
         console = Console()
         md = Markdown(response)
         console.print(md)
+        return
 
-    config_path = None
-    if config:
-        config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "configs",
-            config,
-        )
-
-    if rag:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "rag_local_dev.yaml",
-            )
+    # Execute the appropriate pipeline
+    if pipeline == "rag":
         llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
-        if deploy:
+        # Also deploy if config is provided
+        if config:
             rag_deployment.with_options(
                 config_path=config_path, **pipeline_args
             )()
-    if deploy:
+
+    elif pipeline == "deploy":
         rag_deployment.with_options(**pipeline_args)()
-    if evaluation:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "rag_eval.yaml",
-            )
+
+    elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(config_path=config_path)()
-    if synthetic:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "synthetic.yaml",
-            )
+
+    elif pipeline == "synthetic":
         generate_synthetic_data.with_options(
             config_path=config_path, **pipeline_args
         )()
-    if embeddings:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "embeddings.yaml",
-            )
+
+    elif pipeline == "embeddings":
         finetune_embeddings.with_options(
             config_path=config_path, **embeddings_finetune_args
         )()
-    if chunks:
+
+    elif pipeline == "chunks":
         generate_chunk_questions.with_options(**pipeline_args)()
 
 

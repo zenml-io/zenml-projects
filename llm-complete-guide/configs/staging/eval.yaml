@@ -1,0 +1,32 @@
+enable_cache: False
+
+# environment configuration
+settings:
+  docker:
+    requirements:
+      - unstructured
+      - sentence-transformers>=3
+      - pgvector
+      - datasets
+      - litellm
+      - numpy
+      - psycopg2-binary
+      - tiktoken
+      - ratelimit
+      - rerankers[flashrank]
+      - matplotlib
+      - pillow
+      - pygithub
+    environment:
+      ZENML_PROJECT_SECRET_NAME: llm_complete
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
+
+# configuration of the Model Control Plane
+model:
+  name: staging_finetuned-zenml-docs-embeddings
+  version: latest
+  license: Apache 2.0
+  description: Finetuned LLM on ZenML docs
+  tags: ["rag", "finetuned"]
+  limitations: "Only works for ZenML documentation. Not generalizable to other domains. Entirely build with synthetic data. The data is also quite noisy on account of how the chunks were split."

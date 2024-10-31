@@ -12,11 +12,23 @@ settings:
       - numpy
       - psycopg2-binary
       - tiktoken
+      - ratelimit
+      - rerankers
       - pygithub
+    environment:
+      ZENML_PROJECT_SECRET_NAME: llm_complete
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
+
 
 # configuration of the Model Control Plane
 model:
-  name: finetuned-zenml-docs-embeddings
+  name: dev_finetuned-zenml-docs-embeddings
   license: Apache 2.0
   description: Finetuned LLM on ZenML docs
   tags: ["rag", "finetuned"]
+
+steps:
+  url_scraper:
+    parameters:
+      docs_url: https://docs.zenml.io/stack-components/orchestrators

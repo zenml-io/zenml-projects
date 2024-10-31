@@ -24,6 +24,7 @@ settings:
       - datasets
       - torch
       - distilabel
+      - argilla
       - pygithub
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
@@ -31,7 +32,7 @@ settings:
 
 # configuration of the Model Control Plane
 model:
-  name: finetuned-zenml-docs-embeddings
+  name: staging_finetuned-zenml-docs-embeddings
   version: latest
   license: Apache 2.0
   description: Finetuned LLM on ZenML docs
