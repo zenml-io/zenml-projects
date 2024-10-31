@@ -22,6 +22,7 @@ from uuid import UUID
 import click
 import yaml
 from zenml.client import Client
+from zenml.exceptions import ZenKeyError
 
 from pipelines.llm_basic_rag import llm_basic_rag
 
@@ -53,16 +54,23 @@ ZenML LLM Complete - Rag Pipeline
     help="Specify a configuration file"
 )
 @click.option(
-    "--action-id",
-    "action_id",
+    "--service-account-id",
+    "service_account_id",
     default=None,
-    help="Specify an action ID"
+    help="Specify a service account ID"
+)
+@click.option(
+    "--event-source-id",
+    "event_source_id",
+    default=None,
+    help="Specify an event source ID"
 )
 def main(
     no_cache: bool = False,
     config: Optional[str]= "rag_local_dev.yaml",
     create_template: bool = False,
-    action_id: Optional[str] = None
+    service_account_id: Optional[str] = None,
+    event_source_id: Optional[str] = None
 ):
     """
     Executes the pipeline to train a basic RAG model.
@@ -72,6 +80,8 @@ def main(
         config (str): The path to the configuration file.
         create_template (bool): If `True`, a run template will be created.
         action_id (str): The action ID.
+        service_account_id (str): The service account ID.
+        event_source_id (str): The event source ID.
     """
     client = Client()
     config_path = Path(__file__).parent / "configs" / config
@@ -80,6 +90,7 @@ def main(
         config = yaml.safe_load(file)
 
     if create_template:
+
         # run pipeline
         run = llm_basic_rag.with_options(
             config_path=str(config_path),
@@ -90,14 +101,49 @@ def main(
             name=f"production-llm-complete-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
             deployment_id=run.deployment_id
         )
-        # update the action with the new template
-        client.update_action(
-            name_id_or_prefix=UUID(action_id),
-            configuration={
-                "template_id": str(rt.id),
-                "run_config": pop_restricted_configs(config)
-            }
-        )
+
+        try:
+            # Check if an action ahs already be configured for this pipeline
+            action = client.get_action(
+                name_id_or_prefix="LLM Complete (production)",
+                allow_name_prefix_match=True
+            )
+        except ZenKeyError:
+            if not event_source_id:
+                raise RuntimeError("An event source is required for this workflow.")
+
+            if not service_account_id:
+                service_account_id = client.create_service_account(
+                    name="github-action-sa",
+                    description="To allow triggered pipelines to run with M2M authentication."
+                ).id
+
+            action_id = client.create_action(
+                name="LLM Complete (production)",
+                configuration={
+                    "template_id": str(rt.id),
+                    "run_config": pop_restricted_configs(config)
+                },
+                service_account_id=service_account_id,
+                auth_window=0,
+            ).id
+            client.create_trigger(
+                name="Production Trigger LLM-Complete",
+                event_source_id=UUID(event_source_id),
+                event_filter={"event_type": "tag_event"},
+                action_id=action_id,
+                description="Trigger pipeline to reindex everytime the docs are updated through git."
+            )
+        else:
+            # update the action with the new template
+            # here we can assume the trigger is fully set up already
+            client.update_action(
+                name_id_or_prefix=action.id,
+                configuration={
+                    "template_id": str(rt.id),
+                    "run_config": pop_restricted_configs(config)
+                }
+            )
 
     else:
         llm_basic_rag.with_options(
