@@ -31,4 +31,4 @@ model:
 steps:
   url_scraper:
     parameters:
-      docs_url: https://docs.zenml.io/stack-components/orchestrators
+      docs_url: https://docs.zenml.io
