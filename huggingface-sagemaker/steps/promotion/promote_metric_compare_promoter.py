@@ -28,8 +28,8 @@ model_registry = Client().active_stack.model_registry
 
 @step
 def promote_metric_compare_promoter(
-    latest_metrics: Dict[str, str],
-    current_metrics: Dict[str, str],
+    latest_metrics: Dict[str, float],
+    current_metrics: Dict[str, float],
     metric_to_compare: str = "accuracy",
 ):
     """Try to promote trained model.
