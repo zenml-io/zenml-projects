@@ -23,7 +23,7 @@ from constants import (
     DATASET_NAME_DISTILABEL,
     EMBEDDINGS_MODEL_ID_BASELINE,
     EMBEDDINGS_MODEL_ID_FINE_TUNED,
-    EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
+    EMBEDDINGS_MODEL_MATRYOSHKA_DIMS, SECRET_NAME,
 )
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from datasets.arrow_dataset import Dataset
@@ -288,8 +288,13 @@ def finetune(
     )
 
     trainer.train()
+
+    zenml_client = Client()
+
     trainer.model.push_to_hub(
-        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}", exist_ok=True
+        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
+        exist_ok=True,
+        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"]
     )
 
     log_model_metadata(
