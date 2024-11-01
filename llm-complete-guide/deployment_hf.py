@@ -1,12 +1,13 @@
-import time
-
 import gradio as gr
+from utils.llm_utils import process_input_with_retrieval
 
 
-def slow_echo(message, history):
-    for i in range(len(message)):
-        time.sleep(0.3)
-        yield "You typed: " + message[: i + 1]
+def predict(message, history):
+    return process_input_with_retrieval(
+        input=message,
+        n_items_retrieved=20,
+        use_reranking=True,
+    )
 
 
-gr.ChatInterface(slow_echo, type="messages").launch()
+gr.ChatInterface(predict, type="messages").launch()
