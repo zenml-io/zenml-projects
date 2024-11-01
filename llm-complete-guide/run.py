@@ -151,7 +151,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
     "--config",
     "config",
     default=None,
-    help="Generate chunks for Hugging Face dataset",
+    help="Path to config",
 )
 def main(
     rag: bool = False,
@@ -181,7 +181,7 @@ def main(
         argilla (bool): If `True`, the Argilla annotations will be used.
         chunks (bool): If `True`, the chunks pipeline will be run.
         reranked (bool): If `True`, rerankers will be used
-        config (str: Path to config
+        config (str): Path to config
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
