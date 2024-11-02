@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import warnings
 from pathlib import Path
 
@@ -65,16 +64,18 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 @click.argument(
     "pipeline",
-    type=click.Choice([
-        "rag",
-        "deploy",
-        "evaluation",
-        "query",
-        "synthetic",
-        "embeddings",
-        "chunks"
-    ]),
-    required=True
+    type=click.Choice(
+        [
+            "rag",
+            "deploy",
+            "evaluation",
+            "query",
+            "synthetic",
+            "embeddings",
+            "chunks",
+        ]
+    ),
+    required=True,
 )
 @click.option(
     "--model",
@@ -159,16 +160,19 @@ def main(
             "rag": "dev/rag.yaml",
             "evaluation": "dev/rag_eval.yaml",
             "synthetic": "dev/synthetic.yaml",
-            "embeddings": "dev/embeddings.yaml"
+            "embeddings": "dev/embeddings.yaml",
         }
         if pipeline in config_mapping:
-            config_path = Path(__file__).parent / "configs" / config_mapping[pipeline]
-
+            config_path = (
+                Path(__file__).parent / "configs" / config_mapping[pipeline]
+            )
 
     # Execute query
     if pipeline == "query":
         if not query_text:
-            raise click.UsageError("--query-text is required when using 'query' command")
+            raise click.UsageError(
+                "--query-text is required when using 'query' command"
+            )
         response = process_input_with_retrieval(
             query_text, model=model, use_reranking=use_reranker
         )

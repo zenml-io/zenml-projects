@@ -15,8 +15,6 @@
 # limitations under the License.
 #
 
-from zenml import pipeline
-
 from steps.populate_index import (
     generate_embeddings,
     index_generator,
@@ -24,6 +22,7 @@ from steps.populate_index import (
 )
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
+from zenml import pipeline
 
 
 @pipeline
