@@ -13,12 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from pathlib import Path
 from typing import Optional
 
 import click
-
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
@@ -82,12 +80,9 @@ def llm_eval() -> None:
     "--config",
     "config",
     default="rag_local_dev.yaml",
-    help="Specify a configuration file"
+    help="Specify a configuration file",
 )
-def main(
-        no_cache: bool = False,
-        config: Optional[str] = "rag_eval.yaml"
-):
+def main(no_cache: bool = False, config: Optional[str] = "rag_eval.yaml"):
     """
     Executes the pipeline to train a basic RAG model.
 
@@ -98,8 +93,7 @@ def main(
     config_path = Path(__file__).parent.parent / "configs" / config
 
     llm_eval.with_options(
-        config_path=str(config_path),
-        enable_cache=not no_cache
+        config_path=str(config_path), enable_cache=not no_cache
     )()
 
 
