@@ -11,8 +11,8 @@ from zenml.integrations.registry import integration_registry
 
 secret = Client().get_secret("llm-complete")
 
-ZENML_API_TOKEN = secret.secret_values["zenml_api_token"]
-ZENML_STORE_URL = secret.secret_values["zenml_store_url"]
+ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
+ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
 
