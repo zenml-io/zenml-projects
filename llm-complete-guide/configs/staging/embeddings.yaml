@@ -3,7 +3,6 @@
 # environment configuration
 settings:
   docker:
-    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
       - ratelimit
       - pgvector
@@ -24,6 +23,7 @@ settings:
       - datasets
       - torch
       - pygithub
+      - openai
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
 

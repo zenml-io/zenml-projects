@@ -23,7 +23,7 @@ instructions are provided below for how to set that up.
 
 ## 📽️ Watch the webinars
 
-We've recently been holding some webinars about this repository and project. Watche the videos below if you want an introduction and context around the code and ideas covered in this project.
+We've recently been holding some webinars about this repository and project. Watch the videos below if you want an introduction and context around the code and ideas covered in this project.
 
 [![Building and Optimizing RAG Pipelines: Data Preprocessing, Embeddings, and Evaluation with ZenML](https://github.com/user-attachments/assets/1aea2bd4-8079-4ea2-98e1-8da6ba9aeebe)](https://www.youtube.com/watch?v=PazRMY8bo3U)
 
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 Depending on your hardware you may run into some issues when running the `pip install` command with the
 `flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` 
-could help you.
+could help you. Possibly you might also need to install torch separately.
 
 In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as a ZenML secret:

@@ -25,6 +25,7 @@ settings:
       - torch
       - distilabel
       - pygithub
+      - openai
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
 
