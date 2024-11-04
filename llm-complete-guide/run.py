@@ -117,7 +117,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
     "--config",
     "config",
     default=None,
-    help="Generate chunks for Hugging Face dataset",
+    help="Path to config",
 )
 def main(
     pipeline: str,
