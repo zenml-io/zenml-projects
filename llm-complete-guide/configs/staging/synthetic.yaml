@@ -2,10 +2,7 @@
 settings:
   docker:
     requirements:
-      - langchain-community
       - ratelimit
-      - langchain>=0.0.325
-      - langchain-openai
       - pgvector
       - psycopg2-binary
       - beautifulsoup4
