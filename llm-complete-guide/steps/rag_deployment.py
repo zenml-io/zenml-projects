@@ -1,18 +1,24 @@
 import os
 import webbrowser
 
-from huggingface_hub import (
-    HfApi,
-)
+from huggingface_hub import HfApi
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
+from zenml.client import Client
 from zenml.integrations.registry import integration_registry
 
-repo_id = "strickvl/my-test-space"
+secret = Client().get_secret("llm-complete")
+
+ZENML_API_TOKEN = secret.secret_values["zenml_api_token"]
+ZENML_STORE_URL = secret.secret_values["zenml_store_url"]
+HF_TOKEN = os.getenv("HF_TOKEN")
+SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
+SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
+
+hf_repo_id = f"{SPACE_USERNAME}/{SPACE_NAME}"
 gcp_reqs = integration_registry.select_integration_requirements("gcp")
 
-
-repo_requirements = f"""
+hf_repo_requirements = f"""
 zenml>=0.68.1
 ratelimit
 pgvector
@@ -34,8 +40,6 @@ huggingface-hub
 {chr(10).join(gcp_reqs)}
 """
 
-HF_TOKEN = os.getenv("HF_TOKEN")
-
 
 def predict(message, history):
     return process_input_with_retrieval(
@@ -45,7 +49,33 @@ def predict(message, history):
     )
 
 
-@step
+def upload_files_to_repo(
+    api, repo_id: str, files_mapping: dict, token: str = HF_TOKEN
+):
+    """Upload multiple files to a Hugging Face repository
+
+    Args:
+        api: Hugging Face API client
+        repo_id: Target repository ID
+        files_mapping: Dict mapping local files to repo destinations
+        token: HF API token
+    """
+    for local_path, repo_path in files_mapping.items():
+        content = (
+            local_path.encode()
+            if isinstance(local_path, str) and not os.path.exists(local_path)
+            else local_path
+        )
+        api.upload_file(
+            path_or_fileobj=content,
+            path_in_repo=repo_path,
+            repo_id=repo_id,
+            repo_type="space",
+            token=token,
+        )
+
+
+@step(enable_cache=False)
 def gradio_rag_deployment() -> None:
     """Launches a Gradio chat interface with the slow echo demo.
 
@@ -54,61 +84,30 @@ def gradio_rag_deployment() -> None:
     """
     api = HfApi()
     api.create_repo(
-        repo_id=repo_id,
+        repo_id=hf_repo_id,
         repo_type="space",
         space_sdk="gradio",
         private=True,
         exist_ok=True,
         token=HF_TOKEN,
     )
-    api.upload_file(
-        path_or_fileobj="deployment_hf.py",
-        path_in_repo="app.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
+    api.add_space_variable(
+        repo_id=hf_repo_id, key="ZENML_STORE_API_KEY", value=ZENML_API_TOKEN
     )
-    api.upload_file(
-        path_or_fileobj="utils/llm_utils.py",
-        path_in_repo="utils/llm_utils.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
-    )
-    api.upload_file(
-        path_or_fileobj="utils/openai_utils.py",
-        path_in_repo="utils/openai_utils.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
-    )
-    api.upload_file(
-        path_or_fileobj="utils/__init__.py",
-        path_in_repo="utils/__init__.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
-    )
-    api.upload_file(
-        path_or_fileobj="constants.py",
-        path_in_repo="constants.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
-    )
-    api.upload_file(
-        path_or_fileobj="structures.py",
-        path_in_repo="structures.py",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
-    )
-    api.upload_file(
-        path_or_fileobj=repo_requirements.encode(),
-        path_in_repo="requirements.txt",
-        repo_id=repo_id,
-        repo_type="space",
-        token=HF_TOKEN,
+    api.add_space_variable(
+        repo_id=hf_repo_id, key="ZENML_STORE_URL", value=ZENML_STORE_URL
     )
 
-    webbrowser.open(f"https://huggingface.co/spaces/{repo_id}")
+    files_to_upload = {
+        "deployment_hf.py": "app.py",
+        "utils/llm_utils.py": "utils/llm_utils.py",
+        "utils/openai_utils.py": "utils/openai_utils.py",
+        "utils/__init__.py": "utils/__init__.py",
+        "constants.py": "constants.py",
+        "structures.py": "structures.py",
+        hf_repo_requirements: "requirements.txt",
+    }
+
+    upload_files_to_repo(api, hf_repo_id, files_to_upload, HF_TOKEN)
+
+    webbrowser.open(f"https://huggingface.co/spaces/{hf_repo_id}")
