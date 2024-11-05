@@ -24,6 +24,7 @@ from constants import (
     EMBEDDINGS_MODEL_ID_BASELINE,
     EMBEDDINGS_MODEL_ID_FINE_TUNED,
     EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
+    SECRET_NAME,
 )
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from datasets.arrow_dataset import Dataset
@@ -211,7 +212,7 @@ def evaluate_finetuned_model(
 def finetune(
     dataset: DatasetDict,
     epochs: int = 4,
-    batch_size: int = 32,
+    batch_size: int = 4,
     learning_rate: float = 2e-5,
     optimizer: str = "adamw_torch_fused",
 ) -> Annotated[
@@ -265,8 +266,8 @@ def finetune(
         learning_rate=learning_rate,  # learning rate, 2e-5 is a good value
         lr_scheduler_type="cosine",  # use constant learning rate scheduler
         optim=optimizer,  # use fused adamw optimizer
-        tf32=True,  # use tf32 precision
-        bf16=True,  # use bf16 precision
+        tf32=False,  # use tf32 precision
+        bf16=False,  # use bf16 precision
         batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
         eval_strategy="epoch",  # evaluate after each epoch
         save_strategy="epoch",  # save after each epoch
@@ -288,8 +289,13 @@ def finetune(
     )
 
     trainer.train()
+
+    zenml_client = Client()
+
     trainer.model.push_to_hub(
-        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}", exist_ok=True
+        f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
+        exist_ok=True,
+        token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"],
     )
 
     log_model_metadata(

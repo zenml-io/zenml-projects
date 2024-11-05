@@ -1,9 +1,10 @@
-zenml[server]>=0.63.0
-sentence-transformers>=3
-transformers
+zenml[server]>=0.68.1
+sentence-transformers>=3,<=3.0.1
+transformers<=4.44.0
 litellm
 ollama
-polars
-datasets
-git+https://github.com/argilla-io/argilla.git@releases/2.0.1#subdirectory=argilla # replace once released
-distilabel
+polars<=1.4.1
+datasets<=2.20.0
+argilla<=2.0.0
+distilabel<=1.3.1
+accelerate<=0.33.0

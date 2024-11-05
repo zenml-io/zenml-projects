@@ -20,6 +20,7 @@ from litellm import completion
 from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
+from utils.openai_utils import get_openai_api_key
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 
@@ -58,6 +59,7 @@ def generate_question(
                     }
                 ],
                 api_base="http://localhost:11434" if local else None,
+                api_key=get_openai_api_key(),
             )
             return response.choices[0].message.content
         except (Timeout, APIConnectionError) as e:

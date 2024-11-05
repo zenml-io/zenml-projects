@@ -23,6 +23,7 @@ from litellm import completion
 from pydantic import BaseModel, conint
 from structures import TestResult
 from utils.llm_utils import process_input_with_retrieval
+from utils.openai_utils import get_openai_api_key
 from zenml import step
 
 logging.getLogger().setLevel(logging.WARNING)
@@ -208,7 +209,9 @@ def llm_judged_test_e2e(
     """
     logging.debug("Prompt created.")
     response = completion(
-        model="gpt-4-turbo", messages=[{"content": prompt, "role": "user"}]
+        model="gpt-4-turbo",
+        messages=[{"content": prompt, "role": "user"}],
+        api_key=get_openai_api_key(),
     )
 
     json_output = response["choices"][0]["message"]["content"].strip()

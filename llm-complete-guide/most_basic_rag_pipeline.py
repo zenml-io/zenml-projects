@@ -15,11 +15,11 @@
 # limitations under the License.
 #
 
-import os
 import re
 import string
 
 from openai import OpenAI
+from utils.openai_utils import get_openai_api_key
 
 
 def preprocess_text(text):
@@ -52,7 +52,7 @@ def answer_question(query, corpus, top_n=2):
         return "I don't have enough information to answer the question."
 
     context = "\n".join(relevant_chunks)
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    client = OpenAI(api_key=get_openai_api_key())
     chat_completion = client.chat.completions.create(
         messages=[
             {

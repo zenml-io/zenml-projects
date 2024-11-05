@@ -1,0 +1,59 @@
+name: Production LLM-COMPLETE
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'llm-complete-guide/**'
+concurrency:
+  # New commit on branch cancels running workflows of the same branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-staging-workflow:
+    runs-on: ubuntu-latest
+    env:
+      ZENML_HOST: ${{ secrets.ZENML_PROJECTS_HOST }}
+      ZENML_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
+      ZENML_PRODUCTION_STACK: b3951d43-0fb2-4d32-89c5-3399374e7c7e # Set this to your production stack ID
+      ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
+      ZENML_DEBUG: true
+      ZENML_ANALYTICS_OPT_IN: false
+      ZENML_LOGGING_VERBOSITY: INFO
+      ZENML_PROJECT_SECRET_NAME: llm-complete
+      ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
+      ZENML_EVENT_SOURCE_ID: ae6ae536-d811-4838-a44b-744b768a0f31  # Set this to your preferred event source ID
+      ZENML_SERVICE_ACCOUNT_ID: fef76af2-382f-4ab2-9e6b-5eb85a303f0e  # Set this to your service account ID or delete
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install requirements
+        working-directory: ./llm-complete-guide
+        run: |
+          pip3 install -r requirements.txt
+          pip3 install -r requirements-argilla.txt
+          zenml integration install gcp -y
+
+      - name: Connect to ZenML server
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml init
+          zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
+
+      - name: Set stack (Production)
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml stack set ${{ env.ZENML_PRODUCTION_STACK }}
+
+      - name: Run pipeline, create pipeline, configure trigger (Production)
+        working-directory: ./llm-complete-guide
+        run: |
+          python gh_action_rag.py --no-cache --create-template ----event-source-id  --service-account-id ${{ env.ZENML_SERVICE_ACCOUNT_ID }} --action-id  ${{ env.ZENML_ACTION_ID }} --config rag_gcp.yaml

@@ -13,6 +13,7 @@
 #  permissions and limitations under the License.
 
 import polars as pl
+from constants import SECRET_NAME
 from datasets import Dataset
 from huggingface_hub import create_repo
 from zenml import step
@@ -25,7 +26,7 @@ def upload_chunks_dataset_to_huggingface(
 ) -> str:
     """Uploads chunked documents to Hugging Face dataset."""
     client = Client()
-    hf_token = client.get_secret("huggingface_datasets").secret_values["token"]
+    hf_token = client.get_secret(SECRET_NAME).secret_values["hf_token"]
 
     repo_name = f"zenml/rag_qa_embedding_questions_{dataset_suffix}"
 

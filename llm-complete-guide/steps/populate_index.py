@@ -22,7 +22,7 @@
 import json
 import logging
 import math
-from typing import Annotated
+from typing import Annotated, Any, Dict, List, Tuple
 
 from constants import (
     CHUNK_OVERLAP,
@@ -31,6 +31,7 @@ from constants import (
     EMBEDDINGS_MODEL,
 )
 from pgvector.psycopg2 import register_vector
+from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
@@ -40,18 +41,475 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def draw_value_label(
+    draw: ImageDraw.Draw, value: float, x: int, y: int, bar_width: int
+) -> None:
+    """Draws a value label above a bar in a chart.
+
+    Args:
+        draw: The ImageDraw object to draw on
+        value: The value to display
+        x: The x coordinate of the bar
+        y: The y coordinate of the top of the bar
+        bar_width: The width of the bar
+    """
+    label = str(round(value))
+    font = ImageFont.load_default()
+    bbox = draw.textbbox((0, 0), label, font=font)
+    label_width = bbox[2] - bbox[0]
+    label_x = x + (bar_width - label_width) // 2
+    draw.text((label_x, y - 15), label, font=font, fill="black")
+
+
+def extract_docs_stats(
+    total_documents: int, split_docs: List[Document]
+) -> Dict[str, Dict[str, int]]:
+    """Extracts statistics about the document chunks.
+
+    Args:
+        total_documents (int): The total number of original documents before splitting.
+        split_docs (List[Document]): The list of document chunks after splitting.
+
+    Returns:
+        Dict[str, Dict[str, int]]: A dictionary containing two sub-dictionaries:
+            - document_stats: Contains statistics about the chunks including:
+                - total_documents: Number of original documents
+                - total_chunks: Number of chunks after splitting
+                - avg_chunk_size: Average size of chunks in characters
+                - min_chunk_size: Size of smallest chunk in characters
+                - max_chunk_size: Size of largest chunk in characters
+            - chunks_per_section: Maps each document section to number of chunks it contains
+    """
+    total_documents = total_documents
+    total_chunks = len(split_docs)
+    chunk_sizes = [len(doc.page_content) for doc in split_docs]
+    avg_chunk_size = sum(chunk_sizes) / len(chunk_sizes)
+    min_chunk_size = min(chunk_sizes)
+    max_chunk_size = max(chunk_sizes)
+    chunks_per_section = {}
+    for doc in split_docs:
+        section = doc.parent_section
+        if section not in chunks_per_section:
+            chunks_per_section[section] = 0
+        chunks_per_section[section] += 1
+
+    # Add histogram buckets
+    num_buckets = 10
+    bucket_size = (max_chunk_size - min_chunk_size) / num_buckets
+    buckets = [0] * num_buckets
+    bucket_ranges = []
+
+    for size in chunk_sizes:
+        bucket_index = min(
+            int((size - min_chunk_size) / bucket_size), num_buckets - 1
+        )
+        buckets[bucket_index] += 1
+
+    return {
+        "document_stats": {
+            "total_documents": total_documents,
+            "total_chunks": total_chunks,
+            "avg_chunk_size": avg_chunk_size,
+            "min_chunk_size": min_chunk_size,
+            "max_chunk_size": max_chunk_size,
+            "size_distribution": buckets,
+            "bucket_size": bucket_size,
+        },
+        "chunks_per_section": chunks_per_section,
+    }
+
+
+def create_charts(stats: Dict[str, Dict[str, int]]) -> Image.Image:
+    """Creates a combined visualization with both a histogram and bar chart.
+
+    Args:
+        stats: Dictionary containing statistics about document chunks, including:
+            - document_stats: Contains histogram data and chunk size statistics
+            - chunks_per_section: Maps document sections to number of chunks
+
+    Returns:
+        PIL Image containing both histogram and bar chart visualizations
+    """
+    document_stats = stats["document_stats"]
+    chunks_per_section = stats["chunks_per_section"]
+
+    histogram_width = 600
+    histogram_height = 300
+    bar_chart_width = 600
+    bar_chart_height = 300
+
+    padding = 20
+    histogram_y = padding
+    bar_chart_y = histogram_y + histogram_height + 60
+
+    image_width = max(histogram_width, bar_chart_width) + 2 * padding
+    image_height = histogram_height + bar_chart_height + 100
+    image = Image.new("RGB", (image_width, image_height), color="white")
+    draw = ImageDraw.Draw(image)
+
+    title_text = "Document Chunk Statistics"
+    title_font = ImageFont.load_default(size=24)
+    title_bbox = draw.textbbox((0, 0), title_text, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_x = (image_width - title_width) // 2
+    title_y = padding
+    draw.text((title_x, title_y), title_text, font=title_font, fill="black")
+
+    histogram_x = (image_width - histogram_width) // 2
+    histogram_data = document_stats["size_distribution"]
+    histogram_labels = ["Min", "Avg", "Max"]
+    histogram_title = "Chunk Size Distribution (Character Count)"
+    draw_histogram(
+        draw,
+        histogram_x,
+        histogram_y + 40,
+        histogram_width,
+        histogram_height,
+        histogram_data,
+        histogram_labels,
+        histogram_title,
+    )
+
+    bar_chart_x = (image_width - bar_chart_width) // 2
+    bar_chart_data = list(chunks_per_section.values())
+    bar_chart_labels = list(chunks_per_section.keys())
+    bar_chart_title = "Number of Chunks per Document Section"
+    draw_bar_chart(
+        draw,
+        bar_chart_x,
+        bar_chart_y + 40,
+        bar_chart_width,
+        bar_chart_height,
+        bar_chart_data,
+        bar_chart_labels,
+        bar_chart_title,
+    )
+
+    return image
+
+
+def create_histogram(stats: Dict[str, Dict[str, int]]) -> Image.Image:
+    """Creates a histogram visualization showing the distribution of chunk sizes.
+
+    Args:
+        stats: Dictionary containing statistics about document chunks, including:
+            - document_stats: Contains histogram data and chunk size statistics
+            - chunks_per_section: Maps document sections to number of chunks
+
+    Returns:
+        PIL Image containing the rendered histogram visualization
+    """
+    document_stats = stats["document_stats"]
+
+    histogram_width = 600
+    histogram_height = 300
+
+    left_padding = 40
+    right_padding = 40
+    top_padding = 40
+    bottom_padding = 40
+
+    image = Image.new(
+        "RGB",
+        (
+            histogram_width + left_padding + right_padding,
+            histogram_height + top_padding + bottom_padding,
+        ),
+        color="white",
+    )
+    draw = ImageDraw.Draw(image)
+
+    histogram_x = left_padding
+    histogram_y = top_padding
+    histogram_data = document_stats["size_distribution"]
+    histogram_labels = []  # We'll generate these in draw_histogram
+    histogram_title = "Chunk Size Distribution (Character Count)"
+
+    draw_histogram(
+        draw,
+        histogram_x,
+        histogram_y,
+        histogram_width,
+        histogram_height,
+        histogram_data,
+        histogram_labels,
+        histogram_title,
+        document_stats,
+        image,
+    )
+
+    return image
+
+
+def create_bar_chart(stats: Dict[str, Dict[str, int]]) -> Image.Image:
+    """Creates a bar chart showing the number of chunks per document section.
+
+    Args:
+        stats: Dictionary containing statistics about the document chunks, including
+            a 'chunks_per_section' key mapping to a dict of section names to chunk counts.
+
+    Returns:
+        PIL Image containing the rendered bar chart visualization.
+    """
+    chunks_per_section = stats["chunks_per_section"]
+
+    bar_chart_width = 600
+    bar_chart_height = 300
+    padding = 20
+
+    image = Image.new(
+        "RGB",
+        (bar_chart_width + 2 * padding, bar_chart_height + 80),
+        color="white",
+    )
+    draw = ImageDraw.Draw(image)
+
+    bar_chart_x = padding
+    bar_chart_y = 40
+    bar_chart_data = list(chunks_per_section.values())
+    bar_chart_labels = list(chunks_per_section.keys())
+    bar_chart_title = "Number of Chunks per Document Section"
+
+    draw_bar_chart(
+        draw,
+        bar_chart_x,
+        bar_chart_y,
+        bar_chart_width,
+        bar_chart_height,
+        bar_chart_data,
+        bar_chart_labels,
+        bar_chart_title,
+    )
+
+    return image
+
+
+def draw_rotated_text(
+    image: Image.Image,
+    text: str,
+    position: Tuple[int, int],
+    font: ImageFont.ImageFont,
+) -> None:
+    """Helper function to draw rotated text on an image.
+
+    Args:
+        image: The image to draw on
+        text: The text to draw
+        position: (x, y) position to draw the text
+        font: The font to use
+    """
+    # Create a new image for the text with RGBA mode
+    bbox = font.getbbox(text)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Create a transparent image for the text
+    txt_img = Image.new("RGBA", (text_width, text_height), (255, 255, 255, 0))
+    txt_draw = ImageDraw.Draw(txt_img)
+
+    # Draw the text onto the image
+    txt_draw.text((0, 0), text, font=font, fill="black")
+
+    # Rotate the text image
+    rotated = txt_img.rotate(90, expand=True)
+
+    # Create a temporary RGBA version of the main image
+    temp_img = image.convert("RGBA")
+    temp_img.paste(rotated, position, rotated)
+
+    # Convert back to RGB and update the original image
+    rgb_img = temp_img.convert("RGB")
+    image.paste(rgb_img)
+
+
+def draw_histogram(
+    draw: ImageDraw.Draw,
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+    data: List[int],
+    labels: List[str],
+    title: str,
+    document_stats: Dict[str, Any],
+    image: Image.Image,
+) -> None:
+    """Draws a histogram chart on the given image.
+
+    Args:
+        draw: The ImageDraw object to draw on
+        x: The x coordinate of the top-left corner
+        y: The y coordinate of the top-left corner
+        width: The total width of the chart area
+        height: The total height of the chart area
+        data: List of values for each histogram bar
+        labels: List of labels for each bar
+        title: The title of the chart
+        document_stats: Dictionary containing statistics about the document chunks
+        image: The PIL Image object to draw on
+
+    Returns:
+        None
+    """
+    # Calculate the maximum value in the data
+    max_value = max(data)
+
+    # Adjust margins and positioning (reduced left margin since we removed the label)
+    left_margin = 40  # Changed from 80
+    right_margin = 40
+    top_margin = 40
+    bottom_margin = 40
+    x += left_margin
+    y += top_margin
+
+    # Rest of the function remains the same, but remove the y-axis label drawing code
+    usable_width = width - left_margin - right_margin
+    usable_height = height - top_margin - bottom_margin
+    bar_width = usable_width // len(data)
+    bar_spacing = 5
+
+    # Draw y-axis
+    draw.line([(x, y), (x, y + usable_height)], fill="black", width=1)
+
+    # Draw y-axis ticks and labels
+    num_ticks = 5
+    for i in range(num_ticks + 1):
+        tick_value = (max_value * i) / num_ticks
+        tick_y = y + usable_height - (usable_height * i / num_ticks)
+
+        # Draw tick mark
+        draw.line([(x - 5, tick_y), (x, tick_y)], fill="black", width=1)
+
+        # Draw tick label
+        label = str(int(tick_value))
+        font = ImageFont.load_default(size=10)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        draw.text(
+            (x - 10 - label_width, tick_y - 5), label, font=font, fill="black"
+        )
+
+    # Draw bars with value labels
+    for i, value in enumerate(data):
+        bar_height = (value / max_value) * usable_height
+        bar_x = x + i * (bar_width + bar_spacing)
+        bar_y = y + usable_height - bar_height
+
+        # Draw bar
+        draw.rectangle(
+            [(bar_x, bar_y), (bar_x + bar_width, y + usable_height)],
+            fill="#4444FF",
+            outline="#000000",
+        )
+
+        # Add value label on top
+        draw_value_label(draw, value, bar_x, bar_y, bar_width)
+
+    # Draw title
+    title_font = ImageFont.load_default(size=16)
+    title_bbox = draw.textbbox((0, 0), title, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_x = x + (usable_width - title_width) // 2
+    title_y = y - 10
+    draw.text((title_x, title_y), title, font=title_font, fill="black")
+
+    # Draw x-axis labels with actual character count ranges
+    label_interval = max(len(data) // 5, 1)
+    min_size = document_stats["min_chunk_size"]
+    bucket_size = document_stats["bucket_size"]
+
+    for i in range(0, len(data), label_interval):
+        bucket_start = min_size + (i * bucket_size)
+        bucket_end = bucket_start + bucket_size
+        label = f"{int(bucket_start)}-{int(bucket_end)}"
+        font = ImageFont.load_default(size=10)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        label_x = (
+            x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
+        )
+        draw.text(
+            (label_x, y + usable_height + 5), label, font=font, fill="black"
+        )
+
+
+def draw_bar_chart(
+    draw: ImageDraw.Draw,
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+    data: List[int],
+    labels: List[str],
+    title: str,
+) -> None:
+    """Draws a bar chart on the given image.
+
+    Args:
+        draw: The ImageDraw object to draw on
+        x: The x coordinate of the top-left corner
+        y: The y coordinate of the top-left corner
+        width: The total width of the chart area
+        height: The total height of the chart area
+        data: List of values for each bar
+        labels: List of labels for each bar
+        title: The title of the chart
+
+    Returns:
+        None
+    """
+    max_value = max(data)
+
+    bar_width = width // len(data)
+    bar_spacing = 10
+
+    for i, value in enumerate(data):
+        bar_height = (value / max_value) * (height - 40)
+        bar_x = x + i * (bar_width + bar_spacing)
+        bar_y = y + height - bar_height - 30
+
+        draw.rectangle(
+            [(bar_x, bar_y), (bar_x + bar_width, y + height - 30)],
+            fill="#00AA00",
+            outline="#000000",
+        )
+
+        draw_value_label(draw, value, bar_x, bar_y, bar_width)
+
+    title_font = ImageFont.load_default(size=16)
+    title_bbox = draw.textbbox((0, 0), title, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_x = x + (width - title_width) // 2
+    title_y = y - 30
+    draw.text((title_x, title_y), title, font=title_font, fill="black")
+
+    for i, label in enumerate(labels):
+        font = ImageFont.load_default(size=10)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        label_x = (
+            x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
+        )
+        draw.text((label_x, y + height - 15), label, font=font, fill="black")
+
+
 @step
 def preprocess_documents(
     documents: str,
-) -> Annotated[str, ArtifactConfig(name="split_chunks")]:
-    """
-    Preprocesses a JSON string of documents by splitting them into chunks.
+) -> Tuple[
+    Annotated[str, ArtifactConfig(name="split_chunks")],
+    Annotated[Image.Image, ArtifactConfig(name="histogram_chart")],
+    Annotated[Image.Image, ArtifactConfig(name="bar_chart")],
+]:
+    """Preprocesses a JSON string of documents by splitting them into chunks.
 
     Args:
         documents (str): A JSON string containing a list of documents to be preprocessed.
 
     Returns:
         Annotated[str, ArtifactConfig(name="split_chunks")]: A JSON string containing a list of preprocessed documents annotated with an ArtifactConfig.
+        Annotated[Image.Image, ArtifactConfig(name="histogram_chart")]: A histogram chart showing the distribution of chunk sizes.
+        Annotated[Image.Image, ArtifactConfig(name="bar_chart")]: A bar chart showing the number of chunks per document section.
 
     Raises:
         Exception: If an error occurs during preprocessing.
@@ -65,17 +523,27 @@ def preprocess_documents(
             },
         )
 
-        # Parse the JSON string into a list of Document objects
-        document_list = [Document(**doc) for doc in json.loads(documents)]
-
-        split_docs = split_documents(
+        document_list: List[Document] = [
+            Document(**doc) for doc in json.loads(documents)
+        ]
+        split_docs: List[Document] = split_documents(
             document_list, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
 
-        # Convert the list of Document objects back to a JSON string
-        split_docs_json = json.dumps([doc.__dict__ for doc in split_docs])
+        stats: Dict[str, Dict[str, int]] = extract_docs_stats(
+            len(document_list), split_docs
+        )
+        histogram_chart: Image.Image = create_histogram(stats)
+        bar_chart: Image.Image = create_bar_chart(stats)
 
-        return split_docs_json
+        log_artifact_metadata(
+            artifact_name="split_chunks",
+            metadata=stats,
+        )
+
+        split_docs_json: str = json.dumps([doc.__dict__ for doc in split_docs])
+
+        return split_docs_json, histogram_chart, bar_chart
     except Exception as e:
         logger.error(f"Error in preprocess_documents: {e}")
         raise
@@ -145,6 +613,7 @@ def index_generator(
     Raises:
         Exception: If an error occurs during the index generation.
     """
+    conn = None
     try:
         conn = get_db_conn()
         with conn.cursor() as cur:

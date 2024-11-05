@@ -154,6 +154,8 @@ def model_trainer(
     eval_results = trainer.evaluate(metric_key_prefix="")
 
     # Log the evaluation results in model control plane
-    log_artifact_metadata(output_name="model", metrics=eval_results)
+    log_artifact_metadata(
+        artifact_name="model", metadata={"metrics": eval_results}
+    )
 
     return model, tokenizer

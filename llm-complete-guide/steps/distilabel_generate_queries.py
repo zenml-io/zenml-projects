@@ -12,10 +12,8 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import os
 from typing import Annotated, Tuple
 
-import distilabel
 from constants import (
     DATASET_NAME_DEFAULT,
     OPENAI_MODEL_GEN,
@@ -23,8 +21,10 @@ from constants import (
 )
 from datasets import Dataset
 from distilabel.llms import OpenAILLM
+from distilabel.pipeline import Pipeline
 from distilabel.steps import LoadDataFromHub
 from distilabel.steps.tasks import GenerateSentencePair
+from utils.openai_utils import get_openai_api_key
 from zenml import step
 
 synthetic_generation_context = """
@@ -41,15 +41,11 @@ def generate_synthetic_queries(
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
-    llm = OpenAILLM(
-        model=OPENAI_MODEL_GEN, api_key=os.getenv("OPENAI_API_KEY")
-    )
+    llm = OpenAILLM(model=OPENAI_MODEL_GEN, api_key=get_openai_api_key())
 
-    with distilabel.pipeline.Pipeline(
-        name="generate_embedding_queries"
-    ) as pipeline:
+    with Pipeline(name="generate_embedding_queries") as pipeline:
         load_dataset = LoadDataFromHub(
-            # num_examples=20,  # use this for demo purposes
+            num_examples=40,  # use this for demo purposes
             output_mappings={"page_content": "anchor"},
         )
         generate_sentence_pair = GenerateSentencePair(
@@ -74,7 +70,7 @@ def generate_synthetic_queries(
                 }
             },
         },
-        # use_cache=False, # comment out for demo
+        use_cache=False,  # comment out for demo
     )
 
     test_distiset = pipeline.run(
@@ -89,7 +85,7 @@ def generate_synthetic_queries(
                 }
             },
         },
-        # use_cache=False, # comment out for demo
+        use_cache=False,  # comment out for demo
     )
 
     train_dataset = train_distiset["default"]["train"]
