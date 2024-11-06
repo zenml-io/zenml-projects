@@ -45,7 +45,7 @@ zenml integration install lightning s3 aws -y
 
 # Initialize and connect to a deployed ZenML server
 zenml init
-zenml connect --url <MYZENMLSERVERURL>
+zenml login <MYZENMLSERVERURL>
 ```
 
 ## Running the Pipeline

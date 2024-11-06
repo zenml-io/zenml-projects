@@ -55,7 +55,7 @@ export WANDB_DISABLED=True
 ### Connect to your deployed ZenML instance
 
 ```bash
-zenml connect --url <INSERT_ZENML_URL_HERE>
+zenml login <INSERT_ZENML_URL_HERE>
 ```
 
 ## Cloud Provider

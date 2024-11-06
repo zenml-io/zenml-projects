@@ -32,7 +32,7 @@ cd label_studio_annotation
 zenml init
 
 # Start the ZenServer to enable dashboard access
-zenml up
+zenml login --local
 ```
 
 You will need to install and start Label Studio locally:

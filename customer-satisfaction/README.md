@@ -46,7 +46,7 @@ In case you already have an account, here is how you connect to a deployed
 server.
 
 ```bash
-zenml connect -u <INSERT_SERVER_URL_HERE>
+zenml login <INSERT_SERVER_URL_HERE>
 ```
 
 To run locally, you need
@@ -55,7 +55,7 @@ but first you must install the optional dependencies for the ZenML server:
 
 ```bash
 pip install zenml["server"]
-zenml up
+zenml login --local
 ```
 
 If you are running the `run_deployment.py` script, you will also need to install
@@ -237,7 +237,7 @@ A browser window should open for you and let you configure a product to run a pr
     zenml integration install mlflow -y
     ```
 
-2. If you are trying to start the ZenML server with `zenml up`, if you're running 
+2. If you are trying to start the ZenML server with `zenml login --local`, if you're running 
 on a Mac, you might want to set the following environment variable in your `.zshrc` 
 file or in the environment in which you're running the pipeline:
 
