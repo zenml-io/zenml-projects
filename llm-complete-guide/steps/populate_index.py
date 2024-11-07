@@ -458,6 +458,9 @@ def draw_bar_chart(
     Returns:
         None
     """
+    if label is None:
+        label = ""
+
     max_value = max(data)
 
     bar_width = width // len(data)
