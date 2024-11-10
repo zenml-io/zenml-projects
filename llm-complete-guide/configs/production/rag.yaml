@@ -37,6 +37,7 @@ steps:
     parameters:
       docs_url: https://docs.zenml.io
       use_dev_set: false
+    enable_cache: true
 #  generate_embeddings:
 #    step_operator: "sagemaker"
 #    settings:
