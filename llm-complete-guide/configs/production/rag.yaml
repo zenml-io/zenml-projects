@@ -36,9 +36,10 @@ steps:
   url_scraper:
     parameters:
       docs_url: https://docs.zenml.io
-  generate_embeddings:
-    step_operator: "gcp_a100"
-    settings:
-      step_operator.vertex:
-        accelerator_count: 1
-        accelerator_type: NVIDIA_TESLA_A100
+      use_dev_set: false
+#  generate_embeddings:
+#    step_operator: "sagemaker"
+#    settings:
+#      step_operator.sagemaker:
+#        accelerator_count: 1
+#        accelerator_type: NVIDIA_TESLA_A100

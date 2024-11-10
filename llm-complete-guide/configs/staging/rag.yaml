@@ -36,3 +36,4 @@ steps:
   url_scraper:
     parameters:
       docs_url: https://docs.zenml.io
+      use_dev_set: false
