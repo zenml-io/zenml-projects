@@ -57,4 +57,4 @@ jobs:
       - name: Run pipeline, create pipeline, configure trigger (Production)
         working-directory: ./llm-complete-guide
         run: |
-          python gh_action_rag.py --no-cache --create-template ----event-source-id  --service-account-id ${{ env.ZENML_SERVICE_ACCOUNT_ID }} --action-id  ${{ env.ZENML_ACTION_ID }} --config production/rag.yaml --zenml-model-version production
+          python gh_action_rag.py --no-cache --create-template --event-source-id  --service-account-id ${{ env.ZENML_SERVICE_ACCOUNT_ID }} --action-id  ${{ env.ZENML_ACTION_ID }} --config production/rag.yaml --zenml-model-version production
