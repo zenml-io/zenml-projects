@@ -172,9 +172,15 @@ def main(
     
     # Read the model version from a file in the root of the repo
     #  called "ZENML_VERSION.txt".    
+    if zenml_model_version == "staging":
+        postfix = "-rc0"
+    else:
+        postfix = ""
+
     if Path("ZENML_VERSION.txt").exists():
         with open("ZENML_VERSION.txt", "r") as file:
             zenml_model_version = file.read().strip()
+            zenml_model_version += postfix
     else:
         raise RuntimeError(
             "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
