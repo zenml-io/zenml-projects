@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
-      ZENML_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
       ZENML_STAGING_STACK : 67166d73-a44e-42f9-b67f-011e9afab9b5 # Set this to your staging stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
@@ -42,7 +42,7 @@ jobs:
         working-directory: ./llm-complete-guide
         run: |
           zenml init
-          zenml connect --url $ZENML_STORE_URL --api-key $ZENML_API_KEY
+          zenml connect --url $ZENML_STORE_URL --api-key $ZENML_STORE_API_KEY
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
