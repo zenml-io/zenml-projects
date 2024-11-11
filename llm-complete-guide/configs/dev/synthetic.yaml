@@ -28,12 +28,3 @@ settings:
       - openai
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
-
-
-# configuration of the Model Control Plane
-model:
-  name: dev_finetuned-zenml-docs-embeddings
-  version: latest
-  license: Apache 2.0
-  description: Finetuned LLM on ZenML docs
-  tags: ["rag", "finetuned"]

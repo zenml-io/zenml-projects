@@ -20,18 +20,6 @@ settings:
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
 
-
-# configuration of the Model Control Plane
-model:
-  name: staging_finetuned-zenml-docs-embeddings
-  license: Apache 2.0
-  description: A fine-tuned embeddings model for ZenML documentation. Used for RAG retrieval.
-  tags: ["rag", "finetuned"]
-  limitations: Only works for ZenML documentation. Not generalizable to other domains. Entirely build with synthetic data. The data is also quite noisy on account of how the chunks were split.
-  trade_offs: Focused on a specific RAG retrieval use case. Not generalizable to other domains.
-  audience: ZenML users
-  use_cases: RAG retrieval
-
 steps:
   url_scraper:
     parameters:

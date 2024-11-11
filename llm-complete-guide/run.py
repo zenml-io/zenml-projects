@@ -169,7 +169,6 @@ def main(
             }
         },
     }
-
     # Create ZenML model
     zenml_model = Model(
         name=zenml_model_name,
@@ -177,6 +176,10 @@ def main(
         license="Apache 2.0",
         description="RAG application for ZenML docs",
         tags=["rag", "finetuned", "chatbot"],
+        limitations="Only works for ZenML documentation. Not generalizable to other domains. Entirely build with synthetic data. The data is also quite noisy on account of how the chunks were split.",
+        trade_offs="Focused on a specific RAG retrieval use case. Not generalizable to other domains.",
+        audience="ZenML users",
+        use_cases="RAG retrieval",
     )
 
     # Handle config path
