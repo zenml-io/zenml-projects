@@ -461,8 +461,8 @@ def draw_bar_chart(
     Returns:
         None
     """
-    if label is None:
-        label = ""
+    if labels is None:
+        labels = []
 
     max_value = max(data)
 

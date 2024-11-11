@@ -40,6 +40,7 @@ def url_scraper(
     """
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
+    use_dev_set = False
     if use_dev_set:
 
         docs_urls = [
