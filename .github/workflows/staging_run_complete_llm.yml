@@ -52,4 +52,4 @@ jobs:
       - name: Run pipeline (Staging)
         working-directory: ./llm-complete-guide
         run: |
-          python gh_action_rag.py --no-cache --config staging/rag.yaml
+          python gh_action_rag.py --no-cache --config staging/rag.yaml --zenml-model-version staging
