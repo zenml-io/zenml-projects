@@ -38,7 +38,7 @@ ZenML LLM Complete - Rag Pipeline
     "--no-cache",
     "no_cache",
     is_flag=True,
-    default=False,
+    default=True,
     help="Disable cache.",
 )
 @click.option(
@@ -81,7 +81,7 @@ ZenML LLM Complete - Rag Pipeline
     required=False,
 )
 def main(
-    no_cache: bool = False,
+    no_cache: bool = True,
     config: Optional[str] = "rag_local_dev.yaml",
     create_template: bool = False,
     service_account_id: Optional[str] = None,
