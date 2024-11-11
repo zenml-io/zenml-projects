@@ -103,10 +103,10 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="The name of the ZenML model to use.",
 )
 @click.option(
-    "--zenml-model-version-name",
-    "zenml_model_version_name",
+    "--zenml-model-version",
+    "zenml_model_version",
     required=False,
-    default="latest",
+    default=None,
     help="The name of the ZenML model version to use.",
 )
 @click.option(
@@ -141,7 +141,7 @@ def main(
     query_text: Optional[str] = None,
     model: str = OPENAI_MODEL,
     zenml_model_name: str = "zenml-docs-qa-chatbot",
-    zenml_model_version_name: str = "latest",
+    zenml_model_version: str = None,
     no_cache: bool = False,
     use_argilla: bool = False,
     use_reranker: bool = False,
@@ -154,9 +154,9 @@ def main(
         query_text (Optional[str]): Query text when using 'query' command
         model (str): The model to use for the completion
         zenml_model_name (str): The name of the ZenML model to use
-        zenml_model_version_name (str): The name of the ZenML model version to use
+        zenml_model_version (str): The name of the ZenML model version to use
         no_cache (bool): If True, cache will be disabled
-        use_argilla (bool): If True, Argilla annotations will be used
+        use_argilla (bool): If True, Argilla an notations will be used
         use_reranker (bool): If True, rerankers will be used
         config (Optional[str]): Path to config file
     """
@@ -169,10 +169,21 @@ def main(
             }
         },
     }
+    
+    # Read the model version from a file in the root of the repo
+    #  called "ZENML_VERSION.txt".    
+    if Path("ZENML_VERSION.txt").exists():
+        with open("ZENML_VERSION.txt", "r") as file:
+            zenml_model_version = file.read().strip()
+    else:
+        raise RuntimeError(
+            "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
+        )
+
     # Create ZenML model
     zenml_model = Model(
         name=zenml_model_name,
-        version=zenml_model_version_name,
+        version=zenml_model_version,
         license="Apache 2.0",
         description="RAG application for ZenML docs",
         tags=["rag", "finetuned", "chatbot"],

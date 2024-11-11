@@ -74,7 +74,7 @@ ZenML LLM Complete - Rag Pipeline
 @click.option(
     "--zenml-model-version",
     "zenml_model_version",
-    default="latest",
+    default=None,
     help="Specify a ZenML model version",
     required=False,
 )
@@ -85,9 +85,9 @@ def main(
     service_account_id: Optional[str] = None,
     event_source_id: Optional[str] = None,
     zenml_model_name: Optional[str] = None,
-    zenml_model_version: Optional[str] = "latest",
+    zenml_model_version: Optional[str] = None,
 ):
-    """
+    """ 
     Executes the pipeline to train a basic RAG model.
 
     Args:
@@ -105,6 +105,16 @@ def main(
 
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
+
+    # Read the model version from a file in the root of the repo
+    #  called "ZENML_VERSION.txt".    
+    if Path("ZENML_VERSION.txt").exists():
+        with open("ZENML_VERSION.txt", "r") as file:
+            zenml_model_version = file.read().strip()
+    else:
+        raise RuntimeError(
+            "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
+        )
 
     zenml_model = Model(
         name=zenml_model_name,
