@@ -39,8 +39,8 @@ jobs:
         working-directory: ./llm-complete-guide
         run: |
           pip3 install uv
-          uv pip3 install -r requirements.txt
-          uv pip3 install -r requirements-argilla.txt
+          uv pip install -r requirements.txt
+          uv pip install -r requirements-argilla.txt
           zenml integration install gcp -y --uv
 
       - name: Connect to ZenML server
