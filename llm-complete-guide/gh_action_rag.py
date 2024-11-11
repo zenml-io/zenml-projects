@@ -94,7 +94,6 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         config (str): The path to the configuration file.
         create_template (bool): If `True`, a run template will be created.
-        action_id (str): The action ID.
         service_account_id (str): The service account ID.
         event_source_id (str): The event source ID.
         zenml_model_name (str): The ZenML model name.
