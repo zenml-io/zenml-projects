@@ -19,6 +19,7 @@ settings:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
+    python_package_installer: "uv"
 
 steps:
   url_scraper:

@@ -13,3 +13,4 @@ settings:
       - psycopg2-binary
       - tiktoken
       - pygithub
+    python_package_installer: "uv"
