@@ -35,7 +35,10 @@ from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
+from zenml.metadata.metadata_types import Uri
+from zenml import Client
+from constants import SECRET_NAME
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -690,3 +693,47 @@ def index_generator(
     finally:
         if conn:
             conn.close()
+
+        # Log  the model metadata
+        prompt = """
+        You are a friendly chatbot. \
+        You can answer questions about ZenML, its features and its use cases. \
+        You respond in a concise, technically credible tone. \
+        You ONLY use the context from the ZenML documentation to provide relevant
+        answers. \
+        You do not make up answers or provide opinions that you don't have
+        information to support. \
+        If you are unsure or don't know, just say so. \
+        """
+
+        client = Client()
+        CONNECTION_DETAILS = {
+            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+            "password": "**********",
+            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+
+        log_model_metadata(
+            metadata={
+                "embeddings": {
+                    "model": EMBEDDINGS_MODEL,
+                    "dimensionality": EMBEDDING_DIMENSIONALITY,
+                    "model_url": Uri(
+                        f"https://huggingface.co/{EMBEDDINGS_MODEL}"
+                    ),
+                },
+                "prompt": {
+                    "content": prompt,
+                },
+                "vector_store": {
+                    "name": "pgvector",
+                    "connection_details": CONNECTION_DETAILS,
+                    # TODO: Hard-coded for now
+                    "database_url": Uri(
+                        "https://supabase.com/dashboard/project/rkoiacgkeiwpwceahtlp/editor/29505?schema=public"
+                    ),
+                },
+            },
+        )
