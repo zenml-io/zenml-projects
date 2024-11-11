@@ -11,11 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-staging-workflow:
+  run-production-workflow:
     runs-on: ubuntu-latest
     env:
-      ZENML_HOST: ${{ secrets.ZENML_PROJECTS_HOST }}
-      ZENML_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
+      ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
       ZENML_PRODUCTION_STACK: b3951d43-0fb2-4d32-89c5-3399374e7c7e # Set this to your production stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
@@ -38,15 +38,16 @@ jobs:
       - name: Install requirements
         working-directory: ./llm-complete-guide
         run: |
-          pip3 install -r requirements.txt
-          pip3 install -r requirements-argilla.txt
-          zenml integration install gcp -y
+          pip3 install uv
+          uv pip install -r requirements.txt --system
+          uv pip install -r requirements-argilla.txt --system
+          zenml integration install gcp -y --uv
 
       - name: Connect to ZenML server
         working-directory: ./llm-complete-guide
         run: |
           zenml init
-          zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
+          zenml connect --url $ZENML_STORE_URL --api-key $ZENML_STORE_API_KEY
 
       - name: Set stack (Production)
         working-directory: ./llm-complete-guide
@@ -56,4 +57,4 @@ jobs:
       - name: Run pipeline, create pipeline, configure trigger (Production)
         working-directory: ./llm-complete-guide
         run: |
-          python gh_action_rag.py --no-cache --create-template ----event-source-id  --service-account-id ${{ env.ZENML_SERVICE_ACCOUNT_ID }} --action-id  ${{ env.ZENML_ACTION_ID }} --config rag_gcp.yaml
+          python gh_action_rag.py --no-cache --create-template ----event-source-id  --service-account-id ${{ env.ZENML_SERVICE_ACCOUNT_ID }} --action-id  ${{ env.ZENML_ACTION_ID }} --config production/rag.yaml --zenml-model-version production

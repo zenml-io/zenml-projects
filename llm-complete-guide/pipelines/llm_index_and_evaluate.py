@@ -14,20 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from litellm import config_path
 
-from steps.populate_index import (
-    generate_embeddings,
-    index_generator,
-    preprocess_documents,
-)
-from steps.url_scraper import url_scraper
-from steps.web_url_loader import web_url_loader
+from pipelines import llm_basic_rag, llm_eval
 from zenml import pipeline
 
 
 @pipeline
-def llm_basic_rag() -> None:
+def llm_index_and_evaluate() -> None:
     """Executes the pipeline to train a basic RAG model.
 
     This function performs the following steps:
@@ -36,9 +29,7 @@ def llm_basic_rag() -> None:
     3. Preprocesses the loaded documents using the preprocess_documents function.
     4. Generates embeddings for the preprocessed documents using the generate_embeddings function.
     5. Generates an index for the embeddings and documents using the index_generator function.
+    6. Evaluates the RAG pipeline using the llm_eval pipeline.
     """
-    urls = url_scraper()
-    docs = web_url_loader(urls=urls)
-    processed_docs, _, _ = preprocess_documents(documents=docs)
-    embedded_docs = generate_embeddings(split_documents=processed_docs)
-    index_generator(documents=embedded_docs)
+    llm_basic_rag()
+    llm_eval(after="index_generator")

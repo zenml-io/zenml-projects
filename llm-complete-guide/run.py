@@ -13,8 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import warnings
+from pathlib import Path
 
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
@@ -48,9 +48,11 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
     rag_deployment,
+    llm_index_and_evaluate,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
+from zenml import Model
 
 logger = get_logger(__name__)
 
@@ -62,33 +64,21 @@ ZenML LLM Complete Guide project CLI v0.1.0.
 Run the ZenML LLM RAG complete guide project pipelines.
 """
 )
-@click.option(
-    "--rag",
-    "rag",
-    is_flag=True,
-    default=False,
-    help="Whether to run the pipeline that creates the dataset.",
-)
-@click.option(
-    "--deploy",
-    "deploy",
-    is_flag=True,
-    default=False,
-    help="Whether to deploy a Gradio app to serve the RAG functionality.",
-)
-@click.option(
-    "--evaluation",
-    "evaluation",
-    is_flag=True,
-    default=False,
-    help="Whether to run the evaluation pipeline.",
-)
-@click.option(
-    "--query",
-    "query",
-    type=str,
-    required=False,
-    help="Query the RAG model.",
+@click.argument(
+    "pipeline",
+    type=click.Choice(
+        [
+            "rag",
+            "deploy",
+            "evaluation",
+            "query",
+            "synthetic",
+            "embeddings",
+            "chunks",
+            "basic_rag",
+        ]
+    ),
+    required=True,
 )
 @click.option(
     "--model",
@@ -106,6 +96,20 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="The model to use for the completion.",
 )
 @click.option(
+    "--zenml-model-name",
+    "zenml_model_name",
+    default="zenml-docs-qa-chatbot",
+    required=False,
+    help="The name of the ZenML model to use.",
+)
+@click.option(
+    "--zenml-model-version",
+    "zenml_model_version",
+    required=False,
+    default=None,
+    help="The name of the ZenML model version to use.",
+)
+@click.option(
     "--no-cache",
     "no_cache",
     is_flag=True,
@@ -113,39 +117,18 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Disable cache.",
 )
 @click.option(
-    "--synthetic",
-    "synthetic",
-    is_flag=True,
-    default=False,
-    help="Run the synthetic data pipeline.",
-)
-@click.option(
-    "--embeddings",
-    "embeddings",
-    is_flag=True,
-    default=False,
-    help="Fine-tunes embeddings.",
-)
-@click.option(
     "--argilla",
-    "argilla",
+    "use_argilla",
     is_flag=True,
     default=False,
     help="Uses Argilla annotations.",
 )
 @click.option(
     "--reranked",
-    "reranked",
+    "use_reranker",
     is_flag=True,
     default=False,
     help="Whether to use the reranker.",
-)
-@click.option(
-    "--chunks",
-    "chunks",
-    is_flag=True,
-    default=False,
-    help="Generate chunks for Hugging Face dataset",
 )
 @click.option(
     "--config",
@@ -154,108 +137,140 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="Path to config",
 )
 def main(
-    rag: bool = False,
-    deploy: bool = False,
-    evaluation: bool = False,
-    query: Optional[str] = None,
+    pipeline: str,
+    query_text: Optional[str] = None,
     model: str = OPENAI_MODEL,
+    zenml_model_name: str = "zenml-docs-qa-chatbot",
+    zenml_model_version: str = None,
     no_cache: bool = False,
-    synthetic: bool = False,
-    embeddings: bool = False,
-    argilla: bool = False,
-    reranked: bool = False,
-    chunks: bool = False,
-    config: str = None,
+    use_argilla: bool = False,
+    use_reranker: bool = False,
+    config: Optional[str] = None,
 ):
     """Main entry point for the pipeline execution.
 
     Args:
-        rag (bool): If `True`, the basic RAG pipeline will be run.
-        deploy (bool): If `True`, a Gradio app will be deployed to serve the RAG functionality.
-        evaluation (bool): If `True`, the evaluation pipeline will be run.
-        query (Optional[str]): If provided, the RAG model will be queried with this string.
-        model (str): The model to use for the completion. Default is OPENAI_MODEL.
-        no_cache (bool): If `True`, cache will be disabled.
-        synthetic (bool): If `True`, the synthetic data pipeline will be run.
-        embeddings (bool): If `True`, the embeddings will be fine-tuned.
-        argilla (bool): If `True`, the Argilla annotations will be used.
-        chunks (bool): If `True`, the chunks pipeline will be run.
-        reranked (bool): If `True`, rerankers will be used
-        config (str): Path to config
+        pipeline (str): The pipeline to execute (rag, deploy, evaluation, etc.)
+        query_text (Optional[str]): Query text when using 'query' command
+        model (str): The model to use for the completion
+        zenml_model_name (str): The name of the ZenML model to use
+        zenml_model_version (str): The name of the ZenML model version to use
+        no_cache (bool): If True, cache will be disabled
+        use_argilla (bool): If True, Argilla an notations will be used
+        use_reranker (bool): If True, rerankers will be used
+        config (Optional[str]): Path to config file
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
         "enable_cache": not no_cache,
         "steps": {
             "prepare_load_data": {
-                "parameters": {"use_argilla_annotations": argilla}
+                "parameters": {"use_argilla_annotations": use_argilla}
             }
         },
     }
+    
+    # Read the model version from a file in the root of the repo
+    #  called "ZENML_VERSION.txt".    
+    if zenml_model_version == "staging":
+        postfix = "-rc0"
+    elif zenml_model_version == "production":
+        postfix = ""
+    else:
+        postfix = "-dev"
 
-    if query:
-        response = process_input_with_retrieval(
-            query, model=model, use_reranking=reranked
+    if Path("ZENML_VERSION.txt").exists():
+        with open("ZENML_VERSION.txt", "r") as file:
+            zenml_model_version = file.read().strip()
+            zenml_model_version += postfix
+    else:
+        raise RuntimeError(
+            "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
         )
 
-        # print rich markdown to the console
+    # Create ZenML model
+    zenml_model = Model(
+        name=zenml_model_name,
+        version=zenml_model_version,
+        license="Apache 2.0",
+        description="RAG application for ZenML docs",
+        tags=["rag", "finetuned", "chatbot"],
+        limitations="Only works for ZenML documentation. Not generalizable to other domains. Entirely build with synthetic data. The data is also quite noisy on account of how the chunks were split.",
+        trade_offs="Focused on a specific RAG retrieval use case. Not generalizable to other domains.",
+        audience="ZenML users",
+        use_cases="RAG retrieval",
+    )
+
+    # Handle config path
+    config_path = None
+    if config:
+        config_path = Path(__file__).parent / "configs" / config
+
+    # Set default config paths based on pipeline
+    if not config_path:
+        config_mapping = {
+            "basic_rag": "dev/rag.yaml",
+            "rag": "dev/rag.yaml",
+            "evaluation": "dev/rag_eval.yaml",
+            "synthetic": "dev/synthetic.yaml",
+            "embeddings": "dev/embeddings.yaml",
+        }
+        if pipeline in config_mapping:
+            config_path = (
+                Path(__file__).parent / "configs" / config_mapping[pipeline]
+            )
+
+    # Execute query
+    if pipeline == "query":
+        if not query_text:
+            raise click.UsageError(
+                "--query-text is required when using 'query' command"
+            )
+        response = process_input_with_retrieval(
+            query_text, model=model, use_reranking=use_reranker
+        )
         console = Console()
         md = Markdown(response)
         console.print(md)
+        return
 
-    config_path = None
-    if config:
-        config_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "configs",
-            config,
-        )
-
-    if rag:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "rag_local_dev.yaml",
-            )
-        llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
-        if deploy:
+    # Execute the appropriate pipeline
+    if pipeline == "basic_rag":
+        llm_basic_rag.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
+        # Also deploy if config is provided
+        if config:
             rag_deployment.with_options(
                 config_path=config_path, **pipeline_args
             )()
-    if deploy:
-        rag_deployment.with_options(**pipeline_args)()
-    if evaluation:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "rag_eval.yaml",
-            )
+
+    if pipeline == "rag":
+        llm_index_and_evaluate.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
+
+    elif pipeline == "deploy":
+        rag_deployment.with_options(model=zenml_model, **pipeline_args)()
+
+    elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
-        llm_eval.with_options(config_path=config_path)()
-    if synthetic:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "synthetic.yaml",
-            )
+        llm_eval.with_options(model=zenml_model, config_path=config_path)()
+
+    elif pipeline == "synthetic":
         generate_synthetic_data.with_options(
-            config_path=config_path, **pipeline_args
+            model=zenml_model, config_path=config_path, **pipeline_args
         )()
-    if embeddings:
-        if not config_path:
-            config_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "configs",
-                "embeddings.yaml",
-            )
+
+    elif pipeline == "embeddings":
         finetune_embeddings.with_options(
-            config_path=config_path, **embeddings_finetune_args
+            model=zenml_model, config_path=config_path, **embeddings_finetune_args
         )()
-    if chunks:
-        generate_chunk_questions.with_options(**pipeline_args)()
+
+    elif pipeline == "chunks":
+        generate_chunk_questions.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
 
 
 if __name__ == "__main__":

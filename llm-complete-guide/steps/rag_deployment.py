@@ -2,6 +2,8 @@ import os
 import webbrowser
 
 from huggingface_hub import HfApi
+
+from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
 from zenml.client import Client
@@ -9,9 +11,8 @@ from zenml.integrations.registry import integration_registry
 
 secret = Client().get_secret("llm-complete")
 
-ZENML_API_TOKEN = secret.secret_values["zenml_api_token"]
-ZENML_STORE_URL = secret.secret_values["zenml_store_url"]
-HF_TOKEN = os.getenv("HF_TOKEN")
+ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
+ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
 
@@ -50,7 +51,7 @@ def predict(message, history):
 
 
 def upload_files_to_repo(
-    api, repo_id: str, files_mapping: dict, token: str = HF_TOKEN
+    api, repo_id: str, files_mapping: dict, token: str
 ):
     """Upload multiple files to a Hugging Face repository
 
@@ -89,7 +90,7 @@ def gradio_rag_deployment() -> None:
         space_sdk="gradio",
         private=True,
         exist_ok=True,
-        token=HF_TOKEN,
+        token=get_hf_token(),
     )
     api.add_space_secret(
         repo_id=hf_repo_id,
@@ -112,6 +113,6 @@ def gradio_rag_deployment() -> None:
         hf_repo_requirements: "requirements.txt",
     }
 
-    upload_files_to_repo(api, hf_repo_id, files_to_upload, HF_TOKEN)
+    upload_files_to_repo(api, hf_repo_id, files_to_upload, get_hf_token())
 
     webbrowser.open(f"https://huggingface.co/spaces/{hf_repo_id}")

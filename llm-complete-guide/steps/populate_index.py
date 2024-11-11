@@ -35,7 +35,10 @@ from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
+from zenml.metadata.metadata_types import Uri
+from zenml.client import Client
+from constants import SECRET_NAME
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -443,26 +446,15 @@ def draw_bar_chart(
     labels: List[str],
     title: str,
 ) -> None:
-    """Draws a bar chart on the given image.
-
-    Args:
-        draw: The ImageDraw object to draw on
-        x: The x coordinate of the top-left corner
-        y: The y coordinate of the top-left corner
-        width: The total width of the chart area
-        height: The total height of the chart area
-        data: List of values for each bar
-        labels: List of labels for each bar
-        title: The title of the chart
-
-    Returns:
-        None
-    """
-    if label is None:
-        label = ""
-
+    """Draws a bar chart on the given image."""
+    # Ensure labels is a list, even if empty
+    labels = labels or []
+    
+    # Skip drawing if no data
+    if not data:
+        return
+        
     max_value = max(data)
-
     bar_width = width // len(data)
     bar_spacing = 10
 
@@ -486,14 +478,15 @@ def draw_bar_chart(
     title_y = y - 30
     draw.text((title_x, title_y), title, font=title_font, fill="black")
 
-    for i, label in enumerate(labels):
-        font = ImageFont.load_default(size=10)
-        bbox = draw.textbbox((0, 0), label, font=font)
-        label_width = bbox[2] - bbox[0]
-        label_x = (
-            x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
-        )
-        draw.text((label_x, y + height - 15), label, font=font, fill="black")
+    # Only try to draw labels if they exist
+    if labels:
+        for i, label in enumerate(labels):
+            if label is not None:  # Add null check for individual labels
+                font = ImageFont.load_default(size=10)
+                bbox = draw.textbbox((0, 0), str(label), font=font)  # Convert to string
+                label_width = bbox[2] - bbox[0]
+                label_x = x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
+                draw.text((label_x, y + height - 15), str(label), font=font, fill="black")
 
 
 @step
@@ -693,3 +686,47 @@ def index_generator(
     finally:
         if conn:
             conn.close()
+
+        # Log  the model metadata
+        prompt = """
+        You are a friendly chatbot. \
+        You can answer questions about ZenML, its features and its use cases. \
+        You respond in a concise, technically credible tone. \
+        You ONLY use the context from the ZenML documentation to provide relevant
+        answers. \
+        You do not make up answers or provide opinions that you don't have
+        information to support. \
+        If you are unsure or don't know, just say so. \
+        """
+
+        client = Client()
+        CONNECTION_DETAILS = {
+            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+            "password": "**********",
+            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+
+        log_model_metadata(
+            metadata={
+                "embeddings": {
+                    "model": EMBEDDINGS_MODEL,
+                    "dimensionality": EMBEDDING_DIMENSIONALITY,
+                    "model_url": Uri(
+                        f"https://huggingface.co/{EMBEDDINGS_MODEL}"
+                    ),
+                },
+                "prompt": {
+                    "content": prompt,
+                },
+                "vector_store": {
+                    "name": "pgvector",
+                    "connection_details": CONNECTION_DETAILS,
+                    # TODO: Hard-coded for now
+                    "database_url": Uri(
+                        "https://supabase.com/dashboard/project/rkoiacgkeiwpwceahtlp/editor/29505?schema=public"
+                    ),
+                },
+            },
+        )
