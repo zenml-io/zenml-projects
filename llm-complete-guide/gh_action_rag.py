@@ -99,6 +99,8 @@ def main(
         zenml_model_name (str): The ZenML model name.
         zenml_model_version (str): The ZenML model version.
     """
+    pipeline_args = {"enable_cache": not no_cache}
+
     client = Client()
     config_path = Path(__file__).parent / "configs" / config
 
@@ -154,7 +156,7 @@ def main(
                 name_id_or_prefix="LLM Complete (production)",
                 allow_name_prefix_match=True,
             )
-        except ZenKeyError:
+        except KeyError:
             if not event_source_id:
                 raise RuntimeError(
                     "An event source is required for this workflow."
