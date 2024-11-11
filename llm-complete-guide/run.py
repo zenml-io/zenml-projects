@@ -48,6 +48,7 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
     rag_deployment,
+    llm_index_and_evaluate,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
@@ -73,6 +74,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
             "synthetic",
             "embeddings",
             "chunks",
+            "basic_rag",
         ]
     ),
     required=True,
@@ -157,6 +159,7 @@ def main(
     # Set default config paths based on pipeline
     if not config_path:
         config_mapping = {
+            "basic_rag": "dev/rag.yaml",
             "rag": "dev/rag.yaml",
             "evaluation": "dev/rag_eval.yaml",
             "synthetic": "dev/synthetic.yaml",
@@ -182,13 +185,16 @@ def main(
         return
 
     # Execute the appropriate pipeline
-    if pipeline == "rag":
+    if pipeline == "basic_rag":
         llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
         # Also deploy if config is provided
         if config:
             rag_deployment.with_options(
                 config_path=config_path, **pipeline_args
             )()
+
+    if pipeline == "rag":
+        llm_index_and_evaluate.with_options(config_path=config_path, **pipeline_args)()
 
     elif pipeline == "deploy":
         rag_deployment.with_options(**pipeline_args)()
