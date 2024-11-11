@@ -94,7 +94,7 @@ def main(
         )()
         # create new run template
         rt = client.create_run_template(
-            name=f"production-llm-complete-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
+            name=f"zenml-docs-qa-rag-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
             deployment_id=run.deployment_id,
         )
 
