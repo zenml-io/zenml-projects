@@ -20,7 +20,7 @@ settings:
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
     python_package_installer: "uv"
-    parent_image: "339712793861.dkr.ecr.eu-central-1.amazonaws.com/zenml/llm_index_and_evaluate-orchestrator:bceb36ef0ab6"
+    parent_image: "339712793861.dkr.ecr.eu-central-1.amazonaws.com/zenml:llm_index_and_evaluate-orchestrator"
     skip_build: true
 steps:
   url_scraper:
