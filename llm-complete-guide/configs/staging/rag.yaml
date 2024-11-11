@@ -15,6 +15,7 @@ settings:
       - ratelimit
       - rerankers
       - pygithub
+      - rerankers[flashrank]
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
@@ -22,6 +23,7 @@ settings:
     python_package_installer: "uv"
     parent_image: "339712793861.dkr.ecr.eu-central-1.amazonaws.com/zenml:llm_index_and_evaluate-orchestrator"
     skip_build: true
+
 steps:
   url_scraper:
     parameters:

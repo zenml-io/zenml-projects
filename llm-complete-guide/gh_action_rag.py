@@ -96,12 +96,13 @@ def main(
         no_cache (bool): If `True`, cache will be disabled.
         config (str): The path to the configuration file.
         create_template (bool): If `True`, a run template will be created.
-        action_id (str): The action ID.
         service_account_id (str): The service account ID.
         event_source_id (str): The event source ID.
         zenml_model_name (str): The ZenML model name.
         zenml_model_version (str): The ZenML model version.
     """
+    pipeline_args = {"enable_cache": not no_cache}
+
     client = Client()
     config_path = Path(__file__).parent / "configs" / config
 
@@ -139,7 +140,7 @@ def main(
     )
 
     if create_template:
-        # run pipeline
+        # Run pipeline
         run = llm_index_and_evaluate.with_options(
             model=zenml_model,
             config_path=str(config_path),
@@ -157,7 +158,7 @@ def main(
                 name_id_or_prefix="LLM Complete (production)",
                 allow_name_prefix_match=True,
             )
-        except ZenKeyError:
+        except KeyError:
             if not event_source_id:
                 raise RuntimeError(
                     "An event source is required for this workflow."

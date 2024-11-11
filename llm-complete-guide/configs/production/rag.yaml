@@ -15,6 +15,7 @@ settings:
       - ratelimit
       - rerankers
       - pygithub
+      - rerankers[flashrank]
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
