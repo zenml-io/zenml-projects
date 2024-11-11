@@ -21,6 +21,8 @@ from uuid import UUID
 
 import click
 import yaml
+from zenml.enums import PluginSubType
+
 from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
 from zenml.client import Client
 from zenml import Model
@@ -175,6 +177,8 @@ def main(
                 },
                 service_account_id=service_account_id,
                 auth_window=0,
+                flavor="builtin",
+                action_type=PluginSubType.PIPELINE_RUN
             ).id
             client.create_trigger(
                 name="Production Trigger LLM-Complete",
