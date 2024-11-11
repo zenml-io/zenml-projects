@@ -136,7 +136,7 @@ def main(
     )
 
     if create_template:
-        # run pipeline
+        # Run pipeline
         run = llm_index_and_evaluate.with_options(
             model=zenml_model,
             config_path=str(config_path),
