@@ -21,7 +21,7 @@ from uuid import UUID
 
 import click
 import yaml
-from pipelines.llm_basic_rag import llm_basic_rag
+from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
 from zenml.client import Client
 from zenml.exceptions import ZenKeyError
 
@@ -89,7 +89,7 @@ def main(
 
     if create_template:
         # run pipeline
-        run = llm_basic_rag.with_options(
+        run = llm_index_and_evaluate.with_options(
             config_path=str(config_path), enable_cache=not no_cache
         )()
         # create new run template
@@ -144,7 +144,7 @@ def main(
             )
 
     else:
-        llm_basic_rag.with_options(
+        llm_index_and_evaluate.with_options(
             config_path=str(config_path), enable_cache=not no_cache
         )()
 
