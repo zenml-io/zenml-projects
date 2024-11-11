@@ -446,26 +446,15 @@ def draw_bar_chart(
     labels: List[str],
     title: str,
 ) -> None:
-    """Draws a bar chart on the given image.
-
-    Args:
-        draw: The ImageDraw object to draw on
-        x: The x coordinate of the top-left corner
-        y: The y coordinate of the top-left corner
-        width: The total width of the chart area
-        height: The total height of the chart area
-        data: List of values for each bar
-        labels: List of labels for each bar
-        title: The title of the chart
-
-    Returns:
-        None
-    """
-    if labels is None:
-        labels = []
-
+    """Draws a bar chart on the given image."""
+    # Ensure labels is a list, even if empty
+    labels = labels or []
+    
+    # Skip drawing if no data
+    if not data:
+        return
+        
     max_value = max(data)
-
     bar_width = width // len(data)
     bar_spacing = 10
 
@@ -489,14 +478,15 @@ def draw_bar_chart(
     title_y = y - 30
     draw.text((title_x, title_y), title, font=title_font, fill="black")
 
-    for i, label in enumerate(labels):
-        font = ImageFont.load_default(size=10)
-        bbox = draw.textbbox((0, 0), label, font=font)
-        label_width = bbox[2] - bbox[0]
-        label_x = (
-            x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
-        )
-        draw.text((label_x, y + height - 15), label, font=font, fill="black")
+    # Only try to draw labels if they exist
+    if labels:
+        for i, label in enumerate(labels):
+            if label is not None:  # Add null check for individual labels
+                font = ImageFont.load_default(size=10)
+                bbox = draw.textbbox((0, 0), str(label), font=font)  # Convert to string
+                label_width = bbox[2] - bbox[0]
+                label_x = x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
+                draw.text((label_x, y + height - 15), str(label), font=font, fill="black")
 
 
 @step
