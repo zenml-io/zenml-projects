@@ -67,7 +67,7 @@ ZenML LLM Complete - Rag Pipeline
 @click.option(
     "--zenml-model-name",
     "zenml_model_name",
-    default=None,
+    default="zenml-docs-qa-rag",
     help="Specify a ZenML model name",
     required=False,
 )
@@ -84,7 +84,7 @@ def main(
     create_template: bool = False,
     service_account_id: Optional[str] = None,
     event_source_id: Optional[str] = None,
-    zenml_model_name: Optional[str] = None,
+    zenml_model_name: Optional[str] = "zenml-docs-qa-rag",
     zenml_model_version: Optional[str] = None,
 ):
     """ 
