@@ -110,8 +110,11 @@ def main(
     #  called "ZENML_VERSION.txt". 
     if zenml_model_version == "staging":
         postfix = "-rc0"
+    elif zenml_model_version == "production":
+        postfix = ""
     else:
-        postfix = ""   
+        postfix = "-dev"
+  
     if Path("ZENML_VERSION.txt").exists():
         with open("ZENML_VERSION.txt", "r") as file:
             zenml_model_version = file.read().strip()

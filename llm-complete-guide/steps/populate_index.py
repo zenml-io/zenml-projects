@@ -37,7 +37,7 @@ from structures import Document
 from utils.llm_utils import get_db_conn, split_documents
 from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
 from zenml.metadata.metadata_types import Uri
-from zenml import Client
+from zenml.client import Client
 from constants import SECRET_NAME
 
 logging.basicConfig(level=logging.INFO)
