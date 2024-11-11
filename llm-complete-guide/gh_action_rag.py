@@ -67,7 +67,7 @@ ZenML LLM Complete - Rag Pipeline
 @click.option(
     "--zenml-model-name",
     "zenml_model_name",
-    default="zenml-docs-qa-rag",
+    default="zenml-docs-qa-chatbot",
     help="Specify a ZenML model name",
     required=False,
 )
@@ -145,7 +145,7 @@ def main(
         )()
         # create new run template
         rt = client.create_run_template(
-            name=f"zenml-docs-qa-rag-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
+            name=f"zenml-docs-qa-chatbot-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
             deployment_id=run.deployment_id,
         )
 
