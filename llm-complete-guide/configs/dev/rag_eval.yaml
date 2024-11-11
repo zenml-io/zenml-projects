@@ -20,3 +20,4 @@ model:
   license: Apache 2.0
   description: Finetuned LLM on ZenML docs
   tags: ["rag", "finetuned"]
+  version: latest
