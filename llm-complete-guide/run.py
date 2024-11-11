@@ -52,6 +52,7 @@ from pipelines import (
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
+from zenml import Model
 
 logger = get_logger(__name__)
 
@@ -95,6 +96,20 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="The model to use for the completion.",
 )
 @click.option(
+    "--zenml-model-name",
+    "zenml_model_name",
+    default="zenml-docs-qa-chatbot",
+    required=False,
+    help="The name of the ZenML model to use.",
+)
+@click.option(
+    "--zenml-model-version-name",
+    "zenml_model_version_name",
+    required=False,
+    default="latest",
+    help="The name of the ZenML model version to use.",
+)
+@click.option(
     "--no-cache",
     "no_cache",
     is_flag=True,
@@ -125,6 +140,8 @@ def main(
     pipeline: str,
     query_text: Optional[str] = None,
     model: str = OPENAI_MODEL,
+    zenml_model_name: str = "zenml-docs-qa-chatbot",
+    zenml_model_version_name: str = "latest",
     no_cache: bool = False,
     use_argilla: bool = False,
     use_reranker: bool = False,
@@ -136,6 +153,8 @@ def main(
         pipeline (str): The pipeline to execute (rag, deploy, evaluation, etc.)
         query_text (Optional[str]): Query text when using 'query' command
         model (str): The model to use for the completion
+        zenml_model_name (str): The name of the ZenML model to use
+        zenml_model_version_name (str): The name of the ZenML model version to use
         no_cache (bool): If True, cache will be disabled
         use_argilla (bool): If True, Argilla annotations will be used
         use_reranker (bool): If True, rerankers will be used
@@ -150,6 +169,15 @@ def main(
             }
         },
     }
+
+    # Create ZenML model
+    zenml_model = Model(
+        name=zenml_model_name,
+        version=zenml_model_version_name,
+        license="Apache 2.0",
+        description="RAG application for ZenML docs",
+        tags=["rag", "finetuned", "chatbot"],
+    )
 
     # Handle config path
     config_path = None
@@ -186,7 +214,9 @@ def main(
 
     # Execute the appropriate pipeline
     if pipeline == "basic_rag":
-        llm_basic_rag.with_options(config_path=config_path, **pipeline_args)()
+        llm_basic_rag.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
         # Also deploy if config is provided
         if config:
             rag_deployment.with_options(
@@ -194,27 +224,31 @@ def main(
             )()
 
     if pipeline == "rag":
-        llm_index_and_evaluate.with_options(config_path=config_path, **pipeline_args)()
+        llm_index_and_evaluate.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
 
     elif pipeline == "deploy":
-        rag_deployment.with_options(**pipeline_args)()
+        rag_deployment.with_options(model=zenml_model, **pipeline_args)()
 
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
-        llm_eval.with_options(config_path=config_path)()
+        llm_eval.with_options(model=zenml_model, config_path=config_path)()
 
     elif pipeline == "synthetic":
         generate_synthetic_data.with_options(
-            config_path=config_path, **pipeline_args
+            model=zenml_model, config_path=config_path, **pipeline_args
         )()
 
     elif pipeline == "embeddings":
         finetune_embeddings.with_options(
-            config_path=config_path, **embeddings_finetune_args
+            model=zenml_model, config_path=config_path, **embeddings_finetune_args
         )()
 
     elif pipeline == "chunks":
-        generate_chunk_questions.with_options(**pipeline_args)()
+        generate_chunk_questions.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
 
 
 if __name__ == "__main__":
