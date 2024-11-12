@@ -1,4 +1,4 @@
-# enable_cache: False
+enable_cache: False
 
 # environment configuration
 settings:
