@@ -20,16 +20,10 @@ from steps.finetune_embeddings import (
     prepare_load_data,
     visualize_results,
 )
-from zenml import Model, pipeline
-from zenml.model.model import ModelStages
-
-model_definition = Model(
-    name=EMBEDDINGS_MODEL_NAME_ZENML,
-    version=ModelStages.LATEST,
-)
+from zenml import pipeline
 
 
-@pipeline(model=model_definition)
+@pipeline
 def finetune_embeddings():
     data = prepare_load_data()
     base_results = evaluate_base_model(dataset=data)
