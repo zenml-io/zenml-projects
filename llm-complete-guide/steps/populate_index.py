@@ -646,7 +646,7 @@ def index_generator(
         
         # Prepare bulk operations
         operations = []
-        for doc in document_list[:500]:
+        for doc in document_list:
             # Create a unique identifier based on content and metadata
             content_hash = hashlib.md5(
                 f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
