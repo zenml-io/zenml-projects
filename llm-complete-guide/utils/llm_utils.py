@@ -306,7 +306,13 @@ def get_topn_similar_docs(
         "size": n
     }
 
-    response = es_client.search(index=index_name, body=query)
+    # response = es_client.search(index=index_name, body=query)
+    response = es_client.search(index=index_name, knn={
+        "field": "embedding",
+        "query_vector": query_embedding,
+        "num_candidates": 50,
+        "k": n
+    })
 
     results = []
     for hit in response['hits']['hits']:
