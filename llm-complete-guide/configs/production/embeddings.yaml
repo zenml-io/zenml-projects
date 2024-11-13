@@ -3,12 +3,8 @@
 # environment configuration
 settings:
   docker:
-    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
-      - langchain-community
       - ratelimit
-      - langchain>=0.0.325
-      - langchain-openai
       - pgvector
       - psycopg2-binary
       - beautifulsoup4
@@ -16,7 +12,7 @@ settings:
       - pandas
       - numpy
       - sentence-transformers>=3
-      - transformers[torch]
+      - transformers[torch]==4.43.1
       - litellm
       - ollama
       - tiktoken
@@ -26,14 +22,16 @@ settings:
       - rerankers[flashrank]
       - datasets
       - torch
+      - pygithub
+      - openai
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
+    python_package_installer: "uv"
 
-
-# configuration of the Model Control Plane
-model:
-  name: finetuned-zenml-docs-embeddings
-  version: latest
-  license: Apache 2.0
-  description: Finetuned LLM on ZenML docs
-  tags: ["rag", "finetuned"]
+steps:
+  finetune:
+    step_operator: "gcp_a100"
+    settings:
+      step_operator.vertex:
+        accelerator_count: 1
+        accelerator_type: NVIDIA_TESLA_A100

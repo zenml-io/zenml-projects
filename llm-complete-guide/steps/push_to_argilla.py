@@ -15,6 +15,7 @@
 
 import argilla as rg
 import torch
+from argilla._exceptions import ConflictError
 from constants import (
     DATASET_NAME_ARGILLA,
     EMBEDDINGS_MODEL_ID_BASELINE,
@@ -110,10 +111,10 @@ def push_to_argilla(train_dataset: Dataset, test_dataset: Dataset) -> None:
     )
 
     # skip if dataset already exists
-    # try:
-    ds.create()
-    # except ConflictError:
-    #    ds = client.datasets(DATASET_NAME_ARGILLA)
+    try:
+        ds.create()
+    except ConflictError:
+        ds = client.datasets(DATASET_NAME_ARGILLA)
 
     # process original HF dataset
     try:

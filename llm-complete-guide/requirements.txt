@@ -1,13 +1,11 @@
 zenml[server]>=0.68.1
-langchain-community
 ratelimit
-langchain>=0.0.325
-langchain-openai
 pgvector
 psycopg2-binary
 beautifulsoup4
 unstructured
 pandas
+openai
 numpy
 sentence-transformers>=3
 transformers

@@ -13,12 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from pathlib import Path
 from typing import Optional
 
 import click
-
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
@@ -31,16 +29,16 @@ from zenml import pipeline
 
 
 @pipeline(enable_cache=False)
-def llm_eval() -> None:
+def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
     # Retrieval evals
-    failure_rate_retrieval = retrieval_evaluation_small()
-    full_retrieval_answers = retrieval_evaluation_full()
+    failure_rate_retrieval = retrieval_evaluation_small(after=after)
+    full_retrieval_answers = retrieval_evaluation_full(after=after)
     failure_rate_retrieval_reranking = (
-        retrieval_evaluation_small_with_reranking()
+        retrieval_evaluation_small_with_reranking(after=after)
     )
     full_retrieval_answers_reranking = (
-        retrieval_evaluation_full_with_reranking()
+        retrieval_evaluation_full_with_reranking(after=after)
     )
 
     # E2E evals
@@ -48,13 +46,13 @@ def llm_eval() -> None:
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
-    ) = e2e_evaluation()
+    ) = e2e_evaluation(after=after)
     (
         average_toxicity_score,
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = e2e_evaluation_llm_judged()
+    ) = e2e_evaluation_llm_judged(after=after)
 
     visualize_evaluation_results(
         failure_rate_retrieval,
@@ -82,12 +80,9 @@ def llm_eval() -> None:
     "--config",
     "config",
     default="rag_local_dev.yaml",
-    help="Specify a configuration file"
+    help="Specify a configuration file",
 )
-def main(
-        no_cache: bool = False,
-        config: Optional[str] = "rag_eval.yaml"
-):
+def main(no_cache: bool = False, config: Optional[str] = "rag_eval.yaml"):
     """
     Executes the pipeline to train a basic RAG model.
 
@@ -98,8 +93,7 @@ def main(
     config_path = Path(__file__).parent.parent / "configs" / config
 
     llm_eval.with_options(
-        config_path=str(config_path),
-        enable_cache=not no_cache
+        config_path=str(config_path), enable_cache=not no_cache
     )()
 
 

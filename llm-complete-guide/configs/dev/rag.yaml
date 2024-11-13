@@ -1,0 +1,30 @@
+enable_cache: False
+
+# environment configuration
+settings:
+  docker:
+    requirements:
+      - unstructured
+      - sentence-transformers>=3
+      - pgvector
+      - datasets
+      - litellm
+      - numpy
+      - psycopg2-binary
+      - tiktoken
+      - ratelimit
+      - rerankers
+      - pygithub
+      - rerankers[flashrank]
+      - matplotlib
+
+    environment:
+      ZENML_PROJECT_SECRET_NAME: llm_complete
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
+    python_package_installer: "uv"
+steps:
+  url_scraper:
+    parameters:
+      docs_url: https://docs.zenml.io/
+      use_dev_set: true
