@@ -593,7 +593,7 @@ def generate_embeddings(
         raise
 
 
-@step
+@step(enable_cache=False)
 def index_generator(
     documents: str,
 ) -> None:
@@ -643,43 +643,56 @@ def index_generator(
 
         # Parse the JSON string into a list of Document objects
         document_list = [Document(**doc) for doc in json.loads(documents)]
-
-        def generate_actions():
-            for doc in document_list:
-                # Create a unique identifier based on content and metadata
-                content_hash = hashlib.md5(
-                    f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
-                ).hexdigest()
-
-                # Check if document already exists
-                exists_query = {
-                    "query": {
-                        "term": {
-                            "doc_id": content_hash
-                        }
+        
+        # Prepare bulk operations
+        operations = []
+        for doc in document_list[:500]:
+            # Create a unique identifier based on content and metadata
+            content_hash = hashlib.md5(
+                f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
+            ).hexdigest()
+            
+            # Check if document exists
+            exists_query = {
+                "query": {
+                    "term": {
+                        "doc_id": content_hash
                     }
                 }
-                
-                # TODO same as above, use the query param directly
-                if not es.count(index=index_name, body=exists_query)["count"]:
-                    yield {
+            }
+            
+            if not es.count(index=index_name, body=exists_query)["count"]:
+                operations.append({
+                    "index": {
                         "_index": index_name,
-                        "_id": content_hash,  # Use hash as document ID
-                        "_source": {
-                            "doc_id": content_hash,
-                            "content": doc.page_content,
-                            "token_count": doc.token_count,
-                            "embedding": doc.embedding,
-                            "filename": doc.filename,
-                            "parent_section": doc.parent_section,
-                            "url": doc.url
-                        }
+                        "_id": content_hash
                     }
-
-        success, failed = bulk(es, generate_actions())
-        logger.info(f"Successfully indexed {success} documents")
-        if failed:
-            logger.warning(f"Failed to index {len(failed)} documents")
+                })
+                
+                operations.append({
+                    "doc_id": content_hash,
+                    "content": doc.page_content,
+                    "token_count": doc.token_count,
+                    "embedding": doc.embedding,
+                    "filename": doc.filename,
+                    "parent_section": doc.parent_section,
+                    "url": doc.url
+                })
+        
+        if operations:
+            response = es.bulk(operations=operations, timeout="10m")
+            
+            success_count = sum(1 for item in response['items'] if 'index' in item and item['index']['status'] == 201)
+            failed_count = len(response['items']) - success_count
+            
+            logger.info(f"Successfully indexed {success_count} documents")
+            if failed_count > 0:
+                logger.warning(f"Failed to index {failed_count} documents")
+                for item in response['items']:
+                    if 'index' in item and item['index']['status'] != 201:
+                        logger.warning(f"Failed to index document: {item['index']['error']}")
+        else:
+            logger.info("No new documents to index")
 
         # Log  the model metadata
         prompt = """
