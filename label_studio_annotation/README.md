@@ -22,7 +22,7 @@ In order to run this example, you need to install and initialize ZenML and Label
 Studio.
 
 ```shell
-pip install "zenml[server]" torchvision
+pip install "zenml[server]>=0.70.0" torchvision
 
 # clone the ZenML repository
 git clone https://github.com/zenml-io/zenml-projects.git
