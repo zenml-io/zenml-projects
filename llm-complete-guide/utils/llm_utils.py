@@ -21,6 +21,7 @@
 
 import logging
 
+from elasticsearch import Elasticsearch
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
@@ -46,6 +47,7 @@ from constants import (
     MODEL_NAME_MAP,
     OPENAI_MODEL,
     SECRET_NAME,
+    SECRET_NAME_ELASTICSEARCH,
 )
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
@@ -220,6 +222,23 @@ def split_documents(
     return chunked_documents
 
 
+def get_es_client() -> Elasticsearch:
+    """Get an Elasticsearch client.
+
+    Returns:
+        Elasticsearch: An Elasticsearch client.
+    """
+    client = Client()
+    es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
+    es_api_key = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_api_key"]
+
+    es = Elasticsearch(
+        es_host,
+        api_key=es_api_key,
+    )
+    return es
+
+
 def get_db_conn() -> connection:
     """Establishes and returns a connection to the PostgreSQL database.
 
@@ -246,7 +265,7 @@ def get_db_conn() -> connection:
 
 def get_topn_similar_docs(
     query_embedding: List[float],
-    conn: psycopg2.extensions.connection,
+    es_client: Elasticsearch,
     n: int = 5,
     include_metadata: bool = False,
     only_urls: bool = False,
@@ -264,27 +283,45 @@ def get_topn_similar_docs(
     Returns:
         list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
     """
-    embedding_array = np.array(query_embedding)
-    register_vector(conn)
-    cur = conn.cursor()
-
-    if include_metadata:
-        cur.execute(
-            f"SELECT content, url, parent_section FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
-            (embedding_array,),
-        )
-    elif only_urls:
-        cur.execute(
-            f"SELECT url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
-            (embedding_array,),
-        )
+    index_name = "zenml_docs"
+    
+    if only_urls:
+        source = ["url"]
+    elif include_metadata:
+        source = ["content", "url", "parent_section"]
     else:
-        cur.execute(
-            f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
-            (embedding_array,),
-        )
+        source = ["content"]
 
-    return cur.fetchall()
+    query = {
+        "_source": source,
+        "query": {
+            "script_score": {
+                "query": {"match_all": {}},
+                "script": {
+                    "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
+                    "params": {"query_vector": query_embedding}
+                }
+            }
+        },
+        "size": n
+    }
+
+    response = es_client.search(index=index_name, body=query)
+
+    results = []
+    for hit in response['hits']['hits']:
+        if only_urls:
+            results.append((hit['_source']['url'],))
+        elif include_metadata:
+            results.append((
+                hit['_source']['content'],
+                hit['_source']['url'],
+                hit['_source']['parent_section']
+            ))
+        else:
+            results.append((hit['_source']['content'],))
+
+    return results
 
 
 def get_completion_from_messages(
@@ -381,7 +418,7 @@ def process_input_with_retrieval(
     # Step 1: Get documents related to the user input from database
     related_docs = get_topn_similar_docs(
         get_embeddings(input),
-        get_db_conn(),
+        get_es_client(),
         n=n_items_retrieved,
         include_metadata=use_reranking,
     )

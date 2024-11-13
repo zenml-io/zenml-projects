@@ -29,12 +29,13 @@ from constants import (
     CHUNK_SIZE,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
+    SECRET_NAME_ELASTICSEARCH,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
-from utils.llm_utils import get_db_conn, split_documents
+from utils.llm_utils import get_db_conn, get_es_client, split_documents
 from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
 from zenml.metadata.metadata_types import Uri
 from zenml.client import Client
@@ -609,83 +610,76 @@ def index_generator(
     Raises:
         Exception: If an error occurs during the index generation.
     """
-    conn = None
+    from elasticsearch import Elasticsearch
+    from elasticsearch.helpers import bulk
+    import hashlib
+    
     try:
-        conn = get_db_conn()
-        with conn.cursor() as cur:
-            # Install pgvector if not already installed
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-            conn.commit()
+        es = get_es_client()
+        index_name = "zenml_docs"
 
-            # Create the embeddings table if it doesn't exist
-            table_create_command = f"""
-            CREATE TABLE IF NOT EXISTS embeddings (
-                        id SERIAL PRIMARY KEY,
-                        content TEXT,
-                        token_count INTEGER,
-                        embedding VECTOR({EMBEDDING_DIMENSIONALITY}),
-                        filename TEXT,
-                        parent_section TEXT,
-                        url TEXT
-                        );
-                        """
-            cur.execute(table_create_command)
-            conn.commit()
+        # Create index with mappings if it doesn't exist
+        if not es.indices.exists(index=index_name):
+            mappings = {
+                "mappings": {
+                    "properties": {
+                        "doc_id": {"type": "keyword"},
+                        "content": {"type": "text"},
+                        "token_count": {"type": "integer"},
+                        "embedding": {
+                            "type": "dense_vector",
+                            "dims": EMBEDDING_DIMENSIONALITY,
+                            "index": True,
+                            "similarity": "cosine"
+                        },
+                        "filename": {"type": "text"},
+                        "parent_section": {"type": "text"},
+                        "url": {"type": "text"}
+                    }
+                }
+            }
+            # TODO move to using mappings param directly
+            es.indices.create(index=index_name, body=mappings)
 
-            register_vector(conn)
+        # Parse the JSON string into a list of Document objects
+        document_list = [Document(**doc) for doc in json.loads(documents)]
 
-            # Parse the JSON string into a list of Document objects
-            document_list = [Document(**doc) for doc in json.loads(documents)]
-
-            # Insert data only if it doesn't already exist
+        def generate_actions():
             for doc in document_list:
-                content = doc.page_content
-                token_count = doc.token_count
-                embedding = doc.embedding
-                filename = doc.filename
-                parent_section = doc.parent_section
-                url = doc.url
+                # Create a unique identifier based on content and metadata
+                content_hash = hashlib.md5(
+                    f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
+                ).hexdigest()
 
-                cur.execute(
-                    "SELECT COUNT(*) FROM embeddings WHERE content = %s",
-                    (content,),
-                )
-                count = cur.fetchone()[0]
-                if count == 0:
-                    cur.execute(
-                        "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
-                        (
-                            content,
-                            token_count,
-                            embedding,
-                            filename,
-                            parent_section,
-                            url,
-                        ),
-                    )
-                    conn.commit()
+                # Check if document already exists
+                exists_query = {
+                    "query": {
+                        "term": {
+                            "doc_id": content_hash
+                        }
+                    }
+                }
+                
+                # TODO same as above, use the query param directly
+                if not es.count(index=index_name, body=exists_query)["count"]:
+                    yield {
+                        "_index": index_name,
+                        "_id": content_hash,  # Use hash as document ID
+                        "_source": {
+                            "doc_id": content_hash,
+                            "content": doc.page_content,
+                            "token_count": doc.token_count,
+                            "embedding": doc.embedding,
+                            "filename": doc.filename,
+                            "parent_section": doc.parent_section,
+                            "url": doc.url
+                        }
+                    }
 
-            cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
-            num_records = cur.fetchone()[0]
-            logger.info(f"Number of vector records in table: {num_records}")
-
-            # calculate the index parameters according to best practices
-            num_lists = max(num_records / 1000, 10)
-            if num_records > 1000000:
-                num_lists = math.sqrt(num_records)
-
-            # use the cosine distance measure, which is what we'll later use for querying
-            cur.execute(
-                f"CREATE INDEX IF NOT EXISTS embeddings_idx ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = {num_lists});"
-            )
-            conn.commit()
-
-    except Exception as e:
-        logger.error(f"Error in index_generator: {e}")
-        raise
-    finally:
-        if conn:
-            conn.close()
+        success, failed = bulk(es, generate_actions())
+        logger.info(f"Successfully indexed {success} documents")
+        if failed:
+            logger.warning(f"Failed to index {len(failed)} documents")
 
         # Log  the model metadata
         prompt = """
@@ -700,12 +694,10 @@ def index_generator(
         """
 
         client = Client()
+        es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
         CONNECTION_DETAILS = {
-            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
-            "password": "**********",
-            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
-            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
-            "dbname": "postgres",
+            "host": es_host,
+            "api_key": "*********",
         }
 
         log_model_metadata(
@@ -721,12 +713,13 @@ def index_generator(
                     "content": prompt,
                 },
                 "vector_store": {
-                    "name": "pgvector",
+                    "name": "elasticsearch",
                     "connection_details": CONNECTION_DETAILS,
-                    # TODO: Hard-coded for now
-                    "database_url": Uri(
-                        "https://supabase.com/dashboard/project/rkoiacgkeiwpwceahtlp/editor/29505?schema=public"
-                    ),
+                    "index_name": index_name
                 },
             },
         )
+
+    except Exception as e:
+        logger.error(f"Error in index_generator: {e}")
+        raise
