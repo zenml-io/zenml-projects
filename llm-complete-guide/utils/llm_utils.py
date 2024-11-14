@@ -48,6 +48,7 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
+    ZENML_CHATBOT_MODEL,
 )
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
@@ -263,25 +264,59 @@ def get_db_conn() -> connection:
     return psycopg2.connect(**CONNECTION_DETAILS)
 
 
-def get_topn_similar_docs(
-    query_embedding: List[float],
-    es_client: Elasticsearch,
-    n: int = 5,
-    include_metadata: bool = False,
-    only_urls: bool = False,
-) -> List[Tuple]:
-    """Fetches the top n most similar documents to the given query embedding from the database.
+def get_topn_similar_docs_pgvector(
+        query_embedding: List[float], 
+        conn: psycopg2.extensions.connection, 
+        n: int = 5, 
+        include_metadata: bool = False, 
+        only_urls: bool = False
+    ) -> List[Tuple]:
+    """Fetches the top n most similar documents to the given query embedding from the PostgreSQL database.
 
     Args:
         query_embedding (list): The query embedding to compare against.
         conn (psycopg2.extensions.connection): The database connection object.
-        n (int, optional): The number of similar documents to fetch. Defaults to
-        5.
-        include_metadata (bool, optional): Whether to include metadata in the
-        results. Defaults to False.
+        n (int, optional): The number of similar documents to fetch. Defaults to 5.
+        include_metadata (bool, optional): Whether to include metadata in the results. Defaults to False.
+        only_urls (bool, optional): Whether to only return URLs in the results. Defaults to False.
+    """
+    embedding_array = np.array(query_embedding)
+    register_vector(conn)
+    cur = conn.cursor()
 
-    Returns:
-        list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
+    if include_metadata:
+        cur.execute(
+            f"SELECT content, url, parent_section FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    elif only_urls:
+        cur.execute(
+            f"SELECT url FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+    else:
+        cur.execute(
+            f"SELECT content FROM embeddings ORDER BY embedding <=> %s LIMIT {n}",
+            (embedding_array,),
+        )
+
+    return cur.fetchall()
+
+def get_topn_similar_docs_elasticsearch(
+        query_embedding: List[float], 
+        es_client: Elasticsearch, 
+        n: int = 5, 
+        include_metadata: bool = False, 
+        only_urls: bool = False
+    ) -> List[Tuple]:
+    """Fetches the top n most similar documents to the given query embedding from the Elasticsearch index.
+
+    Args:
+        query_embedding (list): The query embedding to compare against.
+        es_client (Elasticsearch): The Elasticsearch client.
+        n (int, optional): The number of similar documents to fetch. Defaults to 5.
+        include_metadata (bool, optional): Whether to include metadata in the results. Defaults to False.
+        only_urls (bool, optional): Whether to only return URLs in the results. Defaults to False.
     """
     index_name = "zenml_docs"
     
@@ -329,6 +364,35 @@ def get_topn_similar_docs(
 
     return results
 
+def get_topn_similar_docs(
+    query_embedding: List[float],
+    conn: psycopg2.extensions.connection = None,
+    es_client: Elasticsearch = None,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
+    """Fetches the top n most similar documents to the given query embedding from the database.
+
+    Args:
+        query_embedding (list): The query embedding to compare against.
+        conn (psycopg2.extensions.connection): The database connection object.
+        n (int, optional): The number of similar documents to fetch. Defaults to
+        5.
+        include_metadata (bool, optional): Whether to include metadata in the
+        results. Defaults to False.
+
+    Returns:
+        list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
+    """
+    if conn is None and es_client is None:
+        raise ValueError("Either conn or es_client must be provided")
+    
+    if conn is not None:
+        return get_topn_similar_docs_pgvector(query_embedding, conn, n, include_metadata, only_urls)
+    
+    if es_client is not None:
+        return get_topn_similar_docs_elasticsearch(query_embedding, es_client, n, include_metadata, only_urls)
 
 def get_completion_from_messages(
     messages, model=OPENAI_MODEL, temperature=0.4, max_tokens=1000
@@ -366,6 +430,18 @@ def get_embeddings(text):
     """
     model = SentenceTransformer(EMBEDDINGS_MODEL)
     return model.encode(text)
+
+def find_vectorstore_name() -> str:
+    """Finds the name of the vector store used for the given embeddings model.
+
+    Returns:
+        str: The name of the vector store.
+    """
+    from zenml.client import Client
+    client = Client()
+    model = client.get_model_version(ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="v0.68.1-dev")
+
+    return model.run_metadata["vector_store"].value["name"]
 
 
 def rerank_documents(
@@ -420,11 +496,20 @@ def process_input_with_retrieval(
         str: The processed output.
     """
     delimiter = "```"
+    es_client = None
+    conn = None
+
+    vector_store_name = find_vectorstore_name()
+    if vector_store_name == "pgvector":
+        conn = get_db_conn()
+    else:
+        es_client = get_es_client()
 
     # Step 1: Get documents related to the user input from database
     related_docs = get_topn_similar_docs(
         get_embeddings(input),
-        get_es_client(),
+        conn=conn,
+        es_client=es_client,
         n=n_items_retrieved,
         include_metadata=use_reranking,
     )
