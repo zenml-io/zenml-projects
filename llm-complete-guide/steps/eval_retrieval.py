@@ -19,8 +19,10 @@ from typing import Annotated, List, Tuple
 
 from datasets import load_dataset
 from utils.llm_utils import (
+    find_vectorstore_name,
     get_db_conn,
     get_embeddings,
+    get_es_client,
     get_topn_similar_docs,
     rerank_documents,
 )
@@ -76,11 +78,23 @@ def query_similar_docs(
         Tuple containing the question, URL ending, and retrieved URLs.
     """
     embedded_question = get_embeddings(question)
-    db_conn = get_db_conn()
+    conn = None
+    es_client = None
+
+    vector_store_name = find_vectorstore_name()
+    if vector_store_name == "pgvector":
+        conn = get_db_conn()
+    else:
+        es_client = get_es_client()
+
     num_docs = 20 if use_reranking else returned_sample_size
     # get (content, url) tuples for the top n similar documents
     top_similar_docs = get_topn_similar_docs(
-        embedded_question, db_conn, n=num_docs, include_metadata=True
+        embedded_question, 
+        conn=conn, 
+        es_client=es_client, 
+        n=num_docs, 
+        include_metadata=True
     )
 
     if use_reranking:
