@@ -26,7 +26,7 @@ from steps.web_url_loader import web_url_loader
 from zenml import pipeline
 
 
-@pipeline
+@pipeline(enable_cache=True)
 def llm_basic_rag() -> None:
     """Executes the pipeline to train a basic RAG model.
 

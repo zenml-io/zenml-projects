@@ -13,4 +13,5 @@ settings:
       - psycopg2-binary
       - tiktoken
       - pygithub
+      - elasticsearch
     python_package_installer: "uv"

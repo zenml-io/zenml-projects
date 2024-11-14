@@ -1,4 +1,4 @@
-enable_cache: False
+enable_cache: True
 
 # environment configuration
 settings:
@@ -29,3 +29,5 @@ steps:
     parameters:
       docs_url: https://docs.zenml.io/
       use_dev_set: true
+  index_generator:
+    enable_cache: False

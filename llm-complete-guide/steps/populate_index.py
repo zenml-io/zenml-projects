@@ -19,10 +19,12 @@
 # https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
 # for providing the base implementation for this indexing functionality
 
+import hashlib
 import json
 import logging
 import math
 from typing import Annotated, Any, Dict, List, Tuple
+from enum import Enum
 
 from constants import (
     CHUNK_OVERLAP,
@@ -30,6 +32,7 @@ from constants import (
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
     SECRET_NAME_ELASTICSEARCH,
+    ZENML_CHATBOT_MODEL,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
@@ -593,9 +596,14 @@ def generate_embeddings(
         raise
 
 
+class IndexType(Enum):
+    ELASTICSEARCH = "elasticsearch"
+    POSTGRES = "postgres"
+
 @step(enable_cache=False)
 def index_generator(
     documents: str,
+    index_type: IndexType = IndexType.ELASTICSEARCH,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -606,14 +614,23 @@ def index_generator(
 
     Args:
         documents (str): A JSON string containing the Document objects with generated embeddings.
+        index_type (IndexType): The type of index to use. Defaults to Elasticsearch.
 
     Raises:
         Exception: If an error occurs during the index generation.
     """
-    from elasticsearch import Elasticsearch
-    from elasticsearch.helpers import bulk
-    import hashlib
-    
+    try:
+        if index_type == IndexType.ELASTICSEARCH:
+            _index_generator_elastic(documents)
+        else:
+            _index_generator_postgres(documents)
+            
+    except Exception as e:
+        logger.error(f"Error in index_generator: {e}")
+        raise
+
+def _index_generator_elastic(documents: str) -> None:
+    """Generates an Elasticsearch index for the given documents."""
     try:
         es = get_es_client()
         index_name = "zenml_docs"
@@ -643,16 +660,13 @@ def index_generator(
 
         # Parse the JSON string into a list of Document objects
         document_list = [Document(**doc) for doc in json.loads(documents)]
-        
-        # Prepare bulk operations
         operations = []
+        
         for doc in document_list:
-            # Create a unique identifier based on content and metadata
             content_hash = hashlib.md5(
                 f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
             ).hexdigest()
             
-            # Check if document exists
             exists_query = {
                 "query": {
                     "term": {
@@ -694,45 +708,139 @@ def index_generator(
         else:
             logger.info("No new documents to index")
 
-        # Log  the model metadata
-        prompt = """
-        You are a friendly chatbot. \
-        You can answer questions about ZenML, its features and its use cases. \
-        You respond in a concise, technically credible tone. \
-        You ONLY use the context from the ZenML documentation to provide relevant
-        answers. \
-        You do not make up answers or provide opinions that you don't have
-        information to support. \
-        If you are unsure or don't know, just say so. \
-        """
+        _log_metadata(index_type=IndexType.ELASTICSEARCH)
 
-        client = Client()
+    except Exception as e:
+        logger.error(f"Error in Elasticsearch indexing: {e}")
+        raise
+
+def _index_generator_postgres(documents: str) -> None:
+    """Generates a PostgreSQL index for the given documents."""
+    try:
+        conn = get_db_conn()
+        
+        with conn.cursor() as cur:
+            # Install pgvector if not already installed
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            conn.commit()
+
+            # Create the embeddings table if it doesn't exist
+            table_create_command = f"""
+            CREATE TABLE IF NOT EXISTS embeddings (
+                        id SERIAL PRIMARY KEY,
+                        content TEXT,
+                        token_count INTEGER,
+                        embedding VECTOR({EMBEDDING_DIMENSIONALITY}),
+                        filename TEXT,
+                        parent_section TEXT,
+                        url TEXT
+                        );
+                        """
+            cur.execute(table_create_command)
+            conn.commit()
+
+            register_vector(conn)
+            
+            # Parse the JSON string into a list of Document objects
+            document_list = [Document(**doc) for doc in json.loads(documents)]
+
+            # Insert data only if it doesn't already exist
+            for doc in document_list:
+                content = doc.page_content
+                token_count = doc.token_count
+                embedding = doc.embedding
+                filename = doc.filename
+                parent_section = doc.parent_section
+                url = doc.url
+
+                cur.execute(
+                    "SELECT COUNT(*) FROM embeddings WHERE content = %s",
+                    (content,),
+                )
+                count = cur.fetchone()[0]
+                if count == 0:
+                    cur.execute(
+                        "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (
+                            content,
+                            token_count,
+                            embedding,
+                            filename,
+                            parent_section,
+                            url,
+                        ),
+                    )
+                    conn.commit()
+
+
+            cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
+            num_records = cur.fetchone()[0]
+            logger.info(f"Number of vector records in table: {num_records}")
+
+            # calculate the index parameters according to best practices
+            num_lists = max(num_records / 1000, 10)
+            if num_records > 1000000:
+                num_lists = math.sqrt(num_records)
+
+            # use the cosine distance measure, which is what we'll later use for querying
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS embeddings_idx ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = {num_lists});"
+            )
+            conn.commit()
+
+        _log_metadata(index_type=IndexType.POSTGRES)
+
+    except Exception as e:
+        logger.error(f"Error in PostgreSQL indexing: {e}")
+        raise
+    finally:
+        if conn:
+            conn.close()
+
+def _log_metadata(index_type: IndexType) -> None:
+    """Log metadata about the indexing process."""
+    prompt = """
+    You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant answers. \
+    You do not make up answers or provide opinions that you don't have information to support. \
+    If you are unsure or don't know, just say so. \
+    """
+
+    client = Client()
+    
+    if index_type == IndexType.ELASTICSEARCH:
         es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
-        CONNECTION_DETAILS = {
+        connection_details = {
             "host": es_host,
             "api_key": "*********",
         }
+        store_name = "elasticsearch"
+    else:
+        store_name = "pgvector"
 
-        log_model_metadata(
-            metadata={
-                "embeddings": {
-                    "model": EMBEDDINGS_MODEL,
-                    "dimensionality": EMBEDDING_DIMENSIONALITY,
-                    "model_url": Uri(
-                        f"https://huggingface.co/{EMBEDDINGS_MODEL}"
-                    ),
-                },
-                "prompt": {
-                    "content": prompt,
-                },
-                "vector_store": {
-                    "name": "elasticsearch",
-                    "connection_details": CONNECTION_DETAILS,
-                    "index_name": index_name
-                },
+        connection_details = {
+            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+            "password": "**********",
+            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+
+    log_model_metadata(
+        metadata={
+            "embeddings": {
+                "model": EMBEDDINGS_MODEL,
+                "dimensionality": EMBEDDING_DIMENSIONALITY,
+                "model_url": Uri(f"https://huggingface.co/{EMBEDDINGS_MODEL}"),
             },
-        )
-
-    except Exception as e:
-        logger.error(f"Error in index_generator: {e}")
-        raise
+            "prompt": {
+                "content": prompt,
+            },
+            "vector_store": {
+                "name": store_name,
+                "connection_details": connection_details,
+            },
+        },
+    )
