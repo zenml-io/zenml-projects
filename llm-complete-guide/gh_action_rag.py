@@ -101,8 +101,6 @@ def main(
         zenml_model_name (str): The ZenML model name.
         zenml_model_version (str): The ZenML model version.
     """
-    pipeline_args = {"enable_cache": not no_cache}
-
     client = Client()
     config_path = Path(__file__).parent / "configs" / config
 

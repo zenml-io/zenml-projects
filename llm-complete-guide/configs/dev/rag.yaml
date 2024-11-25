@@ -16,6 +16,9 @@ settings:
       - rerankers
       - pygithub
       - rerankers[flashrank]
+      - matplotlib
+      - elasticsearch
+
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
