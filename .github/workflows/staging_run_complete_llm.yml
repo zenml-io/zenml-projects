@@ -39,9 +39,6 @@ jobs:
           uv pip install -r requirements-argilla.txt --system
           zenml integration install aws s3 -y --uv
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Connect to ZenML server
         working-directory: ./llm-complete-guide
         run: |
