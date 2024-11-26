@@ -1,4 +1,4 @@
-zenml[server]==0.68.1
+zenml[server]
 ratelimit
 pgvector
 psycopg2-binary
