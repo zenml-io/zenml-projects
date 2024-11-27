@@ -14,15 +14,14 @@ jobs:
   run-staging-workflow:
     runs-on: ubuntu-latest
     env:
-      ZENML_HOST: ${{ secrets.ZENML_HOST }}
-      ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
-      ZENML_STAGING_STACK: ef6c474d-b6e7-49a7-a046-0dab39f7969a
+      ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
+      ZENML_STAGING_STACK : ef6c474d-b6e7-49a7-a046-0dab39f7969a # Set this to your staging stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
       ZENML_DEBUG: true
       ZENML_ANALYTICS_OPT_IN: false
       ZENML_LOGGING_VERBOSITY: INFO
-      ZENML_PROJECT_SECRET_NAME: llm-complete
       ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
 
     steps:
