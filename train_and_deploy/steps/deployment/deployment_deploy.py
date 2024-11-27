@@ -18,18 +18,24 @@
 
 from typing import Optional
 
+from bentoml._internal.bento import bento
 from typing_extensions import Annotated
-
-from zenml import ArtifactConfig, get_step_context, step
-from zenml.client import Client
-from zenml.integrations.bentoml.services.bentoml_deployment import (
-    BentoMLDeploymentService,
+from zenml import (
+    ArtifactConfig,
+    Model,
+    get_step_context,
+    log_artifact_metadata,
+    step,
 )
-from zenml import Model, log_artifact_metadata
+from zenml.client import Client
+from zenml.integrations.bentoml.services.bentoml_container_deployment import (
+    BentoMLContainerDeploymentService,
+)
+from zenml.integrations.bentoml.services.deployment_type import (
+    BentoMLDeploymentType,
+)
 from zenml.integrations.bentoml.steps import bentoml_model_deployer_step
 from zenml.logger import get_logger
-
-from bentoml._internal.bento import bento
 
 logger = get_logger(__name__)
 
@@ -38,7 +44,7 @@ def deployment_deploy(
     bento: bento.Bento,
 ) -> (
     Annotated[
-        Optional[BentoMLDeploymentService],
+        Optional[BentoMLContainerDeploymentService],
         ArtifactConfig(name="bentoml_deployment", is_deployment_artifact=True),
     ]
 ):
@@ -68,9 +74,10 @@ def deployment_deploy(
         bentoml_deployment = bentoml_model_deployer_step.entrypoint(
             model_name=model.name,  # Name of the model
             port=3009,  # Port to be used by the http server
-            production=False,  # Deploy the model in production mode
+            production=True,  # Deploy the model in production mode
             timeout=1000,
             bento=bento,
+            deployment_type=BentoMLDeploymentType.CONTAINER,
         )
 
         bentoml_service = Client().get_service(name_id_or_prefix=bentoml_deployment.uuid)
@@ -82,7 +89,8 @@ def deployment_deploy(
                 "prediction_url": bentoml_service.prediction_url,
                 "health_check_url": bentoml_service.health_check_url,
                 "model_uri": model.get_artifact(name="model").uri,
-                "bento" : bentoml_service.config.get("bento"),
+                "bento_tag" : bentoml_service.config.get("bento_tag"),
+                "bentoml_model_image": bentoml_service.config.get("image"),
             }
         )
     else:

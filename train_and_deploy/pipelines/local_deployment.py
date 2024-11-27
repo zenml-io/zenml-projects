@@ -21,7 +21,7 @@ from zenml import pipeline
 
 
 @pipeline(on_failure=notify_on_failure, enable_cache=False)
-def e2e_use_case_deployment():
+def gitguarden_local_deployment():
     """
     Model deployment pipeline.
 

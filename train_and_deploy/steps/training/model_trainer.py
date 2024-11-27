@@ -15,37 +15,28 @@
 # limitations under the License.
 #
 
-import mlflow
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from typing_extensions import Annotated
-from zenml import log_model_metadata
-from zenml.metadata.metadata_types import Uri
-
-from zenml import ArtifactConfig, get_step_context, step
+from zenml import ArtifactConfig, get_step_context, log_model_metadata, step
 from zenml.client import Client
-from zenml.integrations.mlflow.experiment_trackers import (
-    MLFlowExperimentTracker,
-)
-from zenml.integrations.mlflow.steps.mlflow_registry import (
-    mlflow_register_model_step,
-)
 from zenml.logger import get_logger
+from zenml.metadata.metadata_types import Uri
 
 logger = get_logger(__name__)
 
-experiment_tracker = Client().active_stack.experiment_tracker
+#experiment_tracker = Client().active_stack.experiment_tracker
 
-if not experiment_tracker or not isinstance(
-    experiment_tracker, MLFlowExperimentTracker
-):
-    raise RuntimeError(
-        "Your active stack needs to contain a MLFlow experiment tracker for "
-        "this example to work."
-    )
+#if not experiment_tracker or not isinstance(
+#    experiment_tracker, MLFlowExperimentTracker
+#):
+    #raise RuntimeError(
+    #    "Your active stack needs to contain a MLFlow experiment tracker for "
+    #    "this example to work."
+    #)
 
 
-@step(experiment_tracker=experiment_tracker.name)
+@step#(experiment_tracker=experiment_tracker.name)
 def model_trainer(
     dataset_trn: pd.DataFrame,
     model: ClassifierMixin,
@@ -84,27 +75,26 @@ def model_trainer(
     Returns:
         The trained model artifact.
     """
-
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     # Initialize the model with the hyperparameters indicated in the step
     # parameters and train it on the training set.
     logger.info(f"Training model {model}...")
-    mlflow.sklearn.autolog()
+    #mlflow.sklearn.autolog()
     model.fit(
         dataset_trn.drop(columns=[target]),
         dataset_trn[target],
     )
     
-    log_model_metadata(
-        metadata={
-            "experiment_tracker": {
-                "experiment_tracker_url": Uri(
-                    experiment_tracker.get_tracking_uri()
-                ),
-                "experiment_tracker_run_id": mlflow.last_active_run().info.run_id,
-                "experiment_tracker_run_name": mlflow.active_run().info.run_name,
-                "experiment_tracker_experiment_id": mlflow.active_run().info.experiment_id,
-        }}
-    )
+    #log_model_metadata(
+    #    metadata={
+    #        "experiment_tracker": {
+    #            "experiment_tracker_url": Uri(
+    #                experiment_tracker.get_tracking_uri()
+    #            ),
+    #            "experiment_tracker_run_id": mlflow.last_active_run().info.run_id,
+    #            "experiment_tracker_run_name": mlflow.active_run().info.run_name,
+    #            "experiment_tracker_experiment_id": mlflow.active_run().info.experiment_id,
+    #    }}
+    #)
 
     return model

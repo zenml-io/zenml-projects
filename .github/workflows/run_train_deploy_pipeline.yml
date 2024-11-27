@@ -1,0 +1,55 @@
+name: Staging Trigger Train and Deploy Pipeline
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [staging, main]
+    paths:
+      - 'train_and_deploy/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-staging-workflow:
+    runs-on: ubuntu-latest
+    env:
+      ZENML_HOST: ${{ secrets.ZENML_HOST }}
+      ZENML_API_KEY: ${{ secrets.ZENML_API_KEY }}
+      ZENML_STAGING_STACK: ef6c474d-b6e7-49a7-a046-0dab39f7969a
+      ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
+      ZENML_DEBUG: true
+      ZENML_ANALYTICS_OPT_IN: false
+      ZENML_LOGGING_VERBOSITY: INFO
+      ZENML_PROJECT_SECRET_NAME: llm-complete
+      ZENML_DISABLE_CLIENT_SERVER_MISMATCH_WARNING: True
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install requirements
+        working-directory: ./train_and_deploy
+        run: |
+          pip3 install -r requirements.txt
+          zenml integration install bentoml skypilot_kubernetes  s3 aws  evidently --uv -y
+
+      - name: Connect to ZenML server
+        working-directory: ./train_and_deploy
+        run: |
+          zenml init
+
+      - name: Set stack (Staging)
+        working-directory: ./train_and_deploy
+        run: |
+          zenml stack set ${{ env.ZENML_STAGING_STACK }}
+
+      - name: Run pipeline (Staging)
+        working-directory: ./train_and_deploy
+        run: |
+          python run.py --training

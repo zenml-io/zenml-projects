@@ -16,6 +16,6 @@
 #
 
 
-from .batch_inference import e2e_use_case_batch_inference
-from .training import e2e_use_case_training
-from .deployment import e2e_use_case_deployment
+from .batch_inference import gitguarden_batch_inference
+from .training import gitguarden_training
+from .local_deployment import gitguarden_local_deployment

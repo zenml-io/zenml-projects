@@ -18,10 +18,8 @@
 # environment configuration
 settings:
   docker:
+    python_package_installer: uv
     required_integrations:
-      - gcp
-      - evidently
-      - mlflow
       - sklearn
       - slack
       - bentoml
@@ -34,7 +32,7 @@ steps:
 
 # configuration of the Model Control Plane
 model:
-  name: e2e_use_case
+  name: gitguarden
   version: staging
 
 # pipeline level extra configurations

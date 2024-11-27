@@ -53,7 +53,6 @@ def compute_performance_metrics_on_current_data(
     Returns:
         Latest version and current version metric values on a test set.
     """
-
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     X = dataset_tst.drop(columns=["target"])
     y = dataset_tst["target"].to_numpy()

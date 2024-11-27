@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 
 @pipeline(on_failure=notify_on_failure)
-def e2e_use_case_batch_inference():
+def gitguarden_batch_inference():
     """
     Model batch inference pipeline.
 

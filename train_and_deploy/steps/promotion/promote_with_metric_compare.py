@@ -49,7 +49,6 @@ def promote_with_metric_compare(
         latest_metric: Recently trained model metric results.
         current_metric: Previously promoted model metric results.
     """
-
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     should_promote = True
 

@@ -21,11 +21,10 @@ from typing import Optional
 
 import click
 from pipelines import (
-    e2e_use_case_batch_inference,
-    e2e_use_case_deployment,
-    e2e_use_case_training,
+    gitguarden_batch_inference,
+    gitguarden_local_deployment,
+    gitguarden_training,
 )
-
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -168,7 +167,6 @@ def main(
             not affect the pipeline.
         only_inference: If `True` only inference pipeline will be triggered.
     """
-
     # Run a pipeline with the required parameters. This executes
     # all steps in the pipeline in the correct order using the orchestrator
     # stack component that is configured in your active ZenML stack.
@@ -195,9 +193,9 @@ def main(
             "train_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"gitguarden_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_training.with_options(**pipeline_args)(**run_args_train)
+        gitguarden_training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline finished successfully!")
 
     if deployment:
@@ -209,9 +207,9 @@ def main(
             "deployer_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"gitguarden_local_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_deployment.with_options(**pipeline_args)(**run_args_inference)
+        gitguarden_local_deployment.with_options(**pipeline_args)(**run_args_inference)
 
     if inference:
         # Execute Batch Inference Pipeline
@@ -222,9 +220,9 @@ def main(
             "inference_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"gitguarden_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_batch_inference.with_options(**pipeline_args)(
+        gitguarden_batch_inference.with_options(**pipeline_args)(
             **run_args_inference
         )
 

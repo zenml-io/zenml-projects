@@ -32,7 +32,6 @@ from steps import (
     train_data_preprocessor,
     train_data_splitter,
 )
-
 from zenml import pipeline
 from zenml.logger import get_logger
 
@@ -40,7 +39,7 @@ logger = get_logger(__name__)
 
 
 @pipeline(on_failure=notify_on_failure)
-def e2e_use_case_training(
+def gitguarden_training(
     model_search_space: Dict[str, Any],
     target_env: str,
     test_size: float = 0.2,
@@ -51,8 +50,7 @@ def e2e_use_case_training(
     min_test_accuracy: float = 0.0,
     fail_on_accuracy_quality_gates: bool = False,
 ):
-    """
-    Model training pipeline.
+    """Model training pipeline.
 
     This is a pipeline that loads the data, processes it and splits
     it into train and test sets, then search for best hyperparameters,
