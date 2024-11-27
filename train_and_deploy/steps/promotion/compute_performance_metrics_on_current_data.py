@@ -60,10 +60,14 @@ def compute_performance_metrics_on_current_data(
 
     # Get model version numbers from Model Control Plane
     latest_version = get_step_context().model
-    current_version = Model(name=latest_version.name, version=target_env)
 
     latest_version_number = latest_version.number
-    current_version_number = current_version.number
+    
+    current_version = Model(name=latest_version.name, version=target_env)
+    try:
+        current_version_number = current_version.number
+    except KeyError:
+        current_version_number = None
 
     if current_version_number is None:
         current_version_number = -1
