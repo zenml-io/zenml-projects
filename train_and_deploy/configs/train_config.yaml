@@ -59,10 +59,10 @@ model:
 extra:
   notify_on_failure: True
 # pipeline level parameters
+# Updated train_config.yaml
+
 parameters:
   target_env: staging
-  # This set contains all the model configurations that you want 
-  # to evaluate during hyperparameter tuning stage.
   model_search_space:
     random_forest:
       model_package: sklearn.ensemble
@@ -78,15 +78,20 @@ parameters:
           - 8
           - 10
           - 12
+          - None  # Allow unlimited depth
         min_samples_leaf:
           range:
             start: 1
-            end: 10
+            end: 15
         n_estimators:
           range:
             start: 50
-            end: 500
-            step: 25
+            end: 1000
+            step: 50
+        max_features:
+          - auto
+          - sqrt
+          - log2
     decision_tree:
       model_package: sklearn.tree
       model_class: DecisionTreeClassifier
@@ -101,7 +106,43 @@ parameters:
           - 8
           - 10
           - 12
+          - None
         min_samples_leaf:
           range:
             start: 1
-            end: 10
+            end: 15
+    gradient_boosting:
+      model_package: sklearn.ensemble
+      model_class: GradientBoostingClassifier
+      search_grid:
+        learning_rate:
+          - 0.01
+          - 0.1
+          - 0.2
+        n_estimators:
+          range:
+            start: 50
+            end: 500
+            step: 50
+        max_depth:
+          - 3
+          - 5
+          - 7
+        subsample:
+          - 0.6
+          - 0.8
+          - 1.0
+    svc:
+      model_package: sklearn.svm
+      model_class: SVC
+      search_grid:
+        C:
+          - 0.1
+          - 1
+          - 10
+        kernel:
+          - linear
+          - rbf
+        gamma:
+          - scale
+          - auto
