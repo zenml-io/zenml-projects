@@ -62,11 +62,11 @@ def compute_performance_metrics_on_current_data(
     latest_version = get_step_context().model
 
     latest_version_number = latest_version.number
-    
+    current_version_number = None
     try:
         current_version = Model(name=latest_version.name, version=ModelStages.STAGING)
     except (RuntimeError, KeyError):
-        current_version_number = None
+        pass
 
     if current_version_number is None:
         current_version_number = -1
