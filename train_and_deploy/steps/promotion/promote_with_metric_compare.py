@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from zenml import Model, get_step_context, step
+from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -54,10 +55,12 @@ def promote_with_metric_compare(
 
     # Get model version numbers from Model Control Plane
     latest_version = get_step_context().model
-    current_version = Model(name=latest_version.name, version=target_env)
-
-    current_version_number = current_version.number
-
+    current_version_number = None
+    try:
+        current_version = Model(name=latest_version.name, version=ModelStages.STAGING)
+        current_version_number = current_version.number
+    except Exception:
+        pass
     if current_version_number is None:
         logger.info("No current model version found - promoting latest")
     else:
