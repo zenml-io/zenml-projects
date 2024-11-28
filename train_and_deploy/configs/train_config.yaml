@@ -23,6 +23,9 @@ settings:
       - sklearn
       - slack
       - bentoml
+  orchestrator.vm_kubernetes:
+    down: True
+    idle_minutes_to_autostop: 2
 
 # configuration of steps  
 steps:
