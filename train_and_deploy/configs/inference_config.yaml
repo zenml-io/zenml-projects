@@ -32,7 +32,7 @@ steps:
 
 # configuration of the Model Control Plane
 model:
-  name: gitguarden
+  name: secret_detection
   version: staging
 
 # pipeline level extra configurations

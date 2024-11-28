@@ -11,7 +11,7 @@ class GitGuarden:
     """
 
     # Load in the class scope to declare the model as a dependency of the service
-    iris_model = bentoml.models.get("gitguarden:latest")
+    iris_model = bentoml.models.get("secret_detection:latest")
 
     def __init__(self):
         """

@@ -21,7 +21,7 @@ from zenml import pipeline
 
 
 @pipeline(on_failure=notify_on_failure, enable_cache=False)
-def gitguarden_production_deployment(
+def secret_detection_production_deployment(
     target_env: str,
 ):
     """Model deployment pipeline.

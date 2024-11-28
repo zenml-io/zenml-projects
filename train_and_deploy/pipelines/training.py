@@ -39,7 +39,7 @@ logger = get_logger(__name__)
 
 
 @pipeline(on_failure=notify_on_failure)
-def gitguarden_training(
+def secret_detection_training(
     model_search_space: Dict[str, Any],
     target_env: str,
     test_size: float = 0.2,

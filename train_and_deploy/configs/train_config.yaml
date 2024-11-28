@@ -28,19 +28,19 @@ settings:
 steps:
   model_trainer:
     parameters:
-      name: gitguarden
+      name: secret_detection
   promote_with_metric_compare:
     parameters:
-      mlflow_model_name: gitguarden
+      mlflow_model_name: secret_detection
   notify_on_success:
     parameters:
       notify_on_success: False
 
 # configuration of the Model Control Plane
 model:
-  name: gitguarden
+  name: secret_detection
   license: apache
-  description: gitguarden E2E Batch Use Case
+  description: secret_detection E2E Batch Use Case
   audience: All ZenML users
   use_cases: |
     The ZenML E2E project project demonstrates how the most important steps of 

@@ -21,10 +21,10 @@ from typing import Optional
 
 import click
 from pipelines import (
-    gitguarden_batch_inference,
-    gitguarden_local_deployment,
-    gitguarden_production_deployment,
-    gitguarden_training,
+    secret_detection_batch_inference,
+    secret_detection_local_deployment,
+    secret_detection_production_deployment,
+    secret_detection_training,
 )
 from zenml.logger import get_logger
 
@@ -202,9 +202,9 @@ def main(
             "train_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"gitguarden_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        gitguarden_training.with_options(**pipeline_args)(**run_args_train)
+        secret_detection_training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline finished successfully!")
 
     if deployment:
@@ -216,9 +216,9 @@ def main(
             "deployer_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"gitguarden_local_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_local_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        gitguarden_local_deployment.with_options(**pipeline_args)(**run_args_inference)
+        secret_detection_local_deployment.with_options(**pipeline_args)(**run_args_inference)
 
     if inference:
         # Execute Batch Inference Pipeline
@@ -229,9 +229,9 @@ def main(
             "inference_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"gitguarden_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        gitguarden_batch_inference.with_options(**pipeline_args)(
+        secret_detection_batch_inference.with_options(**pipeline_args)(
             **run_args_inference
         )
     if production:
@@ -243,9 +243,9 @@ def main(
             "deploy_production.yaml",
         )
         pipeline_args["run_name"] = (
-            f"gitguarden_production_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_production_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        gitguarden_production_deployment.with_options(**pipeline_args)(
+        secret_detection_production_deployment.with_options(**pipeline_args)(
             **run_args_production
         )
 
