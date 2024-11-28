@@ -23,6 +23,7 @@ import click
 from pipelines import (
     gitguarden_batch_inference,
     gitguarden_local_deployment,
+    gitguarden_production_deployment,
     gitguarden_training,
 )
 from zenml.logger import get_logger
@@ -133,6 +134,12 @@ Examples:
     default=False,
     help="Whether to run the inference pipeline.",
 )
+@click.option(
+    "--production",
+    is_flag=True,
+    default=False,
+    help="Whether to run the production pipeline.",
+)
 def main(
     no_cache: bool = False,
     no_drop_na: bool = False,
@@ -145,6 +152,7 @@ def main(
     training: bool = True,
     deployment: bool = False,
     inference: bool = False,
+    production: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -166,6 +174,7 @@ def main(
             thresholds are violated - the pipeline will fail. If `False` thresholds will
             not affect the pipeline.
         only_inference: If `True` only inference pipeline will be triggered.
+        production: If `True` only production pipeline will be triggered.
     """
     # Run a pipeline with the required parameters. This executes
     # all steps in the pipeline in the correct order using the orchestrator
@@ -224,6 +233,20 @@ def main(
         )
         gitguarden_batch_inference.with_options(**pipeline_args)(
             **run_args_inference
+        )
+    if production:
+        # Execute Production Pipeline
+        run_args_production = {}
+        pipeline_args["config_path"] = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "deploy_production.yaml",
+        )
+        pipeline_args["run_name"] = (
+            f"gitguarden_production_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
+        gitguarden_production_deployment.with_options(**pipeline_args)(
+            **run_args_production
         )
 
 

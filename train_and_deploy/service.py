@@ -1,14 +1,32 @@
-
-
 import bentoml
-from bentoml.io import NumpyNdarray
+import numpy as np
+from bentoml.validators import Shape
+from typing_extensions import Annotated
 
-gitguarden_runner = bentoml.sklearn.get("gitguarden").to_runner()
 
-svc = bentoml.Service(name="gitguarden_service", runners=[gitguarden_runner])
+@bentoml.service
+class GitGuarden:
+    """
+    A simple service using a sklearn model
+    """
 
-input_spec = NumpyNdarray(dtype="float", shape=(-1, 30))
+    # Load in the class scope to declare the model as a dependency of the service
+    iris_model = bentoml.models.get("gitguarden:latest")
 
-@svc.api(input=input_spec, output=NumpyNdarray())
-async def predict(input_arr):
-    return await gitguarden_runner.predict.async_run(input_arr)
+    def __init__(self):
+        """
+        Initialize the service by loading the model from the model store
+        """
+        import joblib
+
+        self.model = joblib.load(self.iris_model.path_of("saved_model.pkl"))
+
+    @bentoml.api
+    def predict(
+        self,
+        input_series: Annotated[np.ndarray, Shape((-1, 30))],
+    ) -> np.ndarray:
+        """
+        Define API with preprocessing and model inference logic
+        """
+        return self.model.predict(input_series)

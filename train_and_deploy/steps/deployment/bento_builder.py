@@ -63,7 +63,7 @@ def bento_builder() -> (
         bento_model = bentoml.sklearn.save_model(model.name, model.load_artifact(name="model"))
         # Build the BentoML bundle
         bento = bentos.build(
-            service="service.py:svc",
+            service="service.py:GitGuarden",
             labels={
                 "zenml_version": zenml_version,
                 "model_name": model.name,

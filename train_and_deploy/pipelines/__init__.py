@@ -19,3 +19,4 @@
 from .batch_inference import gitguarden_batch_inference
 from .training import gitguarden_training
 from .local_deployment import gitguarden_local_deployment
+from .deploy_production import gitguarden_production_deployment
