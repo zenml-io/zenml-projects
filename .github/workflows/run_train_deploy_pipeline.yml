@@ -14,9 +14,9 @@ jobs:
   run-staging-workflow:
     runs-on: ubuntu-latest
     env:
-      ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
-      ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
-      ZENML_STAGING_STACK : ef6c474d-b6e7-49a7-a046-0dab39f7969a # Set this to your staging stack ID
+      ZENML_STORE_URL: ${{ secrets.ZENML_BENTO_PROJECTS_HOST }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_BENTO_PROJECTS_API_KEY }}
+      ZENML_STAGING_STACK : 281f82f3-6bdb-4951-bbdd-b85b57b463cc # Set this to your staging stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
       ZENML_DEBUG: true
