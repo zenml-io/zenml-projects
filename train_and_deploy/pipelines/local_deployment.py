@@ -21,9 +21,10 @@ from zenml import pipeline
 
 
 @pipeline(on_failure=notify_on_failure, enable_cache=False)
-def gitguarden_local_deployment():
-    """
-    Model deployment pipeline.
+def gitguarden_local_deployment(
+    target_env: str,
+):
+    """Model deployment pipeline.
 
     This is a pipeline deploys trained model for future inference.
     """
@@ -33,7 +34,7 @@ def gitguarden_local_deployment():
     ########## Deployment stage ##########
     # Get the production model artifact
     bento = bento_builder()
-    deployment_deploy(bento=bento)
+    deployment_deploy(bento=bento, target_env=target_env)
 
     notify_on_success(after=["deployment_deploy"])
     ### YOUR CODE ENDS HERE ###

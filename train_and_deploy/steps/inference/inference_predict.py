@@ -16,13 +16,13 @@
 #
 
 
-from typing import Optional
-
+from typing import Optional, cast
+from zenml.client import Client
 import pandas as pd
 from typing_extensions import Annotated
 from zenml import get_step_context, step
-from zenml.integrations.bentoml.services.bentoml_container_deployment import (
-    BentoMLContainerDeploymentService,
+from zenml.integrations.bentoml.services.bentoml_local_deployment import (
+    BentoMLLocalDeploymentService,
 )
 from zenml.logger import get_logger
 
@@ -32,6 +32,7 @@ logger = get_logger(__name__)
 @step
 def inference_predict(
     dataset_inf: pd.DataFrame,
+    target_env: str,
 ) -> Annotated[pd.Series, "predictions"]:
     """Predictions step.
 
@@ -55,12 +56,18 @@ def inference_predict(
     model = get_step_context().model
 
     # get predictor
-    predictor_service: Optional[BentoMLContainerDeploymentService] = model.load_artifact(
-        "bentomldeployment"
+    zenml_client = Client()
+    model_deployer = zenml_client.active_stack.model_deployer
+
+    # fetch existing services with same pipeline name, step name and model name
+    existing_services = model_deployer.find_model_server(
+        model_name=model.name,
+        model_version=target_env,
     )
+    predictor_service = cast(BentoMLLocalDeploymentService, existing_services[0])
     if predictor_service is not None:
         # run prediction from service
-        predictions = predictor_service.predict(request=dataset_inf)
+        predictions = predictor_service.predict(api_endpoint="predict",data=dataset_inf)
     else:
         logger.warning(
             "Predicting from loaded model instead of deployment service "

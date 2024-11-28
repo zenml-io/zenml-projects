@@ -33,7 +33,9 @@ logger = get_logger(__name__)
 
 
 @pipeline(on_failure=notify_on_failure)
-def gitguarden_batch_inference():
+def gitguarden_batch_inference(
+    target_env: str,
+):
     """
     Model batch inference pipeline.
 
@@ -66,6 +68,7 @@ def gitguarden_batch_inference():
     ########## Inference stage  ##########
     inference_predict(
         dataset_inf=df_inference,
+        target_env=target_env,
         after=["drift_quality_gate"],
     )
 

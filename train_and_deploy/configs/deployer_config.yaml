@@ -40,3 +40,6 @@ model:
 extra:
   notify_on_failure: True
 
+
+parameters:
+  target_env: staging
