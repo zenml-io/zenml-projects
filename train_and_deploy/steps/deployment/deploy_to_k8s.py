@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 from pathlib import Path
 from typing import Dict, Optional
-
+import re
 import yaml
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
@@ -98,26 +98,17 @@ def deploy_model_to_k8s(
     docker_image_tag: str,
     namespace: str = "default"
 ) -> Dict:
-    """Deploy a service to Kubernetes with the specified docker image and tag.
-    
-    Args:
-        docker_image: The full docker image name (e.g. "organization/image-name")
-        docker_image_tag: The tag to use for the docker image
-        namespace: Kubernetes namespace to deploy to (default: "default")
-        
-    Returns:
-        dict: Dictionary containing deployment information
-    """
-    # Get model name from context
-    model_name = get_step_context().model.name
+    # Get the raw model name
+    raw_model_name = get_step_context().model.name
+    # Sanitize the model name
+    model_name = sanitize_name(raw_model_name)
     
     # Read the K8s template
     template_path = Path(__file__).parent / "k8s_template.yaml"
     with open(template_path, "r") as f:
-        # Load all documents in the YAML file
         k8s_configs = list(yaml.safe_load_all(f))
     
-    # Update both Service and Deployment configurations
+    # Update configurations with sanitized names
     for config in k8s_configs:
         # Add namespace
         config["metadata"]["namespace"] = namespace
@@ -162,3 +153,14 @@ def deploy_model_to_k8s(
     }
     
     return deployment_info
+
+
+
+def sanitize_name(name: str) -> str:
+    # Convert to lowercase and replace invalid characters with '-'
+    sanitized = re.sub(r"[^a-z0-9-]", "-", name.lower())
+    # Trim to a maximum length of 63 characters and strip leading/trailing '-'
+    sanitized = sanitized[:63].strip("-")
+    # Ensure the name doesn't start or end with '-'
+    sanitized = sanitized.strip("-")
+    return sanitized
