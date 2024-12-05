@@ -18,3 +18,5 @@
 
 from .deployment_deploy import deployment_deploy
 from .bento_builder import bento_builder
+from .dockerize_bento import dockerize_bento_model
+from .deploy_to_k8s import  deploy_model_to_k8s

@@ -35,7 +35,7 @@ logger = get_logger(__name__)
 def bento_builder() -> (
     Annotated[
         Optional[bento.Bento],
-        ArtifactConfig(name="mlflow_deployment", is_model_artifact=True),
+        ArtifactConfig(name="bentoml_deployment", is_model_artifact=True),
     ]
 ):
     """Predictions step.
@@ -63,7 +63,7 @@ def bento_builder() -> (
         bento_model = bentoml.sklearn.save_model(model.name, model.load_artifact(name="model"))
         # Build the BentoML bundle
         bento = bentos.build(
-            service="service.py:svc",
+            service="service.py:GitGuarden",
             labels={
                 "zenml_version": zenml_version,
                 "model_name": model.name,
@@ -72,6 +72,14 @@ def bento_builder() -> (
                 "bento_uri": os.path.join(get_step_context().get_output_artifact_uri(), DEFAULT_BENTO_FILENAME),
             },
             build_ctx=source_utils.get_source_root(),
+            python={
+                "packages": [
+                    "scikit-learn",
+                    "pandas",
+                    "numpy",
+                    "zenml"
+                ],
+            },
         )
     else:
         logger.warning("Skipping deployment as the orchestrator is not local.")

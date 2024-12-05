@@ -21,11 +21,11 @@ from typing import Optional
 
 import click
 from pipelines import (
-    e2e_use_case_batch_inference,
-    e2e_use_case_deployment,
-    e2e_use_case_training,
+    secret_detection_batch_inference,
+    secret_detection_local_deployment,
+    secret_detection_production_deployment,
+    secret_detection_training,
 )
-
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -134,6 +134,12 @@ Examples:
     default=False,
     help="Whether to run the inference pipeline.",
 )
+@click.option(
+    "--production",
+    is_flag=True,
+    default=False,
+    help="Whether to run the production pipeline.",
+)
 def main(
     no_cache: bool = False,
     no_drop_na: bool = False,
@@ -146,6 +152,7 @@ def main(
     training: bool = True,
     deployment: bool = False,
     inference: bool = False,
+    production: bool = False,
 ):
     """Main entry point for the pipeline execution.
 
@@ -167,8 +174,8 @@ def main(
             thresholds are violated - the pipeline will fail. If `False` thresholds will
             not affect the pipeline.
         only_inference: If `True` only inference pipeline will be triggered.
+        production: If `True` only production pipeline will be triggered.
     """
-
     # Run a pipeline with the required parameters. This executes
     # all steps in the pipeline in the correct order using the orchestrator
     # stack component that is configured in your active ZenML stack.
@@ -195,9 +202,9 @@ def main(
             "train_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_training.with_options(**pipeline_args)(**run_args_train)
+        secret_detection_training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline finished successfully!")
 
     if deployment:
@@ -209,9 +216,9 @@ def main(
             "deployer_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_local_deployment_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_deployment.with_options(**pipeline_args)(**run_args_inference)
+        secret_detection_local_deployment.with_options(**pipeline_args)(**run_args_inference)
 
     if inference:
         # Execute Batch Inference Pipeline
@@ -222,10 +229,24 @@ def main(
             "inference_config.yaml",
         )
         pipeline_args["run_name"] = (
-            f"e2e_use_case_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+            f"secret_detection_batch_inference_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
-        e2e_use_case_batch_inference.with_options(**pipeline_args)(
+        secret_detection_batch_inference.with_options(**pipeline_args)(
             **run_args_inference
+        )
+    if production:
+        # Execute Production Pipeline
+        run_args_production = {}
+        pipeline_args["config_path"] = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "configs",
+            "deploy_production.yaml",
+        )
+        pipeline_args["run_name"] = (
+            f"secret_detection_production_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
+        secret_detection_production_deployment.with_options(**pipeline_args)(
+            **run_args_production
         )
 
 

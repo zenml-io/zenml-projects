@@ -16,6 +16,7 @@
 #
 
 
-from .batch_inference import e2e_use_case_batch_inference
-from .training import e2e_use_case_training
-from .deployment import e2e_use_case_deployment
+from .batch_inference import secret_detection_batch_inference
+from .training import secret_detection_training
+from .local_deployment import secret_detection_local_deployment
+from .deploy_production import secret_detection_production_deployment

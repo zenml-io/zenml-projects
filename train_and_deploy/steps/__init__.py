@@ -31,4 +31,4 @@ from .promotion import (
     promote_with_metric_compare,
 )
 from .training import model_evaluator, model_trainer
-from .deployment import deployment_deploy, bento_builder
+from .deployment import deployment_deploy, bento_builder, dockerize_bento_model, deploy_model_to_k8s

@@ -1,0 +1,35 @@
+components:
+  artifact_store:
+    configuration:
+      path: s3://zenml-dev
+    flavor: s3
+    name: s3
+    type: artifact_store
+  container_registry:
+    configuration:
+      uri: 339712793861.dkr.ecr.eu-central-1.amazonaws.com
+    flavor: aws
+    name: ecr
+    type: container_registry
+  data_validator:
+    configuration: {}
+    flavor: evidently
+    name: evidently_data_validator
+    type: data_validator
+  image_builder:
+    configuration: {}
+    flavor: local
+    name: local_builder
+    type: image_builder
+  model_deployer:
+    configuration: {}
+    flavor: bentoml
+    name: jayesh_bento
+    type: model_deployer
+  orchestrator:
+    configuration: {}
+    flavor: local
+    name: default
+    type: orchestrator
+stack_name: secret_detection
+zenml_version: 0.70.0
