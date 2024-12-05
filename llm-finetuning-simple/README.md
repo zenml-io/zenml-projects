@@ -40,12 +40,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # Install ZenML and Lightning integrations
-pip install zenml
+pip install "zenml>=0.70.0"
 zenml integration install lightning s3 aws -y
 
 # Initialize and connect to a deployed ZenML server
 zenml init
-zenml connect --url <MYZENMLSERVERURL>
+zenml login <MYZENMLSERVERURL>
 ```
 
 ## Running the Pipeline
