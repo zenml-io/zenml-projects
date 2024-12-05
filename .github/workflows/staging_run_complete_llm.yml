@@ -12,8 +12,8 @@ jobs:
   run-staging-workflow:
     runs-on: ubuntu-latest
     env:
-      ZENML_HOST: ${{ secrets.ZENML_PROJECTS_HOST }}
-      ZENML_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
+      ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
       ZENML_STAGING_STACK : 67166d73-a44e-42f9-b67f-011e9afab9b5 # Set this to your staging stack ID
       ZENML_GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       ZENML_GITHUB_URL_PR: ${{ github.event.pull_request._links.html.href }}
@@ -34,15 +34,15 @@ jobs:
       - name: Install requirements
         working-directory: ./llm-complete-guide
         run: |
-          pip3 install -r requirements.txt
-          pip3 install -r requirements-argilla.txt
-          zenml integration install aws s3 -y
+          pip3 install uv
+          uv pip install -r requirements.txt --system
+          uv pip install -r requirements-argilla.txt --system
+          zenml integration install aws s3 -y --uv
 
       - name: Connect to ZenML server
         working-directory: ./llm-complete-guide
         run: |
           zenml init
-          zenml connect --url $ZENML_HOST --api-key $ZENML_API_KEY
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
@@ -52,4 +52,4 @@ jobs:
       - name: Run pipeline (Staging)
         working-directory: ./llm-complete-guide
         run: |
-          python gh_action_rag.py --no-cache --config rag_local_dev.yaml
+          python gh_action_rag.py --no-cache --config staging/rag.yaml --zenml-model-version staging

@@ -1,4 +1,4 @@
-zenml[server]>=0.68.1
+zenml[server]
 sentence-transformers>=3,<=3.0.1
 transformers<=4.44.0
 litellm

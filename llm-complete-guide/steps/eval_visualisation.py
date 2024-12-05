@@ -65,7 +65,7 @@ def create_image(
                 fontweight="bold",
             )
         else:
-            bar_color = colors[i] if alternate_colours else "blue"
+            colors[i] if alternate_colours else "blue"
             text_color = "white"
             ax.text(
                 v

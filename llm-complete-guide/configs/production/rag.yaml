@@ -1,3 +1,5 @@
+enable_cache: False
+
 # environment configuration
 settings:
   docker:
@@ -13,29 +15,23 @@ settings:
       - ratelimit
       - rerankers
       - pygithub
+      - rerankers[flashrank]
+      - matplotlib
+      - elasticsearch
+
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
       ZENML_ENABLE_RICH_TRACEBACK: FALSE
       ZENML_LOGGING_VERBOSITY: INFO
-
+    python_package_installer: "uv"
 steps:
   url_scraper:
     parameters:
       docs_url: https://docs.zenml.io
-      repo_url: https://github.com/zenml-io/zenml
-      website_url: https://zenml.io
-
+      use_dev_set: false
 #  generate_embeddings:
-#    step_operator: "terraform-gcp-6c0fd52233ca"
+#    step_operator: "sagemaker"
 #    settings:
-#      step_operator.vertex:
-#        accelerator_type: "NVIDIA_TESLA_P100"
+#      step_operator.sagemaker:
 #        accelerator_count: 1
-#        machine_type: "n1-standard-8"
-
-# configuration of the Model Control Plane
-model:
-  name: finetuned-zenml-docs-embeddings
-  license: Apache 2.0
-  description: Finetuned LLM on ZenML docs
-  tags: ["rag", "finetuned"]
+#        accelerator_type: NVIDIA_TESLA_A100

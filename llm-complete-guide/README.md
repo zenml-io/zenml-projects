@@ -23,7 +23,7 @@ instructions are provided below for how to set that up.
 
 ## 📽️ Watch the webinars
 
-We've recently been holding some webinars about this repository and project. Watche the videos below if you want an introduction and context around the code and ideas covered in this project.
+We've recently been holding some webinars about this repository and project. Watch the videos below if you want an introduction and context around the code and ideas covered in this project.
 
 [![Building and Optimizing RAG Pipelines: Data Preprocessing, Embeddings, and Evaluation with ZenML](https://github.com/user-attachments/assets/1aea2bd4-8079-4ea2-98e1-8da6ba9aeebe)](https://www.youtube.com/watch?v=PazRMY8bo3U)
 
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 Depending on your hardware you may run into some issues when running the `pip install` command with the
 `flash_attn` package. In that case running `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE pip install flash-attn --no-build-isolation` 
-could help you.
+could help you. Possibly you might also need to install torch separately.
 
 In order to use the default LLM for this query, you'll need an account and an
 API key from OpenAI specified as a ZenML secret:
@@ -85,7 +85,7 @@ to run the pipelines in the correct order. You can run the script with the
 following command:
 
 ```shell
-python run.py --rag
+python run.py rag
 ```
 
 This will run the basic RAG pipeline, which scrapes the ZenML documentation and
@@ -100,7 +100,7 @@ use for the LLM.
 When you're ready to make the query, run the following command:
 
 ```shell
-python run.py --query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+python run.py query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
 ```
 
 Alternative options for LLMs to use include:
@@ -164,7 +164,7 @@ the RAG pipeline.
 To run the evaluation pipeline, you can use the following command:
 
 ```shell
-python run.py --evaluation
+python run.py evaluation
 ```
 
 You'll need to have first run the RAG pipeline to have the necessary assets in
@@ -182,7 +182,7 @@ To run the `distilabel` synthetic data generation pipeline, you can use the foll
 
 ```shell
 pip install -r requirements-argilla.txt # special requirements
-python run.py --synthetic
+python run.py synthetic
 ```
 
 You will also need to have set up and connected to an Argilla instance for this
@@ -221,7 +221,7 @@ commands:
 
 ```shell
 pip install -r requirements-argilla.txt # special requirements
-python run.py --embeddings
+python run.py embeddings
 ```
 
 *Credit to Phil Schmid for his [tutorial on embeddings finetuning with Matryoshka

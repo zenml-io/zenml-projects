@@ -19,23 +19,30 @@
 # https://www.timescale.com/blog/postgresql-as-a-vector-database-create-store-and-query-openai-embeddings-with-pgvector/
 # for providing the base implementation for this indexing functionality
 
+import hashlib
 import json
 import logging
 import math
 from typing import Annotated, Any, Dict, List, Tuple
+from enum import Enum
 
 from constants import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
+    SECRET_NAME_ELASTICSEARCH,
+    ZENML_CHATBOT_MODEL,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
-from utils.llm_utils import get_db_conn, split_documents
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from utils.llm_utils import get_db_conn, get_es_client, split_documents
+from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
+from zenml.metadata.metadata_types import Uri
+from zenml.client import Client
+from constants import SECRET_NAME
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -443,23 +450,15 @@ def draw_bar_chart(
     labels: List[str],
     title: str,
 ) -> None:
-    """Draws a bar chart on the given image.
-
-    Args:
-        draw: The ImageDraw object to draw on
-        x: The x coordinate of the top-left corner
-        y: The y coordinate of the top-left corner
-        width: The total width of the chart area
-        height: The total height of the chart area
-        data: List of values for each bar
-        labels: List of labels for each bar
-        title: The title of the chart
-
-    Returns:
-        None
-    """
+    """Draws a bar chart on the given image."""
+    # Ensure labels is a list, even if empty
+    labels = labels or []
+    
+    # Skip drawing if no data
+    if not data:
+        return
+        
     max_value = max(data)
-
     bar_width = width // len(data)
     bar_spacing = 10
 
@@ -483,14 +482,15 @@ def draw_bar_chart(
     title_y = y - 30
     draw.text((title_x, title_y), title, font=title_font, fill="black")
 
-    for i, label in enumerate(labels):
-        font = ImageFont.load_default(size=10)
-        bbox = draw.textbbox((0, 0), label, font=font)
-        label_width = bbox[2] - bbox[0]
-        label_x = (
-            x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
-        )
-        draw.text((label_x, y + height - 15), label, font=font, fill="black")
+    # Only try to draw labels if they exist
+    if labels:
+        for i, label in enumerate(labels):
+            if label is not None:  # Add null check for individual labels
+                font = ImageFont.load_default(size=10)
+                bbox = draw.textbbox((0, 0), str(label), font=font)  # Convert to string
+                label_width = bbox[2] - bbox[0]
+                label_x = x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
+                draw.text((label_x, y + height - 15), str(label), font=font, fill="black")
 
 
 @step
@@ -596,9 +596,14 @@ def generate_embeddings(
         raise
 
 
-@step
+class IndexType(Enum):
+    ELASTICSEARCH = "elasticsearch"
+    POSTGRES = "postgres"
+
+@step(enable_cache=False)
 def index_generator(
     documents: str,
+    index_type: IndexType = IndexType.ELASTICSEARCH,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -609,13 +614,111 @@ def index_generator(
 
     Args:
         documents (str): A JSON string containing the Document objects with generated embeddings.
+        index_type (IndexType): The type of index to use. Defaults to Elasticsearch.
 
     Raises:
         Exception: If an error occurs during the index generation.
     """
-    conn = None
+    try:
+        if index_type == IndexType.ELASTICSEARCH:
+            _index_generator_elastic(documents)
+        else:
+            _index_generator_postgres(documents)
+            
+    except Exception as e:
+        logger.error(f"Error in index_generator: {e}")
+        raise
+
+def _index_generator_elastic(documents: str) -> None:
+    """Generates an Elasticsearch index for the given documents."""
+    try:
+        es = get_es_client()
+        index_name = "zenml_docs"
+
+        # Create index with mappings if it doesn't exist
+        if not es.indices.exists(index=index_name):
+            mappings = {
+                "mappings": {
+                    "properties": {
+                        "doc_id": {"type": "keyword"},
+                        "content": {"type": "text"},
+                        "token_count": {"type": "integer"},
+                        "embedding": {
+                            "type": "dense_vector",
+                            "dims": EMBEDDING_DIMENSIONALITY,
+                            "index": True,
+                            "similarity": "cosine"
+                        },
+                        "filename": {"type": "text"},
+                        "parent_section": {"type": "text"},
+                        "url": {"type": "text"}
+                    }
+                }
+            }
+            # TODO move to using mappings param directly
+            es.indices.create(index=index_name, body=mappings)
+
+        # Parse the JSON string into a list of Document objects
+        document_list = [Document(**doc) for doc in json.loads(documents)]
+        operations = []
+        
+        for doc in document_list:
+            content_hash = hashlib.md5(
+                f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
+            ).hexdigest()
+            
+            exists_query = {
+                "query": {
+                    "term": {
+                        "doc_id": content_hash
+                    }
+                }
+            }
+            
+            if not es.count(index=index_name, body=exists_query)["count"]:
+                operations.append({
+                    "index": {
+                        "_index": index_name,
+                        "_id": content_hash
+                    }
+                })
+                
+                operations.append({
+                    "doc_id": content_hash,
+                    "content": doc.page_content,
+                    "token_count": doc.token_count,
+                    "embedding": doc.embedding,
+                    "filename": doc.filename,
+                    "parent_section": doc.parent_section,
+                    "url": doc.url
+                })
+        
+        if operations:
+            response = es.bulk(operations=operations, timeout="10m")
+            
+            success_count = sum(1 for item in response['items'] if 'index' in item and item['index']['status'] == 201)
+            failed_count = len(response['items']) - success_count
+            
+            logger.info(f"Successfully indexed {success_count} documents")
+            if failed_count > 0:
+                logger.warning(f"Failed to index {failed_count} documents")
+                for item in response['items']:
+                    if 'index' in item and item['index']['status'] != 201:
+                        logger.warning(f"Failed to index document: {item['index']['error']}")
+        else:
+            logger.info("No new documents to index")
+
+        _log_metadata(index_type=IndexType.ELASTICSEARCH)
+
+    except Exception as e:
+        logger.error(f"Error in Elasticsearch indexing: {e}")
+        raise
+
+def _index_generator_postgres(documents: str) -> None:
+    """Generates a PostgreSQL index for the given documents."""
     try:
         conn = get_db_conn()
+        
         with conn.cursor() as cur:
             # Install pgvector if not already installed
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -637,7 +740,7 @@ def index_generator(
             conn.commit()
 
             register_vector(conn)
-
+            
             # Parse the JSON string into a list of Document objects
             document_list = [Document(**doc) for doc in json.loads(documents)]
 
@@ -669,6 +772,7 @@ def index_generator(
                     )
                     conn.commit()
 
+
             cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
             num_records = cur.fetchone()[0]
             logger.info(f"Number of vector records in table: {num_records}")
@@ -684,9 +788,59 @@ def index_generator(
             )
             conn.commit()
 
+        _log_metadata(index_type=IndexType.POSTGRES)
+
     except Exception as e:
-        logger.error(f"Error in index_generator: {e}")
+        logger.error(f"Error in PostgreSQL indexing: {e}")
         raise
     finally:
         if conn:
             conn.close()
+
+def _log_metadata(index_type: IndexType) -> None:
+    """Log metadata about the indexing process."""
+    prompt = """
+    You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant answers. \
+    You do not make up answers or provide opinions that you don't have information to support. \
+    If you are unsure or don't know, just say so. \
+    """
+
+    client = Client()
+    
+    if index_type == IndexType.ELASTICSEARCH:
+        es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
+        connection_details = {
+            "host": es_host,
+            "api_key": "*********",
+        }
+        store_name = "elasticsearch"
+    else:
+        store_name = "pgvector"
+
+        connection_details = {
+            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+            "password": "**********",
+            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
+            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+
+    log_model_metadata(
+        metadata={
+            "embeddings": {
+                "model": EMBEDDINGS_MODEL,
+                "dimensionality": EMBEDDING_DIMENSIONALITY,
+                "model_url": Uri(f"https://huggingface.co/{EMBEDDINGS_MODEL}"),
+            },
+            "prompt": {
+                "content": prompt,
+            },
+            "vector_store": {
+                "name": store_name,
+                "connection_details": connection_details,
+            },
+        },
+    )

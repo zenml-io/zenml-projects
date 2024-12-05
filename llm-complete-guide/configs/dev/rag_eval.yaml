@@ -13,10 +13,5 @@ settings:
       - psycopg2-binary
       - tiktoken
       - pygithub
-
-# configuration of the Model Control Plane
-model:
-  name: finetuned-zenml-docs-embeddings
-  license: Apache 2.0
-  description: Finetuned LLM on ZenML docs
-  tags: ["rag", "finetuned"]
+      - elasticsearch
+    python_package_installer: "uv"

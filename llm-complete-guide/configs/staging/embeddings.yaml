@@ -1,14 +1,10 @@
-# enable_cache: False
+enable_cache: False
 
 # environment configuration
 settings:
   docker:
-    parent_image: "zenmldocker/prepare-release:base-0.68.0"
     requirements:
-      - langchain-community
       - ratelimit
-      - langchain>=0.0.325
-      - langchain-openai
       - pgvector
       - psycopg2-binary
       - beautifulsoup4
@@ -27,14 +23,7 @@ settings:
       - datasets
       - torch
       - pygithub
+      - openai
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
-
-
-# configuration of the Model Control Plane
-model:
-  name: finetuned-zenml-docs-embeddings
-  version: latest
-  license: Apache 2.0
-  description: Finetuned LLM on ZenML docs
-  tags: ["rag", "finetuned"]
+    python_package_installer: "uv"

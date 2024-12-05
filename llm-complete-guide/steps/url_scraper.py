@@ -21,11 +21,12 @@ from zenml import ArtifactConfig, log_artifact_metadata, step
 from steps.url_scraping_utils import get_all_pages
 
 
-@step(enable_cache=True)
+@step
 def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
     website_url: str = "https://zenml.io",
+    use_dev_set: bool = False
 ) -> Annotated[str, ArtifactConfig(name="urls")]:
     """Generates a list of relevant URLs to scrape.
 
@@ -39,18 +40,20 @@ def url_scraper(
     """
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
-    docs_urls = get_all_pages(docs_url)
+    use_dev_set = False
+    if use_dev_set:
 
-    # FOR TESTING ONLY
-    # docs_urls = [
-    #     "https://docs.zenml.io/getting-started/system-architectures",
-    #     "https://docs.zenml.io/getting-started/core-concepts",
-    #     "https://docs.zenml.io/user-guide/llmops-guide/rag-with-zenml/rag-85-loc",
-    #     "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
-    #     "https://docs.zenml.io/how-to/debug-and-solve-issues",
-    #     "https://docs.zenml.io/stack-components/step-operators/azureml",
-    #     "https://docs.zenml.io/how-to/interact-with-secrets",
-    # ]
+        docs_urls = [
+            "https://docs.zenml.io/getting-started/system-architectures",
+            "https://docs.zenml.io/getting-started/core-concepts",
+            "https://docs.zenml.io/user-guide/llmops-guide/rag-with-zenml/rag-85-loc",
+            "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
+            "https://docs.zenml.io/how-to/debug-and-solve-issues",
+            "https://docs.zenml.io/stack-components/step-operators/azureml",
+            "https://docs.zenml.io/how-to/interact-with-secrets",
+        ]
+    else:
+        docs_urls = get_all_pages(docs_url)
 
     # website_urls = get_all_pages(website_url)
     # all_urls = docs_urls + website_urls + examples_readme_urls
