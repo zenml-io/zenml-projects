@@ -49,6 +49,7 @@ from pipelines import (
     llm_eval,
     rag_deployment,
     llm_index_and_evaluate,
+    local_deployment,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
@@ -94,6 +95,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     required=False,
     default="gpt4",
     help="The model to use for the completion.",
+)
+@click.option(
+    "--query-text",
+    "query_text",
+    required=False,
+    default=None,
+    help="The query text to use for the completion.",
 )
 @click.option(
     "--zenml-model-name",
@@ -251,7 +259,8 @@ def main(
         )()
 
     elif pipeline == "deploy":
-        rag_deployment.with_options(model=zenml_model, **pipeline_args)()
+        #rag_deployment.with_options(model=zenml_model, **pipeline_args)()
+        local_deployment.with_options(model=zenml_model, **pipeline_args)()
 
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False

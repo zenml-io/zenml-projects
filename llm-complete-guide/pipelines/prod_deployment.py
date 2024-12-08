@@ -14,12 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from pipelines.distilabel_generation import generate_synthetic_data
-from pipelines.finetune_embeddings import finetune_embeddings
-from pipelines.generate_chunk_questions import generate_chunk_questions
-from pipelines.llm_basic_rag import llm_basic_rag
-from pipelines.llm_eval import llm_eval
-from pipelines.rag_deployment import rag_deployment
-from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
-from pipelines.local_deployment import local_deployment
-from pipelines.prod_deployment import production_deployment
+
+from steps.bento_dockerizer import bento_dockerizer
+from steps.k8s_deployment import k8s_deployment
+from zenml import pipeline
+
+
+@pipeline(enable_cache=False)
+def production_deployment(
+):
+    """Model deployment pipeline.
+
+    This is a pipeline deploys trained model for future inference.
+    """
+    bento_model_image = bento_dockerizer()
+    k8s_deployment(bento_model_image)

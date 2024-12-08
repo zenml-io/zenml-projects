@@ -322,6 +322,7 @@ def finetune(
                 if torch.cuda.is_available()
                 else "N/A",
             },
+            "huggingface_model_id": f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
         }
     )
 
