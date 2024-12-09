@@ -33,6 +33,7 @@ your choice, run:
 git clone https://github.com/zenml-io/zenml-projects.git
 cd zenml-projects/customer-satisfaction
 pip install -r requirements.txt
+zenml integration install lightgbm xgboost sklearn mlflow -y
 ```
 
 ZenML comes bundled with a React-based dashboard.
@@ -58,19 +59,11 @@ pip install zenml["server"]
 zenml login --local
 ```
 
-If you are running the `run_deployment.py` script, you will also need to install
-some integrations using ZenML:
-
-```bash
-zenml integration install mlflow -y
-``` 
-
 The project can only be executed with a ZenML stack that has an MLflow
 experiment tracker and model deployer as a component. Configuring a new stack
 with the two components are as follows:
 
 ```bash
-zenml integration install mlflow -y
 zenml experiment-tracker register mlflow_tracker --flavor=mlflow
 zenml model-deployer register mlflow --flavor=mlflow
 zenml stack register local-mlflow-stack -a default -o default -d mlflow -e mlflow_tracker --set
