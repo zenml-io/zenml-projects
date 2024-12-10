@@ -1,12 +1,15 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, pipeline, step
+from zenml import get_step_context, log_metadata, step
+from zenml.metadata.metadata_types import Uri
 from zenml.types import HTMLString
+from zenml.utils.dashboard_utils import get_model_version_url
 
 @step(enable_cache=False)
 def create_chat_interface(
         deployment_info: Dict[str, Any],
     ) -> Annotated[HTMLString, "chat_bot"]:
+    step_context = get_step_context()
     html = """
     <div id="zenml-chat-container" class="w-full max-w-4xl mx-auto">
         <style>
@@ -138,7 +141,6 @@ def create_chat_interface(
                 margin-bottom: 0;
             }
             
-            /* Ensure proper text wrapping */
             .zenml-message-content * {
                 max-width: 100%;
                 overflow-wrap: break-word;
@@ -147,17 +149,12 @@ def create_chat_interface(
             }
         </style>
         
-        <div id="zenml-chat-window">
+         <div id="zenml-chat-window">
             <div id="zenml-chat-header">
                 <h1>ZenML Assistant</h1>
             </div>
             
             <div id="zenml-chat-messages">
-                <div class="zenml-message">
-                    <div class="zenml-message-content">
-                        Hi! I'm your ZenML assistant. How can I help you today?
-                    </div>
-                </div>
                 <div id="zenml-typing-indicator">
                     Assistant is typing...
                 </div>
@@ -171,19 +168,66 @@ def create_chat_interface(
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
         <script>
+            // Initialize immediately instead of waiting for load event
             (function() {
+                const STORAGE_KEY = 'zenmlChatHistory-' + window.location.pathname;
                 const chatMessages = document.getElementById('zenml-chat-messages');
                 const userInput = document.getElementById('zenml-user-input');
                 const sendButton = document.getElementById('zenml-send-button');
                 const typingIndicator = document.getElementById('zenml-typing-indicator');
-                
-                userInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        sendMessage();
+                let messages = [];
+
+                // Initialize chat history immediately
+                function initializeChatHistory() {
+                    try {
+                        const storedMessages = localStorage.getItem(STORAGE_KEY);
+                        if (storedMessages) {
+                            messages = JSON.parse(storedMessages);
+                            if (Array.isArray(messages) && messages.length > 0) {
+                                messages.forEach(message => appendMessage(message.text, message.isUser, true));
+                            } else {
+                                addInitialMessage();
+                            }
+                        } else {
+                            addInitialMessage();
+                        }
+                    } catch (error) {
+                        console.error('Error loading chat history:', error);
+                        addInitialMessage();
                     }
-                });
-                
-                sendButton.addEventListener('click', sendMessage);
+                }
+
+                function addInitialMessage() {
+                    const initialMessage = "Hi! I'm your ZenML assistant. How can I help you today?";
+                    appendMessage(initialMessage, false);
+                }
+
+                function appendMessage(text, isUser, isLoading = false) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `zenml-message ${isUser ? 'user' : ''}`;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'zenml-message-content';
+                    
+                    if (!isUser) {
+                        contentDiv.innerHTML = marked.parse(text);
+                    } else {
+                        contentDiv.textContent = text;
+                    }
+                    
+                    messageDiv.appendChild(contentDiv);
+                    chatMessages.insertBefore(messageDiv, typingIndicator);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    if (!isLoading) {
+                        messages.push({ text, isUser });
+                        try {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                        } catch (error) {
+                            console.error('Error saving to localStorage:', error);
+                        }
+                    }
+                }
                 
                 async function sendMessage() {
                     const message = userInput.value.trim();
@@ -239,25 +283,26 @@ def create_chat_interface(
                     userInput.focus();
                 }
                 
-                function appendMessage(text, isUser) {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `zenml-message ${isUser ? 'user' : ''}`;
-                    
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'zenml-message-content';
-                    
-                    if (!isUser) {
-                        contentDiv.innerHTML = marked.parse(text);
-                    } else {
-                        contentDiv.textContent = text;
+                userInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
                     }
-                    
-                    messageDiv.appendChild(contentDiv);
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
+                });
+                
+                sendButton.addEventListener('click', sendMessage);
+
+                // Initialize immediately
+                initializeChatHistory();
             })();
         </script>
     </div>
     """
+    model_version_url = get_model_version_url(step_context.model.id)
+    log_metadata(
+        infer_artifact=True,
+        metadata={
+            "deployment_info": deployment_info,
+            "deployment_url": Uri(f"{model_version_url}/?tab=deployments"),
+        },
+    )
     return HTMLString(html)

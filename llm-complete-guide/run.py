@@ -198,8 +198,10 @@ def main(
 
     if Path("ZENML_VERSION.txt").exists():
         with open("ZENML_VERSION.txt", "r") as file:
-            zenml_model_version = file.read().strip()
-            zenml_model_version += postfix
+            zenml_version = file.read().strip()
+            zenml_version += postfix
+            #zenml_model_version = file.read().strip()
+            #zenml_model_version += postfix
     else:
         raise RuntimeError(
             "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
@@ -208,7 +210,7 @@ def main(
     # Create ZenML model
     zenml_model = Model(
         name=zenml_model_name,
-        version=zenml_model_version,
+        version=zenml_version,
         license="Apache 2.0",
         description="RAG application for ZenML docs",
         tags=["rag", "finetuned", "chatbot"],
@@ -268,6 +270,7 @@ def main(
         )()
 
     elif pipeline == "deploy":
+        zenml_model.version = zenml_model_version
         if env == "local":
             local_deployment.with_options(
                 model=zenml_model, config_path=config_path, **pipeline_args

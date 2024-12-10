@@ -190,7 +190,7 @@ def k8s_deployment(
         "status": deployment_status,
         "service_port": 3000,
         "configurations": k8s_configs,
-        "url": "chat-rag.staging.cloudinfra.zenml.io"
+        "url": "chat-rag.staging.cloudinfra.zenml.io",
     }
     
     if services:
