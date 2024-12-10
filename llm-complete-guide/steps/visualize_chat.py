@@ -1,9 +1,11 @@
 from typing import Any, Dict
+
 from typing_extensions import Annotated
 from zenml import get_step_context, log_metadata, step
 from zenml.metadata.metadata_types import Uri
 from zenml.types import HTMLString
 from zenml.utils.dashboard_utils import get_model_version_url
+
 
 @step(enable_cache=False)
 def create_chat_interface(
