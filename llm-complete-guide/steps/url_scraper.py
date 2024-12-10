@@ -16,7 +16,7 @@
 import json
 
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 from steps.url_scraping_utils import get_all_pages
 
@@ -58,8 +58,9 @@ def url_scraper(
     # website_urls = get_all_pages(website_url)
     # all_urls = docs_urls + website_urls + examples_readme_urls
     all_urls = docs_urls
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="urls",
+        infer_artifact=True,
         metadata={
             "count": len(all_urls),
         },

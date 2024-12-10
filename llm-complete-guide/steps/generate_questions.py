@@ -21,7 +21,7 @@ from litellm.exceptions import APIConnectionError, Timeout
 from rich import print
 from structures import Document
 from utils.openai_utils import get_openai_api_key
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -160,8 +160,9 @@ def generate_questions(
         f"Generated {len(final_df)} questions for {len(documents)} documents."
     )
 
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="generated_questions",
+        infer_artifact=True,
         metadata={
             "num_documents": len(documents),
             "num_questions_generated": len(final_df),

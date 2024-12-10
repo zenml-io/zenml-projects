@@ -49,6 +49,8 @@ from pipelines import (
     llm_eval,
     rag_deployment,
     llm_index_and_evaluate,
+    local_deployment,
+    production_deployment,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
@@ -96,6 +98,13 @@ Run the ZenML LLM RAG complete guide project pipelines.
     help="The model to use for the completion.",
 )
 @click.option(
+    "--query-text",
+    "query_text",
+    required=False,
+    default=None,
+    help="The query text to use for the completion.",
+)
+@click.option(
     "--zenml-model-name",
     "zenml_model_name",
     default="zenml-docs-qa-chatbot",
@@ -136,6 +145,12 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Path to config",
 )
+@click.option(
+    "--env",
+    "env",
+    default="local",
+    help="The environment to use for the completion.",
+)   
 def main(
     pipeline: str,
     query_text: Optional[str] = None,
@@ -146,6 +161,7 @@ def main(
     use_argilla: bool = False,
     use_reranker: bool = False,
     config: Optional[str] = None,
+    env: str = "local",
 ):
     """Main entry point for the pipeline execution.
 
@@ -159,6 +175,7 @@ def main(
         use_argilla (bool): If True, Argilla an notations will be used
         use_reranker (bool): If True, rerankers will be used
         config (Optional[str]): Path to config file
+        env (str): The environment to use for the deployment (local, huggingface space, k8s etc.)
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -181,8 +198,10 @@ def main(
 
     if Path("ZENML_VERSION.txt").exists():
         with open("ZENML_VERSION.txt", "r") as file:
-            zenml_model_version = file.read().strip()
-            zenml_model_version += postfix
+            zenml_version = file.read().strip()
+            zenml_version += postfix
+            #zenml_model_version = file.read().strip()
+            #zenml_model_version += postfix
     else:
         raise RuntimeError(
             "No model version file found. Please create a file called ZENML_VERSION.txt in the root of the repo with the model version."
@@ -191,7 +210,7 @@ def main(
     # Create ZenML model
     zenml_model = Model(
         name=zenml_model_name,
-        version=zenml_model_version,
+        version=zenml_version,
         license="Apache 2.0",
         description="RAG application for ZenML docs",
         tags=["rag", "finetuned", "chatbot"],
@@ -251,8 +270,19 @@ def main(
         )()
 
     elif pipeline == "deploy":
-        rag_deployment.with_options(model=zenml_model, **pipeline_args)()
-
+        zenml_model.version = zenml_model_version
+        if env == "local":
+            local_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
+        elif env == "huggingface":
+            rag_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
+        elif env == "k8s":
+            production_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(model=zenml_model, config_path=config_path)()

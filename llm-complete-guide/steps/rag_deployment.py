@@ -92,11 +92,13 @@ def gradio_rag_deployment() -> None:
         exist_ok=True,
         token=get_hf_token(),
     )
+
     api.add_space_secret(
         repo_id=hf_repo_id,
         key="ZENML_STORE_API_KEY",
         value=ZENML_API_TOKEN,
     )
+    
     api.add_space_secret(
         repo_id=hf_repo_id,
         key="ZENML_STORE_URL",

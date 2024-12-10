@@ -441,7 +441,7 @@ def find_vectorstore_name() -> str:
     client = Client()
     model = client.get_model_version(ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="v0.68.1-dev")
 
-    return model.run_metadata["vector_store"].value["name"]
+    return model.run_metadata["vector_store"]["name"]
 
 
 def rerank_documents(
