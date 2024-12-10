@@ -28,7 +28,7 @@ from zenml.utils import source_utils
 
 logger = get_logger(__name__)
 
-@step
+@step(enable_cache=False)
 def bento_dockerizer() -> (
     Annotated[
         str,
@@ -40,12 +40,11 @@ def bento_dockerizer() -> (
     This step is responsible for dockerizing the BentoML model.
     """
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
-    model = get_step_context().model
-    version_to_deploy = Model(name=model.name, version="production")
-    bentoml_deployment = version_to_deploy.get_model_artifact(name="bentoml_rag_deployment")
-    bento_tag = f'{bentoml_deployment.run_metadata["bento_tag_name"]}:{bentoml_deployment.run_metadata["bento_info_version"]}'
-    
     zenml_client = Client()
+    model = get_step_context().model
+    version_to_deploy = Model(name=model.name)
+    bentoml_deployment = zenml_client.get_artifact_version(name_id_or_prefix="bentoml_rag_deployment")
+    bento_tag = f'{bentoml_deployment.run_metadata["bento_tag_name"]}:{bentoml_deployment.run_metadata["bento_info_version"]}'
     container_registry = zenml_client.active_stack.container_registry
     assert container_registry, "Container registry is not configured."
     image_name = f"{container_registry.config.uri}/{bento_tag}"

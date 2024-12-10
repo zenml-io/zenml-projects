@@ -11,15 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-from pathlib import Path
-from typing import Dict, Optional
 import re
+from pathlib import Path
+from typing import Dict, Optional, cast
+
 import yaml
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from zenml import get_step_context, step
 from zenml.client import Client
+from zenml.integrations.bentoml.services.bentoml_local_deployment import (
+    BentoMLLocalDeploymentConfig,
+    BentoMLLocalDeploymentService,
+)
 from zenml.logger import get_logger
+from zenml.orchestrators.utils import get_config_environment_vars
 
 logger = get_logger(__name__)
 
@@ -93,7 +99,7 @@ def apply_kubernetes_configuration(k8s_configs: list) -> None:
             logger.error(f"Error applying {kind} {name}: {e}")
             raise e
 
-@step
+@step(enable_cache=False)
 def k8s_deployment(
     docker_image_tag: str,
     namespace: str = "default"
@@ -103,6 +109,17 @@ def k8s_deployment(
     # Sanitize the model name
     model_name = sanitize_name(raw_model_name)
     
+    # Get environment variables
+    environment_vars = get_config_environment_vars()
+    
+    # Get current deployment
+    zenml_client = Client()
+    model_deployer = zenml_client.active_stack.model_deployer
+    services = model_deployer.find_model_server(
+        model_name=model_name,
+        model_version="production",
+    )
+
     # Read the K8s template
     template_path = Path(__file__).parent / "k8s_template.yaml"
     with open(template_path, "r") as f:
@@ -120,6 +137,23 @@ def k8s_deployment(
         if config["kind"] == "Service":
             # Update service selector
             config["spec"]["selector"]["app"] = model_name
+
+            # Update metadata annotations with SSL certificate ARN
+            config["metadata"]["annotations"] = {
+                "service.beta.kubernetes.io/aws-load-balancer-ssl-cert": "arn:aws:acm:eu-central-1:339712793861:certificate/0426ace8-5fa3-40dd-bd81-b0fb1064bd85",
+                "service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
+                "service.beta.kubernetes.io/aws-load-balancer-ssl-ports": "443",
+                "service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout": "3600"
+            }
+ 
+            # Update ports
+            config["spec"]["ports"] = [
+                {
+                    "name": "https",
+                    "port": 443,
+                    "targetPort": 3000
+                }
+            ]
             
         elif config["kind"] == "Deployment":
             # Update deployment selector and template
@@ -131,6 +165,12 @@ def k8s_deployment(
             for container in containers:
                 container["name"] = model_name
                 container["image"] = docker_image_tag
+        
+                # Add environment variables to the container
+                env_vars = []
+                for key, value in environment_vars.items():
+                    env_vars.append({"name": key, "value": value})
+                container["env"] = env_vars
     
     # Apply the configurations
     try:
@@ -149,8 +189,21 @@ def k8s_deployment(
         "namespace": namespace,
         "status": deployment_status,
         "service_port": 3000,
-        "configurations": k8s_configs
+        "configurations": k8s_configs,
+        "url": "chat-rag.staging.cloudinfra.zenml.io"
     }
+    
+    if services:
+        bentoml_deployment= cast(BentoMLLocalDeploymentService, services[0])
+        zenml_client.update_service(
+            id=bentoml_deployment.uuid,
+            prediction_url="https://chat-rag.staging.cloudinfra.zenml.io",
+            health_check_url="https://chat-rag.staging.cloudinfra.zenml.io/healthz",
+            labels={
+                "docker_image": docker_image_tag,
+                "namespace": namespace,
+            }
+        )
     
     return deployment_info
 

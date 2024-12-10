@@ -31,6 +31,7 @@ from zenml.integrations.bentoml.materializers.bentoml_bento_materializer import 
 )
 from zenml.integrations.bentoml.steps import bento_builder_step
 from zenml.logger import get_logger
+from zenml.orchestrators.utils import get_config_environment_vars
 from zenml.utils import source_utils
 
 logger = get_logger(__name__)
@@ -64,6 +65,7 @@ def bento_builder() -> (
     if Client().active_stack.orchestrator.flavor == "local":
         model = get_step_context().model
         version_to_deploy = Model(name=model.name, version="production")
+        logger.info(f"Building BentoML bundle for model: {version_to_deploy.name}")
         # Build the BentoML bundle
         bento = bentos.build(
             service="service.py:RAGService",

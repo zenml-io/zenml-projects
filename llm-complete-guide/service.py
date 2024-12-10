@@ -26,6 +26,18 @@ EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 384 dimensions
         "timeout": 300,
         "concurrency": 256,
     },
+    http={
+        "cors": {
+            "enabled": True,
+            "access_control_allow_origins": ["https://cloud.zenml.io"],  # Add your allowed origins
+            "access_control_allow_methods": ["GET", "OPTIONS", "POST", "HEAD", "PUT"],
+            "access_control_allow_credentials": True,
+            "access_control_allow_headers": ["*"],
+            # "access_control_allow_origin_regex": "https://.*\.my_org\.com",  # Optional regex
+            "access_control_max_age": 1200,
+            "access_control_expose_headers": ["Content-Length"],
+        }
+    }
 )
 class RAGService:
     """RAG service for generating responses using LLM and RAG."""

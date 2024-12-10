@@ -50,6 +50,7 @@ from pipelines import (
     rag_deployment,
     llm_index_and_evaluate,
     local_deployment,
+    production_deployment,
 )
 from structures import Document
 from zenml.materializers.materializer_registry import materializer_registry
@@ -144,6 +145,12 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Path to config",
 )
+@click.option(
+    "--env",
+    "env",
+    default="local",
+    help="The environment to use for the completion.",
+)   
 def main(
     pipeline: str,
     query_text: Optional[str] = None,
@@ -154,6 +161,7 @@ def main(
     use_argilla: bool = False,
     use_reranker: bool = False,
     config: Optional[str] = None,
+    env: str = "local",
 ):
     """Main entry point for the pipeline execution.
 
@@ -167,6 +175,7 @@ def main(
         use_argilla (bool): If True, Argilla an notations will be used
         use_reranker (bool): If True, rerankers will be used
         config (Optional[str]): Path to config file
+        env (str): The environment to use for the deployment (local, huggingface space, k8s etc.)
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -259,9 +268,18 @@ def main(
         )()
 
     elif pipeline == "deploy":
-        #rag_deployment.with_options(model=zenml_model, **pipeline_args)()
-        local_deployment.with_options(model=zenml_model, **pipeline_args)()
-
+        if env == "local":
+            local_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
+        elif env == "huggingface":
+            rag_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
+        elif env == "k8s":
+            production_deployment.with_options(
+                model=zenml_model, config_path=config_path, **pipeline_args
+            )()
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(model=zenml_model, config_path=config_path)()
