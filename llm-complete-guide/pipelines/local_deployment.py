@@ -8,6 +8,3 @@ from zenml import pipeline
 def local_deployment():
     bento = bento_builder()
     bento_deployment(bento)
-    create_chat_interface()
-    
-    #vllm_model_deployer_step()

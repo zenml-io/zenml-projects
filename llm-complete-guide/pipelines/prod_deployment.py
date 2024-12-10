@@ -17,6 +17,7 @@
 
 from steps.bento_dockerizer import bento_dockerizer
 from steps.k8s_deployment import k8s_deployment
+from steps.visualize_chat import create_chat_interface
 from zenml import pipeline
 
 
@@ -28,4 +29,5 @@ def production_deployment(
     This is a pipeline deploys trained model for future inference.
     """
     bento_model_image = bento_dockerizer()
-    k8s_deployment(bento_model_image)
+    deployment_info = k8s_deployment(bento_model_image)
+    create_chat_interface(deployment_info)

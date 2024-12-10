@@ -1,9 +1,12 @@
-from typing import Optional
-from zenml import pipeline, step
+from typing import Optional, Dict, Any
+from typing_extensions import Annotated
+from zenml import log_artifact_metadata, pipeline, step
 from zenml.types import HTMLString
 
 @step(enable_cache=False)
-def create_chat_interface() -> HTMLString:
+def create_chat_interface(
+        deployment_info: Dict[str, Any],
+    ) -> Annotated[HTMLString, "chat_bot"]:
     html = """
     <div id="zenml-chat-container" class="w-full max-w-4xl mx-auto">
         <style>
