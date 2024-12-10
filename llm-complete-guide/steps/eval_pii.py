@@ -6,7 +6,7 @@ from typing import Annotated, Dict, List, Tuple, Union
 import matplotlib.pyplot as plt
 from datasets import Dataset
 from PIL import Image
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 
 
 class PIIDetector:
@@ -305,8 +305,9 @@ def eval_pii(
         "dates_found": train_results["statistics"]["total_findings"]["dates"],
         "ips_found": train_results["statistics"]["total_findings"]["ips"],
     }
-    log_artifact_metadata(
-        metadata=train_metadata, artifact_name="train_pii_results"
+    log_metadata(
+        metadata=train_metadata, artifact_name="train_pii_results",
+        infer_artifact=True
     )
 
     test_metadata = {
@@ -320,8 +321,9 @@ def eval_pii(
         "dates_found": test_results["statistics"]["total_findings"]["dates"],
         "ips_found": test_results["statistics"]["total_findings"]["ips"],
     }
-    log_artifact_metadata(
-        metadata=test_metadata, artifact_name="test_pii_results"
+    log_metadata(
+        metadata=test_metadata, artifact_name="test_pii_results", 
+        infer_artifact=True
     )
 
     pii_chart = plot_pii_results(train_results, test_results)

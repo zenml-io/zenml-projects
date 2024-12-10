@@ -18,7 +18,7 @@ from typing import Annotated
 
 import polars as pl
 from constants import FILES_TO_IGNORE
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -61,8 +61,9 @@ def load_markdown_files(
                 f"Subfolder '{subfolder}' not found in the cloned repository."
             )
 
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="markdown_files",
+        infer_artifact=True,
         metadata={
             "num_markdown_files": len(markdown_files),
             "columns": "filename, page_content",

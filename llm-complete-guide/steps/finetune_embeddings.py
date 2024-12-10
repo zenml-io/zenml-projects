@@ -47,7 +47,7 @@ from sentence_transformers.losses import (
 )
 from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
-from zenml import ArtifactConfig, log_model_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
@@ -168,8 +168,8 @@ def evaluate_base_model(
         for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
     }
 
-    log_model_metadata(
-        metadata={"base_model_eval": base_model_eval},
+    log_metadata(
+        metadata={"base_model_eval": base_model_eval}, infer_model=True
     )
 
     return results
@@ -201,8 +201,8 @@ def evaluate_finetuned_model(
         for dim in EMBEDDINGS_MODEL_MATRYOSHKA_DIMS
     }
 
-    log_model_metadata(
-        metadata={"finetuned_model_eval": finetuned_model_eval},
+    log_metadata(
+        metadata={"finetuned_model_eval": finetuned_model_eval}, infer_model=True
     )
 
     return results
@@ -298,7 +298,8 @@ def finetune(
         token=zenml_client.get_secret(SECRET_NAME).secret_values["hf_token"],
     )
 
-    log_model_metadata(
+    log_metadata( 
+        infer_model=True,                
         metadata={
             "training_params": {
                 "num_train_epochs": epochs,

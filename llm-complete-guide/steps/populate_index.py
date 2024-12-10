@@ -39,7 +39,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, get_es_client, split_documents
-from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
+from zenml import ArtifactConfig, log_metadata, step, log_metadata
 from zenml.metadata.metadata_types import Uri
 from zenml.client import Client
 from constants import SECRET_NAME
@@ -515,8 +515,9 @@ def preprocess_documents(
         Exception: If an error occurs during preprocessing.
     """
     try:
-        log_artifact_metadata(
+        log_metadata(
             artifact_name="split_chunks",
+        infer_artifact=True,
             metadata={
                 "chunk_size": CHUNK_SIZE,
                 "chunk_overlap": CHUNK_OVERLAP,
@@ -536,8 +537,9 @@ def preprocess_documents(
         histogram_chart: Image.Image = create_histogram(stats)
         bar_chart: Image.Image = create_bar_chart(stats)
 
-        log_artifact_metadata(
+        log_metadata(
             artifact_name="split_chunks",
+        infer_artifact=True,
             metadata=stats,
         )
 
@@ -568,8 +570,9 @@ def generate_embeddings(
     try:
         model = SentenceTransformer(EMBEDDINGS_MODEL)
 
-        log_artifact_metadata(
+        log_metadata(
             artifact_name="documents_with_embeddings",
+        infer_artifact=True,
             metadata={
                 "embedding_type": EMBEDDINGS_MODEL,
                 "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,
@@ -828,7 +831,8 @@ def _log_metadata(index_type: IndexType) -> None:
             "dbname": "postgres",
         }
 
-    log_model_metadata(
+    log_metadata(
+        infer_model=True,
         metadata={
             "embeddings": {
                 "model": EMBEDDINGS_MODEL,

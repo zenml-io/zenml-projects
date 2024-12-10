@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any
 from typing_extensions import Annotated
-from zenml import log_artifact_metadata, pipeline, step
+from zenml import log_metadata, pipeline, step
 from zenml.types import HTMLString
 
 @step(enable_cache=False)
