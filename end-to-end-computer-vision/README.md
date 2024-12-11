@@ -32,7 +32,7 @@ deployed instance of ZenML:
 
 ```bash
 pip install -r requirements.txt
-zenml integration install torch gcp mlflow label_studio -y
+zenml integration install pytorch gcp mlflow label_studio -y
 pip uninstall wandb  # This comes in automatically
 ```
 
@@ -41,7 +41,6 @@ need to install them:
 
 ```bash
 fiftyone plugins download https://github.com/jacobmarks/fiftyone-albumentations-plugin
-
 fiftyone plugins download https://github.com/voxel51/fiftyone-plugins --plugin-names @voxel51/annotation
 ```
 
@@ -64,9 +63,7 @@ We will use GCP in the commands listed below, but it will work for other cloud
 providers.
 
 1) Follow our guide to set up your credentials for GCP [here](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
-
 2) Set up a bucket in GCP to persist your training data
-
 3) Set up a bucket to use as artifact store within ZenML
 Learn how to set up a GCP artifact store stack component within ZenML
 [here](https://docs.zenml.io/stack-components/artifact-stores)
@@ -76,18 +73,18 @@ Learn how to set up a Vertex orchestrator stack component within ZenML
 5) For training on accelerators like GPUs/TPUs set up Vertex
 Learn how to set up a Vertex step operator stack component within ZenML
 [here](https://docs.zenml.io/stack-components/step-operators/vertex)
-6) Set up a Container Registry in GCP. Learn how to set up a google cloud container registry component within ZenML
+6) Set up a Container Registry in GCP. Learn how to set up a Google Cloud Container Registry component within ZenML
 [here](https://docs.zenml.io/stack-components/container-registries/gcp)
 
 ## Label Studio
 
 1) [Start Label Studio locally](https://labelstud.io/guide/start)
-For Label Studio we recommend using docker/docker-compose to deploy a local instance
-```bash
-git clone https://github.com/HumanSignal/label-studio.git
-cd label-studio
-docker-compose up -d # starts label studio at http://localhost:8080
-```
+    For Label Studio we recommend using docker/docker-compose to deploy a local instance
+    ```bash
+    git clone https://github.com/HumanSignal/label-studio.git
+    cd label-studio
+    docker-compose up -d # starts label studio at http://localhost:8080
+    ```
 2) [Follow these ZenML instructions to set up Label Studio as a stack component](https://docs.zenml.io/stack-components/annotators/label-studio#how-to-deploy-it)
 3) Create a project within Label Studio and name it `ship_detection_gcp`
 ![img.png](_assets/project_creation_label_studio.png)
@@ -95,8 +92,8 @@ docker-compose up -d # starts label studio at http://localhost:8080
 ![img.png](_assets/labeling_setup.png)
 In the following screen you now need to configure the labeling interface. This is where you define the different classes that you want to detect. In our case this should be a single `ship` class.
 ![img.png](_assets/labeling_interface.png)
-Additionally you might want to allow users to zoom during labeling. This can be configured when you scroll down on this same screen.
-6) [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
+Additionally, you might want to allow users to zoom during labeling. This can be configured when you scroll down on this same screen.
+5) [Set up Label Studio to use external storage](https://labelstud.io/guide/storage) 
 Use the first bucket that you created for data persistence
 
 ## Hugging Face
@@ -134,7 +131,7 @@ zenml stack register <gcp_stack> -o <vertex_orchestrator> -a <gcp_artifact_store
 
 The project consists of the following pipelines:
 
-## data_ingestion_pipeline
+## `data_ingestion_pipeline`
 
 This pipeline downloads the [Ship Detection
 dataset](https://huggingface.co/datasets/datadrivenscience/ship-detection). This
@@ -145,6 +142,7 @@ done, the images are uploaded into a cloud bucket and the ground truth
 annotations are uploaded to a local Label Studio instance.
 
 ### Configure this pipeline
+
 The configuration file for this pipeline lives at `./configs/ingest_data.yaml`.
 Make sure in particular to change `data_source` to point at the GCP bucket which
 is dedicated to be the storage location for the data. Also make sure to adjust
@@ -160,12 +158,13 @@ zenml stack set <local_stack>
 python run.py --ingest
 ```
 
-## data_export_pipeline
+## `data_export_pipeline`
 
 This pipeline exports the annotations from Label Studio and loads it into the
 ZenML artifact store to make them accessible to downstream pipelines.
 
 ### Configure this pipeline
+
 The configuration file for this pipeline lives at `./configs/data_export.yaml`.
 Make sure in particular to change `dataset_name` to reflect the name of the
 dataset within Label Studio.
@@ -180,11 +179,12 @@ zenml stack set <local_stack>
 python run.py --export
 ```
 
-## training_pipeline
+## `training_pipeline`
 
 This pipeline trains a YOLOv8 object detection model. 
 
 ### Configure this pipeline
+
 You can choose to run this pipeline locally or on the cloud. These two options
 use two different configuration files. For local training:
 `./configs/training_pipeline.yaml`. For training on the cloud:
@@ -216,7 +216,7 @@ zenml stack set <remote_stack>
 python run.py --training
 ```
 
-## inference_pipeline
+## `inference_pipeline`
 
 This pipeline performs inference on the object detection model.
 
@@ -253,4 +253,4 @@ python run.py --fiftyone
 ```
 
 Within FiftyOne, you can now analyze all the predictions and export them back to
-Label Studio for finetuned labeling and retraining.
+Label Studio for fine-tuned labeling and retraining.
