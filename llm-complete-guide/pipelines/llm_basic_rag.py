@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from litellm import config_path
 
 from steps.populate_index import (
     generate_embeddings,

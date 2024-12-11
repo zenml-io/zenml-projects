@@ -25,7 +25,7 @@ from sentence_transformers import InputExample, SentenceTransformer, losses
 from torch.nn import CosineSimilarity
 from torch.utils.data import DataLoader
 from utils.visualization_utils import create_comparison_chart
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -79,12 +79,14 @@ def load_datasets(
     print("train_dataset_length_raw", len(train_dataset))
     print("test_dataset_length_raw", len(test_dataset))
 
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="train_dataset",
+        infer_artifact=True,
         metadata={"row_count": len(train_dataset)},
     )
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="test_dataset",
+        infer_artifact=True,
         metadata={"row_count": len(test_dataset)},
     )
 
@@ -187,8 +189,9 @@ def train_model(
         warmup_steps=warmup_steps,
     )
 
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="trained_model",
+        infer_artifact=True,
         metadata={
             "model_path": model_path,
             "num_epochs": num_epochs,
@@ -280,8 +283,9 @@ def evaluate_model(
         finetuned_similarity=finetuned_avg_sim,
     )
 
-    log_artifact_metadata(
+    log_metadata(
         artifact_name="evaluation_results",
+        infer_artifact=True,
         metadata={
             "pretrained_average_similarity": {
                 "value": pretrained_avg_sim,
