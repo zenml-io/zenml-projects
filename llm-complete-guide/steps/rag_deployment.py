@@ -2,7 +2,6 @@ import os
 import webbrowser
 
 from huggingface_hub import HfApi
-
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
@@ -50,9 +49,7 @@ def predict(message, history):
     )
 
 
-def upload_files_to_repo(
-    api, repo_id: str, files_mapping: dict, token: str
-):
+def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
     """Upload multiple files to a Hugging Face repository
 
     Args:
@@ -98,7 +95,7 @@ def gradio_rag_deployment() -> None:
         key="ZENML_STORE_API_KEY",
         value=ZENML_API_TOKEN,
     )
-    
+
     api.add_space_secret(
         repo_id=hf_repo_id,
         key="ZENML_STORE_URL",

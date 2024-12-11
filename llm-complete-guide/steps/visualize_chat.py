@@ -9,8 +9,8 @@ from zenml.utils.dashboard_utils import get_model_version_url
 
 @step(enable_cache=False)
 def create_chat_interface(
-        deployment_info: Dict[str, Any],
-    ) -> Annotated[HTMLString, "chat_bot"]:
+    deployment_info: Dict[str, Any],
+) -> Annotated[HTMLString, "chat_bot"]:
     step_context = get_step_context()
     html = """
     <div id="zenml-chat-container" class="w-full max-w-4xl mx-auto">

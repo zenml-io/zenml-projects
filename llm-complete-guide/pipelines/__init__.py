@@ -19,7 +19,7 @@ from pipelines.finetune_embeddings import finetune_embeddings
 from pipelines.generate_chunk_questions import generate_chunk_questions
 from pipelines.llm_basic_rag import llm_basic_rag
 from pipelines.llm_eval import llm_eval
-from pipelines.rag_deployment import rag_deployment
 from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
 from pipelines.local_deployment import local_deployment
 from pipelines.prod_deployment import production_deployment
+from pipelines.rag_deployment import rag_deployment

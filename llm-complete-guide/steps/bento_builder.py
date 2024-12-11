@@ -11,11 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-import importlib
 import os
 from typing import Optional
 
-import bentoml
 from bentoml import bentos
 from bentoml._internal.bento import bento
 from constants import (
@@ -25,22 +23,24 @@ from typing_extensions import Annotated
 from zenml import ArtifactConfig, Model, get_step_context, step
 from zenml import __version__ as zenml_version
 from zenml.client import Client
+from zenml.enums import ArtifactType
 from zenml.integrations.bentoml.constants import DEFAULT_BENTO_FILENAME
 from zenml.integrations.bentoml.materializers.bentoml_bento_materializer import (
     BentoMaterializer,
 )
-from zenml.integrations.bentoml.steps import bento_builder_step
 from zenml.logger import get_logger
-from zenml.orchestrators.utils import get_config_environment_vars
 from zenml.utils import source_utils
 
 logger = get_logger(__name__)
+
 
 @step(output_materializers=BentoMaterializer, enable_cache=False)
 def bento_builder() -> (
     Annotated[
         Optional[bento.Bento],
-        ArtifactConfig(name="bentoml_rag_deployment", is_model_artifact=True),
+        ArtifactConfig(
+            name="bentoml_rag_deployment", artifact_type=ArtifactType.MODEL
+        ),
     ]
 ):
     """Predictions step.
@@ -65,7 +65,9 @@ def bento_builder() -> (
     if Client().active_stack.orchestrator.flavor == "local":
         model = get_step_context().model
         version_to_deploy = Model(name=model.name, version="production")
-        logger.info(f"Building BentoML bundle for model: {version_to_deploy.name}")
+        logger.info(
+            f"Building BentoML bundle for model: {version_to_deploy.name}"
+        )
         # Build the BentoML bundle
         bento = bentos.build(
             service="service.py:RAGService",
@@ -74,11 +76,14 @@ def bento_builder() -> (
                 "model_name": version_to_deploy.name,
                 "model_version": version_to_deploy.version,
                 "model_uri": f"zenml/{EMBEDDINGS_MODEL_ID_FINE_TUNED}",
-                "bento_uri": os.path.join(get_step_context().get_output_artifact_uri(), DEFAULT_BENTO_FILENAME),
+                "bento_uri": os.path.join(
+                    get_step_context().get_output_artifact_uri(),
+                    DEFAULT_BENTO_FILENAME,
+                ),
             },
             build_ctx=source_utils.get_source_root(),
             python={
-                "requirements_txt":"requirements.txt",
+                "requirements_txt": "requirements.txt",
             },
         )
     else:

@@ -11,22 +11,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-import os
-from typing import Optional
 
 import bentoml
-from bentoml import bentos
-from bentoml._internal.bento import bento
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, Model, get_step_context, step
-from zenml import __version__ as zenml_version
 from zenml.client import Client
-from zenml.integrations.bentoml.constants import DEFAULT_BENTO_FILENAME
-from zenml.integrations.bentoml.steps import bento_builder_step
 from zenml.logger import get_logger
-from zenml.utils import source_utils
 
 logger = get_logger(__name__)
+
 
 @step(enable_cache=False)
 def bento_dockerizer() -> (
@@ -36,14 +29,16 @@ def bento_dockerizer() -> (
     ]
 ):
     """dockerize_bento step.
-    
+
     This step is responsible for dockerizing the BentoML model.
     """
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     zenml_client = Client()
     model = get_step_context().model
     version_to_deploy = Model(name=model.name)
-    bentoml_deployment = zenml_client.get_artifact_version(name_id_or_prefix="bentoml_rag_deployment")
+    bentoml_deployment = zenml_client.get_artifact_version(
+        name_id_or_prefix="bentoml_rag_deployment"
+    )
     bento_tag = f'{bentoml_deployment.run_metadata["bento_tag_name"]}:{bentoml_deployment.run_metadata["bento_info_version"]}'
     container_registry = zenml_client.active_stack.container_registry
     assert container_registry, "Container registry is not configured."
@@ -59,7 +54,7 @@ def bento_dockerizer() -> (
     except Exception as e:
         logger.error(f"Error containerizing the bento: {e}")
         raise e
-    
+
     container_registry.push_image(image_name)
     ### YOUR CODE ENDS HERE ###
     return image_name

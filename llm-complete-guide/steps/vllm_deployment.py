@@ -15,6 +15,9 @@
 
 from typing import Optional, cast
 
+from constants import (
+    EMBEDDINGS_MODEL_ID_FINE_TUNED,
+)
 from zenml import get_step_context, step
 from zenml.integrations.vllm.model_deployers.vllm_model_deployer import (
     VLLMModelDeployer,
@@ -24,15 +27,6 @@ from zenml.integrations.vllm.services.vllm_deployment import (
     VLLMServiceConfig,
 )
 from zenml.logger import get_logger
-
-from constants import (
-    DATASET_NAME_ARGILLA,
-    DATASET_NAME_DISTILABEL,
-    EMBEDDINGS_MODEL_ID_BASELINE,
-    EMBEDDINGS_MODEL_ID_FINE_TUNED,
-    EMBEDDINGS_MODEL_MATRYOSHKA_DIMS,
-    SECRET_NAME,
-)
 
 logger = get_logger(__name__)
 
@@ -71,7 +65,7 @@ def vllm_model_deployer_step(
 
     # create a config for the new model service
     predictor_cfg = VLLMServiceConfig(
-        pipeline_name= pipeline_name,
+        pipeline_name=pipeline_name,
         step_name=step_name,
         model_name=step_context.model.name,
         model_version=step_context.model.version,
@@ -82,16 +76,15 @@ def vllm_model_deployer_step(
     )
 
     # create a new model deployment and replace an old one if it exists
-    svc = model_deployer.deploy_model(
+    svc = (
+        model_deployer.deploy_model(
             replace=True,
             config=predictor_cfg,
             timeout=timeout,
             service_type=VLLMDeploymentService.SERVICE_TYPE,
         ),
-    new_service = cast(
-            VLLMDeploymentService,
-            svc
-        )
+    )
+    new_service = cast(VLLMDeploymentService, svc)
 
     logger.info(
         f"VLLM deployment service started and reachable at:\n"

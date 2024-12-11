@@ -15,8 +15,9 @@
 # limitations under the License.
 #
 
-from pipelines import llm_basic_rag, llm_eval
 from zenml import pipeline
+
+from pipelines import llm_basic_rag, llm_eval
 
 
 @pipeline

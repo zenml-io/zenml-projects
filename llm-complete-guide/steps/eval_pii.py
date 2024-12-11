@@ -306,8 +306,9 @@ def eval_pii(
         "ips_found": train_results["statistics"]["total_findings"]["ips"],
     }
     log_metadata(
-        metadata=train_metadata, artifact_name="train_pii_results",
-        infer_artifact=True
+        metadata=train_metadata,
+        artifact_name="train_pii_results",
+        infer_artifact=True,
     )
 
     test_metadata = {
@@ -322,8 +323,9 @@ def eval_pii(
         "ips_found": test_results["statistics"]["total_findings"]["ips"],
     }
     log_metadata(
-        metadata=test_metadata, artifact_name="test_pii_results", 
-        infer_artifact=True
+        metadata=test_metadata,
+        artifact_name="test_pii_results",
+        infer_artifact=True,
     )
 
     pii_chart = plot_pii_results(train_results, test_results)
