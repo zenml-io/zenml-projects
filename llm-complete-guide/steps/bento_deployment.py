@@ -39,7 +39,7 @@ def bento_deployment(
     model_deployer = zenml_client.active_stack.model_deployer
     bentoml_deployment_config = BentoMLLocalDeploymentConfig(
         model_name=step_context.model.name,
-        model_version="production",
+        model_version=step_context.model.stage,
         description="Deploying RAG model",
         pipeline_name=pipeline_name,
         pipeline_step_name=step_name,

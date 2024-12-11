@@ -96,6 +96,8 @@ def apply_kubernetes_configuration(k8s_configs: list) -> None:
 
 @step(enable_cache=False)
 def k8s_deployment(docker_image_tag: str, namespace: str = "default") -> Dict:
+    step_context = get_step_context()
+
     # Get the raw model name
     raw_model_name = get_step_context().model.name
     # Sanitize the model name
@@ -109,7 +111,7 @@ def k8s_deployment(docker_image_tag: str, namespace: str = "default") -> Dict:
     model_deployer = zenml_client.active_stack.model_deployer
     services = model_deployer.find_model_server(
         model_name=model_name,
-        model_version="production",
+        model_version=step_context.model.stage,
     )
 
     # Read the K8s template
