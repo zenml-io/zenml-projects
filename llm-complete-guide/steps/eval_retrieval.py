@@ -82,6 +82,7 @@ def query_similar_docs(
     es_client = None
 
     vector_store_name = find_vectorstore_name()
+    vector_store_name = "pgvector"
     if vector_store_name == "pgvector":
         conn = get_db_conn()
     else:
