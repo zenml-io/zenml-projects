@@ -1,4 +1,4 @@
-zenml[server]>=0.68.1
+zenml[server]
 ratelimit
 pgvector
 psycopg2-binary
@@ -20,6 +20,7 @@ datasets
 torch
 gradio
 huggingface-hub
+elasticsearch
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0

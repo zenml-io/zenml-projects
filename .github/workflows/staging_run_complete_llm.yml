@@ -43,7 +43,6 @@ jobs:
         working-directory: ./llm-complete-guide
         run: |
           zenml init
-          zenml connect --url $ZENML_STORE_URL --api-key $ZENML_STORE_API_KEY
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
