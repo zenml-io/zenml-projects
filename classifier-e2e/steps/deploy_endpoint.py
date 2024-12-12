@@ -7,6 +7,7 @@ from typing_extensions import Annotated
 from utils.aws import get_aws_config
 from utils.sagemaker_materializer import SagemakerPredictorMaterializer
 from zenml import ArtifactConfig, get_step_context, log_artifact_metadata, step
+from zenml.enums import ArtifactType
 
 
 @step(
@@ -16,7 +17,10 @@ from zenml import ArtifactConfig, get_step_context, log_artifact_metadata, step
 def deploy_endpoint() -> (
     Annotated[
         Predictor,
-        ArtifactConfig(name="sagemaker_endpoint", is_deployment_artifact=True),
+        ArtifactConfig(
+            name="sagemaker_endpoint",
+            artifact_type=ArtifactType.SERVICE
+        ),
     ]
 ):
     role, session, region = get_aws_config()

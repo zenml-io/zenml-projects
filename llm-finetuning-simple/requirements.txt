@@ -8,7 +8,13 @@ rouge_score
 nltk
 accelerate>=0.30.0
 urllib3<2
-zenml>=0.62.0
+zenml>=0.70.0
 torch>=2.2.0
 sentencepiece
 huggingface_hub
+s3fs>2022.3.0
+boto3
+aws-profile-manager
+sagemaker>=2.117.0
+kubernetes
+lightning-sdk>=0.1.17

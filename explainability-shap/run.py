@@ -14,26 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import io
+import os
 from typing import Tuple, Dict, Any
-from typing_extensions import Annotated
 
-import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import shap
+from scipy.stats import ks_2samp
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-import shap
-import matplotlib.pyplot as plt
-from scipy.stats import ks_2samp
-
-from zenml import pipeline, step, Model, ArtifactConfig
-from zenml.logger import get_logger
-from zenml import log_artifact_metadata, log_model_metadata
+from typing_extensions import Annotated
+from zenml import pipeline, step, Model, ArtifactConfig, log_metadata
+from zenml.config import DockerSettings
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
-from zenml.config import DockerSettings
+from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
 
 logger = get_logger(__name__)
@@ -55,7 +53,8 @@ class SHAPVisualizationMaterializer(BaseMaterializer):
             self, data: SHAPVisualization
     ) -> Dict[str, VisualizationType]:
         plt.figure(figsize=(10, 6))
-        shap.summary_plot(data.shap_values, feature_names=data.feature_names, plot_type="bar", show=False)
+        shap.summary_plot(data.shap_values, feature_names=data.feature_names,
+                          plot_type="bar", show=False)
         plt.title("SHAP Feature Importance")
 
         buf = io.BytesIO()
@@ -90,12 +89,15 @@ def load_data() -> Tuple[
     iris = load_iris(as_frame=True)
     X = iris.data
     y = iris.target
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+                                                        random_state=42)
 
-    for name, data in [("X_train", X_train), ("X_test", X_test), ("y_train", y_train), ("y_test", y_test)]:
-        log_artifact_metadata(
+    for name, data in [("X_train", X_train), ("X_test", X_test),
+                       ("y_train", y_train), ("y_test", y_test)]:
+        log_metadata(
             artifact_name=name,
-            metadata={"dataset_info": safe_metadata(data)}
+            metadata={"dataset_info": safe_metadata(data)},
+            infer_artifact=True,
         )
 
     return X_train, X_test, y_train, y_test
@@ -105,13 +107,13 @@ def load_data() -> Tuple[
 def train_model(
     X_train: pd.DataFrame,
     y_train: pd.Series,
-) -> Annotated[SVC, ArtifactConfig(name="model", is_model_artifact=True)]:
+) -> Annotated[SVC, ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL)]:
     """Train an SVM classifier."""
     model = SVC(kernel='rbf', probability=True)
     model.fit(X_train, y_train)
     train_accuracy = model.score(X_train, y_train)
 
-    log_model_metadata(
+    log_metadata(
         metadata={
             "training_metrics": {
                 "train_accuracy": float(train_accuracy),
@@ -120,18 +122,20 @@ def train_model(
                 "model_type": type(model).__name__,
                 "kernel": model.kernel,
             }
-        }
+        },
+        infer_model=True,
     )
 
-    log_artifact_metadata(
-        artifact_name="model",
+    log_metadata(
         metadata={
             "model_details": {
                 "type": type(model).__name__,
                 "kernel": model.kernel,
                 "n_support": model.n_support_.tolist(),
             }
-        }
+        },
+        artifact_name="model",
+        infer_artifact=True,
     )
 
     return model
@@ -151,33 +155,36 @@ def evaluate_model(
     predictions = model.predict(X_test)
     probabilities = model.predict_proba(X_test)
 
-    log_model_metadata(
+    log_metadata(
         metadata={
             "evaluation_metrics": {
                 "test_accuracy": float(test_accuracy),
             }
-        }
+        },
+        infer_model=True,
     )
 
-    log_artifact_metadata(
-        artifact_name="predictions",
+    log_metadata(
         metadata={
             "prediction_info": {
                 "shape": predictions.shape,
                 "unique_values": np.unique(predictions).tolist()
             }
-        }
+        },
+        artifact_name="predictions",
+        infer_artifact=True,
     )
 
-    log_artifact_metadata(
-        artifact_name="probabilities",
+    log_metadata(
         metadata={
             "probability_info": {
                 "shape": probabilities.shape,
                 "min": float(np.min(probabilities)),
                 "max": float(np.max(probabilities))
             }
-        }
+        },
+        artifact_name="probabilities",
+        infer_artifact=True,
     )
 
     return predictions, probabilities
@@ -189,18 +196,20 @@ def explain_model(
     X_train: pd.DataFrame
 ) -> Annotated[SHAPVisualization, "shap_visualization"]:
     """Generate SHAP values for model explainability and create a visualization."""
-    explainer = shap.KernelExplainer(model.predict_proba, shap.sample(X_train, 100))
+    explainer = shap.KernelExplainer(model.predict_proba,
+                                     shap.sample(X_train, 100))
     shap_values = explainer.shap_values(X_train.iloc[:100])
 
-    log_artifact_metadata(
-        artifact_name="shap_values",
+    log_metadata(
         metadata={
             "shap_info": {
                 "shape": [arr.shape for arr in shap_values],
                 "n_classes": len(shap_values),
                 "n_features": shap_values[0].shape[1],
             }
-        }
+        },
+        artifact_name="shap_visualization",
+        infer_artifact=True,
     )
 
     return SHAPVisualization(shap_values, X_train.columns)
@@ -217,13 +226,15 @@ def detect_data_drift(
         _, p_value = ks_2samp(X_train[column], X_test[column])
         drift_metrics[column] = p_value
 
-    log_artifact_metadata(
-        artifact_name="drift_metrics",
+    log_metadata(
         metadata={
             "drift_summary": {
-                "high_drift_features": [col for col, p in drift_metrics.items() if p < 0.05]
+                "high_drift_features": [col for col, p in drift_metrics.items()
+                                        if p < 0.05]
             }
-        }
+        },
+        artifact_name="drift_metrics",
+        infer_artifact=True,
     )
 
     return drift_metrics

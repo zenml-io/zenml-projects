@@ -21,12 +21,7 @@ import pandas as pd
 import wandb
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import confusion_matrix
-from zenml import (
-    get_step_context,
-    log_artifact_metadata,
-    log_model_metadata,
-    step,
-)
+from zenml import step, log_metadata, get_step_context
 from zenml.client import Client
 from zenml.exceptions import StepContextError
 from zenml.logger import get_logger
@@ -60,12 +55,12 @@ def model_evaluator(
     step to force the pipeline run to fail early and all subsequent steps to
     be skipped.
 
-    This step is parameterized to configure the step independently of the step code,
-    before running it in a pipeline. In this example, the step can be configured
-    to use different values for the acceptable model performance thresholds and
-    to control whether the pipeline run should fail if the model performance
-    does not meet the minimum criteria. See the documentation for more
-    information:
+    This step is parameterized to configure the step independently of the step
+    code, before running it in a pipeline. In this example, the step can be
+    configured to use different values for the acceptable model performance
+    thresholds and to control whether the pipeline run should fail if the model
+    performance does not meet the minimum criteria. See the documentation for
+    more information:
 
         https://docs.zenml.io/user-guide/advanced-guide/configure-steps-pipelines
 
@@ -89,17 +84,19 @@ def model_evaluator(
         dataset_tst.drop(columns=[target]),
         dataset_tst[target],
     )
-    logger.info(f"Train accuracy={trn_acc*100:.2f}%")
-    logger.info(f"Test accuracy={tst_acc*100:.2f}%")
+    logger.info(f"Train accuracy={trn_acc * 100:.2f}%")
+    logger.info(f"Test accuracy={tst_acc * 100:.2f}%")
 
     messages = []
     if trn_acc < min_train_accuracy:
         messages.append(
-            f"Train accuracy {trn_acc*100:.2f}% is below {min_train_accuracy*100:.2f}% !"
+            f"Train accuracy {trn_acc * 100:.2f}% is below "
+            f"{min_train_accuracy * 100:.2f}% !"
         )
     if tst_acc < min_test_accuracy:
         messages.append(
-            f"Test accuracy {tst_acc*100:.2f}% is below {min_test_accuracy*100:.2f}% !"
+            f"Test accuracy {tst_acc * 100:.2f}% is below "
+            f"{min_test_accuracy * 100:.2f}% !"
         )
     else:
         for message in messages:
@@ -115,14 +112,14 @@ def model_evaluator(
     }
     try:
         if get_step_context().model:
-            log_model_metadata(metadata={"wandb_url": wandb.run.url})
+            log_metadata(metadata=metadata, infer_model=True)
     except StepContextError:
         # if model not configured not able to log metadata
         pass
 
-    log_artifact_metadata(
+    log_metadata(
         metadata=metadata,
-        artifact_name="breast_cancer_classifier",
+        artifact_version_id=get_step_context().inputs["model"].id,
     )
 
     wandb.log(
