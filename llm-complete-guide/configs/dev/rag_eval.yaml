@@ -1,4 +1,4 @@
-enable_cache: False
+enable_cache: True
 
 # environment configuration
 settings:
@@ -14,4 +14,5 @@ settings:
       - tiktoken
       - pygithub
       - elasticsearch
+      - evidently
     python_package_installer: "uv"

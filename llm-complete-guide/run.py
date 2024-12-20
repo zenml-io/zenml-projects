@@ -49,7 +49,7 @@ from pipelines import (
     llm_eval,
     llm_index_and_evaluate,
     local_deployment,
-    production_deployment,
+    zenml_docs_chatbot_deployer,
     rag_deployment,
 )
 from structures import Document
@@ -280,7 +280,7 @@ def main(
                 model=zenml_model, config_path=config_path, **pipeline_args
             )()
         elif env == "k8s":
-            production_deployment.with_options(
+            zenml_docs_chatbot_deployer.with_options(
                 model=zenml_model, config_path=config_path, **pipeline_args
             )()
     elif pipeline == "evaluation":

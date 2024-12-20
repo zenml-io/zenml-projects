@@ -20,10 +20,6 @@ from constants import (
     OPENAI_MODEL_GEN_KWARGS_EMBEDDINGS,
 )
 from datasets import Dataset
-from distilabel.llms import OpenAILLM
-from distilabel.pipeline import Pipeline
-from distilabel.steps import LoadDataFromHub
-from distilabel.steps.tasks import GenerateSentencePair
 from utils.openai_utils import get_openai_api_key
 from zenml import step
 
@@ -41,6 +37,11 @@ def generate_synthetic_queries(
     Annotated[Dataset, "train_with_queries"],
     Annotated[Dataset, "test_with_queries"],
 ]:
+    from distilabel.llms import OpenAILLM
+    from distilabel.pipeline import Pipeline
+    from distilabel.steps import LoadDataFromHub
+    from distilabel.steps.tasks import GenerateSentencePair
+
     llm = OpenAILLM(model=OPENAI_MODEL_GEN, api_key=get_openai_api_key())
 
     with Pipeline(name="generate_embedding_queries") as pipeline:

@@ -20,9 +20,21 @@ from zenml import step
 from zenml.integrations.huggingface.materializers.huggingface_datasets_materializer import (
     HFDatasetMaterializer,
 )
+from zenml.integrations.wandb.flavors.wandb_experiment_tracker_flavor import WandbExperimentTrackerSettings
+
+wandb_settings = WandbExperimentTrackerSettings(
+    settings={"project": "some_project"},
+    tags=["some_tag"]
+)
 
 
-@step(output_materializers=HFDatasetMaterializer)
+@step(
+    experiment_tracker="<WANDB_TRACKER_STACK_COMPONENT_NAME>",
+    settings={
+        "experiment_tracker": wandb_settings
+    }
+)
+# @step(output_materializers=HFDatasetMaterializer)
 def load_hf_dataset() -> (
     Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
 ):

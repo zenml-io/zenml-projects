@@ -24,14 +24,18 @@ settings:
       - torch
       - pygithub
       - openai
+      - argilla<=2.0.0
+      - distilabel<=1.3.1
+      - accelerate<=0.33.0
+
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
     python_package_installer: "uv"
 
 steps:
-  finetune:
-    step_operator: "gcp_a100"
-    settings:
-      step_operator.vertex:
-        accelerator_count: 1
-        accelerator_type: NVIDIA_TESLA_A100
+#  finetune:
+#    step_operator: "gcp_a100"
+#    settings:
+#      step_operator.vertex:
+#        accelerator_count: 1
+#        accelerator_type: NVIDIA_TESLA_A100

@@ -555,6 +555,12 @@ def preprocess_documents(
 
         split_docs_json: str = json.dumps([doc.__dict__ for doc in split_docs])
 
+        log_metadata(
+            metadata={
+                "chunk_size": CHUNK_SIZE,
+            },
+        )
+
         return split_docs_json, histogram_chart, bar_chart
     except Exception as e:
         logger.error(f"Error in preprocess_documents: {e}")

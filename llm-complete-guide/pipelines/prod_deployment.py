@@ -22,7 +22,7 @@ from zenml import pipeline
 
 
 @pipeline(enable_cache=False)
-def production_deployment():
+def zenml_docs_chatbot_deployer():
     """Model deployment pipeline.
 
     This is a pipeline deploys trained model for future inference.

@@ -17,7 +17,7 @@ from typing import Annotated
 
 from structures import Document
 from unstructured.partition.html import partition_html
-from zenml import ArtifactConfig, step
+from zenml import ArtifactConfig, step, log_metadata
 
 from steps.url_scraping_utils import extract_parent_section
 
@@ -50,4 +50,10 @@ def web_url_loader(
         )
         documents.append(document)
 
+
+    log_metadata(
+        metadata={
+            "num_documents": len(documents),
+        },
+    )
     return json.dumps([doc.__dict__ for doc in documents])

@@ -29,3 +29,6 @@ settings:
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
     python_package_installer: "uv"
+
+parameters:
+  use_argilla: false

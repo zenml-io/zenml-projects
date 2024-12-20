@@ -18,6 +18,7 @@ settings:
       - rerankers[flashrank]
       - matplotlib
       - elasticsearch
+      - evidently
 
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete

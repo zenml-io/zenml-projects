@@ -46,7 +46,7 @@ model_definition = Model(
 
 
 @pipeline(model=model_definition)
-def generate_synthetic_data():
+def generate_synthetic_data(use_argilla: bool = True):
     train_dataset, test_dataset = load_hf_dataset()
     _, _, _ = eval_pii(
         train_dataset=train_dataset,
@@ -60,11 +60,12 @@ def generate_synthetic_data():
         test_dataset=test_with_queries,
         after="eval_pii",
     )
-    push_to_argilla(
-        train_dataset=train_with_queries,
-        test_dataset=test_with_queries,
-        after="eval_pii",
-    )
+    if use_argilla:
+        push_to_argilla(
+            train_dataset=train_with_queries,
+            test_dataset=test_with_queries,
+            after="eval_pii",
+        )
 
 
 if __name__ == "__main__":

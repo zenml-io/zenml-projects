@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
+from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged, run_llm_judged_evidently
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
     retrieval_evaluation_full_with_reranking,
@@ -31,6 +31,8 @@ from zenml import pipeline
 @pipeline(enable_cache=False)
 def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
+    run_llm_judged_evidently(after=after)
+
     # Retrieval evals
     failure_rate_retrieval = retrieval_evaluation_small(after=after)
     full_retrieval_answers = retrieval_evaluation_full(after=after)
@@ -46,6 +48,8 @@ def llm_eval(after: Optional[str] = None) -> None:
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
+        denial_report,
+        denial_report_html
     ) = e2e_evaluation(after=after)
     (
         average_toxicity_score,
