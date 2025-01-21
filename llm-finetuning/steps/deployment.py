@@ -1,10 +1,7 @@
 from typing import Dict, Optional, cast
 
-from huggingface.hf_deployment_service import (
-    HuggingFaceDeploymentService,
-    HuggingFaceServiceConfig,
-)
-from huggingface.hf_model_deployer import HuggingFaceModelDeployer
+from zenml.integrations.huggingface.model_deployers import HuggingFaceModelDeployer
+from zenml.integrations.huggingface.services import HuggingFaceDeploymentService, HuggingFaceServiceConfig
 from zenml import get_step_context, step
 from zenml.client import Client
 from zenml.logger import get_logger
