@@ -77,8 +77,8 @@ python run.py --training-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
 python run.py --training-pipeline --config finetune_gcp.yaml
 
 # Deployment
-python run.py --deployment-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
-python run.py --deployment-pipeline --config deployment_a100.yaml
+python run.py --deploy-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --deploy-pipeline --config deployment_a100.yaml
 ```
 
 The `feature_engineering` and `deployment` pipeline can be run simply with the `default` stack, but the training pipelines [stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) will depend on the config.
