@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-from .deployment import huggingface_deployment
+from .deployment import deployment_pipeline
 from .finetune import finetune_starcoder
 from .generate_code_dataset import generate_code_dataset
