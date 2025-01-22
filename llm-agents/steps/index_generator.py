@@ -15,7 +15,7 @@
 from typing import List
 
 from langchain_community.docstore.document import Document
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.schema.vectorstore import VectorStore
 from langchain.text_splitter import (
     CharacterTextSplitter,
