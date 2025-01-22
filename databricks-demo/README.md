@@ -1,119 +1,146 @@
-# ZenML Production Line QA Project
+# Databricks + ZenML: End-to-End ML Project
 
-This repository provides an end-to-end (E2E) example of using ZenML to build, deploy, and monitor a production-quality machine learning pipeline for quality assurance (QA). By leveraging ZenML, you can define clear pipeline steps, incorporate best practices around modularity and reusability, and integrate with powerful external tools such as MLflow for experiment tracking, Evidently for data/quality checks, and Databricks for scalable compute.
+Welcome to this end-to-end demo project that showcases how to train, deploy, and run batch inference on a machine learning model using ZenML in a Databricks environment. This setup demonstrates how ZenML can simplify the end-to-end process of building reproducible, production-grade ML pipelines with minimal fuss.
 
-## Introduction
+## Overview
 
-This project demonstrates how to:
-- Retrieve and split data into train and inference sets
-- Execute data preprocessing and engineering
-- Perform hyperparameter tuning to find the best model
-- Automatically train, evaluate, and deploy the best-performing model
-- Run batch inference, complete with data drift checks and optional notifications
+This project uses an example classification dataset (Breast Cancer) and provides three major pipelines:
 
-We use the Breast Cancer dataset to illustrate the flow of data and the concept of model performance checks for QA.
+1. Training Pipeline
+2. Deployment Pipeline
+3. Batch Inference Pipeline
 
-## Project Features
+The pipelines are orchestrated via ZenML. Additionally, this setup uses Databricks as the orchestrator, MLflow for experiment tracking and model registry, and Evidently for data drift detection. Slack notifications or other alerting mechanisms are also easily configurable through ZenML's alerter stack components.
 
-1. **Training Pipeline**  
-   - Data loading, splitting, and preprocessing  
-   - Hyperparameter tuning  
-   - Best model selection and evaluation  
-   - Optional quality gates for model performance  
-   - Automatic promotion logic based on prior model metrics
+## Why ZenML?
 
-2. **Deployment Pipeline**  
-   - Deploys the validated model for inference  
-   - Includes integration with Databricks for scalable serving  
-   - Configuration for resource sizing
+ZenML is a lightweight MLOps framework for reproducible pipelines. With ZenML, you get:
 
-3. **Batch Inference Pipeline**  
-   - Runs batch predictions using the deployed model  
-   - Integration with Evidently to detect data drift  
-   - Notifies on success/failure based on configuration
+- A consistent, standardized way to develop, version, and share pipelines.  
+- Easy integration with various cloud providers, experiment trackers, model registries, and more.  
+- Reproducibility and better collaboration: your pipelines and associated artifacts are automatically tracked and versioned.  
+- Simple command-line interface for spinning pipelines up and down with different stack components (like local or Databricks orchestrators).  
+- Built-in best practices for production ML, including quality gates for data drift and model performance thresholds.
+
+## Project Structure
+
+Here's an outline of the repository:
+
+```
+.
+├── configs                   # Pipeline configuration files
+│   ├── deployer_config.yaml  # Deployment pipeline config
+│   ├── inference_config.yaml # Batch inference pipeline config
+│   └── train_config.yaml     # Training pipeline config
+├── pipelines                 # ZenML pipeline definitions
+│   ├── batch_inference.py    # Orchestrates batch inference
+│   ├── deployment.py         # Deploys a model service
+│   └── training.py           # Trains and promotes model
+├── steps                     # ZenML steps logic
+│   ├── alerts                # Alert/notification logic
+│   ├── data_quality          # Data drift and quality checks
+│   ├── deployment            # Deployment step
+│   ├── etl                   # ETL steps (data loading, preprocessing, splitting)
+│   ├── hp_tuning             # Hyperparameter tuning pipeline steps
+│   ├── inference             # Batch inference step
+│   ├── promotion             # Model promotion logic
+│   └── training              # Model training and evaluation steps
+├── utils                     # Helper modules
+├── Makefile                  # Quick integration setup commands
+├── requirements.txt          # Python dependencies
+├── run.py                    # CLI to run pipelines
+└── README.md                 # This file
+```
 
 ## Getting Started
 
-1. Clone this repository and navigate into the project directory:
-   ```bash
-   git clone <your_fork_or_clone_url_here>
-   cd databricks-demo
-   ```
-
-2. (Optional) Create and activate a Python virtual environment:
+1. (Optional) Create and activate a Python virtual environment:  
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
    ```
-   
-3. Install requirements and any relevant ZenML integrations:
+2. Install dependencies:  
    ```bash
    make setup
    ```
-   This command runs "pip install -r requirements.txt" and installs needed ZenML integrations (AWS, MLflow, Slack, Databricks, etc.).
+   This installs the required ZenML integrations (MLflow, Slack, Evidently, Kubeflow, Kubernetes, AWS, etc.) and any library dependencies.
 
-4. Configure your Databricks workspace and ensure you have a valid stack set in ZenML. For example:
+3. (Optional) Set up a local Stack (if you want to try this outside Databricks):  
    ```bash
-   # Optionally configure your stack, e.g.:
-   zenml integration install databricks mlflow evidently -y
-   # or copy/paste the lines from "Makefile" that install integrations
-   
-   # Set up the local or remote stack
    make install-stack-local
    ```
 
-## How to Run
+4. If you have Databricks properly configured in your ZenML stack (with the Databricks token secret set up, cluster name, etc.), you can orchestrate the pipelines on Databricks by default.
 
-Use the provided CLI tool (run.py) in combination with the command-line flags to customize how the pipelines execute.
+## Running the Project
 
-Examples:
+All pipeline runs happen via the CLI in run.py. Here are the main options:
+
+• View available options:  
+  ```bash
+  python run.py --help
+  ```
+
+• Run everything (train, deploy, inference) with default settings:  
+  ```bash
+  python run.py --training --deployment --inference
+  ```
+
+• Run just the training pipeline (to build or update a model):  
+  ```bash
+  python run.py --training
+  ```
+
+• Run just the deployment pipeline (to deploy the latest staged model):  
+  ```bash
+  python run.py --deployment
+  ```
+
+• Run just the batch inference pipeline (to generate predictions on a test slice while checking for data drift):  
+  ```bash
+  python run.py --inference
+  ```
+
+### Additional Command-Line Flags
+
+• Disable caching:  
+  ```bash
+  python run.py --no-cache --training
+  ```
+
+• Skip dropping NA values or skipping normalization:  
+  ```bash
+  python run.py --no-drop-na --no-normalize --training
+  ```
+
+• Drop specific columns:  
+  ```bash
+  python run.py --training --drop-columns columnA,columnB
+  ```
+
+• Set minimal accuracy thresholds for training and test sets:  
+  ```bash
+  python run.py --min-train-accuracy 0.9 --min-test-accuracy 0.8 --fail-on-accuracy-quality-gates --training
+  ```
+
+When you run any of these commands, ZenML will orchestrate each pipeline on the active stack (Databricks if configured) and log the results in your model registry (MLflow). If you have Slack or other alerter components configured, you'll see success/failure notifications.
+
+## Observing Your Pipelines
+
+ZenML offers a local dashboard that you can launch with:
 ```bash
-# Run the training pipeline (with default parameters)
-python run.py --training
-
-# Run only batch inference pipeline
-python run.py --inference
-
-# Run the deployment pipeline
-python run.py --deployment
-
-# Disable ZenML caching for any run
-python run.py --no-cache --training
-
-# Customize data preprocessing
-python run.py --training --no-drop-na --no-normalize --drop-columns colA,colB
-
-# Enforce minimum quality gates for training/test accuracy
-python run.py --training --min-train-accuracy 0.9 --min-test-accuracy 0.85 --fail-on-accuracy-quality-gates
+zenml up
 ```
+Check the terminal logs for the local web address (usually http://127.0.0.1:8237). You'll see pipeline runs, steps, and artifacts.  
 
-### Command-Line Flags
-- `--training`: Run only the training pipeline.  
-- `--deployment`: Run only the deployment pipeline.  
-- `--inference`: Run only the batch inference pipeline.  
-- `--no-cache`: Disable pipeline step caching.  
-- `--no-drop-na`: Skip dropping rows containing NA values.  
-- `--no-normalize`: Skip MinMaxScaler-based normalization.  
-- `--drop-columns COL1,COL2,...`: Drop the specified columns before training.  
-- `--test-size FLOAT`: Proportion of the dataset used for testing (default: 0.2).  
-- `--min-train-accuracy FLOAT`: Minimum training accuracy threshold.  
-- `--min-test-accuracy FLOAT`: Minimum test accuracy threshold.  
-- `--fail-on-accuracy-quality-gates`: If accuracy thresholds aren't met, fail early.  
+If you deployed on Databricks, you can also see the runs orchestrated in the Databricks jobs UI. The project is flexible enough to run the same pipelines locally or in the cloud without changing the code.
 
-## Why ZenML?
+## Contributing & License
 
-ZenML provides an opinionated yet flexible approach to building production ML pipelines. It integrates seamlessly with:
-- Databricks for scalable computing
-- MLflow for experiment tracking and model registry  
-- Slack or other alert channels for success/failure notifications  
-- Data validation frameworks (like Evidently) for drift, data quality, or fairness checks  
+Contributions and suggestions are welcome. This project is licensed under the Apache License 2.0.  
 
-With ZenML, you keep your pipeline logic clean and easily versionable while plugging in your favorite tooling.
+For questions, feedback, or support, please reach out to the ZenML community or open an issue in this repository.
 
-## Contributing
+---
 
-Feel free to open issues or create pull requests for improvements or bug fixes. We welcome community submissions!
-
-## License
-
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+Happy MLOpsing with ZenML and Databricks!
