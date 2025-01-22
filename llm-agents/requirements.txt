@@ -1,12 +1,12 @@
-langchain==0.0.325
+langchain==0.3.15
 openai==0.28.1
-zenml==0.56.3
+zenml==0.72.0
 fastapi
 flask
 uvicorn
 gcsfs==2023.5.0
 faiss-cpu==1.7.3
-unstructured==0.5.7
+unstructured==0.16.5
 tiktoken
 bs4
 typing_extensions
