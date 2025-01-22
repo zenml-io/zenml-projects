@@ -1,4 +1,4 @@
-# Databricks + ZenML: End-to-End ML Project
+# Databricks + ZenML: End-to-End Explainable ML Project
 
 Welcome to this end-to-end demo project that showcases how to train, deploy, and run batch inference on a machine learning model using ZenML in a Databricks environment. This setup demonstrates how ZenML can simplify the end-to-end process of building reproducible, production-grade ML pipelines with minimal fuss.
 
@@ -8,9 +8,14 @@ This project uses an example classification dataset (Breast Cancer) and provides
 
 1. Training Pipeline
 2. Deployment Pipeline
-3. Batch Inference Pipeline
+3. Batch Inference Pipeline (with SHAP-based model explainability)
 
-The pipelines are orchestrated via ZenML. Additionally, this setup uses Databricks as the orchestrator, MLflow for experiment tracking and model registry, and Evidently for data drift detection. Slack notifications or other alerting mechanisms are also easily configurable through ZenML's alerter stack components.
+The pipelines are orchestrated via ZenML. Additionally, this setup uses:
+- Databricks as the orchestrator
+- MLflow for experiment tracking and model registry
+- Evidently for data drift detection
+- SHAP for model explainability during inference
+- Slack notifications (configurable through ZenML's alerter stack components)
 
 ## Why ZenML?
 
@@ -41,6 +46,7 @@ Here's an outline of the repository:
 │   ├── data_quality          # Data drift and quality checks
 │   ├── deployment            # Deployment step
 │   ├── etl                   # ETL steps (data loading, preprocessing, splitting)
+│   ├── explainability        # SHAP-based model explanations
 │   ├── hp_tuning             # Hyperparameter tuning pipeline steps
 │   ├── inference             # Batch inference step
 │   ├── promotion             # Model promotion logic
@@ -85,6 +91,10 @@ All pipeline runs happen via the CLI in run.py. Here are the main options:
   ```bash
   python run.py --training --deployment --inference
   ```
+  This will:
+  1. Train a model and evaluate its performance
+  2. Deploy the model if it meets quality criteria
+  3. Run batch inference with SHAP explanations and data drift checks
 
 • Run just the training pipeline (to build or update a model):  
   ```bash
@@ -96,7 +106,7 @@ All pipeline runs happen via the CLI in run.py. Here are the main options:
   python run.py --deployment
   ```
 
-• Run just the batch inference pipeline (to generate predictions on a test slice while checking for data drift):  
+• Run just the batch inference pipeline (to generate predictions and explanations while checking for data drift):  
   ```bash
   python run.py --inference
   ```
@@ -142,5 +152,3 @@ Contributions and suggestions are welcome. This project is licensed under the Ap
 For questions, feedback, or support, please reach out to the ZenML community or open an issue in this repository.
 
 ---
-
-Happy MLOpsing with ZenML and Databricks!
