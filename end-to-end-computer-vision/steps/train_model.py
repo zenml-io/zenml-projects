@@ -18,6 +18,7 @@ from typing import Annotated, Any, Dict, Tuple
 
 from ultralytics import YOLO
 from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 from materializers.label_studio_export_materializer import (
@@ -45,7 +46,7 @@ def train_model(
     is_apple_silicon_env: bool = False,
 ) -> Tuple[
     Annotated[
-        YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
+        YOLO, ArtifactConfig(name="Trained_YOLO", artifact_type=ArtifactType.MODEL)
     ],
     Annotated[Dict[str, Any], "validation_metrics"],
     Annotated[Dict[str, Any], "model_names"],

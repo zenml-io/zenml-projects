@@ -37,7 +37,7 @@ from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, log_model_metadata, save_artifact, step
 from zenml.client import Client
-
+from zenml.enums import ArtifactType
 
 # this is expensive so we cache it
 @functools.lru_cache(maxsize=None)
@@ -592,11 +592,11 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[
-        Trainer, ArtifactConfig(name="trainer_obj", is_model_artifact=True)
+        Trainer, ArtifactConfig(name="trainer_obj", artifact_type=ArtifactType.MODEL)
     ],
     Annotated[
         GPT2TokenizerFast,
-        ArtifactConfig(name="tokenizer_obj", is_model_artifact=True),
+        ArtifactConfig(name="tokenizer_obj", artifact_type=ArtifactType.MODEL),
     ],
     Annotated[str, "peft_model_id"],
     Annotated[ConstantLengthDataset, "train_dataset"],

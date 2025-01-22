@@ -105,7 +105,7 @@ def load_data() -> Tuple[
 def train_model(
     X_train: pd.DataFrame,
     y_train: pd.Series,
-) -> Annotated[SVC, ArtifactConfig(name="model", is_model_artifact=True)]:
+) -> Annotated[SVC, ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL)]:
     """Train an SVM classifier."""
     model = SVC(kernel='rbf', probability=True)
     model.fit(X_train, y_train)
