@@ -61,10 +61,9 @@ def vllm_model_deployer_step(
     step_name = step_context.step_run.name
 
     commit_info = (
-        get_step_context().model.run_metadata["merged_model_commit_info"].value
+        get_step_context().model.run_metadata["merged_model_commit_info"]
     )
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
-    breakpoint()
     # create a config for the new model service
     predictor_cfg = VLLMServiceConfig(
         model=f"{model_namespace}/{repository}:{revision}",

@@ -82,7 +82,7 @@ Examples:
 @click.option(
     "--deployment-target",
     type=str,
-    default="huggingface",
+    default="vllm",
     help="The target for the deployment pipeline.",
 )
 def main(

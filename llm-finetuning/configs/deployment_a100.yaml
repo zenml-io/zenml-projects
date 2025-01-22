@@ -5,7 +5,7 @@ settings:
 
 model:
   name: "peft-lora-zencoder15B-personal-copilot"
-  version: testvllm
+  version: production
 
 # steps:
 #   deploy_model_to_hf_hub:
