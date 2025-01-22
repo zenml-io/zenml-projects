@@ -3,9 +3,9 @@ from typing import Dict
 from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
 from langchain.agents import AgentExecutor, ConversationalChatAgent
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.schema.vectorstore import VectorStore
-from langchain.tools.vectorstore.tool import VectorStoreQATool
+from langchain_community.tools.vectorstore.tool import VectorStoreQATool
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, log_artifact_metadata, step
