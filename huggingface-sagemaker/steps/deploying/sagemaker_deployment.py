@@ -53,8 +53,8 @@ def deploy_hf_to_sagemaker(
         deployment_metadata = zenml_model.get_data_artifact(
             name="huggingface_url"
         ).run_metadata
-        repo_id = deployment_metadata["repo_id"].value
-        revision = deployment_metadata["revision"].value
+        repo_id = deployment_metadata["repo_id"]
+        revision = deployment_metadata["revision"]
 
     # Sagemaker
     role = get_sagemaker_role()
@@ -86,7 +86,7 @@ def deploy_hf_to_sagemaker(
     logger.info(f"Model deployed to SageMaker: {endpoint_name}")
 
     # get region from env variable
-    region = os.environ["AWS_REGION"] or "eu-central-1"
+    region = os.environ.get("AWS_REGION", "eu-central-1")
     invocation_url = f"https://runtime.sagemaker.{region}.amazonaws.com/endpoints/{endpoint_name}/invocations"
 
     log_artifact_metadata(
