@@ -23,9 +23,10 @@ from langchain.text_splitter import (
 from langchain_community.vectorstores.faiss import FAISS
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
+from materializers.faiss_materializer import FAISSMaterializer
 
 
-@step
+@step(output_materializers={"vector_store": FAISSMaterializer})
 def index_generator(
     documents: List[Document],
 ) -> Annotated[VectorStore, "vector_store"]:
