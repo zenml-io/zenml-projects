@@ -1,14 +1,15 @@
-from typing import Dict
+from typing import Dict, List, Tuple
 
-from agent.agent_executor_materializer import AgentExecutorMaterializer
 from agent.prompt import PREFIX, SUFFIX
 from langchain.agents import AgentExecutor, ConversationalChatAgent
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.schema.vectorstore import VectorStore
 from langchain_community.tools.vectorstore.tool import VectorStoreQATool
 from pydantic import BaseModel
 from typing_extensions import Annotated
+from langchain.tools.base import BaseTool
 from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.enums import ArtifactType
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 # Choose what character to use for your agent's answers
@@ -29,11 +30,12 @@ class AgentParameters(BaseModel):
         extra = "ignore"
 
 
-@step(output_materializers=AgentExecutorMaterializer)
+@step()
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters = AgentParameters()
 ) -> Annotated[
-    AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)
+    Tuple[ConversationalChatAgent, List[BaseTool]],
+    ArtifactConfig(name="agent", artifact_type=ArtifactType.DATA),
 ]:
     """Create an agent from a vector store.
 
@@ -84,4 +86,4 @@ def agent_creator(
         },
     )
 
-    return agent_executor
+    return my_agent, tools
