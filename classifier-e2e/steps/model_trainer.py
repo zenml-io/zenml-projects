@@ -41,7 +41,7 @@ def model_trainer(
     ClassifierMixin,
     ArtifactConfig(
         name="breast_cancer_classifier",
-        artifact_tyoe=ArtifactType.MODEL,
+        artifact_type=ArtifactType.MODEL,
     ),
 ]:
     """Configure and train a model on the training dataset.
