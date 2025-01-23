@@ -16,7 +16,7 @@
 #
 from typing import Annotated, List, Tuple
 
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -67,11 +67,12 @@ def load_data_from_label_studio(
             current_labeled_task_ids = dataset.get_labeled_tasks_ids()
 
             ls_dataset.task_ids = current_labeled_task_ids
-            log_artifact_metadata(
+            log_metadata(
                 metadata={
                     "num_images": len(current_labeled_task_ids),
                 },
                 artifact_name=LABELED_DATASET_NAME,
+                infer_artifact=True,
             )
             return ls_dataset, current_labeled_task_ids
         except:

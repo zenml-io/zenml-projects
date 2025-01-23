@@ -2,6 +2,7 @@ scikit-learn
 shap
 matplotlib
 scipy
-zenml
+zenml>=0.70.0
 pyarrow
 fastparquet
+numpy<2.0.0
