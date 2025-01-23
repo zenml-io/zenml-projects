@@ -57,11 +57,11 @@ class PydanticAgentMaterializer(BaseMaterializer):
     def save(self, data: Agent) -> None:
         # Save system prompt
         with open(f"{self.uri}/system_prompt.txt", "w") as f:
-            f.write(data.system_prompt)
+            f.write(str(data.system_prompt()))
         
         # Save LLM identifier
         with open(f"{self.uri}/llm.txt", "w") as f:
-            f.write(data.llm)
+            f.write(data.model.name())
         
         # Save tools using dill
         with open(f"{self.uri}/tools.pkl", "wb") as f:
