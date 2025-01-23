@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Annotated, Dict, List, Tuple
 
 from pydantic import BaseModel
 from zenml import step
@@ -34,6 +34,5 @@ async def get_rag_answer(question: str) -> str:
     return process_input_with_retrieval(question)
 
 @step
-def agent_creator() -> Agent:
+def agent_creator() -> Annotated[Agent, "rag-agent"]:
     return rag_agent
-
