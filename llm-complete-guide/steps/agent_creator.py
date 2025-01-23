@@ -22,7 +22,7 @@ rag_agent = Agent(
 )
 
 @rag_agent.tool
-async def get_rag_answer(question: str) -> str:
+async def get_rag_answer(ctx: RunContext, question: str) -> str:
     """Use the RAG tool to answer the question
     
     Args:
