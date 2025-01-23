@@ -18,6 +18,7 @@ settings:
       - rerankers[flashrank]
       - matplotlib
       - elasticsearch
+      - pydantic-ai
 
     environment:
       ZENML_PROJECT_SECRET_NAME: llm_complete
