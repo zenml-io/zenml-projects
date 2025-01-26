@@ -66,7 +66,7 @@ def vllm_model_deployer_step(
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
     # create a config for the new model service
     predictor_cfg = VLLMServiceConfig(
-        model=f"{model_namespace}/{repository}:{revision}",
+        model=f"{model_namespace}/{repository}",
         port=port,
         tokenizer=tokenizer,
         model_name="default",  # Required for ServiceConfig
