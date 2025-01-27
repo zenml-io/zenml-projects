@@ -13,6 +13,7 @@
 #  permissions and limitations under the License.
 
 from typing import List
+import os
 
 import nltk
 from langchain_community.docstore.document import Document
@@ -30,12 +31,17 @@ def web_url_loader(urls: List[str]) -> List[Document]:
     Returns:
         List of langchain documents.
     """
+    # Set NLTK data path to a writable directory
+    nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
+    os.makedirs(nltk_data_dir, exist_ok=True)
+    nltk.data.path.append(nltk_data_dir)
+
     # Download required NLTK data
-    nltk.download("punkt")
-    nltk.download("wordnet")
-    nltk.download("omw-1.4")
-    nltk.download("punkt_tab")
-    nltk.download("averaged_perceptron_tagger_eng")
+    nltk.download("punkt", download_dir=nltk_data_dir)
+    nltk.download("wordnet", download_dir=nltk_data_dir)
+    nltk.download("omw-1.4", download_dir=nltk_data_dir)
+    nltk.download("punkt_tab", download_dir=nltk_data_dir)
+    nltk.download("averaged_perceptron_tagger_eng", download_dir=nltk_data_dir)
 
     loader = UnstructuredURLLoader(
         urls=urls,
