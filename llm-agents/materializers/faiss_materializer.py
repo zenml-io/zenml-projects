@@ -1,9 +1,8 @@
-from typing import Any, Type
+from typing import Type
 
-from langchain_openai import OpenAIEmbeddings
-import numpy as np
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_core.vectorstores.base import VectorStore
+from langchain_openai import OpenAIEmbeddings
 from zenml.materializers.base_materializer import BaseMaterializer
 
 
@@ -14,7 +13,7 @@ class FAISSMaterializer(BaseMaterializer):
 
     def save(self, data: FAISS) -> None:
         """Save the FAISS index and documents.
-        
+
         Args:
             data: The FAISS vector store to save
         """
@@ -23,10 +22,14 @@ class FAISSMaterializer(BaseMaterializer):
 
     def load(self, data_type: Type[FAISS]) -> FAISS:
         """Load the FAISS index and documents.
-        
+
         Returns:
             The loaded FAISS vector store
         """
         embeddings = OpenAIEmbeddings()
         # Load from disk
-        return FAISS.load_local(self.uri, embeddings=embeddings, allow_dangerous_deserialization=True) 
+        return FAISS.load_local(
+            self.uri,
+            embeddings=embeddings,
+            allow_dangerous_deserialization=True,
+        )

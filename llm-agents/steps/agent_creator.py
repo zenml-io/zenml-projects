@@ -2,12 +2,12 @@ from typing import Dict, List, Tuple
 
 from agent.prompt import PREFIX, SUFFIX
 from langchain.agents import AgentExecutor, ConversationalChatAgent
-from langchain_openai import ChatOpenAI
 from langchain.schema.vectorstore import VectorStore
+from langchain.tools.base import BaseTool
 from langchain_community.tools.vectorstore.tool import VectorStoreQATool
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 from typing_extensions import Annotated
-from langchain.tools.base import BaseTool
 from zenml import ArtifactConfig, log_artifact_metadata, step
 from zenml.enums import ArtifactType
 

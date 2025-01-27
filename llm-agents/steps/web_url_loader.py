@@ -13,8 +13,8 @@
 #  permissions and limitations under the License.
 
 from typing import List
-import nltk
 
+import nltk
 from langchain_community.docstore.document import Document
 from langchain_community.document_loaders import UnstructuredURLLoader
 from zenml import step
@@ -31,11 +31,11 @@ def web_url_loader(urls: List[str]) -> List[Document]:
         List of langchain documents.
     """
     # Download required NLTK data
-    nltk.download('punkt')
-    nltk.download('wordnet')
-    nltk.download('omw-1.4')
-    nltk.download('punkt_tab')
-    nltk.download('averaged_perceptron_tagger_eng')
+    nltk.download("punkt")
+    nltk.download("wordnet")
+    nltk.download("omw-1.4")
+    nltk.download("punkt_tab")
+    nltk.download("averaged_perceptron_tagger_eng")
 
     loader = UnstructuredURLLoader(
         urls=urls,

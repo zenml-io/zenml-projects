@@ -14,16 +14,16 @@
 
 from typing import List
 
-from langchain_community.docstore.document import Document
-from langchain_openai import OpenAIEmbeddings
 from langchain.schema.vectorstore import VectorStore
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
+from langchain_community.docstore.document import Document
 from langchain_community.vectorstores.faiss import FAISS
+from langchain_openai import OpenAIEmbeddings
+from materializers.faiss_materializer import FAISSMaterializer
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
-from materializers.faiss_materializer import FAISSMaterializer
 
 
 @step(output_materializers={"vector_store": FAISSMaterializer})
