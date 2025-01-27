@@ -11,25 +11,22 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
-import importlib
 import os
 from typing import Optional
-
-from typing_extensions import Annotated
-
-from zenml import ArtifactConfig, get_step_context, step,  __version__ as zenml_version
-from zenml.integrations.bentoml.steps import bento_builder_step
-from zenml.client import Client
-from zenml.logger import get_logger
-from zenml.utils import source_utils
-from zenml.integrations.bentoml.constants import DEFAULT_BENTO_FILENAME
-
 
 import bentoml
 from bentoml import bentos
 from bentoml._internal.bento import bento
+from typing_extensions import Annotated
+from zenml import ArtifactConfig, get_step_context, step
+from zenml import __version__ as zenml_version
+from zenml.client import Client
+from zenml.integrations.bentoml.constants import DEFAULT_BENTO_FILENAME
+from zenml.logger import get_logger
+from zenml.utils import source_utils
 
 logger = get_logger(__name__)
+
 
 @step
 def bento_builder() -> (
@@ -60,7 +57,9 @@ def bento_builder() -> (
     if Client().active_stack.orchestrator.flavor == "local":
         model = get_step_context().model
 
-        bento_model = bentoml.sklearn.save_model(model.name, model.load_artifact(name="model"))
+        bento_model = bentoml.sklearn.save_model(
+            model.name, model.load_artifact(name="model")
+        )
         # Build the BentoML bundle
         bento = bentos.build(
             service="service.py:svc",
@@ -69,7 +68,10 @@ def bento_builder() -> (
                 "model_name": model.name,
                 "model_version": model.version,
                 "model_uri": model.get_artifact(name="model").uri,
-                "bento_uri": os.path.join(get_step_context().get_output_artifact_uri(), DEFAULT_BENTO_FILENAME),
+                "bento_uri": os.path.join(
+                    get_step_context().get_output_artifact_uri(),
+                    DEFAULT_BENTO_FILENAME,
+                ),
             },
             build_ctx=source_utils.get_source_root(),
         )
@@ -78,4 +80,3 @@ def bento_builder() -> (
         bento = None
     ### YOUR CODE ENDS HERE ###
     return bento
-

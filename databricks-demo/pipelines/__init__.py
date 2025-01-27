@@ -17,5 +17,5 @@
 
 
 from .batch_inference import production_line_qa_batch_inference
-from .training import production_line_qa_training
 from .deployment import production_line_qa_deployment
+from .training import production_line_qa_training

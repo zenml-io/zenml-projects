@@ -97,5 +97,4 @@ def deploy_hf_to_sagemaker(
         },
     )
 
-
     return endpoint_name

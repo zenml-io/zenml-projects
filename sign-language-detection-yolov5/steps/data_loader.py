@@ -13,11 +13,11 @@
 #  permissions and limitations under the License.
 
 import os
+from genericpath import isdir
 from typing import Any, Dict
 
 import cv2
 import numpy as np
-from genericpath import isdir
 from materializer.dataset_materializer import DatasetMaterializer
 from roboflow import Roboflow
 from zenml.steps import BaseParameters, Output, step

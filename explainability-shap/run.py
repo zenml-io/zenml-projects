@@ -14,26 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import io
-from typing import Tuple, Dict, Any
-from typing_extensions import Annotated
+import os
+from typing import Any, Dict, Tuple
 
-import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import shap
+from scipy.stats import ks_2samp
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-import shap
-import matplotlib.pyplot as plt
-from scipy.stats import ks_2samp
-
-from zenml import pipeline, step, Model, ArtifactConfig
-from zenml.logger import get_logger
-from zenml import log_artifact_metadata, log_model_metadata
+from typing_extensions import Annotated
+from zenml import (
+    ArtifactConfig,
+    Model,
+    log_artifact_metadata,
+    log_model_metadata,
+    pipeline,
+    step,
+)
+from zenml.config import DockerSettings
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
-from zenml.config import DockerSettings
+from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
 
 logger = get_logger(__name__)
@@ -52,18 +57,23 @@ class SHAPVisualizationMaterializer(BaseMaterializer):
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA_ANALYSIS
 
     def save_visualizations(
-            self, data: SHAPVisualization
+        self, data: SHAPVisualization
     ) -> Dict[str, VisualizationType]:
         plt.figure(figsize=(10, 6))
-        shap.summary_plot(data.shap_values, feature_names=data.feature_names, plot_type="bar", show=False)
+        shap.summary_plot(
+            data.shap_values,
+            feature_names=data.feature_names,
+            plot_type="bar",
+            show=False,
+        )
         plt.title("SHAP Feature Importance")
 
         buf = io.BytesIO()
-        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
         buf.seek(0)
 
         visualization_path = os.path.join(self.uri, "shap_summary_plot.png")
-        with fileio.open(visualization_path, 'wb') as f:
+        with fileio.open(visualization_path, "wb") as f:
             f.write(buf.getvalue())
 
         plt.close()
@@ -80,22 +90,30 @@ def safe_metadata(data: Any) -> Dict[str, Any]:
 
 
 @step
-def load_data() -> Tuple[
-    Annotated[pd.DataFrame, "X_train"],
-    Annotated[pd.DataFrame, "X_test"],
-    Annotated[pd.Series, "y_train"],
-    Annotated[pd.Series, "y_test"],
-]:
+def load_data() -> (
+    Tuple[
+        Annotated[pd.DataFrame, "X_train"],
+        Annotated[pd.DataFrame, "X_test"],
+        Annotated[pd.Series, "y_train"],
+        Annotated[pd.Series, "y_test"],
+    ]
+):
     """Load the iris dataset and split into train and test sets."""
     iris = load_iris(as_frame=True)
     X = iris.data
     y = iris.target
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
-    for name, data in [("X_train", X_train), ("X_test", X_test), ("y_train", y_train), ("y_test", y_test)]:
+    for name, data in [
+        ("X_train", X_train),
+        ("X_test", X_test),
+        ("y_train", y_train),
+        ("y_test", y_test),
+    ]:
         log_artifact_metadata(
-            artifact_name=name,
-            metadata={"dataset_info": safe_metadata(data)}
+            artifact_name=name, metadata={"dataset_info": safe_metadata(data)}
         )
 
     return X_train, X_test, y_train, y_test
@@ -107,7 +125,7 @@ def train_model(
     y_train: pd.Series,
 ) -> Annotated[SVC, ArtifactConfig(name="model", is_model_artifact=True)]:
     """Train an SVM classifier."""
-    model = SVC(kernel='rbf', probability=True)
+    model = SVC(kernel="rbf", probability=True)
     model.fit(X_train, y_train)
     train_accuracy = model.score(X_train, y_train)
 
@@ -119,7 +137,7 @@ def train_model(
             "model_info": {
                 "model_type": type(model).__name__,
                 "kernel": model.kernel,
-            }
+            },
         }
     )
 
@@ -131,7 +149,7 @@ def train_model(
                 "kernel": model.kernel,
                 "n_support": model.n_support_.tolist(),
             }
-        }
+        },
     )
 
     return model
@@ -144,7 +162,7 @@ def evaluate_model(
     y_test: pd.Series,
 ) -> Tuple[
     Annotated[np.ndarray, "predictions"],
-    Annotated[np.ndarray, "probabilities"]
+    Annotated[np.ndarray, "probabilities"],
 ]:
     """Evaluate the model and make predictions."""
     test_accuracy = model.score(X_test, y_test)
@@ -164,9 +182,9 @@ def evaluate_model(
         metadata={
             "prediction_info": {
                 "shape": predictions.shape,
-                "unique_values": np.unique(predictions).tolist()
+                "unique_values": np.unique(predictions).tolist(),
             }
-        }
+        },
     )
 
     log_artifact_metadata(
@@ -175,9 +193,9 @@ def evaluate_model(
             "probability_info": {
                 "shape": probabilities.shape,
                 "min": float(np.min(probabilities)),
-                "max": float(np.max(probabilities))
+                "max": float(np.max(probabilities)),
             }
-        }
+        },
     )
 
     return predictions, probabilities
@@ -185,11 +203,12 @@ def evaluate_model(
 
 @step
 def explain_model(
-    model: SVC,
-    X_train: pd.DataFrame
+    model: SVC, X_train: pd.DataFrame
 ) -> Annotated[SHAPVisualization, "shap_visualization"]:
     """Generate SHAP values for model explainability and create a visualization."""
-    explainer = shap.KernelExplainer(model.predict_proba, shap.sample(X_train, 100))
+    explainer = shap.KernelExplainer(
+        model.predict_proba, shap.sample(X_train, 100)
+    )
     shap_values = explainer.shap_values(X_train.iloc[:100])
 
     log_artifact_metadata(
@@ -200,7 +219,7 @@ def explain_model(
                 "n_classes": len(shap_values),
                 "n_features": shap_values[0].shape[1],
             }
-        }
+        },
     )
 
     return SHAPVisualization(shap_values, X_train.columns)
@@ -221,9 +240,11 @@ def detect_data_drift(
         artifact_name="drift_metrics",
         metadata={
             "drift_summary": {
-                "high_drift_features": [col for col, p in drift_metrics.items() if p < 0.05]
+                "high_drift_features": [
+                    col for col, p in drift_metrics.items() if p < 0.05
+                ]
             }
-        }
+        },
     )
 
     return drift_metrics
@@ -232,7 +253,7 @@ def detect_data_drift(
 @pipeline(
     enable_cache=False,
     settings={"docker": DockerSettings(requirements="requirements.txt")},
-    model=Model(name="high_risk_classification")
+    model=Model(name="high_risk_classification"),
 )
 def iris_classification_pipeline():
     X_train, X_test, y_train, y_test = load_data()

@@ -16,15 +16,14 @@
 #
 from typing import Annotated, Any, Dict, Tuple
 
-from ultralytics import YOLO
-from zenml import ArtifactConfig, log_artifact_metadata, step
-from zenml.logger import get_logger
-
 from materializers.label_studio_export_materializer import (
     LabelStudioAnnotationExport,
 )
 from materializers.ultralytics_materializer import UltralyticsMaterializer
+from ultralytics import YOLO
 from utils.dataset_utils import load_and_split_data
+from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -106,10 +105,10 @@ def train_model(
 
     logger.info("Evaluating model...")
     metrics = model.val()  # evaluate model performance on the validation set
-    
+
     log_artifact_metadata(
         artifact_name="Trained_YOLO",
         metadata={"metrics": metrics.results_dict, "names": model.names},
     )
-    
+
     return model, metrics.results_dict, model.names

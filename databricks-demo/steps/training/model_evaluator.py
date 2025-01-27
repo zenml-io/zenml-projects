@@ -1,17 +1,16 @@
-from typing_extensions import Annotated
 import mlflow
 import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
 from sklearn.base import ClassifierMixin
-from zenml import step, get_step_context, log_model_metadata
+from typing_extensions import Annotated
+from zenml import get_step_context, log_model_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import numpy as np
-import io
 
 logger = get_logger(__name__)
 
 experiment_tracker = Client().active_stack.experiment_tracker
+
 
 @step(experiment_tracker=experiment_tracker.name)
 def model_evaluator(
@@ -25,9 +24,13 @@ def model_evaluator(
 ) -> Annotated[Image.Image, "accuracies_plot"]:
     """Evaluate a trained model and return a focused accuracy plot as PIL.Image.Image."""
     # Calculate accuracies and log metadata (same as before)
-    trn_acc = model.score(dataset_trn.drop(columns=[target]), dataset_trn[target])
-    tst_acc = model.score(dataset_tst.drop(columns=[target]), dataset_tst[target])
-    
+    trn_acc = model.score(
+        dataset_trn.drop(columns=[target]), dataset_trn[target]
+    )
+    tst_acc = model.score(
+        dataset_tst.drop(columns=[target]), dataset_tst[target]
+    )
+
     logger.info(f"Train accuracy={trn_acc*100:.2f}%")
     logger.info(f"Test accuracy={tst_acc*100:.2f}%")
     mlflow.log_metric("testing_accuracy_score", tst_acc)
@@ -38,26 +41,36 @@ def model_evaluator(
         metadata={
             "evaluation_metrics": {
                 "train_accuracy": trn_acc,
-                "test_accuracy": tst_acc
+                "test_accuracy": tst_acc,
             }
         },
     )
 
     # Fetch previous versions (same as before)
     client = Client()
-    previous_versions = []    
+    previous_versions = []
     for version in client.get_model(step_context.model.name).versions:
-        version_obj = client.get_model_version(step_context.model.name, version.version)
+        version_obj = client.get_model_version(
+            step_context.model.name, version.version
+        )
         if "evaluation_metrics" in version_obj.run_metadata:
-            test_accuracy = version_obj.run_metadata["evaluation_metrics"].value.get("test_accuracy")
+            test_accuracy = version_obj.run_metadata[
+                "evaluation_metrics"
+            ].value.get("test_accuracy")
             if test_accuracy is not None:
-                previous_versions.append((f"v{version.version}", float(test_accuracy)))
+                previous_versions.append(
+                    (f"v{version.version}", float(test_accuracy))
+                )
 
     # Sort versions by number
     previous_versions.sort(key=lambda x: int(x[0][1:]))
 
     # Take up to 5 most recent versions, including the current one
-    previous_versions = previous_versions[-5:] if len(previous_versions) > 5 else previous_versions
+    previous_versions = (
+        previous_versions[-5:]
+        if len(previous_versions) > 5
+        else previous_versions
+    )
 
     # Ensure the current version is included
     current_version_tuple = (f"v{step_context.model.version}", tst_acc)
@@ -68,7 +81,7 @@ def model_evaluator(
 
     # Create a clean image with transparent background
     img_width, img_height = 1400, 800
-    img = Image.new('RGBA', (img_width, img_height), (255, 255, 255, 0))
+    img = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
 
     draw = ImageDraw.Draw(img)
 
@@ -85,43 +98,82 @@ def model_evaluator(
 
     # Draw title
     title = "Accuracy over Time"
-    draw.text((img_width//2, 30), title, fill='#000000', font=title_font, anchor="mt")
+    draw.text(
+        (img_width // 2, 30),
+        title,
+        fill="#000000",
+        font=title_font,
+        anchor="mt",
+    )
 
     # Draw accuracy history graph
     graph_left, graph_top, graph_right, graph_bottom = 100, 100, 1100, 700
-    draw.rectangle([graph_left, graph_top, graph_right, graph_bottom], outline='#000000', width=2)
+    draw.rectangle(
+        [graph_left, graph_top, graph_right, graph_bottom],
+        outline="#000000",
+        width=2,
+    )
 
     # Add grid
     for i in range(1, 5):
         y = graph_top + (graph_bottom - graph_top) * i / 5
-        draw.line([graph_left, y, graph_right, y], fill='#CCCCCC', width=1)
+        draw.line([graph_left, y, graph_right, y], fill="#CCCCCC", width=1)
 
     # Plot points with custom icons and lines
     num_versions = len(previous_versions)
-    x_step = (graph_right - graph_left) / (num_versions - 1) if num_versions > 1 else 0
+    x_step = (
+        (graph_right - graph_left) / (num_versions - 1)
+        if num_versions > 1
+        else 0
+    )
 
     for i, (version, acc) in enumerate(previous_versions):
         x = graph_left + i * x_step
         y = graph_bottom - (acc * (graph_bottom - graph_top))
-        
+
         # Custom icon (circle)
         icon_size = 10
-        draw.ellipse([x-icon_size, y-icon_size, x+icon_size, y+icon_size], fill='#FF6B6B', outline='#333333')
-        
+        draw.ellipse(
+            [x - icon_size, y - icon_size, x + icon_size, y + icon_size],
+            fill="#FF6B6B",
+            outline="#333333",
+        )
+
         if i > 0:
-            prev_x = graph_left + (i-1) * x_step
-            prev_y = graph_bottom - (previous_versions[i-1][1] * (graph_bottom - graph_top))
-            draw.line([prev_x, prev_y, x, y], fill='#4ECDC4', width=3)
-        
-        draw.text((x, y+25), version, fill='#333333', font=small_font, anchor="mt")
-        draw.text((x, y-25), f"{acc:.2%}", fill='#333333', font=small_font, anchor="mb")
+            prev_x = graph_left + (i - 1) * x_step
+            prev_y = graph_bottom - (
+                previous_versions[i - 1][1] * (graph_bottom - graph_top)
+            )
+            draw.line([prev_x, prev_y, x, y], fill="#4ECDC4", width=3)
+
+        draw.text(
+            (x, y + 25), version, fill="#333333", font=small_font, anchor="mt"
+        )
+        draw.text(
+            (x, y - 25),
+            f"{acc:.2%}",
+            fill="#333333",
+            font=small_font,
+            anchor="mb",
+        )
 
     # Add graph labels
-    draw.text((graph_left + (graph_right - graph_left)//2, graph_bottom + 50), 
-              "Model Versions", fill='#333333', font=main_font, anchor="mt")
+    draw.text(
+        (graph_left + (graph_right - graph_left) // 2, graph_bottom + 50),
+        "Model Versions",
+        fill="#333333",
+        font=main_font,
+        anchor="mt",
+    )
 
-    draw.text((graph_left - 50, graph_top + (graph_bottom - graph_top)//2), 
-              "Accuracy", fill='#333333', font=main_font, anchor="mm", rotation=90)
+    draw.text(
+        (graph_left - 50, graph_top + (graph_bottom - graph_top) // 2),
+        "Accuracy",
+        fill="#333333",
+        font=main_font,
+        anchor="mm",
+        rotation=90,
+    )
 
     # Apply anti-aliasing
     img = img.resize((img_width, img_height), Image.LANCZOS)
