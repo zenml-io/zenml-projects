@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Tuple
 
 from agent.prompt import PREFIX, SUFFIX
@@ -9,11 +10,20 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml.client import Client
 from zenml.enums import ArtifactType
 
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 # Choose what character to use for your agent's answers
 CHARACTER = "technical assistant"
+
+# First try to get API key from environment variable
+api_key = os.getenv("OPENAI_API_KEY")
+
+# If not found in env, fall back to ZenML secret
+if not api_key:
+    secret = Client().get_secret("llm_complete")
+    api_key = secret.secret_values["openai_api_key"]
 
 
 class AgentParameters(BaseModel):
@@ -23,6 +33,7 @@ class AgentParameters(BaseModel):
         "temperature": 0,
         "max_tokens": 1000,
         "model_name": "gpt-3.5-turbo",
+        "api_key": api_key,
     }
 
     # allow extra fields
