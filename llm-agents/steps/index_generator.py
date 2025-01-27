@@ -12,6 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+import os
 from typing import List
 
 from langchain.schema.vectorstore import VectorStore
@@ -31,9 +32,13 @@ from zenml.client import Client
 def index_generator(
     documents: List[Document],
 ) -> Annotated[VectorStore, "vector_store"]:
-    # Get OpenAI API key from ZenML secrets
-    secret = Client().get_secret("llm_complete")
-    api_key = secret.secret_values["openai_api_key"]
+    # First try to get API key from environment variable
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    # If not found in env, fall back to ZenML secret
+    if not api_key:
+        secret = Client().get_secret("llm_complete")
+        api_key = secret.secret_values["openai_api_key"]
 
     embeddings = OpenAIEmbeddings(openai_api_key=api_key)
 
