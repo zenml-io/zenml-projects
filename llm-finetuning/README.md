@@ -127,7 +127,7 @@ python run.py --deployment-pipeline --config deployment_a100.yaml
 
 A working prototype has been trained and deployed as of Jan 19 2024. The model is using minimal data and finetuned using QLoRA and PEFT. The model was trained using 1 A100 GPU on the cloud:
 
-- Training dataset [Link](https://huggingface.co/datasets/htahir1/zenml-codegen-v1)
+- Training dataset [Link](https://huggingface.co/datasets/zenml/zenml-codegen-v1)
 - PEFT Model [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot/)
 - Fully merged model (Ready to deploy on HuggingFace Inference Endpoints) [Link](https://huggingface.co/htahir1/peft-lora-zencoder15B-personal-copilot-merged)
 
@@ -147,7 +147,7 @@ The [ZenML Pro](https://zenml.io/pro) was used to manage the pipelines, models, 
 
 This project recently did a [call of volunteers](https://www.linkedin.com/feed/update/urn:li:activity:7150388250178662400/). This TODO list can serve as a source of collaboration. If you want to work on any of the following, please [create an issue on this repository](https://github.com/zenml-io/zenml-projects/issues) and assign it to yourself!
 
-- [x] Create a functioning data generation pipeline (initial dataset with the core [ZenML repo](https://github.com/zenml-io/zenml) scraped and pushed [here](https://huggingface.co/datasets/htahir1/zenml-codegen-v1))
+- [x] Create a functioning data generation pipeline (initial dataset with the core [ZenML repo](https://github.com/zenml-io/zenml) scraped and pushed [here](https://huggingface.co/datasets/zenml/zenml-codegen-v1))
 - [x] Deploy the model on a HuggingFace inference endpoint and use it in the [VS Code Extension](https://github.com/huggingface/llm-vscode#installation) using a deployment pipeline.
 - [x] Create a functioning training pipeline.
 - [ ] Curate a set of 5-10 repositories that are using the ZenML latest syntax and use data generation pipeline to push dataset to HuggingFace.
