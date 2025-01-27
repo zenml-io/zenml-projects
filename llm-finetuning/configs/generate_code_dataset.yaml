@@ -2,6 +2,11 @@
 settings:
   docker:
     requirements: requirements.txt
+    apt_packages:
+      - git
+    environment:
+      HF_HOME: "/tmp/huggingface"
+      HF_HUB_CACHE: "/tmp/huggingface"
 
 # pipeline configuration
 parameters:
