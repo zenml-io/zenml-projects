@@ -12,8 +12,8 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import List
 import os
+from typing import List
 
 import nltk
 from langchain_community.docstore.document import Document
