@@ -1,8 +1,10 @@
+import os
 from typing import Type
 
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_core.vectorstores.base import VectorStore
 from langchain_openai import OpenAIEmbeddings
+from zenml.client import Client
 from zenml.materializers.base_materializer import BaseMaterializer
 
 
@@ -26,7 +28,16 @@ class FAISSMaterializer(BaseMaterializer):
         Returns:
             The loaded FAISS vector store
         """
-        embeddings = OpenAIEmbeddings()
+        # First try to get API key from environment variable
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        # If not found in env, fall back to ZenML secret
+        if not api_key:
+            secret = Client().get_secret("llm_complete")
+            api_key = secret.secret_values["openai_api_key"]
+
+        embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+
         # Load from disk
         return FAISS.load_local(
             self.uri,
