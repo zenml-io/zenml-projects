@@ -24,13 +24,18 @@ from langchain_openai import OpenAIEmbeddings
 from materializers.faiss_materializer import FAISSMaterializer
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
+from zenml.client import Client
 
 
 @step(output_materializers={"vector_store": FAISSMaterializer})
 def index_generator(
     documents: List[Document],
 ) -> Annotated[VectorStore, "vector_store"]:
-    embeddings = OpenAIEmbeddings()
+    # Get OpenAI API key from ZenML secrets
+    secret = Client().get_secret("llm_complete")
+    api_key = secret.secret_values["openai_api_key"]
+
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)
