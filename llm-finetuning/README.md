@@ -69,8 +69,8 @@ The three pipelines can be run using the CLI:
 
 ```shell
 # Data generation
-python run.py --feature-engineering --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
-python run.py --feature-engineering --config generate_code_dataset.yaml
+python run.py --feature-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
+python run.py --feature-pipeline --config generate_code_dataset.yaml
 
 # Training
 python run.py --training-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>

@@ -124,9 +124,7 @@ def main(
 
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
-        pipeline_args = {}
         from pipelines import generate_code_dataset
-
         generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
