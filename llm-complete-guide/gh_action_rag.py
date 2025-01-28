@@ -21,12 +21,10 @@ from uuid import UUID
 
 import click
 import yaml
-from zenml.enums import PluginSubType
-
 from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
-from zenml.client import Client
 from zenml import Model
-from zenml.exceptions import ZenKeyError
+from zenml.client import Client
+from zenml.enums import PluginSubType
 
 
 @click.command(
@@ -89,7 +87,7 @@ def main(
     zenml_model_name: Optional[str] = "zenml-docs-qa-rag",
     zenml_model_version: Optional[str] = None,
 ):
-    """ 
+    """
     Executes the pipeline to train a basic RAG model.
 
     Args:
@@ -108,14 +106,14 @@ def main(
         config = yaml.safe_load(file)
 
     # Read the model version from a file in the root of the repo
-    #  called "ZENML_VERSION.txt". 
+    #  called "ZENML_VERSION.txt".
     if zenml_model_version == "staging":
         postfix = "-rc0"
     elif zenml_model_version == "production":
         postfix = ""
     else:
         postfix = "-dev"
-  
+
     if Path("ZENML_VERSION.txt").exists():
         with open("ZENML_VERSION.txt", "r") as file:
             zenml_model_version = file.read().strip()
@@ -177,7 +175,7 @@ def main(
                 service_account_id=service_account_id,
                 auth_window=0,
                 flavor="builtin",
-                action_type=PluginSubType.PIPELINE_RUN
+                action_type=PluginSubType.PIPELINE_RUN,
             ).id
             client.create_trigger(
                 name="Production Trigger LLM-Complete",

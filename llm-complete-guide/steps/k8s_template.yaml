@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: placeholder
+  labels:
+    app: placeholder
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:region:account-id:certificate/certificate-id
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+spec:
+  selector:
+    app: placeholder
+  type: LoadBalancer
+  ports:
+    - name: https
+      port: 443        # External port exposed by LoadBalancer (HTTPS)
+      targetPort: 3000 # Internal container port
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: placeholder
+  name: placeholder
+spec:
+  selector:
+    matchLabels:
+      app: placeholder
+  template:
+    metadata:
+      labels:
+        app: placeholder
+    spec:
+      containers:
+      - image: placeholder
+        name: placeholder
+        ports:
+        - containerPort: 3000
