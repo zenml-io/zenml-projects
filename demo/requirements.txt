@@ -1,0 +1,8 @@
+torch
+torchvision
+torchmetrics
+zenml
+click
+pyyaml
+torchvision
+lightning

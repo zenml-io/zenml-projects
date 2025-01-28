@@ -1,0 +1,33 @@
+model:
+  name: cifar10_resnet18
+  description: "Fine-tune with ResNet18 on CIFAR10 using PyTorch Lightning and Neptune in GCP"
+  tags:
+    - pytorch_lightning
+    - demo
+    - neptune
+    - cifar10
+    - gcp
+
+settings:
+  docker:
+    #parent_image: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime
+    python_package_installer: uv
+    required_integrations:
+      - pytorch
+      - neptune
+      - gcp
+      - pytorch_lightning
+    requirements:
+      - torchvision
+      - lightning
+      #- zenml==0.73.0
+
+parameters:
+  # Data parameters
+  batch_size: 256
+  val_split: 0.2
+  dataset_fraction: 0.05  # Use only 10% of the data for faster demo
+  
+  # Training parameters
+  epochs: 2
+  learning_rate: 0.04
