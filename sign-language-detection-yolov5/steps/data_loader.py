@@ -14,7 +14,7 @@
 
 import os
 from genericpath import isdir
-from typing import Any, Dict
+from typing import Annotated, Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -50,12 +50,16 @@ def roboflow_download(
 )
 def data_loader(
     params: TrainerParameters,
-) -> Output(train_images=Dict, val_images=Dict, test_images=Dict):
+) -> Tuple[
+    Annotated[Dict, "train_images"],
+    Annotated[Dict, "val_images"],
+    Annotated[Dict, "test_images"],
+]:
     """Loads data from Roboflow"""
-    images: dict(str, list(np.ndarray, list)) = {}
-    train_images: dict(str, list(np.ndarray, list)) = {}
-    valid_images: dict(str, list(np.ndarray, list)) = {}
-    test_images: dict(str, list(np.ndarray, list)) = {}
+    images: Dict[str, List[np.ndarray, List]] = {}
+    train_images: Dict[str, List[np.ndarray, List]] = {}
+    valid_images: Dict[str, List[np.ndarray, List]] = {}
+    test_images: Dict[str, List[np.ndarray, List]] = {}
     dataset_path = roboflow_download(
         params.api_key,
         params.workspace,

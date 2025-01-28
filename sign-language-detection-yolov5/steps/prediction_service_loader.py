@@ -16,8 +16,8 @@ from typing import cast
 from zenml.integrations.bentoml.model_deployers.bentoml_model_deployer import (
     BentoMLModelDeployer,
 )
-from zenml.integrations.bentoml.services.bentoml_deployment import (
-    BentoMLDeploymentService,
+from zenml.integrations.bentoml.services.bentoml_local_deployment import (
+    BentoMLLocalDeploymentService,
 )
 from zenml.steps import BaseParameters, step
 
@@ -39,7 +39,7 @@ class PredictionServiceLoaderStepParameters(BaseParameters):
 @step(enable_cache=False)
 def bentoml_prediction_service_loader(
     params: PredictionServiceLoaderStepParameters,
-) -> BentoMLDeploymentService:
+) -> BentoMLLocalDeploymentService:
     """Get the BentoML prediction service started by the pipeline."""
     model_deployer = BentoMLModelDeployer.get_active_model_deployer()
 
@@ -64,4 +64,4 @@ def bentoml_prediction_service_loader(
             f"running."
         )
 
-    return cast(BentoMLDeploymentService, services[0])
+    return cast(BentoMLLocalDeploymentService, services[0])

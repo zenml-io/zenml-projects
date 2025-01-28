@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 
 import os
-from typing import Dict
+from typing import Annotated, Dict
 
 import cv2
 import numpy as np
@@ -54,7 +54,7 @@ def trainer(
     training_set: Dict,
     validation_set: Dict,
     params: TrainerParameters,
-) -> Output(model=dict):
+) -> Annotated[Dict, "model"]:
     """Train a neural net from scratch to recognize MNIST digits return our
     model or the learner"""
 

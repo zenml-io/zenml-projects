@@ -12,7 +12,7 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Dict
+from typing import Annotated, Dict, List
 
 import albumentations as A
 import numpy as np
@@ -27,10 +27,10 @@ from zenml.steps import Output, step
 )
 def train_augmenter(
     images: Dict,
-) -> Output(augmented_images=Dict):
+) -> Annotated[Dict, "augmented_images"]:
     """Loads data from Roboflow"""
 
-    augmented_images: dict(str, list(np.ndarray, list)) = {}
+    augmented_images: Dict[str, List[np.ndarray, List]] = {}
     for key, value in images.items():
         image = value[0]
         load_bboxes = value[1]
