@@ -1,6 +1,7 @@
 # environment configuration
 settings:
   docker:
+    python_package_installer: "uv"
     requirements: requirements.txt
     apt_packages:
       - git

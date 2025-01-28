@@ -2,6 +2,7 @@
 settings:
   docker:
     requirements: requirements.txt
+    python_package_installer: "uv"
 
 model:
   name: peft-lora-zencoder15B-personal-copilot
