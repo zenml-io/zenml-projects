@@ -186,7 +186,7 @@ class Configuration(BaseModel):
     use_8bit_qunatization: bool = False
 
     push_to_hub: bool = False
-    output_peft_repo_id: str = "htahir1/peft-lora-zencoder15B-personal-copilot"
+    output_peft_repo_id: str = "zenml/peft-lora-zencoder15B-personal-copilot"
 
 
 def chars_token_ratio(dataset, tokenizer, data_column, nb_examples=400):
