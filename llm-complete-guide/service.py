@@ -4,17 +4,17 @@ import bentoml
 import litellm
 import numpy as np
 from constants import (
+    EMBEDDINGS_MODEL,
     MODEL_NAME_MAP,
     OPENAI_MODEL,
-    SECRET_NAME_ELASTICSEARCH,
+    SECRET_NAME,
 )
-from elasticsearch import Elasticsearch
+from psycopg2.extensions import connection
 from rerankers import Reranker
 from sentence_transformers import SentenceTransformer
+from utils.llm_utils import get_db_conn, get_topn_similar_docs
 from utils.openai_utils import get_openai_api_key
 from zenml.client import Client
-
-EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 384 dimensions
 
 
 @bentoml.service(
@@ -38,7 +38,6 @@ EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 384 dimensions
             ],
             "access_control_allow_credentials": True,
             "access_control_allow_headers": ["*"],
-            # "access_control_allow_origin_regex": "https://.*\.my_org\.com",  # Optional regex
             "access_control_max_age": 1200,
             "access_control_expose_headers": ["Content-Length"],
         }
@@ -55,15 +54,8 @@ class RAGService:
         # Initialize reranker
         self.reranker = Reranker("flashrank")
 
-        # Initialize Elasticsearch client
-        client = Client()
-        es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values[
-            "elasticsearch_host"
-        ]
-        es_api_key = client.get_secret(
-            SECRET_NAME_ELASTICSEARCH
-        ).secret_values["elasticsearch_api_key"]
-        self.es_client = Elasticsearch(es_host, api_key=es_api_key)
+        # Initialize database connection
+        self.db_conn = get_db_conn()
 
     def get_embeddings(self, text: str) -> np.ndarray:
         """Get embeddings for the given text."""
@@ -79,26 +71,21 @@ class RAGService:
         if query_embedding.ndim == 2:
             query_embedding = query_embedding[0]
 
-        response = self.es_client.search(
-            index="zenml_docs",
-            knn={
-                "field": "embedding",
-                "query_vector": query_embedding.tolist(),
-                "num_candidates": 50,
-                "k": n,
-            },
+        docs = get_topn_similar_docs(
+            query_embedding=query_embedding.tolist(),
+            conn=self.db_conn,
+            n=n,
+            include_metadata=True
         )
 
-        docs = []
-        for hit in response["hits"]["hits"]:
-            docs.append(
-                {
-                    "content": hit["_source"]["content"],
-                    "url": hit["_source"]["url"],
-                    "parent_section": hit["_source"]["parent_section"],
-                }
-            )
-        return docs
+        return [
+            {
+                "content": doc[0],
+                "url": doc[1],
+                "parent_section": doc[2],
+            }
+            for doc in docs
+        ]
 
     def rerank_documents(self, query: str, documents: list) -> list:
         """Rerank documents using the reranker."""
