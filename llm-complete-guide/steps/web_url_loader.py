@@ -17,6 +17,7 @@ from typing import Annotated
 
 from structures import Document
 from unstructured.partition.html import partition_html
+from unstructured.partition.xml import partition_xml
 from zenml import ArtifactConfig, step
 
 from steps.url_scraping_utils import extract_parent_section
@@ -34,10 +35,12 @@ def web_url_loader(
     Returns:
         JSON string containing a list of custom Document objects.
     """
-    url_list = json.loads(urls)
+    url_list = [url for url in json.loads(urls) if not url.endswith(".xml")]
+
     documents = []
     for url in url_list:
         elements = partition_html(url=url)
+
         text = "\n\n".join([str(el) for el in elements])
 
         parent_section = extract_parent_section(url)

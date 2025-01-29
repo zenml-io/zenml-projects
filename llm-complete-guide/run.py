@@ -16,6 +16,8 @@
 import warnings
 from pathlib import Path
 
+from zenml.client import Client
+
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
     "ignore", category=FutureWarning, module="huggingface_hub.file_download"
@@ -271,6 +273,15 @@ def main(
 
     elif pipeline == "deploy":
         zenml_model.version = zenml_model_version
+        model_deployer = Client().active_stack.model_deployer
+        deployments = model_deployer.find_model_server()
+        if deployments:
+            try:
+                Client().delete_service(deployments[0].uuid)
+            except:
+                print("Service not found. Creating new service.")
+                pass
+
         if env == "local":
             local_deployment.with_options(
                 model=zenml_model, config_path=config_path, **pipeline_args

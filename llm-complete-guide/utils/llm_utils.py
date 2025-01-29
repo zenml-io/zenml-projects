@@ -454,14 +454,11 @@ def find_vectorstore_name() -> str:
     Returns:
         str: The name of the vector store.
     """
-    from zenml.client import Client
+    from zenml import get_step_context
 
-    client = Client()
-    model = client.get_model_version(
-        ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="v0.68.1-dev"
-    )
+    mv = get_step_context().model
 
-    return model.run_metadata["vector_store"]["name"]
+    return mv.run_metadata["vector_store"]["name"]
 
 
 def rerank_documents(
@@ -494,12 +491,23 @@ def rerank_documents(
         reranked_documents_and_urls.append((doc_text, doc_url))
     return reranked_documents_and_urls
 
+DEFAULT_SYSTEM_MESSAGE = """
+    You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant
+    answers. \
+    You do not make up answers or provide opinions that you don't have
+    information to support. \
+    If you are unsure or don't know, just say so. \
+    """
 
 def process_input_with_retrieval(
     input: str,
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
+    system_message: str = DEFAULT_SYSTEM_MESSAGE,
 ) -> str:
     """Process the input with retrieval.
 

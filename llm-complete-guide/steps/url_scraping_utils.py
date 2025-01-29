@@ -22,6 +22,33 @@ from bs4 import BeautifulSoup
 logger = getLogger(__name__)
 
 
+def fetch_all_sitemap_urls(sitemap_url):
+    urls = []
+    try:
+        response = requests.get(sitemap_url)
+        soup = BeautifulSoup(response.text, 'xml')
+
+        # Check if this is a sitemap index
+        sitemapTags = soup.find_all("sitemap")
+        if sitemapTags:
+            # This is a sitemap index
+            for sitemap in sitemapTags:
+                loc = sitemap.find("loc")
+                if loc:
+                    sub_sitemap_url = loc.text
+                    # Recursively fetch URLs from sub-sitemap
+                    urls.extend(fetch_all_sitemap_urls(sub_sitemap_url))
+        else:
+            # This is a regular sitemap
+            locations = soup.find_all("loc")
+            urls.extend([loc.text for loc in locations])
+
+    except Exception as e:
+        print(f"Error fetching sitemap {sitemap_url}: {str(e)}")
+
+    return urls
+
+
 def get_all_pages(base_url: str = "https://docs.zenml.io") -> List[str]:
     """
     Retrieve all pages from the ZenML documentation sitemap.
@@ -34,13 +61,11 @@ def get_all_pages(base_url: str = "https://docs.zenml.io") -> List[str]:
     """
     logger.info("Fetching sitemap from docs.zenml.io...")
 
-    # Fetch the sitemap
-    sitemap_url = f"{base_url}/sitemap.xml"
-    response = requests.get(sitemap_url)
-    soup = BeautifulSoup(response.text, "xml")
+    cleaned_url = base_url.rstrip("/")
 
-    # Extract all URLs from the sitemap
-    urls = [loc.text for loc in soup.find_all("loc")]
+    # Fetch the sitemap
+    sitemap_url = f"{cleaned_url}/sitemap.xml"
+    urls = fetch_all_sitemap_urls(sitemap_url)
 
     logger.info(f"Found {len(urls)} pages in the sitemap.")
     return urls

@@ -25,12 +25,27 @@ from steps.eval_retrieval import (
     retrieval_evaluation_small_with_reranking,
 )
 from steps.eval_visualisation import visualize_evaluation_results
-from zenml import pipeline
+from zenml import pipeline, log_metadata
 
+DEFAULT_SYSTEM_MESSAGE = """
+    You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant
+    answers. \
+    You do not make up answers or provide opinions that you don't have
+    information to support. \
+    If you are unsure or don't know, just say so. \
+    """
 
 @pipeline(enable_cache=False)
 def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
+    log_metadata(
+        metadata={
+            "application_prompt": DEFAULT_SYSTEM_MESSAGE,
+        }
+    )
     # Retrieval evals
     failure_rate_retrieval = retrieval_evaluation_small(after=after)
     full_retrieval_answers = retrieval_evaluation_full(after=after)

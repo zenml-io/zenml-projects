@@ -533,6 +533,12 @@ def preprocess_documents(
                 "chunk_overlap": CHUNK_OVERLAP,
             },
         )
+        log_metadata(
+            metadata={
+                "chunk_size": CHUNK_SIZE,
+                "chunk_overlap": CHUNK_OVERLAP,
+            },
+        )
 
         document_list: List[Document] = [
             Document(**doc) for doc in json.loads(documents)
@@ -550,6 +556,9 @@ def preprocess_documents(
         log_metadata(
             artifact_name="split_chunks",
             infer_artifact=True,
+            metadata=stats,
+        )
+        log_metadata(
             metadata=stats,
         )
 
@@ -617,7 +626,7 @@ class IndexType(Enum):
 @step(enable_cache=False)
 def index_generator(
     documents: str,
-    index_type: IndexType = IndexType.ELASTICSEARCH,
+    index_type: IndexType = IndexType.POSTGRES,
 ) -> None:
     """Generates an index for the given documents.
 
