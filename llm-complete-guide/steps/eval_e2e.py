@@ -33,7 +33,7 @@ from pydantic import BaseModel, conint
 from structures import TestResult
 from utils.llm_utils import process_input_with_retrieval
 from utils.openai_utils import get_openai_api_key
-from zenml import step, log_metadata
+from zenml import step
 
 logging.getLogger().setLevel(logging.WARNING)
 

@@ -90,11 +90,11 @@ def query_similar_docs(
     num_docs = 20 if use_reranking else returned_sample_size
     # get (content, url) tuples for the top n similar documents
     top_similar_docs = get_topn_similar_docs(
-        embedded_question, 
-        conn=conn, 
-        es_client=es_client, 
-        n=num_docs, 
-        include_metadata=True
+        embedded_question,
+        conn=conn,
+        es_client=es_client,
+        n=num_docs,
+        include_metadata=True,
     )
 
     if use_reranking:
@@ -158,9 +158,9 @@ def perform_small_retrieval_evaluation(use_reranking: bool) -> float:
 
 
 @step
-def retrieval_evaluation_small() -> (
-    Annotated[float, "small_failure_rate_retrieval"]
-):
+def retrieval_evaluation_small() -> Annotated[
+    float, "small_failure_rate_retrieval"
+]:
     """Executes the retrieval evaluation step without reranking.
 
     Returns:
@@ -170,9 +170,9 @@ def retrieval_evaluation_small() -> (
 
 
 @step
-def retrieval_evaluation_small_with_reranking() -> (
-    Annotated[float, "small_failure_rate_retrieval_reranking"]
-):
+def retrieval_evaluation_small_with_reranking() -> Annotated[
+    float, "small_failure_rate_retrieval_reranking"
+]:
     """Executes the retrieval evaluation step with reranking.
 
     Returns:

@@ -49,9 +49,10 @@ from sentence_transformers.training_args import BatchSamplers
 from sentence_transformers.util import cos_sim
 from zenml import ArtifactConfig, log_model_metadata, step
 from zenml.client import Client
+from zenml.enums import ArtifactType
 from zenml.utils.cuda_utils import cleanup_gpu_memory
 
-from zenml.enums import ArtifactType
+
 @step
 def prepare_load_data(
     use_argilla_annotations: bool = False,

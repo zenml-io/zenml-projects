@@ -24,8 +24,8 @@ import json
 import logging
 import math
 import warnings
-from typing import Annotated, Any, Dict, List, Tuple
 from enum import Enum
+from typing import Annotated, Any, Dict, List, Tuple
 
 # Suppress the specific FutureWarning about clean_up_tokenization_spaces
 warnings.filterwarnings(
@@ -40,18 +40,17 @@ from constants import (
     CHUNK_SIZE,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
+    SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    ZENML_CHATBOT_MODEL,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, get_es_client, split_documents
-from zenml import ArtifactConfig, step, log_metadata
-from zenml.metadata.metadata_types import Uri
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
-from constants import SECRET_NAME
+from zenml.metadata.metadata_types import Uri
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
