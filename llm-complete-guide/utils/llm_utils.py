@@ -411,7 +411,7 @@ def get_topn_similar_docs(
 
 
 def get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0.4, max_tokens=1000
+    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
 ):
     """Generates a completion response from the given messages using the specified model.
 
