@@ -15,12 +15,13 @@
 # limitations under the License.
 
 import logging
-from typing import Annotated, List, Tuple, Dict, Callable, Any
+from typing import Annotated, List, Tuple, Dict, Callable, Any, Optional
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+import json
 
 from datasets import load_dataset
 from utils.llm_utils import (
@@ -178,14 +179,16 @@ def process_with_progress(
     Returns:
         List of results
     """
-    logger.info(f"{desc} - Starting parallel processing with {n_processes} workers")
-    
+    logger.info(
+        f"{desc} - Starting parallel processing with {n_processes} workers"
+    )
+
     results = []
     with Pool(processes=n_processes) as pool:
         for i, result in enumerate(pool.imap(worker_fn, items), 1):
             results.append(result)
             logger.info(f"Completed {i}/{len(items)} tests")
-            
+
     logger.info(f"{desc} - Completed processing {len(results)} items")
     return results
 
@@ -205,16 +208,18 @@ def test_retrieved_docs_retrieve_best_url(
     """
     total_tests = len(question_doc_pairs)
     logger.info(f"Starting retrieval test with {total_tests} questions...")
-    
+
     n_processes = max(1, cpu_count() // 2)
-    worker = partial(process_single_pair_with_retry, use_reranking=use_reranking)
+    worker = partial(
+        process_single_pair_with_retry, use_reranking=use_reranking
+    )
 
     try:
         results = process_with_progress(
             question_doc_pairs,
             worker,
             n_processes,
-            "Testing document retrieval"
+            "Testing document retrieval",
         )
 
         failures = 0
@@ -352,14 +357,13 @@ def perform_retrieval_evaluation(
 
     total_tests = len(sampled_dataset)
     n_processes = max(1, cpu_count() // 2)
-    worker = partial(process_single_dataset_item_with_retry, use_reranking=use_reranking)
+    worker = partial(
+        process_single_dataset_item_with_retry, use_reranking=use_reranking
+    )
 
     try:
         results = process_with_progress(
-            sampled_dataset,
-            worker,
-            n_processes,
-            "Evaluating retrieval"
+            sampled_dataset, worker, n_processes, "Evaluating retrieval"
         )
 
         failures = 0
@@ -487,14 +491,13 @@ def run_simple_tests(test_data: list, test_function: Callable) -> float:
     """
     total_tests = len(test_data)
     n_processes = max(1, cpu_count() // 2)
-    worker = partial(process_single_test_with_retry, test_function=test_function)
+    worker = partial(
+        process_single_test_with_retry, test_function=test_function
+    )
 
     try:
         results = process_with_progress(
-            test_data,
-            worker,
-            n_processes,
-            "Running tests"
+            test_data, worker, n_processes, "Running tests"
         )
 
         failures = 0
@@ -518,6 +521,137 @@ def run_simple_tests(test_data: list, test_function: Callable) -> float:
             f"Failure rate: {failure_rate}%"
         )
         return round(failure_rate, 2)
+
+    except Exception as e:
+        logger.error(f"Error during parallel processing: {str(e)}")
+        raise
+
+
+def process_single_llm_test(
+    item: Dict,
+    test_function: Callable,
+) -> Tuple[float, float, float, float]:
+    """Process a single LLM test item.
+
+    Args:
+        item: Dictionary containing the dataset item
+        test_function: The test function to run
+
+    Returns:
+        Tuple containing (toxicity, faithfulness, helpfulness, relevance) scores
+    """
+    # Assuming only one question per item
+    question = item["generated_questions"][0]
+    context = item["page_content"]
+
+    try:
+        result = test_function(question, context)
+        return (
+            result.toxicity,
+            result.faithfulness,
+            result.helpfulness,
+            result.relevance,
+        )
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed for question: {question}. Error: {e}")
+        # Return None to indicate this test should be skipped
+        return None
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    reraise=True,
+)
+def process_single_llm_test_with_retry(
+    item: Dict,
+    test_function: Callable,
+) -> Optional[Tuple[float, float, float, float]]:
+    """Process a single LLM test item with retry logic.
+
+    Args:
+        item: Dictionary containing the dataset item
+        test_function: The test function to run
+
+    Returns:
+        Optional tuple containing (toxicity, faithfulness, helpfulness, relevance) scores
+        Returns None if the test should be skipped
+    """
+    try:
+        return process_single_llm_test(item, test_function)
+    except Exception as e:
+        logger.warning(f"Error processing LLM test: {str(e)}. Retrying...")
+        raise
+
+
+def run_llm_judged_tests(
+    test_function: Callable,
+    sample_size: int = 10,
+) -> Tuple[
+    Annotated[float, "average_toxicity_score"],
+    Annotated[float, "average_faithfulness_score"],
+    Annotated[float, "average_helpfulness_score"],
+    Annotated[float, "average_relevance_score"],
+]:
+    """E2E tests judged by an LLM.
+
+    Args:
+        test_data (list): The test data.
+        test_function (function): The test function to run.
+        sample_size (int): The sample size to run the tests on.
+
+    Returns:
+        Tuple: The average toxicity, faithfulness, helpfulness, and relevance scores.
+    """
+    # Load the dataset from the Hugging Face Hub
+    dataset = load_dataset("zenml/rag_qa_embedding_questions", split="train")
+
+    # Shuffle the dataset and select a random sample
+    sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
+
+    n_processes = max(1, cpu_count() // 2)
+    worker = partial(
+        process_single_llm_test_with_retry, test_function=test_function
+    )
+
+    try:
+        results = process_with_progress(
+            sampled_dataset, worker, n_processes, "Running LLM judged tests"
+        )
+
+        # Filter out None results (failed tests)
+        valid_results = [r for r in results if r is not None]
+        total_tests = len(valid_results)
+
+        if total_tests == 0:
+            logger.error("All tests failed!")
+            return 0.0, 0.0, 0.0, 0.0
+
+        # Calculate totals
+        total_toxicity = sum(r[0] for r in valid_results)
+        total_faithfulness = sum(r[1] for r in valid_results)
+        total_helpfulness = sum(r[2] for r in valid_results)
+        total_relevance = sum(r[3] for r in valid_results)
+
+        # Calculate averages
+        average_toxicity_score = total_toxicity / total_tests
+        average_faithfulness_score = total_faithfulness / total_tests
+        average_helpfulness_score = total_helpfulness / total_tests
+        average_relevance_score = total_relevance / total_tests
+
+        logger.info("\nTest Results Summary:")
+        logger.info(f"Total valid tests: {total_tests}")
+        logger.info(f"Average toxicity: {average_toxicity_score:.3f}")
+        logger.info(f"Average faithfulness: {average_faithfulness_score:.3f}")
+        logger.info(f"Average helpfulness: {average_helpfulness_score:.3f}")
+        logger.info(f"Average relevance: {average_relevance_score:.3f}")
+
+        return (
+            round(average_toxicity_score, 3),
+            round(average_faithfulness_score, 3),
+            round(average_helpfulness_score, 3),
+            round(average_relevance_score, 3),
+        )
 
     except Exception as e:
         logger.error(f"Error during parallel processing: {str(e)}")
