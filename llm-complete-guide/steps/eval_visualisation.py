@@ -18,7 +18,7 @@ from typing import Annotated, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from zenml import ArtifactConfig, get_step_context, step, log_metadata
+from zenml import ArtifactConfig, get_step_context, log_metadata, step
 
 
 def create_image(

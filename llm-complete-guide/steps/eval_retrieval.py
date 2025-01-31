@@ -14,16 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-from typing import Annotated, List, Tuple, Dict, Callable, Any, Optional
-from multiprocessing import Pool, cpu_count
-from functools import partial
-from tenacity import retry, stop_after_attempt, wait_exponential
-from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor
 import json
+import logging
+from functools import partial
+from multiprocessing import Pool, cpu_count
+from typing import Annotated, Any, Callable, Dict, List, Optional, Tuple
 
 from datasets import load_dataset
+from tenacity import retry, stop_after_attempt, wait_exponential
 from utils.llm_utils import (
     find_vectorstore_name,
     get_db_conn,
@@ -32,7 +30,7 @@ from utils.llm_utils import (
     get_topn_similar_docs,
     rerank_documents,
 )
-from zenml import step, get_step_context
+from zenml import step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
