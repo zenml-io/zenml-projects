@@ -603,7 +603,7 @@ class IndexType(Enum):
 @step(enable_cache=False)
 def index_generator(
     documents: str,
-    index_type: IndexType = IndexType.ELASTICSEARCH,
+    index_type: IndexType = IndexType.POSTGRES,
 ) -> None:
     """Generates an index for the given documents.
 
