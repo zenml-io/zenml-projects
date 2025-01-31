@@ -17,7 +17,7 @@
 import os
 
 # Vector Store constants
-CHUNK_SIZE = 2000
+CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
     384  # Update this to match the dimensionality of the new model
@@ -35,8 +35,8 @@ EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L12-v2"
 MODEL_NAME_MAP = {
     "gpt4": "gpt-4",
     "gpt35": "gpt-3.5-turbo",
-    "claude3": "claude-3-opus-20240229",
-    "claudehaiku": "claude-3-haiku-20240307",
+    "claude3": "claude-3-5-sonnet-latest",
+    "claudehaiku": "claude-3-5-haiku-latest",
 }
 
 # CHUNKING_METHOD = "split-by-document"
