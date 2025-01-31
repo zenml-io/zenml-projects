@@ -89,16 +89,21 @@ def gradio_rag_deployment() -> None:
         exist_ok=True,
         token=get_hf_token(),
     )
-    api.add_space_secret(
-        repo_id=hf_repo_id,
-        key="ZENML_STORE_API_KEY",
-        value=ZENML_API_TOKEN,
-    )
-    api.add_space_secret(
-        repo_id=hf_repo_id,
-        key="ZENML_STORE_URL",
-        value=ZENML_STORE_URL,
-    )
+
+    # Ensure values are strings
+    if ZENML_API_TOKEN is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_STORE_API_KEY",
+            value=str(ZENML_API_TOKEN),
+        )
+
+    if ZENML_STORE_URL is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_STORE_URL",
+            value=str(ZENML_STORE_URL),
+        )
 
     files_to_upload = {
         "deployment_hf.py": "app.py",
