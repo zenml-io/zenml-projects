@@ -439,9 +439,9 @@ def find_vectorstore_name() -> str:
     """
     from zenml.client import Client
     client = Client()
-    model = client.get_model_version(ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="v0.68.1-dev")
+    model = client.get_model_version(ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="0.71.0-dev")
 
-    return model.run_metadata["vector_store"].value["name"]
+    return model.run_metadata["vector_store"]["name"]
 
 
 def rerank_documents(
