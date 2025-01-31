@@ -18,7 +18,7 @@ from typing import Annotated, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from zenml import ArtifactConfig, get_step_context, step
+from zenml import ArtifactConfig, get_step_context, step, log_metadata
 
 
 def create_image(
@@ -124,7 +124,7 @@ def visualize_evaluation_results(
     Annotated[Image.Image, ArtifactConfig(name="generation_eval_full")],
 ]:
     """
-    Visualize the evaluation results by creating three separate images.
+    Visualize the evaluation results by creating three separate images and logging metrics.
 
     Args:
         small_retrieval_eval_failure_rate (float): Small retrieval evaluation failure rate.
@@ -144,6 +144,38 @@ def visualize_evaluation_results(
     """
     step_context = get_step_context()
     pipeline_run_name = step_context.pipeline_run.name
+
+    # Log all metrics as metadata for dashboard visualization
+    log_metadata(
+        metadata={
+            # Retrieval metrics
+            "retrieval.small_failure_rate": small_retrieval_eval_failure_rate,
+            "retrieval.small_failure_rate_reranking": small_retrieval_eval_failure_rate_reranking,
+            "retrieval.full_failure_rate": full_retrieval_eval_failure_rate,
+            "retrieval.full_failure_rate_reranking": full_retrieval_eval_failure_rate_reranking,
+            # Generation failure metrics
+            "generation.failure_rate_bad_answers": failure_rate_bad_answers,
+            "generation.failure_rate_bad_immediate": failure_rate_bad_immediate_responses,
+            "generation.failure_rate_good": failure_rate_good_responses,
+            # Quality metrics
+            "quality.toxicity": average_toxicity_score,
+            "quality.faithfulness": average_faithfulness_score,
+            "quality.helpfulness": average_helpfulness_score,
+            "quality.relevance": average_relevance_score,
+            # Composite scores
+            "composite.overall_quality": (
+                average_faithfulness_score
+                + average_helpfulness_score
+                + average_relevance_score
+            )
+            / 3,
+            "composite.retrieval_effectiveness": (
+                (1 - small_retrieval_eval_failure_rate)
+                + (1 - full_retrieval_eval_failure_rate)
+            )
+            / 2,
+        }
+    )
 
     normalized_scores = [
         score / 20
