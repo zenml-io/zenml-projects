@@ -20,7 +20,7 @@ hf_repo_id = f"{SPACE_USERNAME}/{SPACE_NAME}"
 gcp_reqs = integration_registry.select_integration_requirements("gcp")
 
 hf_repo_requirements = f"""
-zenml>=0.68.1
+zenml>=0.73.0
 ratelimit
 pgvector
 psycopg2-binary
