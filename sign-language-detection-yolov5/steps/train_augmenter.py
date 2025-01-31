@@ -17,7 +17,7 @@ from typing import Annotated, Dict, List
 import albumentations as A
 import numpy as np
 from materializer.dataset_materializer import DatasetMaterializer
-from zenml.steps import Output, step
+from zenml.steps import step
 
 
 @step(

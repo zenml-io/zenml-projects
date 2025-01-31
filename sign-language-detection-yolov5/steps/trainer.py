@@ -22,7 +22,7 @@ from materializer.yolo_model_materializer import Yolov5ModelMaterializer
 from yolov5.train import main, parse_opt
 from zenml.client import Client
 from zenml.logger import get_logger
-from zenml.steps import BaseParameters, Output, step
+from zenml.steps import step
 
 logger = get_logger(__name__)
 experiment_tracker = Client().active_stack.experiment_tracker
@@ -36,14 +36,6 @@ if not step_operator or not experiment_tracker:
     )
 
 
-class TrainerParameters(BaseParameters):
-    """Trainer params"""
-
-    imgsz: int = 1024
-    batch_size: int = 16
-    epochs: int = 200
-
-
 @step(
     enable_cache=True,
     step_operator=step_operator.name,
@@ -53,7 +45,9 @@ class TrainerParameters(BaseParameters):
 def trainer(
     training_set: Dict,
     validation_set: Dict,
-    params: TrainerParameters,
+    imgsz: int = 1024,
+    batch_size: int = 16,
+    epochs: int = 200,
 ) -> Annotated[Dict, "model"]:
     """Train a neural net from scratch to recognize MNIST digits return our
     model or the learner"""
@@ -69,9 +63,9 @@ def trainer(
     image_saver(validation_set)
 
     opt = parse_opt(known=True)
-    opt.imgsz = params.imgsz
-    opt.batch_size = params.batch_size
-    opt.epochs = params.epochs
+    opt.imgsz = imgsz
+    opt.batch_size = batch_size
+    opt.epochs = epochs
     opt.exist_ok = True
     opt.data = "./yolov5/asl.yaml"
     opt.name = "ZenmlYolo"

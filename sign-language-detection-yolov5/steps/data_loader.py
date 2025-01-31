@@ -20,16 +20,7 @@ import cv2
 import numpy as np
 from materializer.dataset_materializer import DatasetMaterializer
 from roboflow import Roboflow
-from zenml.steps import BaseParameters, Output, step
-
-
-class TrainerParameters(BaseParameters):
-    """Trainer params"""
-
-    api_key: str = "YOUR_API_KEY"
-    workspace: str = "WORKSPACE"
-    project: str = "american-sign-language-letters"
-    annotation_type: str = "yolov5"
+from zenml.steps import step
 
 
 def roboflow_download(
@@ -49,7 +40,10 @@ def roboflow_download(
     }
 )
 def data_loader(
-    params: TrainerParameters,
+    api_key: str = "YOUR_API_KEY",
+    workspace: str = "WORKSPACE",
+    project: str = "american-sign-language-letters",
+    annotation_type: str = "yolov5",
 ) -> Tuple[
     Annotated[Dict, "train_images"],
     Annotated[Dict, "val_images"],
@@ -61,10 +55,10 @@ def data_loader(
     valid_images: Dict[str, List[np.ndarray, List]] = {}
     test_images: Dict[str, List[np.ndarray, List]] = {}
     dataset_path = roboflow_download(
-        params.api_key,
-        params.workspace,
-        params.project,
-        params.annotation_type,
+        api_key,
+        workspace,
+        project,
+        annotation_type,
     )
     for folder in os.listdir(dataset_path):
         if isdir(os.path.join(dataset_path, folder)):

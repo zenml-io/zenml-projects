@@ -20,7 +20,6 @@ from steps import (
     inference_loader,
     bentoml_prediction_service_loader,
     predictor,
-    PredictionServiceLoaderStepParameters,
 )
 
 docker_settings = DockerSettings(required_integrations=[PYTORCH, BENTOML])
@@ -31,10 +30,8 @@ def sign_language_detection_inference_pipeline():
     """Link all the steps and artifacts together"""
     inference_data = inference_loader()
     prediction_service = bentoml_prediction_service_loader(
-        params=PredictionServiceLoaderStepParameters(
-            model_name="sign_language_yolov5",
-            pipeline_name="sign_language_detection_deployment_pipeline",
-            step_name="deployer",
-        )
+        model_name="sign_language_yolov5",
+        pipeline_name="sign_language_detection_deployment_pipeline",
+        step_name="deployer",
     )
     predictor(inference_data=inference_data, service=prediction_service)

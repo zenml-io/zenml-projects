@@ -18,23 +18,17 @@ from typing import Dict, Tuple
 import cv2
 import torch
 from yolov5.detect import main, parse_opt
-from zenml.steps import BaseParameters, step
-
-
-class DetectParameters(BaseParameters):
-    """Trainer params"""
-
-    imgsz: Tuple = (768, 1024)
-    conf: float = 0.5
-    weights: str = "./inference/model/best.pt"
-    source: str = "./inference/images/"
+from zenml.steps import step
 
 
 @step(enable_cache=True)
 def detector(
     test_set: Dict,
     model: Dict,
-    params: DetectParameters,
+    imgsz: Tuple = (768, 1024),
+    conf: float = 0.5,
+    weights: str = "./inference/model/best.pt",
+    source: str = "./inference/images/",
 ) -> None:
     """Train a neural net from scratch to recognize MNIST digits return our
     model or the learner"""
@@ -47,10 +41,10 @@ def detector(
 
     # Run main to start training
     opt = parse_opt()
-    opt.weights = params.weights
-    opt.imgsz = params.imgsz
-    opt.conf_thres = params.conf
-    opt.source = params.source
+    opt.weights = weights
+    opt.imgsz = imgsz
+    opt.conf_thres = conf
+    opt.source = source
     main(opt)
 
 
