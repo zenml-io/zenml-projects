@@ -15,7 +15,9 @@
 # limitations under the License.
 
 import logging
-from typing import Annotated, List, Tuple
+from typing import Annotated, List, Tuple, Dict
+from multiprocessing import Pool, cpu_count
+from functools import partial
 
 from datasets import load_dataset
 from utils.llm_utils import (
@@ -108,6 +110,25 @@ def query_similar_docs(
     return (question, url_ending, urls)
 
 
+def process_single_pair(
+    pair: Dict, use_reranking: bool = False
+) -> Tuple[bool, str, str, List[str]]:
+    """Process a single question-document pair.
+
+    Args:
+        pair: Dictionary containing question and URL ending
+        use_reranking: Whether to use reranking to improve retrieval
+
+    Returns:
+        Tuple containing (is_failure, question, url_ending, retrieved_urls)
+    """
+    question, url_ending, urls = query_similar_docs(
+        pair["question"], pair["url_ending"], use_reranking
+    )
+    is_failure = all(url_ending not in url for url in urls)
+    return is_failure, question, url_ending, urls
+
+
 def test_retrieved_docs_retrieve_best_url(
     question_doc_pairs: list, use_reranking: bool = False
 ) -> float:
@@ -122,13 +143,21 @@ def test_retrieved_docs_retrieve_best_url(
         The failure rate of the retrieval test.
     """
     total_tests = len(question_doc_pairs)
-    failures = 0
 
-    for pair in question_doc_pairs:
-        question, url_ending, urls = query_similar_docs(
-            pair["question"], pair["url_ending"], use_reranking
-        )
-        if all(url_ending not in url for url in urls):
+    # Use half of available CPUs to avoid overwhelming the system
+    n_processes = max(1, cpu_count() // 2)
+
+    # Create a partial function with use_reranking parameter fixed
+    worker = partial(process_single_pair, use_reranking=use_reranking)
+
+    # Process pairs in parallel
+    with Pool(processes=n_processes) as pool:
+        results = pool.map(worker, question_doc_pairs)
+
+    # Count failures and log errors
+    failures = 0
+    for is_failure, question, url_ending, urls in results:
+        if is_failure:
             logging.error(
                 f"Failed for question: {question}. Expected URL ending: {url_ending}. Got: {urls}"
             )
@@ -181,6 +210,29 @@ def retrieval_evaluation_small_with_reranking() -> Annotated[
     return perform_small_retrieval_evaluation(use_reranking=True)
 
 
+def process_single_dataset_item(
+    item: Dict, use_reranking: bool = False
+) -> Tuple[bool, str, str, List[str]]:
+    """Process a single dataset item.
+
+    Args:
+        item: Dictionary containing the dataset item with generated questions and filename
+        use_reranking: Whether to use reranking to improve retrieval
+
+    Returns:
+        Tuple containing (is_failure, question, url_ending, retrieved_urls)
+    """
+    generated_questions = item["generated_questions"]
+    question = generated_questions[0]  # Assuming only one question per item
+    url_ending = item["filename"].split("/")[
+        -1
+    ]  # Extract the URL ending from the filename
+
+    _, _, urls = query_similar_docs(question, url_ending, use_reranking)
+    is_failure = all(url_ending not in url for url in urls)
+    return is_failure, question, url_ending, urls
+
+
 def perform_retrieval_evaluation(
     sample_size: int, use_reranking: bool
 ) -> float:
@@ -197,20 +249,21 @@ def perform_retrieval_evaluation(
     sampled_dataset = dataset.shuffle(seed=42).select(range(sample_size))
 
     total_tests = len(sampled_dataset)
+
+    # Use half of available CPUs to avoid overwhelming the system
+    n_processes = max(1, cpu_count() // 2)
+
+    # Create a partial function with use_reranking parameter fixed
+    worker = partial(process_single_dataset_item, use_reranking=use_reranking)
+
+    # Process items in parallel
+    with Pool(processes=n_processes) as pool:
+        results = pool.map(worker, sampled_dataset)
+
+    # Count failures and log errors
     failures = 0
-
-    for item in sampled_dataset:
-        generated_questions = item["generated_questions"]
-        question = generated_questions[
-            0
-        ]  # Assuming only one question per item
-        url_ending = item["filename"].split("/")[
-            -1
-        ]  # Extract the URL ending from the filename
-
-        _, _, urls = query_similar_docs(question, url_ending, use_reranking)
-
-        if all(url_ending not in url for url in urls):
+    for is_failure, question, url_ending, urls in results:
+        if is_failure:
             logging.error(
                 f"Failed for question: {question}. Expected URL containing: {url_ending}. Got: {urls}"
             )
