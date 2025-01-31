@@ -13,13 +13,14 @@
 #  permissions and limitations under the License.
 
 import re
+from logging import getLogger
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup
-from typing import List
-from logging import getLogger
-
 
 logger = getLogger(__name__)
+
 
 def get_all_pages(base_url: str = "https://docs.zenml.io") -> List[str]:
     """
@@ -32,17 +33,18 @@ def get_all_pages(base_url: str = "https://docs.zenml.io") -> List[str]:
         List[str]: A list of all documentation page URLs.
     """
     logger.info("Fetching sitemap from docs.zenml.io...")
-    
+
     # Fetch the sitemap
     sitemap_url = f"{base_url}/sitemap.xml"
     response = requests.get(sitemap_url)
     soup = BeautifulSoup(response.text, "xml")
-    
+
     # Extract all URLs from the sitemap
     urls = [loc.text for loc in soup.find_all("loc")]
-    
+
     logger.info(f"Found {len(urls)} pages in the sitemap.")
     return urls
+
 
 def extract_parent_section(url: str) -> str:
     """

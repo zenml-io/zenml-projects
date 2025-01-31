@@ -1,26 +1,37 @@
 import os
 import webbrowser
 
+from constants import SECRET_NAME
 from huggingface_hub import HfApi
-
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
 from zenml import step
 from zenml.client import Client
 from zenml.integrations.registry import integration_registry
 
-secret = Client().get_secret("llm-complete")
-
+# Try to get from environment first, otherwise fall back to secret store
 ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
+
+if not ZENML_API_TOKEN or not ZENML_STORE_URL:
+    # Get ZenML server URL and API token from the secret store
+    secret = Client().get_secret(SECRET_NAME)
+    ZENML_API_TOKEN = ZENML_API_TOKEN or secret.secret_values.get(
+        "zenml_api_token"
+    )
+    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
+        "zenml_store_url"
+    )
+
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
+SECRET_NAME = os.environ.get("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 
 hf_repo_id = f"{SPACE_USERNAME}/{SPACE_NAME}"
 gcp_reqs = integration_registry.select_integration_requirements("gcp")
 
 hf_repo_requirements = f"""
-zenml>=0.68.1
+zenml>=0.73.0
 ratelimit
 pgvector
 psycopg2-binary
@@ -38,6 +49,8 @@ rerankers[flashrank]
 datasets
 torch
 huggingface-hub
+elasticsearch
+tenacity
 {chr(10).join(gcp_reqs)}
 """
 
@@ -50,9 +63,7 @@ def predict(message, history):
     )
 
 
-def upload_files_to_repo(
-    api, repo_id: str, files_mapping: dict, token: str
-):
+def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
     """Upload multiple files to a Hugging Face repository
 
     Args:
@@ -92,16 +103,28 @@ def gradio_rag_deployment() -> None:
         exist_ok=True,
         token=get_hf_token(),
     )
-    api.add_space_secret(
-        repo_id=hf_repo_id,
-        key="ZENML_STORE_API_KEY",
-        value=ZENML_API_TOKEN,
-    )
-    api.add_space_secret(
-        repo_id=hf_repo_id,
-        key="ZENML_STORE_URL",
-        value=ZENML_STORE_URL,
-    )
+
+    # Ensure values are strings
+    if ZENML_API_TOKEN is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_STORE_API_KEY",
+            value=str(ZENML_API_TOKEN),
+        )
+
+    if ZENML_STORE_URL is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_STORE_URL",
+            value=str(ZENML_STORE_URL),
+        )
+
+    if SECRET_NAME is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_PROJECT_SECRET_NAME",
+            value=str(SECRET_NAME),
+        )
 
     files_to_upload = {
         "deployment_hf.py": "app.py",

@@ -12,7 +12,6 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from constants import EMBEDDINGS_MODEL_NAME_ZENML
 from steps.finetune_embeddings import (
     evaluate_base_model,
     evaluate_finetuned_model,

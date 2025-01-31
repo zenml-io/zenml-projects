@@ -47,12 +47,12 @@ from pipelines import (
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
-    rag_deployment,
     llm_index_and_evaluate,
+    rag_deployment,
 )
 from structures import Document
-from zenml.materializers.materializer_registry import materializer_registry
 from zenml import Model
+from zenml.materializers.materializer_registry import materializer_registry
 
 logger = get_logger(__name__)
 
@@ -136,6 +136,12 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Path to config",
 )
+@click.option(
+    "--query-text",
+    "query_text",
+    default=None,
+    help="Query text",
+)
 def main(
     pipeline: str,
     query_text: Optional[str] = None,
@@ -169,9 +175,9 @@ def main(
             }
         },
     }
-    
+
     # Read the model version from a file in the root of the repo
-    #  called "ZENML_VERSION.txt".    
+    #  called "ZENML_VERSION.txt".
     if zenml_model_version == "staging":
         postfix = "-rc0"
     elif zenml_model_version == "production":
@@ -264,7 +270,9 @@ def main(
 
     elif pipeline == "embeddings":
         finetune_embeddings.with_options(
-            model=zenml_model, config_path=config_path, **embeddings_finetune_args
+            model=zenml_model,
+            config_path=config_path,
+            **embeddings_finetune_args,
         )()
 
     elif pipeline == "chunks":
