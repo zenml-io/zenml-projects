@@ -28,7 +28,7 @@ def roboflow_download(
 ) -> Any:
     rf = Roboflow(api_key=api_key)
     project = rf.workspace(workspace).project(project)
-    dataset = project.version(6).download(annotation_type)
+    dataset = project.version(1).download(annotation_type)
     return dataset.location
 
 
@@ -41,8 +41,8 @@ def roboflow_download(
 )
 def data_loader(
     api_key: str = "YOUR_API_KEY",
-    workspace: str = "WORKSPACE",
-    project: str = "american-sign-language-letters",
+    workspace: str = "zenml-ia62y",
+    project: str = "american-sign-language-letters-nc5ur",
     annotation_type: str = "yolov5",
 ) -> Tuple[
     Annotated[Dict, "train_images"],
