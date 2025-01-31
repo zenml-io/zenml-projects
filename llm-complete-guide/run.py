@@ -136,6 +136,12 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Path to config",
 )
+@click.option(
+    "--query-text",
+    "query_text",
+    default=None,
+    help="Query text",
+)
 def main(
     pipeline: str,
     query_text: Optional[str] = None,

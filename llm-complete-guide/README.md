@@ -100,7 +100,7 @@ use for the LLM.
 When you're ready to make the query, run the following command:
 
 ```shell
-python run.py query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+python run.py query --query-text "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
 ```
 
 Alternative options for LLMs to use include:
