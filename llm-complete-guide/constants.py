@@ -25,6 +25,8 @@ EMBEDDING_DIMENSIONALITY = (
 
 # ZenML constants
 ZENML_CHATBOT_MODEL = "zenml-docs-qa-chatbot"
+ZENML_CHATBOT_MODEL_NAME = "zenml-docs-qa-chatbot"
+ZENML_CHATBOT_MODEL_VERSION = "0.71.0-dev"
 
 # Scraping constants
 RATE_LIMIT = 5  # Maximum number of requests per second

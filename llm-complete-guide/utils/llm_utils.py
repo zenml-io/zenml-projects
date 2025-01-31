@@ -48,7 +48,8 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    ZENML_CHATBOT_MODEL,
+    ZENML_CHATBOT_MODEL_NAME,
+    ZENML_CHATBOT_MODEL_VERSION,
 )
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
@@ -449,19 +450,19 @@ def get_embeddings(text):
 
 
 def find_vectorstore_name() -> str:
-    """Finds the name of the vector store used for the given embeddings model.
-
-    Returns:
-        str: The name of the vector store.
-    """
+    """Finds the name of the vector store used for the given embeddings model."""
     from zenml.client import Client
 
     client = Client()
-    model = client.get_model_version(
-        ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="0.71.0-dev"
-    )
-
-    return model.run_metadata["vector_store"]["name"]
+    try:
+        model_version = client.get_model_version(
+            model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
+            model_version_name_or_number_or_id=ZENML_CHATBOT_MODEL_VERSION,
+        )
+        return model_version.run_metadata["vector_store"]["name"]
+    except KeyError:
+        logger.error("Vector store metadata not found in model version")
+        return "pgvector"  # Fallback to default
 
 
 def rerank_documents(
