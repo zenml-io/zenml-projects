@@ -37,6 +37,8 @@ rerankers[flashrank]
 datasets
 torch
 huggingface-hub
+elasticsearch
+tenacity
 {chr(10).join(gcp_reqs)}
 """
 
