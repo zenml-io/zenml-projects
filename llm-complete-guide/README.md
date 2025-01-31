@@ -147,13 +147,7 @@ export ZENML_HF_SPACE_NAME=<YOUR_HF_SPACE_NAME> # optional, defaults to "llm-com
 To deploy the RAG pipeline, you can use the following command:
 
 ```shell
-python run.py --deploy
-```
-
-Alternatively, you can run the basic RAG pipeline *and* deploy it in one go:
-
-```shell
-python run.py --rag --deploy
+python run.py deploy
 ```
 
 This will open a Hugging Face space in your browser where you can interact with
