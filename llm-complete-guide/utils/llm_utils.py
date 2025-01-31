@@ -20,6 +20,7 @@
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
 import logging
+import os
 
 from elasticsearch import Elasticsearch
 from zenml.client import Client
@@ -48,7 +49,8 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    ZENML_CHATBOT_MODEL,
+    ZENML_CHATBOT_MODEL_NAME,
+    ZENML_CHATBOT_MODEL_VERSION,
 )
 from pgvector.psycopg2 import register_vector
 from psycopg2.extensions import connection
@@ -230,8 +232,12 @@ def get_es_client() -> Elasticsearch:
         Elasticsearch: An Elasticsearch client.
     """
     client = Client()
-    es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
-    es_api_key = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_api_key"]
+    es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values[
+        "elasticsearch_host"
+    ]
+    es_api_key = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values[
+        "elasticsearch_api_key"
+    ]
 
     es = Elasticsearch(
         es_host,
@@ -249,28 +255,35 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-
     client = Client()
-    CONNECTION_DETAILS = {
-        "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
-        "password": client.get_secret(SECRET_NAME).secret_values[
-            "supabase_password"
-        ],
-        "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
-        "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
-        "dbname": "postgres",
-    }
+    try:
+        secret = client.get_secret(SECRET_NAME)
+        logger.debug(f"Secret keys: {list(secret.secret_values.keys())}")
 
-    return psycopg2.connect(**CONNECTION_DETAILS)
+        CONNECTION_DETAILS = {
+            "user": os.getenv("SUPABASE_USER")
+            or secret.secret_values["supabase_user"],
+            "password": os.getenv("SUPABASE_PASSWORD")
+            or secret.secret_values["supabase_password"],
+            "host": os.getenv("SUPABASE_HOST")
+            or secret.secret_values["supabase_host"],
+            "port": os.getenv("SUPABASE_PORT")
+            or secret.secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+        return psycopg2.connect(**CONNECTION_DETAILS)
+    except KeyError as e:
+        logger.error(f"Missing key in secret: {e}")
+        raise
 
 
 def get_topn_similar_docs_pgvector(
-        query_embedding: List[float], 
-        conn: psycopg2.extensions.connection, 
-        n: int = 5, 
-        include_metadata: bool = False, 
-        only_urls: bool = False
-    ) -> List[Tuple]:
+    query_embedding: List[float],
+    conn: psycopg2.extensions.connection,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
     """Fetches the top n most similar documents to the given query embedding from the PostgreSQL database.
 
     Args:
@@ -302,13 +315,14 @@ def get_topn_similar_docs_pgvector(
 
     return cur.fetchall()
 
+
 def get_topn_similar_docs_elasticsearch(
-        query_embedding: List[float], 
-        es_client: Elasticsearch, 
-        n: int = 5, 
-        include_metadata: bool = False, 
-        only_urls: bool = False
-    ) -> List[Tuple]:
+    query_embedding: List[float],
+    es_client: Elasticsearch,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
     """Fetches the top n most similar documents to the given query embedding from the Elasticsearch index.
 
     Args:
@@ -319,7 +333,7 @@ def get_topn_similar_docs_elasticsearch(
         only_urls (bool, optional): Whether to only return URLs in the results. Defaults to False.
     """
     index_name = "zenml_docs"
-    
+
     if only_urls:
         source = ["url"]
     elif include_metadata:
@@ -334,35 +348,41 @@ def get_topn_similar_docs_elasticsearch(
                 "query": {"match_all": {}},
                 "script": {
                     "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
-                    "params": {"query_vector": query_embedding}
-                }
+                    "params": {"query_vector": query_embedding},
+                },
             }
         },
-        "size": n
+        "size": n,
     }
 
     # response = es_client.search(index=index_name, body=query)
-    response = es_client.search(index=index_name, knn={
-        "field": "embedding",
-        "query_vector": query_embedding,
-        "num_candidates": 50,
-        "k": n
-    })
+    response = es_client.search(
+        index=index_name,
+        knn={
+            "field": "embedding",
+            "query_vector": query_embedding,
+            "num_candidates": 50,
+            "k": n,
+        },
+    )
 
     results = []
-    for hit in response['hits']['hits']:
+    for hit in response["hits"]["hits"]:
         if only_urls:
-            results.append((hit['_source']['url'],))
+            results.append((hit["_source"]["url"],))
         elif include_metadata:
-            results.append((
-                hit['_source']['content'],
-                hit['_source']['url'],
-                hit['_source']['parent_section']
-            ))
+            results.append(
+                (
+                    hit["_source"]["content"],
+                    hit["_source"]["url"],
+                    hit["_source"]["parent_section"],
+                )
+            )
         else:
-            results.append((hit['_source']['content'],))
+            results.append((hit["_source"]["content"],))
 
     return results
+
 
 def get_topn_similar_docs(
     query_embedding: List[float],
@@ -387,15 +407,20 @@ def get_topn_similar_docs(
     """
     if conn is None and es_client is None:
         raise ValueError("Either conn or es_client must be provided")
-    
+
     if conn is not None:
-        return get_topn_similar_docs_pgvector(query_embedding, conn, n, include_metadata, only_urls)
-    
+        return get_topn_similar_docs_pgvector(
+            query_embedding, conn, n, include_metadata, only_urls
+        )
+
     if es_client is not None:
-        return get_topn_similar_docs_elasticsearch(query_embedding, es_client, n, include_metadata, only_urls)
+        return get_topn_similar_docs_elasticsearch(
+            query_embedding, es_client, n, include_metadata, only_urls
+        )
+
 
 def get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0.4, max_tokens=1000
+    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
 ):
     """Generates a completion response from the given messages using the specified model.
 
@@ -431,17 +456,21 @@ def get_embeddings(text):
     model = SentenceTransformer(EMBEDDINGS_MODEL)
     return model.encode(text)
 
+
 def find_vectorstore_name() -> str:
-    """Finds the name of the vector store used for the given embeddings model.
-
-    Returns:
-        str: The name of the vector store.
-    """
+    """Finds the name of the vector store used for the given embeddings model."""
     from zenml.client import Client
-    client = Client()
-    model = client.get_model_version(ZENML_CHATBOT_MODEL, model_version_name_or_number_or_id="v0.68.1-dev")
 
-    return model.run_metadata["vector_store"].value["name"]
+    client = Client()
+    try:
+        model_version = client.get_model_version(
+            model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
+            model_version_name_or_number_or_id=ZENML_CHATBOT_MODEL_VERSION,
+        )
+        return model_version.run_metadata["vector_store"]["name"]
+    except KeyError:
+        logger.error("Vector store metadata not found in model version")
+        return "pgvector"  # Fallback to default
 
 
 def rerank_documents(

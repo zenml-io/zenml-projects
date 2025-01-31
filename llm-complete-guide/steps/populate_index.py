@@ -23,26 +23,34 @@ import hashlib
 import json
 import logging
 import math
-from typing import Annotated, Any, Dict, List, Tuple
+import warnings
 from enum import Enum
+from typing import Annotated, Any, Dict, List, Tuple
+
+# Suppress the specific FutureWarning about clean_up_tokenization_spaces
+warnings.filterwarnings(
+    "ignore",
+    message=".*clean_up_tokenization_spaces.*",
+    category=FutureWarning,
+    module="transformers.tokenization_utils_base",
+)
 
 from constants import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
+    SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    ZENML_CHATBOT_MODEL,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, get_es_client, split_documents
-from zenml import ArtifactConfig, log_artifact_metadata, step, log_model_metadata
-from zenml.metadata.metadata_types import Uri
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
-from constants import SECRET_NAME
+from zenml.metadata.metadata_types import Uri
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -453,11 +461,11 @@ def draw_bar_chart(
     """Draws a bar chart on the given image."""
     # Ensure labels is a list, even if empty
     labels = labels or []
-    
+
     # Skip drawing if no data
     if not data:
         return
-        
+
     max_value = max(data)
     bar_width = width // len(data)
     bar_spacing = 10
@@ -487,10 +495,21 @@ def draw_bar_chart(
         for i, label in enumerate(labels):
             if label is not None:  # Add null check for individual labels
                 font = ImageFont.load_default(size=10)
-                bbox = draw.textbbox((0, 0), str(label), font=font)  # Convert to string
+                bbox = draw.textbbox(
+                    (0, 0), str(label), font=font
+                )  # Convert to string
                 label_width = bbox[2] - bbox[0]
-                label_x = x + i * (bar_width + bar_spacing) + (bar_width - label_width) // 2
-                draw.text((label_x, y + height - 15), str(label), font=font, fill="black")
+                label_x = (
+                    x
+                    + i * (bar_width + bar_spacing)
+                    + (bar_width - label_width) // 2
+                )
+                draw.text(
+                    (label_x, y + height - 15),
+                    str(label),
+                    font=font,
+                    fill="black",
+                )
 
 
 @step
@@ -515,12 +534,13 @@ def preprocess_documents(
         Exception: If an error occurs during preprocessing.
     """
     try:
-        log_artifact_metadata(
-            artifact_name="split_chunks",
+        log_metadata(
             metadata={
                 "chunk_size": CHUNK_SIZE,
                 "chunk_overlap": CHUNK_OVERLAP,
             },
+            artifact_name="split_chunks",
+            infer_artifact=True,
         )
 
         document_list: List[Document] = [
@@ -536,9 +556,10 @@ def preprocess_documents(
         histogram_chart: Image.Image = create_histogram(stats)
         bar_chart: Image.Image = create_bar_chart(stats)
 
-        log_artifact_metadata(
+        log_metadata(
             artifact_name="split_chunks",
             metadata=stats,
+            infer_artifact=True,
         )
 
         split_docs_json: str = json.dumps([doc.__dict__ for doc in split_docs])
@@ -566,14 +587,20 @@ def generate_embeddings(
         Exception: If an error occurs during the generation of embeddings.
     """
     try:
+        # Initialize the model
         model = SentenceTransformer(EMBEDDINGS_MODEL)
 
-        log_artifact_metadata(
-            artifact_name="documents_with_embeddings",
+        # Set clean_up_tokenization_spaces to False on the underlying tokenizer to avoid the warning
+        if hasattr(model.tokenizer, "clean_up_tokenization_spaces"):
+            model.tokenizer.clean_up_tokenization_spaces = False
+
+        log_metadata(
             metadata={
                 "embedding_type": EMBEDDINGS_MODEL,
                 "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,
             },
+            artifact_name="documents_with_embeddings",
+            infer_artifact=True,
         )
 
         # Parse the JSON string into a list of Document objects
@@ -600,10 +627,11 @@ class IndexType(Enum):
     ELASTICSEARCH = "elasticsearch"
     POSTGRES = "postgres"
 
+
 @step(enable_cache=False)
 def index_generator(
     documents: str,
-    index_type: IndexType = IndexType.ELASTICSEARCH,
+    index_type: IndexType = IndexType.POSTGRES,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -624,10 +652,11 @@ def index_generator(
             _index_generator_elastic(documents)
         else:
             _index_generator_postgres(documents)
-            
+
     except Exception as e:
         logger.error(f"Error in index_generator: {e}")
         raise
+
 
 def _index_generator_elastic(documents: str) -> None:
     """Generates an Elasticsearch index for the given documents."""
@@ -647,11 +676,11 @@ def _index_generator_elastic(documents: str) -> None:
                             "type": "dense_vector",
                             "dims": EMBEDDING_DIMENSIONALITY,
                             "index": True,
-                            "similarity": "cosine"
+                            "similarity": "cosine",
                         },
                         "filename": {"type": "text"},
                         "parent_section": {"type": "text"},
-                        "url": {"type": "text"}
+                        "url": {"type": "text"},
                     }
                 }
             }
@@ -661,50 +690,49 @@ def _index_generator_elastic(documents: str) -> None:
         # Parse the JSON string into a list of Document objects
         document_list = [Document(**doc) for doc in json.loads(documents)]
         operations = []
-        
+
         for doc in document_list:
             content_hash = hashlib.md5(
                 f"{doc.page_content}{doc.filename}{doc.parent_section}{doc.url}".encode()
             ).hexdigest()
-            
-            exists_query = {
-                "query": {
-                    "term": {
-                        "doc_id": content_hash
-                    }
-                }
-            }
-            
+
+            exists_query = {"query": {"term": {"doc_id": content_hash}}}
+
             if not es.count(index=index_name, body=exists_query)["count"]:
-                operations.append({
-                    "index": {
-                        "_index": index_name,
-                        "_id": content_hash
+                operations.append(
+                    {"index": {"_index": index_name, "_id": content_hash}}
+                )
+
+                operations.append(
+                    {
+                        "doc_id": content_hash,
+                        "content": doc.page_content,
+                        "token_count": doc.token_count,
+                        "embedding": doc.embedding,
+                        "filename": doc.filename,
+                        "parent_section": doc.parent_section,
+                        "url": doc.url,
                     }
-                })
-                
-                operations.append({
-                    "doc_id": content_hash,
-                    "content": doc.page_content,
-                    "token_count": doc.token_count,
-                    "embedding": doc.embedding,
-                    "filename": doc.filename,
-                    "parent_section": doc.parent_section,
-                    "url": doc.url
-                })
-        
+                )
+
         if operations:
             response = es.bulk(operations=operations, timeout="10m")
-            
-            success_count = sum(1 for item in response['items'] if 'index' in item and item['index']['status'] == 201)
-            failed_count = len(response['items']) - success_count
-            
+
+            success_count = sum(
+                1
+                for item in response["items"]
+                if "index" in item and item["index"]["status"] == 201
+            )
+            failed_count = len(response["items"]) - success_count
+
             logger.info(f"Successfully indexed {success_count} documents")
             if failed_count > 0:
                 logger.warning(f"Failed to index {failed_count} documents")
-                for item in response['items']:
-                    if 'index' in item and item['index']['status'] != 201:
-                        logger.warning(f"Failed to index document: {item['index']['error']}")
+                for item in response["items"]:
+                    if "index" in item and item["index"]["status"] != 201:
+                        logger.warning(
+                            f"Failed to index document: {item['index']['error']}"
+                        )
         else:
             logger.info("No new documents to index")
 
@@ -714,11 +742,12 @@ def _index_generator_elastic(documents: str) -> None:
         logger.error(f"Error in Elasticsearch indexing: {e}")
         raise
 
+
 def _index_generator_postgres(documents: str) -> None:
     """Generates a PostgreSQL index for the given documents."""
     try:
         conn = get_db_conn()
-        
+
         with conn.cursor() as cur:
             # Install pgvector if not already installed
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -740,7 +769,7 @@ def _index_generator_postgres(documents: str) -> None:
             conn.commit()
 
             register_vector(conn)
-            
+
             # Parse the JSON string into a list of Document objects
             document_list = [Document(**doc) for doc in json.loads(documents)]
 
@@ -772,7 +801,6 @@ def _index_generator_postgres(documents: str) -> None:
                     )
                     conn.commit()
 
-
             cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
             num_records = cur.fetchone()[0]
             logger.info(f"Number of vector records in table: {num_records}")
@@ -797,6 +825,7 @@ def _index_generator_postgres(documents: str) -> None:
         if conn:
             conn.close()
 
+
 def _log_metadata(index_type: IndexType) -> None:
     """Log metadata about the indexing process."""
     prompt = """
@@ -809,9 +838,11 @@ def _log_metadata(index_type: IndexType) -> None:
     """
 
     client = Client()
-    
+
     if index_type == IndexType.ELASTICSEARCH:
-        es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values["elasticsearch_host"]
+        es_host = client.get_secret(SECRET_NAME_ELASTICSEARCH).secret_values[
+            "elasticsearch_host"
+        ]
         connection_details = {
             "host": es_host,
             "api_key": "*********",
@@ -821,14 +852,20 @@ def _log_metadata(index_type: IndexType) -> None:
         store_name = "pgvector"
 
         connection_details = {
-            "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
+            "user": client.get_secret(SECRET_NAME).secret_values[
+                "supabase_user"
+            ],
             "password": "**********",
-            "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
-            "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
+            "host": client.get_secret(SECRET_NAME).secret_values[
+                "supabase_host"
+            ],
+            "port": client.get_secret(SECRET_NAME).secret_values[
+                "supabase_port"
+            ],
             "dbname": "postgres",
         }
 
-    log_model_metadata(
+    log_metadata(
         metadata={
             "embeddings": {
                 "model": EMBEDDINGS_MODEL,
@@ -843,4 +880,5 @@ def _log_metadata(index_type: IndexType) -> None:
                 "connection_details": connection_details,
             },
         },
+        infer_model=True,
     )
