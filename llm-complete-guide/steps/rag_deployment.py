@@ -1,6 +1,7 @@
 import os
 import webbrowser
 
+from constants import SECRET_NAME
 from huggingface_hub import HfApi
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
@@ -8,12 +9,23 @@ from zenml import step
 from zenml.client import Client
 from zenml.integrations.registry import integration_registry
 
-secret = Client().get_secret("llm-complete")
-
+# Try to get from environment first, otherwise fall back to secret store
 ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
+
+if not ZENML_API_TOKEN or not ZENML_STORE_URL:
+    # Get ZenML server URL and API token from the secret store
+    secret = Client().get_secret(SECRET_NAME)
+    ZENML_API_TOKEN = ZENML_API_TOKEN or secret.secret_values.get(
+        "zenml_api_token"
+    )
+    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
+        "zenml_store_url"
+    )
+
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
+SECRET_NAME = os.environ.get("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 
 hf_repo_id = f"{SPACE_USERNAME}/{SPACE_NAME}"
 gcp_reqs = integration_registry.select_integration_requirements("gcp")
@@ -105,6 +117,13 @@ def gradio_rag_deployment() -> None:
             repo_id=hf_repo_id,
             key="ZENML_STORE_URL",
             value=str(ZENML_STORE_URL),
+        )
+
+    if SECRET_NAME is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="ZENML_PROJECT_SECRET_NAME",
+            value=str(SECRET_NAME),
         )
 
     files_to_upload = {

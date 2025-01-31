@@ -20,6 +20,7 @@
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
 import logging
+import os
 
 from elasticsearch import Elasticsearch
 from zenml.client import Client
@@ -254,19 +255,26 @@ def get_db_conn() -> connection:
     Returns:
         connection: A psycopg2 connection object to the PostgreSQL database.
     """
-
     client = Client()
-    CONNECTION_DETAILS = {
-        "user": client.get_secret(SECRET_NAME).secret_values["supabase_user"],
-        "password": client.get_secret(SECRET_NAME).secret_values[
-            "supabase_password"
-        ],
-        "host": client.get_secret(SECRET_NAME).secret_values["supabase_host"],
-        "port": client.get_secret(SECRET_NAME).secret_values["supabase_port"],
-        "dbname": "postgres",
-    }
+    try:
+        secret = client.get_secret(SECRET_NAME)
+        logger.debug(f"Secret keys: {list(secret.secret_values.keys())}")
 
-    return psycopg2.connect(**CONNECTION_DETAILS)
+        CONNECTION_DETAILS = {
+            "user": os.getenv("SUPABASE_USER")
+            or secret.secret_values["supabase_user"],
+            "password": os.getenv("SUPABASE_PASSWORD")
+            or secret.secret_values["supabase_password"],
+            "host": os.getenv("SUPABASE_HOST")
+            or secret.secret_values["supabase_host"],
+            "port": os.getenv("SUPABASE_PORT")
+            or secret.secret_values["supabase_port"],
+            "dbname": "postgres",
+        }
+        return psycopg2.connect(**CONNECTION_DETAILS)
+    except KeyError as e:
+        logger.error(f"Missing key in secret: {e}")
+        raise
 
 
 def get_topn_similar_docs_pgvector(
