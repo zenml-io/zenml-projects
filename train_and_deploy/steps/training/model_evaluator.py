@@ -16,7 +16,6 @@
 #
 
 
-import mlflow
 import pandas as pd
 from sklearn.base import ClassifierMixin
 
@@ -26,10 +25,10 @@ from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
-experiment_tracker = Client().active_stack.experiment_tracker
+#experiment_tracker = Client().active_stack.experiment_tracker
 
 
-@step(experiment_tracker=experiment_tracker.name)
+@step#(experiment_tracker=experiment_tracker.name)
 def model_evaluator(
     model: ClassifierMixin,
     dataset_trn: pd.DataFrame,
@@ -88,7 +87,7 @@ def model_evaluator(
         dataset_tst[target],
     )
     logger.info(f"Test accuracy={tst_acc*100:.2f}%")
-    mlflow.log_metric("testing_accuracy_score", tst_acc)
+    #mlflow.log_metric("testing_accuracy_score", tst_acc)
 
     messages = []
     if trn_acc < min_train_accuracy:

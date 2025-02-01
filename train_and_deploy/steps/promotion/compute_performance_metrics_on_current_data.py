@@ -20,8 +20,8 @@ from typing import Tuple
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from typing_extensions import Annotated
-
 from zenml import Model, get_step_context, step
+from zenml.enums import ModelStages
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -53,7 +53,6 @@ def compute_performance_metrics_on_current_data(
     Returns:
         Latest version and current version metric values on a test set.
     """
-
     ### ADD YOUR OWN CODE HERE - THIS IS JUST AN EXAMPLE ###
     X = dataset_tst.drop(columns=["target"])
     y = dataset_tst["target"].to_numpy()
@@ -61,15 +60,19 @@ def compute_performance_metrics_on_current_data(
 
     # Get model version numbers from Model Control Plane
     latest_version = get_step_context().model
-    current_version = Model(name=latest_version.name, version=target_env)
 
     latest_version_number = latest_version.number
-    current_version_number = current_version.number
+    current_version_number = None
+    try:
+        current_version = Model(name=latest_version.name, version=ModelStages.STAGING)
+    except Exception:
+        pass
 
     if current_version_number is None:
         current_version_number = -1
         metrics = {latest_version_number: 1.0, current_version_number: 0.0}
     else:
+        current_version_number = current_version.number
         # Get predictors
         predictors = {
             latest_version_number: latest_version.load_artifact("model"),
