@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from steps import deploy_model_to_hf_hub
+from steps import deploy_model_to_hf_hub, vllm_model_deployer_step
 from zenml import pipeline
 from zenml.logger import get_logger
 
@@ -23,8 +23,11 @@ logger = get_logger(__name__)
 
 
 @pipeline
-def huggingface_deployment():
+def deployment_pipeline(target: str = "huggingface"):
     """This pipeline pushes the model to the hub."""
-    # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-    deploy_model_to_hf_hub()
+    if target == "huggingface":
+        deploy_model_to_hf_hub()
+    elif target == "vllm":
+        vllm_model_deployer_step()
+    else:
+        raise ValueError(f"Invalid target: {target}")

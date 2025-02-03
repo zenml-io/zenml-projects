@@ -24,13 +24,12 @@ from zenml.integrations.vllm.services.vllm_deployment import (
     VLLMServiceConfig,
 )
 from zenml.logger import get_logger
+from steps.deployment import parse_huggingface_url
 
 logger = get_logger(__name__)
 
-
 @step(enable_cache=False)
 def vllm_model_deployer_step(
-    model: str,
     port: int = 8000,
     tokenizer: Optional[str] = None,
     timeout: int = 1200,
@@ -61,9 +60,13 @@ def vllm_model_deployer_step(
     pipeline_name = step_context.pipeline.name
     step_name = step_context.step_run.name
 
+    commit_info = (
+        get_step_context().model.run_metadata["merged_model_commit_info"]
+    )
+    model_namespace, repository, revision = parse_huggingface_url(commit_info)
     # create a config for the new model service
     predictor_cfg = VLLMServiceConfig(
-        model=model,
+        model=f"{model_namespace}/{repository}",
         port=port,
         tokenizer=tokenizer,
         model_name="default",  # Required for ServiceConfig
@@ -89,7 +92,7 @@ def vllm_model_deployer_step(
             f"Skipping model deployment because the model quality does not "
             f"meet the criteria. Reusing last model server deployed by step "
             f"'{step_name}' and pipeline '{pipeline_name}' for model "
-            f"'{model}'..."
+            f"'{predictor_cfg.model}'..."
         )
         if not service.is_running:
             service.start(timeout=timeout)

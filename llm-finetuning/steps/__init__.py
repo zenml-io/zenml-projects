@@ -20,3 +20,4 @@ from .parallel_clones import mirror_repositories
 from .prepare_dataset import prepare_dataset
 from .push_dataset_to_hub import push_to_hub
 from .trainer import merge_and_push, trainer
+from .vllm_deployer import vllm_model_deployer_step

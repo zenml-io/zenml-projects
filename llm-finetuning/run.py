@@ -79,8 +79,15 @@ Examples:
     default=False,
     help="Disable caching for the pipeline run.",
 )
+@click.option(
+    "--deployment-target",
+    type=str,
+    default="vllm",
+    help="The target for the deployment pipeline.",
+)
 def main(
     config: str = None,
+    deployment_target: str = "huggingface",
     feature_pipeline: bool = False,
     training_pipeline: bool = False,
     deploy_pipeline: bool = False,
@@ -117,9 +124,7 @@ def main(
 
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
-        pipeline_args = {}
         from pipelines import generate_code_dataset
-
         generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
@@ -130,9 +135,9 @@ def main(
         logger.info("Training pipeline finished successfully!\n")
 
     elif deploy_pipeline:
-        from pipelines import huggingface_deployment
+        from pipelines import deployment_pipeline
 
-        huggingface_deployment.with_options(**pipeline_args)()
+        deployment_pipeline.with_options(**pipeline_args)(target=deployment_target)
         logger.info("Deployment pipeline finished successfully!\n")
 
 
