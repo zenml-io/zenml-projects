@@ -61,6 +61,16 @@ from structures import Document
 
 logger = logging.getLogger(__name__)
 
+# TEST FOR MLFLOW
+logger = logging.getLogger("mlflow")
+logger.setLevel(logging.DEBUG)
+
+MLFLOW_TRACKING_URI = os.getenv(
+    "MLFLOW_TRACKING_URI",
+    Client().get_secret(SECRET_NAME).secret_values["mlflow_tracking_uri"],
+)
+
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.litellm.autolog()
 
 
@@ -581,5 +591,5 @@ def process_input_with_retrieval(
             + "\n".join(context_content),
         },
     ]
-    logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
+    logger.debug("CONTEXT USED:\n\n%s\n\n", messages[2]["content"])
     return get_completion_from_messages(messages, model=model)
