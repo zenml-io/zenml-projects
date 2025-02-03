@@ -3,9 +3,9 @@ import webbrowser
 
 from constants import SECRET_NAME
 from huggingface_hub import HfApi
+from utils.dependency_utils import compile_requirements
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
-from utils.dependency_utils import compile_requirements
 from zenml import step
 from zenml.client import Client
 from zenml.integrations.registry import integration_registry
@@ -13,10 +13,6 @@ from zenml.integrations.registry import integration_registry
 # Try to get from environment first, otherwise fall back to secret store
 ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
-TRACELOOP_BASE_URL = os.environ.get("TRACELOOP_BASE_URL")
-TRACELOOP_HEADERS = os.environ.get("TRACELOOP_HEADERS")
-BRAINTRUST_API_KEY = os.environ.get("BRAINTRUST_API_KEY")
-TRACELOOP_API_KEY = os.environ.get("TRACELOOP_API_KEY")
 
 if not ZENML_API_TOKEN or not ZENML_STORE_URL:
     # Get ZenML server URL and API token from the secret store
@@ -28,25 +24,6 @@ if not ZENML_API_TOKEN or not ZENML_STORE_URL:
         "zenml_store_url"
     )
 
-if (
-    not TRACELOOP_BASE_URL
-    or not TRACELOOP_HEADERS
-    or not BRAINTRUST_API_KEY
-    or not TRACELOOP_API_KEY
-):
-    secret = Client().get_secret(SECRET_NAME)
-    TRACELOOP_BASE_URL = TRACELOOP_BASE_URL or secret.secret_values.get(
-        "trace_loop_base_url"
-    )
-    TRACELOOP_HEADERS = TRACELOOP_HEADERS or secret.secret_values.get(
-        "trace_loop_headers"
-    )
-    BRAINTRUST_API_KEY = BRAINTRUST_API_KEY or secret.secret_values.get(
-        "braintrust_api_key"
-    )
-    TRACELOOP_API_KEY = TRACELOOP_API_KEY or secret.secret_values.get(
-        "trace_loop_api_key"
-    )
 
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
@@ -58,7 +35,7 @@ gcp_reqs = integration_registry.select_integration_requirements("gcp")
 # Compile requirements using uv
 try:
     hf_repo_requirements = compile_requirements()
-except Exception as e:
+except Exception:
     # Fall back to basic requirements if compilation fails
     hf_repo_requirements = f"""
     zenml>=0.73.0
@@ -81,7 +58,7 @@ except Exception as e:
     huggingface-hub
     elasticsearch
     tenacity
-    traceloop-sdk
+    mlflow
     {chr(10).join(gcp_reqs)}
     """
 
@@ -156,10 +133,6 @@ def gradio_rag_deployment() -> None:
         "ZENML_STORE_API_KEY": ZENML_API_TOKEN,
         "ZENML_STORE_URL": ZENML_STORE_URL,
         "ZENML_PROJECT_SECRET_NAME": SECRET_NAME,
-        "TRACELOOP_BASE_URL": TRACELOOP_BASE_URL,
-        "TRACELOOP_HEADERS": TRACELOOP_HEADERS,
-        "BRAINTRUST_API_KEY": BRAINTRUST_API_KEY,
-        "TRACELOOP_API_KEY": TRACELOOP_API_KEY,
     }
     add_secrets(api, hf_repo_id, secrets_mapping)
 

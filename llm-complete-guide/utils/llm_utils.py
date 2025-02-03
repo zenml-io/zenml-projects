@@ -22,6 +22,7 @@
 import logging
 import os
 
+import mlflow
 from elasticsearch import Elasticsearch
 from zenml.client import Client
 
@@ -59,6 +60,8 @@ from sentence_transformers import SentenceTransformer
 from structures import Document
 
 logger = logging.getLogger(__name__)
+
+mlflow.litellm.autolog()
 
 
 def split_text_with_regex(
