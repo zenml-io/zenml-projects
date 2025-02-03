@@ -14,18 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from uuid import UUID
 
 import click
-from zenml.client import Client
-from zenml.enums import ModelStages
-from zenml.logger import get_logger
-
 from pipelines.data_export import data_export_pipeline
 from pipelines.data_ingestion import data_ingestion_pipeline
 from pipelines.inference import inference_pipeline
 from pipelines.training import training_pipeline
 from utils.constants import PREDICTIONS_DATASET_ARTIFACT_NAME, ZENML_MODEL_NAME
+from zenml.client import Client
+from zenml.enums import ModelStages
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

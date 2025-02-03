@@ -24,7 +24,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import RandomizedSearchCV
 from typing_extensions import Annotated
 from utils import get_model_from_config
-
 from zenml import log_artifact_metadata, step
 from zenml.logger import get_logger
 

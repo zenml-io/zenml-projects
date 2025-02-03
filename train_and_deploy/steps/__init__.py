@@ -18,6 +18,7 @@
 
 from .alerts import notify_on_failure, notify_on_success
 from .data_quality import drift_quality_gate
+from .deployment import bento_builder, deployment_deploy
 from .etl import (
     data_loader,
     inference_data_preprocessor,
@@ -31,4 +32,3 @@ from .promotion import (
     promote_with_metric_compare,
 )
 from .training import model_evaluator, model_trainer
-from .deployment import deployment_deploy, bento_builder

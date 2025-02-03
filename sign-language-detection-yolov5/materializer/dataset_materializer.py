@@ -19,7 +19,7 @@ import tempfile
 from typing import Type
 
 import cloudpickle
-from zenml.artifacts import DataArtifact
+from zenml.enums import ArtifactType
 from zenml.io import fileio
 from zenml.logger import get_logger
 from zenml.materializers.base_materializer import BaseMaterializer
@@ -34,7 +34,7 @@ class DatasetMaterializer(BaseMaterializer):
     """Materializer for Yolo Trained Model."""
 
     ASSOCIATED_TYPES = (dict,)
-    ASSOCIATED_ARTIFACT_TYPES = (DataArtifact,)
+    ASSOCIATED_ARTIFACT_TYPES = (ArtifactType.DATA,)
 
     def handle_input(self, data_type: Type[dict]) -> dict:
         """Read from artifact store and return a Dict object.

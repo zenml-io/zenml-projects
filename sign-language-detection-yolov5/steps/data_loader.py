@@ -13,23 +13,14 @@
 #  permissions and limitations under the License.
 
 import os
-from typing import Any, Dict
+from genericpath import isdir
+from typing import Annotated, Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
-from genericpath import isdir
 from materializer.dataset_materializer import DatasetMaterializer
 from roboflow import Roboflow
-from zenml.steps import BaseParameters, Output, step
-
-
-class TrainerParameters(BaseParameters):
-    """Trainer params"""
-
-    api_key: str = "YOUR_API_KEY"
-    workspace: str = "WORKSPACE"
-    project: str = "american-sign-language-letters"
-    annotation_type: str = "yolov5"
+from zenml.steps import step
 
 
 def roboflow_download(
@@ -37,7 +28,7 @@ def roboflow_download(
 ) -> Any:
     rf = Roboflow(api_key=api_key)
     project = rf.workspace(workspace).project(project)
-    dataset = project.version(6).download(annotation_type)
+    dataset = project.version(1).download(annotation_type)
     return dataset.location
 
 
@@ -49,18 +40,25 @@ def roboflow_download(
     }
 )
 def data_loader(
-    params: TrainerParameters,
-) -> Output(train_images=Dict, val_images=Dict, test_images=Dict):
+    api_key: str = "YOUR_API_KEY",
+    workspace: str = "zenml-ia62y",
+    project: str = "american-sign-language-letters-nc5ur",
+    annotation_type: str = "yolov5",
+) -> Tuple[
+    Annotated[Dict, "train_images"],
+    Annotated[Dict, "val_images"],
+    Annotated[Dict, "test_images"],
+]:
     """Loads data from Roboflow"""
-    images: dict(str, list(np.ndarray, list)) = {}
-    train_images: dict(str, list(np.ndarray, list)) = {}
-    valid_images: dict(str, list(np.ndarray, list)) = {}
-    test_images: dict(str, list(np.ndarray, list)) = {}
+    images: Dict[str, List[np.ndarray, List]] = {}
+    train_images: Dict[str, List[np.ndarray, List]] = {}
+    valid_images: Dict[str, List[np.ndarray, List]] = {}
+    test_images: Dict[str, List[np.ndarray, List]] = {}
     dataset_path = roboflow_download(
-        params.api_key,
-        params.workspace,
-        params.project,
-        params.annotation_type,
+        api_key,
+        workspace,
+        project,
+        annotation_type,
     )
     for folder in os.listdir(dataset_path):
         if isdir(os.path.join(dataset_path, folder)):

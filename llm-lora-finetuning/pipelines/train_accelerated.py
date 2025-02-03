@@ -19,9 +19,9 @@
 from steps import (
     evaluate_model,
     finetune_accelerated,
+    log_metadata_from_step_artifact,
     prepare_data,
     promote,
-    log_metadata_from_step_artifact,
 )
 from zenml import pipeline
 
@@ -48,7 +48,9 @@ def llm_peft_full_finetune(
             "At least one of `load_in_8bit` and `load_in_4bit` must be True."
         )
     if load_in_4bit and load_in_8bit:
-        raise ValueError("Only one of `load_in_8bit` and `load_in_4bit` can be True.")
+        raise ValueError(
+            "Only one of `load_in_8bit` and `load_in_4bit` can be True."
+        )
 
     datasets_dir = prepare_data(
         base_model_id=base_model_id,
@@ -70,7 +72,7 @@ def llm_peft_full_finetune(
         "evaluate_base",
         "base_model_rouge_metrics",
         after=["evaluate_base"],
-        id="log_metadata_evaluation_base"
+        id="log_metadata_evaluation_base",
     )
 
     ft_model_dir = finetune_accelerated(
@@ -79,7 +81,7 @@ def llm_peft_full_finetune(
         use_fast=use_fast,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
-        use_accelerate=True
+        use_accelerate=True,
     )
 
     evaluate_model(
@@ -96,7 +98,12 @@ def llm_peft_full_finetune(
         "evaluate_finetuned",
         "finetuned_model_rouge_metrics",
         after=["evaluate_finetuned"],
-        id="log_metadata_evaluation_finetuned"
+        id="log_metadata_evaluation_finetuned",
     )
 
-    promote(after=["log_metadata_evaluation_finetuned", "log_metadata_evaluation_base"])
+    promote(
+        after=[
+            "log_metadata_evaluation_finetuned",
+            "log_metadata_evaluation_base",
+        ]
+    )

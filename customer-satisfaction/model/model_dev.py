@@ -9,7 +9,6 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 class Hyperparameter_Optimization:
-
     """
     Class for doing hyperparameter optimization.
 

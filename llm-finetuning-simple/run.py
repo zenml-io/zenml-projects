@@ -99,7 +99,7 @@ def finetune(
         base_model_id,
         device_map="auto",
         torch_dtype=torch.float32,  # Changed from float16 to float32
-        low_cpu_mem_usage=True
+        low_cpu_mem_usage=True,
     )
     tokenizer = AutoTokenizer.from_pretrained(base_model_id)
     tokenizer.pad_token = tokenizer.eos_token

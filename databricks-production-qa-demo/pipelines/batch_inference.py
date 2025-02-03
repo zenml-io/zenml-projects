@@ -23,7 +23,6 @@ from steps import (
     notify_on_failure,
     notify_on_success,
 )
-
 from zenml import get_pipeline_context, pipeline
 from zenml.integrations.evidently.metrics import EvidentlyMetricConfig
 from zenml.integrations.evidently.steps import evidently_report_step

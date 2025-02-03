@@ -19,7 +19,6 @@ from steps.deployment_trigger import deployment_trigger
 from steps.inference_loader import inference_loader
 from steps.model_loader import model_loader
 from steps.prediction_service_loader import (
-    PredictionServiceLoaderStepParameters,
     bentoml_prediction_service_loader,
 )
 from steps.predictor import predictor
@@ -38,7 +37,6 @@ __all__ = [
     "bentoml_model_deployer",
     "deployment_trigger",
     "inference_loader",
-    "PredictionServiceLoaderStepParameters",
     "bentoml_prediction_service_loader",
     "predictor",
 ]

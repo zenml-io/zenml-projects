@@ -12,12 +12,11 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 from zenml.integrations.bentoml.steps import (
-    BentoMLBuilderParameters,
     bento_builder_step,
 )
 
-bento_builder = bento_builder_step(
-    params=BentoMLBuilderParameters(
+bento_builder = bento_builder_step.with_options(
+    parameters=dict(
         model_name="sign_language_yolov5",
         model_type="pytorch",
         service="service.py:svc",

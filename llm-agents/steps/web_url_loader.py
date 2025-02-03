@@ -12,10 +12,12 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+import os
 from typing import List
 
-from langchain.docstore.document import Document
-from langchain.document_loaders import UnstructuredURLLoader
+import nltk
+from langchain_community.docstore.document import Document
+from langchain_community.document_loaders import UnstructuredURLLoader
 from zenml import step
 
 
@@ -29,6 +31,18 @@ def web_url_loader(urls: List[str]) -> List[Document]:
     Returns:
         List of langchain documents.
     """
+    # Set NLTK data path to a writable directory
+    nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
+    os.makedirs(nltk_data_dir, exist_ok=True)
+    nltk.data.path.append(nltk_data_dir)
+
+    # Download required NLTK data
+    nltk.download("punkt", download_dir=nltk_data_dir)
+    nltk.download("wordnet", download_dir=nltk_data_dir)
+    nltk.download("omw-1.4", download_dir=nltk_data_dir)
+    nltk.download("punkt_tab", download_dir=nltk_data_dir)
+    nltk.download("averaged_perceptron_tagger_eng", download_dir=nltk_data_dir)
+
     loader = UnstructuredURLLoader(
         urls=urls,
     )

@@ -19,13 +19,13 @@ import tempfile
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+from materializers.label_studio_export_materializer import (
+    LabelStudioAnnotationExport,
+)
 from PIL import Image
 from zenml.io import fileio
 from zenml.logger import get_logger
 
-from materializers.label_studio_export_materializer import (
-    LabelStudioAnnotationExport,
-)
 from utils.split_data import generate_yaml, split_dataset, unzip_dataset
 
 logger = get_logger(__name__)
@@ -87,9 +87,15 @@ def load_and_split_data(
 
     # Download images from source bucket and if successful keep them to reuse for future runs
     load_images = False
-    download_dir = os.path.join(os.getcwd(), "images")  # Temporary dirname that represents a still incomplete download
-    loaded_images = os.path.join(os.getcwd(), "loaded-images")  # The dirname used once the download fully completes
-    images_folder = os.path.join(extract_location, "images")  # tmp dirpath used for the current run only
+    download_dir = os.path.join(
+        os.getcwd(), "images"
+    )  # Temporary dirname that represents a still incomplete download
+    loaded_images = os.path.join(
+        os.getcwd(), "loaded-images"
+    )  # The dirname used once the download fully completes
+    images_folder = os.path.join(
+        extract_location, "images"
+    )  # tmp dirpath used for the current run only
 
     # Check that images have not already been downloaded
     if not os.path.exists(loaded_images):
@@ -212,7 +218,6 @@ def split_image_into_tiles(
     for x in range(0, width, max_tile_size):
         print(f"increased x={x}")
         for y in range(0, height, max_tile_size):
-
             print(f"increased y={y}")
             if x + max_tile_size <= width:
                 x1 = x

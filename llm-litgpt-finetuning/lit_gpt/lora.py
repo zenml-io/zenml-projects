@@ -411,9 +411,7 @@ class LoRAQKVLinear(LoRALinear):
         input_split = input.chunk(
             sum(self.enable_lora), dim=1
         )  # N * (B, C // N, T)
-        weight_split = weight.split(
-            self.qkv_shapes
-        )  # N * (C_output', r, 1)
+        weight_split = weight.split(self.qkv_shapes)  # N * (C_output', r, 1)
         return torch.cat(
             [F.conv1d(a, b) for a, b in zip(input_split, weight_split)],
             dim=1,  # (B, C_output', T)

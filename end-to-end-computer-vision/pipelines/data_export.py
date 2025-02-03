@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from steps.export_label_studio import load_data_from_label_studio
 from zenml import pipeline
 from zenml.logger import get_logger
-
-from steps.export_label_studio import load_data_from_label_studio
 
 logger = get_logger(__name__)
 

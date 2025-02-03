@@ -16,7 +16,6 @@
 #
 
 from utils import promote_in_model_registry
-
 from zenml import Model, get_step_context, step
 from zenml.logger import get_logger
 

@@ -12,24 +12,35 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+import os
 from typing import List
 
-from langchain.docstore.document import Document
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema.vectorstore import VectorStore
 from langchain.text_splitter import (
     CharacterTextSplitter,
 )
-from langchain.vectorstores.faiss import FAISS
+from langchain_community.docstore.document import Document
+from langchain_community.vectorstores.faiss import FAISS
+from langchain_openai import OpenAIEmbeddings
+from materializers.faiss_materializer import FAISSMaterializer
 from typing_extensions import Annotated
 from zenml import log_artifact_metadata, step
+from zenml.client import Client
 
 
-@step
+@step(output_materializers={"vector_store": FAISSMaterializer})
 def index_generator(
     documents: List[Document],
 ) -> Annotated[VectorStore, "vector_store"]:
-    embeddings = OpenAIEmbeddings()
+    # First try to get API key from environment variable
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    # If not found in env, fall back to ZenML secret
+    if not api_key:
+        secret = Client().get_secret("llm_complete")
+        api_key = secret.secret_values["openai_api_key"]
+
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     compiled_texts = text_splitter.split_documents(documents)

@@ -14,11 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import pipeline
-from zenml.logger import get_logger
-
 from steps.process_hf_dataset import process_hf_dataset
 from steps.upload_to_label_studio import upload_labels_to_label_studio
+from zenml import pipeline
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

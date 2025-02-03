@@ -23,7 +23,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from typing_extensions import Annotated
 from utils.preprocess import ColumnsDropper, DataFrameCaster, NADropper
-
 from zenml import step
 
 

@@ -20,7 +20,6 @@ from typing import List
 
 from sklearn.base import ClassifierMixin
 from typing_extensions import Annotated
-
 from zenml import get_step_context, step
 from zenml.logger import get_logger
 

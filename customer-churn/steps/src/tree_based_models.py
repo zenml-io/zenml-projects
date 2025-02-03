@@ -9,7 +9,6 @@ logging = get_logger(__name__)
 
 
 class Hyperparameter_Optimization:
-
     """
     Class for doing hyperparameter optimization.
     """

@@ -14,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import get_pipeline_context, pipeline
-from zenml.logger import get_logger
-
 from steps.load_model import load_model
 from steps.train_model import train_model
 from utils.constants import LABELED_DATASET_NAME
+from zenml import get_pipeline_context, pipeline
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -65,7 +65,7 @@ def evaluate_model(
 
     if not os.getenv("HF_TOKEN"):
         try:
-            hf_token = client.get_secret("hf_token").secret_values['token']
+            hf_token = client.get_secret("hf_token").secret_values["token"]
             huggingface_hub.login(token=hf_token)
         except Exception as e:
             logger.warning(f"Error authenticating with Hugging Face: {e}")
@@ -81,7 +81,9 @@ def evaluate_model(
     test_dataset = load_from_disk(str((datasets_dir / "test_raw").absolute()))
     test_dataset = test_dataset[:50]
     ground_truths = test_dataset["meaning_representation"]
-    tokenized_train_dataset = tokenize_for_eval(test_dataset, tokenizer, system_prompt)
+    tokenized_train_dataset = tokenize_for_eval(
+        test_dataset, tokenizer, system_prompt
+    )
 
     if ft_model_dir is None:
         logger.info("Generating using base model...")
@@ -115,7 +117,9 @@ def evaluate_model(
     logger.info("Computing ROUGE metrics...")
     prefix = "base_model_" if ft_model_dir is None else "finetuned_model_"
     rouge = evaluate.load("rouge")
-    rouge_metrics = rouge.compute(predictions=predictions, references=ground_truths)
+    rouge_metrics = rouge.compute(
+        predictions=predictions, references=ground_truths
+    )
 
     logger.info("Computed metrics: " + str(rouge_metrics))
 

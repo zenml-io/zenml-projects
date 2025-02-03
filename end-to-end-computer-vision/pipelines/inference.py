@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from steps.fiftyone_inference import create_fiftyone_dataset
 from zenml import pipeline
 from zenml.logger import get_logger
-
-from steps.fiftyone_inference import create_fiftyone_dataset
 
 logger = get_logger(__name__)
 
