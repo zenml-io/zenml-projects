@@ -5,6 +5,7 @@ from constants import SECRET_NAME
 from huggingface_hub import HfApi
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
+from utils.dependency_utils import compile_requirements
 from zenml import step
 from zenml.client import Client
 from zenml.integrations.registry import integration_registry
@@ -12,6 +13,10 @@ from zenml.integrations.registry import integration_registry
 # Try to get from environment first, otherwise fall back to secret store
 ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
+TRACELOOP_BASE_URL = os.environ.get("TRACELOOP_BASE_URL")
+TRACELOOP_HEADERS = os.environ.get("TRACELOOP_HEADERS")
+BRAINTRUST_API_KEY = os.environ.get("BRAINTRUST_API_KEY")
+TRACELOOP_API_KEY = os.environ.get("TRACELOOP_API_KEY")
 
 if not ZENML_API_TOKEN or not ZENML_STORE_URL:
     # Get ZenML server URL and API token from the secret store
@@ -23,6 +28,26 @@ if not ZENML_API_TOKEN or not ZENML_STORE_URL:
         "zenml_store_url"
     )
 
+if (
+    not TRACELOOP_BASE_URL
+    or not TRACELOOP_HEADERS
+    or not BRAINTRUST_API_KEY
+    or not TRACELOOP_API_KEY
+):
+    secret = Client().get_secret(SECRET_NAME)
+    TRACELOOP_BASE_URL = TRACELOOP_BASE_URL or secret.secret_values.get(
+        "trace_loop_base_url"
+    )
+    TRACELOOP_HEADERS = TRACELOOP_HEADERS or secret.secret_values.get(
+        "trace_loop_headers"
+    )
+    BRAINTRUST_API_KEY = BRAINTRUST_API_KEY or secret.secret_values.get(
+        "braintrust_api_key"
+    )
+    TRACELOOP_API_KEY = TRACELOOP_API_KEY or secret.secret_values.get(
+        "trace_loop_api_key"
+    )
+
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
 SECRET_NAME = os.environ.get("ZENML_PROJECT_SECRET_NAME", "llm-complete")
@@ -30,29 +55,35 @@ SECRET_NAME = os.environ.get("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 hf_repo_id = f"{SPACE_USERNAME}/{SPACE_NAME}"
 gcp_reqs = integration_registry.select_integration_requirements("gcp")
 
-hf_repo_requirements = f"""
-zenml>=0.73.0
-ratelimit
-pgvector
-psycopg2-binary
-beautifulsoup4
-pandas
-openai
-numpy
-sentence-transformers>=3
-transformers
-litellm
-tiktoken
-matplotlib
-pyarrow
-rerankers[flashrank]
-datasets
-torch
-huggingface-hub
-elasticsearch
-tenacity
-{chr(10).join(gcp_reqs)}
-"""
+# Compile requirements using uv
+try:
+    hf_repo_requirements = compile_requirements()
+except Exception as e:
+    # Fall back to basic requirements if compilation fails
+    hf_repo_requirements = f"""
+    zenml>=0.73.0
+    ratelimit
+    pgvector
+    psycopg2-binary
+    beautifulsoup4
+    pandas
+    openai
+    numpy
+    sentence-transformers>=3
+    transformers
+    litellm
+    tiktoken
+    matplotlib
+    pyarrow
+    rerankers[flashrank]
+    datasets
+    torch
+    huggingface-hub
+    elasticsearch
+    tenacity
+    traceloop-sdk
+    {chr(10).join(gcp_reqs)}
+    """
 
 
 def predict(message, history):
@@ -87,6 +118,23 @@ def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
         )
 
 
+def add_secrets(api, repo_id: str, secrets: dict) -> None:
+    """Helper function to add space secrets to the repository if values are provided.
+
+    Args:
+        api: Hugging Face API client instance.
+        repo_id (str): ID of the target repository.
+        secrets (dict): Dictionary mapping secret keys to their corresponding values.
+    """
+    for key, value in secrets.items():
+        if value is not None:
+            api.add_space_secret(
+                repo_id=repo_id,
+                key=key,
+                value=str(value),
+            )
+
+
 @step(enable_cache=False)
 def gradio_rag_deployment() -> None:
     """Launches a Gradio chat interface with the slow echo demo.
@@ -104,27 +152,16 @@ def gradio_rag_deployment() -> None:
         token=get_hf_token(),
     )
 
-    # Ensure values are strings
-    if ZENML_API_TOKEN is not None:
-        api.add_space_secret(
-            repo_id=hf_repo_id,
-            key="ZENML_STORE_API_KEY",
-            value=str(ZENML_API_TOKEN),
-        )
-
-    if ZENML_STORE_URL is not None:
-        api.add_space_secret(
-            repo_id=hf_repo_id,
-            key="ZENML_STORE_URL",
-            value=str(ZENML_STORE_URL),
-        )
-
-    if SECRET_NAME is not None:
-        api.add_space_secret(
-            repo_id=hf_repo_id,
-            key="ZENML_PROJECT_SECRET_NAME",
-            value=str(SECRET_NAME),
-        )
+    secrets_mapping = {
+        "ZENML_STORE_API_KEY": ZENML_API_TOKEN,
+        "ZENML_STORE_URL": ZENML_STORE_URL,
+        "ZENML_PROJECT_SECRET_NAME": SECRET_NAME,
+        "TRACELOOP_BASE_URL": TRACELOOP_BASE_URL,
+        "TRACELOOP_HEADERS": TRACELOOP_HEADERS,
+        "BRAINTRUST_API_KEY": BRAINTRUST_API_KEY,
+        "TRACELOOP_API_KEY": TRACELOOP_API_KEY,
+    }
+    add_secrets(api, hf_repo_id, secrets_mapping)
 
     files_to_upload = {
         "deployment_hf.py": "app.py",
