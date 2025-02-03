@@ -2,7 +2,7 @@ from typing_extensions import Annotated
 import mlflow
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from zenml import step, get_step_context, log_model_metadata
+from zenml import step, get_step_context, log_metadata
 from zenml.client import Client
 from zenml.logger import get_logger
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -34,13 +34,14 @@ def model_evaluator(
 
     step_context = get_step_context()
 
-    log_model_metadata(
+    log_metadata(
         metadata={
             "evaluation_metrics": {
                 "train_accuracy": trn_acc,
                 "test_accuracy": tst_acc
             }
         },
+        infer_model=True
     )
 
     # Fetch previous versions (same as before)
@@ -49,7 +50,7 @@ def model_evaluator(
     for version in client.get_model(step_context.model.name).versions:
         version_obj = client.get_model_version(step_context.model.name, version.version)
         if "evaluation_metrics" in version_obj.run_metadata:
-            test_accuracy = version_obj.run_metadata["evaluation_metrics"].value.get("test_accuracy")
+            test_accuracy = version_obj.run_metadata["evaluation_metrics"].get("test_accuracy")
             if test_accuracy is not None:
                 previous_versions.append((f"v{version.version}", float(test_accuracy)))
 
