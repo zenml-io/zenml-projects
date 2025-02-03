@@ -27,7 +27,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def hp_tuning_select_best_model(
     step_names: List[str],
 ) -> Annotated[ClassifierMixin, "best_model"]:
