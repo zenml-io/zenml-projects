@@ -266,9 +266,9 @@ def perform_small_retrieval_evaluation(use_reranking: bool) -> float:
 
 
 @step
-def retrieval_evaluation_small() -> (
-    Annotated[float, "small_failure_rate_retrieval"]
-):
+def retrieval_evaluation_small() -> Annotated[
+    float, "small_failure_rate_retrieval"
+]:
     """Executes the retrieval evaluation step without reranking.
 
     Returns:
@@ -278,9 +278,9 @@ def retrieval_evaluation_small() -> (
 
 
 @step
-def retrieval_evaluation_small_with_reranking() -> (
-    Annotated[float, "small_failure_rate_retrieval_reranking"]
-):
+def retrieval_evaluation_small_with_reranking() -> Annotated[
+    float, "small_failure_rate_retrieval_reranking"
+]:
     """Executes the retrieval evaluation step with reranking.
 
     Returns:
