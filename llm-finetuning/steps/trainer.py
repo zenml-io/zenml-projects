@@ -35,7 +35,7 @@ from transformers import (
 )
 from transformers.models.gpt2.tokenization_gpt2_fast import GPT2TokenizerFast
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_model_metadata, save_artifact, step
+from zenml import ArtifactConfig, log_metadata, save_artifact, step
 from zenml.client import Client
 from zenml.enums import ArtifactType
 
@@ -524,8 +524,9 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
     try:
         if args.push_to_hub:
             commit_info = trainer.push_to_hub()
-            log_model_metadata(
-                metadata={"trainer_commit_info": str(commit_info)}
+            log_metadata(
+                metadata={"trainer_commit_info": str(commit_info)},
+                infer_model=True
             )
         else:
             trainer.save_model(args.output_dir)
@@ -535,8 +536,9 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
             commit_info = trainer.model.push_to_hub(
                 repo_id=args.output_peft_repo_id, token=hf_token
             )
-            log_model_metadata(
-                metadata={"model_commit_info": str(commit_info)}
+            log_metadata(
+                metadata={"model_commit_info": str(commit_info)},
+                infer_model=True
             )
     except Exception as e:
         print("Exception while pushing or saving")
@@ -580,11 +582,15 @@ def merge_and_push(
 
     model_id_merged = f"{peft_model_id}-merged"
     commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
-    log_model_metadata(
-        metadata={"merged_tokenizer_commit_info": str(commit_info)}
+    log_metadata(
+        metadata={"merged_tokenizer_commit_info": str(commit_info)},
+        infer_model=True
     )
     commit_info = final_model.push_to_hub(model_id_merged, token=hf_token)
-    log_model_metadata(metadata={"merged_model_commit_info": str(commit_info)})
+    log_metadata(
+        metadata={"merged_model_commit_info": str(commit_info)},
+        infer_model=True
+    )
 
 
 @step(output_materializers={"trainer_obj": HFTrainerMaterializer})
