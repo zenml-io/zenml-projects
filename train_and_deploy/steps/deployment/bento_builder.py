@@ -14,6 +14,17 @@
 import os
 from typing import Optional
 
+from typing_extensions import Annotated
+
+from zenml import ArtifactConfig, get_step_context, step,  __version__ as zenml_version
+from zenml.enums import ArtifactType
+from zenml.integrations.bentoml.steps import bento_builder_step
+from zenml.client import Client
+from zenml.logger import get_logger
+from zenml.utils import source_utils
+from zenml.integrations.bentoml.constants import DEFAULT_BENTO_FILENAME
+
+
 import bentoml
 from bentoml import bentos
 from bentoml._internal.bento import bento
@@ -32,7 +43,7 @@ logger = get_logger(__name__)
 def bento_builder() -> (
     Annotated[
         Optional[bento.Bento],
-        ArtifactConfig(name="mlflow_deployment", is_model_artifact=True),
+        ArtifactConfig(name="mlflow_deployment", artifact_type=ArtifactType.MODEL),
     ]
 ):
     """Predictions step.

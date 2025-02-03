@@ -13,8 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 from typing import Annotated, Any, Dict, Tuple
+
+from ultralytics import YOLO
+from zenml import ArtifactConfig, log_metadata, step
+from zenml.logger import get_logger
 
 from materializers.label_studio_export_materializer import (
     LabelStudioAnnotationExport,
@@ -22,9 +26,7 @@ from materializers.label_studio_export_materializer import (
 from materializers.ultralytics_materializer import UltralyticsMaterializer
 from ultralytics import YOLO
 from utils.dataset_utils import load_and_split_data
-from zenml import ArtifactConfig, log_artifact_metadata, step
-from zenml.logger import get_logger
-
+from zenml.enums import ArtifactType
 logger = get_logger(__name__)
 
 
@@ -44,7 +46,7 @@ def train_model(
     is_apple_silicon_env: bool = False,
 ) -> Tuple[
     Annotated[
-        YOLO, ArtifactConfig(name="Trained_YOLO", is_model_artifact=True)
+        YOLO, ArtifactConfig(name="Trained_YOLO", artifact_type=ArtifactType.MODEL)
     ],
     Annotated[Dict[str, Any], "validation_metrics"],
     Annotated[Dict[str, Any], "model_names"],
@@ -105,9 +107,10 @@ def train_model(
 
     logger.info("Evaluating model...")
     metrics = model.val()  # evaluate model performance on the validation set
-
-    log_artifact_metadata(
+    
+    log_metadata(
         artifact_name="Trained_YOLO",
+        infer_artifact=True,
         metadata={"metrics": metrics.results_dict, "names": model.names},
     )
 

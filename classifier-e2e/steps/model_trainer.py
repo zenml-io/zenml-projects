@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from typing import Optional
 
@@ -23,6 +22,7 @@ from sklearn.linear_model import SGDClassifier
 from typing_extensions import Annotated
 from utils.sagemaker_materializer import SagemakerMaterializer
 from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,7 +39,10 @@ def model_trainer(
     target: Optional[str] = "target",
 ) -> Annotated[
     ClassifierMixin,
-    ArtifactConfig(name="breast_cancer_classifier", is_model_artifact=True),
+    ArtifactConfig(
+        name="breast_cancer_classifier",
+        artifact_type=ArtifactType.MODEL,
+    ),
 ]:
     """Configure and train a model on the training dataset.
 

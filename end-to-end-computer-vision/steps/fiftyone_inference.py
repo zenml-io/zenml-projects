@@ -18,6 +18,11 @@ import os
 from typing import Annotated
 
 import fiftyone as fo
+from zenml import log_metadata, step
+from zenml.client import Client
+from zenml.io import fileio
+from zenml.logger import get_logger
+
 from utils.constants import (
     DATASET_NAME,
     PREDICTIONS_DATASET_ARTIFACT_NAME,
@@ -71,8 +76,9 @@ def create_fiftyone_dataset(
 
     dataset.apply_model(yolo_model, label_field="boxes")
 
-    log_artifact_metadata(
-        artifact_name="predictions_dataset_json",
+    log_metadata(
+        artifact_name=PREDICTIONS_DATASET_ARTIFACT_NAME,
+        infer_artifact=True,
         metadata={
             "summary_info": dataset.summary(),
             "persistence": dataset.persistent,

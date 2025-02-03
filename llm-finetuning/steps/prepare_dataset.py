@@ -6,8 +6,14 @@ All credit to them for their amazing work!
 """
 
 import os
-from typing import Dict
+from pathlib import Path
 
+# Set cache directories before importing HF libraries
+os.environ["HF_HOME"] = "/tmp/huggingface"
+os.environ["HF_HUB_CACHE"] = "/tmp/huggingface"
+os.makedirs("/tmp/huggingface", exist_ok=True)
+
+from typing import Dict
 import pandas as pd
 from datasets import Dataset
 from huggingface_hub import HfApi

@@ -19,8 +19,12 @@ import mlflow
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_model_metadata, step
+from zenml import log_model_metadata
+from zenml.metadata.metadata_types import Uri
+
+from zenml import ArtifactConfig, step
 from zenml.client import Client
+from zenml.enums import ArtifactType
 from zenml.integrations.mlflow.experiment_trackers import (
     MLFlowExperimentTracker,
 )
@@ -47,7 +51,7 @@ def model_trainer(
     name: str,
     target: str,
 ) -> Annotated[
-    ClassifierMixin, ArtifactConfig(name="model", is_model_artifact=True)
+    ClassifierMixin, ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL)
 ]:
     """Configure and train a model on the training dataset.
 

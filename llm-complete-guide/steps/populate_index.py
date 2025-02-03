@@ -23,8 +23,17 @@ import hashlib
 import json
 import logging
 import math
+import warnings
 from enum import Enum
 from typing import Annotated, Any, Dict, List, Tuple
+
+# Suppress the specific FutureWarning about clean_up_tokenization_spaces
+warnings.filterwarnings(
+    "ignore",
+    message=".*clean_up_tokenization_spaces.*",
+    category=FutureWarning,
+    module="transformers.tokenization_utils_base",
+)
 
 from constants import (
     CHUNK_OVERLAP,
@@ -39,12 +48,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, get_es_client, split_documents
-from zenml import (
-    ArtifactConfig,
-    log_artifact_metadata,
-    log_model_metadata,
-    step,
-)
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
 
@@ -530,12 +534,13 @@ def preprocess_documents(
         Exception: If an error occurs during preprocessing.
     """
     try:
-        log_artifact_metadata(
-            artifact_name="split_chunks",
+        log_metadata(
             metadata={
                 "chunk_size": CHUNK_SIZE,
                 "chunk_overlap": CHUNK_OVERLAP,
             },
+            artifact_name="split_chunks",
+            infer_artifact=True,
         )
 
         document_list: List[Document] = [
@@ -551,9 +556,10 @@ def preprocess_documents(
         histogram_chart: Image.Image = create_histogram(stats)
         bar_chart: Image.Image = create_bar_chart(stats)
 
-        log_artifact_metadata(
+        log_metadata(
             artifact_name="split_chunks",
             metadata=stats,
+            infer_artifact=True,
         )
 
         split_docs_json: str = json.dumps([doc.__dict__ for doc in split_docs])
@@ -581,14 +587,20 @@ def generate_embeddings(
         Exception: If an error occurs during the generation of embeddings.
     """
     try:
+        # Initialize the model
         model = SentenceTransformer(EMBEDDINGS_MODEL)
 
-        log_artifact_metadata(
-            artifact_name="documents_with_embeddings",
+        # Set clean_up_tokenization_spaces to False on the underlying tokenizer to avoid the warning
+        if hasattr(model.tokenizer, "clean_up_tokenization_spaces"):
+            model.tokenizer.clean_up_tokenization_spaces = False
+
+        log_metadata(
             metadata={
                 "embedding_type": EMBEDDINGS_MODEL,
                 "embedding_dimensionality": EMBEDDING_DIMENSIONALITY,
             },
+            artifact_name="documents_with_embeddings",
+            infer_artifact=True,
         )
 
         # Parse the JSON string into a list of Document objects
@@ -619,7 +631,7 @@ class IndexType(Enum):
 @step(enable_cache=False)
 def index_generator(
     documents: str,
-    index_type: IndexType = IndexType.ELASTICSEARCH,
+    index_type: IndexType = IndexType.POSTGRES,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -853,7 +865,7 @@ def _log_metadata(index_type: IndexType) -> None:
             "dbname": "postgres",
         }
 
-    log_model_metadata(
+    log_metadata(
         metadata={
             "embeddings": {
                 "model": EMBEDDINGS_MODEL,
@@ -868,4 +880,5 @@ def _log_metadata(index_type: IndexType) -> None:
                 "connection_details": connection_details,
             },
         },
+        infer_model=True,
     )

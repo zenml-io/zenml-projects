@@ -1,11 +1,17 @@
 # environment configuration
 settings:
   docker:
+    python_package_installer: "uv"
     requirements: requirements.txt
+    apt_packages:
+      - git
+    environment:
+      HF_HOME: "/tmp/huggingface"
+      HF_HUB_CACHE: "/tmp/huggingface"
 
 # pipeline configuration
 parameters:
-  dataset_id: htahir1/zenml-codegen-v1
+  dataset_id: zenml/zenml-codegen-v1
 
 steps:
   mirror_repositories:

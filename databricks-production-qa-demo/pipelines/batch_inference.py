@@ -28,6 +28,8 @@ from zenml.integrations.evidently.metrics import EvidentlyMetricConfig
 from zenml.integrations.evidently.steps import evidently_report_step
 from zenml.logger import get_logger
 
+from steps.explainability import explain_model
+
 logger = get_logger(__name__)
 
 
@@ -52,6 +54,10 @@ def production_line_qa_batch_inference():
         preprocess_pipeline=model.get_artifact("preprocess_pipeline"),
         target=target,
     )
+
+    ########## Model Explainability stage  ##########
+    explain_model(df_inference)
+
     ########## DataQuality stage  ##########
     report, _ = evidently_report_step(
         reference_dataset=model.get_artifact("dataset_trn"),

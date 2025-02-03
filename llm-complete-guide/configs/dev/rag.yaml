@@ -1,6 +1,5 @@
 enable_cache: False
 
-# environment configuration
 settings:
   docker:
     requirements:
