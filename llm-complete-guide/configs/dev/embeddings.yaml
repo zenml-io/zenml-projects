@@ -1,0 +1,32 @@
+# enable_cache: False
+
+# environment configuration
+settings:
+  docker:
+    python_package_installer: "uv"
+    requirements:
+      - langchain-community
+      - ratelimit
+      - langchain>=0.0.325
+      - langchain-openai
+      - pgvector
+      - psycopg2-binary
+      - beautifulsoup4
+      - unstructured
+      - pandas
+      - numpy
+      - sentence-transformers>=3
+      - transformers[torch]==4.43.1
+      - litellm
+      - ollama
+      - tiktoken
+      - umap-learn
+      - matplotlib
+      - pyarrow
+      - rerankers[flashrank]
+      - datasets
+      - torch
+      - pygithub
+      - openai
+    environment:
+      ZENML_PROJECT_SECRET_NAME: llm_complete

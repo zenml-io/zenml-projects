@@ -1,0 +1,34 @@
+enable_cache: False
+
+# environment configuration
+settings:
+  docker:
+    requirements:
+      - unstructured
+      - sentence-transformers>=3
+      - pgvector
+      - datasets
+      - litellm
+      - numpy
+      - psycopg2-binary
+      - tiktoken
+      - ratelimit
+      - rerankers
+      - pygithub
+      - rerankers[flashrank]
+      - matplotlib
+      - elasticsearch
+
+    environment:
+      ZENML_PROJECT_SECRET_NAME: llm_complete
+      ZENML_ENABLE_RICH_TRACEBACK: FALSE
+      ZENML_LOGGING_VERBOSITY: INFO
+    python_package_installer: "uv"
+    parent_image: "339712793861.dkr.ecr.eu-central-1.amazonaws.com/zenml:llm_index_and_evaluate-orchestrator"
+    skip_build: true
+
+steps:
+  url_scraper:
+    parameters:
+      docs_url: https://docs.zenml.io
+      use_dev_set: false

@@ -1,13 +1,11 @@
-zenml[server]>=0.68.1
-langchain-community
+zenml[server]
 ratelimit
-langchain>=0.0.325
-langchain-openai
 pgvector
 psycopg2-binary
 beautifulsoup4
 unstructured
 pandas
+openai
 numpy
 sentence-transformers>=3
 transformers
@@ -21,6 +19,8 @@ rerankers[flashrank]
 datasets
 torch
 gradio
+huggingface-hub
+elasticsearch
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0

@@ -23,6 +23,9 @@ EMBEDDING_DIMENSIONALITY = (
     384  # Update this to match the dimensionality of the new model
 )
 
+# ZenML constants
+ZENML_CHATBOT_MODEL = "zenml-docs-qa-chatbot"
+
 # Scraping constants
 RATE_LIMIT = 5  # Maximum number of requests per second
 
@@ -78,3 +81,4 @@ EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
 USE_ARGILLA_ANNOTATIONS = False
 
 SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME", "llm-complete")
+SECRET_NAME_ELASTICSEARCH = "elasticsearch-zenml"

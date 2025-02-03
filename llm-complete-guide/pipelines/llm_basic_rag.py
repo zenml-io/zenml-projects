@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from zenml import pipeline
+from litellm import config_path
 
 from steps.populate_index import (
     generate_embeddings,
@@ -24,6 +23,7 @@ from steps.populate_index import (
 )
 from steps.url_scraper import url_scraper
 from steps.web_url_loader import web_url_loader
+from zenml import pipeline
 
 
 @pipeline
@@ -39,6 +39,6 @@ def llm_basic_rag() -> None:
     """
     urls = url_scraper()
     docs = web_url_loader(urls=urls)
-    processed_docs = preprocess_documents(documents=docs)
+    processed_docs, _, _ = preprocess_documents(documents=docs)
     embedded_docs = generate_embeddings(split_documents=processed_docs)
     index_generator(documents=embedded_docs)

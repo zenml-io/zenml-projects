@@ -41,7 +41,7 @@ zenml integration install sklearn pandas -y
 zenml init
 
 # Connect to your ZenML server
-zenml connect --url ...
+zenml login ...
 
 python run.py --parallel
 ```

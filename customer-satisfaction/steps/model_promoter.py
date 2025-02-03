@@ -30,8 +30,7 @@ def model_promoter(mse: float, stage: str = "production") -> bool:
         # In case there already is a model version at the correct stage
         previous_production_model_mse = float(
             previous_production_model.get_artifact("sklearn_regressor")
-            .run_metadata["metrics"]
-            .value["mse"]
+            .run_metadata["metrics"]["mse"]
         )
     except RuntimeError:
         # In case no model version has been promoted before,
