@@ -9,7 +9,7 @@ openai
 numpy
 sentence-transformers>=3
 transformers
-litellm
+litellm>=1.60.0
 ollama
 tiktoken
 umap-learn
@@ -22,7 +22,13 @@ gradio
 huggingface-hub
 elasticsearch
 tenacity
-mlflow
+
+# MLFLOW
+mlflow>=2.1.1,<3
+python-rapidjson<1.15
+pydantic>=2.8.0,<2.9.0
+numpy<2.0.0
+pandas>=2.0.0
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0
