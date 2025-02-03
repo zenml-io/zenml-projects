@@ -220,6 +220,7 @@ def main(
             "evaluation": "dev/rag_eval.yaml",
             "synthetic": "dev/synthetic.yaml",
             "embeddings": "dev/embeddings.yaml",
+            "deploy": "dev/rag_deployment.yaml",
         }
         if pipeline in config_mapping:
             config_path = (
