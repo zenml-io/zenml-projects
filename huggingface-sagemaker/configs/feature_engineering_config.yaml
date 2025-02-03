@@ -39,6 +39,7 @@ settings:
       AWS_SESSION_TOKEN: "Randomstr"
       GIT_CURL_VERBOSE: 1
       GIT_TRACE: 1
+    python_package_installer: "uv"
 
   orchestrator.kubeflow:
     resources:
