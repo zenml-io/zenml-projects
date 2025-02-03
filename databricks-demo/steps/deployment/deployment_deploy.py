@@ -65,7 +65,7 @@ def deployment_deploy() -> (
     model_deployer = zenml_client.active_stack.model_deployer
     databricks_deployment_config = DatabricksDeploymentConfig(
         model_name=model.name,
-        model_version=model.run_metadata["model_registry_version"].value,
+        model_version=model.run_metadata["model_registry_version"],
         workload_size="Small",
         workload_type="CPU",
         scale_to_zero_enabled=True,
