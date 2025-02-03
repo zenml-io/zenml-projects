@@ -10,12 +10,11 @@ In the fast-paced world of AI, the ability to efficiently fine-tune Large Langua
 2. [Installation](#installation)
 3. [Running the Pipeline](#running-the-pipeline)
 4. [Configuration](#configuration)
-5. [Accelerated Fine-Tuning](#accelerated-fine-tuning)
-6. [Running with Remote Stack](#running-with-remote-stack)
-7. [Customizing Data Preparation](#customizing-data-preparation)
-8. [Project Structure](#project-structure)
-9. [Benefits & Future](#benefits--future)
-10. [Credits](#credits)
+5. [Running with Remote Stack](#running-with-remote-stack)
+6. [Customizing Data Preparation](#customizing-data-preparation)
+7. [Project Structure](#project-structure)
+8. [Benefits & Future](#benefits--future)
+9. [Credits](#credits)
 
 ## Introduction
 
@@ -39,13 +38,9 @@ source .venv/bin/activate
 # Install requirements
 pip install -r requirements.txt
 
-# Install ZenML and Lightning integrations
-pip install zenml
-zenml integration install lightning s3 aws -y
-
 # Initialize and connect to a deployed ZenML server
 zenml init
-zenml connect --url <MYZENMLSERVERURL>
+zenml login <MYZENMLSERVERURL>
 ```
 
 ## Running the Pipeline
@@ -120,7 +115,7 @@ steps:
 
 ## Running with Remote Stack
 
-Set up a remote lightning stack with ZenML for fine tuning on remote infrastructure:
+Set up a remote lightning stack with ZenML for fine-tuning on remote infrastructure:
 
 1. **Register Orchestrator and Artifact Store:**
 

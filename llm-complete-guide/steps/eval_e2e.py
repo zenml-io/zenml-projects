@@ -16,7 +16,16 @@
 
 import json
 import logging
+import warnings
 from typing import Annotated, Callable, Tuple
+
+# Suppress the specific FutureWarning about clean_up_tokenization_spaces
+warnings.filterwarnings(
+    "ignore",
+    message=".*clean_up_tokenization_spaces.*",
+    category=FutureWarning,
+    module="transformers.tokenization_utils_base",
+)
 
 from datasets import load_dataset
 from litellm import completion
@@ -315,13 +324,11 @@ def run_simple_tests(test_data: list, test_function: Callable) -> float:
 
 
 @step
-def e2e_evaluation() -> (
-    Tuple[
-        Annotated[float, "failure_rate_bad_answers"],
-        Annotated[float, "failure_rate_bad_immediate_responses"],
-        Annotated[float, "failure_rate_good_responses"],
-    ]
-):
+def e2e_evaluation() -> Tuple[
+    Annotated[float, "failure_rate_bad_answers"],
+    Annotated[float, "failure_rate_bad_immediate_responses"],
+    Annotated[float, "failure_rate_good_responses"],
+]:
     """Executes the end-to-end evaluation step."""
     logging.info("Testing bad answers...")
     failure_rate_bad_answers = run_simple_tests(
@@ -352,14 +359,12 @@ def e2e_evaluation() -> (
 
 
 @step
-def e2e_evaluation_llm_judged() -> (
-    Tuple[
-        Annotated[float, "average_toxicity_score"],
-        Annotated[float, "average_faithfulness_score"],
-        Annotated[float, "average_helpfulness_score"],
-        Annotated[float, "average_relevance_score"],
-    ]
-):
+def e2e_evaluation_llm_judged() -> Tuple[
+    Annotated[float, "average_toxicity_score"],
+    Annotated[float, "average_faithfulness_score"],
+    Annotated[float, "average_helpfulness_score"],
+    Annotated[float, "average_relevance_score"],
+]:
     """Executes the end-to-end evaluation step.
 
     Returns:

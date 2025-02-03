@@ -16,7 +16,7 @@
 import json
 
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 from steps.url_scraping_utils import get_all_pages
 
@@ -26,7 +26,7 @@ def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
     website_url: str = "https://zenml.io",
-    use_dev_set: bool = False
+    use_dev_set: bool = False,
 ) -> Annotated[str, ArtifactConfig(name="urls")]:
     """Generates a list of relevant URLs to scrape.
 
@@ -40,9 +40,7 @@ def url_scraper(
     """
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
-    use_dev_set = False
     if use_dev_set:
-
         docs_urls = [
             "https://docs.zenml.io/getting-started/system-architectures",
             "https://docs.zenml.io/getting-started/core-concepts",
@@ -58,10 +56,10 @@ def url_scraper(
     # website_urls = get_all_pages(website_url)
     # all_urls = docs_urls + website_urls + examples_readme_urls
     all_urls = docs_urls
-    log_artifact_metadata(
-        artifact_name="urls",
+    log_metadata(
         metadata={
             "count": len(all_urls),
         },
+        infer_artifact=True,
     )
     return json.dumps(all_urls)
