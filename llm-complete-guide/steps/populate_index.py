@@ -112,7 +112,6 @@ def extract_docs_stats(
     num_buckets = 10
     bucket_size = (max_chunk_size - min_chunk_size) / num_buckets
     buckets = [0] * num_buckets
-    bucket_ranges = []
 
     for size in chunk_sizes:
         bucket_index = min(
