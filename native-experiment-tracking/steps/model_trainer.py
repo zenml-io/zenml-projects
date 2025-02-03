@@ -33,6 +33,7 @@ from zenml import (
     step,
 )
 from zenml.client import Client
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -48,7 +49,7 @@ def model_trainer(
 ) -> Tuple[
     Annotated[
         ClassifierMixin,
-        ArtifactConfig(name="sklearn_classifier", is_model_artifact=True),
+        ArtifactConfig(name="sklearn_classifier", artifact_type=ArtifactType.MODEL),
     ],
     Annotated[Image.Image, "confusion_matrix"],
 ]:

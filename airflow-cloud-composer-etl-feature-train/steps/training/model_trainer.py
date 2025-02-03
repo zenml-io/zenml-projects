@@ -21,6 +21,7 @@ import xgboost as xgb
 from materializers import BigQueryDataset, CSVDataset
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -31,7 +32,7 @@ def train_xgboost_model(
     dataset: Union[BigQueryDataset, CSVDataset],
 ) -> Tuple[
     Annotated[
-        xgb.Booster, ArtifactConfig(name="xgb_model", is_model_artifact=True)
+        xgb.Booster, ArtifactConfig(name="xgb_model", artifact_type=ArtifactType.MODEL)
     ],
     Annotated[Dict[str, float], "metrics"],
 ]:

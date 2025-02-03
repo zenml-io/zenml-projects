@@ -9,7 +9,7 @@ from langchain.tools.vectorstore.tool import VectorStoreQATool
 from pydantic import BaseModel
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, log_artifact_metadata, step
-
+from zenml.enums import ArtifactType
 PIPELINE_NAME = "zenml_agent_creation_pipeline"
 # Choose what character to use for your agent's answers
 CHARACTER = "technical assistant"
@@ -33,7 +33,7 @@ class AgentParameters(BaseModel):
 def agent_creator(
     vector_store: VectorStore, config: AgentParameters = AgentParameters()
 ) -> Annotated[
-    AgentExecutor, ArtifactConfig(name="agent", is_model_artifact=True)
+    AgentExecutor, ArtifactConfig(name="agent", artifact_type=ArtifactType.MODEL)
 ]:
     """Create an agent from a vector store.
 

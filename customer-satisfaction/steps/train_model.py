@@ -6,6 +6,7 @@ import pandas as pd
 from model.model_dev import ModelTrainer
 from sklearn.base import RegressorMixin
 from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.client import Client
 
 experiment_tracker = Client().active_stack.experiment_tracker
@@ -21,7 +22,7 @@ def train_model(
     do_fine_tuning: bool = True,
 ) -> Annotated[
     RegressorMixin,
-    ArtifactConfig(name="sklearn_regressor", is_model_artifact=True),
+    ArtifactConfig(name="sklearn_regressor", artifact_type=ArtifactType.MODEL),
 ]:
     """
     Args:
