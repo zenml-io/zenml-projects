@@ -14,6 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
+
+# Suppress Pydantic V2 config warning
+warnings.filterwarnings(
+    "ignore",
+    message="Valid config keys have changed in V2:*",
+    category=UserWarning,
+)
+
 from pathlib import Path
 
 # Suppress the specific FutureWarning from huggingface_hub
