@@ -46,7 +46,6 @@ def model_deployer(
     zenml_client = Client()
     current_model = get_step_context().model
     model_deployer = zenml_client.active_stack.model_deployer
-    breakpoint()
     vertex_deployment_config = VertexAIDeploymentConfig(
         location="europe-west1",
         name="zenml-vertex-quickstart",
