@@ -24,6 +24,7 @@ settings:
       - mlflow
       - sklearn
       - databricks
+    python_package_installer: "uv"
   orchestrator.databricks:
     cluster_name: adas_
     node_type_id: Standard_D8ads_v5

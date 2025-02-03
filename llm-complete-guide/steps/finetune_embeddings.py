@@ -51,7 +51,7 @@ from zenml import ArtifactConfig, log_model_metadata, step
 from zenml.client import Client
 from zenml.enums import ArtifactType
 from zenml.utils.cuda_utils import cleanup_gpu_memory
-
+from zenml.enums import ArtifactType
 
 @step
 def prepare_load_data(

@@ -27,7 +27,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def hp_tuning_select_best_model(
     step_names: List[str],
 ) -> Annotated[ClassifierMixin, "best_model"]:
@@ -47,10 +47,10 @@ def hp_tuning_select_best_model(
     best_metric = -1
     # consume artifacts attached to current model version in Model Control Plane
     for step_name in step_names:
-        hp_output = model.get_data_artifact("hp_result")
+        hp_output = model.get_model_artifact("hp_result")
         model_: ClassifierMixin = hp_output.load()
         # fetch metadata we attached earlier
-        metric = float(hp_output.run_metadata["metric"].value)
+        metric = float(hp_output.run_metadata["metric"])
         if best_model is None or best_metric < metric:
             best_model = model_
     ### YOUR CODE ENDS HERE ###
