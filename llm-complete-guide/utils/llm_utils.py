@@ -616,7 +616,7 @@ def process_input_with_retrieval(
         context_content = [doc[0] for doc in related_docs[:5]]
         logger.debug("Selected top 5 documents without reranking")
 
-    # Step 2: Get completion from OpenAI API
+    # Step 2: Get completion from the LLM API
     logger.debug("Preparing messages for completion...")
     system_message = f"""
     You are a friendly chatbot. \
@@ -634,7 +634,7 @@ def process_input_with_retrieval(
         {"role": "user", "content": f"{delimiter}{input}{delimiter}"},
         {
             "role": "assistant",
-            "content": f"Please use the input query and the following relevant ZenML documentation (in order of usefulness for this query) to answer the user query: \n"
+            "content": f"Please use the input query and the following relevant ZenML documentation (in order of usefulness for this query) to answer the user query. If it's possible to give a code example based on the facts in the documentation, please do try to do so: \n"
             + "\n".join(context_content),
         },
     ]
