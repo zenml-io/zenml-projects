@@ -16,11 +16,10 @@
 #
 
 from typing import Optional
-from uuid import UUID
 
 from steps import model_deployer, model_promoter, model_register, model_trainer
+
 from zenml import pipeline
-from zenml.client import Client
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -47,9 +46,9 @@ def training(
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
 
-    model, accuracy = model_trainer(target=target)
+    _, accuracy = model_trainer(target=target)
     is_promoted = model_promoter(accuracy=accuracy)
-    if is_promoted:
-        model_registry_uri = model_register()
-        model_deployer(model_registry_uri=model_registry_uri)
-    
+    model_registry_uri = model_register(is_promoted)
+    model_deployer(
+        model_registry_uri=model_registry_uri, is_promoted=is_promoted
+    )

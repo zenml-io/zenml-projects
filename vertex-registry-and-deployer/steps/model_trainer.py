@@ -1,4 +1,3 @@
-
 # Apache Software License 2.0
 #
 # Copyright (c) ZenML GmbH 2024. All rights reserved.
@@ -16,7 +15,7 @@
 # limitations under the License.
 #
 
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
 import pandas as pd
 from sklearn.base import ClassifierMixin
@@ -26,12 +25,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_artifact_metadata, step
+
+from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
+from zenml.utils.metadata_utils import log_metadata
 
 logger = get_logger(__name__)
 
-@step
+
+@step(enable_cache=False)
 def model_trainer(
     random_state: int = 42,
     test_size: float = 0.2,
@@ -41,7 +44,12 @@ def model_trainer(
     min_train_accuracy: float = 0.3,
     min_test_accuracy: float = 0.3,
 ) -> Tuple[
-    Annotated[ClassifierMixin, ArtifactConfig(name="sklearn_classifier", is_model_artifact=True)],
+    Annotated[
+        ClassifierMixin,
+        ArtifactConfig(
+            name="sklearn_classifier", artifact_type=ArtifactType.MODEL
+        ),
+    ],
     Annotated[float, ArtifactConfig(name="accuracy")],
 ]:
     # Load the dataset
@@ -99,15 +107,16 @@ def model_trainer(
         for message in messages:
             logger.warning(message)
 
-    log_artifact_metadata(
+    log_metadata(
         metadata={
             "train_accuracy": float(trn_acc),
             "test_accuracy": float(tst_acc),
         },
         artifact_name="sklearn_classifier",
+        infer_artifact=True,
     )
-
     return model, tst_acc
+
 
 class NADropper:
     """Support class to drop NA values in sklearn Pipeline."""

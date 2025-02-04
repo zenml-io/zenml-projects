@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zenml import get_pipeline_context, pipeline
+from zenml import pipeline
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -22,8 +22,7 @@ logger = get_logger(__name__)
 
 @pipeline
 def inference(random_state: int, target: str):
-    """
-    Model inference pipeline.
+    """Model inference pipeline.
 
     This is a pipeline that loads the inference data, processes it with
     the same preprocessing pipeline used in training, and runs inference
@@ -34,12 +33,12 @@ def inference(random_state: int, target: str):
         target: Name of target column in dataset.
     """
     # Get the production model artifact
-    model = get_pipeline_context().model.get_artifact("sklearn_classifier")
+    # model_artifact = get_pipeline_context().model.get_artifact("sklearn_classifier")
 
     # Get the preprocess pipeline artifact associated with this version
-    preprocess_pipeline = get_pipeline_context().model.get_artifact(
-        "preprocess_pipeline"
-    )
+    # preprocess_pipeline = get_pipeline_context().model.get_artifact(
+    #    "preprocess_pipeline"
+    # )
 
     # Link all the steps together by calling them and passing the output
     #  of one step as the input of the next step.

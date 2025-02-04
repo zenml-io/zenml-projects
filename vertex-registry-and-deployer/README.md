@@ -26,16 +26,16 @@ Once you have set up your Google Cloud credentials, we can create a stack and ru
 
 ```bash
 # Register the artifact store
-zenml artifact-store register gs_store -f gcp --path=gs://bucket-name
+zenml artifact-store register gs_store -f gcp --path=gs://zenml-vertex-test
 zenml artifact-store connect gs_store --connector gcp
 
 # Register the model registry
-zenml model-registry register vertex_registry --flavor=vertex --location=us-central1
+zenml model-registry register vertex_registry --flavor=vertex --location=europe-west1 
 zenml model-registry connect vertex_registry --connector gcp
 
 # Register Model Deployer
-zenml model-deployer register vertex_deployer --flavor=vertex --location=us-central1
-zenml model-deployer connect vertex_deployer --connector vertex_deployer_connector
+zenml model-deployer register vertex_deployer --flavor=vertex --location=europe-west1
+zenml model-deployer connect vertex_deployer --connector gcp
 
 # Register the stack
 zenml stack register vertex_stack --orchestrator default --artifact-store gs_store --model-registry vertex_registry --model-deployer vertex_deployer
