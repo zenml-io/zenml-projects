@@ -64,8 +64,8 @@ logger = logging.getLogger(__name__)
 
 # DEBUG LOGGING FOR MLFLOW
 # uncomment to enable
-# logger = logging.getLogger("mlflow")
-# logger.setLevel(logging.DEBUG)
+mlflow_logger = logging.getLogger("mlflow")
+mlflow_logger.setLevel(logging.DEBUG)
 
 MLFLOW_TRACKING_URI = os.getenv(
     "MLFLOW_TRACKING_URI",
@@ -439,12 +439,16 @@ def make_completion_request(
     model=OPENAI_MODEL,
     temperature=0,
     max_tokens=1000,
+    n_items_retrieved=20,
+    use_reranking=False,
 ):
     mlflow.update_current_trace(
         tags={
             "model": model,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "n_items_retrieved": n_items_retrieved,
+            "use_reranking": use_reranking,
         }
     )
     return litellm.completion(
@@ -462,6 +466,8 @@ def get_completion_from_messages(
     temperature: float = 0,
     max_tokens: int = 1000,
     mlflow_experiment_name: Optional[str] = None,
+    n_items_retrieved: int = 20,
+    use_reranking: bool = False,
 ):
     """Generates a completion response from the given messages using the specified model.
 
@@ -482,6 +488,8 @@ def get_completion_from_messages(
         model,
         temperature,
         max_tokens,
+        n_items_retrieved,
+        use_reranking,
     )
     return completion_response.choices[0].message.content
 
@@ -637,6 +645,8 @@ def process_input_with_retrieval(
         messages,
         model=model,
         mlflow_experiment_name=mlflow_experiment_name,
+        n_items_retrieved=n_items_retrieved,
+        use_reranking=use_reranking,
     )
     logger.debug("Completion request successful")
 

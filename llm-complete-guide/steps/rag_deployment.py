@@ -1,5 +1,6 @@
 import os
 import webbrowser
+from typing import Optional
 
 from constants import SECRET_NAME
 from huggingface_hub import HfApi
@@ -13,8 +14,9 @@ from zenml.integrations.registry import integration_registry
 # Try to get from environment first, otherwise fall back to secret store
 ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
 
-if not ZENML_API_TOKEN or not ZENML_STORE_URL:
+if not ZENML_API_TOKEN or not ZENML_STORE_URL or not MLFLOW_TRACKING_URI:
     # Get ZenML server URL and API token from the secret store
     secret = Client().get_secret(SECRET_NAME)
     ZENML_API_TOKEN = ZENML_API_TOKEN or secret.secret_values.get(
@@ -22,6 +24,9 @@ if not ZENML_API_TOKEN or not ZENML_STORE_URL:
     )
     ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
         "zenml_store_url"
+    )
+    MLFLOW_TRACKING_URI = MLFLOW_TRACKING_URI or secret.secret_values.get(
+        "mlflow_tracking_uri"
     )
 
 
@@ -95,7 +100,7 @@ def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
         )
 
 
-def add_secrets(api, repo_id: str, secrets: dict) -> None:
+def add_hf_space_secrets(api, repo_id: str, secrets: dict) -> None:
     """Helper function to add space secrets to the repository if values are provided.
 
     Args:
@@ -112,12 +117,31 @@ def add_secrets(api, repo_id: str, secrets: dict) -> None:
             )
 
 
+def add_hf_space_variables(api, repo_id: str, variables: dict) -> None:
+    """Helper function to add space variables to the repository if values are provided.
+
+    Args:
+        api: Hugging Face API client instance.
+        repo_id (str): ID of the target repository.
+    """
+    for key, value in variables.items():
+        if value is not None:
+            api.add_space_variable(
+                repo_id=repo_id,
+                key=key,
+                value=str(value),
+            )
+
+
 @step(enable_cache=False)
-def gradio_rag_deployment() -> None:
+def gradio_rag_deployment(
+    mlflow_experiment_name: Optional[str] = None,
+) -> None:
     """Launches a Gradio chat interface with the slow echo demo.
 
-    Starts a web server with a chat interface that echoes back user messages.
-    The server runs indefinitely until manually stopped.
+    Args:
+        mlflow_experiment_name (Optional[str]): The name of the MLFlow experiment
+            to use for tracing. Defaults to None.
     """
     api = HfApi()
     api.create_repo(
@@ -134,7 +158,13 @@ def gradio_rag_deployment() -> None:
         "ZENML_STORE_URL": ZENML_STORE_URL,
         "ZENML_PROJECT_SECRET_NAME": SECRET_NAME,
     }
-    add_secrets(api, hf_repo_id, secrets_mapping)
+    add_hf_space_secrets(api, hf_repo_id, secrets_mapping)
+
+    variables_mapping = {
+        "MLFLOW_EXPERIMENT_NAME": mlflow_experiment_name,
+        "MLFLOW_TRACKING_URI": MLFLOW_TRACKING_URI,
+    }
+    add_hf_space_variables(api, hf_repo_id, variables_mapping)
 
     files_to_upload = {
         "deployment_hf.py": "app.py",

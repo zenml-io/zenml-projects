@@ -152,7 +152,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
 )
 @click.option(
     "--mlflow-experiment-name",
-    "-exp",
+    "-e",
     "mlflow_experiment_name",
     default=None,
     required=False,
@@ -279,7 +279,9 @@ def main(
         )()
 
     elif pipeline == "deploy":
-        rag_deployment.with_options(model=zenml_model, **pipeline_args)()
+        rag_deployment.with_options(
+            model=zenml_model, config_path=config_path, **pipeline_args
+        )()
 
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False

@@ -1,4 +1,5 @@
 import logging
+import os
 
 import gradio as gr
 from constants import SECRET_NAME
@@ -25,6 +26,7 @@ def predict(message, history):
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
+            mlflow_experiment_name=os.getenv("MLFLOW_EXPERIMENT_NAME", None),
         )
     except Exception as e:
         logger.error(f"Error processing message: {e}")
