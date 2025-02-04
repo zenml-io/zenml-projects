@@ -21,3 +21,4 @@ from pipelines.llm_basic_rag import llm_basic_rag
 from pipelines.llm_eval import llm_eval
 from pipelines.llm_index_and_evaluate import llm_index_and_evaluate
 from pipelines.rag_deployment import rag_deployment
+from pipelines.llm_fast_eval import llm_fast_eval

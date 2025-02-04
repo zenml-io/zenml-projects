@@ -57,6 +57,7 @@ from pipelines import (
     llm_eval,
     llm_index_and_evaluate,
     rag_deployment,
+    llm_fast_eval,
 )
 from structures import Document
 from zenml import Model
@@ -84,6 +85,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
             "embeddings",
             "chunks",
             "basic_rag",
+            "fast_eval",
         ]
     ),
     required=True,
@@ -286,6 +288,9 @@ def main(
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(model=zenml_model, config_path=config_path)()
+
+    elif pipeline == "fast_eval":
+        llm_fast_eval.with_options(model=zenml_model)()
 
     elif pipeline == "synthetic":
         generate_synthetic_data.with_options(
