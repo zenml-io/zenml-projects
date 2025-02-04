@@ -150,6 +150,14 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Query text",
 )
+@click.option(
+    "--mlflow-experiment-name",
+    "-exp",
+    "mlflow_experiment_name",
+    default=None,
+    required=False,
+    help="MLFlow experiment name for LLM tracing",
+)
 def main(
     pipeline: str,
     query_text: Optional[str] = None,
@@ -160,6 +168,7 @@ def main(
     use_argilla: bool = False,
     use_reranker: bool = False,
     config: Optional[str] = None,
+    mlflow_experiment_name: Optional[str] = None,
 ):
     """Main entry point for the pipeline execution.
 
@@ -173,6 +182,7 @@ def main(
         use_argilla (bool): If True, Argilla an notations will be used
         use_reranker (bool): If True, rerankers will be used
         config (Optional[str]): Path to config file
+        mlflow_experiment_name (Optional[str]): MLFlow experiment name for tracing
     """
     pipeline_args = {"enable_cache": not no_cache}
     embeddings_finetune_args = {
@@ -242,7 +252,10 @@ def main(
                 "--query-text is required when using 'query' command"
             )
         response = process_input_with_retrieval(
-            query_text, model=model, use_reranking=use_reranker
+            query_text,
+            model=model,
+            use_reranking=use_reranker,
+            mlflow_experiment_name=mlflow_experiment_name,
         )
         console = Console()
         md = Markdown(response)

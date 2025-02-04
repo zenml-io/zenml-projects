@@ -21,6 +21,7 @@
 
 import logging
 import os
+from typing import Dict, List, Optional, Tuple
 
 import mlflow
 from elasticsearch import Elasticsearch
@@ -61,9 +62,10 @@ from structures import Document
 
 logger = logging.getLogger(__name__)
 
-# TEST FOR MLFLOW
-logger = logging.getLogger("mlflow")
-logger.setLevel(logging.DEBUG)
+# DEBUG LOGGING FOR MLFLOW
+# uncomment to enable
+# logger = logging.getLogger("mlflow")
+# logger.setLevel(logging.DEBUG)
 
 MLFLOW_TRACKING_URI = os.getenv(
     "MLFLOW_TRACKING_URI",
@@ -71,7 +73,7 @@ MLFLOW_TRACKING_URI = os.getenv(
 )
 
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-mlflow.set_experiment("tracing_test")
+
 
 def split_text_with_regex(
     text: str, separator: str, keep_separator: bool
@@ -430,9 +432,36 @@ def get_topn_similar_docs(
             query_embedding, es_client, n, include_metadata, only_urls
         )
 
+
 @mlflow.trace
+def make_completion_request(
+    messages,
+    model=OPENAI_MODEL,
+    temperature=0,
+    max_tokens=1000,
+):
+    mlflow.update_current_trace(
+        tags={
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+    )
+    return litellm.completion(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        api_key=get_openai_api_key(),
+    )
+
+
 def get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
+    messages: List[Dict],
+    model: str = OPENAI_MODEL,
+    temperature: float = 0,
+    max_tokens: int = 1000,
+    mlflow_experiment_name: Optional[str] = None,
 ):
     """Generates a completion response from the given messages using the specified model.
 
@@ -445,13 +474,14 @@ def get_completion_from_messages(
     Returns:
         str: The content of the completion response.
     """
+    if mlflow_experiment_name is not None:
+        mlflow.set_experiment(mlflow_experiment_name)
     model = MODEL_NAME_MAP.get(model, model)
-    completion_response = litellm.completion(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        api_key=get_openai_api_key(),
+    completion_response = make_completion_request(
+        messages,
+        model,
+        temperature,
+        max_tokens,
     )
     return completion_response.choices[0].message.content
 
@@ -521,6 +551,7 @@ def process_input_with_retrieval(
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
+    mlflow_experiment_name: Optional[str] = None,
 ) -> str:
     """Process the input with retrieval.
 
@@ -532,40 +563,53 @@ def process_input_with_retrieval(
             the database. Defaults to 5.
         use_reranking (bool, optional): Whether to use reranking. Defaults to
             False.
+        mlflow_experiment_name (str, optional): The name of the MLFlow experiment
+            to use for tracing. Defaults to None.
 
     Returns:
         str: The processed output.
     """
+    logger.debug("Starting process_input_with_retrieval with input: %s", input)
     delimiter = "```"
     es_client = None
     conn = None
 
+    logger.debug("Finding vector store name...")
     vector_store_name = find_vectorstore_name()
+    logger.debug("Using vector store: %s", vector_store_name)
+
     if vector_store_name == "pgvector":
+        logger.debug("Connecting to PostgreSQL database...")
         conn = get_db_conn()
     else:
+        logger.debug("Connecting to Elasticsearch...")
         es_client = get_es_client()
 
     # Step 1: Get documents related to the user input from database
+    logger.debug("Getting embeddings for input...")
+    embeddings = get_embeddings(input)
+
+    logger.debug("Retrieving similar documents from database...")
     related_docs = get_topn_similar_docs(
-        get_embeddings(input),
+        embeddings,
         conn=conn,
         es_client=es_client,
         n=n_items_retrieved,
         include_metadata=use_reranking,
     )
+    logger.debug("Retrieved %d documents", len(related_docs))
 
     if use_reranking:
-        # Rerank the documents based on the input
-        # and take the top 5 only
-        context_content = [
-            doc[0] for doc in rerank_documents(input, related_docs)[:5]
-        ]
+        logger.debug("Reranking documents...")
+        reranked_docs = rerank_documents(input, related_docs)
+        context_content = [doc[0] for doc in reranked_docs[:5]]
+        logger.debug("Selected top 5 reranked documents")
     else:
         context_content = [doc[0] for doc in related_docs[:5]]
+        logger.debug("Selected top 5 documents without reranking")
 
     # Step 2: Get completion from OpenAI API
-    # Set system message to help set appropriate tone and context for model
+    logger.debug("Preparing messages for completion...")
     system_message = f"""
     You are a friendly chatbot. \
     You can answer questions about ZenML, its features and its use cases. \
@@ -577,10 +621,6 @@ def process_input_with_retrieval(
     If you are unsure or don't know, just say so. \
     """
 
-    # Prepare messages to pass to model
-    # We use a delimiter to help the model understand the where the user_input
-    # starts and ends
-
     messages = [
         {"role": "system", "content": system_message},
         {"role": "user", "content": f"{delimiter}{input}{delimiter}"},
@@ -591,4 +631,13 @@ def process_input_with_retrieval(
         },
     ]
     logger.debug("CONTEXT USED:\n\n%s\n\n", messages[2]["content"])
-    return get_completion_from_messages(messages, model=model)
+
+    logger.debug("Making completion request...")
+    response = get_completion_from_messages(
+        messages,
+        model=model,
+        mlflow_experiment_name=mlflow_experiment_name,
+    )
+    logger.debug("Completion request successful")
+
+    return response
