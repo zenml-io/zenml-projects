@@ -439,8 +439,8 @@ def make_completion_request(
     model=OPENAI_MODEL,
     temperature=0,
     max_tokens=1000,
-    n_items_retrieved=20,
-    use_reranking=False,
+    n_items_retrieved: int = 20,
+    use_reranking: int = 0,
 ):
     mlflow.update_current_trace(
         tags={
@@ -646,7 +646,7 @@ def process_input_with_retrieval(
         model=model,
         mlflow_experiment_name=mlflow_experiment_name,
         n_items_retrieved=n_items_retrieved,
-        use_reranking=use_reranking,
+        use_reranking=int(use_reranking),
     )
     logger.debug("Completion request successful")
 
