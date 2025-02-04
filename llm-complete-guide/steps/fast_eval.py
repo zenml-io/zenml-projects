@@ -1,14 +1,19 @@
-import logging
-from typing import Any, Dict, List, Tuple, Optional
-from dataclasses import dataclass
+import io
 import json
+import logging
 import sys
 import traceback
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Annotated, Any, Dict, List, Optional, Tuple
 
-from pydantic import BaseModel
-from zenml import step
-from litellm import completion
+import matplotlib.pyplot as plt
 import mlflow
+import numpy as np
+from litellm import completion
+from PIL import Image
+from pydantic import BaseModel
+from zenml import ArtifactConfig, get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,11 +28,22 @@ examples when asked about supported service connectors (and should explain how t
 use them together with associated stack components.)
 """
 
+MISSING_CODE_SAMPLE_EVAL_CRITERIA = """
+The RAG pipeline sometimes doesn't include a code sample in the response.
+Of course, a code sample doesn't always need to be included, but generally when
+a user asks about how to use a feature, it's usually useful to include a code
+sample in the response.
+"""
+
 EVALUATION_DATA_PAIRS = [
     {
         "mlflow_experiment_name": "service_connectors",
         "eval_criteria": SERVICE_CONNECTORS_EVAL_CRITERIA,
-    }
+    },
+    {
+        "mlflow_experiment_name": "missing_code_sample",
+        "eval_criteria": MISSING_CODE_SAMPLE_EVAL_CRITERIA,
+    },
 ]
 
 
@@ -294,7 +310,7 @@ def fast_eval() -> List[Dict[str, Any]]:
     Step function to evaluate LLM responses by calling LiteLLM in JSON mode.
 
     Returns:
-        List of evaluation results for each question-response pair
+        List of evaluation results for each question-response pair, including experiment names
     """
     logger = logging.getLogger(__name__)
     results: List[Dict[str, Any]] = []
@@ -317,7 +333,117 @@ def fast_eval() -> List[Dict[str, Any]]:
             )
 
             if result := evaluate_single_response(eval_input, logger):
+                # Include the experiment name with each result
+                result["experiment_name"] = mlflow_experiment_name
                 results.append(result)
 
     logger.info("All evaluations completed with %d results", len(results))
     return results
+
+
+@step
+def visualize_fast_eval_results(
+    results: List[Dict[str, Any]],
+) -> Annotated[Image.Image, ArtifactConfig(name="fast_eval_metrics")]:
+    """Visualize the results of the fast evaluation.
+
+    Args:
+        results: List of evaluation results from the fast_eval step, each containing
+                experiment_name, question, and evaluation data
+
+    Returns:
+        PIL Image showing the evaluation metrics visualization
+    """
+    step_context = get_step_context()
+    pipeline_run_name = step_context.pipeline_run.name
+
+    # Process results to get metrics per experiment
+    experiment_metrics = defaultdict(lambda: {"total": 0, "bad": 0})
+
+    for result in results:
+        experiment = result["experiment_name"]
+        experiment_metrics[experiment]["total"] += 1
+        if not result["evaluation"]["is_good_response"]:
+            experiment_metrics[experiment]["bad"] += 1
+
+    # Calculate percentages
+    percentages = {}
+    for exp, metrics in experiment_metrics.items():
+        if metrics["total"] > 0:
+            percentages[exp] = (metrics["bad"] / metrics["total"]) * 100
+
+            # Log metrics for this experiment
+            log_metadata(
+                metadata={
+                    f"fast_eval.{exp}.total_evaluations": metrics["total"],
+                    f"fast_eval.{exp}.bad_responses": metrics["bad"],
+                    f"fast_eval.{exp}.bad_response_percentage": percentages[
+                        exp
+                    ],
+                }
+            )
+
+    # Create visualization
+    labels = list(percentages.keys())
+    scores = list(percentages.values())
+
+    # Create a new figure and axis
+    fig, ax = plt.subplots(
+        figsize=(12, max(6, len(labels) * 0.5))
+    )  # Adjust height based on number of experiments
+    fig.subplots_adjust(
+        left=0.4
+    )  # Adjust left margin for potentially longer experiment names
+
+    # Plot horizontal bar chart
+    y_pos = np.arange(len(labels))
+    bars = ax.barh(y_pos, scores, align="center", color="skyblue")
+
+    # Add value labels on the bars
+    for i, bar in enumerate(bars):
+        width = bar.get_width()
+        total = experiment_metrics[labels[i]]["total"]
+        bad = experiment_metrics[labels[i]]["bad"]
+        ax.text(
+            width + 1,
+            bar.get_y() + bar.get_height() / 2,
+            f"{width:.1f}% ({bad}/{total})",
+            ha="left",
+            va="center",
+        )
+
+    # Customize the plot
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels([name.replace("_", " ").title() for name in labels])
+    ax.invert_yaxis()  # Labels read top-to-bottom
+    ax.set_xlabel("Percentage of Bad Responses")
+    ax.set_title(
+        f"Fast Evaluation Results - Bad Response Rate\n{pipeline_run_name}"
+    )
+    ax.set_xlim(0, 100)  # Set x-axis limits for percentage
+
+    # Add grid for better readability
+    ax.grid(True, axis="x", linestyle="--", alpha=0.7)
+
+    # Add a light gray background for better contrast
+    ax.set_facecolor("#f8f8f8")
+
+    # Add total evaluations count to the title
+    total_evals = sum(
+        metrics["total"] for metrics in experiment_metrics.values()
+    )
+    plt.suptitle(f"Total Evaluations: {total_evals}", y=0.95, fontsize=10)
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # Convert plot to PIL Image
+    buf = io.BytesIO()
+    plt.savefig(
+        buf, format="png", bbox_inches="tight", dpi=300, facecolor="white"
+    )
+    buf.seek(0)
+    image = Image.open(buf)
+
+    logger.info("Generated visualization for fast evaluation results")
+    return image
