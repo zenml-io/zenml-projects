@@ -71,8 +71,7 @@ MLFLOW_TRACKING_URI = os.getenv(
 )
 
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-mlflow.litellm.autolog()
-
+mlflow.set_experiment("tracing_test")
 
 def split_text_with_regex(
     text: str, separator: str, keep_separator: bool
@@ -431,7 +430,7 @@ def get_topn_similar_docs(
             query_embedding, es_client, n, include_metadata, only_urls
         )
 
-
+@mlflow.trace
 def get_completion_from_messages(
     messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
 ):
