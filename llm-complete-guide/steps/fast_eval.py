@@ -13,6 +13,8 @@ import numpy as np
 from litellm import completion
 from PIL import Image
 from pydantic import BaseModel
+from rich import print
+from utils.llm_utils import process_input_with_retrieval
 from zenml import ArtifactConfig, get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
@@ -82,35 +84,36 @@ def construct_eval_metaprompt(
 
 You are an expert at evaluating the performance of a chatbot.
 
-You will be given a question and an LLM-generated output and you should judge
-whether this is a good or bad response.
+You will be given:
+1. A user question
+2. An OLD RESPONSE from a previous version of the chatbot
+3. A NEW RESPONSE from the current version of the chatbot
 
-You will also be given a specific area of focus for the evaluation.
+Your task is to compare these responses and determine if the NEW RESPONSE is better
+than the OLD RESPONSE based on the evaluation criteria below.
 
 # Evaluation Criteria
 
-You should judge the response bearing the following comments in mind:
+You should judge whether the NEW RESPONSE is an improvement over the OLD RESPONSE,
+considering these specific criteria:
 
 {eval_criteria}
 
-## A good response
+## Example Responses
 
-Here is an example of a good response:
-
+Here is an example of a good response format:
 {example_good_response}
 
-## A bad response
-
-Here is an example of a bad response:
-
+Here is an example of a response that needs improvement:
 {example_bad_response}
 
 # Your response
 
 Your response should be a JSON object with the following fields:
 
-- `is_good_response`: (bool) Whether the response is good or bad.
-- `reasoning`: (str) A short explanation for your answer.
+- `is_good_response`: (bool) Whether the NEW RESPONSE is an improvement over the OLD RESPONSE.
+- `reasoning`: (str) A brief explanation comparing the two responses and justifying your decision.
+    Focus on specific improvements or regressions in the NEW RESPONSE.
 """
 
 
@@ -176,6 +179,7 @@ def evaluate_single_response(
             "question": eval_input.question,
             "evaluation": evaluation.model_dump(),
         }
+        print(result)
 
         logger.debug("Successfully parsed evaluation result")
         logger.debug(
@@ -195,20 +199,14 @@ def evaluate_single_response(
 
 def get_mlflow_dataset(
     mlflow_experiment_name: str,
-) -> Tuple[List[Tuple[str, str]], str, str]:
+) -> Tuple[List[Dict[str, Any]], str, str]:
     """Get the MLflow dataset for a given experiment name.
-
-    Args:
-        mlflow_experiment_name (str): The name of the MLflow experiment.
 
     Returns:
         Tuple containing:
-        - List of (question, response) tuples from MLflow traces
+        - List of dicts with {'question': str, 'old_response': str} from MLflow traces
         - A sample good response for evaluation
         - A sample bad response for evaluation
-
-    Raises:
-        ValueError: If no traces are available
     """
     # Get experiment to ensure it exists and get its ID
     experiment = mlflow.get_experiment_by_name(mlflow_experiment_name)
@@ -234,7 +232,7 @@ def get_mlflow_dataset(
     logger.debug(f"Found {len(traces.values)} total traces")
 
     # Extract question-answer pairs (only from downvoted traces)
-    qa_pairs: List[Tuple[str, str]] = []
+    qa_pairs: List[Dict[str, Any]] = []
     good_response = "None provided"
     bad_response = "None provided"
 
@@ -281,7 +279,7 @@ def get_mlflow_dataset(
             formatted_qa = f"### Question\n{question}\n\n### Answer\n{answer}"
 
             if vote == "down":
-                qa_pairs.append((formatted_qa, "Needs improvement"))
+                qa_pairs.append({"question": question, "old_response": answer})
                 bad_response = formatted_qa
             elif vote == "up":
                 good_response = formatted_qa
@@ -306,11 +304,10 @@ def get_mlflow_dataset(
 
 @step(enable_cache=False)
 def fast_eval() -> List[Dict[str, Any]]:
-    """
-    Step function to evaluate LLM responses by calling LiteLLM in JSON mode.
+    """Evaluate LLM responses by comparing old vs new responses.
 
     Returns:
-        List of evaluation results for each question-response pair, including experiment names
+        List of evaluation results comparing old and new responses
     """
     logger = logging.getLogger(__name__)
     results: List[Dict[str, Any]] = []
@@ -323,18 +320,35 @@ def fast_eval() -> List[Dict[str, Any]]:
             get_mlflow_dataset(mlflow_experiment_name)
         )
 
-        for question, llm_response in mlflow_dataset:
+        for data in mlflow_dataset:
+            question = data["question"]
+            old_response = data["old_response"]
+
+            # Generate new response using current implementation
+            try:
+                new_response = process_input_with_retrieval(
+                    question, mlflow_experiment_name=mlflow_experiment_name
+                )
+            except Exception as e:
+                logger.error(f"Error generating new response: {e}")
+                continue
+
             eval_input = EvaluationInput(
                 question=question,
-                llm_response=llm_response,
+                llm_response=f"OLD RESPONSE:\n{old_response}\n\nNEW RESPONSE:\n{new_response}",
                 eval_criteria=eval_criteria,
                 sample_good_response=sample_good_response,
                 sample_bad_response=sample_bad_response,
             )
 
             if result := evaluate_single_response(eval_input, logger):
-                # Include the experiment name with each result
-                result["experiment_name"] = mlflow_experiment_name
+                result.update(
+                    {
+                        "experiment_name": mlflow_experiment_name,
+                        "old_response": old_response,
+                        "new_response": new_response,
+                    }
+                )
                 results.append(result)
 
     logger.info("All evaluations completed with %d results", len(results))
@@ -375,11 +389,9 @@ def visualize_fast_eval_results(
             # Log metrics for this experiment
             log_metadata(
                 metadata={
-                    f"fast_eval.{exp}.total_evaluations": metrics["total"],
-                    f"fast_eval.{exp}.bad_responses": metrics["bad"],
-                    f"fast_eval.{exp}.bad_response_percentage": percentages[
-                        exp
-                    ],
+                    f"{exp}.total_evaluations": metrics["total"],
+                    f"{exp}.bad_responses": metrics["bad"],
+                    f"{exp}.bad_response_percentage": percentages[exp],
                 }
             )
 
