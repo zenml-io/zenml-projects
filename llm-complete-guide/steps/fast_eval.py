@@ -27,14 +27,18 @@ SERVICE_CONNECTORS_EVAL_CRITERIA = """
 The RAG pipeline sometimes struggles to respond to questions about ZenML's service 
 connectors feature. Generally speaking, it should respond in detail with code 
 examples when asked about supported service connectors (and should explain how to 
-use them together with associated stack components.)
+use them together with associated stack components.) And if someone is asking
+about service connectors then generally speaking it shouldn't then go on to
+be all about an orchestrator etc instead of focusing on the service connectors.
 """
 
 MISSING_CODE_SAMPLE_EVAL_CRITERIA = """
 The RAG pipeline sometimes doesn't include a code sample in the response.
 Of course, a code sample doesn't always need to be included, but generally when
 a user asks about how to use a feature, it's usually useful to include a code
-sample in the response.
+sample in the response. (Also note that there are detailed documents about
+Evidently and so it's not enough to just say that you can implement Evidently as
+a custom step.)
 """
 
 EVALUATION_DATA_PAIRS = [
@@ -386,7 +390,6 @@ def visualize_fast_eval_results(
         if metrics["total"] > 0:
             percentages[exp] = (metrics["bad"] / metrics["total"]) * 100
 
-            # Log metrics for this experiment
             log_metadata(
                 metadata={
                     f"{exp}.total_evaluations": metrics["total"],
