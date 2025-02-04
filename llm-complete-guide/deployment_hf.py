@@ -2,10 +2,10 @@ import logging
 import os
 
 import gradio as gr
+import mlflow
 from constants import SECRET_NAME
 from utils.llm_utils import process_input_with_retrieval
 from zenml.client import Client
-import mlflow
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

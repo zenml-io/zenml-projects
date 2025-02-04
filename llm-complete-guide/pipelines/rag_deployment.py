@@ -1,7 +1,7 @@
+from typing import Optional
+
 from steps.rag_deployment import gradio_rag_deployment
 from zenml import pipeline
-
-from typing import Optional
 
 
 @pipeline(enable_cache=False)
