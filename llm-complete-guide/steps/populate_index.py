@@ -631,27 +631,21 @@ class IndexType(Enum):
 def index_generator(
     documents: str,
     index_type: IndexType = IndexType.POSTGRES,
+    force_reindex: bool = False,
 ) -> None:
     """Generates an index for the given documents.
 
-    This function creates a database connection, installs the pgvector extension if not already installed,
-    creates an embeddings table if it doesn't exist, and inserts the embeddings and document metadata into the table.
-    It then calculates the index parameters according to best practices and creates an index on the embeddings
-    using the cosine distance measure.
-
     Args:
-        documents (str): A JSON string containing the Document objects with generated embeddings.
-        index_type (IndexType): The type of index to use. Defaults to Elasticsearch.
-
-    Raises:
-        Exception: If an error occurs during the index generation.
+        documents: A JSON string containing the Document objects with generated embeddings.
+        index_type: The type of index to use. Defaults to Elasticsearch.
+        force_reindex: If True, drops existing data and reindexes from scratch.
+                      If False, performs incremental updates. Defaults to False.
     """
     try:
         if index_type == IndexType.ELASTICSEARCH:
             _index_generator_elastic(documents)
         else:
-            _index_generator_postgres(documents)
-
+            _index_generator_postgres(documents, force_reindex=force_reindex)
     except Exception as e:
         logger.error(f"Error in index_generator: {e}")
         raise
@@ -742,8 +736,16 @@ def _index_generator_elastic(documents: str) -> None:
         raise
 
 
-def _index_generator_postgres(documents: str) -> None:
-    """Generates a PostgreSQL index for the given documents."""
+def _index_generator_postgres(
+    documents: str, force_reindex: bool = False
+) -> None:
+    """Generates a PostgreSQL index for the given documents.
+
+    Args:
+        documents: JSON string containing document data
+        force_reindex: If True, drops existing table and recreates from scratch.
+                      If False, performs incremental updates. Defaults to False.
+    """
     try:
         conn = get_db_conn()
 
@@ -751,6 +753,12 @@ def _index_generator_postgres(documents: str) -> None:
             # Install pgvector if not already installed
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
             conn.commit()
+
+            if force_reindex:
+                # Drop existing table and index
+                cur.execute("DROP TABLE IF EXISTS embeddings CASCADE")
+                conn.commit()
+                logger.info("Dropped existing embeddings table for reindexing")
 
             # Create the embeddings table if it doesn't exist
             table_create_command = f"""
@@ -772,7 +780,8 @@ def _index_generator_postgres(documents: str) -> None:
             # Parse the JSON string into a list of Document objects
             document_list = [Document(**doc) for doc in json.loads(documents)]
 
-            # Insert data only if it doesn't already exist
+            # Insert data only if it doesn't already exist (for incremental updates)
+            # or insert all data (for force_reindex)
             for doc in document_list:
                 content = doc.page_content
                 token_count = doc.token_count
@@ -781,24 +790,28 @@ def _index_generator_postgres(documents: str) -> None:
                 parent_section = doc.parent_section
                 url = doc.url
 
-                cur.execute(
-                    "SELECT COUNT(*) FROM embeddings WHERE content = %s",
-                    (content,),
-                )
-                count = cur.fetchone()[0]
-                if count == 0:
+                if not force_reindex:
+                    # Check for existing content only in incremental mode
                     cur.execute(
-                        "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
-                        (
-                            content,
-                            token_count,
-                            embedding,
-                            filename,
-                            parent_section,
-                            url,
-                        ),
+                        "SELECT COUNT(*) FROM embeddings WHERE content = %s",
+                        (content,),
                     )
-                    conn.commit()
+                    count = cur.fetchone()[0]
+                    if count > 0:
+                        continue
+
+                cur.execute(
+                    "INSERT INTO embeddings (content, token_count, embedding, filename, parent_section, url) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (
+                        content,
+                        token_count,
+                        embedding,
+                        filename,
+                        parent_section,
+                        url,
+                    ),
+                )
+                conn.commit()
 
             cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
             num_records = cur.fetchone()[0]
