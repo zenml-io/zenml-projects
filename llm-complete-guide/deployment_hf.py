@@ -5,6 +5,7 @@ import gradio as gr
 from constants import SECRET_NAME
 from utils.llm_utils import process_input_with_retrieval
 from zenml.client import Client
+import mlflow
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,6 +21,25 @@ except Exception as e:
     raise RuntimeError(f"Application startup failed: {e}")
 
 
+def vote(data: gr.LikeData):
+    """Vote on a response.
+
+    Args:
+        data (gr.LikeData): The vote data.
+    """
+    trace = mlflow.get_last_active_trace()
+
+    logger.info(f"Vote data: {data}")
+    if data.liked:
+        mlflow.MlflowClient().set_trace_tag(
+            trace.info.request_id, "vote", "up"
+        )
+    else:
+        mlflow.MlflowClient().set_trace_tag(
+            trace.info.request_id, "vote", "down"
+        )
+
+
 def predict(message, history):
     try:
         return process_input_with_retrieval(
@@ -33,12 +53,23 @@ def predict(message, history):
         return f"Sorry, I encountered an error: {str(e)}"
 
 
-# Launch the Gradio interface
-interface = gr.ChatInterface(
-    predict,
-    title="ZenML Documentation Assistant",
-    description="Ask me anything about ZenML!",
-)
+with gr.Blocks() as interface:
+    custom_chatbot = gr.Chatbot(
+        type="messages",
+        editable=True,
+    )
+
+    gr.ChatInterface(
+        predict,
+        type="messages",
+        title="ZenML Documentation Assistant",
+        description="Ask me anything about ZenML!",
+        chatbot=custom_chatbot,
+        theme="shivi/calm_seafoam",
+    )
+
+    custom_chatbot.like(vote, None, None)
+
 
 if __name__ == "__main__":
     interface.launch(server_name="0.0.0.0", share=False)
