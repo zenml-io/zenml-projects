@@ -55,9 +55,9 @@ from pipelines import (
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
+    llm_fast_eval,
     llm_index_and_evaluate,
     rag_deployment,
-    llm_fast_eval,
 )
 from structures import Document
 from zenml import Model
