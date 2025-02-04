@@ -64,8 +64,8 @@ logger = logging.getLogger(__name__)
 
 # DEBUG LOGGING FOR MLFLOW
 # uncomment to enable
-mlflow_logger = logging.getLogger("mlflow")
-mlflow_logger.setLevel(logging.DEBUG)
+# mlflow_logger = logging.getLogger("mlflow")
+# mlflow_logger.setLevel(logging.DEBUG)
 
 MLFLOW_TRACKING_URI = os.getenv(
     "MLFLOW_TRACKING_URI",
@@ -440,7 +440,7 @@ def make_completion_request(
     temperature=0,
     max_tokens=1000,
     n_items_retrieved: int = 20,
-    use_reranking: int = 0,
+    use_reranking: bool = False,
 ):
     mlflow.update_current_trace(
         tags={
@@ -646,7 +646,7 @@ def process_input_with_retrieval(
         model=model,
         mlflow_experiment_name=mlflow_experiment_name,
         n_items_retrieved=n_items_retrieved,
-        use_reranking=int(use_reranking),
+        use_reranking=use_reranking,
     )
     logger.debug("Completion request successful")
 
