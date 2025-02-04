@@ -25,6 +25,8 @@ tenacity
 
 # MLFLOW
 mlflow>=2.1.1,<3
+# for logging to mlflow (which is backed by S3)
+boto3
 python-rapidjson<1.15
 pydantic>=2.8.0,<2.9.0
 numpy<2.0.0
