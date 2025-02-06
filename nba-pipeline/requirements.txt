@@ -1,3 +1,0 @@
-nba-api
-notebook
-zenml==0.35.1

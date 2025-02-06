@@ -1,8 +1,0 @@
-enable_cache: False
-extra:
-  tags: zenml-projects
-settings:
-  docker:
-    required_integrations:
-      - gcp
-      - sklearn
