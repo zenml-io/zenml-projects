@@ -29,6 +29,8 @@ settings:
     environment:
       GIT_CURL_VERBOSE: 1
       GIT_TRACE: 1 
+      HF_HOME: /mnt/cache
+      HUGGINGFACE_HUB_CACHE: /mnt/cache
     python_package_installer: "uv"
 
   orchestrator.kubeflow:
@@ -36,6 +38,13 @@ settings:
       requests:
         memory: "14Gi"
         cpu: "6"
+  
+  orchestrator.local_docker:
+    run_args:
+      volumes:
+        cache:
+          bind: /mnt/cache
+          mode: rw
 
 # configuration of steps  
 steps:
