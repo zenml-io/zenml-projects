@@ -39,6 +39,8 @@ settings:
         memory: "14Gi"
         cpu: "6"
   
+  # you should have a cache/datasets folder in your local machine
+  # for this mount to work.
   orchestrator.local_docker:
     run_args:
       volumes:
