@@ -61,23 +61,19 @@ A list of updated and maintained projects by the ZenML team and the community:
 
 | Project                                                                | Tags                                  | Integrations                                                             |
 |------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
-| [NBA Three-Pointer Predictor](nba-pipeline)                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                          |
-| [Time Series Forecasting](time-series-forecast)                        | Time-series                           | `gcp`                                                                    |
-| [Customer Satisfaction](customer-satisfaction)                         | Tabular                               | `mlflow` `kubeflow`                                                      |
-| [Customer Churn](customer-churn)                                       | Tabular                               | `kubeflow` `seldon`                                                      |
-| [Label Studio Annotation](label_studio_annotation)                     | Data Annotation                       | `label-studio`                                                           | 
-| [YOLOv5 Object Detection](sign-language-detection-yolov5)              | Computer-vision                       | `mlflow` `gcp`                                                           |
-| [LLMs To Analyze Databases](supabase-openai-summary)                   | NLP, LLMs                             | `gcp` `slack`                                                            |
-| [GitFlow ZenML Project](https://github.com/zenml-io/zenml-gitflow)     | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
-| [ZenNews](zen-news-summarization)                                      | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
-| [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
-| [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
-| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs, embeddings, finetuning                           | `openai` `supabase` `huggingface` `argilla`  |
-| [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
-| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/README.md)               | Regression, Airflow                           | `cloud-composer` `airflow` |
-| [Simple LLM finetuning with Lightning Studio](simple-llm-finetuning/README.md)               | Lightning AI Studio, LLMs                           | `cloud-composer` `airflow` |
-| [Flux Dreambooth](flux-dreambooth/README.md)               | Flux, Dreambooth, LLMs                           | `modal` `kubernetes` |
+| [Sign Language Detection with YOLOv5](sign-language-detection-yolov5)    | Computer Vision                       | `mlflow` `gcp`                                                           |
+| [LLM Agents](llm-agents)                                                 | NLP, LLMs                             | `langchain` `llama_index`                                                |
+| [End-to-End Computer Vision](end-to-end-computer-vision)                 | Computer Vision                       | -                                                                        |
+| [Flux Dreambooth](flux-dreambooth)                                       | Flux, Dreambooth, LLMs                | `modal` `kubernetes`                                                     |
+| [Huggingface to Sagemaker](huggingface-sagemaker)                       | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github` |
+| [Databricks Production QA Demo](databricks-production-qa-demo)           | MLOps, Quality Assurance              | `databricks`                                                             |
+| [LLM Finetuning](llm-finetuning)                                        | NLP, LLMs                             | -                                                                        |
+| [Complete Guide to LLMs](llm-complete-guide)                            | NLP, LLMs, embeddings, finetuning     | `openai` `supabase` `huggingface` `argilla`                             |
+| [LlamaIndex Workflows](llamaindex-workflows)                            | NLP, LLMs                             | `llamaindex`                                                             |
+| [LLM Evaluation](llm-evaluation)                                        | NLP, LLMs                             | -                                                                        |
+| [LLM LoRA Finetuning](llm-lora-finetuning)                            | NLP, LLMs                             | `gcp`                                                                    |
+| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train) | Regression, Airflow    | `cloud-composer` `airflow`                                               |
+| [Supabase OpenAI Summary](supabase-openai-summary)                      | NLP, LLMs                             | `gcp` `slack`                                                            |
 
 # 💻 System Requirements
 
