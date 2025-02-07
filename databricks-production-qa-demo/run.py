@@ -25,7 +25,6 @@ from pipelines import (
     production_line_qa_deployment,
     production_line_qa_training,
 )
-
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)

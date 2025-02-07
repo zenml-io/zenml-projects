@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
 
 class LabelStudioAnnotationExport:
-
     def __init__(self, dataset: "Project" = None, filepath: str = None):
         """
         Initialize LabelStudioAnnotationExport object with optional parameters.

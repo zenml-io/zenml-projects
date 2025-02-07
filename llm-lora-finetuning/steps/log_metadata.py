@@ -17,7 +17,7 @@
 
 from typing import Any, Dict
 
-from zenml import log_model_metadata, step, get_step_context
+from zenml import get_step_context, log_model_metadata, step
 
 
 @step(enable_cache=False)

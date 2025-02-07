@@ -44,7 +44,7 @@ def compute_performance_metrics_on_current_data(
     and target environment stage for promotion.
     See the documentation for more information:
 
-        https://docs.zenml.io/how-to/build-pipelines/use-pipeline-step-parameters
+        https://docs.zenml.io/user-guide/advanced-guide/configure-steps-pipelines
 
     Args:
         dataset_tst: The test dataset.

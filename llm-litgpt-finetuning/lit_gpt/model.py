@@ -217,9 +217,7 @@ class CausalSelfAttention(nn.Module):
             B,
             T,
             C,
-        ) = (
-            x.size()
-        )  # batch size, sequence length, embedding dimensionality (n_embd)
+        ) = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
 
         qkv = self.attn(x)
 
@@ -396,9 +394,7 @@ class LLaMAMoE(nn.Module):
             B,
             T,
             C,
-        ) = (
-            x.size()
-        )  # batch size, sequence length, embedding dimensionality (n_embd)
+        ) = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
         x = x.view(-1, C)  # (B*T, C)
         router = self.gate(x)  # (B*T, n_expert)
         probs, indices = torch.topk(

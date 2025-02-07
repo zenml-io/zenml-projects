@@ -19,10 +19,9 @@ from typing import Any, Dict
 
 from datasets import load_dataset
 from PIL import Image
+from utils.dataset_utils import split_image_into_tiles
 from zenml import step
 from zenml.logger import get_logger
-
-from utils.dataset_utils import split_image_into_tiles
 
 Image.MAX_IMAGE_PIXELS = None
 

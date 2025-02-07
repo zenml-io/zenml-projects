@@ -101,6 +101,18 @@ make install-stack
 zenml stack hf-sagekamer-local
 ```
 
+Additionally, if you're using the local Docker orchestrator, you'll need to create a cache directory for the datasets and ensure it has the correct permissions:
+
+```shell
+# Create cache directory at project root
+mkdir -p cache/datasets
+
+# Set permissions to allow read/write access
+chmod -R 777 cache
+```
+
+This directory will be mounted into the Docker container and used as a cache for the Hugging Face datasets.
+
 </details>
 
 <details>

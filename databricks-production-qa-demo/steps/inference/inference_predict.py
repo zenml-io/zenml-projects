@@ -20,7 +20,6 @@ from typing import Optional
 
 import pandas as pd
 from typing_extensions import Annotated
-
 from zenml import get_step_context, step
 from zenml.integrations.databricks.services.databricks_deployment import (
     DatabricksDeploymentService,
