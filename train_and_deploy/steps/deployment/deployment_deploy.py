@@ -18,30 +18,26 @@
 
 from typing import Optional
 
+from bentoml._internal.bento import bento
 from typing_extensions import Annotated
-
-from zenml import ArtifactConfig, get_step_context, step
+from zenml import ArtifactConfig, get_step_context, log_artifact_metadata, step
 from zenml.client import Client
 from zenml.integrations.bentoml.services.bentoml_deployment import (
     BentoMLDeploymentService,
 )
-from zenml import Model, log_artifact_metadata
 from zenml.integrations.bentoml.steps import bentoml_model_deployer_step
 from zenml.logger import get_logger
 
-from bentoml._internal.bento import bento
-
 logger = get_logger(__name__)
+
 
 @step
 def deployment_deploy(
     bento: bento.Bento,
-) -> (
-    Annotated[
-        Optional[BentoMLDeploymentService],
-        ArtifactConfig(name="bentoml_deployment", is_deployment_artifact=True),
-    ]
-):
+) -> Annotated[
+    Optional[BentoMLDeploymentService],
+    ArtifactConfig(name="bentoml_deployment", is_deployment_artifact=True),
+]:
     """Predictions step.
 
     This is an example of a predictions step that takes the data in and returns
@@ -73,7 +69,9 @@ def deployment_deploy(
             bento=bento,
         )
 
-        bentoml_service = Client().get_service(name_id_or_prefix=bentoml_deployment.uuid)
+        bentoml_service = Client().get_service(
+            name_id_or_prefix=bentoml_deployment.uuid
+        )
 
         log_artifact_metadata(
             metadata={
@@ -82,7 +80,7 @@ def deployment_deploy(
                 "prediction_url": bentoml_service.prediction_url,
                 "health_check_url": bentoml_service.health_check_url,
                 "model_uri": model.get_artifact(name="model").uri,
-                "bento" : bentoml_service.config.get("bento"),
+                "bento": bentoml_service.config.get("bento"),
             }
         )
     else:

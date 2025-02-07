@@ -5,7 +5,7 @@ import sagemaker
 
 # Assign default value if env variable not fond
 REGION_NAME = os.getenv("AWS_REGION", "us-east-1")
-ROLE_NAME = os.getenv("AWS_ROLE_NAME", "hamza_connector")
+ROLE_NAME = os.getenv("AWS_ROLE_NAME", "zenml-connectors")
 os.environ["AWS_DEFAULT_REGION"] = REGION_NAME
 
 auth_arguments = {

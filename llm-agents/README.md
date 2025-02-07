@@ -91,7 +91,7 @@ After the installation is completed, you directly run the pipeline locally
 right away.
 
 ```bash
-python src/run.py
+python run.py
 ```
 
 Note that the pipeline is configured to generate artifacts relating to ZenML's

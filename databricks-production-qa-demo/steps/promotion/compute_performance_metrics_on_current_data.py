@@ -20,7 +20,6 @@ from typing import Tuple
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from typing_extensions import Annotated
-
 from zenml import Model, get_step_context, step
 from zenml.logger import get_logger
 

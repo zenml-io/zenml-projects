@@ -13,17 +13,21 @@
 #  permissions and limitations under the License.
 import os
 import sys
-from typing import Dict
+from typing import Annotated, Dict, Tuple
 
 import torch
-from zenml.post_execution import get_pipeline
-from zenml.steps import Output, step
+from zenml.client import Client
+from zenml.steps import step
 
 
 @step
-def model_loader() -> Output(model_path=str, model=torch.nn.Module):
+def model_loader() -> (
+    Tuple[Annotated[str, "model_path"], Annotated[torch.nn.Module, "model"]]
+):
     """Loads the trained models from previous training pipeline runs."""
-    training_pipeline = get_pipeline("yolov5_pipeline")
+    training_pipeline = Client().get_pipeline(
+        "sign_language_detection_train_pipeline"
+    )
     last_run = training_pipeline.runs[0]
     model_path = "./inference/model/best.pt"
 

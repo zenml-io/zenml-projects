@@ -1,4 +1,5 @@
 """Generate a ZenML project for a tool"""
+
 import argparse
 import logging
 import os

@@ -12,12 +12,11 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 from zenml.integrations.bentoml.steps import (
-    BentoMLDeployerParameters,
     bentoml_model_deployer_step,
 )
 
-bentoml_model_deployer = bentoml_model_deployer_step(
-    params=BentoMLDeployerParameters(
+bentoml_model_deployer = bentoml_model_deployer_step.with_options(
+    parameters=dict(
         model_name="sign_language_yolov5",
         port=3001,
         production=True,

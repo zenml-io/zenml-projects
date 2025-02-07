@@ -16,7 +16,6 @@
 #
 
 from steps import deployment_deploy, notify_on_failure, notify_on_success
-
 from zenml import pipeline
 
 

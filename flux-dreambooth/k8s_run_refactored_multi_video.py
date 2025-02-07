@@ -400,7 +400,7 @@ def image_to_video(
     </body>
     </html>
     """
-    
+
     return (images, video_data_list, HTMLString(html_visualization_str))
 
 
