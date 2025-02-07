@@ -24,6 +24,7 @@ from materializers.label_studio_export_materializer import (
     LabelStudioAnnotationExport,
 )
 from materializers.ultralytics_materializer import UltralyticsMaterializer
+from ultralytics import YOLO
 from utils.dataset_utils import load_and_split_data
 from zenml.enums import ArtifactType
 logger = get_logger(__name__)
@@ -112,5 +113,5 @@ def train_model(
         infer_artifact=True,
         metadata={"metrics": metrics.results_dict, "names": model.names},
     )
-    
+
     return model, metrics.results_dict, model.names

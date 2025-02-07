@@ -220,9 +220,9 @@ def main(
         run_args_feature = {
             "max_seq_length": max_seq_length,
         }
-        pipeline_args[
-            "run_name"
-        ] = f"sentinment_analysis_feature_engineering_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        pipeline_args["run_name"] = (
+            f"sentinment_analysis_feature_engineering_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
         sentinment_analysis_feature_engineering_pipeline.with_options(
             **pipeline_args
         )(**run_args_feature)
@@ -257,18 +257,18 @@ def main(
                 "base_tokenizer", dataset_version_name
             )
             # Use versioned artifacts
-            run_args_train[
-                "dataset_artifact_id"
-            ] = tokenized_dataset_artifact.id
-            run_args_train[
-                "tokenizer_artifact_id"
-            ] = tokenized_tokenizer_artifact.id
+            run_args_train["dataset_artifact_id"] = (
+                tokenized_dataset_artifact.id
+            )
+            run_args_train["tokenizer_artifact_id"] = (
+                tokenized_tokenizer_artifact.id
+            )
 
         pipeline_args["model"] = zenml_model
 
-        pipeline_args[
-            "run_name"
-        ] = f"sentinment_analysis_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        pipeline_args["run_name"] = (
+            f"sentinment_analysis_training_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
 
         sentinment_analysis_training_pipeline.with_options(**pipeline_args)(
             **run_args_train
@@ -289,9 +289,9 @@ def main(
 
         pipeline_args["model"] = zenml_model
 
-        pipeline_args[
-            "run_name"
-        ] = f"sentinment_analysis_promoting_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        pipeline_args["run_name"] = (
+            f"sentinment_analysis_promoting_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
         sentinment_analysis_promote_pipeline.with_options(**pipeline_args)(
             **run_args_promoting
         )
@@ -310,9 +310,9 @@ def main(
         pipeline_args["model"] = zenml_model
         pipeline_args["enable_cache"] = False
         run_args_deploying = {}
-        pipeline_args[
-            "run_name"
-        ] = f"sentinment_analysis_deploy_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        pipeline_args["run_name"] = (
+            f"sentinment_analysis_deploy_pipeline_run_{dt.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+        )
         sentinment_analysis_deploy_pipeline.with_options(**pipeline_args)(
             **run_args_deploying
         )

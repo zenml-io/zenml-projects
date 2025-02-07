@@ -20,7 +20,6 @@ from typing import Optional
 
 import pandas as pd
 from typing_extensions import Annotated
-
 from zenml import get_step_context, step
 from zenml.integrations.bentoml.services.bentoml_deployment import (
     BentoMLDeploymentService,
@@ -56,8 +55,8 @@ def inference_predict(
     model = get_step_context().model
 
     # get predictor
-    predictor_service: Optional[BentoMLDeploymentService] = model.load_artifact(
-        "bentomldeployment"
+    predictor_service: Optional[BentoMLDeploymentService] = (
+        model.load_artifact("bentomldeployment")
     )
     if predictor_service is not None:
         # run prediction from service

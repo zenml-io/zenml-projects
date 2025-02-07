@@ -15,14 +15,14 @@ import os
 from typing import List
 
 from rich import print as rich_print
-from zenml.integrations.bentoml.services import BentoMLDeploymentService
+from zenml.integrations.bentoml.services import BentoMLLocalDeploymentService
 from zenml.steps import step
 
 
 @step
 def predictor(
     inference_data: List,
-    service: BentoMLDeploymentService,
+    service: BentoMLLocalDeploymentService,
 ) -> None:
     """Run an inference request against the BentoML prediction service.
 

@@ -17,6 +17,8 @@ from zenml.config import DockerSettings
 from zenml.integrations.constants import GCP, MLFLOW
 from zenml.pipelines import pipeline
 
+from steps import data_loader, train_augmenter, valid_augmenter, trainer
+
 docker_settings = DockerSettings(
     parent_image="ultralytics/yolov5:latest",
     required_integrations=[MLFLOW, GCP],
@@ -31,12 +33,7 @@ docker_settings = DockerSettings(
         "docker": docker_settings,
     },
 )
-def yolov5_pipeline(
-    data_loader,
-    train_augmenter,
-    valid_augmenter,
-    trainer,
-):
+def sign_language_detection_train_pipeline():
     train, valid, test = data_loader()
     augmented_trainset = train_augmenter(train)
     augmented_validset = valid_augmenter(valid)

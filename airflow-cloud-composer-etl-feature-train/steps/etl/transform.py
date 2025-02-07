@@ -18,10 +18,10 @@
 import os
 from datetime import datetime, timezone
 from typing import Optional
-from typing_extensions import Annotated
 
 import pandas as pd
 from materializers import BigQueryDataset, CSVDataset
+from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 

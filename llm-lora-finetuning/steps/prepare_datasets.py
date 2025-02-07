@@ -81,7 +81,9 @@ def prepare_data(
     )
 
     datasets_path = Path("datasets")
-    tokenized_train_dataset.save_to_disk(str((datasets_path / "train").absolute()))
+    tokenized_train_dataset.save_to_disk(
+        str((datasets_path / "train").absolute())
+    )
     tokenized_val_dataset.save_to_disk(str((datasets_path / "val").absolute()))
     test_dataset.save_to_disk(str((datasets_path / "test_raw").absolute()))
 

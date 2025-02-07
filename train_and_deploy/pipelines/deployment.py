@@ -15,8 +15,12 @@
 # limitations under the License.
 #
 
-from steps import deployment_deploy, notify_on_failure, notify_on_success, bento_builder
-
+from steps import (
+    bento_builder,
+    deployment_deploy,
+    notify_on_failure,
+    notify_on_success,
+)
 from zenml import pipeline
 
 

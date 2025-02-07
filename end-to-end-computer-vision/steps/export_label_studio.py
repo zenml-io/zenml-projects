@@ -25,6 +25,9 @@ from materializers.label_studio_export_materializer import (
     LabelStudioAnnotationMaterializer,
 )
 from utils.constants import LABELED_DATASET_NAME
+from zenml import log_artifact_metadata, step
+from zenml.client import Client
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

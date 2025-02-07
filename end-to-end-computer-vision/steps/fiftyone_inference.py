@@ -28,6 +28,10 @@ from utils.constants import (
     PREDICTIONS_DATASET_ARTIFACT_NAME,
     TRAINED_MODEL_NAME,
 )
+from zenml import log_artifact_metadata, step
+from zenml.client import Client
+from zenml.io import fileio
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

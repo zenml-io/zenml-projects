@@ -28,10 +28,8 @@ from zenml.enums import ArtifactType
 from zenml.integrations.mlflow.experiment_trackers import (
     MLFlowExperimentTracker,
 )
-from zenml.integrations.mlflow.steps.mlflow_registry import (
-    mlflow_register_model_step,
-)
 from zenml.logger import get_logger
+from zenml.metadata.metadata_types import Uri
 
 logger = get_logger(__name__)
 
@@ -95,7 +93,7 @@ def model_trainer(
         dataset_trn.drop(columns=[target]),
         dataset_trn[target],
     )
-    
+
     log_model_metadata(
         metadata={
             "experiment_tracker": {
@@ -105,7 +103,8 @@ def model_trainer(
                 "experiment_tracker_run_id": mlflow.last_active_run().info.run_id,
                 "experiment_tracker_run_name": mlflow.active_run().info.run_name,
                 "experiment_tracker_experiment_id": mlflow.active_run().info.experiment_id,
-        }}
+            }
+        }
     )
 
     return model
