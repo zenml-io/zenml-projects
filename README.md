@@ -59,21 +59,19 @@ etc.
 
 A list of updated and maintained projects by the ZenML team and the community:
 
-| Project                                                                | Tags                                  | Integrations                                                             |
-|------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
-| [Sign Language Detection with YOLOv5](sign-language-detection-yolov5)    | Computer Vision                       | `mlflow` `gcp`                                                           |
-| [LLM Agents](llm-agents)                                                 | NLP, LLMs                             | `langchain` `llama_index`                                                |
-| [End-to-End Computer Vision](end-to-end-computer-vision)                 | Computer Vision                       | -                                                                        |
-| [Flux Dreambooth](flux-dreambooth)                                       | Flux, Dreambooth, LLMs                | `modal` `kubernetes`                                                     |
-| [Huggingface to Sagemaker](huggingface-sagemaker)                       | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github` |
-| [Databricks Production QA Demo](databricks-production-qa-demo)           | MLOps, Quality Assurance              | `databricks`                                                             |
-| [LLM Finetuning](llm-finetuning)                                        | NLP, LLMs                             | -                                                                        |
-| [Complete Guide to LLMs](llm-complete-guide)                            | NLP, LLMs, embeddings, finetuning     | `openai` `supabase` `huggingface` `argilla`                             |
-| [LlamaIndex Workflows](llamaindex-workflows)                            | NLP, LLMs                             | `llamaindex`                                                             |
-| [LLM Evaluation](llm-evaluation)                                        | NLP, LLMs                             | -                                                                        |
-| [LLM LoRA Finetuning](llm-lora-finetuning)                            | NLP, LLMs                             | `gcp`                                                                    |
-| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train) | Regression, Airflow    | `cloud-composer` `airflow`                                               |
-| [Supabase OpenAI Summary](supabase-openai-summary)                      | NLP, LLMs                             | `gcp` `slack`                                                            |
+| Project | Tags | Tools |
+|---------|------|-------|
+| [LLM Agents](llm-agents) | `NLP` `LLM Agents` `Conversational AI` `RAG` `Vector Stores` `Production MLOps` | `langchain` `llama_index` `faiss` `openai` |
+| [LLM Finetuning](llm-finetuning) | `NLP` `LLM` `Model Fine-tuning` `Transfer Learning` `Parameter Optimization` | `huggingface` `pytorch` `wandb` |
+| [Complete Guide to LLMs](llm-complete-guide) | `NLP` `LLM` `RAG` `Fine-tuning` `Model Evaluation` `Embeddings` `Synthetic Data` | `openai` `supabase` `huggingface` `argilla` `gradio` `anthropic` `litellm` |
+| [LLM LoRA Finetuning](llm-lora-finetuning) | `NLP` `Parameter-Efficient Fine-tuning` `LoRA` `LLM` `Distributed Training` | `huggingface` `pytorch` `accelerate` `peft` `phi-2` |
+| [End-to-end Computer Vision](end-to-end-computer-vision) | `Computer Vision` `Object Detection` `Data Labeling` `Human-in-the-Loop` | `pytorch` `label_studio` `fiftyone` `vertex-ai` `gcp` `yolov8` |
+| [Flux Dreambooth](flux-dreambooth) | `Image Generation` `Fine-tuning` `Stable Diffusion` `LoRA` `Video Generation` | `modal` `kubernetes` `huggingface` `flux` `stable-video-diffusion` |
+| [Huggingface to Sagemaker](huggingface-sagemaker) | `Model Deployment` `NLP` `Sentiment Analysis` `Model Training` `CI/CD` | `pytorch` `mlflow` `huggingface` `aws` `sagemaker` `s3` `kubeflow` `slack` `github` |
+| [Databricks Production QA Demo](databricks-production-qa-demo) | `Quality Assurance` `CI/CD` `Model Monitoring` `Model Explainability` `Data Drift` | `databricks` `mlflow` `evidently` `shap` `slack` |
+| [ECB Interest Rate Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train) | `ETL` `Time Series` `Feature Engineering` `Regression` `Workflow Orchestration` | `cloud-composer` `airflow` `vertex-ai` `bigquery` `xgboost` `gcp` |
+| [Supabase OpenAI Summary](supabase-openai-summary) | `NLP` `Text Summarization` `Database Integration` `LLM` `Automated Reporting` | `openai` `supabase` `slack` `github-actions` `gcp` |
+| [Sign Language Detection with YOLOv5](sign-language-detection-yolov5) | `Computer Vision` `Object Detection` `Real-time Processing` `Model Deployment` | `mlflow` `gcp` `bentoml` `vertex-ai` `docker` |
 
 # 💻 System Requirements
 
