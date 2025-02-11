@@ -3,7 +3,7 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.base import ClassifierMixin
 from typing_extensions import Annotated
-from zenml import step, get_step_context, log_metadata
+from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -31,8 +31,8 @@ def model_evaluator(
         dataset_tst.drop(columns=[target]), dataset_tst[target]
     )
 
-    logger.info(f"Train accuracy={trn_acc*100:.2f}%")
-    logger.info(f"Test accuracy={tst_acc*100:.2f}%")
+    logger.info(f"Train accuracy={trn_acc * 100:.2f}%")
+    logger.info(f"Test accuracy={tst_acc * 100:.2f}%")
     mlflow.log_metric("testing_accuracy_score", tst_acc)
 
     step_context = get_step_context()
@@ -44,7 +44,7 @@ def model_evaluator(
                 "test_accuracy": tst_acc,
             }
         },
-        infer_model=True
+        infer_model=True,
     )
 
     # Fetch previous versions (same as before)
@@ -55,7 +55,9 @@ def model_evaluator(
             step_context.model.name, version.version
         )
         if "evaluation_metrics" in version_obj.run_metadata:
-            test_accuracy = version_obj.run_metadata["evaluation_metrics"].get("test_accuracy")
+            test_accuracy = version_obj.run_metadata["evaluation_metrics"].get(
+                "test_accuracy"
+            )
             if test_accuracy is not None:
                 previous_versions.append(
                     (f"v{version.version}", float(test_accuracy))

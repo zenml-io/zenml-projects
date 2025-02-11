@@ -50,7 +50,8 @@ def model_trainer(
     target: str,
     name: str,
 ) -> Annotated[
-    ClassifierMixin, ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL)
+    ClassifierMixin,
+    ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL),
 ]:
     """Configure and train a model on the training dataset.
 

@@ -13,11 +13,10 @@
 #  permissions and limitations under the License.
 
 
+from steps import data_loader, train_augmenter, trainer, valid_augmenter
 from zenml.config import DockerSettings
 from zenml.integrations.constants import GCP, MLFLOW
 from zenml.pipelines import pipeline
-
-from steps import data_loader, train_augmenter, valid_augmenter, trainer
 
 docker_settings = DockerSettings(
     parent_image="ultralytics/yolov5:latest",

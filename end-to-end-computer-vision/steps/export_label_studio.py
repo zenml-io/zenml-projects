@@ -16,16 +16,12 @@
 #
 from typing import Annotated, List, Tuple
 
-from zenml import log_metadata, step
-from zenml.client import Client
-from zenml.logger import get_logger
-
 from materializers.label_studio_export_materializer import (
     LabelStudioAnnotationExport,
     LabelStudioAnnotationMaterializer,
 )
 from utils.constants import LABELED_DATASET_NAME
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
