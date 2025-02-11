@@ -18,17 +18,12 @@ import os
 from typing import Annotated
 
 import fiftyone as fo
-from zenml import log_metadata, step
-from zenml.client import Client
-from zenml.io import fileio
-from zenml.logger import get_logger
-
 from utils.constants import (
     DATASET_NAME,
     PREDICTIONS_DATASET_ARTIFACT_NAME,
     TRAINED_MODEL_NAME,
 )
-from zenml import log_artifact_metadata, step
+from zenml import log_metadata, step
 from zenml.client import Client
 from zenml.io import fileio
 from zenml.logger import get_logger

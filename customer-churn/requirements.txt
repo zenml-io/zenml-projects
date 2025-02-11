@@ -1,4 +1,0 @@
-feature_engine==1.2.0
-statsmodels
-zenml==0.35.1
-optuna

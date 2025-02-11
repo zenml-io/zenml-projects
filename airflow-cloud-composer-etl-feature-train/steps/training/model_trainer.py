@@ -32,7 +32,8 @@ def train_xgboost_model(
     dataset: Union[BigQueryDataset, CSVDataset],
 ) -> Tuple[
     Annotated[
-        xgb.Booster, ArtifactConfig(name="xgb_model", artifact_type=ArtifactType.MODEL)
+        xgb.Booster,
+        ArtifactConfig(name="xgb_model", artifact_type=ArtifactType.MODEL),
     ],
     Annotated[Dict[str, float], "metrics"],
 ]:
