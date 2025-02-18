@@ -46,14 +46,14 @@ from constants import (
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
+from pinecone import Pinecone, ServerlessSpec
 from sentence_transformers import SentenceTransformer
 from structures import Document
 from utils.llm_utils import get_db_conn, get_es_client, split_documents
 from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
-import pinecone
-from pinecone import Pinecone, ServerlessSpec
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -829,8 +829,12 @@ def _index_generator_pinecone(documents: str) -> None:
         documents (str): JSON string containing the documents to index.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
-    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values[
+        "pinecone_api_key"
+    ]
+    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get(
+        "pinecone_index", "zenml-docs"
+    )
 
     # Initialize Pinecone
     pc = Pinecone(api_key=pinecone_api_key)
@@ -841,10 +845,7 @@ def _index_generator_pinecone(documents: str) -> None:
             name=index_name,
             dimension=EMBEDDING_DIMENSIONALITY,
             metric="cosine",
-            spec=ServerlessSpec(
-                cloud="aws",
-                region="us-east-1"
-            )
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
 
     # Get the index
@@ -872,8 +873,8 @@ def _index_generator_pinecone(documents: str) -> None:
                 "parent_section": doc["parent_section"],
                 "url": doc["url"],
                 "page_content": doc["page_content"],
-                "token_count": doc["token_count"]
-            }
+                "token_count": doc["token_count"],
+            },
         }
         batch.append(vector_record)
 
@@ -886,7 +887,9 @@ def _index_generator_pinecone(documents: str) -> None:
     if batch:
         index.upsert(vectors=batch)
 
-    logger.info(f"Successfully indexed {len(docs)} documents to Pinecone index '{index_name}'")
+    logger.info(
+        f"Successfully indexed {len(docs)} documents to Pinecone index '{index_name}'"
+    )
 
 
 def _log_metadata(index_type: IndexType) -> None:
@@ -930,7 +933,9 @@ def _log_metadata(index_type: IndexType) -> None:
         store_name = "pinecone"
         connection_details = {
             "api_key": "**********",
-            "environment": client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_env"],
+            "environment": client.get_secret(
+                SECRET_NAME_PINECONE
+            ).secret_values["pinecone_env"],
         }
 
     log_metadata(

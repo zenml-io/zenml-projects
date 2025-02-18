@@ -19,16 +19,16 @@
 # functionality
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
+import asyncio
 import logging
 import os
 
-import asyncio
+import pinecone
 from elasticsearch import Elasticsearch
+from pinecone import Pinecone
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
-import pinecone
-from pinecone import Pinecone
 
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
@@ -40,7 +40,7 @@ logging.getLogger("transformers").setLevel(logging.CRITICAL)
 logging.getLogger().setLevel(logging.ERROR)
 
 import re
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 # import litellm
 import numpy as np
