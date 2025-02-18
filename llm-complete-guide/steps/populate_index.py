@@ -634,7 +634,7 @@ class IndexType(Enum):
 @step(enable_cache=False)
 def index_generator(
     documents: str,
-    index_type: IndexType = IndexType.POSTGRES,
+    index_type: IndexType = IndexType.PINECONE,
 ) -> None:
     """Generates an index for the given documents.
 
@@ -869,7 +869,7 @@ def _index_generator_pinecone(documents: str) -> None:
             "values": doc["embedding"],
             "metadata": {
                 "filename": doc["filename"],
-                "parent_section": doc["parent_section"],
+                "parent_section": doc["parent_section"] or "",
                 "url": doc["url"],
                 "page_content": doc["page_content"],
                 "token_count": doc["token_count"]

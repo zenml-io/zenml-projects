@@ -536,7 +536,7 @@ def find_vectorstore_name() -> str:
         return model_version.run_metadata["vector_store"]["name"]
     except KeyError:
         logger.error("Vector store metadata not found in model version")
-        return "pgvector"  # Fallback to default
+        return "pinecone"  # Fallback to default
 
 
 def rerank_documents(
