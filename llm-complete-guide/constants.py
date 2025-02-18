@@ -82,5 +82,7 @@ EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
 ]  # Important: large to small
 USE_ARGILLA_ANNOTATIONS = False
 
+# Vector store secrets
 SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 SECRET_NAME_ELASTICSEARCH = "elasticsearch-zenml"
+SECRET_NAME_PINECONE = "pinecone-zenml"

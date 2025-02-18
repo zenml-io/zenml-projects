@@ -42,6 +42,7 @@ from constants import (
     EMBEDDINGS_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
+    SECRET_NAME_PINECONE,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
@@ -51,7 +52,8 @@ from utils.llm_utils import get_db_conn, get_es_client, split_documents
 from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
-
+import pinecone
+from pinecone import Pinecone, ServerlessSpec
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -626,6 +628,7 @@ def generate_embeddings(
 class IndexType(Enum):
     ELASTICSEARCH = "elasticsearch"
     POSTGRES = "postgres"
+    PINECONE = "pinecone"
 
 
 @step(enable_cache=False)
@@ -635,27 +638,20 @@ def index_generator(
 ) -> None:
     """Generates an index for the given documents.
 
-    This function creates a database connection, installs the pgvector extension if not already installed,
-    creates an embeddings table if it doesn't exist, and inserts the embeddings and document metadata into the table.
-    It then calculates the index parameters according to best practices and creates an index on the embeddings
-    using the cosine distance measure.
-
     Args:
-        documents (str): A JSON string containing the Document objects with generated embeddings.
-        index_type (IndexType): The type of index to use. Defaults to Elasticsearch.
-
-    Raises:
-        Exception: If an error occurs during the index generation.
+        documents (str): JSON string containing the documents to index.
+        index_type (IndexType, optional): Type of index to generate. Defaults to IndexType.POSTGRES.
     """
-    try:
-        if index_type == IndexType.ELASTICSEARCH:
-            _index_generator_elastic(documents)
-        else:
-            _index_generator_postgres(documents)
+    if index_type == IndexType.ELASTICSEARCH:
+        _index_generator_elastic(documents)
+    elif index_type == IndexType.POSTGRES:
+        _index_generator_postgres(documents)
+    elif index_type == IndexType.PINECONE:
+        _index_generator_pinecone(documents)
+    else:
+        raise ValueError(f"Unknown index type: {index_type}")
 
-    except Exception as e:
-        logger.error(f"Error in index_generator: {e}")
-        raise
+    _log_metadata(index_type)
 
 
 def _index_generator_elastic(documents: str) -> None:
@@ -826,6 +822,73 @@ def _index_generator_postgres(documents: str) -> None:
             conn.close()
 
 
+def _index_generator_pinecone(documents: str) -> None:
+    """Generates a Pinecone index for the given documents.
+
+    Args:
+        documents (str): JSON string containing the documents to index.
+    """
+    client = Client()
+    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
+    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+
+    # Initialize Pinecone
+    pc = Pinecone(api_key=pinecone_api_key)
+
+    # Create index if it doesn't exist
+    if index_name not in pc.list_indexes().names():
+        pc.create_index(
+            name=index_name,
+            dimension=EMBEDDING_DIMENSIONALITY,
+            metric="cosine",
+            spec=ServerlessSpec(
+                cloud="aws",
+                region="us-east-1"
+            )
+        )
+
+    # Get the index
+    index = pc.Index(index_name)
+
+    # Load documents
+    docs = json.loads(documents)
+
+    # Batch size for upserting vectors
+    batch_size = 100
+    batch = []
+
+    for doc in docs:
+        # Create a unique ID for the document
+        doc_id = hashlib.sha256(
+            f"{doc['filename']}:{doc['parent_section']}:{doc['page_content']}".encode()
+        ).hexdigest()
+
+        # Create vector record
+        vector_record = {
+            "id": doc_id,
+            "values": doc["embedding"],
+            "metadata": {
+                "filename": doc["filename"],
+                "parent_section": doc["parent_section"],
+                "url": doc["url"],
+                "page_content": doc["page_content"],
+                "token_count": doc["token_count"]
+            }
+        }
+        batch.append(vector_record)
+
+        # Upsert batch when it reaches the batch size
+        if len(batch) >= batch_size:
+            index.upsert(vectors=batch)
+            batch = []
+
+    # Upsert any remaining vectors
+    if batch:
+        index.upsert(vectors=batch)
+
+    logger.info(f"Successfully indexed {len(docs)} documents to Pinecone index '{index_name}'")
+
+
 def _log_metadata(index_type: IndexType) -> None:
     """Log metadata about the indexing process."""
     prompt = """
@@ -848,9 +911,8 @@ def _log_metadata(index_type: IndexType) -> None:
             "api_key": "*********",
         }
         store_name = "elasticsearch"
-    else:
+    elif index_type == IndexType.POSTGRES:
         store_name = "pgvector"
-
         connection_details = {
             "user": client.get_secret(SECRET_NAME).secret_values[
                 "supabase_user"
@@ -863,6 +925,12 @@ def _log_metadata(index_type: IndexType) -> None:
                 "supabase_port"
             ],
             "dbname": "postgres",
+        }
+    elif index_type == IndexType.PINECONE:
+        store_name = "pinecone"
+        connection_details = {
+            "api_key": "**********",
+            "environment": client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_env"],
         }
 
     log_metadata(

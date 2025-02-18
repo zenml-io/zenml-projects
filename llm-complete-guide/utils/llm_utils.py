@@ -26,7 +26,8 @@ from elasticsearch import Elasticsearch
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
-
+import pinecone
+from pinecone import Pinecone
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -37,7 +38,7 @@ logging.getLogger("transformers").setLevel(logging.CRITICAL)
 logging.getLogger().setLevel(logging.ERROR)
 
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import litellm
 import numpy as np
@@ -49,6 +50,7 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
+    SECRET_NAME_PINECONE,
     ZENML_CHATBOT_MODEL_NAME,
     ZENML_CHATBOT_MODEL_VERSION,
 )
@@ -277,6 +279,20 @@ def get_db_conn() -> connection:
         raise
 
 
+def get_pinecone_client() -> pinecone.Index:
+    """Get a Pinecone index client.
+
+    Returns:
+        pinecone.Index: A Pinecone index client.
+    """
+    client = Client()
+    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
+    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+
+    pc = Pinecone(api_key=pinecone_api_key)
+    return pc.Index(index_name)
+
+
 def get_topn_similar_docs_pgvector(
     query_embedding: List[float],
     conn: psycopg2.extensions.connection,
@@ -384,39 +400,89 @@ def get_topn_similar_docs_elasticsearch(
     return results
 
 
-def get_topn_similar_docs(
+def get_topn_similar_docs_pinecone(
     query_embedding: List[float],
-    conn: psycopg2.extensions.connection = None,
-    es_client: Elasticsearch = None,
+    pinecone_index: pinecone.Index,
     n: int = 5,
     include_metadata: bool = False,
     only_urls: bool = False,
 ) -> List[Tuple]:
-    """Fetches the top n most similar documents to the given query embedding from the database.
+    """Get the top N most similar documents from Pinecone.
 
     Args:
-        query_embedding (list): The query embedding to compare against.
-        conn (psycopg2.extensions.connection): The database connection object.
-        n (int, optional): The number of similar documents to fetch. Defaults to
-        5.
-        include_metadata (bool, optional): Whether to include metadata in the
-        results. Defaults to False.
+        query_embedding (List[float]): The query embedding vector.
+        pinecone_index (pinecone.Index): The Pinecone index client.
+        n (int, optional): Number of similar documents to return. Defaults to 5.
+        include_metadata (bool, optional): Whether to include metadata in results. Defaults to False.
+        only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        list: A list of tuples containing the content and metadata (if include_metadata is True) of the top n most similar documents.
+        List[Tuple]: List of tuples containing document content and similarity scores.
     """
-    if conn is None and es_client is None:
-        raise ValueError("Either conn or es_client must be provided")
+    # Query the index
+    results = pinecone_index.query(
+        vector=query_embedding,
+        top_k=n,
+        include_metadata=True
+    )
 
-    if conn is not None:
-        return get_topn_similar_docs_pgvector(
-            query_embedding, conn, n, include_metadata, only_urls
-        )
+    # Process results
+    similar_docs = []
+    for match in results.matches:
+        score = match.score
+        metadata = match.metadata
 
+        if only_urls:
+            similar_docs.append((metadata["url"], score))
+        else:
+            content = metadata["page_content"]
+            if include_metadata:
+                content = f"{metadata['filename']} - {metadata['parent_section']}: {content}"
+            similar_docs.append((content, score))
+
+    return similar_docs
+
+
+def get_topn_similar_docs(
+    query_embedding: List[float],
+    conn: Optional[psycopg2.extensions.connection] = None,
+    es_client: Optional[Elasticsearch] = None,
+    pinecone_index: Optional[pinecone.Index] = None,
+    n: int = 5,
+    include_metadata: bool = False,
+    only_urls: bool = False,
+) -> List[Tuple]:
+    """Get the top N most similar documents from the vector store.
+
+    Args:
+        query_embedding (List[float]): The query embedding vector.
+        conn (Optional[psycopg2.extensions.connection], optional): PostgreSQL connection. Defaults to None.
+        es_client (Optional[Elasticsearch], optional): Elasticsearch client. Defaults to None.
+        pinecone_index (Optional[pinecone.Index], optional): Pinecone index client. Defaults to None.
+        n (int, optional): Number of similar documents to return. Defaults to 5.
+        include_metadata (bool, optional): Whether to include metadata in results. Defaults to False.
+        only_urls (bool, optional): Whether to return only URLs. Defaults to False.
+
+    Returns:
+        List[Tuple]: List of tuples containing document content and similarity scores.
+
+    Raises:
+        ValueError: If no valid vector store client is provided.
+    """
     if es_client is not None:
         return get_topn_similar_docs_elasticsearch(
             query_embedding, es_client, n, include_metadata, only_urls
         )
+    elif conn is not None:
+        return get_topn_similar_docs_pgvector(
+            query_embedding, conn, n, include_metadata, only_urls
+        )
+    elif pinecone_index is not None:
+        return get_topn_similar_docs_pinecone(
+            query_embedding, pinecone_index, n, include_metadata, only_urls
+        )
+    else:
+        raise ValueError("No valid vector store client provided")
 
 
 def get_completion_from_messages(
@@ -525,32 +591,46 @@ def process_input_with_retrieval(
         str: The processed output.
     """
     delimiter = "```"
-    es_client = None
-    conn = None
+    # Get embeddings for the query
+    query_embedding = get_embeddings(input)
 
-    vector_store_name = find_vectorstore_name()
-    if vector_store_name == "pgvector":
-        conn = get_db_conn()
-    else:
+    # Get similar documents based on the vector store being used
+    vector_store = find_vectorstore_name()
+    if vector_store == "elasticsearch":
         es_client = get_es_client()
+        similar_docs = get_topn_similar_docs(
+            query_embedding=query_embedding,
+            es_client=es_client,
+            n=n_items_retrieved,
+            include_metadata=True,
+        )
+    elif vector_store == "pinecone":
+        pinecone_index = get_pinecone_client()
+        similar_docs = get_topn_similar_docs(
+            query_embedding=query_embedding,
+            pinecone_index=pinecone_index,
+            n=n_items_retrieved,
+            include_metadata=True,
+        )
+    else:  # pgvector
+        conn = get_db_conn()
+        similar_docs = get_topn_similar_docs(
+            query_embedding=query_embedding,
+            conn=conn,
+            n=n_items_retrieved,
+            include_metadata=True,
+        )
+        conn.close()
 
-    # Step 1: Get documents related to the user input from database
-    related_docs = get_topn_similar_docs(
-        get_embeddings(input),
-        conn=conn,
-        es_client=es_client,
-        n=n_items_retrieved,
-        include_metadata=use_reranking,
-    )
-
+    # Rerank documents if enabled
     if use_reranking:
         # Rerank the documents based on the input
         # and take the top 5 only
         context_content = [
-            doc[0] for doc in rerank_documents(input, related_docs)[:5]
+            doc[0] for doc in rerank_documents(input, similar_docs)[:5]
         ]
     else:
-        context_content = [doc[0] for doc in related_docs[:5]]
+        context_content = [doc[0] for doc in similar_docs[:5]]
 
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
