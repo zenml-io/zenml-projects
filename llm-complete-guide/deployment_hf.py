@@ -1,4 +1,5 @@
 import logging
+import os
 
 import gradio as gr
 from constants import SECRET_NAME
@@ -8,6 +9,8 @@ from zenml.client import Client
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+APP_ENVIRONMENT = os.getenv("GRADIO_ZENML_APP_ENVIRONMENT", "dev")
 
 # Initialize ZenML client and verify secret access
 try:
@@ -27,6 +30,7 @@ def predict(message, history):
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
+            tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
     except Exception as e:
         logger.error(f"Error processing message: {e}")
