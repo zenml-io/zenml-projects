@@ -19,7 +19,6 @@
 # functionality
 # https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/character.py
 
-import asyncio
 import logging
 import os
 
@@ -42,7 +41,7 @@ logging.getLogger().setLevel(logging.ERROR)
 import re
 from typing import List, Optional, Tuple
 
-# import litellm
+import litellm
 import numpy as np
 import psycopg2
 import tiktoken
@@ -64,8 +63,8 @@ from structures import Document
 
 logger = logging.getLogger(__name__)
 
-# logs all litellm requests to langsmith
-# litellm.success_callback = ["langsmith"]
+# logs all litellm requests to langfuse
+litellm.callbacks = ["langfuse"]
 
 
 def split_text_with_regex(
@@ -492,24 +491,27 @@ def get_topn_similar_docs(
         raise ValueError("No valid vector store client provided")
 
 
-async def async_get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
+def get_completion_from_messages(
+    messages,
+    model=OPENAI_MODEL,
+    temperature=0,
+    max_tokens=1000,
+    tracing_tags: List[str] = [],
 ):
-    """Asynchronous version of get_completion_from_messages.
+    """Generates a completion response from the given messages using the specified model.
 
     Args:
         messages (list): The list of messages to generate a completion from.
         model (str, optional): The model to use for generating the completion. Defaults to OPENAI_MODEL.
-        temperature (float, optional): The temperature to use for the completion. Defaults to 0.
-        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 1000.
+        temperature (float, optional): The temperature to use for the completion. Defaults to 0.4.
+        max_tokens (int, optional): The maximum number of tokens to generate.
+            Defaults to 1000.
+        tracing_tags (List[str], optional): The tags to use for tracing the completion.
+            Defaults to an empty list.
 
     Returns:
         str: The content of the completion response.
     """
-    import litellm
-
-    litellm.success_callback = ["langsmith"]
-
     model = MODEL_NAME_MAP.get(model, model)
     completion_response = litellm.completion(
         model=model,
@@ -517,42 +519,12 @@ async def async_get_completion_from_messages(
         temperature=temperature,
         max_tokens=max_tokens,
         api_key=get_openai_api_key(),
+        metadata={
+            "project": "llm-complete-guide-rag",
+            "tags": tracing_tags,
+        },
     )
     return completion_response.choices[0].message.content
-
-
-def get_completion_from_messages(
-    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
-):
-    """Synchronous wrapper for async_get_completion_from_messages.
-
-    Args:
-        messages (list): The list of messages to generate a completion from.
-        model (str, optional): The model to use for generating the completion. Defaults to OPENAI_MODEL.
-        temperature (float, optional): The temperature to use for the completion. Defaults to 0.
-        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 1000.
-
-    Returns:
-        str: The content of the completion response.
-    """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:  # No running event loop
-        return asyncio.run(
-            async_get_completion_from_messages(
-                messages, model, temperature, max_tokens
-            )
-        )
-    else:
-        # If we're already in an event loop, create a new one in a thread
-        import nest_asyncio
-
-        nest_asyncio.apply()
-        return asyncio.run(
-            async_get_completion_from_messages(
-                messages, model, temperature, max_tokens
-            )
-        )
 
 
 def get_embeddings(text):
@@ -620,6 +592,7 @@ def process_input_with_retrieval(
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
+    tracing_tags: List[str] = [],
 ) -> str:
     """Process the input with retrieval.
 
@@ -704,4 +677,8 @@ def process_input_with_retrieval(
         },
     ]
     logger.debug("CONTEXT USED\n\n", messages[2]["content"], "\n\n")
-    return get_completion_from_messages(messages, model=model)
+    return get_completion_from_messages(
+        messages,
+        model=model,
+        tracing_tags=tracing_tags,
+    )

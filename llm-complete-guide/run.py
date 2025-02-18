@@ -233,7 +233,10 @@ def main(
                 "--query-text is required when using 'query' command"
             )
         response = process_input_with_retrieval(
-            query_text, model=model, use_reranking=use_reranker
+            query_text,
+            model=model,
+            use_reranking=use_reranker,
+            tracing_tags=["cli", "dev"],
         )
         console = Console()
         md = Markdown(response)

@@ -22,10 +22,8 @@ gradio
 huggingface-hub
 elasticsearch
 tenacity
-langsmith
+langfuse
 pinecone
-nest_asyncio
-asyncio
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0
