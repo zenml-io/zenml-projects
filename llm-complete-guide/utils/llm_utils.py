@@ -22,12 +22,14 @@
 import logging
 import os
 
+import asyncio
 from elasticsearch import Elasticsearch
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
 import pinecone
 from pinecone import Pinecone
+
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -40,7 +42,7 @@ logging.getLogger().setLevel(logging.ERROR)
 import re
 from typing import List, Tuple, Optional
 
-import litellm
+# import litellm
 import numpy as np
 import psycopg2
 import tiktoken
@@ -61,6 +63,9 @@ from sentence_transformers import SentenceTransformer
 from structures import Document
 
 logger = logging.getLogger(__name__)
+
+# logs all litellm requests to langsmith
+# litellm.success_callback = ["langsmith"]
 
 
 def split_text_with_regex(
@@ -286,8 +291,12 @@ def get_pinecone_client() -> pinecone.Index:
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
-    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values[
+        "pinecone_api_key"
+    ]
+    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get(
+        "pinecone_index", "zenml-docs"
+    )
 
     pc = Pinecone(api_key=pinecone_api_key)
     return pc.Index(index_name)
@@ -421,9 +430,7 @@ def get_topn_similar_docs_pinecone(
     """
     # Query the index
     results = pinecone_index.query(
-        vector=query_embedding,
-        top_k=n,
-        include_metadata=True
+        vector=query_embedding, top_k=n, include_metadata=True
     )
 
     # Process results
@@ -485,20 +492,24 @@ def get_topn_similar_docs(
         raise ValueError("No valid vector store client provided")
 
 
-def get_completion_from_messages(
+async def async_get_completion_from_messages(
     messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
 ):
-    """Generates a completion response from the given messages using the specified model.
+    """Asynchronous version of get_completion_from_messages.
 
     Args:
         messages (list): The list of messages to generate a completion from.
         model (str, optional): The model to use for generating the completion. Defaults to OPENAI_MODEL.
-        temperature (float, optional): The temperature to use for the completion. Defaults to 0.4.
+        temperature (float, optional): The temperature to use for the completion. Defaults to 0.
         max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 1000.
 
     Returns:
         str: The content of the completion response.
     """
+    import litellm
+
+    litellm.success_callback = ["langsmith"]
+
     model = MODEL_NAME_MAP.get(model, model)
     completion_response = litellm.completion(
         model=model,
@@ -508,6 +519,40 @@ def get_completion_from_messages(
         api_key=get_openai_api_key(),
     )
     return completion_response.choices[0].message.content
+
+
+def get_completion_from_messages(
+    messages, model=OPENAI_MODEL, temperature=0, max_tokens=1000
+):
+    """Synchronous wrapper for async_get_completion_from_messages.
+
+    Args:
+        messages (list): The list of messages to generate a completion from.
+        model (str, optional): The model to use for generating the completion. Defaults to OPENAI_MODEL.
+        temperature (float, optional): The temperature to use for the completion. Defaults to 0.
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 1000.
+
+    Returns:
+        str: The content of the completion response.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # No running event loop
+        return asyncio.run(
+            async_get_completion_from_messages(
+                messages, model, temperature, max_tokens
+            )
+        )
+    else:
+        # If we're already in an event loop, create a new one in a thread
+        import nest_asyncio
+
+        nest_asyncio.apply()
+        return asyncio.run(
+            async_get_completion_from_messages(
+                messages, model, temperature, max_tokens
+            )
+        )
 
 
 def get_embeddings(text):
