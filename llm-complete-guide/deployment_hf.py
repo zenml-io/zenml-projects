@@ -1,14 +1,12 @@
 import logging
 import os
+import time
 
 import gradio as gr
 from constants import SECRET_NAME
+from langfuse import Langfuse
 from utils.llm_utils import process_input_with_retrieval
 from zenml.client import Client
-from datetime import datetime, timedelta, UTC
-from langfuse import Langfuse
-import time
-from rich import print
 
 langfuse = Langfuse()
 
