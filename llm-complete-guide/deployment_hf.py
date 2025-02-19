@@ -62,10 +62,12 @@ def vote(data: gr.LikeData):
 
 def predict(message, history):
     try:
+        # add the prod flag here
         return process_input_with_retrieval(
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
+            model_version_stage="production",
             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
     except Exception as e:

@@ -232,10 +232,11 @@ def main(
             raise click.UsageError(
                 "--query-text is required when using 'query' command"
             )
+        # add the prod flag here
         response = process_input_with_retrieval(
             query_text,
             model=model,
-            use_reranking=use_reranker,
+            use_reranking=use_reranker, model_version_stage="production",
             tracing_tags=["cli", "dev"],
         )
         console = Console()
