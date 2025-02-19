@@ -419,6 +419,10 @@ def get_topn_similar_docs_pinecone(
     Returns:
         List[Tuple]: List of tuples containing document content and similarity scores.
     """
+    # Convert numpy array to list if needed
+    if isinstance(query_embedding, np.ndarray):
+        query_embedding = query_embedding.tolist()
+        
     # Query the index
     results = pinecone_index.query(
         vector=query_embedding,
