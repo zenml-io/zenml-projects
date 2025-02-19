@@ -21,6 +21,7 @@
 
 import logging
 import os
+import uuid
 
 from elasticsearch import Elasticsearch
 from zenml.client import Client
@@ -304,6 +305,9 @@ def get_pinecone_client(model_version_stage: str = "staging") -> pinecone.Index:
             index_name = model_version.run_metadata["vector_store"]["index_name"]
         except KeyError:
             index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs-dev")
+            # if index by that name exists already, create a new one with a random suffix
+            if index_name in pc.list_indexes().names():
+                index_name = f"{index_name}-{uuid.uuid4()}"
             model_version.run_metadata["vector_store"]["index_name"] = index_name
 
         # Create index if it doesn't exist
