@@ -20,7 +20,7 @@ steps:
     enable_cache: False
     enable_step_logs: False
     parameters:
-      data_source: "s3://<bucket-name>/<source-dir>" # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
+      data_source:   # Set this to the path to a data source, for example "s3://<bucket-name>/<source-dir>"
       batch_size: 8
       imgsz: 736
       epochs: 300

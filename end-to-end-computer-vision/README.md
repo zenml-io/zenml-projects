@@ -31,7 +31,8 @@ deployed instance of ZenML:
 ### Set up your environment
 
 ```bash
-pip install -r requirements.txt
+pip install uv
+uv pip install -r requirements.txt
 zenml integration install pytorch gcp mlflow label_studio -y
 pip uninstall wandb  # This comes in automatically
 ```
@@ -151,7 +152,10 @@ the `ls_project_id` to correspond to the id of your project within Label Studio.
 ### Run this pipeline
 
 Label Studio should be up and running for the whole duration of this pipeline
-run.
+run. 
+Also in configs/ingest_data.yaml, make sure to change the dataset name to the name of the dataset in Label Studio. 
+Also make sure the storage type to `gcs` if you are using GCP. Also make sure to set `ls_storage_id` and `ls_project_id` 
+to the correct values.
 
 ```bash
 zenml stack set <local_stack>

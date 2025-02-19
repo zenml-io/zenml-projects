@@ -19,7 +19,7 @@ steps:
     enable_cache: False
     enable_step_logs: False
     parameters:
-      inference_data_source:   # Insert your bucket path here where the inference images live e.g. "gs://foo/bar"
+      inference_data_source:   # Set this to the path to a data source, for example "gs://zenml-20219041791-054405/ship_detection_ds"
 
 # configuration of the Model Control Plane
 model:
