@@ -46,10 +46,14 @@ from constants import (
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
-from pinecone import Pinecone, ServerlessSpec
 from sentence_transformers import SentenceTransformer
 from structures import Document
-from utils.llm_utils import get_db_conn, get_es_client, get_pinecone_client, split_documents
+from utils.llm_utils import (
+    get_db_conn,
+    get_es_client,
+    get_pinecone_client,
+    split_documents,
+)
 from zenml import ArtifactConfig, get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
@@ -642,7 +646,7 @@ def index_generator(
         documents (str): JSON string containing the documents to index.
         index_type (IndexType, optional): Type of index to generate. Defaults to IndexType.POSTGRES.
     """
-    # get model version 
+    # get model version
     context = get_step_context()
     model_version_stage = context.model_version.stage
     if index_type == IndexType.ELASTICSEARCH:
@@ -825,7 +829,9 @@ def _index_generator_postgres(documents: str) -> None:
             conn.close()
 
 
-def _index_generator_pinecone(documents: str, model_version_stage: str) -> None:
+def _index_generator_pinecone(
+    documents: str, model_version_stage: str
+) -> None:
     """Generates a Pinecone index for the given documents.
 
     Args:
@@ -870,7 +876,9 @@ def _index_generator_pinecone(documents: str, model_version_stage: str) -> None:
     if batch:
         index.upsert(vectors=batch)
 
-    logger.info(f"Successfully indexed {len(docs)} documents to Pinecone index")
+    logger.info(
+        f"Successfully indexed {len(docs)} documents to Pinecone index"
+    )
 
 
 def _log_metadata(index_type: IndexType) -> None:

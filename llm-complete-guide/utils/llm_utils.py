@@ -25,12 +25,11 @@ import uuid
 
 import pinecone
 from elasticsearch import Elasticsearch
-from pinecone import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
-import pinecone
-from pinecone import Pinecone, ServerlessSpec
+
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -286,14 +285,18 @@ def get_db_conn() -> connection:
         raise
 
 
-def get_pinecone_client(model_version_stage: str = "staging") -> pinecone.Index:
+def get_pinecone_client(
+    model_version_stage: str = "staging",
+) -> pinecone.Index:
     """Get a Pinecone index client.
 
     Returns:
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
+    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values[
+        "pinecone_api_key"
+    ]
     pc = Pinecone(api_key=pinecone_api_key)
 
     # if the model versio is staging, we check if any index name is associated as metadata
@@ -307,13 +310,19 @@ def get_pinecone_client(model_version_stage: str = "staging") -> pinecone.Index:
 
     if model_version_stage == "staging":
         try:
-            index_name = model_version.run_metadata["vector_store"]["index_name"]
+            index_name = model_version.run_metadata["vector_store"][
+                "index_name"
+            ]
         except KeyError:
-            index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs-dev")
+            index_name = client.get_secret(
+                SECRET_NAME_PINECONE
+            ).secret_values.get("pinecone_index", "zenml-docs-dev")
             # if index by that name exists already, create a new one with a random suffix
             if index_name in pc.list_indexes().names():
                 index_name = f"{index_name}-{uuid.uuid4()}"
-            model_version.run_metadata["vector_store"]["index_name"] = index_name
+            model_version.run_metadata["vector_store"]["index_name"] = (
+                index_name
+            )
 
         # Create index if it doesn't exist
         if index_name not in pc.list_indexes().names():
@@ -321,21 +330,24 @@ def get_pinecone_client(model_version_stage: str = "staging") -> pinecone.Index:
                 name=index_name,
                 dimension=EMBEDDING_DIMENSIONALITY,
                 metric="cosine",
-                spec=ServerlessSpec(
-                    cloud="aws",
-                    region="us-east-1"
-                )
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             )
 
     if model_version_stage == "production":
         try:
-            index_name = model_version.run_metadata["vector_store"]["index_name"]
+            index_name = model_version.run_metadata["vector_store"][
+                "index_name"
+            ]
         except KeyError:
-            raise ValueError("The production model version should have an index name attached to it. None found.")
-        
+            raise ValueError(
+                "The production model version should have an index name attached to it. None found."
+            )
+
         # if index doesn't exist, raise error
         if index_name not in pc.list_indexes().names():
-            raise ValueError(f"The index {index_name} attached to the production model version does not exist. Please create it first.")
+            raise ValueError(
+                f"The index {index_name} attached to the production model version does not exist. Please create it first."
+            )
 
     return pc.Index(index_name)
 
@@ -469,7 +481,7 @@ def get_topn_similar_docs_pinecone(
     # Convert numpy array to list if needed
     if isinstance(query_embedding, np.ndarray):
         query_embedding = query_embedding.tolist()
-        
+
     # Query the index
     results = pinecone_index.query(
         vector=query_embedding, top_k=n, include_metadata=True
@@ -667,7 +679,9 @@ def process_input_with_retrieval(
             include_metadata=True,
         )
     elif vector_store == "pinecone":
-        pinecone_index = get_pinecone_client(model_version_stage=model_version_stage)
+        pinecone_index = get_pinecone_client(
+            model_version_stage=model_version_stage
+        )
         similar_docs = get_topn_similar_docs(
             query_embedding=query_embedding,
             pinecone_index=pinecone_index,
