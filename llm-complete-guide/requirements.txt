@@ -1,4 +1,4 @@
-zenml[server]>=0.74.0
+git+https://github.com/zenml-io/zenml.git@develop#egg=zenml[server] # will work for zenml>=0.75.0
 ratelimit
 pgvector
 psycopg2-binary
@@ -18,7 +18,7 @@ pyarrow
 rerankers[flashrank]
 datasets
 torch
-gradio
+gradio>=5.13.0
 huggingface-hub
 elasticsearch
 tenacity

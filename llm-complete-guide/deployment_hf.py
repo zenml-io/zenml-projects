@@ -24,6 +24,42 @@ except Exception as e:
     raise RuntimeError(f"Application startup failed: {e}")
 
 
+# def predict(message, history):
+#     try:
+#         return process_input_with_retrieval(
+#             input=message,
+#             n_items_retrieved=20,
+#             use_reranking=True,
+#             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
+#         )
+#     except Exception as e:
+#         logger.error(f"Error processing message: {e}")
+#         return f"Sorry, I encountered an error: {str(e)}"
+
+
+# # Launch the Gradio interface
+# interface = gr.ChatInterface(
+#     predict,
+#     title="ZenML Documentation Assistant",
+#     description="Ask me anything about ZenML!",
+# )
+
+
+def vote(data: gr.LikeData):
+    """Vote on a response.
+
+    Args:
+        data (gr.LikeData): The vote data.
+    """
+    trace = logger.info("Getting trace from Langfuse")
+
+    logger.info(f"Vote data: {data}")
+    if data.liked:
+        logger.info("Vote up")
+    else:
+        logger.info("Vote down")
+
+
 def predict(message, history):
     try:
         return process_input_with_retrieval(
@@ -37,12 +73,22 @@ def predict(message, history):
         return f"Sorry, I encountered an error: {str(e)}"
 
 
-# Launch the Gradio interface
-interface = gr.ChatInterface(
-    predict,
-    title="ZenML Documentation Assistant",
-    description="Ask me anything about ZenML!",
-)
+with gr.Blocks() as interface:
+    custom_chatbot = gr.Chatbot(
+        type="messages",
+        editable=True,
+    )
+
+    gr.ChatInterface(
+        predict,
+        type="messages",
+        title="ZenML Documentation Assistant",
+        description="Ask me anything about ZenML!",
+        chatbot=custom_chatbot,
+        theme="shivi/calm_seafoam",
+    )
+
+    custom_chatbot.like(vote, None, None)
 
 if __name__ == "__main__":
     interface.launch(server_name="0.0.0.0", share=False)
