@@ -27,7 +27,7 @@ from zenml.client import Client
 
 from utils.openai_utils import get_openai_api_key
 import pinecone
-from pinecone import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 # Configure logging levels for specific modules
 logging.getLogger("pytorch").setLevel(logging.CRITICAL)
 logging.getLogger("sentence-transformers").setLevel(logging.CRITICAL)
@@ -45,6 +45,7 @@ import numpy as np
 import psycopg2
 import tiktoken
 from constants import (
+    EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
     MODEL_NAME_MAP,
     OPENAI_MODEL,
@@ -279,7 +280,7 @@ def get_db_conn() -> connection:
         raise
 
 
-def get_pinecone_client() -> pinecone.Index:
+def get_pinecone_client(model_version_stage: str = "staging") -> pinecone.Index:
     """Get a Pinecone index client.
 
     Returns:
@@ -287,9 +288,46 @@ def get_pinecone_client() -> pinecone.Index:
     """
     client = Client()
     pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
-    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
-
     pc = Pinecone(api_key=pinecone_api_key)
+
+    # if the model versio is staging, we check if any index name is associated as metadata
+    # if not, create a new one with the name from the secret and attach it to the metadata
+    # if the model version is production, we just use the index name from the metadata attached to it
+    # raise error if there is no index name attached to the metadata
+    model_version = client.get_model_version(
+        model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
+        model_version_name_or_number_or_id=model_version_stage,
+    )
+
+    if model_version_stage == "staging":
+        try:
+            index_name = model_version.run_metadata["vector_store"]["index_name"]
+        except KeyError:
+            index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs-dev")
+            model_version.run_metadata["vector_store"]["index_name"] = index_name
+
+        # Create index if it doesn't exist
+        if index_name not in pc.list_indexes().names():
+            pc.create_index(
+                name=index_name,
+                dimension=EMBEDDING_DIMENSIONALITY,
+                metric="cosine",
+                spec=ServerlessSpec(
+                    cloud="aws",
+                    region="us-east-1"
+                )
+            )
+
+    if model_version_stage == "production":
+        try:
+            index_name = model_version.run_metadata["vector_store"]["index_name"]
+        except KeyError:
+            raise ValueError("The production model version should have an index name attached to it. None found.")
+        
+        # if index doesn't exist, raise error
+        if index_name not in pc.list_indexes().names():
+            raise ValueError(f"The index {index_name} attached to the production model version does not exist. Please create it first.")
+
     return pc.Index(index_name)
 
 
@@ -579,6 +617,7 @@ def process_input_with_retrieval(
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
+    model_version_stage: str = "staging",
 ) -> str:
     """Process the input with retrieval.
 
@@ -590,7 +629,7 @@ def process_input_with_retrieval(
             the database. Defaults to 5.
         use_reranking (bool, optional): Whether to use reranking. Defaults to
             False.
-
+        model_version_stage (str, optional): The stage of the model version. Defaults to "staging".
     Returns:
         str: The processed output.
     """
@@ -609,7 +648,7 @@ def process_input_with_retrieval(
             include_metadata=True,
         )
     elif vector_store == "pinecone":
-        pinecone_index = get_pinecone_client()
+        pinecone_index = get_pinecone_client(model_version_stage=model_version_stage)
         similar_docs = get_topn_similar_docs(
             query_embedding=query_embedding,
             pinecone_index=pinecone_index,

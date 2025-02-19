@@ -48,8 +48,8 @@ from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
 from sentence_transformers import SentenceTransformer
 from structures import Document
-from utils.llm_utils import get_db_conn, get_es_client, split_documents
-from zenml import ArtifactConfig, log_metadata, step
+from utils.llm_utils import get_db_conn, get_es_client, get_pinecone_client, split_documents
+from zenml import ArtifactConfig, get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
 import pinecone
@@ -642,12 +642,15 @@ def index_generator(
         documents (str): JSON string containing the documents to index.
         index_type (IndexType, optional): Type of index to generate. Defaults to IndexType.POSTGRES.
     """
+    # get model version 
+    context = get_step_context()
+    model_version_stage = context.model_version.stage
     if index_type == IndexType.ELASTICSEARCH:
         _index_generator_elastic(documents)
     elif index_type == IndexType.POSTGRES:
         _index_generator_postgres(documents)
     elif index_type == IndexType.PINECONE:
-        _index_generator_pinecone(documents)
+        _index_generator_pinecone(documents, model_version_stage)
     else:
         raise ValueError(f"Unknown index type: {index_type}")
 
@@ -822,33 +825,14 @@ def _index_generator_postgres(documents: str) -> None:
             conn.close()
 
 
-def _index_generator_pinecone(documents: str) -> None:
+def _index_generator_pinecone(documents: str, model_version_stage: str) -> None:
     """Generates a Pinecone index for the given documents.
 
     Args:
         documents (str): JSON string containing the documents to index.
+        model_version (str): Name of the model version.
     """
-    client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values["pinecone_api_key"]
-    index_name = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
-
-    # Initialize Pinecone
-    pc = Pinecone(api_key=pinecone_api_key)
-
-    # Create index if it doesn't exist
-    if index_name not in pc.list_indexes().names():
-        pc.create_index(
-            name=index_name,
-            dimension=EMBEDDING_DIMENSIONALITY,
-            metric="cosine",
-            spec=ServerlessSpec(
-                cloud="aws",
-                region="us-east-1"
-            )
-        )
-
-    # Get the index
-    index = pc.Index(index_name)
+    index = get_pinecone_client(model_version_stage=model_version_stage)
 
     # Load documents
     docs = json.loads(documents)
@@ -886,7 +870,7 @@ def _index_generator_pinecone(documents: str) -> None:
     if batch:
         index.upsert(vectors=batch)
 
-    logger.info(f"Successfully indexed {len(docs)} documents to Pinecone index '{index_name}'")
+    logger.info(f"Successfully indexed {len(docs)} documents to Pinecone index")
 
 
 def _log_metadata(index_type: IndexType) -> None:

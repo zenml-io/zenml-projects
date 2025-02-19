@@ -96,7 +96,8 @@ def query_similar_docs(
     if vector_store_name == "pgvector":
         conn = get_db_conn()
     elif vector_store_name == "pinecone":
-        pinecone_index = get_pinecone_client()
+        # in pipeline runs, always use staging index
+        pinecone_index = get_pinecone_client(model_version_stage="staging")
     else:
         es_client = get_es_client()
 
