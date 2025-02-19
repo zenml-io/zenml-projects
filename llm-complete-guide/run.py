@@ -234,7 +234,11 @@ def main(
             )
         # add the prod flag here
         response = process_input_with_retrieval(
-            query_text, model=model, use_reranking=use_reranker, model_version_stage="production"
+            query_text,
+            model=model,
+            use_reranking=use_reranker,
+            model_version_stage="production",
+            tracing_tags=["cli", "dev"],
         )
         console = Console()
         md = Markdown(response)
