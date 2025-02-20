@@ -97,6 +97,11 @@ Once the pipeline has run successfully, you can query the assets in the Supabase
 database using the `--query` flag as well as passing in the model you'd like to
 use for the LLM.
 
+Note that you'll need to set the `LANGFUSE_API_KEY` environment variable for the
+tracing which is built in to the implementation of the inference. This will
+trace all LLM calls and store them in the [Langfuse](https://langfuse.com/)
+platform.
+
 When you're ready to make the query, run the following command:
 
 ```shell
@@ -163,6 +168,21 @@ python run.py evaluation
 
 You'll need to have first run the RAG pipeline to have the necessary assets in
 the database to evaluate.
+
+## RAG evaluation with Langfuse
+
+You can run the Langfuse evaluation pipeline if you have marked some of your
+responses as good or bad in the deployed Hugging Face space.
+
+To run the evaluation pipeline, you can use the following command:
+
+```shell
+python run.py langfuse_evaluation
+```
+
+Note that this pipeline will only work if you have set the `LANGFUSE_API_KEY`
+environment variable. It will use this key to fetch the traces from Langfuse and
+evaluate the responses.
 
 ## Embeddings finetuning
 
