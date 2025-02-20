@@ -64,6 +64,30 @@ from structures import Document
 
 logger = logging.getLogger(__name__)
 
+# First try to get from environment variables
+LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
+LANGFUSE_HOST = os.getenv("LANGFUSE_HOST")
+
+# If any are not set, get from ZenML secrets and set the env vars
+if not all([LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST]):
+    secret = Client().get_secret(SECRET_NAME)
+    
+    if not LANGFUSE_PUBLIC_KEY:
+        LANGFUSE_PUBLIC_KEY = secret.secret_values.get("langfuse_public_key")
+        if LANGFUSE_PUBLIC_KEY:
+            os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+        
+    if not LANGFUSE_SECRET_KEY:
+        LANGFUSE_SECRET_KEY = secret.secret_values.get("langfuse_secret_key")
+        if LANGFUSE_SECRET_KEY:
+            os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+        
+    if not LANGFUSE_HOST:
+        LANGFUSE_HOST = secret.secret_values.get("langfuse_host")
+        if LANGFUSE_HOST:
+            os.environ["LANGFUSE_HOST"] = LANGFUSE_HOST
+
 # logs all litellm requests to langfuse
 litellm.callbacks = ["langfuse"]
 
@@ -293,7 +317,7 @@ def get_pinecone_client(
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values[
+    pinecone_api_key = client.get_secret(SECRET_NAME).secret_values[
         "pinecone_api_key"
     ]
     pc = Pinecone(api_key=pinecone_api_key)
@@ -308,11 +332,14 @@ def get_pinecone_client(
     )
 
     index_name_from_secret = client.get_secret(
-        SECRET_NAME_PINECONE
-    ).secret_values.get("pinecone_index", "zenml-docs")
+        SECRET_NAME).secret_values.get("pinecone_index", "zenml-docs")
 
     if model_version_name_or_id == "production":
         index_name = f"{index_name_from_secret}-prod"
+
+        # Initialize vector_store metadata if it doesn't exist
+        if "vector_store" not in model_version.run_metadata:
+            model_version.run_metadata["vector_store"] = {}
 
         model_version.run_metadata["vector_store"]["index_name"] = index_name
 
@@ -329,14 +356,13 @@ def get_pinecone_client(
         )
     else:
         try:
-            index_name = model_version.run_metadata["vector_store"][
-                "index_name"
-            ]
+            index_name = model_version.run_metadata["vector_store"]["index_name"]
         except KeyError:
             index_name = index_name_from_secret
-            model_version.run_metadata["vector_store"]["index_name"] = (
-                index_name
-            )
+            # Initialize vector_store metadata if it doesn't exist
+            if "vector_store" not in model_version.run_metadata:
+                model_version.run_metadata["vector_store"] = {}
+            model_version.run_metadata["vector_store"]["index_name"] = index_name
 
         # Create index if it doesn't exist
         if index_name not in pc.list_indexes().names():

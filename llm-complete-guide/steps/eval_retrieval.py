@@ -140,6 +140,7 @@ def process_single_pair(
     question, url_ending, urls = query_similar_docs(
         pair["question"], pair["url_ending"], use_reranking
     )
+    print(f"question: {question}, url_ending: {url_ending}, urls: {urls}")
     is_failure = all(url_ending not in url for url in urls)
     return is_failure, question, url_ending, urls
 
@@ -189,7 +190,7 @@ def process_with_progress(
     )
 
     results = []
-    with Pool(processes=n_processes) as pool:
+    with Pool(processes=n_processes) as pool: # Sleep for 3 seconds before starting processing
         for i, result in enumerate(pool.imap(worker_fn, items), 1):
             results.append(result)
             logger.info(f"Completed {i}/{len(items)} tests")

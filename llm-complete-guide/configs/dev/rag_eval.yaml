@@ -15,3 +15,12 @@ settings:
       - pygithub
       - elasticsearch
     python_package_installer: "uv"
+    
+steps:
+  url_scraper:
+    parameters:
+      docs_url: https://docs.zenml.io/
+      use_dev_set: true
+  index_generator:
+    parameters:
+        index_type: postgres 

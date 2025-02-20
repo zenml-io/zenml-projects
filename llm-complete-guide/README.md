@@ -59,13 +59,14 @@ export ZENML_PROJECT_SECRET_NAME=llm-complete
 
 [Pinecone](https://www.pinecone.io/) is the default vector store used in this project. It's a cloud-native vector database that's optimized for machine learning applications. You'll need to create a Pinecone account and get an API key to use it.
 
-Once you have your Pinecone account set up, you'll need to store your API key and index name as a ZenML secret (with name `pinecone-zenml`). You can do this by running the following command:
+Once you have your Pinecone account set up, you'll need to store your API key and index name as a ZenML secret. You can do this by running the following command:
 
 ```shell
-zenml secret create pinecone-zenml --pinecone_api_key=<YOUR_PINECONE_API_KEY> --pinecone_env=<YOUR_PINECONE_ENV> --pinecone_index=<YOUR_INDEX_NAME>
+zenml secret update llm-complete -v '{"pinecone_api_key": "YOUR_PINECONE_API_KEY", "pinecone_env": "YOUR_PINECONE_ENV", "pinecone_index": "YOUR_INDEX_NAME"}'
+
 ```
 
-The `pinecone_index` value you specify will be used for all your development pipeline runs. When you promote your ZenML model to production and run your ingestion pipeline again, it will automatically create a new production index called `<YOUR_INDEX_NAME>-prod`. This separation ensures that your development and production environments remain isolated.
+The `pinecone_index` value you specify will be used for all your development pipeline runs. Make sure the value consists only of alphanumeric characters and dashes. When you promote your ZenML model to production and run your ingestion pipeline again, it will automatically create a new production index called `<YOUR_INDEX_NAME>-prod`. This separation ensures that your development and production environments remain isolated.
 
 ### Choosing Your Vector Store
 

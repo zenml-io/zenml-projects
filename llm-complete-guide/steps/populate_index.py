@@ -927,7 +927,7 @@ def _log_metadata(index_type: IndexType) -> None:
         connection_details = {
             "api_key": "**********",
             "environment": client.get_secret(
-                SECRET_NAME_PINECONE
+                SECRET_NAME
             ).secret_values["pinecone_env"],
         }
 

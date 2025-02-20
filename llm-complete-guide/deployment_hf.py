@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 APP_ENVIRONMENT = os.getenv("GRADIO_ZENML_APP_ENVIRONMENT", "dev")
+print(os.getenv("ZENML_STORE_API_KEY"), os.getenv("ZENML_STORE_URL"))
 
 # Initialize ZenML client and verify secret access
 try:

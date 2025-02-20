@@ -15,6 +15,7 @@
 # limitations under the License.
 import warnings
 from pathlib import Path
+import os
 
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
@@ -39,7 +40,7 @@ logging.getLogger().setLevel(logging.ERROR)  # Root logger configuration
 from typing import Optional
 
 import click
-from constants import OPENAI_MODEL
+from constants import OPENAI_MODEL, SECRET_NAME
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
@@ -54,8 +55,33 @@ from pipelines import (
 from structures import Document
 from zenml import Model
 from zenml.materializers.materializer_registry import materializer_registry
+from zenml.client import Client
 
 logger = get_logger(__name__)
+
+# First try to get from environment variables
+LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
+LANGFUSE_HOST = os.getenv("LANGFUSE_HOST")
+
+# If any are not set, get from ZenML secrets and set the env vars
+if not all([LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST]):
+    secret = Client().get_secret(SECRET_NAME)
+    
+    if not LANGFUSE_PUBLIC_KEY:
+        LANGFUSE_PUBLIC_KEY = secret.secret_values.get("langfuse_public_key")
+        if LANGFUSE_PUBLIC_KEY:
+            os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+        
+    if not LANGFUSE_SECRET_KEY:
+        LANGFUSE_SECRET_KEY = secret.secret_values.get("langfuse_secret_key")
+        if LANGFUSE_SECRET_KEY:
+            os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+        
+    if not LANGFUSE_HOST:
+        LANGFUSE_HOST = secret.secret_values.get("langfuse_host")
+        if LANGFUSE_HOST:
+            os.environ["LANGFUSE_HOST"] = LANGFUSE_HOST
 
 
 @click.command(
