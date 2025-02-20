@@ -21,7 +21,6 @@
 
 import logging
 import os
-import uuid
 
 import pinecone
 from elasticsearch import Elasticsearch
@@ -285,7 +284,9 @@ def get_db_conn() -> connection:
         raise
 
 
-def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index:
+def get_pinecone_client(
+    model_version_name_or_id: str = "dev",
+) -> pinecone.Index:
     """Get a Pinecone index client.
 
     Returns:
@@ -306,7 +307,9 @@ def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index
         model_version_name_or_number_or_id=model_version_name_or_id,
     )
 
-    index_name_from_secret = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+    index_name_from_secret = client.get_secret(
+        SECRET_NAME_PINECONE
+    ).secret_values.get("pinecone_index", "zenml-docs")
 
     if model_version_name_or_id == "production":
         index_name = f"{index_name_from_secret}-prod"
@@ -322,7 +325,7 @@ def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index
             name=index_name,
             dimension=EMBEDDING_DIMENSIONALITY,
             metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1")
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
     else:
         try:
@@ -331,7 +334,9 @@ def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index
             ]
         except KeyError:
             index_name = index_name_from_secret
-            model_version.run_metadata["vector_store"]["index_name"] = index_name
+            model_version.run_metadata["vector_store"]["index_name"] = (
+                index_name
+            )
 
         # Create index if it doesn't exist
         if index_name not in pc.list_indexes().names():
@@ -341,7 +346,7 @@ def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             )
-        
+
     return pc.Index(index_name)
 
 
@@ -672,7 +677,9 @@ def process_input_with_retrieval(
             include_metadata=True,
         )
     elif vector_store == "pinecone":
-        pinecone_index = get_pinecone_client(model_version_name_or_id=model_version_stage)
+        pinecone_index = get_pinecone_client(
+            model_version_name_or_id=model_version_stage
+        )
         similar_docs = get_topn_similar_docs(
             query_embedding=query_embedding,
             pinecone_index=pinecone_index,

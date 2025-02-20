@@ -8,8 +8,6 @@ from langfuse import Langfuse
 from utils.llm_utils import process_input_with_retrieval
 from zenml.client import Client
 
-langfuse = Langfuse()
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,6 +23,23 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize ZenML client or access secret: {e}")
     raise RuntimeError(f"Application startup failed: {e}")
+
+
+LANGFUSE_PUBLIC_KEY = os.getenv(
+    "LANGFUSE_PUBLIC_KEY", secret.secret_values["LANGFUSE_PUBLIC_KEY"]
+)
+LANGFUSE_SECRET_KEY = os.getenv(
+    "LANGFUSE_SECRET_KEY", secret.secret_values["LANGFUSE_SECRET_KEY"]
+)
+LANGFUSE_HOST = os.getenv(
+    "LANGFUSE_HOST", secret.secret_values["LANGFUSE_HOST"]
+)
+
+langfuse = Langfuse(
+    public_key=LANGFUSE_PUBLIC_KEY,
+    secret_key=LANGFUSE_SECRET_KEY,
+    host=LANGFUSE_HOST,
+)
 
 
 def get_langfuse_trace_id() -> str | None:
