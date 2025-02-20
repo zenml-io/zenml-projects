@@ -64,6 +64,7 @@ huggingface-hub
 elasticsearch
 tenacity
 pinecone
+langfuse
 {chr(10).join(gcp_reqs)}
 """
 
