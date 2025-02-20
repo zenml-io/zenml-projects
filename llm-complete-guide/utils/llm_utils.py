@@ -474,7 +474,8 @@ def get_topn_similar_docs_pinecone(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing document content and similarity scores.
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+            of the top n most similar documents.
     """
     # Convert numpy array to list if needed
     if isinstance(query_embedding, np.ndarray):
@@ -488,16 +489,20 @@ def get_topn_similar_docs_pinecone(
     # Process results
     similar_docs = []
     for match in results.matches:
-        score = match.score
         metadata = match.metadata
 
         if only_urls:
-            similar_docs.append((metadata["url"], score))
+            similar_docs.append((metadata["url"],))
+        elif include_metadata:
+            similar_docs.append(
+                (
+                    metadata["page_content"],
+                    metadata["url"],
+                    metadata["parent_section"],
+                )
+            )
         else:
-            content = metadata["page_content"]
-            if include_metadata:
-                content = f"{metadata['filename']} - {metadata['parent_section']}: {content}"
-            similar_docs.append((content, score))
+            similar_docs.append((metadata["page_content"],))
 
     return similar_docs
 
@@ -523,7 +528,8 @@ def get_topn_similar_docs(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing document content and similarity scores.
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+            of the top n most similar documents.
 
     Raises:
         ValueError: If no valid vector store client is provided.
