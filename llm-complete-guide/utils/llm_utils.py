@@ -285,9 +285,7 @@ def get_db_conn() -> connection:
         raise
 
 
-def get_pinecone_client(
-    model_version_stage: str = "staging",
-) -> pinecone.Index:
+def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index:
     """Get a Pinecone index client.
 
     Returns:
@@ -305,24 +303,35 @@ def get_pinecone_client(
     # raise error if there is no index name attached to the metadata
     model_version = client.get_model_version(
         model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
-        model_version_name_or_number_or_id=model_version_stage,
+        model_version_name_or_number_or_id=model_version_name_or_id,
     )
 
-    if model_version_stage == "staging":
+    index_name_from_secret = client.get_secret(SECRET_NAME_PINECONE).secret_values.get("pinecone_index", "zenml-docs")
+
+    if model_version_name_or_id == "production":
+        index_name = f"{index_name_from_secret}-prod"
+
+        model_version.run_metadata["vector_store"]["index_name"] = index_name
+
+        # delete index if it exists
+        if index_name in pc.list_indexes().names():
+            pc.delete_index(index_name)
+
+        # create index
+        pc.create_index(
+            name=index_name,
+            dimension=EMBEDDING_DIMENSIONALITY,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1")
+        )
+    else:
         try:
             index_name = model_version.run_metadata["vector_store"][
                 "index_name"
             ]
         except KeyError:
-            index_name = client.get_secret(
-                SECRET_NAME_PINECONE
-            ).secret_values.get("pinecone_index", "zenml-docs-dev")
-            # if index by that name exists already, create a new one with a random suffix
-            if index_name in pc.list_indexes().names():
-                index_name = f"{index_name}-{uuid.uuid4()}"
-            model_version.run_metadata["vector_store"]["index_name"] = (
-                index_name
-            )
+            index_name = index_name_from_secret
+            model_version.run_metadata["vector_store"]["index_name"] = index_name
 
         # Create index if it doesn't exist
         if index_name not in pc.list_indexes().names():
@@ -332,23 +341,7 @@ def get_pinecone_client(
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             )
-
-    if model_version_stage == "production":
-        try:
-            index_name = model_version.run_metadata["vector_store"][
-                "index_name"
-            ]
-        except KeyError:
-            raise ValueError(
-                "The production model version should have an index name attached to it. None found."
-            )
-
-        # if index doesn't exist, raise error
-        if index_name not in pc.list_indexes().names():
-            raise ValueError(
-                f"The index {index_name} attached to the production model version does not exist. Please create it first."
-            )
-
+        
     return pc.Index(index_name)
 
 
@@ -679,9 +672,7 @@ def process_input_with_retrieval(
             include_metadata=True,
         )
     elif vector_store == "pinecone":
-        pinecone_index = get_pinecone_client(
-            model_version_stage=model_version_stage
-        )
+        pinecone_index = get_pinecone_client(model_version_name_or_id=model_version_stage)
         similar_docs = get_topn_similar_docs(
             query_embedding=query_embedding,
             pinecone_index=pinecone_index,
