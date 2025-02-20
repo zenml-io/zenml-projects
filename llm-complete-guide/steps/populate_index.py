@@ -831,14 +831,18 @@ def _index_generator_postgres(documents: str) -> None:
             conn.close()
 
 
-def _index_generator_pinecone(documents: str, model_version_name_or_id: str) -> None:
+def _index_generator_pinecone(
+    documents: str, model_version_name_or_id: str
+) -> None:
     """Generates a Pinecone index for the given documents.
 
     Args:
         documents (str): JSON string containing the documents to index.
         model_version (str): Name of the model version.
     """
-    index = get_pinecone_client(model_version_name_or_id=model_version_name_or_id)
+    index = get_pinecone_client(
+        model_version_name_or_id=model_version_name_or_id
+    )
 
     # Load documents
     docs = json.loads(documents)
