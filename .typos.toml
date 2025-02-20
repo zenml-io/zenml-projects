@@ -3,6 +3,8 @@ extend-exclude = [
     "*.json",
     "*.js",
     "*.ipynb",
+    "llm-finetuning/*",
+    "end-to-end-computer-vision/*",
 ]
 
 [default.extend-identifiers]
@@ -31,6 +33,12 @@ arange = "arange"
 cachable = "cachable"
 OT = "OT"
 cll = "cll"
+Louvre = "Louvre"
+quantised = "quantised"
+colours = "colours"
+initialised = "initialised"
+visualisation = "visualisation"
+customise = "customise"
 
 [default]
 locale = "en-us"

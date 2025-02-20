@@ -312,7 +312,7 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ├── most_basic_eval.py                                  # Basic evaluation script
 ├── most_basic_rag_pipeline.py                          # Basic RAG pipeline script
 ├── notebooks
-│   └── visualise_embeddings.ipynb                      # Notebook to visualize embeddings
+│   └── visualize_embeddings.ipynb                      # Notebook to visualize embeddings
 ├── pipelines
 │   ├── __init__.py
 │   ├── generate_chunk_questions.py                     # Pipeline to generate chunk questions
