@@ -87,7 +87,9 @@ The `deployment` pipelines relies on the `training_pipeline` to have run before.
 
 ## :cloud: Deployment
 
-We have create a custom zenml model deployer for deploying models on the huggingface inference endpoint. The code for custom deployer is in [huggingface](./huggingface/) folder.
+We have create a custom zenml model deployer for deploying models on the
+huggingface inference endpoint. The code for custom deployer is in
+the deployment pipeline which can be found [here](./pipelines/deployment.py).
 
 For running deployment pipeline, we create a custom zenml stack. As we are using a custom model deployer, we will have to register the flavor and model deployer. We update the stack to use this custom model deployer for running deployment pipeline.
 
