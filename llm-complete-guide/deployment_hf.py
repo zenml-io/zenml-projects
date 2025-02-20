@@ -26,13 +26,13 @@ except Exception as e:
 
 
 LANGFUSE_PUBLIC_KEY = os.getenv(
-    "LANGFUSE_PUBLIC_KEY", secret.secret_values["LANGFUSE_PUBLIC_KEY"]
+    "LANGFUSE_PUBLIC_KEY", secret.secret_values["langfuse_public_key"]
 )
 LANGFUSE_SECRET_KEY = os.getenv(
-    "LANGFUSE_SECRET_KEY", secret.secret_values["LANGFUSE_SECRET_KEY"]
+    "LANGFUSE_SECRET_KEY", secret.secret_values["langfuse_secret_key"]
 )
 LANGFUSE_HOST = os.getenv(
-    "LANGFUSE_HOST", secret.secret_values["LANGFUSE_HOST"]
+    "LANGFUSE_HOST", secret.secret_values["langfuse_host"]
 )
 
 langfuse = Langfuse(
