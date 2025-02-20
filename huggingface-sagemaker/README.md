@@ -214,7 +214,7 @@ This will train a model from Huggingface and register a new ZenML model on the M
 Please note the above screens are a cloud-only feature in [ZenML Pro](https://zenml.io/pro), and
 the CLI `zenml models list` should be used instead for OSS users.
 
-At the end of the pipeline, the model will also be pushed the Huggingface, and a link estabilished between the ZenML Control Plane and the Huggingface model repository.
+At the end of the pipeline, the model will also be pushed the Huggingface, and a link established between the ZenML Control Plane and the Huggingface model repository.
 
 <img src="assets/hf_repo_commit.png" alt="Huggingface Repo" width="800">
 

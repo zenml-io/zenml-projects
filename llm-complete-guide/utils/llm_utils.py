@@ -297,7 +297,7 @@ def get_pinecone_client(model_version_name_or_id: str = "dev") -> pinecone.Index
     ]
     pc = Pinecone(api_key=pinecone_api_key)
 
-    # if the model versio is staging, we check if any index name is associated as metadata
+    # if the model version is staging, we check if any index name is associated as metadata
     # if not, create a new one with the name from the secret and attach it to the metadata
     # if the model version is production, we just use the index name from the metadata attached to it
     # raise error if there is no index name attached to the metadata
