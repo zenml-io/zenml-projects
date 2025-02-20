@@ -110,14 +110,13 @@ def gradio_rag_deployment() -> None:
     Starts a web server with a chat interface that echoes back user messages.
     The server runs indefinitely until manually stopped.
     """
-    api = HfApi()
+    api = HfApi(token=get_hf_token())
     api.create_repo(
         repo_id=hf_repo_id,
         repo_type="space",
         space_sdk="gradio",
         private=True,
         exist_ok=True,
-        token=get_hf_token(),
     )
 
     # Ensure values are strings
