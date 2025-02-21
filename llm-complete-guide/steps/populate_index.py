@@ -645,17 +645,12 @@ def index_generator(
         documents (str): JSON string containing the documents to index.
         index_type (IndexType, optional): Type of index to generate. Defaults to IndexType.POSTGRES.
     """
-    # get model version
-    context = get_step_context()
-    model_version_name_or_id = context.model_version.name
-    if context.model_version.stage == "production":
-        model_version_name_or_id = "production"
     if index_type == IndexType.ELASTICSEARCH:
         _index_generator_elastic(documents)
     elif index_type == IndexType.POSTGRES:
         _index_generator_postgres(documents)
     elif index_type == IndexType.PINECONE:
-        _index_generator_pinecone(documents, model_version_name_or_id)
+        _index_generator_pinecone(documents)
     else:
         raise ValueError(f"Unknown index type: {index_type}")
 
@@ -830,18 +825,14 @@ def _index_generator_postgres(documents: str) -> None:
             conn.close()
 
 
-def _index_generator_pinecone(
-    documents: str, model_version_name_or_id: str
-) -> None:
+def _index_generator_pinecone(documents: str) -> None:
     """Generates a Pinecone index for the given documents.
 
     Args:
         documents (str): JSON string containing the documents to index.
         model_version (str): Name of the model version.
     """
-    index = get_pinecone_client(
-        model_version_name_or_id=model_version_name_or_id
-    )
+    index = get_pinecone_client()
 
     # Load documents
     docs = json.loads(documents)

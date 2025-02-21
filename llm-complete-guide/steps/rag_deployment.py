@@ -74,12 +74,10 @@ langfuse
 
 
 def predict(message, history):
-    # add the prod flag here
     return process_input_with_retrieval(
         input=message,
         n_items_retrieved=20,
         use_reranking=True,
-        model_version_stage="production",
     )
 
 
