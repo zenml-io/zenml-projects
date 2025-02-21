@@ -46,6 +46,7 @@ import numpy as np
 import psycopg2
 import tiktoken
 from constants import (
+    DEFAULT_PROMPT,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
     MODEL_NAME_MAP,
@@ -307,9 +308,7 @@ def get_db_conn() -> connection:
         raise
 
 
-def get_pinecone_client(
-    model_version_name_or_id: str = "dev",
-) -> pinecone.Index:
+def get_pinecone_client() -> pinecone.Index:
     """Get a Pinecone index client.
 
     Returns:
@@ -327,48 +326,24 @@ def get_pinecone_client(
     # raise error if there is no index name attached to the metadata
     model_version = client.get_model_version(
         model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
-        model_version_name_or_number_or_id=model_version_name_or_id,
     )
 
-    index_name_from_secret = client.get_secret(
-        SECRET_NAME
-    ).secret_values.get("pinecone_index", "zenml-docs")
+    index_name = model_version.name
+    index_name = index_name.replace(".", "-")
+    if "vector_store" not in model_version.run_metadata:
+        model_version.run_metadata["vector_store"] = {}
+    model_version.run_metadata["vector_store"]["index_name"] = index_name
 
-    if model_version_name_or_id == "production":
-        index_name = f"{index_name_from_secret}-prod"
-
-        # Initialize vector_store metadata if it doesn't exist
-        if "vector_store" not in model_version.run_metadata:
-            model_version.run_metadata["vector_store"] = {}
-
-        model_version.run_metadata["vector_store"]["index_name"] = index_name
-
-        # if not exists, create index
-        if index_name not in pc.list_indexes().names():
-            pc.create_index(
-                name=index_name,
-                dimension=EMBEDDING_DIMENSIONALITY,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            )
-    else:
-        try:
-            index_name = model_version.run_metadata["vector_store"]["index_name"]
-        except KeyError:
-            index_name = index_name_from_secret
-            # Initialize vector_store metadata if it doesn't exist
-            if "vector_store" not in model_version.run_metadata:
-                model_version.run_metadata["vector_store"] = {}
-            model_version.run_metadata["vector_store"]["index_name"] = index_name
-
-        # Create index if it doesn't exist
-        if index_name not in pc.list_indexes().names():
-            pc.create_index(
-                name=index_name,
-                dimension=EMBEDDING_DIMENSIONALITY,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            )
+    # if not exists, create index
+    if index_name not in pc.list_indexes().names():
+        pc.create_index(
+            name=index_name,
+            dimension=EMBEDDING_DIMENSIONALITY,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+    
+    print(f"Pinecone index being used: {index_name}")
 
     return pc.Index(index_name)
 
@@ -674,8 +649,8 @@ def process_input_with_retrieval(
     model: str = OPENAI_MODEL,
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
-    model_version_stage: str = "staging",
     tracing_tags: List[str] = [],
+    prompt: str = DEFAULT_PROMPT
 ) -> str:
     """Process the input with retrieval.
 
@@ -688,6 +663,7 @@ def process_input_with_retrieval(
         use_reranking (bool, optional): Whether to use reranking. Defaults to
             False.
         model_version_stage (str, optional): The stage of the model version. Defaults to "staging".
+        prompt (str, optional): The prompt to use for the retrieval. Defaults to None.
     Returns:
         str: The processed output.
     """
@@ -706,9 +682,7 @@ def process_input_with_retrieval(
             include_metadata=True,
         )
     elif vector_store == "pinecone":
-        pinecone_index = get_pinecone_client(
-            model_version_name_or_id=model_version_stage
-        )
+        pinecone_index = get_pinecone_client()
         similar_docs = get_topn_similar_docs(
             query_embedding=query_embedding,
             pinecone_index=pinecone_index,
@@ -738,14 +712,7 @@ def process_input_with_retrieval(
     # Step 2: Get completion from OpenAI API
     # Set system message to help set appropriate tone and context for model
     system_message = f"""
-    You are a friendly chatbot. \
-    You can answer questions about ZenML, its features and its use cases. \
-    You respond in a concise, technically credible tone. \
-    You ONLY use the context from the ZenML documentation to provide relevant
-    answers. \
-    You do not make up answers or provide opinions that you don't have
-    information to support. \
-    If you are unsure or don't know, just say so. \
+    {prompt}
     """
 
     # Prepare messages to pass to model

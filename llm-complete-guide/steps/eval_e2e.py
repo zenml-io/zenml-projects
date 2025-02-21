@@ -19,6 +19,8 @@ import logging
 import warnings
 from typing import Annotated, Callable, List, Tuple
 
+from constants import DEFAULT_PROMPT
+
 # Suppress the specific FutureWarning about clean_up_tokenization_spaces
 warnings.filterwarnings(
     "ignore",
@@ -70,7 +72,7 @@ good_responses = [
 
 
 def test_content_for_bad_words(
-    item: dict, n_items_retrieved: int = 5, tracing_tags: List[str] = []
+    item: dict, n_items_retrieved: int = 5, prompt: str = DEFAULT_PROMPT, tracing_tags: List[str] = []
 ) -> TestResult:
     """
     Test if responses contain bad words.
@@ -85,7 +87,7 @@ def test_content_for_bad_words(
     question = item["question"]
     bad_words = item["bad_words"]
     response = process_input_with_retrieval(
-        question, n_items_retrieved=n_items_retrieved, tracing_tags=tracing_tags
+        input=question, n_items_retrieved=n_items_retrieved, prompt=prompt, tracing_tags=tracing_tags
     )
     for word in bad_words:
         if word in response:
@@ -99,7 +101,7 @@ def test_content_for_bad_words(
 
 
 def test_response_starts_with_bad_words(
-    item: dict, n_items_retrieved: int = 5, tracing_tags: List[str] = []
+    item: dict, n_items_retrieved: int = 5, prompt: str = DEFAULT_PROMPT, tracing_tags: List[str] = []
 ) -> TestResult:
     """
     Test if responses improperly start with bad words.
@@ -114,7 +116,7 @@ def test_response_starts_with_bad_words(
     question = item["question"]
     bad_words = item["bad_words"]
     response = process_input_with_retrieval(
-        question, n_items_retrieved=n_items_retrieved, tracing_tags=tracing_tags
+        input=question, n_items_retrieved=n_items_retrieved, prompt=prompt, tracing_tags=tracing_tags
     )
     for word in bad_words:
         if response.lower().startswith(word.lower()):
@@ -128,7 +130,7 @@ def test_response_starts_with_bad_words(
 
 
 def test_content_contains_good_words(
-    item: dict, n_items_retrieved: int = 5, tracing_tags: List[str] = []
+    item: dict, n_items_retrieved: int = 5, prompt: str = DEFAULT_PROMPT, tracing_tags: List[str] = []
 ) -> TestResult:
     """
     Test if responses properly contain good words.
@@ -143,7 +145,7 @@ def test_content_contains_good_words(
     question = item["question"]
     good_words = item["good_words"]
     response = process_input_with_retrieval(
-        question, n_items_retrieved=n_items_retrieved, tracing_tags=tracing_tags
+        input=question, n_items_retrieved=n_items_retrieved, prompt=prompt, tracing_tags=tracing_tags
     )
     for word in good_words:
         if word not in response:
@@ -179,6 +181,7 @@ def llm_judged_test_e2e(
     question: str,
     context: str,
     n_items_retrieved: int = 5,
+    prompt: str = DEFAULT_PROMPT,
     tracing_tags: List[str] = []
 ) -> LLMJudgedTestResult:
     """E2E tests judged by an LLM.
@@ -192,7 +195,7 @@ def llm_judged_test_e2e(
     """
     logging.debug("Starting LLM judged test...")
     response = process_input_with_retrieval(
-        question, n_items_retrieved=n_items_retrieved, tracing_tags=tracing_tags
+        input=question, n_items_retrieved=n_items_retrieved, prompt=prompt, tracing_tags=tracing_tags
     )
     logging.debug("Input processed with retrieval.")
     prompt = f"""
@@ -236,6 +239,7 @@ def llm_judged_test_e2e(
 def run_llm_judged_tests(
     test_function: Callable[[str, str, int, List[str]], LLMJudgedTestResult],
     sample_size: int = 10,
+    prompt: str = DEFAULT_PROMPT,
     tracing_tags: List[str] = []
 ) -> Tuple[
     Annotated[float, "average_toxicity_score"],
@@ -272,7 +276,7 @@ def run_llm_judged_tests(
         context = item["page_content"]
 
         try:
-            result = test_function(question=question, context=context, tracing_tags=tracing_tags)
+            result = test_function(question=question, context=context, prompt=prompt, tracing_tags=tracing_tags)
         except json.JSONDecodeError as e:
             logging.error(f"Failed for question: {question}. Error: {e}")
             total_tests -= 1
@@ -301,6 +305,7 @@ def run_llm_judged_tests(
 def run_simple_tests(
     test_data: list, 
     test_function: Callable, 
+    prompt: str = DEFAULT_PROMPT, 
     tracing_tags: List[str] = []
     ) -> float:
     """
@@ -309,6 +314,7 @@ def run_simple_tests(
     Args:
         test_data (list): The test data.
         test_function (function): The test function to run.
+        prompt (str): The prompt to use for the evaluation.
 
     Returns:
         float: The failure rate.
@@ -316,7 +322,7 @@ def run_simple_tests(
     failures = 0
     total_tests = len(test_data)
     for item in test_data:
-        test_result = test_function(item, tracing_tags=tracing_tags)
+        test_result = test_function(item, prompt=prompt, tracing_tags=tracing_tags)
         if not test_result.success:
             logging.error(
                 f"Test failed for question: '{test_result.question}'. Found word: '{test_result.keyword}'. Response: '{test_result.response}'"
@@ -331,22 +337,30 @@ def run_simple_tests(
 
 @step
 def e2e_evaluation(
-    tracing_tags: List[str] = []
+    prompt: str,
+    tracing_tags: List[str] = [],
     ) -> Tuple[
     Annotated[float, "failure_rate_bad_answers"],
     Annotated[float, "failure_rate_bad_immediate_responses"],
     Annotated[float, "failure_rate_good_responses"],
 ]:
-    """Executes the end-to-end evaluation step."""
+    """Executes the end-to-end evaluation step.
+
+    Args:
+        prompt (str): The prompt to use for the evaluation.
+
+    Returns:
+        Tuple: The failure rate for bad answers, bad immediate responses, and good responses.
+    """
     logging.info("Testing bad answers...")
     failure_rate_bad_answers = run_simple_tests(
-        test_data=bad_answers, test_function=test_content_for_bad_words, tracing_tags=tracing_tags
+        test_data=bad_answers, test_function=test_content_for_bad_words, prompt=prompt, tracing_tags=tracing_tags
     )
     logging.info(f"Bad answers failure rate: {failure_rate_bad_answers}%")
 
     logging.info("Testing bad immediate responses...")
     failure_rate_bad_immediate_responses = run_simple_tests(
-        test_data=bad_immediate_responses, test_function=test_response_starts_with_bad_words, tracing_tags=tracing_tags
+        test_data=bad_immediate_responses, test_function=test_response_starts_with_bad_words, prompt=prompt, tracing_tags=tracing_tags
     )
     logging.info(
         f"Bad immediate responses failure rate: {failure_rate_bad_immediate_responses}%"
@@ -354,7 +368,7 @@ def e2e_evaluation(
 
     logging.info("Testing good responses...")
     failure_rate_good_responses = run_simple_tests(
-        test_data=good_responses, test_function=test_content_contains_good_words, tracing_tags=tracing_tags
+        test_data=good_responses, test_function=test_content_contains_good_words, prompt=prompt, tracing_tags=tracing_tags
     )
     logging.info(
         f"Good responses failure rate: {failure_rate_good_responses}%"
@@ -368,6 +382,7 @@ def e2e_evaluation(
 
 @step
 def e2e_evaluation_llm_judged(
+    prompt: str,
     tracing_tags: List[str] = []
 ) -> Tuple[
     Annotated[float, "average_toxicity_score"],
@@ -386,7 +401,7 @@ def e2e_evaluation_llm_judged(
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = run_llm_judged_tests(llm_judged_test_e2e, tracing_tags=tracing_tags)
+    ) = run_llm_judged_tests(llm_judged_test_e2e, prompt=prompt, tracing_tags=tracing_tags)
     return (
         average_toxicity_score,
         average_faithfulness_score,
