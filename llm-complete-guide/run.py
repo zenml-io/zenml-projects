@@ -241,7 +241,7 @@ def main(
             query_text,
             model=model,
             use_reranking=use_reranker,
-            model_version_stage="latest",
+            # model_version_stage="latest",
             tracing_tags=["cli", "dev"],
         )
         console = Console()

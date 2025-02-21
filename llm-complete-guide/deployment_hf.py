@@ -126,7 +126,7 @@ def predict(message, history):
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
-            model_version_stage="latest",
+            # model_version_stage="latest",
             prompt=prompt,
             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
