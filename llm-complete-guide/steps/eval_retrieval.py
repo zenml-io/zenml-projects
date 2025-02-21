@@ -27,6 +27,7 @@ from utils.llm_utils import (
     get_db_conn,
     get_embeddings,
     get_es_client,
+    get_pinecone_client,
     get_topn_similar_docs,
     rerank_documents,
 )
@@ -94,6 +95,8 @@ def query_similar_docs(
     vector_store_name = find_vectorstore_name()
     if vector_store_name == "pgvector":
         conn = get_db_conn()
+    elif vector_store_name == "pinecone":
+        pinecone_index = get_pinecone_client()
     else:
         es_client = get_es_client()
 
@@ -103,6 +106,7 @@ def query_similar_docs(
         embedded_question,
         conn=conn,
         es_client=es_client,
+        pinecone_index=pinecone_index,
         n=num_docs,
         include_metadata=True,
     )
