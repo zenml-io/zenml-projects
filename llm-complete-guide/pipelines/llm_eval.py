@@ -46,13 +46,13 @@ def llm_eval(after: Optional[str] = None) -> None:
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
-    ) = e2e_evaluation(after=after)
+    ) = e2e_evaluation(tracing_tags=["eval"], after=after)
     (
         average_toxicity_score,
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = e2e_evaluation_llm_judged(after=after)
+    ) = e2e_evaluation_llm_judged(tracing_tags=["eval"], after=after)
 
     visualize_evaluation_results(
         failure_rate_retrieval,

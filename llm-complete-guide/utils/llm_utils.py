@@ -579,7 +579,7 @@ def get_completion_from_messages(
     temperature=0,
     max_tokens=1000,
     tracing_tags: List[str] = [],
-):
+) -> str:
     """Generates a completion response from the given messages using the specified model.
 
     Args:
