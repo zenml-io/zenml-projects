@@ -73,14 +73,6 @@ langfuse
 """
 
 
-def predict(message, history):
-    return process_input_with_retrieval(
-        input=message,
-        n_items_retrieved=20,
-        use_reranking=True,
-    )
-
-
 def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
     """Upload multiple files to a Hugging Face repository
 
