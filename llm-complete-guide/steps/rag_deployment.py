@@ -32,6 +32,10 @@ LANGFUSE_HOST = os.environ.get(
     "LANGFUSE_HOST", secret.secret_values.get("LANGFUSE_HOST")
 )
 
+PINECONE_API_KEY = os.environ.get(
+    "PINECONE_API_KEY", secret.secret_values.get("pinecone_api_key")
+)
+
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
 SECRET_NAME = os.environ.get("ZENML_PROJECT_SECRET_NAME", "llm-complete")
@@ -114,7 +118,6 @@ def gradio_rag_deployment() -> None:
         space_sdk="gradio",
         private=True,
         exist_ok=True,
-        token=get_hf_token(),
     )
     # Ensure values are strings
     if ZENML_STORE_API_KEY is not None:
@@ -157,6 +160,13 @@ def gradio_rag_deployment() -> None:
             repo_id=hf_repo_id,
             key="LANGFUSE_HOST",
             value=str(LANGFUSE_HOST),
+        )
+
+    if PINECONE_API_KEY is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="PINECONE_API_KEY",
+            value=str(PINECONE_API_KEY),
         )
 
     files_to_upload = {

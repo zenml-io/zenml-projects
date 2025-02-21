@@ -42,7 +42,6 @@ from constants import (
     EMBEDDINGS_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    SECRET_NAME_PINECONE,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
@@ -883,6 +882,8 @@ def _index_generator_pinecone(
     logger.info(
         f"Successfully indexed {len(docs)} documents to Pinecone index"
     )
+
+    _log_metadata(index_type=IndexType.PINECONE)
 
 
 def _log_metadata(index_type: IndexType) -> None:

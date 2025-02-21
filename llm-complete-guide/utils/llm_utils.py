@@ -52,7 +52,6 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    SECRET_NAME_PINECONE,
     ZENML_CHATBOT_MODEL_NAME,
     ZENML_CHATBOT_MODEL_VERSION,
 )
@@ -317,7 +316,7 @@ def get_pinecone_client(
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME).secret_values[
+    pinecone_api_key = os.getenv("PINECONE_API_KEY") or client.get_secret(SECRET_NAME).secret_values[
         "pinecone_api_key"
     ]
     pc = Pinecone(api_key=pinecone_api_key)
@@ -332,7 +331,8 @@ def get_pinecone_client(
     )
 
     index_name_from_secret = client.get_secret(
-        SECRET_NAME).secret_values.get("pinecone_index", "zenml-docs")
+        SECRET_NAME
+    ).secret_values.get("pinecone_index", "zenml-docs")
 
     if model_version_name_or_id == "production":
         index_name = f"{index_name_from_secret}-prod"
@@ -343,17 +343,14 @@ def get_pinecone_client(
 
         model_version.run_metadata["vector_store"]["index_name"] = index_name
 
-        # delete index if it exists
-        if index_name in pc.list_indexes().names():
-            pc.delete_index(index_name)
-
-        # create index
-        pc.create_index(
-            name=index_name,
-            dimension=EMBEDDING_DIMENSIONALITY,
-            metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        )
+        # if not exists, create index
+        if index_name not in pc.list_indexes().names():
+            pc.create_index(
+                name=index_name,
+                dimension=EMBEDDING_DIMENSIONALITY,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            )
     else:
         try:
             index_name = model_version.run_metadata["vector_store"]["index_name"]
@@ -500,7 +497,8 @@ def get_topn_similar_docs_pinecone(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing document content and similarity scores.
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+            of the top n most similar documents.
     """
     # Convert numpy array to list if needed
     if isinstance(query_embedding, np.ndarray):
@@ -509,21 +507,25 @@ def get_topn_similar_docs_pinecone(
     # Query the index
     results = pinecone_index.query(
         vector=query_embedding, top_k=n, include_metadata=True
-    )
+    )    
 
     # Process results
     similar_docs = []
     for match in results.matches:
-        score = match.score
         metadata = match.metadata
 
         if only_urls:
-            similar_docs.append((metadata["url"], score))
+            similar_docs.append((metadata["url"],))
+        elif include_metadata:
+            similar_docs.append(
+                (
+                    metadata["page_content"],
+                    metadata["url"],
+                    metadata["parent_section"],
+                )
+            )
         else:
-            content = metadata["page_content"]
-            if include_metadata:
-                content = f"{metadata['filename']} - {metadata['parent_section']}: {content}"
-            similar_docs.append((content, score))
+            similar_docs.append((metadata["page_content"],))
 
     return similar_docs
 
@@ -549,7 +551,8 @@ def get_topn_similar_docs(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing document content and similarity scores.
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+            of the top n most similar documents.
 
     Raises:
         ValueError: If no valid vector store client is provided.
@@ -648,7 +651,7 @@ def rerank_documents(
 
     Returns:
         List[Tuple[str, str]]: A list of tuples containing
-            the reranked documents and their URLs.
+            the reranked documents  and their URLs.
     """
     ranker = Reranker(reranker_model)
     docs_texts = [f"{doc[0]} PARENT SECTION: {doc[2]}" for doc in documents]

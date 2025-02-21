@@ -30,4 +30,4 @@ steps:
       use_dev_set: true
   index_generator:
     parameters:
-      index_type: postgres  # Options: pinecone, postgres, elasticsearch
+      index_type: pinecone
