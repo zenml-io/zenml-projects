@@ -340,13 +340,13 @@ def e2e_evaluation(
     """Executes the end-to-end evaluation step."""
     logging.info("Testing bad answers...")
     failure_rate_bad_answers = run_simple_tests(
-        bad_answers, test_content_for_bad_words, tracing_tags=tracing_tags
+        test_data=bad_answers, test_function=test_content_for_bad_words, tracing_tags=tracing_tags
     )
     logging.info(f"Bad answers failure rate: {failure_rate_bad_answers}%")
 
     logging.info("Testing bad immediate responses...")
     failure_rate_bad_immediate_responses = run_simple_tests(
-        bad_immediate_responses, test_response_starts_with_bad_words, tracing_tags=tracing_tags
+        test_data=bad_immediate_responses, test_function=test_response_starts_with_bad_words, tracing_tags=tracing_tags
     )
     logging.info(
         f"Bad immediate responses failure rate: {failure_rate_bad_immediate_responses}%"
@@ -354,7 +354,7 @@ def e2e_evaluation(
 
     logging.info("Testing good responses...")
     failure_rate_good_responses = run_simple_tests(
-        good_responses, test_content_contains_good_words, tracing_tags=tracing_tags
+        test_data=good_responses, test_function=test_content_contains_good_words, tracing_tags=tracing_tags
     )
     logging.info(
         f"Good responses failure rate: {failure_rate_good_responses}%"

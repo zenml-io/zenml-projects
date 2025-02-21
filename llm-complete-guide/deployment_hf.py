@@ -123,7 +123,7 @@ def predict(message, history):
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
-            model_version_stage="production",
+            model_version_stage="latest",
             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
     except Exception as e:

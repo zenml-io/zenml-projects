@@ -61,10 +61,10 @@ def url_scraper(
     else:
         docs_urls = get_all_pages(docs_url)
 
-    website_urls = get_all_pages(website_url)
+    # website_urls = get_all_pages(website_url)
     # all_urls = docs_urls + website_urls
     # all_urls = website_urls
-    all_urls = ["https://zenml.io"]
+    all_urls = docs_urls
     log_metadata(
         metadata={
             "count": len(all_urls),
