@@ -42,7 +42,6 @@ from constants import (
     EMBEDDINGS_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    SECRET_NAME_PINECONE,
 )
 from pgvector.psycopg2 import register_vector
 from PIL import Image, ImageDraw, ImageFont
@@ -929,7 +928,7 @@ def _log_metadata(index_type: IndexType) -> None:
         connection_details = {
             "api_key": "**********",
             "environment": client.get_secret(
-                SECRET_NAME_PINECONE
+                SECRET_NAME
             ).secret_values["pinecone_env"],
         }
 

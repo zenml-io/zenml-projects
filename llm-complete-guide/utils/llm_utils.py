@@ -52,7 +52,6 @@ from constants import (
     OPENAI_MODEL,
     SECRET_NAME,
     SECRET_NAME_ELASTICSEARCH,
-    SECRET_NAME_PINECONE,
     ZENML_CHATBOT_MODEL_NAME,
     ZENML_CHATBOT_MODEL_VERSION,
 )
@@ -293,7 +292,7 @@ def get_pinecone_client(
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = os.getenv("PINECONE_API_KEY") or client.get_secret(SECRET_NAME_PINECONE).secret_values[
+    pinecone_api_key = os.getenv("PINECONE_API_KEY") or client.get_secret(SECRET_NAME).secret_values[
         "pinecone_api_key"
     ]
     pc = Pinecone(api_key=pinecone_api_key)
@@ -308,7 +307,7 @@ def get_pinecone_client(
     )
 
     index_name_from_secret = client.get_secret(
-        SECRET_NAME_PINECONE
+        SECRET_NAME
     ).secret_values.get("pinecone_index", "zenml-docs")
 
     if model_version_name_or_id == "production":

@@ -1,7 +1,7 @@
 import os
 import webbrowser
 
-from constants import SECRET_NAME, SECRET_NAME_PINECONE
+from constants import SECRET_NAME
 from huggingface_hub import HfApi
 from utils.hf_utils import get_hf_token
 from utils.llm_utils import process_input_with_retrieval
@@ -14,7 +14,6 @@ ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
 
 secret = Client().get_secret(SECRET_NAME)
-pinecone_secret = Client().get_secret(SECRET_NAME_PINECONE)
 
 if not ZENML_API_TOKEN or not ZENML_STORE_URL:
     # Get ZenML server URL and API token from the secret store
@@ -37,7 +36,7 @@ LANGFUSE_HOST = os.environ.get(
 )
 
 PINECONE_API_KEY = os.environ.get(
-    "PINECONE_API_KEY", pinecone_secret.secret_values.get("pinecone_api_key")
+    "PINECONE_API_KEY", secret.secret_values.get("pinecone_api_key")
 )
 
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
