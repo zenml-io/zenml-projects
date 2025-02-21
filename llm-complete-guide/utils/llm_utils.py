@@ -293,7 +293,7 @@ def get_pinecone_client(
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = client.get_secret(SECRET_NAME_PINECONE).secret_values[
+    pinecone_api_key = os.getenv("PINECONE_API_KEY") or client.get_secret(SECRET_NAME_PINECONE).secret_values[
         "pinecone_api_key"
     ]
     pc = Pinecone(api_key=pinecone_api_key)
@@ -316,17 +316,14 @@ def get_pinecone_client(
 
         model_version.run_metadata["vector_store"]["index_name"] = index_name
 
-        # delete index if it exists
-        if index_name in pc.list_indexes().names():
-            pc.delete_index(index_name)
-
-        # create index
-        pc.create_index(
-            name=index_name,
-            dimension=EMBEDDING_DIMENSIONALITY,
-            metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        )
+        # if not exists, create index
+        if index_name not in pc.list_indexes().names():
+            pc.create_index(
+                name=index_name,
+                dimension=EMBEDDING_DIMENSIONALITY,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            )
     else:
         try:
             index_name = model_version.run_metadata["vector_store"][
@@ -484,7 +481,7 @@ def get_topn_similar_docs_pinecone(
     # Query the index
     results = pinecone_index.query(
         vector=query_embedding, top_k=n, include_metadata=True
-    )
+    )    
 
     # Process results
     similar_docs = []
@@ -628,7 +625,7 @@ def rerank_documents(
 
     Returns:
         List[Tuple[str, str]]: A list of tuples containing
-            the reranked documents and their URLs.
+            the reranked documents  and their URLs.
     """
     ranker = Reranker(reranker_model)
     docs_texts = [f"{doc[0]} PARENT SECTION: {doc[2]}" for doc in documents]

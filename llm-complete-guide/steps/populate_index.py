@@ -884,6 +884,8 @@ def _index_generator_pinecone(
         f"Successfully indexed {len(docs)} documents to Pinecone index"
     )
 
+    _log_metadata(index_type=IndexType.PINECONE)
+
 
 def _log_metadata(index_type: IndexType) -> None:
     """Log metadata about the indexing process."""
