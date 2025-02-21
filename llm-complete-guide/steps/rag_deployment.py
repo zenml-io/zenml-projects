@@ -10,20 +10,17 @@ from zenml.client import Client
 from zenml.integrations.registry import integration_registry
 
 # Try to get from environment first, otherwise fall back to secret store
-ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
+ZENML_STORE_API_KEY = os.environ.get("ZENML_STORE_API_KEY")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
 
 secret = Client().get_secret(SECRET_NAME)
 
-if not ZENML_API_TOKEN or not ZENML_STORE_URL:
+if not ZENML_STORE_API_KEY or not ZENML_STORE_URL:
     # Get ZenML server URL and API token from the secret store
-    ZENML_API_TOKEN = ZENML_API_TOKEN or secret.secret_values.get(
-        "zenml_api_token"
+    ZENML_STORE_API_KEY = ZENML_STORE_API_KEY or secret.secret_values.get(
+        "zenml_store_api_token"
     )
-    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
-        "zenml_store_url"
-    )
-
+    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get("zenml_store_url")
 
 LANGFUSE_PUBLIC_KEY = os.environ.get(
     "LANGFUSE_PUBLIC_KEY", secret.secret_values.get("LANGFUSE_PUBLIC_KEY")
@@ -112,13 +109,12 @@ def gradio_rag_deployment() -> None:
         private=True,
         exist_ok=True,
     )
-
     # Ensure values are strings
-    if ZENML_API_TOKEN is not None:
+    if ZENML_STORE_API_KEY is not None:
         api.add_space_secret(
             repo_id=hf_repo_id,
             key="ZENML_STORE_API_KEY",
-            value=str(ZENML_API_TOKEN),
+            value=str(ZENML_STORE_API_KEY),
         )
 
     if ZENML_STORE_URL is not None:

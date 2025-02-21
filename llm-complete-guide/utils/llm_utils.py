@@ -46,6 +46,7 @@ import numpy as np
 import psycopg2
 import tiktoken
 from constants import (
+    DEFAULT_PROMPT,
     EMBEDDING_DIMENSIONALITY,
     EMBEDDINGS_MODEL,
     MODEL_NAME_MAP,
@@ -62,6 +63,30 @@ from sentence_transformers import SentenceTransformer
 from structures import Document
 
 logger = logging.getLogger(__name__)
+
+# First try to get from environment variables
+LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
+LANGFUSE_HOST = os.getenv("LANGFUSE_HOST")
+
+# If any are not set, get from ZenML secrets and set the env vars
+if not all([LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST]):
+    secret = Client().get_secret(SECRET_NAME)
+    
+    if not LANGFUSE_PUBLIC_KEY:
+        LANGFUSE_PUBLIC_KEY = secret.secret_values.get("langfuse_public_key")
+        if LANGFUSE_PUBLIC_KEY:
+            os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+        
+    if not LANGFUSE_SECRET_KEY:
+        LANGFUSE_SECRET_KEY = secret.secret_values.get("langfuse_secret_key")
+        if LANGFUSE_SECRET_KEY:
+            os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+        
+    if not LANGFUSE_HOST:
+        LANGFUSE_HOST = secret.secret_values.get("langfuse_host")
+        if LANGFUSE_HOST:
+            os.environ["LANGFUSE_HOST"] = LANGFUSE_HOST
 
 # logs all litellm requests to langfuse
 litellm.callbacks = ["langfuse"]
@@ -529,7 +554,7 @@ def get_completion_from_messages(
     temperature=0,
     max_tokens=1000,
     tracing_tags: List[str] = [],
-):
+) -> str:
     """Generates a completion response from the given messages using the specified model.
 
     Args:
@@ -625,7 +650,7 @@ def process_input_with_retrieval(
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
     tracing_tags: List[str] = [],
-    prompt: str = None
+    prompt: str = DEFAULT_PROMPT
 ) -> str:
     """Process the input with retrieval.
 

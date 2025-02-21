@@ -40,7 +40,7 @@ def get_all_pages(base_url: str = "https://docs.zenml.io") -> List[str]:
     soup = BeautifulSoup(response.text, "xml")
 
     # Extract all URLs from the sitemap
-    urls = [loc.text for loc in soup.find_all("loc")]
+    urls = [loc.text.strip() for loc in soup.find_all("loc")]
 
     logger.info(f"Found {len(urls)} pages in the sitemap.")
     return urls
