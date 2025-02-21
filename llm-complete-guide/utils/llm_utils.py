@@ -317,6 +317,8 @@ def get_pinecone_client() -> pinecone.Index:
             metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
+    
+    print(f"Pinecone index being used: {index_name}")
 
     return pc.Index(index_name)
 

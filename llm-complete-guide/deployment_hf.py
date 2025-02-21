@@ -3,7 +3,7 @@ import os
 import time
 
 import gradio as gr
-from constants import SECRET_NAME
+from constants import SECRET_NAME, ZENML_CHATBOT_MODEL_NAME
 from langfuse import Langfuse
 from utils.llm_utils import process_input_with_retrieval
 from zenml.client import Client
@@ -117,11 +117,16 @@ def vote(data: gr.LikeData):
 
 
 def predict(message, history):
+    # get the prompt from the ZenML production model
+    prompt = client.get_model_version(
+        model_name_or_id=ZENML_CHATBOT_MODEL_NAME,
+    ).run_metadata["prompt"]
     try:
         return process_input_with_retrieval(
             input=message,
             n_items_retrieved=20,
             use_reranking=True,
+            prompt=prompt,
             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
     except Exception as e:

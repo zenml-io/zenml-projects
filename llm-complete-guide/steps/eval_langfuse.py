@@ -247,7 +247,7 @@ def get_langfuse_scores(
 
 
 @step(enable_cache=False)
-def fast_eval() -> List[Dict[str, Any]]:
+def fast_eval(prompt: str) -> List[Dict[str, Any]]:
     """Evaluate LLM responses by comparing old vs new responses.
 
     Returns:
@@ -271,7 +271,8 @@ def fast_eval() -> List[Dict[str, Any]]:
             # Generate new response using current implementation
             try:
                 new_response = process_input_with_retrieval(
-                    question,
+                    input=question,
+                    prompt=prompt,
                     tracing_tags=["evaluation"],
                 )
             except Exception as e:

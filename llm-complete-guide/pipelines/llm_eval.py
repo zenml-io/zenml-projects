@@ -25,12 +25,16 @@ from steps.eval_retrieval import (
     retrieval_evaluation_small_with_reranking,
 )
 from steps.eval_visualisation import visualize_evaluation_results
+from steps.create_prompt import create_prompt
 from zenml import pipeline
 
 
 @pipeline(enable_cache=True)
 def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
+    # define prompt
+    prompt = create_prompt()
+
     # Retrieval evals
     failure_rate_retrieval = retrieval_evaluation_small(after=after)
     full_retrieval_answers = retrieval_evaluation_full(after=after)
@@ -46,13 +50,13 @@ def llm_eval(after: Optional[str] = None) -> None:
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
-    ) = e2e_evaluation(after=after)
+    ) = e2e_evaluation(after=after, prompt=prompt)
     (
         average_toxicity_score,
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = e2e_evaluation_llm_judged(after=after)
+    ) = e2e_evaluation_llm_judged(after=after, prompt=prompt)
 
     visualize_evaluation_results(
         failure_rate_retrieval,
