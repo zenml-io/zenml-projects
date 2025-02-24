@@ -59,25 +59,19 @@ etc.
 
 A list of updated and maintained projects by the ZenML team and the community:
 
-| Project                                                                | Tags                                  | Integrations                                                             |
-|------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
-| [NBA Three-Pointer Predictor](nba-pipeline)                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                          |
-| [Time Series Forecasting](time-series-forecast)                        | Time-series                           | `gcp`                                                                    |
-| [Customer Satisfaction](customer-satisfaction)                         | Tabular                               | `mlflow` `kubeflow`                                                      |
-| [Customer Churn](customer-churn)                                       | Tabular                               | `kubeflow` `seldon`                                                      |
-| [Label Studio Annotation](label_studio_annotation)                     | Data Annotation                       | `label-studio`                                                           | 
-| [YOLOv5 Object Detection](sign-language-detection-yolov5)              | Computer-vision                       | `mlflow` `gcp`                                                           |
-| [LLMs To Analyze Databases](supabase-openai-summary)                   | NLP, LLMs                             | `gcp` `slack`                                                            |
-| [GitFlow ZenML Project](https://github.com/zenml-io/zenml-gitflow)     | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
-| [ZenNews](zen-news-summarization)                                      | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
-| [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
-| [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
-| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs, embeddings, finetuning                           | `openai` `supabase` `huggingface` `argilla`  |
-| [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
-| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/README.md)               | Regression, Airflow                           | `cloud-composer` `airflow` |
-| [Simple LLM finetuning with Lightning Studio](simple-llm-finetuning/README.md)               | Lightning AI Studio, LLMs                           | `cloud-composer` `airflow` |
-| [Flux Dreambooth](flux-dreambooth/README.md)               | Flux, Dreambooth, LLMs                           | `modal` `kubernetes` |
+| Project | Tags | Tools |
+|---------|------|-------|
+| [LLM Agents](llm-agents) | `NLP` `LLM Agents` `Conversational AI` `RAG` `Vector Stores` `Production MLOps` | `langchain` `llama_index` `faiss` `openai` |
+| [LLM Finetuning](llm-finetuning) | `NLP` `LLM` `Model Fine-tuning` `Transfer Learning` `Parameter Optimization` | `huggingface` `pytorch` `wandb` |
+| [Complete Guide to LLMs](llm-complete-guide) | `NLP` `LLM` `RAG` `Fine-tuning` `Model Evaluation` `Embeddings` `Synthetic Data` | `openai` `supabase` `huggingface` `argilla` `gradio` `anthropic` `litellm` |
+| [LLM LoRA Finetuning](llm-lora-finetuning) | `NLP` `Parameter-Efficient Fine-tuning` `LoRA` `LLM` `Distributed Training` | `huggingface` `pytorch` `accelerate` `peft` `phi-2` |
+| [End-to-end Computer Vision](end-to-end-computer-vision) | `Computer Vision` `Object Detection` `Data Labeling` `Human-in-the-Loop` | `pytorch` `label_studio` `fiftyone` `vertex-ai` `gcp` `yolov8` |
+| [Flux Dreambooth](flux-dreambooth) | `Image Generation` `Fine-tuning` `Stable Diffusion` `LoRA` `Video Generation` | `modal` `kubernetes` `huggingface` `flux` `stable-video-diffusion` |
+| [Huggingface to Sagemaker](huggingface-sagemaker) | `Model Deployment` `NLP` `Sentiment Analysis` `Model Training` `CI/CD` | `pytorch` `mlflow` `huggingface` `aws` `sagemaker` `s3` `kubeflow` `slack` `github` |
+| [Databricks Production QA Demo](databricks-production-qa-demo) | `Quality Assurance` `CI/CD` `Model Monitoring` `Model Explainability` `Data Drift` | `databricks` `mlflow` `evidently` `shap` `slack` |
+| [ECB Interest Rate Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train) | `ETL` `Time Series` `Feature Engineering` `Regression` `Workflow Orchestration` | `cloud-composer` `airflow` `vertex-ai` `bigquery` `xgboost` `gcp` |
+| [Supabase OpenAI Summary](supabase-openai-summary) | `NLP` `Text Summarization` `Database Integration` `LLM` `Automated Reporting` | `openai` `supabase` `slack` `github-actions` `gcp` |
+| [Sign Language Detection with YOLOv5](sign-language-detection-yolov5) | `Computer Vision` `Object Detection` `Real-time Processing` `Model Deployment` | `mlflow` `gcp` `bentoml` `vertex-ai` `docker` |
 
 # 💻 System Requirements
 

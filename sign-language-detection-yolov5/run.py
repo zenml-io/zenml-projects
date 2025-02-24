@@ -12,8 +12,12 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import click
-from pipelines.deployment_pipeline import sign_language_detection_deployment_pipeline
-from pipelines.inference_pipeline import sign_language_detection_inference_pipeline
+from pipelines.deployment_pipeline import (
+    sign_language_detection_deployment_pipeline,
+)
+from pipelines.inference_pipeline import (
+    sign_language_detection_inference_pipeline,
+)
 from pipelines.train_pipeline import sign_language_detection_train_pipeline
 
 TRAIN = "train"

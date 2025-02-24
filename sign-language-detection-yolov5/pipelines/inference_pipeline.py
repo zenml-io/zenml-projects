@@ -12,15 +12,14 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
+from steps import (
+    bentoml_prediction_service_loader,
+    inference_loader,
+    predictor,
+)
 from zenml.config import DockerSettings
 from zenml.integrations.constants import BENTOML, PYTORCH
 from zenml.pipelines import pipeline
-
-from steps import (
-    inference_loader,
-    bentoml_prediction_service_loader,
-    predictor,
-)
 
 docker_settings = DockerSettings(required_integrations=[PYTORCH, BENTOML])
 

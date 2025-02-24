@@ -1,6 +1,0 @@
-zenml>=0.70.0
-joblib>=1.1.0
-optuna
-streamlit
-markupsafe
-altair

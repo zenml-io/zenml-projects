@@ -23,12 +23,11 @@ from steps import (
     notify_on_failure,
     notify_on_success,
 )
+from steps.explainability import explain_model
 from zenml import get_pipeline_context, pipeline
 from zenml.integrations.evidently.metrics import EvidentlyMetricConfig
 from zenml.integrations.evidently.steps import evidently_report_step
 from zenml.logger import get_logger
-
-from steps.explainability import explain_model
 
 logger = get_logger(__name__)
 

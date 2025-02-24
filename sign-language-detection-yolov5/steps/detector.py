@@ -52,7 +52,7 @@ def image_saver(image_set: Dict):
     for key, value in image_set.items():
         dim = (768, 1024)
         resized_image = cv2.resize(value[0], dim, interpolation=cv2.INTER_AREA)
-        cv2.imwrite(f'inference/images/{key.rsplit("/",1)[1]}', resized_image)
+        cv2.imwrite(f"inference/images/{key.rsplit('/', 1)[1]}", resized_image)
 
 
 def model_saver(model: Dict):

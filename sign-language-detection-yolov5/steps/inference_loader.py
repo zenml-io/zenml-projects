@@ -22,7 +22,9 @@ from zenml.steps import step
 @step
 def inference_loader() -> Annotated[List, "images_path"]:
     """Loads the trained models from previous training pipeline runs."""
-    training_pipeline = Client().get_pipeline("sign_language_detection_train_pipeline")
+    training_pipeline = Client().get_pipeline(
+        "sign_language_detection_train_pipeline"
+    )
     last_run = training_pipeline.runs[0]
 
     try:
