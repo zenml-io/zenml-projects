@@ -153,8 +153,7 @@ the `ls_project_id` to correspond to the id of your project within Label Studio.
 
 Label Studio should be up and running for the whole duration of this pipeline
 run. 
-Also in configs/ingest_data.yaml, make sure to change the dataset name to the name of the dataset in Label Studio. 
-Also make sure the storage type to `gcs` if you are using GCP. Also make sure to set `ls_storage_id` and `ls_project_id` 
+Also in `configs/ingest_data.yaml`, make sure to change the dataset name to the name of the dataset in Label Studio. You'll also want to make sure the storage type is set to `gcs` if you are using GCP, and don't forget to set `ls_storage_id` and `ls_project_id` 
 to the correct values.
 
 ```bash
