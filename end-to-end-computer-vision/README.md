@@ -32,6 +32,8 @@ deployed instance of ZenML:
 
 ```bash
 pip install uv
+uv venv .venv
+source .venv/bin/activate
 uv pip install -r requirements.txt
 zenml integration install pytorch gcp mlflow label_studio -y
 pip uninstall wandb  # This comes in automatically
