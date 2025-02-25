@@ -15,6 +15,7 @@
 # limitations under the License.
 import warnings
 from pathlib import Path
+import os
 
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
@@ -39,7 +40,7 @@ logging.getLogger().setLevel(logging.ERROR)  # Root logger configuration
 from typing import Optional
 
 import click
-from constants import OPENAI_MODEL
+from constants import OPENAI_MODEL, SECRET_NAME
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
@@ -48,11 +49,13 @@ from pipelines import (
     llm_basic_rag,
     llm_eval,
     llm_index_and_evaluate,
+    llm_langfuse_evaluation,
     rag_deployment,
 )
 from structures import Document
 from zenml import Model
 from zenml.materializers.materializer_registry import materializer_registry
+from zenml.client import Client
 
 logger = get_logger(__name__)
 
@@ -76,6 +79,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
             "embeddings",
             "chunks",
             "basic_rag",
+            "langfuse_evaluation",
         ]
     ),
     required=True,
@@ -232,8 +236,12 @@ def main(
             raise click.UsageError(
                 "--query-text is required when using 'query' command"
             )
+        # add the prod flag here
         response = process_input_with_retrieval(
-            query_text, model=model, use_reranking=use_reranker
+            query_text,
+            model=model,
+            use_reranking=use_reranker,
+            tracing_tags=["cli", "dev"],
         )
         console = Console()
         md = Markdown(response)
@@ -262,6 +270,10 @@ def main(
     elif pipeline == "evaluation":
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(model=zenml_model, config_path=config_path)()
+
+    elif pipeline == "langfuse_evaluation":
+        pipeline_args["enable_cache"] = False
+        llm_langfuse_evaluation.with_options(model=zenml_model)()
 
     elif pipeline == "synthetic":
         generate_synthetic_data.with_options(

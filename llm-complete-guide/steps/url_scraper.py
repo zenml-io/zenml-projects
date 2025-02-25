@@ -48,13 +48,22 @@ def url_scraper(
             "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
             "https://docs.zenml.io/how-to/debug-and-solve-issues",
             "https://docs.zenml.io/stack-components/step-operators/azureml",
-            "https://docs.zenml.io/how-to/interact-with-secrets",
+            # "https://docs.zenml.io/how-to/interact-with-secrets",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/service-connectors-guide",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/hyperai-service-connector", 
+            # "https://docs.zenml.io/stack-components/data-validators/evidently",
+            # "https://docs.zenml.io/stack-components/data-validators",
+            # "https://docs.zenml.io/stack-components/step-operators/sagemaker",
+            # "https://docs.zenml.io/stack-components/alerters/slack",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/kubernetes-service-connector",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/azure-service-connector"
         ]
     else:
         docs_urls = get_all_pages(docs_url)
 
     # website_urls = get_all_pages(website_url)
-    # all_urls = docs_urls + website_urls + examples_readme_urls
+    # all_urls = docs_urls + website_urls
+    # all_urls = website_urls
     all_urls = docs_urls
     log_metadata(
         metadata={

@@ -247,7 +247,7 @@ def evaluate_model(
 
     Returns:
         A tuple containing the average cosine similarity for each model on the
-        test set as well as an image visualising the comparison.
+        test set as well as an image visualizing the comparison.
     """
     logger.info("Evaluating the finetuned model on the test set.")
     logger.info(f"Comparison model: {comparison_model}")
@@ -514,7 +514,7 @@ def calculate_batch_similarities(
 
 #     Returns:
 #         A tuple containing the average cosine similarity for each model on the
-#         test set as well as an image visualising the comparison.
+#         test set as well as an image visualizing the comparison.
 #     """
 #     pretrained_model = SentenceTransformer(comparison_model)
 
