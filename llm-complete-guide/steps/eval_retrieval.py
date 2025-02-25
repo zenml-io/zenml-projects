@@ -186,7 +186,7 @@ def process_with_progress(
     )
 
     results = []
-    with Pool(processes=n_processes) as pool:
+    with Pool(processes=n_processes) as pool: # Sleep for 3 seconds before starting processing
         for i, result in enumerate(pool.imap(worker_fn, items), 1):
             results.append(result)
             logger.info(f"Completed {i}/{len(items)} tests")
