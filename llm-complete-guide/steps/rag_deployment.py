@@ -10,18 +10,31 @@ from zenml.client import Client
 from zenml.integrations.registry import integration_registry
 
 # Try to get from environment first, otherwise fall back to secret store
-ZENML_API_TOKEN = os.environ.get("ZENML_API_TOKEN")
+ZENML_STORE_API_KEY = os.environ.get("ZENML_STORE_API_KEY")
 ZENML_STORE_URL = os.environ.get("ZENML_STORE_URL")
 
-if not ZENML_API_TOKEN or not ZENML_STORE_URL:
+secret = Client().get_secret(SECRET_NAME)
+
+if not ZENML_STORE_API_KEY or not ZENML_STORE_URL:
     # Get ZenML server URL and API token from the secret store
-    secret = Client().get_secret(SECRET_NAME)
-    ZENML_API_TOKEN = ZENML_API_TOKEN or secret.secret_values.get(
-        "zenml_api_token"
+    ZENML_STORE_API_KEY = ZENML_STORE_API_KEY or secret.secret_values.get(
+        "zenml_store_api_token"
     )
-    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
-        "zenml_store_url"
-    )
+    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get("zenml_store_url")
+
+LANGFUSE_PUBLIC_KEY = os.environ.get(
+    "LANGFUSE_PUBLIC_KEY", secret.secret_values.get("LANGFUSE_PUBLIC_KEY")
+)
+LANGFUSE_SECRET_KEY = os.environ.get(
+    "LANGFUSE_SECRET_KEY", secret.secret_values.get("LANGFUSE_SECRET_KEY")
+)
+LANGFUSE_HOST = os.environ.get(
+    "LANGFUSE_HOST", secret.secret_values.get("LANGFUSE_HOST")
+)
+
+PINECONE_API_KEY = os.environ.get(
+    "PINECONE_API_KEY", secret.secret_values.get("pinecone_api_key")
+)
 
 SPACE_USERNAME = os.environ.get("ZENML_HF_USERNAME", "zenml")
 SPACE_NAME = os.environ.get("ZENML_HF_SPACE_NAME", "llm-complete-guide-rag")
@@ -51,16 +64,10 @@ torch
 huggingface-hub
 elasticsearch
 tenacity
+pinecone
+langfuse
 {chr(10).join(gcp_reqs)}
 """
-
-
-def predict(message, history):
-    return process_input_with_retrieval(
-        input=message,
-        n_items_retrieved=20,
-        use_reranking=True,
-    )
 
 
 def upload_files_to_repo(api, repo_id: str, files_mapping: dict, token: str):
@@ -94,22 +101,20 @@ def gradio_rag_deployment() -> None:
     Starts a web server with a chat interface that echoes back user messages.
     The server runs indefinitely until manually stopped.
     """
-    api = HfApi()
+    api = HfApi(token=get_hf_token())
     api.create_repo(
         repo_id=hf_repo_id,
         repo_type="space",
         space_sdk="gradio",
         private=True,
         exist_ok=True,
-        token=get_hf_token(),
     )
-
     # Ensure values are strings
-    if ZENML_API_TOKEN is not None:
+    if ZENML_STORE_API_KEY is not None:
         api.add_space_secret(
             repo_id=hf_repo_id,
             key="ZENML_STORE_API_KEY",
-            value=str(ZENML_API_TOKEN),
+            value=str(ZENML_STORE_API_KEY),
         )
 
     if ZENML_STORE_URL is not None:
@@ -124,6 +129,34 @@ def gradio_rag_deployment() -> None:
             repo_id=hf_repo_id,
             key="ZENML_PROJECT_SECRET_NAME",
             value=str(SECRET_NAME),
+        )
+
+    if LANGFUSE_PUBLIC_KEY is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="LANGFUSE_PUBLIC_KEY",
+            value=str(LANGFUSE_PUBLIC_KEY),
+        )
+
+    if LANGFUSE_SECRET_KEY is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="LANGFUSE_SECRET_KEY",
+            value=str(LANGFUSE_SECRET_KEY),
+        )
+
+    if LANGFUSE_HOST is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="LANGFUSE_HOST",
+            value=str(LANGFUSE_HOST),
+        )
+
+    if PINECONE_API_KEY is not None:
+        api.add_space_secret(
+            repo_id=hf_repo_id,
+            key="PINECONE_API_KEY",
+            value=str(PINECONE_API_KEY),
         )
 
     files_to_upload = {
