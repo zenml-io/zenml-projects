@@ -4,9 +4,10 @@ steps:
     enable_step_logs: False
     parameters:
       dataset: "datadrivenscience/ship-detection"
-      data_source: <INSERT_HERE>  # Replace this with the path to a data source
+      data_source:   # Set this to the path to a data source, for example "gs://zenml-20219041791-054405/ship_detection_ds"
   upload_labels_to_label_studio:
     enable_cache: False
     parameters:
-      ls_project_id: 1
-      storage_type: gcp # For AWS use "s3" instead of "gcp" (the default value)
+      ls_project_id: 1 # Adjust to reflect the id of your label studio project
+      ls_storage_id: 1 # Adjust to reflect the id of your label studio storage  
+      storage_type: gcs # For AWS use "s3" instead of "gcs" (the default value)

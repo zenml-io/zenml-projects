@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 os.environ["YOLO_VERBOSE"] = "False"
 
-INFERENCE_BATCH = 20
+INFERENCE_BATCH = 50
 
 
 @step

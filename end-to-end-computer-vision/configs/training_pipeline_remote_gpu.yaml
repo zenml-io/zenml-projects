@@ -21,16 +21,16 @@ steps:
     step_operator: gcp_a100
     enable_step_logs: False
     parameters:
-      data_source:  # Insert your bucket path here where the training images lives e.g. "gs://foo/bar"
+      data_source:   # Set this to the path to a data source, for example "gs://zenml-20219041791-054405/ship_detection_ds"
       batch_size: 8
       imgsz: 720
       epochs: 50000
-      is_quad_gpu_env: True
+      is_quad_gpu_env: False # Set this to True if you are using a quad GPU environment. The accelerator count shoul be set to 4.
       is_apple_silicon_env: False
     settings:
       step_operator.vertex:
-        accelerator_type: NVIDIA_TESLA_T4 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
-        accelerator_count: 4
+        accelerator_type: NVIDIA_TESLA_A100 # see https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec#AcceleratorType
+        accelerator_count: 1
         disk_size_gb: 25
       docker:
         parent_image: pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
