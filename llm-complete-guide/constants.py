@@ -86,4 +86,12 @@ USE_ARGILLA_ANNOTATIONS = False
 SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 SECRET_NAME_ELASTICSEARCH = "elasticsearch-zenml"
 
-DEFAULT_PROMPT = "Answer the question."
+DEFAULT_PROMPT = """You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant
+    answers. \
+    You do not make up answers or provide opinions that you don't have
+    information to support. \
+    If you are unsure or don't know, just say so.
+"""
