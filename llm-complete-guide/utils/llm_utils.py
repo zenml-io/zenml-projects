@@ -72,17 +72,17 @@ LANGFUSE_HOST = os.getenv("LANGFUSE_HOST")
 # If any are not set, get from ZenML secrets and set the env vars
 if not all([LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST]):
     secret = Client().get_secret(SECRET_NAME)
-    
+
     if not LANGFUSE_PUBLIC_KEY:
         LANGFUSE_PUBLIC_KEY = secret.secret_values.get("langfuse_public_key")
         if LANGFUSE_PUBLIC_KEY:
             os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
-        
+
     if not LANGFUSE_SECRET_KEY:
         LANGFUSE_SECRET_KEY = secret.secret_values.get("langfuse_secret_key")
         if LANGFUSE_SECRET_KEY:
             os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
-        
+
     if not LANGFUSE_HOST:
         LANGFUSE_HOST = secret.secret_values.get("langfuse_host")
         if LANGFUSE_HOST:
@@ -315,9 +315,10 @@ def get_pinecone_client() -> pinecone.Index:
         pinecone.Index: A Pinecone index client.
     """
     client = Client()
-    pinecone_api_key = os.getenv("PINECONE_API_KEY") or client.get_secret(SECRET_NAME).secret_values[
-        "pinecone_api_key"
-    ]
+    pinecone_api_key = (
+        os.getenv("PINECONE_API_KEY")
+        or client.get_secret(SECRET_NAME).secret_values["pinecone_api_key"]
+    )
     pc = Pinecone(api_key=pinecone_api_key)
 
     # if the model version is staging, we check if any index name is associated as metadata
@@ -342,7 +343,7 @@ def get_pinecone_client() -> pinecone.Index:
             metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
-    
+
     print(f"Pinecone index being used: {index_name}")
 
     return pc.Index(index_name)
@@ -472,7 +473,7 @@ def get_topn_similar_docs_pinecone(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True)
             of the top n most similar documents.
     """
     # Convert numpy array to list if needed
@@ -482,7 +483,7 @@ def get_topn_similar_docs_pinecone(
     # Query the index
     results = pinecone_index.query(
         vector=query_embedding, top_k=n, include_metadata=True
-    )    
+    )
 
     # Process results
     similar_docs = []
@@ -526,7 +527,7 @@ def get_topn_similar_docs(
         only_urls (bool, optional): Whether to return only URLs. Defaults to False.
 
     Returns:
-        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True) 
+        List[Tuple]: List of tuples containing the content and metadata (if include_metadata is True)
             of the top n most similar documents.
 
     Raises:
@@ -650,7 +651,7 @@ def process_input_with_retrieval(
     n_items_retrieved: int = 20,
     use_reranking: bool = False,
     tracing_tags: List[str] = [],
-    prompt: str = DEFAULT_PROMPT
+    prompt: str = DEFAULT_PROMPT,
 ) -> str:
     """Process the input with retrieval.
 

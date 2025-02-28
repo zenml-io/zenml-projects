@@ -4,7 +4,6 @@ import webbrowser
 from constants import SECRET_NAME
 from huggingface_hub import HfApi
 from utils.hf_utils import get_hf_token
-from utils.llm_utils import process_input_with_retrieval
 from zenml import step
 from zenml.client import Client
 from zenml.integrations.registry import integration_registry
@@ -20,7 +19,9 @@ if not ZENML_STORE_API_KEY or not ZENML_STORE_URL:
     ZENML_STORE_API_KEY = ZENML_STORE_API_KEY or secret.secret_values.get(
         "zenml_store_api_token"
     )
-    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get("zenml_store_url")
+    ZENML_STORE_URL = ZENML_STORE_URL or secret.secret_values.get(
+        "zenml_store_url"
+    )
 
 LANGFUSE_PUBLIC_KEY = os.environ.get(
     "LANGFUSE_PUBLIC_KEY", secret.secret_values.get("LANGFUSE_PUBLIC_KEY")

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from zenml import step, log_metadata
+from zenml import log_metadata, step
 
 
 @step
@@ -31,10 +31,5 @@ def create_prompt() -> str:
     If you are unsure or don't know, just say so. \
     """
     # log prompt to the model metadata
-    log_metadata(
-        metadata={
-            "prompt": system_message
-        },
-        infer_model=True
-    )
+    log_metadata(metadata={"prompt": system_message}, infer_model=True)
     return system_message
