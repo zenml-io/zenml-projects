@@ -138,6 +138,7 @@ def predict(message, history):
 with gr.Blocks() as interface:
     custom_chatbot = gr.Chatbot(
         type="messages",
+        height=600,
     )
 
     gr.ChatInterface(
