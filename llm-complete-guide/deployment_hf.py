@@ -124,8 +124,9 @@ def predict(message, history):
     try:
         return process_input_with_retrieval(
             input=message,
-            n_items_retrieved=20,
-            use_reranking=True,
+            n_items_retrieved=7,
+            use_reranking=False,
+            model="gpt-4o-mini",
             prompt=prompt,
             tracing_tags=["gradio", "web-interface", APP_ENVIRONMENT],
         )
