@@ -139,6 +139,7 @@ with gr.Blocks() as interface:
     custom_chatbot = gr.Chatbot(
         type="messages",
         height=600,
+        autoscroll=False,
     )
 
     gr.ChatInterface(
