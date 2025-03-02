@@ -53,7 +53,7 @@ from utils.llm_utils import (
     get_pinecone_client,
     split_documents,
 )
-from zenml import ArtifactConfig, get_step_context, log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.metadata.metadata_types import Uri
 
@@ -918,9 +918,9 @@ def _log_metadata(index_type: IndexType) -> None:
         store_name = "pinecone"
         connection_details = {
             "api_key": "**********",
-            "environment": client.get_secret(
-                SECRET_NAME
-            ).secret_values["pinecone_env"],
+            "environment": client.get_secret(SECRET_NAME).secret_values[
+                "pinecone_env"
+            ],
         }
 
     log_metadata(

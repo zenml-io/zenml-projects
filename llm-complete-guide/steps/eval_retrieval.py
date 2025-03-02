@@ -89,8 +89,11 @@ def query_similar_docs(
         Tuple containing the question, URL ending, and retrieved URLs.
     """
     embedded_question = get_embeddings(question)
+
+    # passed into retrieval function so need to be initialized
     conn = None
     es_client = None
+    pinecone_index = None
 
     vector_store_name = find_vectorstore_name()
     if vector_store_name == "pgvector":
@@ -186,7 +189,9 @@ def process_with_progress(
     )
 
     results = []
-    with Pool(processes=n_processes) as pool: # Sleep for 3 seconds before starting processing
+    with Pool(
+        processes=n_processes
+    ) as pool:  # Sleep for 3 seconds before starting processing
         for i, result in enumerate(pool.imap(worker_fn, items), 1):
             results.append(result)
             logger.info(f"Completed {i}/{len(items)} tests")

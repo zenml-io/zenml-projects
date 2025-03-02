@@ -1,7 +1,7 @@
 from typing import Optional
 
-from steps.eval_langfuse import fast_eval, visualize_fast_eval_results
 from steps.create_prompt import create_prompt
+from steps.eval_langfuse import fast_eval, visualize_fast_eval_results
 from zenml import pipeline
 
 

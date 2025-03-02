@@ -15,7 +15,6 @@
 # limitations under the License.
 import warnings
 from pathlib import Path
-import os
 
 # Suppress the specific FutureWarning from huggingface_hub
 warnings.filterwarnings(
@@ -40,7 +39,7 @@ logging.getLogger().setLevel(logging.ERROR)  # Root logger configuration
 from typing import Optional
 
 import click
-from constants import OPENAI_MODEL, SECRET_NAME
+from constants import OPENAI_MODEL
 from materializers.document_materializer import DocumentMaterializer
 from pipelines import (
     finetune_embeddings,
@@ -55,7 +54,6 @@ from pipelines import (
 from structures import Document
 from zenml import Model
 from zenml.materializers.materializer_registry import materializer_registry
-from zenml.client import Client
 
 logger = get_logger(__name__)
 

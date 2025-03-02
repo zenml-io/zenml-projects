@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+from steps.create_prompt import create_prompt
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
@@ -25,7 +26,6 @@ from steps.eval_retrieval import (
     retrieval_evaluation_small_with_reranking,
 )
 from steps.eval_visualisation import visualize_evaluation_results
-from steps.create_prompt import create_prompt
 from zenml import pipeline
 
 
@@ -56,7 +56,9 @@ def llm_eval(after: Optional[str] = None) -> None:
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = e2e_evaluation_llm_judged(tracing_tags=["eval"], after=after, prompt=prompt)
+    ) = e2e_evaluation_llm_judged(
+        tracing_tags=["eval"], after=after, prompt=prompt
+    )
 
     visualize_evaluation_results(
         failure_rate_retrieval,
