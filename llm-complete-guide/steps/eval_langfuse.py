@@ -1,7 +1,10 @@
+import concurrent.futures
 import io
 import json
 import logging
+import os
 import sys
+import time
 import traceback
 from collections import defaultdict
 from dataclasses import dataclass
@@ -246,59 +249,290 @@ def get_langfuse_scores(
     return qa_pairs, good_response, bad_response
 
 
+def process_question_answer_pair(
+    question: str,
+    old_response: str,
+    eval_criteria: str,
+    sample_good_response: str,
+    sample_bad_response: str,
+    langfuse_score_identifier: str,
+    prompt: str,
+    logger: logging.Logger,
+) -> Optional[Dict[str, Any]]:
+    """Process a single question-answer pair for evaluation.
+
+    Args:
+        question: The question to evaluate
+        old_response: The old response to compare against
+        eval_criteria: The criteria for evaluation
+        sample_good_response: An example of a good response
+        sample_bad_response: An example of a bad response
+        langfuse_score_identifier: The identifier for the Langfuse score
+        prompt: The prompt to use for generating the new response
+        logger: The logger to use for logging
+
+    Returns:
+        Optional dictionary containing the evaluation result
+    """
+    try:
+        # Generate new response using current implementation
+        new_response = process_input_with_retrieval(
+            input=question,
+            prompt=prompt,
+            tracing_tags=["evaluation"],
+        )
+
+        eval_input = EvaluationInput(
+            question=question,
+            llm_response=f"OLD RESPONSE:\n{old_response}\n\nNEW RESPONSE:\n{new_response}",
+            eval_criteria=eval_criteria,
+            sample_good_response=sample_good_response,
+            sample_bad_response=sample_bad_response,
+        )
+
+        if result := evaluate_single_response(eval_input, logger):
+            result.update(
+                {
+                    "experiment_name": langfuse_score_identifier,
+                    "old_response": old_response,
+                    "new_response": new_response,
+                }
+            )
+            return result
+        return None
+    except Exception as e:
+        logger.error(f"Error processing question-answer pair: {e}")
+        return None
+
+
+# Default to using 4 workers for parallel processing, but allow overriding via environment variable
+DEFAULT_MAX_WORKERS = 5
+MAX_WORKERS = int(os.environ.get("EVAL_MAX_WORKERS", DEFAULT_MAX_WORKERS))
+# Default to using 2 workers for question-answer pairs, but allow overriding via environment variable
+QA_MAX_WORKERS = int(os.environ.get("EVAL_QA_MAX_WORKERS", 4))
+# Default timeouts (in seconds)
+EVAL_PAIR_TIMEOUT = int(os.environ.get("EVAL_PAIR_TIMEOUT", 600))  # 10 minutes
+QA_PAIR_TIMEOUT = int(os.environ.get("QA_PAIR_TIMEOUT", 300))  # 5 minutes
+
+
+class ProgressTracker:
+    """A simple class to track progress of parallel evaluations."""
+
+    def __init__(self, total_pairs: int, total_qa_pairs: Dict[str, int]):
+        self.total_pairs = total_pairs
+        self.total_qa_pairs = total_qa_pairs
+        self.completed_pairs = 0
+        self.completed_qa_pairs = defaultdict(int)
+        self.start_time = time.time()
+        self.pair_start_times = {}
+
+    def start_pair(self, pair_id: str):
+        """Mark the start of processing an evaluation pair."""
+        self.pair_start_times[pair_id] = time.time()
+
+    def complete_pair(self, pair_id: str, results_count: int):
+        """Mark the completion of processing an evaluation pair."""
+        self.completed_pairs += 1
+        duration = time.time() - self.pair_start_times.get(
+            pair_id, self.start_time
+        )
+        return (
+            f"Completed evaluation pair '{pair_id}' with {results_count} results "
+            f"({self.completed_pairs}/{self.total_pairs}, {duration:.1f}s)"
+        )
+
+    def complete_qa(self, pair_id: str):
+        """Mark the completion of processing a question-answer pair."""
+        self.completed_qa_pairs[pair_id] += 1
+        total = self.total_qa_pairs.get(pair_id, 0)
+        completed = self.completed_qa_pairs[pair_id]
+        return f"Progress for '{pair_id}': {completed}/{total} ({completed / total * 100:.1f}%)"
+
+    def get_overall_progress(self) -> str:
+        """Get the overall progress of the evaluation."""
+        elapsed = time.time() - self.start_time
+        if self.completed_pairs == 0:
+            eta = "unknown"
+        else:
+            avg_time_per_pair = elapsed / self.completed_pairs
+            remaining_pairs = self.total_pairs - self.completed_pairs
+            eta_seconds = avg_time_per_pair * remaining_pairs
+            eta = f"{eta_seconds:.1f}s"
+
+        return (
+            f"Overall progress: {self.completed_pairs}/{self.total_pairs} pairs "
+            f"({self.completed_pairs / self.total_pairs * 100:.1f}%), "
+            f"elapsed: {elapsed:.1f}s, ETA: {eta}"
+        )
+
+
+def process_evaluation_pair(
+    pair: Dict[str, str],
+    prompt: str,
+    logger: logging.Logger,
+    progress_tracker: Optional[ProgressTracker] = None,
+) -> List[Dict[str, Any]]:
+    """Process a single evaluation pair.
+
+    Args:
+        pair: The evaluation pair to process
+        prompt: The prompt to use for generating the new response
+        logger: The logger to use for logging
+        progress_tracker: Optional progress tracker
+
+    Returns:
+        List of evaluation results
+    """
+    results = []
+    langfuse_score_identifier = pair["langfuse_score_identifier"]
+    eval_criteria = pair["eval_criteria"]
+
+    try:
+        langfuse_score_data, sample_good_response, sample_bad_response = (
+            get_langfuse_scores(langfuse_score_identifier)
+        )
+
+        if progress_tracker:
+            progress_tracker.start_pair(langfuse_score_identifier)
+
+        logger.info(
+            f"Processing {len(langfuse_score_data)} question-answer pairs for '{langfuse_score_identifier}' with {QA_MAX_WORKERS} workers"
+        )
+
+        # Process each question-answer pair in parallel
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=QA_MAX_WORKERS
+        ) as executor:
+            futures = {}
+            for data in langfuse_score_data:
+                question = data["question"]
+                old_response = data["old_response"]
+
+                future = executor.submit(
+                    process_question_answer_pair,
+                    question,
+                    old_response,
+                    eval_criteria,
+                    sample_good_response,
+                    sample_bad_response,
+                    langfuse_score_identifier,
+                    prompt,
+                    logger,
+                )
+                futures[future] = question
+
+            # Collect results as they complete
+            for future in concurrent.futures.as_completed(futures):
+                question = futures[future]
+                try:
+                    # Add timeout to prevent hanging on a single evaluation
+                    result = future.result(timeout=QA_PAIR_TIMEOUT)
+                    if result:
+                        logger.info(
+                            f"Completed evaluation for question: '{question[:50]}...'"
+                        )
+                        results.append(result)
+                    else:
+                        logger.warning(
+                            f"No result for question: '{question[:50]}...'"
+                        )
+                except concurrent.futures.TimeoutError:
+                    logger.error(
+                        f"Timeout processing question '{question[:50]}...' after {QA_PAIR_TIMEOUT} seconds"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error processing question '{question[:50]}...': {e}"
+                    )
+
+                # Update progress
+                if progress_tracker:
+                    progress_msg = progress_tracker.complete_qa(
+                        langfuse_score_identifier
+                    )
+                    logger.info(progress_msg)
+    except Exception as e:
+        logger.error(
+            f"Error processing evaluation pair '{langfuse_score_identifier}': {e}"
+        )
+
+    logger.info(
+        f"Completed processing '{langfuse_score_identifier}' with {len(results)} results"
+    )
+    return results
+
+
 @step(enable_cache=False)
 def fast_eval(prompt: str) -> List[Dict[str, Any]]:
-    """Evaluate LLM responses by comparing old vs new responses.
+    """Evaluate LLM responses by comparing old vs new responses in parallel.
+
+    Args:
+        prompt: The prompt to use for generating the new response
 
     Returns:
         List of evaluation results comparing old and new responses
     """
     logger = logging.getLogger(__name__)
-    results: List[Dict[str, Any]] = []
+    all_results = []
 
+    # Initialize progress tracking
+    total_qa_pairs = {}
     for pair in EVALUATION_DATA_PAIRS:
-        langfuse_score_identifier = pair["langfuse_score_identifier"]
-        eval_criteria = pair["eval_criteria"]
+        try:
+            langfuse_score_data, _, _ = get_langfuse_scores(
+                pair["langfuse_score_identifier"]
+            )
+            total_qa_pairs[pair["langfuse_score_identifier"]] = len(
+                langfuse_score_data
+            )
+        except Exception:
+            total_qa_pairs[pair["langfuse_score_identifier"]] = 0
 
-        langfuse_score_data, sample_good_response, sample_bad_response = (
-            get_langfuse_scores(langfuse_score_identifier)
-        )
+    progress_tracker = ProgressTracker(
+        len(EVALUATION_DATA_PAIRS), total_qa_pairs
+    )
 
-        for data in langfuse_score_data:
-            question = data["question"]
-            old_response = data["old_response"]
+    logger.info(
+        f"Starting parallel evaluation with {MAX_WORKERS} workers for {len(EVALUATION_DATA_PAIRS)} evaluation pairs"
+    )
 
-            # Generate new response using current implementation
+    # Process each evaluation pair in parallel
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=MAX_WORKERS
+    ) as executor:
+        futures = {}
+        for pair in EVALUATION_DATA_PAIRS:
+            future = executor.submit(
+                process_evaluation_pair, pair, prompt, logger, progress_tracker
+            )
+            futures[future] = pair["langfuse_score_identifier"]
+
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(futures):
+            identifier = futures[future]
             try:
-                new_response = process_input_with_retrieval(
-                    input=question,
-                    prompt=prompt,
-                    tracing_tags=["evaluation"],
+                # Add timeout to prevent hanging on a single evaluation pair
+                results = future.result(timeout=EVAL_PAIR_TIMEOUT)
+                progress_msg = progress_tracker.complete_pair(
+                    identifier, len(results)
+                )
+                logger.info(progress_msg)
+                logger.info(progress_tracker.get_overall_progress())
+                all_results.extend(results)
+            except concurrent.futures.TimeoutError:
+                logger.error(
+                    f"Timeout processing evaluation pair '{identifier}' after {EVAL_PAIR_TIMEOUT} seconds"
                 )
             except Exception as e:
-                logger.error(f"Error generating new response: {e}")
-                continue
-
-            eval_input = EvaluationInput(
-                question=question,
-                llm_response=f"OLD RESPONSE:\n{old_response}\n\nNEW RESPONSE:\n{new_response}",
-                eval_criteria=eval_criteria,
-                sample_good_response=sample_good_response,
-                sample_bad_response=sample_bad_response,
-            )
-
-            if result := evaluate_single_response(eval_input, logger):
-                result.update(
-                    {
-                        "experiment_name": langfuse_score_identifier,
-                        "old_response": old_response,
-                        "new_response": new_response,
-                    }
+                logger.error(
+                    f"Error processing evaluation pair '{identifier}': {e}"
                 )
-                results.append(result)
 
-    logger.info("All evaluations completed with %d results", len(results))
-    return results
+    total_time = time.time() - progress_tracker.start_time
+    logger.info(
+        f"All evaluations completed with {len(all_results)} total results in {total_time:.1f} seconds"
+    )
+    return all_results
 
 
 @step
