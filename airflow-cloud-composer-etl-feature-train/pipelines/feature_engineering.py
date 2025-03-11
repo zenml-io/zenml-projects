@@ -24,7 +24,7 @@ from zenml.client import Client
 
 
 @pipeline
-def feature_engineering_pipeline(
+def ecb_predictor_feature_engineering_pipeline(
     transformed_dataset_id: str, mode: str = "develop"
 ):
     """A pipeline to augment data and load it into BigQuery or locally.

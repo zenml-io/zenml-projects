@@ -1,59 +1,78 @@
-# ZenML ECB Interest Rate Project
+# EuroRate Predictor
 
-This project uses ZenML to create production-ready machine learning pipelines for predicting European Central Bank (ECB) interest rates. It demonstrates best practices for building and iterating on ML pipelines using ZenML's framework and integrations. The [dataset](data/raw_data.csv) is a slightly modified (column names) version of the one available at the [European Central Bank website](https://data.ecb.europa.eu/main-figures/ecb-interest-rates-and-exchange-rates/key-ecb-interest-rates).
+Turn European Central Bank data into actionable interest rate forecasts with this comprehensive MLOps solution.
 
-## 📊 Project Overview
+## 🚀 Product Overview
 
-![Preview of all pipelines](.assets/zenml_airflow_vertex_gcp_mlops.png)
+EuroRate Predictor is a production-ready MLOps solution that transforms raw European Central Bank (ECB) interest rate data into accurate forecasts to inform your financial decision-making. Built on ZenML's robust framework, it delivers enterprise-grade machine learning pipelines that can be deployed in both development and production environments.
 
-The project consists of three main pipelines:
+![EuroRate Predictor Pipeline Architecture](.assets/zenml_airflow_vertex_gcp_mlops.png)
 
-1. **ETL Pipeline** (Runs on Airflow)
-   - `extract_data`: Extracts raw ECB interest rate data
-   - `transform`: Transforms and cleans the data
-   - Output: `ecb_transformed_dataset`
+### Key Features
 
-2. **Feature Engineering Pipeline** (Runs on Airflow)
-   - Input: `ecb_transformed_dataset` 
-   - `augment`: Augments the dataset with additional features
-   - Output: `ecb_augmented_dataset`
+- **End-to-End MLOps Pipeline**: From data extraction to model deployment
+- **Cloud-Ready Architecture**: Seamlessly runs on Google Cloud Platform
+- **Flexible Deployment Options**: Development mode for quick iteration, Production mode for enterprise deployment
+- **Automated Model Evaluation**: Ensures only high-quality models are promoted to production
+- **Scalable Infrastructure**: Leverages Airflow and Vertex AI for enterprise-grade performance
 
-3. **Model Training Pipeline** (Runs on Airflow but the trainer step runs on Vertex AI)
-   - Input: `ecb_augmented_dataset` 
-   - `train_xgboost_model`: Trains an XGBoost regression model
-   - `promote_model`: Evaluates and potentially promotes the new model
+## 💡 How It Works
 
-## 🚀 Getting Started
+EuroRate Predictor consists of three integrated pipelines:
 
-The pipelines run in two modes: `develop` and `production`. 
+1. **Data Processing Pipeline** (Powered by Airflow)
+   - Extracts raw ECB interest rate data from authoritative sources
+   - Performs robust data cleaning and transformation
+   - Produces standardized datasets ready for feature engineering
 
-- `develop` mode is the default mode which means no pushing or pulling from GCP occurs. Data is written to and read from
-the local file system. This is good to iterate locally, and requires only the `data/raw_data.csv` file to be present.
-- `production` mode is what you can switch when you want to run this on a stack that contains Airflow or Vertex AI pipelines. 
-It reads from a remote storage location and uses BigQuery to persist the results.
+2. **Feature Engineering Pipeline** (Powered by Airflow)
+   - Enriches datasets with financial domain-specific features
+   - Implements time-series specific transformations
+   - Creates feature-rich datasets optimized for predictive modeling
 
-1. Set up a Python virtual environment:
+3. **Predictive Modeling Pipeline** (Hybrid Airflow/Vertex AI)
+   - Trains advanced XGBoost regression models on Google's Vertex AI
+   - Implements rigorous model evaluation protocols
+   - Automatically promotes high-performing models to production
+
+## 🔧 Getting Started
+
+EuroRate Predictor offers two operational modes:
+
+- **Development Mode**: Perfect for data scientists to iterate quickly on local machines
+- **Production Mode**: Enterprise-ready deployment using GCP's Airflow/Vertex AI infrastructure
+
+### Prerequisites
+
+- Python 3.8+
+- Google Cloud Platform account (for production deployment)
+- ZenML installed and configured
+
+### Installation
+
+1. Set up your environment:
 
 ```bash
-# Set up a Python virtual environment, if you haven't already
+# Create and activate a Python virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
-# Install requirements & integrations
+
+# Install EuroRate Predictor and dependencies
 pip install -r requirements.txt
-# Install integrations
+
+# Install required integrations
 zenml integration install gcp airflow
 ```
 
-2. Configure your stack:
+### Configuration
 
-- In `develop` mode, the default stack can be used, no changes needed.
-- In `production` mode, the default stack can be used as well, but you can build a remote stack like:
-  -  A [Cloud Composer pipelines orchestrator](https://docs.zenml.io/stack-components/orchestrators/airflow)
-  - A [Vertex AI](https://docs.zenml.io/stack-components/step-operators/vertex)
-  - A [GCS artifact store](https://docs.zenml.io/stack-components/artifact-stores/gcp)
-  - A [GCP container registry](https://docs.zenml.io/stack-components/container-registries/gcp)
+#### Development Mode
+For quick iteration and testing, the default configuration works out-of-the-box with the included sample dataset.
 
-This is very simple using the ZenML [GCP Stack Terraform module](https://registry.terraform.io/modules/zenml-io/zenml-stack/gcp/latest):
+#### Production Mode
+For enterprise deployment, configure your cloud infrastructure:
+
+1. **Set up your GCP Stack** using the ZenML [GCP Stack Terraform module](https://registry.terraform.io/modules/zenml-io/zenml-stack/gcp/latest):
 
 ```hcl
 module "zenml_stack" {
@@ -61,7 +80,7 @@ module "zenml_stack" {
 
   project_id = "your-gcp-project-id"
   region = "europe-west1"
-  orchestrator = "vertex" # or "skypilot" or "airflow"
+  orchestrator = "vertex" # or "airflow"
   zenml_server_url = "https://your-zenml-server-url.com"
   zenml_api_key = "ZENKEY_1234567890..."
 }
@@ -72,28 +91,21 @@ output "zenml_stack_name" {
   value = module.zenml_stack.zenml_stack_name
 }
 ```
+To learn more about the terraform script, read the 
+[ZenML documentation.](https://docs.zenml.io/how-to/
+stack-deployment/deploy-a-cloud-stack-with-terraform) or 
+see
+the [Terraform registry](https://registry.terraform.io/
+modules/zenml-io/zenml-stack).
 
-To learn more about the terraform script, read the [ZenML documentation.](https://docs.zenml.io/how-to/stack-deployment/deploy-a-cloud-stack-with-terraform) or see
-the [Terraform registry](https://registry.terraform.io/modules/zenml-io/zenml-stack).
+2. **Configure your data sources and destinations**:
 
-Looking for a different way to register or provision a stack? Check out the
-[in-browser stack deployment wizard](https://docs.zenml.io/how-to/stack-deployment/deploy-a-cloud-stack), or
-the [stack registration wizard](https://docs.zenml.io/how-to/stack-deployment/register-a-cloud-stack),
-for a shortcut on how to deploy & register a cloud stack.
+- Update the `data_path` and `table_id` in [`configs/etl_production.yaml`](configs/etl_production.yaml)
+- Set the output `table_id` in [`configs/feature_engineering_production.yaml`](configs/feature_engineering_production.yaml)
 
-3. Configure your pipelines:
+### Running EuroRate Predictor
 
-In order to use `production` mode, please edit the following files with your dataset:
-
-- Point the `data_path` and `table_id` in the [`etl_production`](configs/etl_production.yaml) config to the place where your dataset is
-and where you want the data to be stored in BigQuery
-- Point the `table_id` in the [`feature_engineering_production`](configs/feature_engineering_production.yaml) config to the place where
-you want the output data to be stored.
-
-4. Run the pipelines:
-
-Here are some examples. In general, you should do the etl pipeline first, then the feature engineering, and then the training
-pipeline, as they all rely on each other.
+Execute the pipelines in sequence to generate your interest rate forecasts:
 
 ```bash
 # Run the ETL pipeline
@@ -108,64 +120,51 @@ python run.py --feature --mode production
 # Run the model training pipeline with the latest augmented dataset version
 python run.py --training --mode production
 
-# Run the feature engineering pipeline with a specific transformed dataset version
+# Use specific dataset versions (for reproducibility)
 python run.py --feature --transformed_dataset_version "200"
 
 # Run the model training pipeline with a specific augmented dataset version
 python run.py --training --augmented_dataset_version "120"
 ```
 
-After running the pipelines, you can check the results in the ZenML UI by following the link printed in the terminal.
-Next steps:
+After execution, access detailed visualizations and metrics in the ZenML dashboard.
 
-- Explore the CLI options: python run.py --help
-- Review the project structure and code
-- Read the ZenML documentation to learn more about ZenML concepts
-- Start customizing the project for your specific needs
+## 📊 Results and Visualization
 
-## 📜 Project Structure
+EuroRate Predictor provides comprehensive visualizations of:
+- Data quality metrics
+- Feature importance analysis
+- Model performance evaluations
+- Prediction accuracy over time
 
-The project follows the recommended ZenML project structure:
+Access these insights through the ZenML UI by following the link displayed after pipeline execution.
 
-├── .assets                  # Asset files for the project
-├── .git_cache               # Git cache
-├── .zen                     # ZenML configuration files
-├── configs                  # Pipeline configuration files
-│   ├── etl_develop.yaml
-│   ├── etl_production.yaml
-│   ├── feature_engineering_develop.yaml
-│   ├── feature_engineering_production.yaml
-│   ├── training_develop.yaml
-│   └── training_production.yaml
-├── data                     # Data files
-│   └── raw_data.csv
-├── materializers            # Custom materializers
-│   ├── bq_dataset_materializer.py
-│   ├── bq_dataset.py
-│   ├── csv_dataset_materializer.py
-│   ├── csv_dataset.py
-│   └── dataset.py
-├── pipelines                # ZenML pipeline implementations
-│   ├── etl.py
-│   ├── feature_engineering.py
-│   └── training.py
-├── steps                    # ZenML step implementations
+## 📁 Product Structure
+
+EuroRate Predictor follows a modular architecture:
+
+```
+├── configs                  # Pipeline configuration profiles
+├── data                     # Sample and processed datasets
+├── materializers            # Custom data handlers
+├── pipelines                # Core pipeline definitions
+├── steps                    # Individual pipeline components
 │   ├── extract_data_local.py
 │   ├── extract_data_remote.py
 │   └── transform.py
-├── feature_engineering      # Feature engineering steps
-│   ├── augment.py
-│   └── promote.py
-├── training                 # Training steps
-│   └── model_trainer.py
-├── tmp                      # Temporary files
-├── .dockerignore
-├── .gitignore
-├── demo.py                  # Demo script
-├── LICENSE
-├── Makefile
-├── README.md                # This file
-├── requirements.txt         # Python dependencies
-└── run.py                   # CLI tool to run pipelines
+├── feature_engineering      # Feature creation components
+├── training                 # Model training components
+└── run.py                   # Command-line interface
+```
 
-Feel free to modify and expand upon this project to suit your specific ECB interest rate prediction needs!
+## 📚 Documentation
+
+For detailed documentation on customizing EuroRate Predictor for your specific financial forecasting needs, please refer to our [ZenML documentation](https://docs.zenml.io/).
+
+## 🔄 Continuous Improvement
+
+EuroRate Predictor is designed for continuous improvement of your interest rate forecasts. As new ECB data becomes available, simply re-run the pipelines to generate updated predictions.
+
+---
+
+Start making data-driven financial decisions today with EuroRate Predictor!

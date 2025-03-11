@@ -26,7 +26,7 @@ from zenml import pipeline
 
 
 @pipeline
-def etl_pipeline(mode: str = "develop") -> Dataset:
+def ecb_predictor_etl_pipeline(mode: str = "develop") -> Dataset:
     """Model deployment pipeline.
 
     This is a pipeline that loads data to BigQuery.

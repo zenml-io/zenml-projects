@@ -2,9 +2,9 @@ import os
 
 import click
 from pipelines import (
-    etl_pipeline,
-    feature_engineering_pipeline,
-    model_training_pipeline,
+    ecb_predictor_etl_pipeline,
+    ecb_predictor_feature_engineering_pipeline,
+    ecb_predictor_model_training_pipeline,
 )
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -101,7 +101,7 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"etl_{mode}.yaml"
         )
-        etl_pipeline.with_options(**pipeline_args)(**run_args_etl)
+        ecb_predictor_etl_pipeline.with_options(**pipeline_args)(**run_args_etl)
         logger.info("ETL pipeline finished successfully!\n")
 
     # Execute Feature Engineering Pipeline
@@ -126,7 +126,7 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"feature_engineering_{mode}.yaml"
         )
-        feature_engineering_pipeline.with_options(**pipeline_args)(
+        ecb_predictor_feature_engineering_pipeline.with_options(**pipeline_args)(
             **run_args_feature
         )
         logger.info("Feature Engineering pipeline finished successfully!\n")
@@ -153,7 +153,7 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"training_{mode}.yaml"
         )
-        model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
+        ecb_predictor_model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
         logger.info("Model Training pipeline finished successfully!\n")
 
 
