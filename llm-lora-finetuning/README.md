@@ -1,128 +1,212 @@
-# ☮️ Fine-tuning open source LLMs using MLOps pipelines with PEFT
+# 🎮 GameSense: The LLM That Understands Gamers
 
-Welcome to your newly generated "ZenML LLM PEFT Finetuning project" project! This is
-a great way to get hands-on with ZenML using production-like template. 
-The project contains a collection of ZenML steps, pipelines and other artifacts
-and useful resources that can serve as a solid starting point for finetuning open-source LLMs using ZenML.
+Elevate your gaming platform with an AI that translates player language into actionable data. A model that understands gaming terminology, extracts key attributes, and structures conversations for intelligent recommendations and support.
 
-Using these pipelines, we can run the data-preparation and model finetuning with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guide/production-guide/configure-pipeline) and letting ZenML take care of tracking our metadata and [containerizing our pipelines](https://docs.zenml.io/how-to/customize-docker-builds).
+## 🚀 Product Overview
+
+GameSense is a specialized language model designed specifically for gaming platforms and communities. By fine-tuning powerful open-source LLMs on gaming conversations and terminology, GameSense can:
+
+- **Understand Gaming Jargon**: Recognize specialized terms across different game genres and communities
+- **Extract Player Sentiment**: Identify frustrations, excitement, and other emotions in player communications
+- **Structure Unstructured Data**: Transform casual player conversations into structured, actionable data
+- **Generate Personalized Responses**: Create contextually appropriate replies that resonate with gamers
+- **Power Intelligent Recommendations**: Suggest games, content, or solutions based on player preferences and history
+
+Built on ZenML's enterprise-grade MLOps framework, GameSense delivers a production-ready solution that can be deployed, monitored, and continuously improved with minimal engineering overhead.
+
+## 💡 How It Works
+
+GameSense leverages Parameter-Efficient Fine-Tuning (PEFT) techniques to customize powerful foundation models like Microsoft's Phi-2 or Llama 3.1 for gaming-specific applications. The system follows a streamlined pipeline:
+
+1. **Data Preparation**: Gaming conversations are processed and tokenized
+2. **Model Fine-Tuning**: The base model is efficiently customized using LoRA adapters
+3. **Evaluation**: The model is rigorously tested against gaming-specific benchmarks
+4. **Deployment**: High-performing models are automatically promoted to production
 
 <div align="center">
   <br/>
     <a href="https://cloud.zenml.io">
-      <img alt="Model version metadata" src=".assets/model.png">
+      <img alt="GameSense Pipeline" src=".assets/pipeline.png" width="70%">
     </a>
   <br/>
 </div>
 
-## 🌎 Inspiration and Credit
+## 🎯 Use Cases
 
-This project heavily relies on the [PEFT project](https://huggingface.co/docs/peft/en/index) by the amazing people at Huggingface and the [`microsoft/phi-2`](https://huggingface.co/microsoft/phi-2) model from the amazing people at Microsoft.
+- **Customer Support Automation**: Understand and respond to player issues with context-aware solutions
+- **Community Moderation**: Detect toxic language with nuanced understanding of gaming communication
+- **Player Insights**: Extract actionable intelligence from forums, chats, and reviews
+- **Recommendation Systems**: Power personalized game and content suggestions
+- **In-Game Assistants**: Create NPCs or helpers that understand player intentions
 
-## 🏃 How to run
+## 🔧 Getting Started
 
-In this project, we provide a predefined configuration file to finetune models on the [Viggio](https://huggingface.co/datasets/GEM/viggo) dataset. Before we're able to run any pipeline, we need to set up our environment as follows:
+### Prerequisites
 
-```bash
-# Set up a Python virtual environment, if you haven't already
-python3 -m venv .venv
-source .venv/bin/activate
+- Python 3.8+
+- GPU with at least 24GB VRAM (for full model training)
+- ZenML installed and configured
 
-# Install requirements
-pip install -r requirements.txt
-```
+### Quick Setup
 
-### 👷 Combined feature engineering and finetuning pipeline
+1. Install GameSense:
+   ```bash
+   # Set up a Python virtual environment
+   python3 -m venv .venv
+   source .venv/bin/activate
+
+   # Install requirements
+   pip install -r requirements.txt
+   ```
+
+2. Run the end-to-end pipeline:
+   ```shell
+   # For single-GPU training
+   python run.py --config orchestrator_finetune.yaml
+
+   # For multi-GPU acceleration
+   python run.py --config orchestrator_finetune.yaml --accelerate
+   ```
 
 > [!WARNING]  
-> All steps of this pipeline have a `clean_gpu_memory(force=True)` at the beginning. This is used to ensure that the memory is properly cleared after previous steps.
->
-> This functionality might affect other GPU processes running on the same environment, so if you don't want to clean the GPU memory between the steps, you can delete those utility calls from all steps.
+> All pipeline steps have a `clean_gpu_memory(force=True)` at the beginning. This ensures memory is properly cleared after previous steps.
+> 
+> This functionality might affect other GPU processes running on the same environment. If you don't want to clean GPU memory between steps, you can remove these utility calls from all steps.
 
-The easiest way to get started with just a single command is to run the finetuning pipeline with the `orchestrator_finetune.yaml` configuration file, which will do data preparation, model finetuning, evaluation with [Rouge](https://huggingface.co/spaces/evaluate-metric/rouge) and promotion:
+The trained model will be automatically stored in your ZenML artifact store, ready for deployment.
+
+## ⚙️ Configuration Options
+
+GameSense offers flexible configuration to meet your specific gaming platform needs:
+
+### Base Model Selection
+
+Choose from powerful foundation models:
+- **Microsoft Phi-2**: Lightweight yet powerful for most gaming applications (default)
+- **Llama 3.1**: Advanced capabilities for complex gaming interactions
 
 ```shell
-python run.py --config orchestrator_finetune.yaml
+# To use Llama 3.1 instead of Phi-2
+python run.py --config configs/llama3-1_finetune_local.yaml
 ```
 
-When running the pipeline like this, the trained model will be stored in the ZenML artifact store.
-
-<div align="center">
-  <br/>
-    <a href="https://cloud.zenml.io">
-      <img alt="Model version metadata" src=".assets/pipeline.png" width="70%">
-    </a>
-  <br/>
-</div>
-
 > [!TIP]  
-> To finetune the Llama 3.1 base model, please use the alternative configuration
-> files provided in the `configs` folder.
->
-> For a remote finetune you can use [`llama3-1_finetune_remote.yaml`](configs/llama3-1_finetune_remote.yaml) and for a
-> local finetune you can use [`llama3-1_finetune_local.yaml`](configs/llama3-1_finetune_local.yaml).
+> To finetune the Llama 3.1 base model, use the alternative configuration files provided in the `configs` folder:
+> - For remote finetuning: [`llama3-1_finetune_remote.yaml`](configs/llama3-1_finetune_remote.yaml)
+> - For local finetuning: [`llama3-1_finetune_local.yaml`](configs/llama3-1_finetune_local.yaml)
 
-### ⚡ Accelerate your finetuning
+### Training Acceleration
 
-Do you want to benefit from multi-GPU-training with Distributed Data Parallelism (DDP)? Then you can use other configuration files prepared for this purpose.
-For example, `orchestrator_finetune.yaml` can run a finetuning of the [Microsoft Phi 2](https://huggingface.co/microsoft/phi-2) powered by [Hugging Face Accelerate](https://huggingface.co/docs/accelerate/en/index) on all GPUs available in the environment. To do so, just call:
+For faster training on high-end hardware:
+- **Multi-GPU Training**: Distribute training across multiple GPUs using Distributed Data Parallelism (DDP)
+- **Mixed Precision**: Optimize memory usage without sacrificing quality
 
 ```shell
+# Enable distributed training across all available GPUs
 python run.py --config orchestrator_finetune.yaml --accelerate
 ```
 
-Under the hood, the finetuning step will spin up the accelerated job using the step code, which will run on all available GPUs.
+Under the hood, the finetuning step will spin up an accelerated job using Hugging Face Accelerate, which will run on all available GPUs.
 
-## ☁️ Running with a remote stack
+## ☁️ Enterprise Deployment
 
-To finetune an LLM on remote infrastructure, you can either use a remote orchestrator or a remote step operator. Follow these steps to set up a complete remote stack:
-- Register the [orchestrator](https://docs.zenml.io/stack-components/orchestrators) (or [step operator](https://docs.zenml.io/stack-components/step-operators)) and make sure to configure it in a way so that the finetuning step has access to a GPU with at least 24GB of VRAM. Check out our docs for more [details](https://docs.zenml.io/stack-components).
-    - To access GPUs with this amount of VRAM, you might need to increase your GPU quota ([AWS](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html), [GCP](https://console.cloud.google.com/iam-admin/quotas), [Azure](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2#request-quota-and-limit-increases)).
-    - The GPU instance that your finetuning will be running on will have CUDA drivers of a specific version installed. If that CUDA version is not compatible with the one provided by the default Docker image of the finetuning pipeline, you will need to modify it in the configuration file. See [here](https://hub.docker.com/r/pytorch/pytorch/tags) for a list of available PyTorch images.
-- Register a remote [artifact store](https://docs.zenml.io/stack-components/artifact-stores) and [container registry](https://docs.zenml.io/stack-components/container-registries).
-- Register a stack with all these components
-    ```shell
-    zenml stack register llm-finetuning-stack -o <ORCHESTRATOR_NAME> \
-        -a <ARTIFACT_STORE_NAME> \
-        -c <CONTAINER_REGISTRY_NAME> \
-        [-s <STEP_OPERATOR_NAME>]
-    ```
+For production deployment, GameSense can be trained and served on cloud infrastructure:
 
-## 🗂️ Bring Your Own Data
+1. **Set up your cloud environment**:
+   - Register an [orchestrator](https://docs.zenml.io/stack-components/orchestrators) or [step operator](https://docs.zenml.io/stack-components/step-operators) with GPU access (at least 24GB VRAM)
+   - Register a remote [artifact store](https://docs.zenml.io/stack-components/artifact-stores) and [container registry](https://docs.zenml.io/stack-components/container-registries)
+   - To access GPUs with sufficient VRAM, you may need to increase your GPU quota ([AWS](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html), [GCP](https://console.cloud.google.com/iam-admin/quotas), [Azure](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2#request-quota-and-limit-increases))
+   - If the CUDA version on your GPU instance is incompatible with the default Docker image, modify it in the configuration file. See [available PyTorch images](https://hub.docker.com/r/pytorch/pytorch/tags)
 
-To fine-tune an LLM using your own datasets, consider adjusting the [`prepare_data` step](steps/prepare_datasets.py) to match your needs:
-- This step loads, tokenizes, and stores the dataset from an external source to the artifact store defined in the ZenML Stack.
-- The dataset can be loaded from Hugging Face by adjusting the `dataset_name` parameter in the configuration file. By default, the step code expects the dataset to have at least three splits: `train`, `validation`, and `test`. If your dataset uses different split naming, you'll need to make the necessary adjustments.
-- If you want to retrieve the dataset from other sources, you'll need to create the relevant code and prepare the splits in a Hugging Face dataset format for further processing.
-- Tokenization occurs in the utility function [`generate_and_tokenize_prompt`](utils/tokenizer.py). It has a default way of formatting the inputs before passing them into the model. If this default logic doesn't fit your use case, you'll also need to adjust this function.
-- The return value is the path to the stored datasets (by default, `train`, `val`, and `test_raw` splits). Note: The test set is not tokenized here and will be tokenized later during evaluation.
+   ```shell
+   # Register a complete stack with GPU support
+   zenml stack register gamesense-stack -o <ORCHESTRATOR_NAME> \
+       -a <ARTIFACT_STORE_NAME> \
+       -c <CONTAINER_REGISTRY_NAME> \
+       [-s <STEP_OPERATOR_NAME>]
+   ```
 
-## 📜 Project Structure
+2. **Launch remote training**:
+   ```shell
+   # For cloud-based training
+   python run.py --config configs/llama3-1_finetune_remote.yaml
+   ```
 
-The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices):
+## 🔄 Customization for Your Gaming Platform
+
+### Training on Your Gaming Data
+
+To fine-tune GameSense on your specific gaming platform's data:
+
+1. **Prepare your dataset**: Format your gaming conversations, support tickets, or forum posts
+2. **Update the configuration**: Modify the `dataset_name` parameter in your config file
+3. **Adjust tokenization**: If needed, customize the [`generate_and_tokenize_prompt`](utils/tokenizer.py) function
+
+For detailed instructions on data preparation, see our [data customization guide](#️-bring-your-own-gaming-data).
+
+## 📊 Performance Monitoring
+
+GameSense includes built-in evaluation using industry-standard metrics:
+
+- **ROUGE Scores**: Measure response quality and relevance
+- **Gaming-Specific Benchmarks**: Evaluate understanding of gaming terminology
+- **Automatic Model Promotion**: Only deploy models that meet quality thresholds
+
+All metrics are tracked in the ZenML dashboard for easy monitoring and comparison.
+
+<div align="center">
+  <br/>
+    <a href="https://cloud.zenml.io">
+      <img alt="Model Control Plane" src=".assets/model.png">
+    </a>
+  <br/>
+</div>
+
+## 📁 Technical Architecture
+
+GameSense follows a modular architecture for easy customization:
 
 ```
-.
-├── configs                                       # pipeline configuration files
-│   ├── orchestrator_finetune.yaml                # default local or remote orchestrator configuration
-│   └── remote_finetune.yaml                      # default step operator configuration
-├── materializers
-│   └── directory_materializer.py                 # custom materializer to push whole directories to the artifact store and back
-├── pipelines                                     # `zenml.pipeline` implementations
+├── configs                                       # Configuration profiles for different deployment scenarios
+│   ├── orchestrator_finetune.yaml                # Default local or remote orchestrator configuration
+│   └── remote_finetune.yaml                      # Default step operator configuration
+├── materializers                                 # Custom data handlers for gaming-specific content
+│   └── directory_materializer.py                 # Custom materializer to push directories to the artifact store
+├── pipelines                                     # Core pipeline definitions
 │   └── train.py                                  # Finetuning and evaluation pipeline
-├── steps                                         # logically grouped `zenml.steps` implementations
-│   ├── evaluate_model.py                         # evaluate base and finetuned models using Rouge metrics
-│   ├── finetune.py                               # finetune the base model
-│   ├── log_metadata.py                           # helper step to ensure that model metadata is always logged
-│   ├── prepare_datasets.py                       # load and tokenize dataset
-│   └── promote.py                                # promote good models to target environment
-├── utils                                         # utility functions
-│   ├── callbacks.py                              # custom callbacks
-│   ├── loaders.py                                # loaders for models and data
-│   ├── logging.py                                # logging helpers
-│   └── tokenizer.py                              # load and tokenize
-├── .dockerignore
-├── README.md                                     # this file
-├── requirements.txt                              # extra Python dependencies 
+├── steps                                         # Individual pipeline components
+│   ├── evaluate_model.py                         # Gaming-specific evaluation metrics
+│   ├── finetune.py                               # Model customization for gaming terminology
+│   ├── log_metadata.py                           # Helper step for model metadata logging
+│   ├── prepare_datasets.py                       # Gaming data processing
+│   └── promote.py                                # Production deployment logic
+├── utils                                         # Utility functions
+│   ├── callbacks.py                              # Custom callbacks
+│   ├── loaders.py                                # Loaders for models and data
+│   ├── logging.py                                # Logging helpers
+│   └── tokenizer.py                              # Load and tokenize
 └── run.py                                        # CLI tool to run pipelines on ZenML Stack
 ```
+
+## 🗂️ Bring Your Own Gaming Data
+
+To fine-tune GameSense on your specific gaming platform's data:
+
+1. **Format your dataset**: Prepare your gaming conversations in a structured format
+2. **Update the configuration**: Point to your dataset in the config file
+3. **Run the pipeline**: GameSense will automatically process and learn from your data
+
+The [`prepare_data` step](steps/prepare_datasets.py) handles:
+- Loading, tokenizing, and storing the dataset from an external source to your artifact store
+- Loading datasets from Hugging Face (requires `train`, `validation`, and `test` splits by default)
+- Tokenization via the [`generate_and_tokenize_prompt`](utils/tokenizer.py) utility function
+
+For custom data sources, you'll need to prepare the splits in a Hugging Face dataset format. The step returns paths to the stored datasets (`train`, `val`, and `test_raw` splits), with the test set tokenized later during evaluation.
+
+## 📚 Documentation
+
+For detailed documentation on customizing and deploying GameSense, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
+
+---
+
+Level up your gaming platform with GameSense - where AI truly understands the language of gamers.
