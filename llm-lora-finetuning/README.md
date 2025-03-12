@@ -205,8 +205,4 @@ For custom data sources, you'll need to prepare the splits in a Hugging Face dat
 
 ## 📚 Documentation
 
-For detailed documentation on customizing and deploying GameSense, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
-
----
-
-Level up your gaming platform with GameSense - where AI truly understands the language of gamers.
+For learning more about how to use ZenML to build your own MLOps pipelines, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).

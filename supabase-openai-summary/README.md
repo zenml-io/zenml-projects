@@ -1,154 +1,178 @@
-# Generate Daily Summary of Supabase Database using GPT-4 and ZenML
+# 🌙 NightWatch: AI Database Summaries While You Sleep
 
-This project demonstrates how to create a daily summary of a [Supabase](https://supabase.com) database using [OpenAI GPT-4](https://openai.com/gpt4) and [ZenML](https://zenml.io). We use the YouTube video titles from [you-tldr](https://you-tldr.com) as an example and generate a summary of the last 24 hours of visitor activity. ZenML versions all data, allowing GPT-4 to compare the current summary to the previous one. The pipeline is executed daily using GitHub Actions and [a deployed ZenML instance in Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-sdks-docker-zenml).
-
-The output of the pipeline posts the summary to a Slack channel:
+> Wake up to AI-generated insights from your Supabase database every morning. This ZenML pipeline uses OpenAI's GPT-4 to analyze yesterday's database activity, compare it to historical trends, and deliver concise summaries directly to your Slack channels.
 
 ![The summary in Slack](assets/youtldr_summarizer_slack.png)
 
-An example report might be:
+## ✨ Why NightWatch?
 
-1. There is a significant interest in technology and software development, with topics such as data analytics, programming languages, software tools, and game development being popular among users.
+**NightWatch** transforms raw database activity into actionable business intelligence while you sleep. Instead of manually querying and analyzing your Supabase database each morning, let AI do the heavy lifting:
 
-2. Users are also interested in educational and informative content, including tutorials, lectures, and discussions on various subjects such as ethics, philosophy, and economics.
+- 🔍 **Automated Analysis**: Daily summaries of your database activity delivered to Slack
+- 📊 **Trend Detection**: Compare today's insights with historical patterns
+- 🧠 **AI-Powered**: Leverage OpenAI's GPT-4 to extract meaningful insights
+- 🔄 **Version Control**: Track changes over time with ZenML's data versioning
+- ⚙️ **Customizable**: Adapt to your specific database schema and business needs
+- 🚀 **Production-Ready**: Scale from local development to enterprise deployment
 
-3. There is a noticeable trend in content related to personal development and self-improvement, with videos on productivity, decision-making, and life advice.
+## 🎯 Use Cases
 
-The key advantage of this project is its ability to analyze enterprise datasets and generate summaries over time. By integrating ZenML, GPT-4, and Supabase, we can create a versatile system applicable to various use cases. For example, one compelling application is in customer support. Imagine using this pipeline to analyze and summarize customer feedback, support tickets, or product reviews. The summaries could help identify common pain points, trends, or areas for improvement, providing valuable insights for product development teams to prioritize features and enhancements based on real customer feedback.
+### Customer Support Intelligence
+Transform support tickets and customer feedback into actionable insights. Identify common pain points, track sentiment trends, and prioritize product improvements based on real user feedback.
 
-You can easily modify or send different parameters to your database by modifying the [`importer` step](src/steps/importers.py) and change the preset prompts and system inputs, or even the LLM service used in the [`generate_summary` step](src/steps/summarizers.py)
+### E-commerce Analytics
+Monitor product performance, track inventory movements, and identify purchasing patterns. Get daily summaries of sales trends, popular products, and inventory alerts.
 
-## Installation
+### Content Platform Engagement
+Understand what content resonates with your audience. NightWatch can analyze user engagement data to identify trending topics, popular creators, and content performance patterns.
 
-Install the required packages using the `requirements.txt` file in the `/src` directory:
+### Application Performance Monitoring
+Track user behavior, error rates, and performance metrics. Receive daily summaries highlighting potential issues before they become critical problems.
 
-```bash
-pip install -r src/requirements.txt
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.8+
+- Access to a Supabase database
+- OpenAI API key with GPT-4 access
+- ZenML account (free tier available)
+
+### Quick Installation
+
+1. **Install required packages**:
+   ```bash
+   pip install -r src/requirements.txt
+   ```
+
+2. **Connect to your ZenML deployment**:
+   ```bash
+   zenml login https://your-zenml-instance.com
+   ```
+
+3. **Set up your secrets**:
+   ```bash
+   # Configure Supabase connection
+   zenml secret create supabase \
+       --supabase_url=$SUPABASE_URL \
+       --supabase_key=$SUPABASE_KEY
+
+   # Configure OpenAI access
+   zenml secret create openai --api_key=$OPENAPI_API_KEY   
+   ```
+
+4. **Run your first summary**:
+   ```bash
+   python run.py
+   ```
+
+## 🛠️ Customization Options
+
+### Custom Database Queries
+Tailor the database queries to focus on the metrics that matter most to your business by modifying the [`importer` step](src/steps/importers.py):
+
+```python
+# Example: Focus on high-priority customer tickets
+query = """
+    SELECT * FROM support_tickets 
+    WHERE created_at > NOW() - INTERVAL '24 hours'
+    AND priority = 'high'
+"""
 ```
 
-## Connect to Your Deployed ZenML
+### Personalized AI Prompts
+Customize how the AI interprets your data by adjusting the prompts in the [`generate_summary` step](src/steps/summarizers.py):
 
-In order to run a ZenML pipeline remotely (e.g. on the cloud), we first need to
-[deploy ZenML](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml). One of the
-easiest ways to do this is to [deploy ZenML with HuggingFace spaces](https://docs.zenml.io/deploying-zenml/deploy-using-huggingface-spaces).
-
-Afterward, establish a connection with your deployed ZenML instance:
-
-```bash
-zenml connect --url https://*** --username *** --password ***
+```python
+# Example: Focus on actionable insights
+system_prompt = """
+    Analyze the database activity and identify:
+    1. Urgent issues requiring immediate attention
+    2. Emerging trends compared to previous periods
+    3. Recommended actions based on the data
+"""
 ```
 
-## Create Secrets
+### Notification Channels
+Configure where and how your summaries are delivered by customizing the alerter component.
 
-Create the necessary secrets for Supabase and OpenAI:
+## 🔧 Advanced Configuration
 
-```bash
-# These are supplied when you create a new project in your project dashboard.
-zenml secret create supabase \
-    --supabase_url=$SUPABASE_URL \
-    --supabase_key=$SUPABASE_KEY
+### Deploying to Production
 
-# Make sure to have access to GPT-4 (https://openai.com/gpt4)
-# You can get your keys at https://platform.openai.com/account/api-keys
-zenml secret create openai --api_key=$OPENAPI_API_KEY   
-```
+NightWatch seamlessly scales from local development to production environments. Deploy on production-ready orchestrators:
 
-## Run the Pipeline Locally
+1. **Install required integrations**:
+   ```bash
+   zenml integration install gcp slack -y
+   ```
 
-Once the installation is complete, you can run the pipeline locally:
+2. **Configure cloud storage**:
+   ```bash
+   zenml artifact-store register gcp_store -f gcp --path=gs://YOUR_BUCKET_PATH
+   ```
 
-```bash
-python run.py
-```
+3. **Set up Slack notifications**:
+   ```bash
+   zenml alerter register slack_alerter -f slack \
+       --slack_token=YOUR_SLACK_TOKEN \
+       --default_slack_channel_id=YOUR_CHANNEL_ID
+   ```
 
-Note that the pipeline uses parameters for a private Supabase database for a particular use-case for you-tldr.com. However, you can easily modify or send different parameters to the [`importer` step](src/steps/importers.py) for your own database needs.
+4. **Register your production stack**:
+   ```bash
+   zenml stack register -a gcp_store -o default --alerter=slack_alerter --active
+   ```
 
-You can also modify the preset prompts and system inputs in the [`generate_summary` step](src/steps/summarizers.py)
+### Automated Daily Execution
 
-## Run the Pipeline on a Remote Stack with Alerter
+Set up GitHub Actions to run NightWatch automatically every day:
 
-To run the pipeline on a remote stack with [an artifact store](https://docs.zenml.io/stack-components/artifact-stores) and [a Slack alerter](https://docs.zenml.io/stack-components/alerters/slack), follow these steps:
-
-1. Install the GCP and Slack integrations for ZenML:
-
-    ```bash
-    zenml integration install gcp slack -y
-    ```
-
-2. Register the GCP artifact store:
-
-    ```bash
-    zenml artifact-store register gcp_store -f gcp --path=gs://PATH_TO_STORE
-    ```
-
-3. Register the Slack alerter:
-
-    ```bash
-    zenml alerter register slack_alerter -f slack --slack_token=<YOUR_SLACK_TOKEN> --default_slack_channel_id=<YOUR_SLACK_CHANNEL_ID>
-    ```
-
-4. Register the stack with the GCP artifact store and Slack alerter:
-
-    ```bash
-    zenml stack register -a gcp_store -o default --alerter=slack_alerter --active
-    ```
-
-Once the stack is registered and set active, the pipeline will run on the remote stack with the GCP artifact store and send alerts to the specified Slack channel.
-
-## Running in production: Choose your MLOps stack
-
-ZenML simplifies scaling this pipeline by allowing seamless deployment on production-ready orchestrators like [Airflow](https://docs.zenml.io/stack-components/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/stack-components/orchestrators/kubeflow). With [native versioning on cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions) and experiment tracking through ZenML's integration with [MLflow](https://docs.zenml.io/stack-components/experiment-trackers/mlflow), you can start locally and effortlessly transition to robust and efficient MLOps pipelines in production, unlocking valuable insights from your enterprise data.
-
-## Example: Automate Pipeline Execution with GitHub Actions
-
-To automate the pipeline execution every day, you can use GitHub Actions. First, store your secrets [in the GitHub repository's secrets settings](https://docs.github.com/en/codespaces/managing-codespaces-for-your-organization/managing-encrypted-secrets-for-your-repository-and-organization-for-github-codespaces). Add the following secrets:
-
-- `GCP_SA_KEY`: Your GCP service account key in JSON format.
-- `ZENML_URL`: The URL of your deployed ZenML instance.
-- `ZENML_USERNAME`: The username for your deployed ZenML instance.
-- `ZENML_PASSWORD`: The password for your deployed ZenML instance.
-- `ZENML_STACK`: The name of the ZenML stack you registered earlier.
-
-Next, create a `.github/workflows/main.yml` file in your project and add the following content:
+1. Store your secrets in your GitHub repository
+2. Create a workflow file (`.github/workflows/nightwatch.yml`):
 
 ```yaml
-name: Daily Summary
+name: NightWatch Daily Summary
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 5 * * *'  # Run at 5 AM UTC daily
 
 jobs:
   run_pipeline:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Log into GCP
-      uses: 'google-github-actions/auth@v1'
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r src/requirements.txt
-        zenml init
-        zenml integration install gcp slack -y
-        zenml connect --url ${{ secrets.ZENML_URL }} --username ${{ secrets.ZENML_USERNAME }} --password ${{ secrets.ZENML_PASSWORD }}
-        zenml stack set ${{ secrets.ZENML_STACK }}
-        python src/run.py
-
-    - name: Run pipeline
-      run: |
-        python run.py
+    
+    # Additional configuration steps...
+    
+    - name: Run NightWatch
+      run: python run.py
 ```
 
-This configuration runs the pipeline every day at midnight. The workflow checks out the repository, sets up Python, logs into GCP, installs dependencies, connects to the deployed ZenML instance, sets the ZenML stack, and runs the pipeline.
+## 📈 Scaling Your Insights
+
+NightWatch is built on ZenML, giving you access to a complete MLOps ecosystem:
+
+- **Orchestration**: Scale with [Airflow](https://docs.zenml.io/stack-components/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/stack-components/orchestrators/kubeflow)
+- **Storage**: Store artifacts on [cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions)
+- **Tracking**: Monitor experiments with [MLflow integration](https://docs.zenml.io/stack-components/experiment-trackers/mlflow)
+- **Alerting**: Customize notifications through various channels
+
+## 🔒 Security & Compliance
+
+NightWatch handles sensitive database information with care:
+
+- All credentials are stored securely using ZenML's secret management
+- Data processing occurs within your infrastructure
+- No sensitive data is shared with external services except for the specific prompts sent to OpenAI
+
+## 🌟 Start Transforming Your Data Today
+
+Stop manually analyzing database logs and start your day with AI-powered insights that drive better business decisions.
+
+Ready to wake up to smarter insights? Get started with NightWatch today!
+
+---
+
+*NightWatch is powered by [ZenML](https://zenml.io), [OpenAI](https://openai.com/gpt4), and [Supabase](https://supabase.com).*

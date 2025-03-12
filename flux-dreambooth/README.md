@@ -87,7 +87,7 @@ Magic Photobooth requires GPU resources for optimal performance. We recommend de
    # For Kubernetes environments
    python k8s_run.py
    
-   # For Modal cloud environments
+   # For Modal
    python modal_run.py
    ```
 
@@ -120,7 +120,3 @@ Magic Photobooth is built on a robust MLOps architecture:
 ## 📚 Documentation
 
 For learning more about how to use ZenML to build your own MLOps pipelines, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
-
----
-
-Transform your digital presence today with Magic Photobooth!

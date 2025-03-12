@@ -164,7 +164,3 @@ For detailed documentation on using ZenML to build your own MLOps pipelines, ple
 ## 🔄 Continuous Improvement
 
 EuroRate Predictor is designed for continuous improvement of your interest rate forecasts. As new ECB data becomes available, simply re-run the pipelines to generate updated predictions.
-
----
-
-Start making data-driven financial decisions today with EuroRate Predictor!
