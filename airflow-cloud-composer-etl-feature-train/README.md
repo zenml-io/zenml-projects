@@ -80,7 +80,7 @@ module "zenml_stack" {
 
   project_id = "your-gcp-project-id"
   region = "europe-west1"
-  orchestrator = "vertex" # or "airflow"
+  orchestrator = "vertex" # or "skypilot" or "airflow"
   zenml_server_url = "https://your-zenml-server-url.com"
   zenml_api_key = "ZENKEY_1234567890..."
 }
@@ -159,7 +159,7 @@ EuroRate Predictor follows a modular architecture:
 
 ## 📚 Documentation
 
-For detailed documentation on customizing EuroRate Predictor for your specific financial forecasting needs, please refer to our [ZenML documentation](https://docs.zenml.io/).
+For detailed documentation on using ZenML to build your own MLOps pipelines, please refer to our [ZenML documentation](https://docs.zenml.io/).
 
 ## 🔄 Continuous Improvement
 

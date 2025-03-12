@@ -119,7 +119,7 @@ Magic Photobooth is built on a robust MLOps architecture:
 
 ## 📚 Documentation
 
-For advanced usage and customization options, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
+For learning more about how to use ZenML to build your own MLOps pipelines, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
 
 ---
 
