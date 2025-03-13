@@ -16,21 +16,30 @@
 #
 
 from steps import (
-    promote_model,
-    train_xgboost_model,
+    augment_bq,
+    augment_csv,
 )
 from zenml import pipeline
 from zenml.client import Client
 
 
 @pipeline
-def model_training_pipeline(augmented_dataset_id, mode: str = "develop"):
-    """A pipeline to train an XGBoost model and promote it.
+def ecb_predictor_feature_engineering_pipeline(
+    transformed_dataset_id: str, mode: str = "develop"
+):
+    """A pipeline to augment data and load it into BigQuery or locally.
 
     Args:
-        augmented_dataset_id: str: The ID of the augmented dataset.
-        mode: str: The mode in which the pipeline is run. Defaults to "develop
+        transformed_dataset_id: str: The ID of the transformed dataset.
+        mode: str: The mode in which the pipeline is run. Defaults to "develop".
+
+    Returns:
+        str: The path to the data.
     """
-    augmented_data = Client().get_artifact_version(augmented_dataset_id)
-    _, metrics = train_xgboost_model(augmented_data)
-    promote_model(metrics)
+    transformed_dataset = Client().get_artifact_version(transformed_dataset_id)
+    if mode == "develop":
+        augmented_data = augment_csv(transformed_dataset)
+    else:
+        augmented_data = augment_bq(transformed_dataset)
+
+    return augmented_data

@@ -15,32 +15,22 @@
 # limitations under the License.
 #
 
-from materializers.dataset import Dataset
 from steps import (
-    extract_data_local,
-    extract_data_remote,
-    transform_bq,
-    transform_csv,
+    promote_model,
+    train_xgboost_model,
 )
 from zenml import pipeline
+from zenml.client import Client
 
 
 @pipeline
-def etl_pipeline(mode: str = "develop") -> Dataset:
-    """Model deployment pipeline.
-
-    This is a pipeline that loads data to BigQuery.
+def ecb_predictor_model_training_pipeline(augmented_dataset_id, mode: str = "develop"):
+    """A pipeline to train an XGBoost model and promote it.
 
     Args:
-        mode: str: The mode in which the pipeline is run. Defaults to "develop".
-
-    Returns:
-        Dataset: The transformed data.
+        augmented_dataset_id: str: The ID of the augmented dataset.
+        mode: str: The mode in which the pipeline is run. Defaults to "develop
     """
-    if mode == "develop":
-        raw_data = extract_data_local()
-        transformed_data = transform_csv(raw_data)
-    else:
-        raw_data = extract_data_remote()
-        transformed_data = transform_bq(raw_data)
-    return transformed_data
+    augmented_data = Client().get_artifact_version(augmented_dataset_id)
+    _, metrics = train_xgboost_model(augmented_data)
+    promote_model(metrics)

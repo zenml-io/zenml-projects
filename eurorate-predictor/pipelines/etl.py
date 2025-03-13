@@ -15,31 +15,32 @@
 # limitations under the License.
 #
 
+from materializers.dataset import Dataset
 from steps import (
-    augment_bq,
-    augment_csv,
+    extract_data_local,
+    extract_data_remote,
+    transform_bq,
+    transform_csv,
 )
 from zenml import pipeline
-from zenml.client import Client
 
 
 @pipeline
-def feature_engineering_pipeline(
-    transformed_dataset_id: str, mode: str = "develop"
-):
-    """A pipeline to augment data and load it into BigQuery or locally.
+def ecb_predictor_etl_pipeline(mode: str = "develop") -> Dataset:
+    """Model deployment pipeline.
+
+    This is a pipeline that loads data to BigQuery.
 
     Args:
-        transformed_dataset_id: str: The ID of the transformed dataset.
         mode: str: The mode in which the pipeline is run. Defaults to "develop".
 
     Returns:
-        str: The path to the data.
+        Dataset: The transformed data.
     """
-    transformed_dataset = Client().get_artifact_version(transformed_dataset_id)
     if mode == "develop":
-        augmented_data = augment_csv(transformed_dataset)
+        raw_data = extract_data_local()
+        transformed_data = transform_csv(raw_data)
     else:
-        augmented_data = augment_bq(transformed_dataset)
-
-    return augmented_data
+        raw_data = extract_data_remote()
+        transformed_data = transform_bq(raw_data)
+    return transformed_data

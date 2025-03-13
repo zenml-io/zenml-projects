@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-from .etl import etl_pipeline
-from .feature_engineering import feature_engineering_pipeline
-from .training import model_training_pipeline
+from .etl import ecb_predictor_etl_pipeline
+from .feature_engineering import ecb_predictor_feature_engineering_pipeline
+from .training import ecb_predictor_model_training_pipeline

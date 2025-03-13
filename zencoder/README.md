@@ -12,6 +12,7 @@
 <div align="center">
   <h3 align="center">ZenCoder: LLMOps pipelines to train and deploy a model to produce MLOps pipelines.</h3>
   <p align="center">
+    Transform your ML workflow with an AI assistant that actually understands ZenML. This project fine-tunes open-source LLMs to generate production-ready MLOps pipelines.
     <div align="center">
       Join our <a href="https://zenml.io/slack-invite" target="_blank">
       <img width="18" src="https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/306_Slack-512.png" alt="Slack"/>
@@ -23,7 +24,7 @@
 
 ---
 
-# ☮️ Fine-tuning an open source LLM to create MLOps pipelines
+# ☮️ ZenCoder: Fine-tuning an open source LLM to create MLOps pipelines
 
 One of the first jobs of somebody entering MLOps is to convert their manual scripts or notebooks into pipelines that can be deployed on the cloud. This job is tedious, and can take time. For example, one has to think about:
 
@@ -37,7 +38,7 @@ Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alle
 
 Unfortunately, most open source or proprietary models like GitHub Copilot are often lagging behind the most recent versions of ML libraries, therefore giving erroneous our outdated syntax when asked simple commands.
 
-The goal of this project is fine-tune an open-source LLM that performs better than off-the-shelf solutions on giving the right output for the latest version of ZenML.
+ZenCoder is designed to solve this problem by fine-tuning an open-source LLM that performs better than off-the-shelf solutions on giving the right output for the latest version of ZenML. Think of it as your personal MLOps engineer that understands ZenML deeply and can help you build production-ready pipelines.
 
 ## :earth_americas: Inspiration and Credit
 
@@ -91,7 +92,13 @@ We have create a custom zenml model deployer for deploying models on the
 huggingface inference endpoint. The code for custom deployer is in
 the deployment pipeline which can be found [here](./pipelines/deployment.py).
 
-For running deployment pipeline, we create a custom zenml stack. As we are using a custom model deployer, we will have to register the flavor and model deployer. We update the stack to use this custom model deployer for running deployment pipeline.
+The deployment pipeline supports two deployment targets:
+1. **HuggingFace Inference Endpoints** - Deploy the model to HuggingFace's managed inference service
+2. **Local vLLM Deployment** - Deploy the model locally using vLLM for high-performance inference
+
+### HuggingFace Deployment
+
+For running deployment pipeline with HuggingFace, we create a custom zenml stack. As we are using a custom model deployer, we will have to register the flavor and model deployer. We update the stack to use this custom model deployer for running deployment pipeline.
 
 ```bash
 zenml init
@@ -120,10 +127,35 @@ zenml stack update zencoder_hf_stack -d hfendpoint
 Run the deployment pipeline using the CLI:
 
 ```shell
-# Deployment
-python run.py --deployment-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
-python run.py --deployment-pipeline --config deployment_a100.yaml
+# Deployment to HuggingFace
+python run.py --deployment-pipeline --config deployment_a100.yaml --deployment-target huggingface
 ```
+
+### Local vLLM Deployment
+
+For local deployment using vLLM, we leverage ZenML's vLLM integration which provides high-performance inference capabilities. This is ideal for testing the model locally before deploying to production or for scenarios where you need local inference.
+
+First, ensure you have the vLLM integration installed:
+
+```bash
+zenml integration install vllm
+```
+
+Then register the vLLM model deployer and update your stack:
+
+```bash
+zenml model-deployer register vllm-deployer --flavor=vllm
+zenml stack update zencoder_hf_stack -d vllm-deployer
+```
+
+Run the deployment pipeline with vLLM target:
+
+```shell
+# Local deployment with vLLM
+python run.py --deployment-pipeline --config deployment_a100.yaml --deployment-target vllm
+```
+
+This will start a local vLLM server that serves your model, providing a REST API endpoint for inference. The server is optimized for performance and can handle multiple requests efficiently.
 
 ## 🥇Recent developments
 
