@@ -32,6 +32,8 @@ from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
+from zenml.client import Client
+
 
 logger = get_logger(__name__)
 
