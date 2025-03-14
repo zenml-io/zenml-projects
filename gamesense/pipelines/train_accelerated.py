@@ -18,12 +18,13 @@
 
 from steps import (
     evaluate_model,
-    finetune_accelerated,
+    finetune,
     log_metadata_from_step_artifact,
     prepare_data,
     promote,
 )
 from zenml import pipeline
+from zenml.integrations.huggingface.steps import run_with_accelerate
 
 
 @pipeline
@@ -75,6 +76,9 @@ def llm_peft_full_finetune(
         id="log_metadata_evaluation_base",
     )
 
+    finetune_accelerated = run_with_accelerate(
+        finetune, num_processes=2, multi_gpu=True, mixed_precision="bf16"
+    )
     ft_model_dir = finetune_accelerated(
         base_model_id=base_model_id,
         dataset_dir=datasets_dir,
