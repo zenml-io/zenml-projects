@@ -117,7 +117,7 @@ python run.py deploy
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - ZenML 0.80.0+
 - Hugging Face account with API token
 - Anthropic API key (optional, for model comparison)
