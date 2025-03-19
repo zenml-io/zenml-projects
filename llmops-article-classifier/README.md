@@ -1,8 +1,18 @@
-# 🚀 LLMOps Article Classifier: Automated End-to-End ML Pipelines with ZenML
+<div align="center">
+  <img src="assets/training_pipeline.png" alt="LLMOps Article Classifier DAG" width="800"/>
+</div>
+
+# 🚀 ResearchRadar: AI Literature Discovery and Classification Pipeline
 
 ## 📑 Overview
 
-This project demonstrates ZenML's capabilities for building end-to-end ML pipelines that automatically classify articles for the ZenML LLMOps Database. It showcases a complete MLOps workflow that:
+This project demonstrates how AI researchers can build an automated pipeline to discover, classify, and organize research papers relevant to their specific subfields. Using ZenML's end-to-end ML pipelines, researchers can train models to automatically identify papers that align with their research interests—whether it's reinforcement learning, computer vision, NLP, or emerging areas like multimodal models—from across various sources including preprint servers, journals, and conference proceedings.
+
+The system showcases how researchers can fine-tune models to recognize subtle distinctions between related subfields, saving countless hours normally spent manually filtering through the overwhelming volume of AI research being published daily. The comparative analysis pipeline demonstrates whether custom-trained models outperform commercial APIs when identifying highly specialized technical content, helping research teams make informed decisions about their literature review infrastructure.
+
+This framework is ideal for academic labs, industry research groups, and individual AI researchers who need to maintain comprehensive awareness of relevant publications without spending hours each week manually sifting through papers. By deploying the trained model to Hugging Face, teams can create shared resources that help all members stay current with literature relevant to their collective research agenda, streamlining collaboration and reducing duplicate effort in literature reviews.
+
+This specific example showcases how to build an end-to-end ML pipeline that automatically discovers and classifies LLMOps-related research papers for the ZenML LLMOps Database. It showcases a complete MLOps workflow that:
 
 - Classifies articles using DeepSeek R1 (Classification Pipeline)
 - Fine-tunes [ModernBERT](https://www.answer.ai/posts/2024-12-19-modernbert.html) for the classification task (Training Pipeline)
@@ -107,44 +117,29 @@ python run.py deploy
 
 ### Prerequisites
 
-- Python 3.9+
-- ZenML 0.75.0+
+- Python 3.8+
+- ZenML 0.80.0+
 - Hugging Face account with API token
 - Anthropic API key (optional, for model comparison)
 
 ### Installation
 
-1. Clone the repository
+1. Install LLMops Article Classifier
 
-   ```bash
-   git clone https://github.com/zenml-io/llmops-article-classifier-demo
-   cd llmops-article-classifier-demo
-   ```
+```bash
+# Set up a Python virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-2. Create and activate virtual environment
+# Install requirements
+pip install -r requirements.txt
+```
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+2. Set up environment variables
+```bash
+cp .env.example .env  # add your HF_TOKEN and ANTHROPIC_API_KEY
+```
 
-3. Install dependencies
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Set up environment variables
-
-   ```bash
-   cp .env.example .env
-   # Edit .env file to add your HF_TOKEN and ANTHROPIC_API_KEY
-   ```
-
-5. Initialize ZenML (if not already done)
-   ```bash
-   zenml init
-   ```
 
 ### Configuration
 
