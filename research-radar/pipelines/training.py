@@ -34,26 +34,19 @@ from zenml import pipeline
 
 @pipeline(model=zenml_project)
 def training_pipeline(config: Dict | None = None, save_to_disk: bool = False):
-    """ModernBERT fine-tuning pipeline for article classification.
-
-    - Supports local or remote execution via config file selection
-    - Comprehensive model evaluation and metadata tracking
+    """Fine-tunes ModernBERT for article classification.
 
     Args:
-        config: Pipeline configuration containing training parameters
-        save_to_disk: Whether to save the test set to disk
+        config: Pipeline configuration dictionary
+        save_to_disk: If True, saves test set for later evaluation
 
-    Dataset Selection Workflow:
-    - Prioritizes the augmented dataset (created by the classification pipeline)
-    - Falls back to the composite dataset if augmented doesn't exist
-    - You can run the classification pipeline in augmentation mode to create the augmented dataset
+    Process:
+    1. Loads dataset (prioritizes augmented over composite if it exists)
+    2. Preprocesses and splits data
+    3. Fine-tunes ModernBERT model
+    4. Saves model artifacts locally
 
-    Pipeline steps:
-    1. Load dataset (augmented or composite)
-    2. Preprocess text and labels
-    3. Split data (train/val/test)
-    4. Fine-tune ModernBERT (locally or on remote hardware)
-    5. Export model artifacts
+    Note: Run the classification pipeline in augmentation mode to create the augmented dataset.
     """
     if not config:
         raise ValueError("Config must be provided")
