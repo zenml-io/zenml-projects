@@ -76,7 +76,7 @@ def finetune_modernbert(
         validation_set: Validation data split
         test_set: Test data split
         training_params: Training hyperparameters and settings
-        model: Model metadata for versioning
+        project: ZenML project metadata for versioning
         base_model: Base model ID to fine-tune
         remote_execution: Whether to use remote-optimized settings
 
