@@ -25,8 +25,7 @@ CLEANED_JSON_PATTERN = re.compile(r'("[^"]*":\s*)"([^"]*)"')
 
 
 def try_extract_json_from_text(text: str) -> tuple[str, dict | None]:
-    """
-    Try to extract a JSON object from a string.
+    """Try to extract a JSON object from a string.
 
     Args:
         text: The text to extract the JSON object from
