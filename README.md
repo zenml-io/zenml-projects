@@ -72,7 +72,7 @@ A list of updated and maintained projects by the ZenML team and the community:
 | [Eurorate Predictor](eurorate-predictor) | `ETL` `Time Series` `Feature Engineering` `Regression` `Workflow Orchestration` | `cloud-composer` `airflow` `vertex-ai` `bigquery` `xgboost` `gcp` |
 | [Nightwatch AI](nightwatch-ai) | `NLP` `Text Summarization` `Database Integration` `LLM` `Automated Reporting` | `openai` `supabase` `slack` `github-actions` `gcp` |
 | [Sign Language Detection with YOLOv5](sign-language-detection-yolov5) | `Computer Vision` `Object Detection` `Real-time Processing` `Model Deployment` | `mlflow` `gcp` `bentoml` `vertex-ai` `docker` |
-| [LLMOps Article Classifier](llmops-article-classifier) | `LLMOps` `Article Classification` `Fine-tuning` `ModernBERT` `Model Evaluation` `Model Comparison` | `anthropic` `huggingface` `pytorch` `transformers` `docker` |
+| [ResearchRadar](research-radar) | `AI Literature Discovery` `Research Paper Classification` `Model Training` `Model Evaluation` `Model Comparison` | `anthropic` `huggingface` `pytorch` `transformers` `docker` |
 
 # 💻 System Requirements
 
