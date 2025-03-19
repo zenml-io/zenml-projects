@@ -5,7 +5,7 @@
 This project demonstrates ZenML's capabilities for building end-to-end ML pipelines that automatically classify articles for the ZenML LLMOps Database. It showcases a complete MLOps workflow that:
 
 - Classifies articles using DeepSeek R1 (Classification Pipeline)
-- Fine-tunes a ModernBERT model for the classification task (Training Pipeline)
+- Fine-tunes [ModernBERT](https://www.answer.ai/posts/2024-12-19-modernbert.html) for the classification task (Training Pipeline)
 - Provides comprehensive metrics tracking (Training Pipeline)
 - Compares the fine-tuned model against Claude Haiku (Comparison Pipeline)
 - Deploys the fine-tuned model to Hugging Face (Deployment Pipeline)
