@@ -1,4 +1,4 @@
-accelerate>=0.26.0
+accelerate==1.5.2
 anthropic==0.46.0
 beautifulsoup4==4.13.3
 colorama==0.4.6
@@ -16,6 +16,6 @@ scikit_learn==1.6.1
 tenacity==9.0.0
 torch==2.6.0
 tqdm>=4.64.0
-transformers==4.48.0.dev0
+transformers==4.48.0
 typing_extensions==4.12.2
 zenml>=0.80.0
