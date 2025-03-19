@@ -225,6 +225,18 @@ The project follows the recommended ZenML project structure:
 └── run.py              # CLI entrypoint
 ```
 
+## 📚 Additional Documentation
+
+The project includes detailed documentation in various subdirectories:
+- **[Data Documentation](data/README.md)**: Details on dataset storage and processing.
+- **[Classification Results Documentation](classification_results/README.md)**: Explanation of classification outputs, metrics, and the checkpoint system.
+- **[Model Comparison Documentation](model_comparison/README.md)**: Details on the model comparison.
+- **[Pipelines Documentation](pipelines/README.md)**: Details on the pipeline definitions.
+- **[Prompts Documentation](prompts/README.md)**: Details on the prompts used in the pipeline.
+- **[Schemas Documentation](schemas/README.md)**: Details on data models and validation.
+- **[Steps Documentation](steps/README.md)**: Information about individual pipeline components including model comparison and metrics.
+- **[Utils Documentation](utils/README.md)**: Details on helper functions, checkpoint system, classification utilities, and data processing.
+
 ## 📜 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
