@@ -61,12 +61,12 @@ A human-readable markdown report of the metrics data with formatted tables for:
 The classification process uses a checkpoint system to enable resuming interrupted jobs:
 
 - Checkpoints are saved periodically during processing in the `checkpoints/` directory
-- The frequency and retention settings are configurable in `settings.yaml`
+- The frequency and retention settings are configurable in `base_config.yaml`
 - Only the most recent N checkpoints are kept to conserve disk space
 
 ## Processing Configuration
 
-Classification processing can be configured in [`settings.yaml`](../settings.yaml):
+Classification processing can be configured in [`base_config.yaml`](../base_config.yaml):
 
 - Process entire dataset or specific batches
 - Enable/disable parallel processing
