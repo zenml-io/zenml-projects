@@ -58,7 +58,7 @@ question_doc_pairs = [
     },
     {
         "question": "How do I generate embeddings as part of a RAG pipeline when using ZenML?",
-        "url_ending": "user-guide/llmops-guide/rag-with-zenml/embeddings-generation",
+        "url_ending": "user-guides/llmops-guide/rag-with-zenml/embeddings-generation",
     },
     {
         "question": "How do I use failure hooks in my ZenML pipeline?",

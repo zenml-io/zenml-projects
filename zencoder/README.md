@@ -28,10 +28,10 @@
 
 One of the first jobs of somebody entering MLOps is to convert their manual scripts or notebooks into pipelines that can be deployed on the cloud. This job is tedious, and can take time. For example, one has to think about:
 
-1. Breaking down things into [step functions](https://docs.zenml.io/user-guide/starter-guide/create-an-ml-pipeline)
+1. Breaking down things into [step functions](https://docs.zenml.io/user-guides/starter-guide/create-an-ml-pipeline)
 2. Type annotating the steps properly
 3. Connecting the steps together in a pipeline
-4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guide/production-guide/configure-pipeline)
+4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guides/production-guide/configure-pipeline)
 5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/how-to/customize-docker-builds).
 
 Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
@@ -82,7 +82,7 @@ python run.py --deploy-pipeline --config <NAME_OF_CONFIG_IN_CONFIGS_FOLDER>
 python run.py --deploy-pipeline --config deployment_a100.yaml
 ```
 
-The `feature_engineering` and `deployment` pipeline can be run simply with the `default` stack, but the training pipelines [stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) will depend on the config.
+The `feature_engineering` and `deployment` pipeline can be run simply with the `default` stack, but the training pipelines [stack](https://docs.zenml.io/user-guides/production-guide/understand-stacks) will depend on the config.
 
 The `deployment` pipelines relies on the `training_pipeline` to have run before.
 

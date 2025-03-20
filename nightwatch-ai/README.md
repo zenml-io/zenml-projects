@@ -155,7 +155,7 @@ jobs:
 NightWatch is built on ZenML, giving you access to a complete MLOps ecosystem:
 
 - **Orchestration**: Scale with [Airflow](https://docs.zenml.io/stack-components/orchestrators/airflow) or [Kubeflow](https://docs.zenml.io/stack-components/orchestrators/kubeflow)
-- **Storage**: Store artifacts on [cloud storage](https://docs.zenml.io/user-guide/starter-guide/cache-previous-executions)
+- **Storage**: Store artifacts on [cloud storage](https://docs.zenml.io/user-guides/starter-guide/cache-previous-executions)
 - **Tracking**: Monitor experiments with [MLflow integration](https://docs.zenml.io/stack-components/experiment-trackers/mlflow)
 - **Alerting**: Customize notifications through various channels
 

@@ -44,7 +44,7 @@ def url_scraper(
         docs_urls = [
             "https://docs.zenml.io/getting-started/system-architectures",
             "https://docs.zenml.io/getting-started/core-concepts",
-            "https://docs.zenml.io/user-guide/llmops-guide/rag-with-zenml/rag-85-loc",
+            "https://docs.zenml.io/user-guides/llmops-guide/rag-with-zenml/rag-85-loc",
             "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
             "https://docs.zenml.io/how-to/debug-and-solve-issues",
             "https://docs.zenml.io/stack-components/step-operators/azureml",
