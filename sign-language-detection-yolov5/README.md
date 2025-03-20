@@ -32,18 +32,18 @@ installed on your local machine:
 * [Docker](https://www.docker.com/)
 * [GCloud CLI](https://cloud.google.com/sdk/docs/install) (authenticated)
 * [MLFlow Tracking Server](https://mlflow.org/docs/latest/tracking.html#mlflow-tracking-servers) (deployed remotely)
-* [Remote ZenML Server](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml): a Remote Deployment of the ZenML HTTP server and database
+* [Remote ZenML Server](https://docs.zenml.io/user-guides/production-guide/deploying-zenml#connecting-to-a-deployed-zenml): a Remote Deployment of the ZenML HTTP server and database
 
 ### :rocket: Remote ZenML Server
 
 For advanced use cases where we have a remote orchestrator or step operators such as Vertex AI
 or to share stacks and pipeline information with a team we need to have a separated non-local remote ZenML Server that can be accessible from your
 machine as well as all stack components that may need access to the server.
-[Read more information about the use case here](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml)
+[Read more information about the use case here](https://docs.zenml.io/user-guides/production-guide/deploying-zenml#connecting-to-a-deployed-zenml)
 
 In order to achieve this there are two different ways to get access to a remote ZenML Server.
 
-1. Deploy and manage the server manually on [your own cloud](https://docs.zenml.io/user-guide/production-guide/deploying-zenml#connecting-to-a-deployed-zenml)/
+1. Deploy and manage the server manually on [your own cloud](https://docs.zenml.io/user-guides/production-guide/deploying-zenml#connecting-to-a-deployed-zenml)/
 2. Sign up for [ZenML Enterprise](https://zenml.io/pricing) and get access to a hosted
    version of the ZenML Server with no setup required.
 
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 pip install -r yolov5/requirements.txt
 ```
 
-Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/user-guide/starter-guide#explore-the-dashboard), but first you must install the optional dependencies for the ZenML server:
+Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to  [launch the ZenML Server and Dashboard locally](https://docs.zenml.io/user-guides/starter-guide#explore-the-dashboard), but first you must install the optional dependencies for the ZenML server:
 
 ```bash
 zenml connect --url=$ZENML_SERVER_URL

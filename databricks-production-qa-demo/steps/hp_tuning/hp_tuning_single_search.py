@@ -50,7 +50,7 @@ def hp_tuning_single_search(
     to use different input datasets and also have a flag to fall back to default
     model architecture. See the documentation for more information:
 
-        https://docs.zenml.io/how-to/build-pipelines/use-pipeline-step-parameters
+        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
 
     Args:
         model_package: The package containing the model to use for hyperparameter tuning.

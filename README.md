@@ -139,7 +139,7 @@ the Apache License Version 2.0.
 | 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
 | 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
 
-[ZenML 101]: https://docs.zenml.io/user-guide/starter-guide
+[ZenML 101]: https://docs.zenml.io/user-guides/starter-guide
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
 [Our latest release]: https://github.com/zenml-io/zenml/releases
 [Vote for Features]: https://zenml.io/discussion
