@@ -45,10 +45,10 @@ jobs:
         run: |
           zenml init
 
-      - name: Create and set project if it doesn't exist
+      - name: Register and set project if it doesn't exist
         working-directory: ./llm-complete-guide
         run: |
-          zenml project create llm-complete-guide --description "LLM Complete Guide project for the ZenML staging workflow"
+          zenml project register llm-complete-guide --description "LLM Complete Guide project"
           zenml project set llm-complete-guide
 
       - name: Set stack (Staging)
