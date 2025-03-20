@@ -1,13 +1,12 @@
 # Pipeline Usage
 
 - For detailed implementation of each step, see the individual Python files
-- For pipeline configurations and settings, refer to [`base_config.yaml`](../base_config.yaml)
+- For pipeline configurations and settings, refer to [`base_config.yaml`](../configs/base_config.yaml)
 
 ## Classification Pipeline
 
 Runs the following steps:
 
-- [`load_classification_dataset`](../steps/load_classification_dataset.py) - Loads articles based on classification mode
 - [`classify_articles`](../steps/classify_articles.py) - Classifies articles using DeepSeek R1
 - [`save_classifications`](../steps/save_classifications.py) - Saves classification results to JSON
 - [`merge_classifications`](../steps/merge_classifications.py) - Merges new classifications with existing dataset (augmentation mode)
@@ -20,7 +19,6 @@ Runs the following steps:
 
 Runs the following steps:
 
-- [`load_training_dataset`](../steps/load_training_dataset.py) - Automatically selects augmented dataset if available, otherwise uses composite dataset
 - [`data_preprocessor`](../steps/data_preprocessor.py) - Prepares text for model training
 - [`data_splitter`](../steps/data_splitter.py) - Creates train/validation/test splits
 - [`save_test_set`](../steps/save_test_set.py) - Optionally saves test set for later evaluation
@@ -37,6 +35,6 @@ Runs the following step:
 
 Runs the following steps:
 
-- [`load_test_set_from_artifact`](../steps/load_test_set_from_artifact.py)
+- [`load_test_set`](../steps/load_test_set.py)
 - [`compare_models`](../steps/compare_models.py)
 - [`save_comparison_metrics`](../steps/save_comparison_metrics.py)

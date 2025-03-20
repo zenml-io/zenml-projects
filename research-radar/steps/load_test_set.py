@@ -45,12 +45,10 @@ def load_test_set(
         source_type: Type of data source ('disk' or 'artifact')
         path: Path to dataset on disk (required when source_type is 'disk')
         artifact_name: Name of the ZenML artifact (required when source_type is 'artifact')
+        version: Version of the ZenML artifact (optional, defaults to latest)
 
     Returns:
         Dataset: The loaded dataset
-
-    Raises:
-        ValueError: If the parameters are invalid or the dataset cannot be loaded
     """
     source_type = source_type.lower()
     if source_type not in ["disk", "artifact"]:

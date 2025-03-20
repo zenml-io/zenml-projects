@@ -33,8 +33,7 @@ def data_splitter(
     Annotated[Dataset, "validation_set"],
     Annotated[Dataset, "test_set"],
 ]:
-    """
-    Performs stratified dataset splitting.
+    """Performs stratified dataset splitting.
 
     Args:
         dataset: Input dataset to split

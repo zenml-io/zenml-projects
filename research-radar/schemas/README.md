@@ -31,7 +31,7 @@ Two-part schema for article data:
 - `InputArticle`: Article text with metadata and validation rules
   - Ensures text is non-empty with field validation
 
-### [`training_arguments_config.py`](training_arguments_config.py)
+### [`training_config.py`](training_config.py)
 
 Configuration schema for Hugging Face `TrainingArguments`:
 

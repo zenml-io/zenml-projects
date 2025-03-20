@@ -15,9 +15,7 @@
 # limitations under the License.
 #
 
-"""
-Pydantic models for configuration validation.
-"""
+"""Pydantic models for configuration validation."""
 
 from typing import Dict, List, Literal, Optional
 
@@ -41,6 +39,7 @@ class BatchProcessingConfig(BaseModel):
     @field_validator("batch_size")
     @classmethod
     def validate_batch_size(cls, v):
+        """Validate the batch size."""
         if v <= 0:
             raise ValueError("batch_size must be greater than 0")
         return v
@@ -57,6 +56,7 @@ class ParallelProcessingConfig(BaseModel):
     @field_validator("workers")
     @classmethod
     def validate_workers(cls, v):
+        """Validate the number of workers."""
         if v < 1:
             raise ValueError("Number of workers must be at least 1")
         return v
@@ -82,6 +82,7 @@ class InferenceParamsConfig(BaseModel):
     @field_validator("temperature", "top_p")
     @classmethod
     def validate_probability_params(cls, v):
+        """Validate the probability parameters."""
         if not 0.0 <= v <= 1.0:
             raise ValueError(
                 "Probability parameters must be between 0.0 and 1.0"
@@ -90,6 +91,7 @@ class InferenceParamsConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_token_lengths(self):
+        """Validate the token lengths."""
         if self.max_new_tokens >= self.max_sequence_length:
             raise ValueError(
                 "max_new_tokens must be less than max_sequence_length"
@@ -330,8 +332,7 @@ class AppConfig(BaseModel):
 
 
 def validate_config(config: Dict) -> AppConfig:
-    """
-    Validate configuration dictionary against Pydantic models.
+    """Validate configuration dictionary against Pydantic models.
 
     Args:
         config: Raw configuration dictionary loaded from base_config.yaml

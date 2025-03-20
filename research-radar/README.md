@@ -230,7 +230,7 @@ The project follows the recommended ZenML project structure:
 The project includes detailed documentation in various subdirectories:
 - **[Data Documentation](data/README.md)**: Details on dataset storage and processing.
 - **[Classification Results Documentation](classification_results/README.md)**: Explanation of classification outputs, metrics, and the checkpoint system.
-- **[Model Comparison Documentation](model_comparison/README.md)**: Details on the model comparison.
+- **[Model Comparison Metrics Documentation](model_compare_metrics/README.md)**: Details on the model comparison.
 - **[Pipelines Documentation](pipelines/README.md)**: Details on the pipeline definitions.
 - **[Prompts Documentation](prompts/README.md)**: Details on the prompts used in the pipeline.
 - **[Schemas Documentation](schemas/README.md)**: Details on data models and validation.
