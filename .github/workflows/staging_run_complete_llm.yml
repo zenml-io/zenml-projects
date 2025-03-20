@@ -45,6 +45,18 @@ jobs:
         run: |
           zenml init
 
+      - name: List and describe ZenML projects
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml project list || echo "Could not list projects"
+          zenml project describe || echo "Failed to describe project"
+
+      - name: Register Set ZenML project
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml project register llm-complete-guide || echo "Failed to register project"
+          zenml project set llm-complete-guide || echo "Failed to set project"
+
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
         run: |
