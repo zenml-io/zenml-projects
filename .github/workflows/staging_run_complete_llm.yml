@@ -48,7 +48,8 @@ jobs:
       - name: Register and set project if it doesn't exist
         working-directory: ./llm-complete-guide
         run: |
-          zenml project register llm-complete-guide --set
+          zenml project register llm-complete-guide
+          zenml project set llm-complete-guide
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide
