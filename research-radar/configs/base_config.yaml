@@ -94,7 +94,7 @@ steps:
       source_type: "artifact" # or "disk"
       path: "artifacts/test_set" # used if source_type is "disk"
       artifact_name: "test_set"
-      version: 20
+      version: # (optional) set to specific version if source_type is "artifact"
     batch_sizes:
       modernbert: 25
       claude: 10
