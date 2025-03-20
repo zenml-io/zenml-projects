@@ -16,18 +16,18 @@
 #
 
 import asyncio
-import time
 from typing import Any, Dict
 
 import numpy as np
-import torch
 from datasets import Dataset
 from schemas import zenml_project
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from utils import (
     ClaudeEvaluator,
-    compute_classification_metrics,
+    calculate_claude_costs,
+    evaluate_modernbert,
     flatten_metrics,
+    prepare_metrics,
 )
 from zenml import log_metadata, step
 
@@ -47,10 +47,12 @@ def compare_models(
 
     Args:
         test_dataset: Dataset containing test data
+        anthropic_api_key: Anthropic API key for Claude
         modernbert_path: Path to ModernBERT model
         tokenizer_path: Path to tokenizer
         modernbert_batch_size: Batch size for ModernBERT
         claude_batch_size: Batch size for Claude Haiku
+        claude_haiku_token_costs: Token costs for Claude Haiku
 
     Returns:
         Dictionary containing performance metrics for ModernBERT and Claude Haiku
@@ -59,47 +61,25 @@ def compare_models(
     claude_input_cost_per_1k = claude_haiku_token_costs["input_cost_per_1k"]
     claude_output_cost_per_1k = claude_haiku_token_costs["input_cost_per_1k"]
 
-    # Initialize models
+    # initialize models
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     model = AutoModelForSequenceClassification.from_pretrained(modernbert_path)
     model.eval()
 
-    # Get texts and labels
     texts = [record["text"] for record in test_dataset]
     labels = test_dataset["label"]
-    total_samples = len(texts)
 
-    # ModernBERT evaluation
-    with torch.no_grad():
-        all_logits = []
-        total_modernbert_latency = 0
+    # evaluate modernbert
+    all_logits, modernbert_latency = evaluate_modernbert(
+        model, tokenizer, texts, modernbert_batch_size
+    )
 
-        for i in range(0, total_samples, modernbert_batch_size):
-            batch_texts = texts[i : i + modernbert_batch_size]
-            inputs = tokenizer(
-                batch_texts,
-                padding=True,
-                truncation=True,
-                max_length=512,
-                return_tensors="pt",
-            )
-
-            start_time = time.time()
-            outputs = model(**inputs)
-            batch_latency = time.time() - start_time
-
-            all_logits.extend(outputs.logits.numpy())
-            total_modernbert_latency += batch_latency
-
-    modernbert_latency = total_modernbert_latency / total_samples
-
-    # Claude evaluation
+    # evaluate claude
     evaluator = ClaudeEvaluator(
         batch_size=claude_batch_size,
         api_key=anthropic_api_key,
     )
 
-    # Create event loop for async operations
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
@@ -109,76 +89,29 @@ def compare_models(
     finally:
         loop.close()
 
-    # Filter valid results
-    valid_claude_results = [r for r in claude_results if r.error is None]
+    # filter valid results
     valid_indices = [
         i for i, r in enumerate(claude_results) if r.error is None
     ]
     valid_labels = np.array([labels[i] for i in valid_indices])
+    valid_claude_results = [r for r in claude_results if r.error is None]
 
-    # Calculate Claude costs per prediction
-    claude_costs = []
-    for result in valid_claude_results:
-        input_cost = (result.input_tokens / 1000) * claude_input_cost_per_1k
-        output_cost = (result.output_tokens / 1000) * claude_output_cost_per_1k
-        total_cost = input_cost + output_cost
-        claude_costs.append(total_cost)
-
-    # Calculate average cost per prediction and scale to cost per 1000 predictions
-    avg_claude_cost = np.mean(claude_costs)
-    claude_cost_per_1000 = avg_claude_cost * 1000
-
-    # Prepare ModernBERT metrics
-    modernbert_logits = np.array([all_logits[i] for i in valid_indices])
-
-    # Prepare Claude metrics (with dummy logits for binary classification)
-    claude_predictions = np.array([r.prediction for r in valid_claude_results])
-    claude_logits = np.zeros((len(claude_predictions), 2))
-    claude_logits[range(len(claude_predictions)), claude_predictions] = 1
-
-    # Compute performance metrics
-    modernbert_performance = compute_classification_metrics(
-        (modernbert_logits, valid_labels)
-    )
-    claude_performance = compute_classification_metrics(
-        (claude_logits, valid_labels)
+    # calculate claude costs
+    _, claude_cost_per_1000 = calculate_claude_costs(
+        valid_claude_results,
+        claude_input_cost_per_1k,
+        claude_output_cost_per_1k,
     )
 
-    metrics = {
-        "modernbert": {
-            "performance": {
-                k: float(v) for k, v in modernbert_performance.items()
-            },
-            "avg_latency": float(modernbert_latency),
-            "cost_per_1000": float(
-                modernbert_latency * 0.004 * (1000 / modernbert_batch_size)
-            ),
-        },
-        "claude": {
-            "performance": {
-                k: float(v) for k, v in claude_performance.items()
-            },
-            "avg_latency": float(
-                np.mean([r.latency for r in valid_claude_results])
-            ),
-            "tokens": {
-                k: float(
-                    np.mean(
-                        [
-                            getattr(r, f"{k}_tokens")
-                            for r in valid_claude_results
-                        ]
-                    )
-                )
-                for k in ["input", "output", "total"]
-            },
-            "error_rate": float(
-                len([r for r in claude_results if r.error is not None])
-                / len(claude_results)
-            ),
-            "cost_per_1000": float(claude_cost_per_1000),
-        },
-    }
+    metrics = prepare_metrics(
+        all_logits,
+        claude_results,
+        valid_indices,
+        valid_labels,
+        modernbert_latency,
+        modernbert_batch_size,
+        claude_cost_per_1000,
+    )
 
     flat_metrics = {
         "samples_processed": len(valid_indices),

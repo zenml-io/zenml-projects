@@ -47,6 +47,11 @@ from .training_eval_metrics import (
     flatten_metrics,
     measure_inference_latency,
 )
+from .model_comparison_metrics import (
+    evaluate_modernbert,
+    calculate_claude_costs,
+    prepare_metrics,
+)
 from .config_loaders import load_config
 from .merge import get_identifier, transform_classification_results
 from .docker_settings import apply_docker_settings

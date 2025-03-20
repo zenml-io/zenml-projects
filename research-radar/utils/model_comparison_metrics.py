@@ -27,27 +27,24 @@ import torch
 
 
 def evaluate_modernbert(
-    model, 
-    tokenizer, 
-    texts: List[str], 
-    batch_size: int
+    model, tokenizer, texts: List[str], batch_size: int
 ) -> Tuple[List[np.ndarray], float]:
     """
     Evaluate ModernBERT model on input texts.
-    
+
     Args:
         model: The ModernBERT model
         tokenizer: The tokenizer for ModernBERT
         texts: List of text inputs
         batch_size: Batch size for processing
-        
+
     Returns:
         Tuple containing logits and average latency
     """
     total_samples = len(texts)
     all_logits = []
     total_latency = 0
-    
+
     with torch.no_grad():
         for i in range(0, total_samples, batch_size):
             batch_texts = texts[i : i + batch_size]
@@ -71,18 +68,16 @@ def evaluate_modernbert(
 
 
 def calculate_claude_costs(
-    results: List[Any], 
-    input_cost_per_1k: float, 
-    output_cost_per_1k: float
+    results: List[Any], input_cost_per_1k: float, output_cost_per_1k: float
 ) -> Tuple[List[float], float]:
     """
     Calculate costs for Claude API usage.
-    
+
     Args:
         results: List of Claude results
         input_cost_per_1k: Cost per 1k input tokens
         output_cost_per_1k: Cost per 1k output tokens
-        
+
     Returns:
         Tuple containing list of costs and cost per 1000 predictions
     """
@@ -105,11 +100,11 @@ def prepare_metrics(
     valid_labels: np.ndarray,
     modernbert_latency: float,
     modernbert_batch_size: int,
-    claude_cost_per_1000: float
+    claude_cost_per_1000: float,
 ) -> Dict[str, Dict[str, Any]]:
     """
     Prepare performance metrics for both models.
-    
+
     Args:
         modernbert_logits: ModernBERT logits
         claude_results: Claude API results
@@ -118,18 +113,18 @@ def prepare_metrics(
         modernbert_latency: Average latency for ModernBERT
         modernbert_batch_size: Batch size for ModernBERT
         claude_cost_per_1000: Cost per 1000 predictions for Claude
-        
+
     Returns:
         Dictionary of metrics for both models
     """
     from utils import compute_classification_metrics
-    
+
     # ModernBERT metrics
     mb_logits = np.array([modernbert_logits[i] for i in valid_indices])
     modernbert_performance = compute_classification_metrics(
         (mb_logits, valid_labels)
     )
-    
+
     # Claude metrics
     valid_claude_results = [r for r in claude_results if r.error is None]
     claude_predictions = np.array([r.prediction for r in valid_claude_results])
@@ -138,7 +133,7 @@ def prepare_metrics(
     claude_performance = compute_classification_metrics(
         (claude_logits, valid_labels)
     )
-    
+
     return {
         "modernbert": {
             "performance": {

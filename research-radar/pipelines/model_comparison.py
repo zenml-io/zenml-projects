@@ -28,6 +28,9 @@ from zenml import pipeline
 def model_comparison_pipeline(config: Dict | None = None):
     """Compare ModernBERT and Claude Haiku performance.
 
+    Note: This pipeline requires the training_pipeline to be run first
+    to generate model artifacts and test data that will be evaluated.
+
     Args:
         config: Pipeline configuration containing:
             - Model paths and batch sizes
