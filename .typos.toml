@@ -18,8 +18,6 @@ MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1 = "MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1"
 
 [default.extend-words]
 # Don't correct the surname "Teh"
-preprocesser = "preprocesser"
-Preprocesser = "Preprocesser"
 aks = "aks"
 hashi = "hashi"
 womens = "womens"
@@ -48,6 +46,9 @@ huggingface = "huggingface"
 answerdotai = "answerdotai"
 preprocessor = "preprocessor"
 logits = "logits"
+# TODO: Fix zenml library typo -- zenml.steps.preprocesser, Preprocesser
+preprocesser = "preprocesser"
+Preprocesser = "Preprocesser"
 
 [default]
 locale = "en-us"
