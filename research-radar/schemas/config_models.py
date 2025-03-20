@@ -307,7 +307,7 @@ class ModelRepoIdsConfig(BaseModel):
 
 
 class ProjectConfig(BaseModel):
-    """Configuration for ZenML porject information."""
+    """Configuration for ZenML project information."""
 
     name: str = Field(..., description="Project name")
     version: str = Field(..., description="Project version")
