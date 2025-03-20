@@ -12,7 +12,7 @@ The system showcases how researchers can fine-tune models to recognize subtle di
 
 This framework is ideal for academic labs, industry research groups, and individual AI researchers who need to maintain comprehensive awareness of relevant publications without spending hours each week manually sifting through papers. By deploying the trained model to Hugging Face, teams can create shared resources that help all members stay current with literature relevant to their collective research agenda, streamlining collaboration and reducing duplicate effort in literature reviews.
 
-This specific example showcases how to build an end-to-end ML pipeline that automatically classifies LLMOps-related research papers for the ZenML LLMOps Database. It showcases a complete MLOps workflow that:
+This specific example showcases how to build an end-to-end ML pipeline that automatically classifies LLMOps-related research papers for the [ZenML LLMOps Database](https://www.zenml.io/llmops-database). You can adapt it for your specific use case. Our implementation showcases a complete workflow that:
 
 - Classifies articles using DeepSeek R1 (Classification Pipeline)
 - Fine-tunes [ModernBERT](https://www.answer.ai/posts/2024-12-19-modernbert.html) for the classification task (Training Pipeline)
