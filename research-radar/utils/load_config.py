@@ -15,9 +15,7 @@
 # limitations under the License.
 #
 
-"""
-Utilities for loading and validating configuration.
-"""
+"""Utilities for loading and validating configuration."""
 
 import os
 from typing import Dict
@@ -33,9 +31,7 @@ dotenv.load_dotenv()
 
 
 def load_config(config_path: str = "configs/base_config.yaml") -> Dict:
-    """
-    Load config from YAML file.
-    Handles YAML inheritance via the '_extends' property.
+    """Load config from YAML file.
 
     Args:
         config_path: Path to config YAML file

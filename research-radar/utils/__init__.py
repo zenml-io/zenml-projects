@@ -52,6 +52,6 @@ from .model_comparison_metrics import (
     calculate_claude_costs,
     prepare_metrics,
 )
-from .config_loaders import load_config
+from .load_config import load_config
 from .merge import get_identifier, transform_classification_results
 from .docker_settings import apply_docker_settings

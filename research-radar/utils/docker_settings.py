@@ -15,15 +15,13 @@
 # limitations under the License.
 #
 
-"""
-Utilities for loading and applying Docker settings to ZenML steps.
-"""
+"""Utilities for loading and applying Docker settings to ZenML steps."""
 
 from typing import Any, Dict, Optional
 
 from zenml.config import DockerSettings
 
-from .config_loaders import load_config
+from .load_config import load_config
 from .logger import logger
 
 
@@ -31,8 +29,7 @@ def load_docker_settings_for_step(
     step_name: str,
     config_path: Optional[str] = "configs/remote_finetune.yaml",
 ) -> Optional[DockerSettings]:
-    """
-    Load Docker settings for a specific step from the config file.
+    """Load Docker settings for a specific step from the config file.
 
     Args:
         step_name: Name of the step to load Docker settings for
@@ -61,8 +58,7 @@ def apply_docker_settings(
     step_name: str,
     config_path: Optional[str] = "configs/remote_finetune.yaml",
 ) -> Dict[str, Any]:
-    """
-    Helper function to directly generate the settings dictionary for a ZenML step decorator.
+    """Helper function to directly generate the settings dictionary for a ZenML step decorator.
 
     Args:
         step_name: Name of the step to load Docker settings for
