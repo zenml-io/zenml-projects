@@ -49,7 +49,7 @@ from .config_models import (
     validate_config,
 )
 
-# zenml_project depends on utils.config_loaders
+# zenml_project depends on utils.load_config
 # which might import from schemas
 from .zenml_project import (
     zenml_project,

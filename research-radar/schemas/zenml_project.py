@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from utils.config_loaders import load_config
+from utils.load_config import load_config
 from zenml import Model
 
 
