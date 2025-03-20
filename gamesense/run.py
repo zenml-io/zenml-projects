@@ -35,13 +35,13 @@ Examples:
   
   \b
   # Run the pipeline with custom config
-    python run.py --config custom_finetune.yaml
+    python run.py --config phi3.5_finetune_local.yaml
 """
 )
 @click.option(
     "--config",
     type=str,
-    default="default_finetune.yaml",
+    default="phi3.5_finetune_local.yaml",
     help="Path to the YAML config file.",
 )
 @click.option(
