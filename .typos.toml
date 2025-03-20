@@ -5,6 +5,7 @@ extend-exclude = [
     "*.ipynb",
     "llm-finetuning/*",
     "end-to-end-computer-vision/*",
+    "research-radar/data/*.jsonl",
 ]
 
 [default.extend-identifiers]
@@ -39,6 +40,12 @@ colours = "colours"
 initialised = "initialised"
 visualisation = "visualisation"
 customise = "customise"
+modernbert = "modernbert"
+deepseek = "deepseek"
+huggingface = "huggingface"
+answerdotai = "answerdotai"
+preprocessor = "preprocessor"
+logits = "logits"
 
 [default]
 locale = "en-us"
