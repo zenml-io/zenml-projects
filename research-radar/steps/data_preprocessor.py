@@ -22,6 +22,35 @@ from datasets import ClassLabel, Dataset
 from zenml.steps import step
 
 
+def preprocess(example: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Helper function to preprocess a single example.
+
+    Args:
+        example: A single data example
+
+    Returns:
+        Dict[str, Any]: Processed example with standardized fields
+    """
+    example["text"] = (
+        f"{example.get('meta_title', '')}. {example.get('text', '')}"
+    )
+
+    if "answer" in example and isinstance(example["answer"], str):
+        example["label"] = (
+            1 if example["answer"].strip().lower() == "accept" else 0
+        )
+    elif "label" in example and isinstance(example["label"], str):
+        example["label"] = (
+            1
+            if example["label"].strip().lower()
+            in ["good_case_study", "positive", "accept"]
+            else 0
+        )
+
+    return example
+
+
 @step
 def data_preprocessor(dataset: Dataset) -> Dataset:
     """
@@ -41,26 +70,6 @@ def data_preprocessor(dataset: Dataset) -> Dataset:
         - String labels: "accept"/"good_case_study"/"positive" -> 1
         - Binary labels: Preserves existing 0/1 encoding
     """
-
-    def preprocess(example: Dict[str, Any]) -> Dict[str, Any]:
-        example["text"] = (
-            f"{example.get('meta_title', '')}. {example.get('text', '')}"
-        )
-
-        if "answer" in example and isinstance(example["answer"], str):
-            example["label"] = (
-                1 if example["answer"].strip().lower() == "accept" else 0
-            )
-        elif "label" in example and isinstance(example["label"], str):
-            example["label"] = (
-                1
-                if example["label"].strip().lower()
-                in ["good_case_study", "positive", "accept"]
-                else 0
-            )
-
-        return example
-
     processed = dataset.map(preprocess)
     processed = processed.cast_column(
         "label", ClassLabel(names=["negative", "positive"])
