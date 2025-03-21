@@ -206,3 +206,44 @@ For custom data sources, you'll need to prepare the splits in a Hugging Face dat
 ## 📚 Documentation
 
 For learning more about how to use ZenML to build your own MLOps pipelines, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
+
+## Running on CPU-only Environment
+
+If you don't have access to a GPU, you can still run this project with the CPU-only configuration. We've made several optimizations to make this project work on CPU, including:
+
+- Smaller batch sizes for reduced memory footprint
+- Fewer training steps
+- Disabled GPU-specific features (quantization, bf16, etc.)
+- Using smaller test datasets for evaluation
+- Special handling for Phi-3.5 model caching issues on CPU
+
+To run the project on CPU:
+
+```bash
+python run.py --config phi3.5_finetune_cpu.yaml
+```
+
+Note that training on CPU will be significantly slower than training on a GPU. The CPU configuration uses:
+
+1. A smaller model (Phi-3.5-mini-instruct) which is more CPU-friendly
+2. Reduced batch size and increased gradient accumulation steps
+3. Fewer total training steps (50 instead of 300)
+4. Half-precision (float16) where possible to reduce memory usage
+5. Smaller dataset subsets (100 training samples, 20 validation samples, 10 test samples)
+6. Special compatibility settings for Phi models running on CPU
+
+For best results, we recommend:
+- Using a machine with at least 16GB of RAM
+- Being patient! LLM training on CPU is much slower than on GPU
+- If you still encounter memory issues, try reducing the max_train_samples parameter even further in the config file
+
+### Known Issues and Workarounds
+
+Some large language models like Phi-3.5 have caching mechanisms that are optimized for GPU usage and may encounter issues when running on CPU. Our CPU configuration includes several workarounds:
+
+1. Disabling KV caching for model generation
+2. Using torch.float16 data type to reduce memory usage
+3. Disabling flash attention which isn't needed on CPU
+4. Using standard AdamW optimizer instead of 8-bit optimizers that require GPU
+
+These changes allow the model to run on CPU with less memory and avoid compatibility issues, although at the cost of some performance.
