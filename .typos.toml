@@ -18,6 +18,8 @@ MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1 = "MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1"
 
 [default.extend-words]
 # Don't correct the surname "Teh"
+preprocesser = "preprocesser"
+Preprocesser = "Preprocesser"
 aks = "aks"
 hashi = "hashi"
 womens = "womens"
@@ -44,6 +46,7 @@ modernbert = "modernbert"
 deepseek = "deepseek"
 huggingface = "huggingface"
 answerdotai = "answerdotai"
+preprocessor = "preprocessor"
 logits = "logits"
 
 [default]
