@@ -44,11 +44,7 @@ modernbert = "modernbert"
 deepseek = "deepseek"
 huggingface = "huggingface"
 answerdotai = "answerdotai"
-preprocessor = "preprocessor"
 logits = "logits"
-# TODO: Fix zenml library typo -- zenml.steps.preprocesser, Preprocesser
-preprocesser = "preprocesser"
-Preprocesser = "Preprocesser"
 
 [default]
 locale = "en-us"
