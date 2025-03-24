@@ -17,7 +17,7 @@
 
 from typing import Any, Dict
 
-from zenml import get_step_context, log_model_metadata, step
+from zenml import get_step_context, log_metadata, step
 
 
 @step(enable_cache=False)
@@ -37,6 +37,8 @@ def log_metadata_from_step_artifact(
         context.pipeline_run.steps[step_name].outputs[artifact_name]
     )
 
-    metadata = {artifact_name: metadata_dict}
-
-    log_model_metadata(metadata)
+    log_metadata(
+        artifact_name=artifact_name,
+        metadata={"model_name": "phi3.5_finetune_cpu"},
+        infer_model=True,
+    )
