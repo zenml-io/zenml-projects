@@ -1,0 +1,10 @@
+zenml @ git+https://github.com/zenml-io/zenml.git@develop
+openai
+pandas
+smolagents[telemetry]
+opentelemetry-sdk 
+opentelemetry-exporter-otlp 
+openinference-instrumentation-smolagents
+langchain-core
+langchain-community
+langfuse
