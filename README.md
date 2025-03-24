@@ -1,5 +1,5 @@
 <!-- PROJECT LOGO -->
-<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81685bc925ec" />
 
 <br />
 <div align="center">
@@ -55,24 +55,20 @@ you can adapt for your application. We maintain a growing list of projects
 from various ML domains including time-series, tabular data, computer vision, 
 etc.
 
-# 🧱 Project List
-
-A list of updated and maintained projects by the ZenML team and the community:
-
-| Project | Tags | Tools |
-|---------|------|-------|
-| [ZenML Support Agent](zenml-support-agent) | `NLP` `LLM Agents` `Conversational AI` `RAG` `Vector Stores` `Production MLOps` | `langchain` `llama_index` `faiss` `openai` |
-| [ZenCoder](zencoder) | `NLP` `LLM` `Model Fine-tuning` `Transfer Learning` `Parameter Optimization` | `huggingface` `pytorch` `wandb` |
-| [Complete Guide to LLMs](llm-complete-guide) | `NLP` `LLM` `RAG` `Fine-tuning` `Model Evaluation` `Embeddings` `Synthetic Data` | `openai` `supabase` `huggingface` `argilla` `gradio` `anthropic` `litellm` |
-| [Gamesense](gamesense) | `NLP` `Parameter-Efficient Fine-tuning` `LoRA` `LLM` `Distributed Training` | `huggingface` `pytorch` `accelerate` `peft` `phi-2` |
-| [End-to-end Computer Vision](end-to-end-computer-vision) | `Computer Vision` `Object Detection` `Data Labeling` `Human-in-the-Loop` | `pytorch` `label_studio` `fiftyone` `vertex-ai` `gcp` `yolov8` |
-| [Magic Photobooth](magic-photobooth) | `Image Generation` `Fine-tuning` `Stable Diffusion` `LoRA` `Video Generation` | `modal` `kubernetes` `huggingface` `flux` `stable-video-diffusion` |
-| [Huggingface to Sagemaker](huggingface-sagemaker) | `Model Deployment` `NLP` `Sentiment Analysis` `Model Training` `CI/CD` | `pytorch` `mlflow` `huggingface` `aws` `sagemaker` `s3` `kubeflow` `slack` `github` |
-| [Databricks Production QA Demo](databricks-production-qa-demo) | `Quality Assurance` `CI/CD` `Model Monitoring` `Model Explainability` `Data Drift` | `databricks` `mlflow` `evidently` `shap` `slack` |
-| [Eurorate Predictor](eurorate-predictor) | `ETL` `Time Series` `Feature Engineering` `Regression` `Workflow Orchestration` | `cloud-composer` `airflow` `vertex-ai` `bigquery` `xgboost` `gcp` |
-| [Nightwatch AI](nightwatch-ai) | `NLP` `Text Summarization` `Database Integration` `LLM` `Automated Reporting` | `openai` `supabase` `slack` `github-actions` `gcp` |
-| [Sign Language Detection with YOLOv5](sign-language-detection-yolov5) | `Computer Vision` `Object Detection` `Real-time Processing` `Model Deployment` | `mlflow` `gcp` `bentoml` `vertex-ai` `docker` |
-| [ResearchRadar](research-radar) | `AI Literature Discovery` `Research Paper Classification` `Model Training` `Model Evaluation` `Model Comparison` | `anthropic` `huggingface` `pytorch` `transformers` `docker` |
+| Project | Domain | Key Features | Core Technologies |
+|---------|--------|-------------|-------------------|
+| [ZenML Support Agent](zenml-support-agent) | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational | langchain, llama_index, openai |
+| [ZenCoder](zencoder) | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning | huggingface, pytorch, wandb |
+| [Complete Guide to LLMs](llm-complete-guide) | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation | openai, huggingface, anthropic |
+| [Gamesense](gamesense) | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training | pytorch, peft, phi-2 |
+| [Nightwatch AI](nightwatch-ai) | 🤖 LLMOps | 📝 Summarization, 📊 Reporting | openai, supabase, slack |
+| [ResearchRadar](research-radar) | 🤖 LLMOps | 📝 Classification, 📊 Comparison | anthropic, huggingface, transformers |
+| [End-to-end Computer Vision](end-to-end-computer-vision) | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling | pytorch, label_studio, yolov8 |
+| [Magic Photobooth](magic-photobooth) | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen | stable-diffusion, huggingface |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time | mlflow, bentoml, vertex-ai |
+| [Huggingface to Sagemaker](huggingface-sagemaker) | 🚀 MLOps | 🔄 CI/CD, 📦 Deployment | mlflow, sagemaker, kubeflow |
+| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps | 📊 Monitoring, 🔍 Quality Assurance | databricks, evidently, shap |
+| [Eurorate Predictor](eurorate-predictor) | 📊 Data | ⏱️ Time Series, 🔄 ETL | airflow, bigquery, xgboost |
 
 # 💻 System Requirements
 
@@ -81,7 +77,7 @@ Read [our docs](https://docs.zenml.io/getting-started/installation) for
 installation details.
 
 - Linux or macOS.
-- Python 3.7, 3.8, 3.9 or 3.10
+- Python >=3.9
 
 # 🪃 Contributing
 
@@ -132,7 +128,6 @@ the Apache License Version 2.0.
 | 🗳 **[Vote for Features]**  | Pick what we work on next!                                              |
 | 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.               |
 | 📒 **[API Reference]**      | Detailed reference on ZenML's API.                                      |
-| 👨‍🍳 **[MLStacks]**        | Terraform-based infrastructure recipes for pre-made ZenML stacks.       |
 | ⚽️ **[Examples]**           | Learn best through examples where ZenML is used. We've got you covered. |
 | 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it.         |
 | 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.               |
@@ -146,7 +141,6 @@ the Apache License Version 2.0.
 [Vote for Features]: https://zenml.io/discussion
 [Docs]: https://docs.zenml.io/
 [API Reference]: https://apidocs.zenml.io/
-[MLStacks]: https://github.com/zenml-io/mlops-stacks
 [Examples]: https://github.com/zenml-io/zenml/tree/main/examples
 [Blog]: https://blog.zenml.io/
 [Podcast]: https://podcast.zenml.io/
