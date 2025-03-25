@@ -11,7 +11,7 @@ concepts covered in this guide to your own projects.
 
 Contained within this project is all the code needed to run the full pipelines.
 You can follow along [in our
-guide](https://docs.zenml.io/user-guide/llmops-guide/) to understand the
+guide](https://docs.zenml.io/user-guides/llmops-guide/) to understand the
 decisions and tradeoffs behind the pipeline and step code contained here. You'll
 build a solid understanding of how to leverage LLMs in your MLOps workflows
 using ZenML, enabling you to build powerful, scalable, and maintainable
@@ -221,7 +221,7 @@ evaluate the responses.
 ## Embeddings finetuning
 
 For embeddings finetuning we first generate synthetic data and then finetune the
-embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guide/llmops-guide/finetuning-embeddings) and
+embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guides/llmops-guide/finetuning-embeddings) and
 instructions for how to run them are provided below.
 
 ### Run the `distilabel` synthetic data generation pipeline

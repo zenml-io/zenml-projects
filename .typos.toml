@@ -5,6 +5,7 @@ extend-exclude = [
     "*.ipynb",
     "llm-finetuning/*",
     "end-to-end-computer-vision/*",
+    "research-radar/data/*.jsonl",
 ]
 
 [default.extend-identifiers]
@@ -17,6 +18,8 @@ MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1 = "MDEyOk9yZ2FuaXphdGlvbjg4Njc2OTU1"
 
 [default.extend-words]
 # Don't correct the surname "Teh"
+preprocesser = "preprocesser"
+Preprocesser = "Preprocesser"
 aks = "aks"
 hashi = "hashi"
 womens = "womens"
@@ -39,6 +42,12 @@ colours = "colours"
 initialised = "initialised"
 visualisation = "visualisation"
 customise = "customise"
+modernbert = "modernbert"
+deepseek = "deepseek"
+huggingface = "huggingface"
+answerdotai = "answerdotai"
+preprocessor = "preprocessor"
+logits = "logits"
 
 [default]
 locale = "en-us"

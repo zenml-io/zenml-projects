@@ -1,0 +1,18 @@
+Evaluate whether the following article provides concrete evidence of a valid case study for a GenAI system.
+
+Return your evaluation strictly as a JSON object with ONLY these keys:
+- is_accepted: a **boolean** indicating whether you accept or reject the article
+- confidence: a **float** between 0 and 1 representing the confidence score for the evaluation
+- reason: a **string** describing the reasoning you used to come to your conclusion
+
+Example JSON output:
+```json
+{
+  "is_accepted": false,
+  "confidence": 0.75,
+  "reason": "The article does not demonstrate a fully deployed system with sufficient operational details and real-world impact."
+}
+```
+
+Article to evaluate:
+{{article_text}}
