@@ -5,6 +5,7 @@ GameSense is a specialized language model that converts unstructured gaming conv
 ## 🎯 What GameSense Does
 
 **Input**: Gamers' natural language about games from forums, chats, reviews, etc.
+
 **Output**: Structured data with categorized information about games, platforms, preferences, etc.
 
 Here's a concrete example from our training data:
