@@ -1,12 +1,10 @@
-<div align="center">
-  <img src="assets/training_pipeline.png" alt="ResearchRadar Training Pipeline DAG" width="800"/>
-</div>
-
 # 🚀 ResearchRadar: AI Literature Discovery and Classification Pipeline
 
-## 📑 Overview
-
 This project demonstrates how AI researchers can build an automated pipeline to discover, classify, and organize research papers relevant to their specific subfields. Using ZenML's end-to-end ML pipelines, researchers can train models to automatically identify papers that align with their research interests—whether it's reinforcement learning, computer vision, NLP, or emerging areas like multimodal models—from across various sources including preprint servers, journals, and conference proceedings.
+
+<div align="center">
+  <img src="assets/training_pipeline.png" alt="ResearchRadar Training Pipeline DAG" width="700"/>
+</div>
 
 The system showcases how researchers can fine-tune models to recognize subtle distinctions between related subfields, saving countless hours normally spent manually filtering through the overwhelming volume of AI research being published daily. The comparative analysis pipeline demonstrates whether custom-trained models outperform commercial APIs when identifying highly specialized technical content, helping research teams make informed decisions about their literature review infrastructure.
 
