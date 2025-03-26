@@ -305,7 +305,7 @@ python run.py --config phi3.5_finetune_cpu.yaml
 
 Note that training on CPU will be significantly slower than training on a GPU. The CPU configuration uses:
 
-1. A smaller model (Phi-3.5-mini-instruct) which is more CPU-friendly
+1. A smaller model (`phi-3.5-mini-instruct`) which is more CPU-friendly
 2. Reduced batch size and increased gradient accumulation steps
 3. Fewer total training steps (50 instead of 300)
 4. Half-precision (float16) where possible to reduce memory usage
@@ -315,14 +315,14 @@ Note that training on CPU will be significantly slower than training on a GPU. T
 For best results, we recommend:
 - Using a machine with at least 16GB of RAM
 - Being patient! LLM training on CPU is much slower than on GPU
-- If you still encounter memory issues, try reducing the max_train_samples parameter even further in the config file
+- If you still encounter memory issues, try reducing the `max_train_samples` parameter even further in the config file
 
 ### Known Issues and Workarounds
 
 Some large language models like Phi-3.5 have caching mechanisms that are optimized for GPU usage and may encounter issues when running on CPU. Our CPU configuration includes several workarounds:
 
 1. Disabling KV caching for model generation
-2. Using torch.float16 data type to reduce memory usage
+2. Using `torch.float16 data` type to reduce memory usage
 3. Disabling flash attention which isn't needed on CPU
 4. Using standard AdamW optimizer instead of 8-bit optimizers that require GPU
 
