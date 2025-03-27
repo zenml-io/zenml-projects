@@ -37,7 +37,7 @@ AUDIO_EXTENSIONS = [
 
 TRANSCRIPTION_PROMPT = """
 Can you transcribe this interview, in the format of timecode, speaker, caption.
-Use speaker A, speaker B, etc. to identify speakers.
+Use speaker A, speaker B, etc. to identify speakers (unless they are referred to by name).
 """
 
 TRANSCRIPTION_MODEL = "gemini-2.0-flash-001"
@@ -252,8 +252,7 @@ def synchronous_transcribe_file(
         ],
         response_format=TranscriptionResult,
     )
-    response_json = json.loads(response.choices[0].message.content)
-    return response_json
+    return json.loads(response.choices[0].message.content)
 
 
 @step
