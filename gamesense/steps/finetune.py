@@ -50,11 +50,14 @@ def finetune(
     per_device_train_batch_size: int = 2,
     gradient_accumulation_steps: int = 4,
     warmup_steps: int = 5,
-    bf16: bool = True,
+    bf16: bool = False,  # Changed to default False for CPU compatibility
     use_accelerate: bool = False,
     use_fast: bool = True,
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
+    cpu_only: bool = False,
+    save_total_limit: int = 1,
+    evaluation_strategy: str = "steps",
 ) -> Annotated[
     Path, ArtifactConfig(name="ft_model_dir", artifact_type=ArtifactType.MODEL)
 ]:
@@ -82,10 +85,19 @@ def finetune(
         use_fast: Whether to use the fast tokenizer.
         load_in_4bit: Whether to load the model in 4bit mode.
         load_in_8bit: Whether to load the model in 8bit mode.
+        cpu_only: Whether to force using CPU only and disable quantization.
+        save_total_limit: The total number of checkpoints to keep (None means keep all).
+        evaluation_strategy: The evaluation strategy to use (steps, epoch, or no).
 
     Returns:
         The path to the finetuned model directory.
     """
+    # Force disable GPU optimizations if in CPU-only mode
+    if cpu_only:
+        load_in_4bit = False
+        load_in_8bit = False
+        bf16 = False
+    
     cleanup_gpu_memory(force=True)
 
     # authenticate with Hugging Face for gated repos
@@ -131,6 +143,7 @@ def finetune(
         should_print=should_print,
         load_in_4bit=load_in_4bit,
         load_in_8bit=load_in_8bit,
+        cpu_only=cpu_only,  # Pass the CPU-only flag to the model loader
     )
 
     trainer = transformers.Trainer(
@@ -160,11 +173,12 @@ def finetune(
             save_steps=min(save_steps, max_steps)
             if max_steps >= 0
             else save_steps,
-            evaluation_strategy="steps",
+            evaluation_strategy=evaluation_strategy,
             eval_steps=eval_steps,
             do_eval=True,
             label_names=["input_ids"],
             ddp_find_unused_parameters=False,
+            save_total_limit=save_total_limit,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
             tokenizer, mlm=False

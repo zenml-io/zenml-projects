@@ -17,6 +17,7 @@
 
 
 from transformers import AutoTokenizer
+import torch
 
 
 def load_tokenizer(
@@ -113,9 +114,7 @@ def tokenize_for_eval(
     tokenizer: AutoTokenizer,
     system_prompt: str,
 ):
-    """Tokenizes the prompts for evaluation.
-
-    This runs for the whole test dataset at once.
+    """Tokenize the data for evaluation.
 
     Args:
         data_points: The data points to tokenize.
@@ -123,11 +122,10 @@ def tokenize_for_eval(
         system_prompt: The system prompt to use.
 
     Returns:
-        The tokenized prompt.
+        The tokenized data.
     """
     eval_prompts = [
-        f"""{system_prompt}
-
+        f"""
 ### Target sentence:
 {data_point}
 
@@ -135,6 +133,8 @@ def tokenize_for_eval(
 """
         for data_point in data_points["target"]
     ]
+    # Use the available device instead of hardcoding "cuda"
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
     return tokenizer(eval_prompts, padding="longest", return_tensors="pt").to(
-        "cuda"
+        device
     )

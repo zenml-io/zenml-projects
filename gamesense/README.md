@@ -1,27 +1,78 @@
-# 🎮 GameSense: The LLM That Understands Gamers
+# 🎮 GameSense: An LLM That Transforms Gaming Conversations into Structured Data
 
-Elevate your gaming platform with an AI that translates player language into actionable data. A model that understands gaming terminology, extracts key attributes, and structures conversations for intelligent recommendations and support.
+GameSense is a specialized language model that converts unstructured gaming conversations into structured, actionable data. It listens to how gamers talk and extracts valuable information that can power recommendations, support systems, and analytics.
 
-## 🚀 Product Overview
+## 🎯 What GameSense Does
 
-GameSense is a specialized language model designed specifically for gaming platforms and communities. By fine-tuning powerful open-source LLMs on gaming conversations and terminology, GameSense can:
+**Input**: Gamers' natural language about games from forums, chats, reviews, etc.
 
-- **Understand Gaming Jargon**: Recognize specialized terms across different game genres and communities
-- **Extract Player Sentiment**: Identify frustrations, excitement, and other emotions in player communications
-- **Structure Unstructured Data**: Transform casual player conversations into structured, actionable data
-- **Generate Personalized Responses**: Create contextually appropriate replies that resonate with gamers
-- **Power Intelligent Recommendations**: Suggest games, content, or solutions based on player preferences and history
+**Output**: Structured data with categorized information about games, platforms, preferences, etc.
 
-Built on ZenML's enterprise-grade MLOps framework, GameSense delivers a production-ready solution that can be deployed, monitored, and continuously improved with minimal engineering overhead.
+Here's a concrete example from our training data:
 
-## 💡 How It Works
+### Input Example (Gaming Conversation)
+```
+"Dirt: Showdown from 2012 is a sport racing game for the PlayStation, Xbox, PC rated E 10+ (for Everyone 10 and Older). It's not available on Steam, Linux, or Mac."
+```
 
-GameSense leverages Parameter-Efficient Fine-Tuning (PEFT) techniques to customize powerful foundation models like Microsoft's Phi-2 or Llama 3.1 for gaming-specific applications. The system follows a streamlined pipeline:
+### Output Example (Structured Information)
+```
+inform(
+    name[Dirt: Showdown],
+    release_year[2012],
+    esrb[E 10+ (for Everyone 10 and Older)],
+    genres[driving/racing, sport],
+    platforms[PlayStation, Xbox, PC],
+    available_on_steam[no],
+    has_linux_release[no],
+    has_mac_release[no]
+)
+```
 
-1. **Data Preparation**: Gaming conversations are processed and tokenized
-2. **Model Fine-Tuning**: The base model is efficiently customized using LoRA adapters
-3. **Evaluation**: The model is rigorously tested against gaming-specific benchmarks
-4. **Deployment**: High-performing models are automatically promoted to production
+This structured output can be used to:
+- Answer specific questions about games ("Is Dirt: Showdown available on Mac?")
+- Track trends in gaming discussions
+- Power recommendation engines
+- Extract user opinions and sentiment
+- Build gaming knowledge graphs
+- Enhance customer support
+
+## 🚀 How GameSense Transforms Gaming Conversations
+
+GameSense listens to gaming chats, forum posts, customer support tickets, social media, and other sources where gamers communicate. As gamers discuss different titles, features, opinions, and issues, GameSense:
+
+1. **Recognizes gaming jargon** across different genres and communities
+2. **Extracts key information** about games, platforms, features, and opinions
+3. **Structures this information** into a standardized format
+4. **Makes it available** for downstream applications
+
+## 💡 Real-World Applications
+
+### Community Analysis
+Monitor conversations across Discord, Reddit, and other platforms to track what games are being discussed, what features players care about, and emerging trends.
+
+### Intelligent Customer Support
+When a player says: "I can't get Dirt: Showdown to run on my Mac," GameSense identifies:
+- The specific game (Dirt: Showdown)
+- The platform issue (Mac)
+- The fact that the game doesn't support Mac (from structured knowledge)
+- Can immediately inform the player about platform incompatibility
+
+### Smart Recommendations
+When a player has been discussing racing games for PlayStation with family-friendly ratings, GameSense can help power recommendations for similar titles they might enjoy.
+
+### Automated Content Moderation
+By understanding the context of gaming conversations, GameSense can better identify toxic behavior while recognizing harmless gaming slang.
+
+## 🧠 Technical Approach
+
+GameSense uses Parameter-Efficient Fine-Tuning (PEFT) to customize powerful foundation models for understanding gaming language:
+
+1. We start with a base model like Microsoft's Phi-2 or Llama 3.1
+2. Fine-tune on the gem/viggo dataset containing structured gaming conversations
+3. Use LoRA adapters for efficient training
+4. Evaluate on gaming-specific benchmarks
+5. Deploy to production environments
 
 <div align="center">
   <br/>
@@ -46,6 +97,16 @@ GameSense leverages Parameter-Efficient Fine-Tuning (PEFT) techniques to customi
 - Python 3.8+
 - GPU with at least 24GB VRAM (for full model training)
 - ZenML installed and configured
+- Neptune.ai account for experiment tracking (optional)
+
+### Environment Setup
+
+1. Set up your Neptune.ai credentials if you want to use Neptune for experiment tracking:
+   ```bash
+   # Set your Neptune project name and API token as environment variables
+   export NEPTUNE_PROJECT="your-neptune-workspace/your-project-name"
+   export NEPTUNE_API_TOKEN="your-neptune-api-token"
+   ```
 
 ### Quick Setup
 
@@ -94,6 +155,17 @@ python run.py --config configs/llama3-1_finetune_local.yaml
 > To finetune the Llama 3.1 base model, use the alternative configuration files provided in the `configs` folder:
 > - For remote finetuning: [`llama3-1_finetune_remote.yaml`](configs/llama3-1_finetune_remote.yaml)
 > - For local finetuning: [`llama3-1_finetune_local.yaml`](configs/llama3-1_finetune_local.yaml)
+
+### Dataset Configuration
+
+By default, GameSense uses the gem/viggo dataset, which contains structured gaming information like:
+
+| gem_id | meaning_representation | target | references |
+|--------|------------------------|--------|------------|
+| viggo-train-0 | inform(name[Dirt: Showdown], release_year[2012], esrb[E 10+ (for Everyone 10 and Older)], genres[driving/racing, sport], platforms[PlayStation, Xbox, PC], available_on_steam[no], has_linux_release[no], has_mac_release[no]) | Dirt: Showdown from 2012 is a sport racing game for the PlayStation, Xbox, PC rated E 10+ (for Everyone 10 and Older). It's not available on Steam, Linux, or Mac. | [Dirt: Showdown from 2012 is a sport racing game for the PlayStation, Xbox, PC rated E 10+ (for Everyone 10 and Older). It's not available on Steam, Linux, or Mac.] |
+| viggo-train-1 | inform(name[Dirt: Showdown], release_year[2012], esrb[E 10+...]) | Dirt: Showdown is a sport racing game... | [Dirt: Showdown is a sport racing game...] |
+
+You can also train on your own gaming conversations by formatting them in a similar structure and updating the configuration.
 
 ### Training Acceleration
 
@@ -148,7 +220,7 @@ For detailed instructions on data preparation, see our [data customization guide
 
 GameSense includes built-in evaluation using industry-standard metrics:
 
-- **ROUGE Scores**: Measure response quality and relevance
+- **ROUGE Scores**: Measure how well the model can generate natural language from structured data
 - **Gaming-Specific Benchmarks**: Evaluate understanding of gaming terminology
 - **Automatic Model Promotion**: Only deploy models that meet quality thresholds
 
@@ -192,7 +264,7 @@ GameSense follows a modular architecture for easy customization:
 
 To fine-tune GameSense on your specific gaming platform's data:
 
-1. **Format your dataset**: Prepare your gaming conversations in a structured format
+1. **Format your dataset**: Prepare your gaming conversations in a structured format similar to gem/viggo
 2. **Update the configuration**: Point to your dataset in the config file
 3. **Run the pipeline**: GameSense will automatically process and learn from your data
 
@@ -203,6 +275,55 @@ The [`prepare_data` step](steps/prepare_datasets.py) handles:
 
 For custom data sources, you'll need to prepare the splits in a Hugging Face dataset format. The step returns paths to the stored datasets (`train`, `val`, and `test_raw` splits), with the test set tokenized later during evaluation.
 
+You can structure conversations from:
+- Game forums
+- Support tickets
+- Discord chats
+- Streaming chats
+- Reviews
+- Social media posts
+
 ## 📚 Documentation
 
 For learning more about how to use ZenML to build your own MLOps pipelines, refer to our comprehensive [ZenML documentation](https://docs.zenml.io/).
+
+## Running on CPU-only Environment
+
+If you don't have access to a GPU, you can still run this project with the CPU-only configuration. We've made several optimizations to make this project work on CPU, including:
+
+- Smaller batch sizes for reduced memory footprint
+- Fewer training steps
+- Disabled GPU-specific features (quantization, bf16, etc.)
+- Using smaller test datasets for evaluation
+- Special handling for Phi-3.5 model caching issues on CPU
+
+To run the project on CPU:
+
+```bash
+python run.py --config phi3.5_finetune_cpu.yaml
+```
+
+Note that training on CPU will be significantly slower than training on a GPU. The CPU configuration uses:
+
+1. A smaller model (`phi-3.5-mini-instruct`) which is more CPU-friendly
+2. Reduced batch size and increased gradient accumulation steps
+3. Fewer total training steps (50 instead of 300)
+4. Half-precision (float16) where possible to reduce memory usage
+5. Smaller dataset subsets (100 training samples, 20 validation samples, 10 test samples)
+6. Special compatibility settings for Phi models running on CPU
+
+For best results, we recommend:
+- Using a machine with at least 16GB of RAM
+- Being patient! LLM training on CPU is much slower than on GPU
+- If you still encounter memory issues, try reducing the `max_train_samples` parameter even further in the config file
+
+### Known Issues and Workarounds
+
+Some large language models like Phi-3.5 have caching mechanisms that are optimized for GPU usage and may encounter issues when running on CPU. Our CPU configuration includes several workarounds:
+
+1. Disabling KV caching for model generation
+2. Using `torch.float16 data` type to reduce memory usage
+3. Disabling flash attention which isn't needed on CPU
+4. Using standard AdamW optimizer instead of 8-bit optimizers that require GPU
+
+These changes allow the model to run on CPU with less memory and avoid compatibility issues, although at the cost of some performance.

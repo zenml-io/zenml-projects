@@ -34,6 +34,9 @@ def llm_peft_full_finetune(
     use_fast: bool = True,
     load_in_8bit: bool = False,
     load_in_4bit: bool = False,
+    max_train_samples: int = None,
+    max_val_samples: int = None,
+    max_test_samples: int = None,
 ):
     """Pipeline for finetuning an LLM with peft.
 
@@ -43,6 +46,16 @@ def llm_peft_full_finetune(
     - finetune: finetune the model
     - evaluate_model: evaluate the base and finetuned model
     - promote: promote the model to the target stage, if evaluation was successful
+    
+    Args:
+        system_prompt: The system prompt to use.
+        base_model_id: The base model id to use.
+        use_fast: Whether to use the fast tokenizer.
+        load_in_8bit: Whether to load in 8-bit precision (requires GPU).
+        load_in_4bit: Whether to load in 4-bit precision (requires GPU).
+        max_train_samples: Maximum number of training samples to use (for CPU or testing).
+        max_val_samples: Maximum number of validation samples to use (for CPU or testing).
+        max_test_samples: Maximum number of test samples to use (for CPU or testing).
     """
     if not load_in_8bit and not load_in_4bit:
         raise ValueError(
@@ -57,6 +70,9 @@ def llm_peft_full_finetune(
         base_model_id=base_model_id,
         system_prompt=system_prompt,
         use_fast=use_fast,
+        max_train_samples=max_train_samples,
+        max_val_samples=max_val_samples,
+        max_test_samples=max_test_samples,
     )
 
     evaluate_model(
