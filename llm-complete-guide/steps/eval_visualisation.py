@@ -12,12 +12,12 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-from typing import Annotated, Dict, List, Tuple
+from typing import Annotated, Dict, List
 
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from zenml import ArtifactConfig, get_step_context, log_metadata, step
+from zenml import get_step_context, log_metadata, step
 from zenml.types import HTMLString
+
 
 def create_plotly_bar_chart(
     labels: List[str],
@@ -43,54 +43,66 @@ def create_plotly_bar_chart(
     """
     # Generate colors for bars
     if alternate_colors:
-        colors = ["rgba(66, 133, 244, 0.8)" if i % 2 == 0 else "rgba(219, 68, 55, 0.8)" for i in range(len(labels))]
+        colors = [
+            "rgba(66, 133, 244, 0.8)"
+            if i % 2 == 0
+            else "rgba(219, 68, 55, 0.8)"
+            for i in range(len(labels))
+        ]
     else:
         colors = ["rgba(66, 133, 244, 0.8)" for _ in range(len(labels))]
 
     # Prepare hover text
     if descriptions:
-        hover_text = [f"<b>{label}</b><br>Value: {score:.2f}<br>{descriptions.get(label, '')}" 
-                    for label, score in zip(labels, scores)]
+        hover_text = [
+            f"<b>{label}</b><br>Value: {score:.2f}<br>{descriptions.get(label, '')}"
+            for label, score in zip(labels, scores)
+        ]
     else:
-        hover_text = [f"<b>{label}</b><br>Value: {score:.2f}" for label, score in zip(labels, scores)]
+        hover_text = [
+            f"<b>{label}</b><br>Value: {score:.2f}"
+            for label, score in zip(labels, scores)
+        ]
 
     # Create figure
     fig = go.Figure()
-    
+
     fig.add_trace(
         go.Bar(
             y=labels,
             x=scores,
-            orientation='h',
+            orientation="h",
             marker_color=colors,
             text=[f"{score:.2f}" for score in scores],
-            textposition='auto',
+            textposition="auto",
             hovertext=hover_text,
-            hoverinfo='text',
+            hoverinfo="text",
         )
     )
 
     # Set layout
     max_value = max(scores) if scores else 5
-    xaxis_range = [0, 100] if percentage_scale else [0, max(5, max_value * 1.1)]
+    xaxis_range = (
+        [0, 100] if percentage_scale else [0, max(5, max_value * 1.1)]
+    )
     xaxis_title = "Percentage (%)" if percentage_scale else "Score"
-    
+
     fig.update_layout(
         title=title,
         xaxis=dict(
             title=xaxis_title,
             range=xaxis_range,
             showgrid=True,
-            gridcolor='rgba(230, 230, 230, 0.8)',
+            gridcolor="rgba(230, 230, 230, 0.8)",
         ),
         yaxis=dict(
             autorange="reversed",  # Make labels read top-to-bottom
         ),
         margin=dict(l=20, r=20, t=60, b=20),
         height=max(300, 70 * len(labels)),
-        plot_bgcolor='rgba(255, 255, 255, 1)',
+        plot_bgcolor="rgba(255, 255, 255, 1)",
     )
-    
+
     return fig
 
 
@@ -122,58 +134,49 @@ def generate_evaluation_html(
     """
     # Metric descriptions for hovering
     metric_descriptions = {
-        "Small Retrieval Eval Failure Rate": 
-            "Percentage of small test cases where retrieval failed to find relevant documents.",
-        "Small Retrieval Eval Failure Rate Reranking": 
-            "Percentage of small test cases where retrieval with reranking failed to find relevant documents.",
-        "Full Retrieval Eval Failure Rate": 
-            "Percentage of all test cases where retrieval failed to find relevant documents.",
-        "Full Retrieval Eval Failure Rate Reranking": 
-            "Percentage of all test cases where retrieval with reranking failed to find relevant documents.",
-        "Failure Rate Bad Answers": 
-            "Percentage of responses that were factually incorrect or misleading.",
-        "Failure Rate Bad Immediate Responses": 
-            "Percentage of immediate responses that did not adequately address the query.",
-        "Failure Rate Good Responses": 
-            "Percentage of responses rated as good by evaluators.",
-        "Average Toxicity Score": 
-            "Average score measuring harmful, offensive, or inappropriate content (lower is better).",
-        "Average Faithfulness Score": 
-            "Average score measuring how accurately the response represents the source material (higher is better).",
-        "Average Helpfulness Score": 
-            "Average score measuring the practical utility of responses to users (higher is better).",
-        "Average Relevance Score": 
-            "Average score measuring how well responses address the specific query intent (higher is better).",
+        "Small Retrieval Eval Failure Rate": "Percentage of small test cases where retrieval failed to find relevant documents.",
+        "Small Retrieval Eval Failure Rate Reranking": "Percentage of small test cases where retrieval with reranking failed to find relevant documents.",
+        "Full Retrieval Eval Failure Rate": "Percentage of all test cases where retrieval failed to find relevant documents.",
+        "Full Retrieval Eval Failure Rate Reranking": "Percentage of all test cases where retrieval with reranking failed to find relevant documents.",
+        "Failure Rate Bad Answers": "Percentage of responses that were factually incorrect or misleading.",
+        "Failure Rate Bad Immediate Responses": "Percentage of immediate responses that did not adequately address the query.",
+        "Failure Rate Good Responses": "Percentage of responses rated as good by evaluators.",
+        "Average Toxicity Score": "Average score measuring harmful, offensive, or inappropriate content (lower is better).",
+        "Average Faithfulness Score": "Average score measuring how accurately the response represents the source material (higher is better).",
+        "Average Helpfulness Score": "Average score measuring the practical utility of responses to users (higher is better).",
+        "Average Relevance Score": "Average score measuring how well responses address the specific query intent (higher is better).",
     }
 
     # Create individual charts
     retrieval_fig = create_plotly_bar_chart(
-        retrieval_labels, 
-        retrieval_scores, 
-        f"Retrieval Evaluation Metrics", 
+        retrieval_labels,
+        retrieval_scores,
+        f"Retrieval Evaluation Metrics",
         alternate_colors=True,
-        descriptions=metric_descriptions
+        descriptions=metric_descriptions,
     )
-    
+
     generation_basic_fig = create_plotly_bar_chart(
-        generation_basic_labels, 
-        generation_basic_scores, 
-        f"Basic Generation Metrics", 
+        generation_basic_labels,
+        generation_basic_scores,
+        f"Basic Generation Metrics",
         percentage_scale=True,
-        descriptions=metric_descriptions
+        descriptions=metric_descriptions,
     )
-    
+
     generation_quality_fig = create_plotly_bar_chart(
-        generation_quality_labels, 
-        generation_quality_scores, 
+        generation_quality_labels,
+        generation_quality_scores,
         f"Generation Quality Metrics",
-        descriptions=metric_descriptions
+        descriptions=metric_descriptions,
     )
 
     # Create summary metrics cards
     composite_quality = metrics_metadata.get("composite.overall_quality", 0)
-    retrieval_effectiveness = metrics_metadata.get("composite.retrieval_effectiveness", 0)
-    
+    retrieval_effectiveness = metrics_metadata.get(
+        "composite.retrieval_effectiveness", 0
+    )
+
     # Combine into complete HTML report
     html = f"""
     <!DOCTYPE html>
@@ -388,7 +391,7 @@ def generate_evaluation_html(
     </body>
     </html>
     """
-    
+
     return HTMLString(html)
 
 
@@ -434,10 +437,10 @@ def visualize_evaluation_results(
         + average_helpfulness_score
         + average_relevance_score
     ) / 3
-    
+
     composite_retrieval_effectiveness = (
-        (1 - small_retrieval_eval_failure_rate/100)
-        + (1 - full_retrieval_eval_failure_rate/100)
+        (1 - small_retrieval_eval_failure_rate / 100)
+        + (1 - full_retrieval_eval_failure_rate / 100)
     ) / 2
 
     # Collect all metrics for dashboard and logging

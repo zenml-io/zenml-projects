@@ -28,12 +28,11 @@ from utils.callbacks import ZenMLCallback
 from utils.loaders import load_base_model
 from utils.tokenizer import load_tokenizer
 from zenml import ArtifactConfig, step
+from zenml.client import Client
 from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 from zenml.materializers import BuiltInMaterializer
 from zenml.utils.cuda_utils import cleanup_gpu_memory
-from zenml.client import Client
-
 
 logger = get_logger(__name__)
 

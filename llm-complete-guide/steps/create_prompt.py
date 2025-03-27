@@ -24,6 +24,7 @@ You ONLY use the context from the ZenML documentation to provide relevant
 answers. \
 """
 
+
 @step
 def create_prompt() -> str:
     """Create a prompt for the RAG pipeline."""
