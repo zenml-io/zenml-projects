@@ -35,6 +35,11 @@ def is_audio_file(file_path: str) -> bool:
     return os.path.splitext(file_path)[1].lower() in AUDIO_EXTENSIONS
 
 
+def get_gcs_uri(bucket_name: str, blob_name: str) -> str:
+    """Get the GCS URI for a given bucket and blob name."""
+    return f"gs://{bucket_name}/{blob_name}"
+
+
 @step(enable_cache=False)
 def upload_audio_file(folder_path: str) -> List[str]:
     """Upload audio files to GCP bucket.
@@ -43,7 +48,7 @@ def upload_audio_file(folder_path: str) -> List[str]:
         folder_path: Path to folder containing audio files
 
     Returns:
-        List of full paths to all uploaded audio files
+        List of GCS URIs to all uploaded audio files
     """
     logger.info(
         f"Uploading audio files from `{folder_path}` to GCP bucket `{GCP_BUCKET_NAME}`..."
@@ -68,7 +73,7 @@ def upload_audio_file(folder_path: str) -> List[str]:
             blob = bucket.blob(file)
             blob.upload_from_filename(full_path)
             logger.info(f"Uploaded {file} to {GCP_BUCKET_NAME}")
-            uploaded_files.append(full_path)
+            uploaded_files.append(get_gcs_uri(GCP_BUCKET_NAME, blob.name))
         else:
             logger.debug(f"Skipping {file} as it is not an audio file")
 
@@ -79,7 +84,7 @@ def upload_audio_file(folder_path: str) -> List[str]:
 
 
 @pipeline
-def transcribe(folder_path: str):
+def audio_transcription(folder_path: str):
     """Transcribe audio files from GCP bucket."""
     upload_audio_file(folder_path=folder_path)
 
@@ -89,4 +94,4 @@ if __name__ == "__main__":
     parser.add_argument("--folder_path", type=str, required=True)
     args = parser.parse_args()
 
-    transcribe(args.folder_path)
+    audio_transcription(args.folder_path)
