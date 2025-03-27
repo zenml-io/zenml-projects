@@ -6,4 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "litellm>=1.63.14",
+    "rich>=13.9.4",
+    "zenml>=0.80.0",
 ]
