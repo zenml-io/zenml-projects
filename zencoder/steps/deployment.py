@@ -1,9 +1,14 @@
 from typing import Dict, Optional, cast
 
-from zenml.integrations.huggingface.model_deployers import HuggingFaceModelDeployer
-from zenml.integrations.huggingface.services import HuggingFaceDeploymentService, HuggingFaceServiceConfig
 from zenml import get_step_context, step
 from zenml.client import Client
+from zenml.integrations.huggingface.model_deployers import (
+    HuggingFaceModelDeployer,
+)
+from zenml.integrations.huggingface.services import (
+    HuggingFaceDeploymentService,
+    HuggingFaceServiceConfig,
+)
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,9 +44,9 @@ def deploy_model_to_hf_hub(hf_endpoint_cfg: Optional[Dict] = None) -> None:
     secret = Client().get_secret("huggingface_creds")
     hf_token = secret.secret_values["token"]
 
-    commit_info = (
-        get_step_context().model.run_metadata["merged_model_commit_info"]
-    )
+    commit_info = get_step_context().model.run_metadata[
+        "merged_model_commit_info"
+    ]
 
     model_namespace, repository, revision = parse_huggingface_url(commit_info)
 

@@ -125,6 +125,7 @@ def main(
     # Execute Feature Engineering Pipeline
     if feature_pipeline:
         from pipelines import generate_code_dataset
+
         generate_code_dataset.with_options(**pipeline_args)()
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
@@ -137,7 +138,9 @@ def main(
     elif deploy_pipeline:
         from pipelines import deployment_pipeline
 
-        deployment_pipeline.with_options(**pipeline_args)(target=deployment_target)
+        deployment_pipeline.with_options(**pipeline_args)(
+            target=deployment_target
+        )
         logger.info("Deployment pipeline finished successfully!\n")
 
 

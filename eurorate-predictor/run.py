@@ -101,7 +101,9 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"etl_{mode}.yaml"
         )
-        ecb_predictor_etl_pipeline.with_options(**pipeline_args)(**run_args_etl)
+        ecb_predictor_etl_pipeline.with_options(**pipeline_args)(
+            **run_args_etl
+        )
         logger.info("ETL pipeline finished successfully!\n")
 
     # Execute Feature Engineering Pipeline
@@ -126,9 +128,9 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"feature_engineering_{mode}.yaml"
         )
-        ecb_predictor_feature_engineering_pipeline.with_options(**pipeline_args)(
-            **run_args_feature
-        )
+        ecb_predictor_feature_engineering_pipeline.with_options(
+            **pipeline_args
+        )(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
     # Execute Model Training Pipeline
@@ -153,7 +155,9 @@ def main(
         pipeline_args["config_path"] = os.path.join(
             config_folder, f"training_{mode}.yaml"
         )
-        ecb_predictor_model_training_pipeline.with_options(**pipeline_args)(**run_args_train)
+        ecb_predictor_model_training_pipeline.with_options(**pipeline_args)(
+            **run_args_train
+        )
         logger.info("Model Training pipeline finished successfully!\n")
 
 
