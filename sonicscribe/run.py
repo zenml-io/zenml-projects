@@ -6,10 +6,13 @@ The script uses ZenML to define the pipeline and steps.
 import argparse
 import json
 import os
+from enum import Enum
 from typing import Annotated, Dict, List, Optional, Tuple
 
 from google.cloud import storage
-from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
+from litellm import completion
+from pydantic import BaseModel
+from rich import print
 from zenml import pipeline, step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
@@ -38,6 +41,29 @@ Use speaker A, speaker B, etc. to identify speakers.
 """
 
 TRANSCRIPTION_MODEL = "gemini-2.0-flash-001"
+
+
+class AudioContentType(str, Enum):
+    INTERVIEW = "interview"
+    PHONE_CALL = "phone_call"
+    SPEECH = "speech"
+    MEETING = "meeting"
+    OTHER = "other"
+
+
+class ContentTopic(str, Enum):
+    POLITICAL = "political"
+    BUSINESS = "business"
+    SCIENCE = "science"
+    TECHNOLOGY = "technology"
+    OTHER = "other"
+
+
+class TranscriptionResult(BaseModel):
+    transcript_text: str
+    audio_content_type: AudioContentType
+    language: str
+    content_topic: ContentTopic
 
 
 def is_audio_file(file_path: str) -> bool:
@@ -145,6 +171,11 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
     Returns:
         HTMLString: Formatted HTML table of transcription results
     """
+    transcription_results_pydantic = [
+        TranscriptionResult(**result)
+        for result in transcription_results.values()
+    ]
+
     html_parts = [
         "<!DOCTYPE html>",
         "<html>",
@@ -157,6 +188,7 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
         "        td.transcription { white-space: pre-wrap; font-family: monospace; }",
         "        tr:nth-child(even) { background-color: #f9f9f9; }",
         "        tr:hover { background-color: #f1f1f1; }",
+        "        .metadata { font-size: 0.9em; color: #666; }",
         "    </style>",
         "</head>",
         "<body>",
@@ -164,16 +196,26 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
         "    <table>",
         "        <tr>",
         "            <th>File</th>",
+        "            <th>Content Type</th>",
+        "            <th>Language</th>",
+        "            <th>Topic</th>",
         "            <th>Transcription</th>",
         "        </tr>",
     ]
 
     # Add each transcription result as a table row
-    for file_path, transcription in transcription_results.items():
+    for file_path, result in zip(
+        transcription_results.keys(), transcription_results_pydantic
+    ):
         html_parts.append(f"        <tr>")
         html_parts.append(f"            <td>{file_path}</td>")
         html_parts.append(
-            f'            <td class="transcription">{transcription}</td>'
+            f"            <td>{result.audio_content_type.value}</td>"
+        )
+        html_parts.append(f"            <td>{result.language}</td>")
+        html_parts.append(f"            <td>{result.content_topic.value}</td>")
+        html_parts.append(
+            f'            <td class="transcription">{result.transcript_text}</td>'
         )
         html_parts.append(f"        </tr>")
 
@@ -183,23 +225,35 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
     return HTMLString("\n".join(html_parts))
 
 
-def synchronous_transcribe_file(uri: str) -> str:
+def synchronous_transcribe_file(
+    uri: str,
+    model: str = TRANSCRIPTION_MODEL,
+) -> str:
     """Transcribe audio file synchronously."""
-    model = GenerativeModel(TRANSCRIPTION_MODEL)
-
-    logger.info(f"Preparing to transcribe audio from: `{uri}`")
-    audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
-
-    contents = [audio_file, TRANSCRIPTION_PROMPT]
-
     logger.info(
         "Sending to Gemini for transcription... (this may take a while)"
     )
-    response = model.generate_content(
-        contents,
-        generation_config=GenerationConfig(audio_timestamp=True),
+    response = completion(
+        model=model,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": TRANSCRIPTION_PROMPT,
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": uri,
+                    },
+                ],
+            }
+        ],
+        response_format=TranscriptionResult,
     )
-    return response.text
+    response_json = json.loads(response.choices[0].message.content)
+    return response_json
 
 
 @step
@@ -216,15 +270,13 @@ def transcribe_audio_file(
     )
     # split the json string into a list of gcs uris
     gcs_uris = json.loads(gcs_uri_json_string)
-    model = GenerativeModel(TRANSCRIPTION_MODEL)
 
     transcription_results = {}
     if synchronous:
         for uri in gcs_uris:
             transcription_results[uri] = synchronous_transcribe_file(uri)
     else:
-        for uri in gcs_uris:
-            print("doing async")
+        print("doing async")
 
     return transcription_results, get_html_string(transcription_results)
 
