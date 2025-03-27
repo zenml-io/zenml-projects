@@ -186,44 +186,59 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
 @step
 def transcribe_audio_file(
     gcs_uri_json_string: str,
+    synchronous: bool = False,
 ) -> Tuple[
     Annotated[Dict[str, str], "transcription_results"],
     Annotated[HTMLString, "transcription_results_html"],
 ]:
     """Transcribe audio file using Gemini API."""
+    logger.info(
+        f"{'Running synchronous transcription' if synchronous else 'Scheduling batch transcription'}"
+    )
     # split the json string into a list of gcs uris
     gcs_uris = json.loads(gcs_uri_json_string)
     model = GenerativeModel(TRANSCRIPTION_MODEL)
 
     transcription_results = {}
+    if synchronous:
+        for uri in gcs_uris:
+            logger.info(f"Preparing to transcribe audio from: `{uri}`")
+            audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
 
-    for uri in gcs_uris:
-        logger.info(f"Preparing to transcribe audio from: `{uri}`")
-        audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
+            contents = [audio_file, TRANSCRIPTION_PROMPT]
 
-        contents = [audio_file, TRANSCRIPTION_PROMPT]
-
-        logger.info(
-            "Sending to Gemini for transcription... (this may take a while)",
-        )
-        response = model.generate_content(
-            contents, generation_config=GenerationConfig(audio_timestamp=True)
-        )
-        transcription_results[uri] = response.text
+            logger.info(
+                "Sending to Gemini for transcription... (this may take a while)",
+            )
+            response = model.generate_content(
+                contents,
+                generation_config=GenerationConfig(audio_timestamp=True),
+            )
+            transcription_results[uri] = response.text
+    else:
+        for uri in gcs_uris:
+            print("doing async")
 
     return transcription_results, get_html_string(transcription_results)
 
 
 @pipeline(enable_cache=False)
-def audio_transcription(folder_path: str, subfolder: Optional[str] = None):
+def audio_transcription(
+    folder_path: str,
+    subfolder: Optional[str] = None,
+    synchronous: bool = False,
+):
     """Transcribe audio files from GCP bucket.
 
     Args:
         folder_path: Path to folder containing audio files
         subfolder: Optional subfolder within the bucket to store files
+        synchronous: Whether to use synchronous transcription (default: False)
     """
     gcs_uris = upload_audio_file(folder_path=folder_path, subfolder=subfolder)
-    transcribe_audio_file(gcs_uri_json_string=gcs_uris)
+    transcribe_audio_file(
+        gcs_uri_json_string=gcs_uris, synchronous=synchronous
+    )
 
 
 if __name__ == "__main__":
@@ -241,6 +256,13 @@ if __name__ == "__main__":
         type=str,
         help="Optional subfolder within the bucket to store files",
     )
+    parser.add_argument(
+        "--synchronous",
+        action="store_true",
+        help="Use synchronous transcription (default: False)",
+    )
     args = parser.parse_args()
 
-    audio_transcription(args.source_folder, args.destination_subfolder)
+    audio_transcription(
+        args.source_folder, args.destination_subfolder, args.synchronous
+    )
