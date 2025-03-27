@@ -39,6 +39,7 @@ from zenml import ArtifactConfig, log_metadata, save_artifact, step
 from zenml.client import Client
 from zenml.enums import ArtifactType
 
+
 # this is expensive so we cache it
 @functools.lru_cache(maxsize=None)
 def get_fim_token_ids(tokenizer):
@@ -526,7 +527,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
             commit_info = trainer.push_to_hub()
             log_metadata(
                 metadata={"trainer_commit_info": str(commit_info)},
-                infer_model=True
+                infer_model=True,
             )
         else:
             trainer.save_model(args.output_dir)
@@ -538,7 +539,7 @@ def run_training(args: Configuration, train_data, val_data, hf_token):
             )
             log_metadata(
                 metadata={"model_commit_info": str(commit_info)},
-                infer_model=True
+                infer_model=True,
             )
     except Exception as e:
         print("Exception while pushing or saving")
@@ -584,12 +585,12 @@ def merge_and_push(
     commit_info = tokenizer.push_to_hub(model_id_merged, token=hf_token)
     log_metadata(
         metadata={"merged_tokenizer_commit_info": str(commit_info)},
-        infer_model=True
+        infer_model=True,
     )
     commit_info = final_model.push_to_hub(model_id_merged, token=hf_token)
     log_metadata(
         metadata={"merged_model_commit_info": str(commit_info)},
-        infer_model=True
+        infer_model=True,
     )
 
 
@@ -598,7 +599,8 @@ def trainer(
     args: Configuration,
 ) -> Tuple[
     Annotated[
-        Trainer, ArtifactConfig(name="trainer_obj", artifact_type=ArtifactType.MODEL)
+        Trainer,
+        ArtifactConfig(name="trainer_obj", artifact_type=ArtifactType.MODEL),
     ],
     Annotated[
         GPT2TokenizerFast,

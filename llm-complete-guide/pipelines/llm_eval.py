@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from steps.create_prompt import PROMPT, create_prompt
+from steps.create_prompt import PROMPT
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,

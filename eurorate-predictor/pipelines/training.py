@@ -24,7 +24,9 @@ from zenml.client import Client
 
 
 @pipeline
-def ecb_predictor_model_training_pipeline(augmented_dataset_id, mode: str = "develop"):
+def ecb_predictor_model_training_pipeline(
+    augmented_dataset_id, mode: str = "develop"
+):
     """A pipeline to train an XGBoost model and promote it.
 
     Args:

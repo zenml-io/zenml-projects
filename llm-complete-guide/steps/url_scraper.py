@@ -50,7 +50,7 @@ def url_scraper(
             "https://docs.zenml.io/stack-components/step-operators/azureml",
             # "https://docs.zenml.io/how-to/interact-with-secrets",
             # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/service-connectors-guide",
-            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/hyperai-service-connector", 
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/hyperai-service-connector",
             # "https://docs.zenml.io/stack-components/data-validators/evidently",
             # "https://docs.zenml.io/stack-components/data-validators",
             # "https://docs.zenml.io/stack-components/step-operators/sagemaker",
