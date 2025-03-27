@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from steps.create_prompt import create_prompt
+from steps.create_prompt import PROMPT
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
@@ -26,14 +26,14 @@ from steps.eval_retrieval import (
     retrieval_evaluation_small_with_reranking,
 )
 from steps.eval_visualisation import visualize_evaluation_results
-from zenml import pipeline
+from zenml import pipeline, save_artifact
 
 
 @pipeline(enable_cache=True)
 def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
     # define prompt
-    prompt = create_prompt()
+    prompt = save_artifact(PROMPT, "prompt")
 
     # Retrieval evals
     failure_rate_retrieval = retrieval_evaluation_small(after=after)

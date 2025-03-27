@@ -111,6 +111,12 @@ Install the required packages via the `requirements.txt` file located in the
 pip install -r src/requirements.txt
 ```
 
+You will also need to set your `OPENAI_API_KEY` as an environment variable wherever you plan to run the pipeline.
+
+```bash
+export OPENAI_API_KEY="..."
+```
+
 ## 🏃 Running it locally
 
 After the installation is completed, you can directly run the pipeline locally

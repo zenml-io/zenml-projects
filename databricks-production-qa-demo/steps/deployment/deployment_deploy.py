@@ -31,10 +31,14 @@ logger = get_logger(__name__)
 
 
 @step(enable_cache=False)
-def deployment_deploy() -> Annotated[
-    Optional[DatabricksDeploymentService],
-    ArtifactConfig(name="databricks_deployment", is_deployment_artifact=True),
-]:
+def deployment_deploy() -> (
+    Annotated[
+        Optional[DatabricksDeploymentService],
+        ArtifactConfig(
+            name="databricks_deployment", is_deployment_artifact=True
+        ),
+    ]
+):
     """Predictions step.
 
     This is an example of a predictions step that takes the data in and returns

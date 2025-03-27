@@ -20,7 +20,11 @@ model to detect ships in the images. Note that this isn't something that our
 YOLOv8 model is particularly good at out of the box, so it serves as a good
 example of how to build a pipeline that can be extended to other use cases.
 
-This project needs some infrastructure and tool setup to work. Here is a list of
+This project and the pipelines detailed below were showcased in a webinar we hosted. To watch the video click the following link:
+
+[![CleanShot 2025-03-25 at 16 11 19](https://github.com/user-attachments/assets/eb82d606-8b81-42f4-a883-d88ebbf29fd1)](https://youtu.be/77vylw-sh50?feature=shared&t=342)
+
+You will need some infrastructure and tooling setup for this project to work. Here is a list of
 things that you'll need to do.
 
 ## ZenML

@@ -23,9 +23,9 @@ from zenml.integrations.huggingface.materializers.huggingface_datasets_materiali
 
 
 @step(output_materializers=HFDatasetMaterializer)
-def load_hf_dataset() -> Tuple[
-    Annotated[Dataset, "train"], Annotated[Dataset, "test"]
-]:
+def load_hf_dataset() -> (
+    Tuple[Annotated[Dataset, "train"], Annotated[Dataset, "test"]]
+):
     train_dataset = load_dataset(DATASET_NAME_DEFAULT, split="train")
     test_dataset = load_dataset(DATASET_NAME_DEFAULT, split="test")
     return train_dataset, test_dataset
