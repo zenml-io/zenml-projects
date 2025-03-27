@@ -97,11 +97,11 @@ GameSense uses Parameter-Efficient Fine-Tuning (PEFT) to customize powerful foun
 - Python 3.8+
 - GPU with at least 24GB VRAM (for full model training)
 - ZenML installed and configured
-- Neptune.ai account for experiment tracking
+- Neptune.ai account for experiment tracking (optional)
 
 ### Environment Setup
 
-1. Set up your Neptune.ai credentials:
+1. Set up your Neptune.ai credentials if you want to use Neptune for experiment tracking:
    ```bash
    # Set your Neptune project name and API token as environment variables
    export NEPTUNE_PROJECT="your-neptune-workspace/your-project-name"
