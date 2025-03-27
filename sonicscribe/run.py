@@ -183,6 +183,25 @@ def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
     return HTMLString("\n".join(html_parts))
 
 
+def synchronous_transcribe_file(uri: str) -> str:
+    """Transcribe audio file synchronously."""
+    model = GenerativeModel(TRANSCRIPTION_MODEL)
+
+    logger.info(f"Preparing to transcribe audio from: `{uri}`")
+    audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
+
+    contents = [audio_file, TRANSCRIPTION_PROMPT]
+
+    logger.info(
+        "Sending to Gemini for transcription... (this may take a while)"
+    )
+    response = model.generate_content(
+        contents,
+        generation_config=GenerationConfig(audio_timestamp=True),
+    )
+    return response.text
+
+
 @step
 def transcribe_audio_file(
     gcs_uri_json_string: str,
@@ -202,19 +221,7 @@ def transcribe_audio_file(
     transcription_results = {}
     if synchronous:
         for uri in gcs_uris:
-            logger.info(f"Preparing to transcribe audio from: `{uri}`")
-            audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
-
-            contents = [audio_file, TRANSCRIPTION_PROMPT]
-
-            logger.info(
-                "Sending to Gemini for transcription... (this may take a while)",
-            )
-            response = model.generate_content(
-                contents,
-                generation_config=GenerationConfig(audio_timestamp=True),
-            )
-            transcription_results[uri] = response.text
+            transcription_results[uri] = synchronous_transcribe_file(uri)
     else:
         for uri in gcs_uris:
             print("doing async")
