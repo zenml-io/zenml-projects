@@ -6,11 +6,13 @@ The script uses ZenML to define the pipeline and steps.
 import argparse
 import json
 import os
-from typing import List, Optional
+from typing import Annotated, Dict, List, Optional, Tuple
 
 from google.cloud import storage
+from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
 from zenml import pipeline, step
 from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 # Set up logging with Rich
 logger = get_logger(__name__)
@@ -29,6 +31,13 @@ AUDIO_EXTENSIONS = [
     ".aac",
     ".wma",
 ]
+
+TRANSCRIPTION_PROMPT = """
+Can you transcribe this interview, in the format of timecode, speaker, caption.
+Use speaker A, speaker B, etc. to identify speakers.
+"""
+
+TRANSCRIPTION_MODEL = "gemini-2.0-flash-001"
 
 
 def is_audio_file(file_path: str) -> bool:
@@ -59,7 +68,7 @@ def get_json_string_list(gcs_uris: List[str]) -> str:
     return json.dumps(gcs_uris)
 
 
-@step(enable_cache=False)
+@step
 def upload_audio_file(
     folder_path: str, subfolder: Optional[str] = None
 ) -> str:
@@ -127,13 +136,85 @@ def upload_audio_file(
     return get_json_string_list(uploaded_files)
 
 
+def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
+    """Get an HTML string from a dictionary of transcription results.
+
+    Args:
+        transcription_results: Dictionary mapping file paths to transcription text
+
+    Returns:
+        HTMLString: Formatted HTML table of transcription results
+    """
+    html_parts = [
+        "<!DOCTYPE html>",
+        "<html>",
+        "<head>",
+        "    <style>",
+        "        body { font-family: Arial, sans-serif; margin: 20px; }",
+        "        table { border-collapse: collapse; width: 100%; }",
+        "        th { background-color: #f2f2f2; text-align: left; padding: 12px; }",
+        "        td { border: 1px solid #ddd; padding: 12px; vertical-align: top; }",
+        "        td.transcription { white-space: pre-wrap; font-family: monospace; }",
+        "        tr:nth-child(even) { background-color: #f9f9f9; }",
+        "        tr:hover { background-color: #f1f1f1; }",
+        "    </style>",
+        "</head>",
+        "<body>",
+        "    <h1>Audio Transcription Results</h1>",
+        "    <table>",
+        "        <tr>",
+        "            <th>File</th>",
+        "            <th>Transcription</th>",
+        "        </tr>",
+    ]
+
+    # Add each transcription result as a table row
+    for file_path, transcription in transcription_results.items():
+        html_parts.append(f"        <tr>")
+        html_parts.append(f"            <td>{file_path}</td>")
+        html_parts.append(
+            f'            <td class="transcription">{transcription}</td>'
+        )
+        html_parts.append(f"        </tr>")
+
+    # Close the HTML structure
+    html_parts.extend(["    </table>", "</body>", "</html>"])
+
+    return HTMLString("\n".join(html_parts))
+
+
 @step
-def transcribe_audio_file(gcs_uri_json_string: str) -> str:
+def transcribe_audio_file(
+    gcs_uri_json_string: str,
+) -> Tuple[
+    Annotated[Dict[str, str], "transcription_results"],
+    Annotated[HTMLString, "transcription_results_html"],
+]:
     """Transcribe audio file using Gemini API."""
-    return "transcribed text"
+    # split the json string into a list of gcs uris
+    gcs_uris = json.loads(gcs_uri_json_string)
+    model = GenerativeModel(TRANSCRIPTION_MODEL)
+
+    transcription_results = {}
+
+    for uri in gcs_uris:
+        logger.info(f"Preparing to transcribe audio from: `{uri}`")
+        audio_file = Part.from_uri(uri, mime_type="audio/mpeg")
+
+        contents = [audio_file, TRANSCRIPTION_PROMPT]
+
+        logger.info(
+            "Sending to Gemini for transcription... (this may take a while)",
+        )
+        response = model.generate_content(
+            contents, generation_config=GenerationConfig(audio_timestamp=True)
+        )
+        transcription_results[uri] = response.text
+
+    return transcription_results, get_html_string(transcription_results)
 
 
-@pipeline
+@pipeline(enable_cache=False)
 def audio_transcription(folder_path: str, subfolder: Optional[str] = None):
     """Transcribe audio files from GCP bucket.
 
