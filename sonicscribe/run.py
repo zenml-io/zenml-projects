@@ -3,13 +3,14 @@
 The script uses ZenML to define the pipeline and steps.
 """
 
-from zenml import step, pipeline
-from zenml.logger import get_logger
 import argparse
+import json
 import os
-from google.cloud import storage
 from typing import List
 
+from google.cloud import storage
+from zenml import pipeline, step
+from zenml.logger import get_logger
 
 # Set up logging with Rich
 logger = get_logger(__name__)
@@ -40,15 +41,20 @@ def get_gcs_uri(bucket_name: str, blob_name: str) -> str:
     return f"gs://{bucket_name}/{blob_name}"
 
 
+def get_json_string_list(gcs_uris: List[str]) -> str:
+    """Get a JSON string list of GCS URIs."""
+    return json.dumps(gcs_uris)
+
+
 @step(enable_cache=False)
-def upload_audio_file(folder_path: str) -> List[str]:
+def upload_audio_file(folder_path: str) -> str:
     """Upload audio files to GCP bucket.
 
     Args:
         folder_path: Path to folder containing audio files
 
     Returns:
-        List of GCS URIs to all uploaded audio files
+        JSON string list of GCS URIs to all uploaded audio files
     """
     logger.info(
         f"Uploading audio files from `{folder_path}` to GCP bucket `{GCP_BUCKET_NAME}`..."
@@ -80,7 +86,7 @@ def upload_audio_file(folder_path: str) -> List[str]:
     if not audio_files_found:
         logger.warning(f"No audio files found in {folder_path}")
 
-    return uploaded_files
+    return get_json_string_list(uploaded_files)
 
 
 @pipeline
