@@ -358,7 +358,7 @@ def batch_transcribe_audio_files(gcs_uris: List[str]) -> BatchPredictionJob:
         gcs_uris: List of GCS URIs to audio files
 
     Returns:
-        None: Results will be available in GCS after job completion
+        BatchPredictionJob: The submitted batch prediction job
     """
     logger.info(f"Starting batch transcription for {len(gcs_uris)} files")
 
@@ -412,7 +412,7 @@ def transcribe_audio_file(
     gcs_uri_json_string: str,
     synchronous: bool = False,
 ) -> Annotated[
-    Union[Tuple[Dict[str, str], HTMLString], str],
+    Union[Tuple[Dict[str, TranscriptionResult], HTMLString], str],
     "transcription_output",
 ]:
     """Transcribe audio file using Gemini API.
@@ -422,8 +422,8 @@ def transcribe_audio_file(
         synchronous: Whether to use synchronous transcription
 
     Returns:
-        Tuple containing transcription results dictionary and HTML string
-        Note: When using batch transcription, results dictionary will be empty
+        If synchronous=True: Tuple containing transcription results dictionary and HTML string
+        If synchronous=False: String containing the batch prediction job name
     """
     logger.info(
         f"{'Running synchronous transcription' if synchronous else 'Scheduling batch transcription'}"
@@ -455,12 +455,13 @@ def audio_transcription(
     subfolder: Optional[str] = None,
     synchronous: bool = False,
 ):
-    """Transcribe audio files from GCP bucket.
+    """Transcribe audio files from a local folder and upload them to GCP bucket.
 
     Args:
         folder_path: Path to folder containing audio files
         subfolder: Optional subfolder within the bucket to store files
         synchronous: Whether to use synchronous transcription (default: False)
+            If False, uses batch processing and schedules result checking
     """
     gcs_uris = upload_audio_file(folder_path=folder_path, subfolder=subfolder)
     if not synchronous:
