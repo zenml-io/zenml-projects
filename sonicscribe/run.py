@@ -6,13 +6,15 @@ The script uses ZenML to define the pipeline and steps.
 import argparse
 import json
 import os
+import time
 from enum import Enum
 from typing import Annotated, Dict, List, Optional, Tuple
 
+import vertexai
 from google.cloud import storage
 from litellm import completion
 from pydantic import BaseModel
-from rich import print
+from vertexai.batch_prediction import BatchPredictionJob
 from zenml import pipeline, step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
@@ -331,7 +333,57 @@ def format_for_batch_submission(gcs_uris: List[str], prompt: str) -> List[str]:
 
 
 def batch_transcribe_audio_files(gcs_uris: List[str]):
-    pass
+    """Submits a batch transcription request to Gemini API.
+
+    Args:
+        gcs_uris: List of GCS URIs to audio files
+
+    Returns:
+        None: Results will be available in GCS after job completion
+    """
+    logger.info(f"Starting batch transcription for {len(gcs_uris)} files")
+
+    # Initialize VertexAI with the project
+    vertexai.init(project=GCP_PROJECT_ID, location=GCP_REGION)
+
+    # Create a temporary GCS location for the JSONL input file
+    jsonl_strings = format_for_batch_submission(gcs_uris, TRANSCRIPTION_PROMPT)
+    jsonl_content = "\n".join(jsonl_strings)
+
+    # Create a blob for the input JSONL file
+    client = storage.Client(project=GCP_PROJECT_ID)
+    bucket = client.bucket(GCP_BUCKET_NAME)
+    timestamp = int(time.time())
+    input_blob_name = f"batch_inputs/input-{timestamp}.jsonl"
+    input_blob = bucket.blob(input_blob_name)
+
+    # Upload the JSONL content
+    input_blob.upload_from_string(jsonl_content)
+    logger.info(
+        f"Uploaded batch input file to gs://{GCP_BUCKET_NAME}/{input_blob_name}"
+    )
+
+    # Define input and output URIs
+    input_uri = f"gs://{GCP_BUCKET_NAME}/{input_blob_name}"
+    output_uri_prefix = (
+        f"gs://{GCP_BUCKET_NAME}/batch_outputs/output-{timestamp}"
+    )
+
+    # Submit a batch prediction job with Gemini model
+    batch_prediction_job = BatchPredictionJob.submit(
+        source_model=TRANSCRIPTION_MODEL,
+        input_dataset=input_uri,
+        output_uri_prefix=output_uri_prefix,
+    )
+
+    logger.info(
+        f"Batch job submitted with resource name: {batch_prediction_job.resource_name}"
+    )
+    logger.info(
+        f"Model resource name with the job: {batch_prediction_job.model_name}"
+    )
+    logger.info(f"Job state: {batch_prediction_job.state.name}")
+    logger.info(f"Results will be available at: {output_uri_prefix}")
 
 
 @step
@@ -342,7 +394,16 @@ def transcribe_audio_file(
     Annotated[Dict[str, str], "transcription_results"],
     Annotated[HTMLString, "transcription_results_html"],
 ]:
-    """Transcribe audio file using Gemini API."""
+    """Transcribe audio file using Gemini API.
+
+    Args:
+        gcs_uri_json_string: JSON string list of GCS URIs
+        synchronous: Whether to use synchronous transcription
+
+    Returns:
+        Tuple containing transcription results dictionary and HTML string
+        Note: When using batch transcription, results dictionary will be empty
+    """
     logger.info(
         f"{'Running synchronous transcription' if synchronous else 'Scheduling batch transcription'}"
     )
@@ -354,8 +415,16 @@ def transcribe_audio_file(
         for uri in gcs_uris:
             transcription_results[uri] = synchronous_transcribe_file(uri)
     else:
-        print("doing async")
+        # Schedule batch transcription - results will be available in GCS
+        batch_transcribe_audio_files(gcs_uris)
+        logger.info(
+            "Batch transcription job submitted. Results will be available in GCS when completed."
+        )
+        logger.info(
+            "No results returned to pipeline as batch processing happens asynchronously."
+        )
 
+    # For batch mode, this will return empty results
     return transcription_results, get_html_string(transcription_results)
 
 
