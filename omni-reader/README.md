@@ -1,6 +1,6 @@
 # OmniReader - Multi-model text extraction comparison
 
-OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models - specifically Gemma 3 and Mistral AI Pixtral12B. The platform provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. This dual-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model.
+OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models - specifically Gemma 3 and Mistral AI Pixtral12B. It provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. This dual-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model.
 
 ## 🚀 Getting Started
 
