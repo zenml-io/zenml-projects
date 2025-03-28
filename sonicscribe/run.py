@@ -8,7 +8,8 @@ import json
 import os
 import time
 from enum import Enum
-from typing import Annotated, Dict, List, Optional, Tuple
+from typing import Annotated, Dict, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import vertexai
 from google.cloud import storage
@@ -16,6 +17,7 @@ from litellm import completion
 from pydantic import BaseModel
 from vertexai.batch_prediction import BatchPredictionJob
 from zenml import pipeline, step
+from zenml.client import Client as zenml_client
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
@@ -47,11 +49,6 @@ MIME_TYPE_MAPPING = {
     ".aac": "audio/mp4",
 }
 
-TRANSCRIPTION_PROMPT = """
-Can you transcribe this interview, in the format of timecode, speaker, caption.
-Use speaker A, speaker B, etc. to identify speakers (unless they are referred to by name).
-"""
-
 TRANSCRIPTION_MODEL = "gemini-2.0-flash-001"
 
 
@@ -76,6 +73,17 @@ class TranscriptionResult(BaseModel):
     audio_content_type: AudioContentType
     language: str
     content_topic: ContentTopic
+
+
+TRANSCRIPTION_PROMPT = """
+Please transcribe this interview, in the format of timecode, speaker, caption.
+Use speaker A, speaker B, etc. to identify speakers (unless they are referred to
+by name).
+
+You should return the transcript_text, audio_content_type, language, and
+content_topic. When you're returning the transcript_text, don't include any extra
+text or formatting. Just the raw text of the transcript.
+"""
 
 
 def is_audio_file(file_path: str) -> bool:
@@ -174,19 +182,28 @@ def upload_audio_file(
     return get_json_string_list(uploaded_files)
 
 
-def get_html_string(transcription_results: Dict[str, str]) -> HTMLString:
+def get_html_string(
+    transcription_results: Dict[str, Union[Dict, TranscriptionResult]],
+) -> HTMLString:
     """Get an HTML string from a dictionary of transcription results.
 
     Args:
-        transcription_results: Dictionary mapping file paths to transcription text
+        transcription_results: Dictionary mapping file paths to transcription text or TranscriptionResult objects
 
     Returns:
         HTMLString: Formatted HTML table of transcription results
     """
-    transcription_results_pydantic = [
-        TranscriptionResult(**result)
-        for result in transcription_results.values()
-    ]
+    transcription_results_pydantic = []
+
+    for result in transcription_results.values():
+        if isinstance(result, TranscriptionResult):
+            # If it's already a TranscriptionResult object, use it directly
+            transcription_results_pydantic.append(result)
+        else:
+            # If it's a dictionary, convert it to a TranscriptionResult object
+            transcription_results_pydantic.append(
+                TranscriptionResult(**result)
+            )
 
     html_parts = [
         "<!DOCTYPE html>",
@@ -332,7 +349,7 @@ def format_for_batch_submission(gcs_uris: List[str], prompt: str) -> List[str]:
     return jsonl_strings
 
 
-def batch_transcribe_audio_files(gcs_uris: List[str]):
+def batch_transcribe_audio_files(gcs_uris: List[str]) -> BatchPredictionJob:
     """Submits a batch transcription request to Gemini API.
 
     Args:
@@ -385,14 +402,16 @@ def batch_transcribe_audio_files(gcs_uris: List[str]):
     logger.info(f"Job state: {batch_prediction_job.state.name}")
     logger.info(f"Results will be available at: {output_uri_prefix}")
 
+    return batch_prediction_job
+
 
 @step
 def transcribe_audio_file(
     gcs_uri_json_string: str,
     synchronous: bool = False,
-) -> Tuple[
-    Annotated[Dict[str, str], "transcription_results"],
-    Annotated[HTMLString, "transcription_results_html"],
+) -> Annotated[
+    Union[Tuple[Dict[str, str], HTMLString], str],
+    "transcription_output",
 ]:
     """Transcribe audio file using Gemini API.
 
@@ -407,25 +426,25 @@ def transcribe_audio_file(
     logger.info(
         f"{'Running synchronous transcription' if synchronous else 'Scheduling batch transcription'}"
     )
-    # split the json string into a list of gcs uris
     gcs_uris = json.loads(gcs_uri_json_string)
 
     transcription_results = {}
     if synchronous:
         for uri in gcs_uris:
             transcription_results[uri] = synchronous_transcribe_file(uri)
+        return (
+            transcription_results,
+            get_html_string(transcription_results),
+        )
     else:
-        # Schedule batch transcription - results will be available in GCS
-        batch_transcribe_audio_files(gcs_uris)
+        batch_prediction_job = batch_transcribe_audio_files(gcs_uris)
         logger.info(
             "Batch transcription job submitted. Results will be available in GCS when completed."
         )
         logger.info(
             "No results returned to pipeline as batch processing happens asynchronously."
         )
-
-    # For batch mode, this will return empty results
-    return transcription_results, get_html_string(transcription_results)
+        return batch_prediction_job.name
 
 
 @pipeline(enable_cache=False)
@@ -445,6 +464,194 @@ def audio_transcription(
     transcribe_audio_file(
         gcs_uri_json_string=gcs_uris, synchronous=synchronous
     )
+
+
+def get_batch_prediction_job(
+    batch_prediction_job_name: str,
+) -> BatchPredictionJob:
+    """Get a batch prediction job by name."""
+    vertexai.init(project=GCP_PROJECT_ID, location=GCP_REGION)
+    job_state_filter = 'state="JOB_STATE_SUCCEEDED"'
+    batch_jobs = BatchPredictionJob.list(filter=job_state_filter)
+
+    if transcription_job := [
+        job for job in batch_jobs if job.name == batch_prediction_job_name
+    ]:
+        return transcription_job[0]
+    else:
+        raise ValueError(
+            f"Batch prediction job {batch_prediction_job_name} not found"
+        )
+
+
+@step
+def get_batch_transcription_results(
+    batch_prediction_job_name: str,
+) -> Tuple[
+    Annotated[Dict[str, TranscriptionResult], "transcription_results"],
+    Annotated[HTMLString, "html_representation"],
+]:
+    """Get the results of a batch transcription job.
+
+    Args:
+        batch_prediction_job_name: The name of the batch transcription job
+
+    Returns:
+        Tuple containing transcription results dictionary and HTML string representation
+    """
+    try:
+        batch_prediction_job = get_batch_prediction_job(
+            batch_prediction_job_name
+        )
+    except ValueError:
+        logger.info(
+            f"Batch prediction job `{batch_prediction_job_name}` has not yet completed. Please check back later."
+        )
+        return {}, HTMLString(
+            f"""<!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                    h1 {{ color: #555; text-align: center; }}
+                    .message {{ padding: 15px; background-color: #f8f9fa; border-left: 5px solid #6c757d; }}
+                </style>
+            </head>
+            <body>
+                <h1>Job Status</h1>
+                <div class="message">
+                    <p>Batch prediction job <code>{batch_prediction_job_name}</code> has not yet completed.</p>
+                    <p>Please check back later.</p>
+                </div>
+            </body>
+            </html>"""
+        )
+
+    if batch_prediction_job.has_succeeded:
+        logger.info("Job succeeded!")
+    else:
+        logger.error(f"Job failed: {batch_prediction_job.error}")
+        return {}, HTMLString("<h1>Batch prediction job failed</h1>")
+
+    # Check the location of the output
+    logger.info(f"Job output location: {batch_prediction_job.output_location}")
+
+    # Download the output from the GCS bucket
+    predictions_file_gcs_path = batch_prediction_job.output_location
+    # Extract just the path part without the bucket name and gs:// prefix
+    parsed_uri = urlparse(predictions_file_gcs_path)
+    blob_prefix = parsed_uri.path.lstrip("/")
+
+    # List blobs to find the predictions file
+    client = storage.Client(project=GCP_PROJECT_ID)
+    bucket_name = parsed_uri.netloc
+    bucket = client.bucket(bucket_name)
+
+    # Look for predictions.jsonl in the output location
+    predictions_blob_name = None
+    for blob in bucket.list_blobs(prefix=blob_prefix):
+        if blob.name.endswith("predictions.jsonl"):
+            predictions_blob_name = blob.name
+            break
+
+    if not predictions_blob_name:
+        logger.error(
+            f"Could not find predictions.jsonl in {predictions_file_gcs_path}"
+        )
+        return {}, HTMLString("<h1>Could not find predictions file</h1>")
+
+    local_predictions_file = "predictions.jsonl"
+    output_blob = bucket.blob(predictions_blob_name)
+    output_blob.download_to_filename(local_predictions_file)
+
+    transcription_results = {}
+    try:
+        with open(local_predictions_file, "r") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+
+                result_json = json.loads(line)
+
+                # Extract file URI from the request
+                request_content = result_json.get("request", {}).get(
+                    "contents", [{}]
+                )[0]
+                file_data = None
+                for part in request_content.get("parts", []):
+                    if part.get("fileData"):
+                        file_data = part.get("fileData")
+                        break
+
+                if not file_data or not file_data.get("fileUri"):
+                    logger.warning(
+                        f"Could not find file URI in request: {result_json}"
+                    )
+                    continue
+
+                file_uri = file_data.get("fileUri")
+                file_name = file_uri.split("/")[-1]
+
+                # Extract transcript from the response
+                response = result_json.get("response", {})
+                candidates = response.get("candidates", [])
+                if not candidates:
+                    logger.warning(f"No candidates found for {file_name}")
+                    continue
+
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if not parts:
+                    logger.warning(f"No content parts found for {file_name}")
+                    continue
+
+                transcript_text = parts[0].get("text", "")
+
+                # Create a TranscriptionResult object
+                try:
+                    # Try to extract structured data from transcript if possible
+                    # This is highly dependent on your model response format
+                    # For now, we'll use placeholder values for the structured fields
+                    transcription_result = TranscriptionResult(
+                        transcript_text=transcript_text,
+                        audio_content_type=AudioContentType.INTERVIEW,  # Assuming default
+                        language="en",  # Assuming English
+                        content_topic=ContentTopic.OTHER,  # Default topic
+                    )
+                    transcription_results[file_name] = transcription_result
+                except Exception as e:
+                    logger.error(
+                        f"Error creating TranscriptionResult for {file_name}: {str(e)}"
+                    )
+                    # Fall back to a basic structure if parsing fails
+                    transcription_results[file_name] = {
+                        "transcript_text": transcript_text,
+                        "audio_content_type": AudioContentType.OTHER.value,
+                        "language": "en",
+                        "content_topic": ContentTopic.OTHER.value,
+                    }
+    except Exception as e:
+        logger.error(f"Error processing JSONL file: {str(e)}")
+        os.remove(local_predictions_file)
+        return {}, HTMLString(f"<h1>Error processing results: {str(e)}</h1>")
+
+    # Delete the output file
+    os.remove(local_predictions_file)
+
+    # Generate HTML from the parsed results
+    html_representation = get_html_string(transcription_results)
+
+    return transcription_results, html_representation
+
+
+@pipeline(enable_cache=False)
+def batch_transcription_results(batch_prediction_job_name: str):
+    """Pipeline to get batch transcription results.
+
+    Args:
+        batch_prediction_job_name: The name of the batch prediction job
+    """
+    get_batch_transcription_results(batch_prediction_job_name)
 
 
 if __name__ == "__main__":
@@ -467,8 +674,20 @@ if __name__ == "__main__":
         action="store_true",
         help="Use synchronous transcription (default: False)",
     )
+    parser.add_argument(
+        "-b",
+        "--batch_results",
+        action="store_true",
+        help="Get batch transcription results (default: False)",
+    )
     args = parser.parse_args()
 
-    audio_transcription(
-        args.source_folder, args.destination_subfolder, args.synchronous
-    )
+    if args.batch_results:
+        batch_prediction_job_name = (
+            zenml_client().get_artifact_version("transcription_output").load()
+        )
+        batch_transcription_results(batch_prediction_job_name)
+    else:
+        audio_transcription(
+            args.source_folder, args.destination_subfolder, args.synchronous
+        )
