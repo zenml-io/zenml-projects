@@ -1,6 +1,6 @@
-# Zen OCR
+# OmniReader - Multi-model text extraction comparison
 
-Zen OCR is a document processing workflow that ingests unstructured documents (PDFs, images, scans), extracts text via OCR, and uses Large Language Models (LLMs) to derive structured insights. ZenML's pipeline framework ensures the solution is **reproducible, automated, and cloud-agnostic**, leveraging its strengths like integration flexibility, artifact tracking, and environment reproducibility.
+OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models - specifically Gemma 3 and Mistral AI Pixtral12B. The platform provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. This dual-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model.
 
 ## 🚀 Getting Started
 
@@ -14,9 +14,6 @@ Zen OCR is a document processing workflow that ingests unstructured documents (P
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/ocr-king.git
-cd ocr-king
 
 # Install dependencies
 pip install -r requirements.txt
@@ -25,11 +22,13 @@ pip install -r requirements.txt
 ### Configuration
 
 1. Ensure Ollama is running with Gemma3 model:
+
 ```bash
 ollama pull gemma3:27b
 ```
 
 2. Set your Mistral API key:
+
 ```bash
 export MISTRAL_API_KEY=your_mistral_api_key
 ```
@@ -68,10 +67,6 @@ For interactive use, the project includes a Streamlit app:
 streamlit run app.py
 ```
 
-The app provides two execution modes:
-- **Fast mode** (default): Uses direct function calls without ZenML overhead for quick interactive use
-- **ZenML tracking mode**: Uses ZenML steps with full tracking capabilities (slower but provides pipeline visualizations)
-
 ## 📋 Pipeline Architecture
 
 The OCR comparison pipeline consists of the following components:
@@ -85,6 +80,7 @@ The OCR comparison pipeline consists of the following components:
 ### Metadata Tracking
 
 ZenML's metadata tracking is used throughout the pipeline:
+
 - Processing times and performance metrics
 - Extracted text length and entity counts
 - Comparison metrics between models (CER, WER)
@@ -92,7 +88,6 @@ ZenML's metadata tracking is used throughout the pipeline:
 ### Results Visualization
 
 - Pipeline results are available in the ZenML Dashboard
-- Run `zenml up` to access the dashboard
 - MLflow integration provides detailed metrics and artifacts
 
 ## 🔗 Links
