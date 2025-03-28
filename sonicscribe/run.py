@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import time
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Annotated, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -18,6 +19,7 @@ from pydantic import BaseModel
 from vertexai.batch_prediction import BatchPredictionJob
 from zenml import pipeline, step
 from zenml.client import Client as zenml_client
+from zenml.config.schedule import Schedule
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
@@ -461,9 +463,21 @@ def audio_transcription(
         synchronous: Whether to use synchronous transcription (default: False)
     """
     gcs_uris = upload_audio_file(folder_path=folder_path, subfolder=subfolder)
-    transcribe_audio_file(
-        gcs_uri_json_string=gcs_uris, synchronous=synchronous
-    )
+    if not synchronous:
+        batch_transcription_job_name = transcribe_audio_file(
+            gcs_uri_json_string=gcs_uris, synchronous=synchronous
+        )
+        batch_transcription_results.with_options(
+            schedule=Schedule(
+                start_time=datetime.now() + timedelta(minutes=10),
+                interval_second=1800,  # 30 minutes in seconds
+                end_time=datetime.now() + timedelta(hours=2),
+            )
+        )(batch_transcription_job_name)
+    else:
+        transcribe_audio_file(
+            gcs_uri_json_string=gcs_uris, synchronous=synchronous
+        )
 
 
 def get_batch_prediction_job(
@@ -678,7 +692,7 @@ if __name__ == "__main__":
         "-b",
         "--batch_results",
         action="store_true",
-        help="Get batch transcription results (default: False)",
+        help="Get batch transcription results manually (default: False)",
     )
     args = parser.parse_args()
 
