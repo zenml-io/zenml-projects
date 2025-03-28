@@ -1,0 +1,16 @@
+# OCR Comparison Pipeline Configuration
+parameters:
+  custom_prompt: "Extract all text from this image. Identify any named entities, locations, or dates."
+
+# Configure environment settings (optional)
+settings:
+  docker:
+    required_integrations:
+      - opencv
+    requirements:
+      - opencv-python-headless
+      - pydantic>=2.0.0
+      - pillow
+      - instructor
+      - mistralai
+      - litellm
