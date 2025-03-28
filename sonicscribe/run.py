@@ -35,6 +35,16 @@ AUDIO_EXTENSIONS = [
     ".wma",
 ]
 
+# Add this constant near the top of the file with other constants
+MIME_TYPE_MAPPING = {
+    ".mp3": "audio/mp3",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+    ".m4a": "audio/mp4",
+    ".aac": "audio/mp4",
+}
+
 TRANSCRIPTION_PROMPT = """
 Can you transcribe this interview, in the format of timecode, speaker, caption.
 Use speaker A, speaker B, etc. to identify speakers (unless they are referred to by name).
@@ -253,6 +263,75 @@ def synchronous_transcribe_file(
         response_format=TranscriptionResult,
     )
     return json.loads(response.choices[0].message.content)
+
+
+def get_mime_type(file_uri: str) -> str:
+    """Determine the MIME type of a file based on its extension.
+
+    Args:
+        file_uri: The URI of the file
+
+    Returns:
+        The MIME type of the file
+
+    Raises:
+        ValueError: If the file extension is not supported
+    """
+    file_ext = os.path.splitext(file_uri)[1].lower()
+    if file_ext not in MIME_TYPE_MAPPING:
+        raise ValueError(f"Unsupported file extension: {file_ext}")
+    return MIME_TYPE_MAPPING[file_ext]
+
+
+def format_for_batch_submission(gcs_uris: List[str], prompt: str) -> List[str]:
+    """Format GCS URIs into JSONL format for batch submission to Gemini API.
+
+    Args:
+        gcs_uris: List of GCS URIs to audio files
+        prompt: The transcription prompt to use
+
+    Returns:
+        List of JSONL strings ready for batch submission
+
+    Raises:
+        ValueError: If any of the file extensions are not supported
+    """
+    jsonl_strings = []
+
+    for uri in gcs_uris:
+        try:
+            mime_type = get_mime_type(uri)
+
+            # Create the JSONL entry
+            request = {
+                "request": {
+                    "contents": [
+                        {
+                            "role": "user",
+                            "parts": [
+                                {"text": prompt},
+                                {
+                                    "fileData": {
+                                        "fileUri": uri,
+                                        "mimeType": mime_type,
+                                    }
+                                },
+                            ],
+                        }
+                    ]
+                }
+            }
+
+            jsonl_strings.append(json.dumps(request))
+        except ValueError as e:
+            logger.error(f"Error processing file {uri}: {str(e)}")
+            raise
+
+    return jsonl_strings
+
+
+def batch_transcribe_audio_files(gcs_uris: List[str]):
+    pass
 
 
 @step

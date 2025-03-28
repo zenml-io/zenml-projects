@@ -73,3 +73,10 @@ GCP_PROJECT_ID = "your-project-id"
 GCP_BUCKET_NAME = "your-bucket-name"
 GCP_REGION = "your-region"
 ```
+
+# TOMORROW
+
+Okay, so we were in the middle of working on the batch transcription stuff and
+tomorrow basically we need to allow it to save the JSONL file and then follow
+the rest of the Vertex documentation for submitting the JSONL file and then
+obviously we go into the subsequent pipeline scheduling and stuff as needed.
