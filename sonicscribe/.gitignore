@@ -179,3 +179,4 @@ cython_debug/
 # Project files
 data/
 design/
+CLAUDE.md
