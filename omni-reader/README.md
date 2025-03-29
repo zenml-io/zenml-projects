@@ -14,7 +14,6 @@ OmniReader is a document processing workflow that ingests unstructured documents
 ### Installation
 
 ```bash
-
 # Install dependencies
 pip install -r requirements.txt
 ```
@@ -35,25 +34,79 @@ export MISTRAL_API_KEY=your_mistral_api_key
 
 ## 📌 Usage
 
-### Running the OCR Pipeline
+### Using YAML Configuration (Recommended)
 
-The project provides a pipeline for comparing OCR capabilities of Gemma3 and Mistral models:
+OmniReader now supports YAML configuration files for easier management of pipeline parameters:
+
+```bash
+# Generate a default configuration file
+python run.py --create-default-config my_config.yaml
+
+# Run with a configuration file
+python run.py --config my_config.yaml
+
+# Generate a configuration for a specific experiment
+python config_generator.py --name invoice_test --image-folder ./invoices --ground-truth-source openai
+```
+
+### Configuration Structure
+
+YAML configuration files organize parameters into logical sections:
+
+```yaml
+# Image input configuration
+input:
+  image_paths: [] # List of specific image paths
+  image_folder: "./assets" # Folder containing images
+  image_patterns: ["*.jpg", "*.jpeg", "*.png", "*.webp"] # Glob patterns
+
+# OCR model configuration
+models:
+  custom_prompt: null # Optional custom prompt for both models
+
+# Ground truth configuration
+ground_truth:
+  source: "none" # Source: "openai", "manual", "file", or "none"
+  texts: [] # Ground truth texts (for manual source)
+  file: null # Path to ground truth JSON file (for file source)
+
+# Output configuration
+output:
+  ground_truth:
+    save: false # Whether to save ground truth data
+    directory: "ground_truth" # Directory for ground truth data
+
+  ocr_results:
+    save: false # Whether to save OCR results
+    directory: "ocr_results" # Directory for OCR results
+
+  visualization:
+    save: false # Whether to save HTML visualization
+    directory: "visualizations" # Directory for visualization
+```
+
+### Running with Command Line Arguments
+
+You can still use command line arguments for quick runs:
 
 ```bash
 # Run with default settings (processes all images in assets directory)
-python main.py
+python run.py --image-folder assets
 
 # Run with custom prompt
-python main.py --custom_prompt "Extract all text from this image and identify any named entities."
+python run.py --image-folder assets --custom-prompt "Extract all text from this image and identify any named entities."
 
-# Run with specific image directory
-python main.py --image_dir /path/to/images
+# Run with specific images
+python run.py --image-paths assets/image1.jpg assets/image2.png
 
-# Run with ground truth for evaluation
-python main.py --ground_truth "Text from image 1" "Text from image 2"
+# Run with OpenAI ground truth for evaluation
+python run.py --image-folder assets --ground-truth openai --save-ground-truth
 
-# Run with configuration file
-python main.py --config_path config.yaml
+# Run with manual ground truth
+python run.py --image-paths assets/image1.jpg assets/image2.jpg --ground-truth manual --ground-truth-texts "Text from image 1" "Text from image 2"
+
+# List available ground truth files
+python run.py --list-ground-truth-files
 
 # For quicker non-ZenML processing of a single image
 python run_compare_ocr.py --image assets/your_image.jpg --model both
@@ -77,6 +130,15 @@ The OCR comparison pipeline consists of the following components:
 2. **Mistral OCR Step**: Uses Mistral's Pixtral model for OCR
 3. **Evaluation Step**: Compares results and calculates metrics
 
+### Configuration Management
+
+The new configuration system provides:
+
+- Structured YAML files for experiment parameters
+- Parameter validation and intelligent defaults
+- Easy sharing and version control of experiment settings
+- Configuration generator for quickly creating new experiment setups
+
 ### Metadata Tracking
 
 ZenML's metadata tracking is used throughout the pipeline:
@@ -89,9 +151,26 @@ ZenML's metadata tracking is used throughout the pipeline:
 
 - Pipeline results are available in the ZenML Dashboard
 - MLflow integration provides detailed metrics and artifacts
+- HTML visualizations can be automatically saved to configurable directories
+
+## 📁 Project Organization
+
+```
+omni-reader/
+│
+├── configs/               # YAML configuration files
+├── pipelines/             # ZenML pipeline definitions
+├── steps/                 # Pipeline step implementations
+├── utils/                 # Utility functions
+│   ├── config.py          # Configuration utilities
+│   └── ...
+├── run.py                 # Main script for running the pipeline
+├── config_generator.py    # Tool for generating experiment configurations
+└── README.md              # Project documentation
+```
 
 ## 🔗 Links
 
-- [ZenML Documentation](https://zenml.io/docs)
-- [Mistral AI](https://mistral.ai/)
-- [Gemma3 Documentation](https://ai.google.dev/gemma3)
+- [ZenML Documentation](https://docs.zenml.io/)
+- [Mistral AI Vision Documentation](https://docs.mistral.ai/capabilities/vision/)
+- [Gemma3 Documentation](https://ai.google.dev/gemma/docs/core)
