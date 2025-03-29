@@ -1,11 +1,13 @@
+httpx==0.28.1
 instructor==1.7.7
+litellm==1.64.1
+mistralai>=1.5.0,<=1.6.0
+numpy==2.1.0
+ollama>=0.4.3,<=0.4.7
 Pillow==11.1.0
-pydantic
+polars==1.26.0
+# pydantic==2.10.3 
 python-dotenv==1.1.0
 streamlit==1.44.0
-mistralai==1.6.0
-ollama==0.4.7
-httpx==0.28.1
-numpy==2.1.0
-litellm==1.64.1
+textdistance==4.6.3
 zenml==0.80.0
