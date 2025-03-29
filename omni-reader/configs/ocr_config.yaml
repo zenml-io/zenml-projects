@@ -1,0 +1,35 @@
+# OCR Comparison Pipeline Configuration
+
+# Image input configuration
+input:
+  image_paths: [] # List of specific image paths to process
+  image_folder: null # Folder containing images to process
+  image_patterns: # File patterns to match when searching image_folder
+    - "*.jpg"
+    - "*.jpeg"
+    - "*.png"
+    - "*.webp"
+
+models:
+  custom_prompt: null # Optional custom prompt to use for both models
+
+ground_truth:
+  source: "openai" # Source for ground truth: "openai", "manual", "file", or "none"
+  texts: [] # Ground truth texts (for manual source)
+  file: null # Path to ground truth JSON file (for file source)
+
+output:
+  # OCR Results
+  ocr_results:
+    save: true
+    directory: "ocr_results" # Base directory for OCR results
+
+  # Ground truth data
+  ground_truth:
+    save: true
+    directory: "ocr_results" # Base directory for ground truth
+
+  # Visualization
+  visualization:
+    save: true
+    directory: "visualizations"
