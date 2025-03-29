@@ -77,21 +77,24 @@ def ocr_comparison_pipeline(
         image_patterns=image_patterns,
     )
 
-    # Run models in parallel on all images using the unified OCR step
-    model_results = {}
+    # Keep track of which models were run
+    model_names = []
 
+    # Run models in parallel on all images using the unified OCR step
     gemma_results = run_ocr(images=images, model_name="ollama/gemma3:27b", custom_prompt=custom_prompt)
-    model_results["ollama/gemma3:27b"] = gemma_results
+    model_names.append("ollama/gemma3:27b")
 
     mistral_results = run_ocr(images=images, model_name="pixtral-12b-2409", custom_prompt=custom_prompt)
-    model_results["pixtral-12b-2409"] = mistral_results
+    model_names.append("pixtral-12b-2409")
 
     # Handle ground truth based on the selected source
     ground_truth = None
+    openai_results = None
 
     if ground_truth_source == "openai":
-        ground_truth = run_ocr(images=images, model_name="gpt-4o-mini", custom_prompt=custom_prompt)
-        model_results["gpt-4o-mini"] = ground_truth
+        openai_results = run_ocr(images=images, model_name="gpt-4o-mini", custom_prompt=custom_prompt)
+        ground_truth = openai_results
+        model_names.append("gpt-4o-mini")
 
     elif ground_truth_source == "manual" and ground_truth_texts:
         ground_truth_data = []
@@ -120,7 +123,10 @@ def ocr_comparison_pipeline(
     # Save OCR results if requested
     if save_ocr_results_data or save_ground_truth_data:
         save_ocr_results(
-            results_dict=model_results,
+            gemma_results=gemma_results,
+            mistral_results=mistral_results,
+            openai_results=openai_results,
+            model_names=model_names,
             output_dir=ocr_results_output_dir,
             ground_truth_output_dir=ground_truth_output_dir,
             save_ground_truth=save_ground_truth_data,
