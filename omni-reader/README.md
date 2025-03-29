@@ -150,7 +150,6 @@ ZenML's metadata tracking is used throughout the pipeline:
 ### Results Visualization
 
 - Pipeline results are available in the ZenML Dashboard
-- MLflow integration provides detailed metrics and artifacts
 - HTML visualizations can be automatically saved to configurable directories
 
 ## 📁 Project Organization
