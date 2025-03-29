@@ -3,7 +3,7 @@
 # Image input configuration
 input:
   image_paths: [] # List of specific image paths to process
-  image_folder: null # Folder containing images to process
+  image_folder: "assets/street_signs" # Folder containing images to process
   image_patterns: # File patterns to match when searching image_folder
     - "*.jpg"
     - "*.jpeg"
