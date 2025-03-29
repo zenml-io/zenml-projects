@@ -17,7 +17,7 @@
 
 import os
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List, Optional
 
 import polars as pl
 from zenml import log_metadata, step
@@ -31,7 +31,10 @@ logger = get_logger(__name__)
 
 @step
 def save_ocr_results(
-    results_dict: Dict[str, Dict[str, pl.DataFrame]],
+    gemma_results: Optional[pl.DataFrame] = None,
+    mistral_results: Optional[pl.DataFrame] = None,
+    openai_results: Optional[pl.DataFrame] = None,
+    model_names: List[str] = None,
     output_dir: str = "ocr_results",
     ground_truth_output_dir: str = "ocr_results",
     save_ground_truth: bool = False,
@@ -39,17 +42,29 @@ def save_ocr_results(
     """Save OCR results from multiple models.
 
     Args:
-        results_dict: Dictionary with model name keys and result dict values
+        gemma_results: Gemma model OCR results
+        mistral_results: Mistral model OCR results
+        openai_results: OpenAI model OCR results (used as ground truth)
+        model_names: List of model names that were run
         output_dir: Base directory to save OCR results
         ground_truth_output_dir: Directory to save ground truth OCR results
         save_ground_truth: Whether to save ground truth results
-                          (only saves if 'gpt-4o-mini' is in results_dict)
 
     Returns:
         Dictionary of model names to file paths
     """
     saved_paths = {}
     metadata_dict = {}
+
+    results_dict = {}
+    if gemma_results is not None and "ollama/gemma3:27b" in model_names:
+        results_dict["ollama/gemma3:27b"] = gemma_results
+
+    if mistral_results is not None and "pixtral-12b-2409" in model_names:
+        results_dict["pixtral-12b-2409"] = mistral_results
+
+    if openai_results is not None and "gpt-4o-mini" in model_names:
+        results_dict["gpt-4o-mini"] = openai_results
 
     for model_name, result_dict in results_dict.items():
         if model_name == "gpt-4o-mini" and not save_ground_truth:
@@ -68,11 +83,10 @@ def save_ocr_results(
             prefix = "mistral"
             key_name = "mistral_results"
         else:
-            # For other models, use model name as subdirectory and key
             model_short_name = model_name.lower().split("/")[-1]
             subdir = os.path.join(output_dir, model_short_name)
             prefix = model_short_name
-            key_name = list(result_dict.keys())[0]  # Use the first key in the result dict
+            key_name = list(result_dict.keys())[0]
 
         # Save results to file
         file_path = save_ocr_data_to_json(data=result_dict, output_dir=subdir, prefix=prefix, key_name=key_name)
@@ -121,6 +135,7 @@ def save_visualization(
 
     logger.info(f"Visualization saved to: {filepath}")
 
+    # Log metadata
     log_metadata(
         metadata={
             "visualization_saved": {
