@@ -32,7 +32,7 @@ from zenml.logger import get_logger
 
 from schemas.image_description import ImageDescription
 from utils.encode_image import encode_image
-from utils.prompt import extract_confidence, get_prompt
+from utils.prompt import get_prompt
 
 load_dotenv()
 logger = get_logger(__name__)
@@ -292,13 +292,7 @@ def process_images_with_model(
             entities = response.entities if response.entities else []
             total_entities += len(entities)
 
-            # Check if confidence was provided in the model response
             confidence = response.confidence
-
-            # If not provided or zero, try to extract from text
-            if confidence <= 0:
-                extracted_confidence = extract_confidence(response.raw_text)
-                confidence = extracted_confidence
 
             # Apply default minimum confidence if needed
             confidence = max(confidence, model_config.default_confidence)
