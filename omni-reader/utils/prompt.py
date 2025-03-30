@@ -22,20 +22,12 @@ from typing import Optional
 def get_prompt(
     custom_prompt: Optional[str] = None,
 ) -> str:
-    """Get the prompt for the OCR model.
-
-    Args:
-        custom_prompt: A custom prompt for the OCR model.
-
-    Returns:
-        str: The prompt for the OCR model.
-    """
+    """Get the prompt for the OCR model."""
     if custom_prompt:
         return custom_prompt
     return (
         "First, describe the image in detail. "
-        "Then, extract raw text from the image. "
-        "Finally, list any entities present "
-        "(e.g., fictional characters, objects, locations, etc.). "
-        "Also, rate your confidence in the extracted text on a scale of 0-100%."
+        "Next, list any physical entities visible in the image (e.g., 'street sign', 'building', 'car', 'tree') "
+        "Then, extract all text visible in the image as raw text. "
+        "Finally, rate your confidence in the extracted text as a float between 0 and 1."
     )
