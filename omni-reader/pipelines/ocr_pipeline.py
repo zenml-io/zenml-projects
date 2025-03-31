@@ -15,11 +15,10 @@
 # limitations under the License.
 """OCR Comparison Pipeline implementation with YAML configuration support."""
 
-import os
 from typing import Any, Dict, List, Literal, Optional
 
-import polars as pl
 from zenml import pipeline
+from zenml.config import DockerSettings
 from zenml.logger import get_logger
 
 from steps import (
@@ -31,10 +30,26 @@ from steps import (
     save_visualization,
 )
 
+docker_settings = DockerSettings(
+    dockerfile="Dockerfile",
+    requirements=[
+        "polars==1.26.0",
+        "textdistance==4.6.3",
+        "instructor==1.7.7",
+        "jiwer==3.0.5",
+        "litellm==1.64.1",
+        "openai==1.69.0",
+        "mistralai==1.5.0",
+        "Pillow==11.1.0",
+        "ollama==0.4.7",
+        "pyarrow>=7.0",
+    ],
+)
+
 logger = get_logger(__name__)
 
 
-@pipeline()
+@pipeline(settings={"docker": docker_settings})
 def ocr_comparison_pipeline(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
