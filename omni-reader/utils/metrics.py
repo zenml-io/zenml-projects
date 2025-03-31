@@ -110,48 +110,68 @@ def analyze_errors(ground_truth: str, predicted: str) -> ErrorAnalysis:
     )
 
 
-def compare_results(ground_truth: str, gemma_text: str, mistral_text: str) -> dict:
-    """Compares Gemma 3 and Mistral OCR results with the ground truth.
+def compare_results(
+    ground_truth: str,
+    model1_text: str,
+    model2_text: str,
+    model1_display: str = "Gemma",
+    model2_display: str = "Mistral",
+) -> dict:
+    """Compares OCR results from the two models with the ground truth.
 
     Args:
         ground_truth (str): The ground truth text.
-        gemma_text (str): The text extracted by Gemma 3.
-        mistral_text (str): The text extracted by Mistral OCR.
+        model1_text (str): The text extracted by the first model.
+        model2_text (str): The text extracted by the second model.
+        model1_display (str): Display name for the first model.
+        model2_display (str): Display name for the second model.
 
     Returns:
         dict: A dictionary containing metrics and error analysis for each model.
     """
     # Basic metrics
     metrics = {
-        "Gemma CER": cer(ground_truth, gemma_text),
-        "Gemma WER": wer(ground_truth, gemma_text),
-        "Mistral CER": cer(ground_truth, mistral_text),
-        "Mistral WER": wer(ground_truth, mistral_text),
+        f"{model1_display} CER": cer(ground_truth, model1_text),
+        f"{model1_display} WER": wer(ground_truth, model1_text),
+        f"{model2_display} CER": cer(ground_truth, model2_text),
+        f"{model2_display} WER": wer(ground_truth, model2_text),
     }
 
     # Detailed error analysis
-    gemma_analysis = analyze_errors(ground_truth, gemma_text)
-    mistral_analysis = analyze_errors(ground_truth, mistral_text)
+    model1_analysis = analyze_errors(ground_truth, model1_text)
+    model2_analysis = analyze_errors(ground_truth, model2_text)
 
     # Add detailed metrics to the results
     metrics.update(
         {
-            "Gemma Insertions": gemma_analysis.insertions,
-            "Gemma Deletions": gemma_analysis.deletions,
-            "Gemma Substitutions": gemma_analysis.substitutions,
-            "Gemma Insertion Rate": gemma_analysis.error_distribution.get("insertions", 0),
-            "Gemma Deletion Rate": gemma_analysis.error_distribution.get("deletions", 0),
-            "Gemma Substitution Rate": gemma_analysis.error_distribution.get("substitutions", 0),
-            "Gemma Error Positions": gemma_analysis.error_positions,
-            "Gemma Common Substitutions": gemma_analysis.common_substitutions,
-            "Mistral Insertions": mistral_analysis.insertions,
-            "Mistral Deletions": mistral_analysis.deletions,
-            "Mistral Substitutions": mistral_analysis.substitutions,
-            "Mistral Insertion Rate": mistral_analysis.error_distribution.get("insertions", 0),
-            "Mistral Deletion Rate": mistral_analysis.error_distribution.get("deletions", 0),
-            "Mistral Substitution Rate": mistral_analysis.error_distribution.get("substitutions", 0),
-            "Mistral Error Positions": mistral_analysis.error_positions,
-            "Mistral Common Substitutions": mistral_analysis.common_substitutions,
+            f"{model1_display} Insertions": model1_analysis.insertions,
+            f"{model1_display} Deletions": model1_analysis.deletions,
+            f"{model1_display} Substitutions": model1_analysis.substitutions,
+            f"{model1_display} Insertion Rate": model1_analysis.error_distribution.get(
+                "insertions", 0
+            ),
+            f"{model1_display} Deletion Rate": model1_analysis.error_distribution.get(
+                "deletions", 0
+            ),
+            f"{model1_display} Substitution Rate": model1_analysis.error_distribution.get(
+                "substitutions", 0
+            ),
+            f"{model1_display} Error Positions": model1_analysis.error_positions,
+            f"{model1_display} Common Substitutions": model1_analysis.common_substitutions,
+            f"{model2_display} Insertions": model2_analysis.insertions,
+            f"{model2_display} Deletions": model2_analysis.deletions,
+            f"{model2_display} Substitutions": model2_analysis.substitutions,
+            f"{model2_display} Insertion Rate": model2_analysis.error_distribution.get(
+                "insertions", 0
+            ),
+            f"{model2_display} Deletion Rate": model2_analysis.error_distribution.get(
+                "deletions", 0
+            ),
+            f"{model2_display} Substitution Rate": model2_analysis.error_distribution.get(
+                "substitutions", 0
+            ),
+            f"{model2_display} Error Positions": model2_analysis.error_positions,
+            f"{model2_display} Common Substitutions": model2_analysis.common_substitutions,
         }
     )
 

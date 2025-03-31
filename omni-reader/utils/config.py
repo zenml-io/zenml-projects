@@ -64,16 +64,22 @@ def validate_config(config: Dict[str, Any]) -> None:
     if not config["input"].get("image_paths") and not config["input"].get("image_folder"):
         raise ValueError("Either input.image_paths or input.image_folder must be provided")
 
-    if config["input"].get("image_folder") and not os.path.isdir(config["input"].get("image_folder")):
+    if config["input"].get("image_folder") and not os.path.isdir(
+        config["input"].get("image_folder")
+    ):
         raise ValueError(f"Image folder does not exist: {config['input'].get('image_folder')}")
 
     # Validate ground truth configuration
     gt_source = config["ground_truth"].get("source", "none")
     if gt_source not in ["openai", "manual", "file", "none"]:
-        raise ValueError(f"Invalid ground_truth.source: {gt_source}. Must be one of: openai, manual, file, none")
+        raise ValueError(
+            f"Invalid ground_truth.source: {gt_source}. Must be one of: openai, manual, file, none"
+        )
 
     if gt_source == "manual" and not config["ground_truth"].get("texts"):
-        raise ValueError("When using ground_truth.source=manual, you must provide ground_truth.texts")
+        raise ValueError(
+            "When using ground_truth.source=manual, you must provide ground_truth.texts"
+        )
 
     if gt_source == "file" and not config["ground_truth"].get("file"):
         raise ValueError("When using ground_truth.source=file, you must provide ground_truth.file")
@@ -82,7 +88,9 @@ def validate_config(config: Dict[str, Any]) -> None:
         raise ValueError(f"Ground truth file does not exist: {config['ground_truth'].get('file')}")
 
 
-def override_config_with_cli_args(config: Dict[str, Any], cli_args: Dict[str, Any]) -> Dict[str, Any]:
+def override_config_with_cli_args(
+    config: Dict[str, Any], cli_args: Dict[str, Any]
+) -> Dict[str, Any]:
     """Override configuration with command-line arguments.
 
     Args:
@@ -100,8 +108,6 @@ def override_config_with_cli_args(config: Dict[str, Any], cli_args: Dict[str, An
         config["input"]["image_paths"] = cli_args["image_paths"]
     if cli_args.get("image_folder"):
         config["input"]["image_folder"] = cli_args["image_folder"]
-    if cli_args.get("image_patterns"):
-        config["input"]["image_patterns"] = cli_args["image_patterns"]
 
     # Override model configuration
     if cli_args.get("custom_prompt"):
@@ -110,8 +116,6 @@ def override_config_with_cli_args(config: Dict[str, Any], cli_args: Dict[str, An
     # Override ground truth configuration
     if cli_args.get("ground_truth"):
         config["ground_truth"]["source"] = cli_args["ground_truth"]
-    if cli_args.get("ground_truth_texts"):
-        config["ground_truth"]["texts"] = cli_args["ground_truth_texts"]
     if cli_args.get("ground_truth_file"):
         config["ground_truth"]["file"] = cli_args["ground_truth_file"]
 
@@ -146,7 +150,6 @@ def print_config_summary(config: Dict[str, Any]) -> None:
         print(f"  • Using {len(config['input'].get('image_paths'))} specified image paths")
     if config["input"].get("image_folder"):
         print(f"  • Searching for images in folder: {config['input'].get('image_folder')}")
-        print(f"  • Using patterns: {config['input'].get('image_patterns')}")
 
     # Model configuration
     print("\nModels:")
@@ -167,7 +170,9 @@ def print_config_summary(config: Dict[str, Any]) -> None:
     # Output configuration
     print("\nOutput:")
     if config["output"]["ground_truth"].get("save", False):
-        print(f"  • Saving ground truth data to: {config['output']['ground_truth'].get('directory')}")
+        print(
+            f"  • Saving ground truth data to: {config['output']['ground_truth'].get('directory')}"
+        )
     if config["output"]["ocr_results"].get("save", False):
         print(f"  • Saving OCR results to: {config['output']['ocr_results'].get('directory')}")
     if config["output"]["visualization"].get("save", False):
@@ -186,7 +191,6 @@ def create_default_config() -> Dict[str, Any]:
         "input": {
             "image_paths": [],
             "image_folder": None,
-            "image_patterns": ["*.jpg", "*.jpeg", "*.png", "*.webp"],
         },
         "models": {
             "custom_prompt": None,

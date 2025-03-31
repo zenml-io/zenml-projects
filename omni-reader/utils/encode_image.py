@@ -54,7 +54,7 @@ def encode_image_from_path(image_path: str) -> str:
     return image_base64
 
 
-def encode_image(image: Image.Image) -> tuple[str, str]:
+def encode_image(image: Image.Image | str) -> tuple[str, str]:
     """Encode an image to a base64 string.
 
     Args:

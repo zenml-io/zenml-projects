@@ -23,5 +23,21 @@ from .ocr_model_utils import (
     log_summary_metadata,
     process_images_with_model,
 )
-from .prompt import get_prompt
-from .io_utils import save_ground_truth_to_json
+from .prompt import (
+    get_prompt,
+    ImageDescription,
+)
+from .io_utils import (
+    save_ocr_data_to_json,
+    load_ocr_data_from_json,
+    load_ground_truth_from_json,
+    list_available_ground_truth_files,
+)
+from .model_info import (
+    MODEL_CONFIGS,
+    ModelConfig,
+    get_openai_client,
+    get_mistral_client,
+    get_gemma_client,
+    get_model_info,
+)

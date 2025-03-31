@@ -18,74 +18,19 @@
 import os
 import statistics
 import time
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-import instructor
 import polars as pl
 from dotenv import load_dotenv
-from litellm import completion
-from mistralai import Mistral
-from openai import OpenAI
 from zenml import log_metadata
 from zenml.logger import get_logger
 
-from schemas.image_description import ImageDescription
 from utils.encode_image import encode_image
-from utils.prompt import get_prompt
+from utils.model_info import ModelConfig
+from utils.prompt import ImageDescription, get_prompt
 
 load_dotenv()
 logger = get_logger(__name__)
-
-
-@dataclass
-class ModelConfig:
-    """Configuration for OCR models."""
-
-    name: str
-    client_factory: Callable
-    prefix: str
-    default_confidence: float = 0.5
-    max_tokens: Optional[int] = None
-    additional_params: Dict[str, Any] = None
-
-
-def get_openai_client():
-    """Get an OpenAI client with instructor integration."""
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    return instructor.from_openai(openai_client)
-
-
-def get_mistral_client():
-    """Get a Mistral client with instructor integration."""
-    mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
-    return instructor.from_mistral(mistral_client)
-
-
-def get_gemma_client():
-    """Get a Gemma client with instructor integration."""
-    return instructor.from_litellm(completion)
-
-
-MODEL_CONFIGS = {
-    "gpt-4o-mini": ModelConfig(
-        name="gpt-4o-mini",
-        client_factory=get_openai_client,
-        prefix="openai",
-        default_confidence=0.75,
-        max_tokens=1500,
-    ),
-    "ollama/gemma3:27b": ModelConfig(
-        name="ollama/gemma3:27b",
-        client_factory=get_gemma_client,
-        prefix="gemma3",
-    ),
-    "pixtral-12b-2409": ModelConfig(
-        name="pixtral-12b-2409",
-        client_factory=get_mistral_client,
-        prefix="mistral",
-    ),
-}
 
 
 def create_message_with_image(prompt: str, image_path: str, model_prefix: str) -> List[Dict]:
@@ -101,18 +46,17 @@ def create_message_with_image(prompt: str, image_path: str, model_prefix: str) -
     """
     content_type, image_base64 = encode_image(image_path)
 
-    # OpenAI uses a different format for image URLs
-    if model_prefix == "openai":
-        image_content = {"type": "image_url", "image_url": {"url": f"data:{content_type};base64,{image_base64}"}}
-    else:
-        image_content = {"type": "image_url", "image_url": f"data:{content_type};base64,{image_base64}"}
-
     return [
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": prompt},
-                image_content,
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{content_type};base64,{image_base64}",
+                    },
+                },
             ],
         }
     ]
@@ -124,7 +68,6 @@ def log_image_metadata(
     image_name: str,
     processing_time: float,
     text_length: int,
-    entities_count: int,
     confidence: float,
     running_from_ui: bool = False,
 ):
@@ -136,7 +79,6 @@ def log_image_metadata(
         image_name: Name of the image file
         processing_time: Processing time in seconds
         text_length: Length of extracted text
-        entities_count: Number of entities found
         confidence: Confidence score
         running_from_ui: Whether running from UI (affects logging)
     """
@@ -149,7 +91,6 @@ def log_image_metadata(
                 "image_name": image_name,
                 "processing_time_seconds": processing_time,
                 "text_length": text_length,
-                "entities_count": entities_count,
                 "confidence": confidence,
             }
         }
@@ -191,7 +132,6 @@ def log_summary_metadata(
     images_count: int,
     processing_times: List[float],
     confidence_scores: List[float],
-    total_entities: int,
     running_from_ui: bool = False,
 ):
     """Log summary metadata for all processed images.
@@ -202,7 +142,6 @@ def log_summary_metadata(
         images_count: Number of images processed
         processing_times: List of processing times
         confidence_scores: List of confidence scores
-        total_entities: Total entities found
         running_from_ui: Whether running from UI (affects logging)
     """
     if running_from_ui or not processing_times:
@@ -225,7 +164,6 @@ def log_summary_metadata(
                 "min_processing_time": min_time,
                 "max_processing_time": max_time,
                 "avg_confidence": avg_confidence,
-                "total_entities_found": total_entities,
                 "total_processing_time": sum(processing_times),
             }
         }
@@ -258,7 +196,6 @@ def process_images_with_model(
 
     results_list = []
     processing_times = []
-    total_entities = 0
     confidence_scores = []
 
     client = model_config.client_factory()
@@ -289,9 +226,6 @@ def process_images_with_model(
             processing_time = time.time() - start_time
             processing_times.append(processing_time)
 
-            entities = response.entities if response.entities else []
-            total_entities += len(entities)
-
             confidence = response.confidence
 
             # Apply default minimum confidence if needed
@@ -302,9 +236,6 @@ def process_images_with_model(
                 "id": i,
                 "image_name": image_name,
                 "raw_text": response.raw_text if response.raw_text else "No text found",
-                "description": response.description if response.description else "No description found",
-                "entities": ", ".join(entities),
-                "entities_count": len(entities),
                 "processing_time": processing_time,
                 "confidence": confidence,
             }
@@ -316,14 +247,13 @@ def process_images_with_model(
                 image_name=image_name,
                 processing_time=processing_time,
                 text_length=len(result["raw_text"]),
-                entities_count=len(entities),
                 confidence=confidence,
                 running_from_ui=running_from_ui,
             )
 
             logger.info(
                 f"{prefix.capitalize()} OCR [{i + 1}/{len(images)}]: {image_name} - "
-                f"{len(result['raw_text'])} chars, {len(entities)} entities, "
+                f"{len(result['raw_text'])} chars, "
                 f"confidence: {confidence:.2f}, "
                 f"{processing_time:.2f} seconds"
             )
@@ -338,9 +268,6 @@ def process_images_with_model(
                 "id": i,
                 "image_name": image_name,
                 "raw_text": "Error: Failed to extract text",
-                "description": "Error: Failed to extract description",
-                "entities": "",
-                "entities_count": 0,
                 "processing_time": processing_time,
                 "confidence": 0.0,
                 "error": error_message,
@@ -348,7 +275,11 @@ def process_images_with_model(
 
             # Log error metadata
             log_error_metadata(
-                prefix=prefix, index=i, image_name=image_name, error=str(e), running_from_ui=running_from_ui
+                prefix=prefix,
+                index=i,
+                image_name=image_name,
+                error=str(e),
+                running_from_ui=running_from_ui,
             )
 
         results_list.append(result)
@@ -360,7 +291,6 @@ def process_images_with_model(
         images_count=len(images),
         processing_times=processing_times,
         confidence_scores=confidence_scores,
-        total_entities=total_entities,
         running_from_ui=running_from_ui,
     )
 
