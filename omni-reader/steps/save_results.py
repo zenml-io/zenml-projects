@@ -24,16 +24,16 @@ from zenml import log_metadata, step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
-from utils.io_utils import save_ocr_data_to_json
+from utils import save_ocr_data_to_json
 
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def save_ocr_results(
-    gemma_results: Optional[pl.DataFrame] = None,
-    mistral_results: Optional[pl.DataFrame] = None,
-    openai_results: Optional[pl.DataFrame] = None,
+    model1_results: Optional[pl.DataFrame] = None,
+    model2_results: Optional[pl.DataFrame] = None,
+    ground_truth_results: Optional[pl.DataFrame] = None,
     model_names: List[str] = None,
     output_dir: str = "ocr_results",
     ground_truth_output_dir: str = "ocr_results",
@@ -42,10 +42,10 @@ def save_ocr_results(
     """Save OCR results from multiple models.
 
     Args:
-        gemma_results: Gemma model OCR results
-        mistral_results: Mistral model OCR results
-        openai_results: OpenAI model OCR results (used as ground truth)
-        model_names: List of model names that were run
+        model1_results: First model OCR results
+        model2_results: Second model OCR results
+        ground_truth_results: Ground truth model OCR results
+        model_names: List of model names that were run [model1, model2, ground_truth_model]
         output_dir: Base directory to save OCR results
         ground_truth_output_dir: Directory to save ground truth OCR results
         save_ground_truth: Whether to save ground truth results
@@ -56,51 +56,66 @@ def save_ocr_results(
     saved_paths = {}
     metadata_dict = {}
 
-    results_dict = {}
-    if gemma_results is not None and "ollama/gemma3:27b" in model_names:
-        results_dict["ollama/gemma3:27b"] = gemma_results
+    results_mapping = []
 
-    if mistral_results is not None and "pixtral-12b-2409" in model_names:
-        results_dict["pixtral-12b-2409"] = mistral_results
+    # Process model 1 results
+    if model1_results is not None and model_names and len(model_names) > 0:
+        model1_name = model_names[0]
+        model1_prefix = model1_name.split("/")[-1].split(":")[0].lower()
+        results_mapping.append(
+            {
+                "model_name": model1_name,
+                "data": model1_results,
+                "subdir": os.path.join(output_dir, model1_prefix),
+                "prefix": model1_prefix,
+            }
+        )
 
-    if openai_results is not None and "gpt-4o-mini" in model_names:
-        results_dict["gpt-4o-mini"] = openai_results
+    # Process model 2 results
+    if model2_results is not None and model_names and len(model_names) > 1:
+        model2_name = model_names[1]
+        model2_prefix = model2_name.split("/")[-1].split(":")[0].lower()
+        results_mapping.append(
+            {
+                "model_name": model2_name,
+                "data": model2_results,
+                "subdir": os.path.join(output_dir, model2_prefix),
+                "prefix": model2_prefix,
+            }
+        )
 
-    for model_name, result_dict in results_dict.items():
-        if model_name == "gpt-4o-mini" and not save_ground_truth:
-            continue
+    # Process ground truth results
+    if (
+        ground_truth_results is not None
+        and model_names
+        and len(model_names) > 2
+        and save_ground_truth
+    ):
+        gt_model_name = model_names[2]
+        gt_prefix = "gt_" + gt_model_name.split("/")[-1].split(":")[0].lower()
+        results_mapping.append(
+            {
+                "model_name": gt_model_name,
+                "data": ground_truth_results,
+                "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
+                "prefix": gt_prefix,
+            }
+        )
 
-        if model_name == "gpt-4o-mini":
-            subdir = os.path.join(ground_truth_output_dir, "ground_truth")
-            prefix = "gt_openai"
-            key_name = "ground_truth_results"
-        elif "gemma" in model_name.lower():
-            subdir = os.path.join(output_dir, "gemma")
-            prefix = "gemma"
-            key_name = "gemma_results"
-        elif "mistral" in model_name.lower() or "pixtral" in model_name.lower():
-            subdir = os.path.join(output_dir, "mistral")
-            prefix = "mistral"
-            key_name = "mistral_results"
-        else:
-            model_short_name = model_name.lower().split("/")[-1]
-            subdir = os.path.join(output_dir, model_short_name)
-            prefix = model_short_name
-            key_name = list(result_dict.keys())[0]
+    # Process each model's results
+    for result_info in results_mapping:
+        model_name = result_info["model_name"]
+        df = result_info["data"]
+        subdir = result_info["subdir"]
+        prefix = result_info["prefix"]
 
-        # Save results to file
-        file_path = save_ocr_data_to_json(data=result_dict, output_dir=subdir, prefix=prefix, key_name=key_name)
+        filepath = save_ocr_data_to_json(data=df, output_dir=subdir, prefix=prefix)
 
-        saved_paths[model_name] = file_path
+        saved_paths[model_name] = filepath
+        metadata_dict[f"{prefix}_path"] = filepath
+        metadata_dict[f"{prefix}_count"] = len(df)
 
-        # Get count for metadata
-        result_df = list(result_dict.values())[0]
-        count = len(result_df)
-
-        metadata_dict[f"{prefix}_path"] = file_path
-        metadata_dict[f"{prefix}_count"] = count
-
-        logger.info(f"{model_name} results saved to: {file_path}")
+        logger.info(f"{model_name} results saved to: {filepath}")
 
     # Log metadata
     log_metadata(metadata={"ocr_results_saved": metadata_dict})
