@@ -20,6 +20,7 @@ import os
 from typing import Dict, List, Optional
 
 import polars as pl
+from typing_extensions import Annotated
 from zenml import log_metadata, step
 from zenml.logger import get_logger
 
@@ -30,7 +31,6 @@ logger = get_logger(__name__)
 def load_images(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
-    image_patterns: Optional[List[str]] = None,
 ) -> List[str]:
     """Load images for OCR processing.
 
@@ -39,25 +39,19 @@ def load_images(
 
     Args:
         image_paths: Optional list of specific image paths to load
-        image_folder: Optional folder to search for images. If provided without
-                     image_patterns, will use default patterns (*.jpg, *.jpeg, *.png, *.webp, *.gif)
-        image_patterns: Optional list of glob patterns (e.g., ["*.jpg", "*.png"])
-                        to use when searching image_folder
+        image_folder: Optional folder to search for images.
 
     Returns:
         List of validated image file paths
     """
     all_images = []
 
-    # for direct paths
     if image_paths:
         all_images.extend(image_paths)
         logger.info(f"Added {len(image_paths)} directly specified images")
 
-    # for folder-based image loading
     if image_folder:
-        # Use provided patterns if available, otherwise use default image extensions
-        patterns_to_use = image_patterns if image_patterns else ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif"]
+        patterns_to_use = ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif"]
 
         for pattern in patterns_to_use:
             full_pattern = os.path.join(image_folder, pattern)
@@ -65,10 +59,8 @@ def load_images(
             if matching_files:
                 all_images.extend(matching_files)
                 logger.info(f"Found {len(matching_files)} images matching pattern {pattern}")
-            else:
-                logger.warning(f"No images found matching pattern {full_pattern}")
 
-    # Validate all paths exist
+    # Validate image paths
     valid_images = []
     for path in all_images:
         if os.path.isfile(path):
@@ -105,7 +97,7 @@ def load_images(
 @step
 def load_ground_truth_file(
     filepath: str,
-) -> Dict[str, pl.DataFrame]:
+) -> Annotated[Dict[str, pl.DataFrame], "ground_truth"]:
     """Load ground truth data from a JSON file.
 
     Args:

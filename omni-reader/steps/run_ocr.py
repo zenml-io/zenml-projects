@@ -18,29 +18,26 @@
 from typing import Dict, List, Optional
 
 import polars as pl
+from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
-from utils.ocr_model_utils import MODEL_CONFIGS, process_images_with_model
+from utils import (
+    MODEL_CONFIGS,
+    process_images_with_model,
+)
 
 logger = get_logger(__name__)
 
-# Define model name to result key mapping
-MODEL_RESULT_KEYS = {
-    "gpt-4o-mini": "ground_truth_results",
-    "ollama/gemma3:27b": "gemma_results",
-    "pixtral-12b-2409": "mistral_results",
-}
 
-
-@step(enable_cache=True)
+@step(enable_cache=False)
 def run_ocr(
     images: List[str],
     model_name: str,
     custom_prompt: Optional[str] = None,
     running_from_ui: bool = False,
-) -> Dict[str, pl.DataFrame]:
-    """Extract text and identify entities in images using the specified model.
+) -> Annotated[pl.DataFrame, "ocr_results"]:
+    """Extract text from images using the specified model.
 
     Args:
         images: List of paths to image files
@@ -56,7 +53,9 @@ def run_ocr(
     """
     if model_name not in MODEL_CONFIGS:
         supported_models = ", ".join(MODEL_CONFIGS.keys())
-        raise ValueError(f"Unsupported model: {model_name}. Supported models are: {supported_models}")
+        raise ValueError(
+            f"Unsupported model: {model_name}. Supported models are: {supported_models}"
+        )
 
     model_config = MODEL_CONFIGS[model_name]
 
@@ -70,7 +69,4 @@ def run_ocr(
         running_from_ui=running_from_ui,
     )
 
-    # Determine the appropriate result key for the model
-    result_key = MODEL_RESULT_KEYS.get(model_name, f"{model_name.lower().split('/')[-1]}_results")
-
-    return {result_key: results_df}
+    return results_df
