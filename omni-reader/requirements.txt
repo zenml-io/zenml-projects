@@ -1,13 +1,17 @@
+attrs<24,>=23.1.0
 httpx==0.28.1
+importlib-metadata<7.0,>=1.4.0
 instructor==1.7.7
+jiwer==3.0.5
+jiter<0.9,>=0.6.1
 litellm==1.64.1
-mistralai>=1.5.0,<=1.6.0
-numpy==2.1.0
-ollama>=0.4.3,<=0.4.7
+mistralai==1.5.0,<=1.6.0
+numpy<2.0,>=1.9.0
+ollama==0.4.7
+openai==1.69.0
 Pillow==11.1.0
 polars==1.26.0
-# pydantic==2.10.3 
 python-dotenv==1.1.0
 streamlit==1.44.0
 textdistance==4.6.3
-zenml==0.80.0
+zenml>=0.80.0
