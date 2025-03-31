@@ -3,15 +3,13 @@
 # Image input configuration
 input:
   image_paths: [] # List of specific image paths to process
-  image_folder: "assets/street_signs" # Folder containing images to process
-  image_patterns: # File patterns to match when searching image_folder
-    - "*.jpg"
-    - "*.jpeg"
-    - "*.png"
-    - "*.webp"
+  image_folder: "assets/handwriting" # Folder containing images to process
 
 models:
   custom_prompt: null # Optional custom prompt to use for both models
+  model1: "ollama/gemma3:27b" # First model for comparison (default: Gemma 3)
+  model2: "pixtral-12b-2409" # Second model for comparison (default: Mistral)
+  ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 ground_truth:
   source: "openai" # Source for ground truth: "openai", "manual", "file", or "none"
