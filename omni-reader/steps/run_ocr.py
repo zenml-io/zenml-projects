@@ -32,10 +32,7 @@ logger = get_logger(__name__)
 
 @step(enable_cache=False)
 def run_ocr(
-    images: List[str],
-    model_name: str,
-    custom_prompt: Optional[str] = None,
-    running_from_ui: bool = False,
+    images: List[str], model_name: str, custom_prompt: Optional[str] = None
 ) -> Annotated[pl.DataFrame, "ocr_results"]:
     """Extract text from images using the specified model.
 
@@ -43,7 +40,6 @@ def run_ocr(
         images: List of paths to image files
         model_name: Name of the model to use (e.g., "gpt-4o-mini", "ollama/gemma3:27b", "pixtral-12b-2409")
         custom_prompt: Optional custom prompt to override the default prompt
-        running_from_ui: Whether the pipeline is running from the UI (affects logging)
 
     Returns:
         Dict: Containing results dataframe with OCR results
@@ -66,7 +62,6 @@ def run_ocr(
         model_config=model_config,
         images=images,
         custom_prompt=custom_prompt,
-        running_from_ui=running_from_ui,
     )
 
     return results_df
