@@ -71,7 +71,6 @@ def log_image_metadata(
     processing_time: float,
     text_length: int,
     confidence: float,
-    running_from_ui: bool = False,
 ):
     """Log metadata for a processed image.
 
@@ -82,11 +81,7 @@ def log_image_metadata(
         processing_time: Processing time in seconds
         text_length: Length of extracted text
         confidence: Confidence score
-        running_from_ui: Whether running from UI (affects logging)
     """
-    if running_from_ui:
-        return
-
     log_metadata(
         metadata={
             f"{prefix}_image_{index}": {
@@ -104,7 +99,6 @@ def log_error_metadata(
     index: int,
     image_name: str,
     error: str,
-    running_from_ui: bool = False,
 ):
     """Log error metadata for a failed image processing.
 
@@ -113,11 +107,7 @@ def log_error_metadata(
         index: Image index
         image_name: Name of the image file
         error: Error message
-        running_from_ui: Whether running from UI (affects logging)
     """
-    if running_from_ui:
-        return
-
     log_metadata(
         metadata={
             f"{prefix}_error_image_{index}": {
@@ -134,7 +124,6 @@ def log_summary_metadata(
     images_count: int,
     processing_times: List[float],
     confidence_scores: List[float],
-    running_from_ui: bool = False,
 ):
     """Log summary metadata for all processed images.
 
@@ -144,11 +133,7 @@ def log_summary_metadata(
         images_count: Number of images processed
         processing_times: List of processing times
         confidence_scores: List of confidence scores
-        running_from_ui: Whether running from UI (affects logging)
     """
-    if running_from_ui or not processing_times:
-        return
-
     avg_time = statistics.mean(processing_times)
     max_time = max(processing_times)
     min_time = min(processing_times)
@@ -270,7 +255,6 @@ def process_images_with_model(
     model_config: ModelConfig,
     images: List[str],
     custom_prompt: Optional[str] = None,
-    running_from_ui: bool = False,
 ) -> pl.DataFrame:
     """Process images with a specific model configuration.
 
@@ -278,7 +262,6 @@ def process_images_with_model(
         model_config: Model configuration
         images: List of image paths
         custom_prompt: Optional custom prompt
-        running_from_ui: Whether running from UI
 
     Returns:
         DataFrame with OCR results
@@ -331,7 +314,6 @@ def process_images_with_model(
                 processing_time=processing_time,
                 text_length=len(result["raw_text"]),
                 confidence=confidence,
-                running_from_ui=running_from_ui,
             )
 
             logger.info(
@@ -362,7 +344,6 @@ def process_images_with_model(
                 index=i,
                 image_name=image_name,
                 error=str(e),
-                running_from_ui=running_from_ui,
             )
 
         results_list.append(result)
@@ -374,7 +355,6 @@ def process_images_with_model(
         images_count=len(images),
         processing_times=processing_times,
         confidence_scores=confidence_scores,
-        running_from_ui=running_from_ui,
     )
 
     # Convert to polars dataframe

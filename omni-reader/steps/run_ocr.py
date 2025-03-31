@@ -15,7 +15,7 @@
 # limitations under the License.
 """This module contains a unified OCR step that works with multiple models."""
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import polars as pl
 from typing_extensions import Annotated
