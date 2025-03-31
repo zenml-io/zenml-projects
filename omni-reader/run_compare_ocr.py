@@ -19,7 +19,7 @@ load_dotenv()
 
 def run_ocr_from_ui(
     image: str | Image.Image,
-    model: str = "gemma3",
+    model: str = "ollama/gemma3:27b",
     custom_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Extract text directly using OCR model.
@@ -37,7 +37,7 @@ def run_ocr_from_ui(
     content_type, image_base64 = encode_image(image)
 
     if "gemma" in model.lower():
-        client = instructor.from_ollama(completion)
+        client = instructor.from_litellm(completion)
     elif "mistral" in model.lower() or "pixtral" in model.lower():
         mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
         client = instructor.from_mistral(mistral_client)
@@ -81,6 +81,55 @@ def run_ocr_from_ui(
             "processing_time": time.time() - start_time,
             "model": model,
         }
+
+
+def run_ollama_ocr_from_ui(
+    image: str | Image.Image,
+    model: str = "gemma3:27b",
+    custom_prompt: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Run OCR using Ollama.
+
+    Args:
+        image: Path to the image file to process
+        model: Name of the model to use
+        custom_prompt: Optional custom prompt
+
+    Returns:
+        Dict containing OCR results
+    """
+    import ollama
+
+    from utils.ocr_model_utils import try_extract_json_from_response
+
+    start_time = time.time()
+
+    _, image_base64 = encode_image(image)
+
+    try:
+        response = ollama.chat(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": custom_prompt if custom_prompt else get_prompt(),
+                    "images": [image_base64],
+                    "format": ImageDescription.model_json_schema(),
+                }
+            ],
+        )
+        result_json = response.message.content
+        processing_time = time.time() - start_time
+
+        result_dict = try_extract_json_from_response(result_json)
+        return {
+            "raw_text": result_dict.get("raw_text", ""),
+            "processing_time": processing_time,
+            "model": model,
+        }
+    except Exception as e:
+        print(f"Error with Gemma OCR: {e}")
+        return {"raw_text": f"Error: {str(e)}", "success": False}
 
 
 def compare_models(
