@@ -20,11 +20,18 @@ pip install -r requirements.txt
 
 ### Configuration
 
-1. Ensure Ollama is running with Gemma3 model:
+1. Ensure Ollama is running with the required models:
 
 ```bash
+# For using the default Gemma3 model
 ollama pull gemma3:27b
+
+# If using other Ollama models in your config, pull those as well
+# ollama pull llama3:70b
+# ollama pull dolphin-mixtral:8x7b
 ```
+
+NOTE: When using Ollama models in your configuration, you must ensure they are pulled locally on your system.
 
 2. Set your Mistral API key:
 
@@ -35,8 +42,6 @@ export MISTRAL_API_KEY=your_mistral_api_key
 ## 📌 Usage
 
 ### Using YAML Configuration (Recommended)
-
-OmniReader now supports YAML configuration files for easier management of pipeline parameters:
 
 ```bash
 # Generate a default configuration file
@@ -58,15 +63,17 @@ YAML configuration files organize parameters into logical sections:
 input:
   image_paths: [] # List of specific image paths
   image_folder: "./assets" # Folder containing images
-  image_patterns: ["*.jpg", "*.jpeg", "*.png", "*.webp"] # Glob patterns
 
 # OCR model configuration
 models:
   custom_prompt: null # Optional custom prompt for both models
+  model1: "ollama/gemma3:27b" # First model for comparison
+  model2: "pixtral-12b-2409" # Second model for comparison
+  ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 # Ground truth configuration
 ground_truth:
-  source: "none" # Source: "openai", "manual", "file", or "none"
+  source: "openai" # Source: "openai", "manual", "file", or "none"
   texts: [] # Ground truth texts (for manual source)
   file: null # Path to ground truth JSON file (for file source)
 
@@ -74,7 +81,7 @@ ground_truth:
 output:
   ground_truth:
     save: false # Whether to save ground truth data
-    directory: "ground_truth" # Directory for ground truth data
+    directory: "ocr_results" # Directory for ground truth data
 
   ocr_results:
     save: false # Whether to save OCR results
@@ -94,7 +101,7 @@ You can still use command line arguments for quick runs:
 python run.py --image-folder assets
 
 # Run with custom prompt
-python run.py --image-folder assets --custom-prompt "Extract all text from this image and identify any named entities."
+python run.py --image-folder assets --custom-prompt "Extract all text from this image."
 
 # Run with specific images
 python run.py --image-paths assets/image1.jpg assets/image2.png
@@ -102,13 +109,10 @@ python run.py --image-paths assets/image1.jpg assets/image2.png
 # Run with OpenAI ground truth for evaluation
 python run.py --image-folder assets --ground-truth openai --save-ground-truth
 
-# Run with manual ground truth
-python run.py --image-paths assets/image1.jpg assets/image2.jpg --ground-truth manual --ground-truth-texts "Text from image 1" "Text from image 2"
-
 # List available ground truth files
 python run.py --list-ground-truth-files
 
-# For quicker non-ZenML processing of a single image
+# For quicker processing of a single image without metadata or artifact tracking
 python run_compare_ocr.py --image assets/your_image.jpg --model both
 ```
 
@@ -126,9 +130,12 @@ The OCR comparison pipeline consists of the following components:
 
 ### Steps
 
-1. **Gemma3 OCR Step**: Uses Ollama Gemma3 model for OCR
-2. **Mistral OCR Step**: Uses Mistral's Pixtral model for OCR
-3. **Evaluation Step**: Compares results and calculates metrics
+1. **Model 1 OCR Step**: Processes images with the first model (default: Ollama Gemma3)
+2. **Model 2 OCR Step**: Processes images with the second model (default: Pixtral 12B)
+3. **Ground Truth Step**: Optional step that uses a reference model for evaluation (default: GPT-4o Mini)
+4. **Evaluation Step**: Compares results and calculates metrics
+
+The pipeline now supports configurable models, allowing you to easily swap out the models used for OCR comparison and ground truth generation via the YAML configuration file.
 
 ### Configuration Management
 
