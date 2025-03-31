@@ -21,7 +21,7 @@ import time
 import streamlit as st
 from PIL import Image
 
-from run_compare_ocr import run_ocr_from_ui
+from run_compare_ocr import run_ocr_from_ui, run_ollama_ocr_from_ui
 
 # Page configuration
 st.set_page_config(
@@ -35,7 +35,7 @@ st.set_page_config(
 # Helper functions
 def get_model_param(selected_model):
     """Get the model parameter for the OCR model."""
-    mapping = {"Mistral Pixtral": "mistral", "Gemma-3": "gemma3"}
+    mapping = {"Mistral Pixtral": "pixtral-12b-2409", "Gemma-3": "gemma3:27b"}
     return mapping.get(selected_model, "both")
 
 
@@ -105,13 +105,13 @@ if model_choice == "Gemma-3":
     )
 elif model_choice == "Mistral Pixtral":
     st.markdown(
-        f'# <img src="data:image/svg+xml;base64,{mistral_logo}" width="50" style="vertical-align: -12px;"> Pixtral 12B OCR',
+        f'# <img src="data:image/svg+xml;base64,{mistral_logo}" width="50" style="vertical-align: -4px;"> Pixtral 12B OCR',
         unsafe_allow_html=True,
     )
 else:
     st.markdown(
-        f'<div style="display: flex; align-items: center;">'
-        f'<img src="data:image/svg+xml;base64,{gemma_logo}" width="50" style="vertical-align: -12px;">'
+        f'<div style="display: flex; justify-content: space-between; align-items: center;">'
+        f'<img src="data:image/svg+xml;base64,{gemma_logo}" width="50" style="vertical-align: middle;">'
         f'<h1 style="margin: 0 15px;">OCR Model Comparison</h1>'
         f'<img src="data:image/svg+xml;base64,{mistral_logo}" width="50" style="vertical-align: middle;">'
         f"</div>",
@@ -176,14 +176,21 @@ if uploaded_file is not None:
                     col1, col2 = st.columns(2)
 
                     start = time.time()
-                    gemma_result = run_ocr_from_ui(
-                        image=image, model="ollama/gemma3:27b", custom_prompt=prompt_param
+                    # gemma_result = run_ocr_from_ui(
+                    #     image=image, model="ollama/gemma3:27b", custom_prompt=prompt_param
+                    # )
+                    gemma_result = run_ollama_ocr_from_ui(
+                        image,
+                        model="gemma3:27b",
+                        custom_prompt=prompt_param,
                     )
                     gemma_time = time.time() - start
 
                     start = time.time()
                     mistral_result = run_ocr_from_ui(
-                        image=image, model="pixtral-12b-2409", custom_prompt=prompt_param
+                        image=image,
+                        model="pixtral-12b-2409",
+                        custom_prompt=prompt_param,
                     )
                     mistral_time = time.time() - start
 
@@ -259,9 +266,14 @@ if uploaded_file is not None:
             with st.spinner(f"Processing image with {model_choice}..."):
                 try:
                     start = time.time()
-                    response = run_ocr_from_ui(
-                        image=image, model=model_param, custom_prompt=prompt_param
-                    )
+                    if "gemma" in model_param.lower():
+                        response = run_ollama_ocr_from_ui(
+                            image, model="gemma3:27b", custom_prompt=prompt_param
+                        )
+                    else:
+                        response = run_ocr_from_ui(
+                            image=image, model=model_param, custom_prompt=prompt_param
+                        )
                     proc_time = time.time() - start
                     st.session_state["ocr_result"] = response
 
