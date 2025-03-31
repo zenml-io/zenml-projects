@@ -21,7 +21,7 @@ import time
 import streamlit as st
 from PIL import Image
 
-from run_compare_ocr import run_ocr
+from run_compare_ocr import run_ocr_from_ui
 
 # Page configuration
 st.set_page_config(
@@ -51,11 +51,6 @@ def display_result(label, result, proc_time):
         st.warning("No text found in the image")
     else:
         st.write(text)
-    st.markdown("##### Description")
-    st.write(result["description"])
-    st.markdown("##### Entities")
-    entities = result.get("entities", [])
-    st.write(", ".join(entities) if entities else "No entities detected")
 
 
 def check_for_error(result):
@@ -181,11 +176,15 @@ if uploaded_file is not None:
                     col1, col2 = st.columns(2)
 
                     start = time.time()
-                    gemma_result = run_ocr(image=image, model="gemma3", custom_prompt=prompt_param)
+                    gemma_result = run_ocr_from_ui(
+                        image=image, model="ollama/gemma3:27b", custom_prompt=prompt_param
+                    )
                     gemma_time = time.time() - start
 
                     start = time.time()
-                    mistral_result = run_ocr(image=image, model="mistral", custom_prompt=prompt_param)
+                    mistral_result = run_ocr_from_ui(
+                        image=image, model="pixtral-12b-2409", custom_prompt=prompt_param
+                    )
                     mistral_time = time.time() - start
 
                     with col1:
@@ -196,15 +195,24 @@ if uploaded_file is not None:
                     st.session_state["gemma_result"] = gemma_result
                     st.session_state["mistral_result"] = mistral_result
 
-                    gemma_error, mistral_error = check_for_error(gemma_result), check_for_error(mistral_result)
+                    gemma_error, mistral_error = (
+                        check_for_error(gemma_result),
+                        check_for_error(mistral_result),
+                    )
                     st.markdown("### Comparison Stats")
                     if not gemma_error and not mistral_error:
                         faster = "Gemma-3" if gemma_time < mistral_time else "Mistral Pixtral"
-                        st.write(f"🚀 Faster model: **{faster}** (by {abs(gemma_time - mistral_time):.2f}s)")
+                        st.write(
+                            f"🚀 Faster model: **{faster}** (by {abs(gemma_time - mistral_time):.2f}s)"
+                        )
                     elif gemma_error and not mistral_error:
-                        st.write(f"⚠️ Gemma-3 failed, Mistral Pixtral completed in {mistral_time:.2f}s")
+                        st.write(
+                            f"⚠️ Gemma-3 failed, Mistral Pixtral completed in {mistral_time:.2f}s"
+                        )
                     elif mistral_error and not gemma_error:
-                        st.write(f"⚠️ Mistral Pixtral failed, Gemma-3 completed in {gemma_time:.2f}s")
+                        st.write(
+                            f"⚠️ Mistral Pixtral failed, Gemma-3 completed in {gemma_time:.2f}s"
+                        )
                     else:
                         st.error("Both models failed to process the image")
 
@@ -215,9 +223,13 @@ if uploaded_file is not None:
                         if has_no_text(gemma_result) and has_no_text(mistral_result):
                             st.warning("Neither model found any text in the image")
                         elif has_no_text(gemma_result):
-                            st.write(f"📝 No text found by Gemma-3, Mistral found {len(mistral_text)} chars")
+                            st.write(
+                                f"📝 No text found by Gemma-3, Mistral found {len(mistral_text)} chars"
+                            )
                         elif has_no_text(mistral_result):
-                            st.write(f"📝 No text found by Mistral, Gemma-3 found {len(gemma_text)} chars")
+                            st.write(
+                                f"📝 No text found by Mistral, Gemma-3 found {len(gemma_text)} chars"
+                            )
                         else:
                             st.write(
                                 f"📝 Text length: Gemma-3: {len(gemma_text)} chars, Mistral: {len(mistral_text)} chars"
@@ -241,25 +253,15 @@ if uploaded_file is not None:
                                     else f"extracted {len(mistral_result['raw_text'])} chars"
                                 )
                             )
-
-                    # Entity counts
-                    gemma_entities = len(gemma_result.get("entities", [])) if not gemma_error else 0
-                    mistral_entities = len(mistral_result.get("entities", [])) if not mistral_error else 0
-                    if not gemma_error or not mistral_error:
-                        if not gemma_error and not mistral_error:
-                            st.write(f"🔍 Entities found: Gemma-3: {gemma_entities}, Mistral: {mistral_entities}")
-                        elif not gemma_error:
-                            st.write(f"🔍 Entities found by Gemma-3: {gemma_entities}")
-                        else:
-                            st.write(f"🔍 Entities found by Mistral Pixtral: {mistral_entities}")
-
                 except Exception as e:
                     st.error(f"Error processing image: {e}")
         else:
             with st.spinner(f"Processing image with {model_choice}..."):
                 try:
                     start = time.time()
-                    response = run_ocr(image=image, model=model_param, custom_prompt=prompt_param)
+                    response = run_ocr_from_ui(
+                        image=image, model=model_param, custom_prompt=prompt_param
+                    )
                     proc_time = time.time() - start
                     st.session_state["ocr_result"] = response
 
@@ -271,15 +273,6 @@ if uploaded_file is not None:
                         st.warning("No text found in the image")
                     else:
                         st.write(text)
-
-                    st.subheader("Description")
-                    st.write(response["description"])
-
-                    entities = response.get("entities", [])
-                    if entities:
-                        st.subheader("Detected Entities")
-                        st.write(", ".join(entities))
-                        st.text(f"Entity count: {len(entities)}")
 
                     st.subheader("Processing Stats")
                     st.text(f"Processing time: {proc_time:.2f}s")
