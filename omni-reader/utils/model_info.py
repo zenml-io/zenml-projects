@@ -45,7 +45,7 @@ class ModelConfig:
 
 def get_openai_client():
     """Get an OpenAI client with instructor integration."""
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    openai_client = OpenAI(api_key="ollama")
     return instructor.from_openai(openai_client)
 
 

@@ -17,7 +17,6 @@
 from .encode_image import encode_image
 from .metrics import compare_results
 from .ocr_model_utils import (
-    create_message_with_image,
     log_image_metadata,
     log_error_metadata,
     log_summary_metadata,

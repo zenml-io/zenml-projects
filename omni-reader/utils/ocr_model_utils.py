@@ -15,11 +15,15 @@
 # limitations under the License.
 """Utility functions for OCR operations across different models."""
 
+import contextlib
+import json
 import os
+import re
 import statistics
 import time
 from typing import Dict, List, Optional
 
+import ollama
 import polars as pl
 from dotenv import load_dotenv
 from zenml import log_metadata
@@ -33,33 +37,31 @@ load_dotenv()
 logger = get_logger(__name__)
 
 
-def create_message_with_image(prompt: str, image_path: str, model_prefix: str) -> List[Dict]:
-    """Create a message with an image for the model.
+def try_extract_json_from_response(response: str) -> Dict:
+    """Extract JSON from a response string.
 
     Args:
-        prompt: The text prompt
-        image_path: Path to the image file
-        model_prefix: The model prefix (openai, mistral, etc.)
+        response: The response string
 
     Returns:
-        List of message dictionaries ready for the model
+        Dict with JSON data
     """
-    content_type, image_base64 = encode_image(image_path)
+    JSON_PATTERN = re.compile(r"```json\n(.*?)```", re.DOTALL)
+    DIRECT_JSON_PATTERN = re.compile(r"\{[^}]*\}", re.DOTALL)
 
-    return [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{content_type};base64,{image_base64}",
-                    },
-                },
-            ],
-        }
-    ]
+    try:
+        if match := JSON_PATTERN.search(response):
+            json_results = match.group(1)
+            with contextlib.suppress(json.JSONDecodeError):
+                return json.loads(json_results)
+        if match := DIRECT_JSON_PATTERN.search(response):
+            json_text = match.group(0)
+            with contextlib.suppress(json.JSONDecodeError):
+                return json.loads(json_text)
+    except json.JSONDecodeError:
+        error_msg = f"Failed to parse model response: {response[:100]}..."
+        logger.error(error_msg)
+        return {"raw_text": f"Error: {error_msg}", "confidence": 0.0, "success": False}
 
 
 def log_image_metadata(
@@ -170,6 +172,100 @@ def log_summary_metadata(
     )
 
 
+def process_with_ollama(
+    model_name: str,
+    image_path: str,
+    prompt: str,
+    model_config: ModelConfig,
+) -> Dict:
+    """Process an image with Ollama.
+
+    Args:
+        model_name: Name of the Ollama model
+        image_path: Path to the image file
+        prompt: Prompt text
+        model_config: Model configuration
+
+    Returns:
+        Dict with OCR results
+    """
+    _, image_base64 = encode_image(image_path)
+
+    ollama_params = {
+        "model": model_name,
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+                "images": [image_base64],
+                "format": ImageDescription.model_json_schema(),
+            }
+        ],
+    }
+
+    if model_config.additional_params:
+        ollama_params.update(model_config.additional_params)
+
+    try:
+        response = ollama.chat(**ollama_params)
+        result = try_extract_json_from_response(response.message.content)
+        return result
+    except Exception as e:
+        error_msg = f"Error with Ollama OCR: {str(e)}"
+        logger.error(error_msg)
+        return {
+            "raw_text": f"Error: {error_msg}",
+            "confidence": 0.0,
+        }
+
+
+def process_with_client(
+    client,
+    model_name: str,
+    image_path: str,
+    prompt: str,
+    model_config: ModelConfig,
+) -> ImageDescription | Dict:
+    """Process images with an API client (OpenAI, Mistral, etc.).
+
+    Args:
+        client: API client
+        model_name: Name of the model
+        image_path: Path to the image file
+        prompt: Prompt text
+        model_config: Model configuration
+
+    Returns:
+        API response processed into ImageDescription or Dict
+    """
+    content_type, image_base64 = encode_image(image_path)
+
+    params = {
+        "model": model_name,
+        "response_model": ImageDescription,
+        **({"max_tokens": model_config.max_tokens} if model_config.max_tokens else {}),
+        **(model_config.additional_params or {}),
+    }
+
+    return client.chat.completions.create(
+        **params,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{content_type};base64,{image_base64}",
+                        },
+                    },
+                ],
+            }
+        ],
+    )
+
+
 def process_images_with_model(
     model_config: ModelConfig,
     images: List[str],
@@ -198,37 +294,24 @@ def process_images_with_model(
     processing_times = []
     confidence_scores = []
 
-    client = model_config.client_factory()
+    if "ollama" not in model_name:
+        client = model_config.client_factory()
 
     for i, image_path in enumerate(images):
         start_time = time.time()
         image_name = os.path.basename(image_path)
 
         try:
-            messages = create_message_with_image(prompt, image_path, prefix)
-
-            # Prepare params based on model config
-            params = {
-                "model": model_name,
-                "response_model": ImageDescription,
-                "messages": messages,
-            }
-
-            # Add model-specific parameters if provided
-            if model_config.max_tokens:
-                params["max_tokens"] = model_config.max_tokens
-
-            if model_config.additional_params:
-                params.update(model_config.additional_params)
-
-            response = client.chat.completions.create(**params)
+            if "gemma" in model_name:
+                response = process_with_ollama(model_name, image_path, prompt, model_config)
+            else:
+                response = process_with_client(client, model_name, image_path, prompt, model_config)
 
             processing_time = time.time() - start_time
             processing_times.append(processing_time)
 
             confidence = response.confidence
 
-            # Apply default minimum confidence if needed
             confidence = max(confidence, model_config.default_confidence)
             confidence_scores.append(confidence)
 

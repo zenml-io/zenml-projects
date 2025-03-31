@@ -15,7 +15,7 @@
 # limitations under the License.
 """This module contains the prompt and schema for the OCR model."""
 
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -23,8 +23,8 @@ from pydantic import BaseModel, Field
 class ImageDescription(BaseModel):
     """Base model for OCR results."""
 
-    raw_text: str = Field(description="Extracted text from the image")
-    confidence: float = Field(default=0.0, description="Confidence score (0-1) for the extraction")
+    raw_text: str
+    confidence: float
 
 
 def get_prompt(custom_prompt: Optional[str] = None, language: str = "English") -> str:
@@ -36,5 +36,7 @@ def get_prompt(custom_prompt: Optional[str] = None, language: str = "English") -
         - Retain all spacing, punctuation, and formatting exactly as in the image.
         - If text is unclear or partially visible, extract as much as possible without guessing.
         - **Include all text, even if it seems irrelevant or repeated.** 
-        - Then, rate your confidence in the extracted text as a float between 0 and 1.
+        - Return your response as a JSON object with the following fields:
+            - raw_text: The extracted text from the image
+            - confidence: The confidence score in the extracted text as a float between 0 and 1
         """
