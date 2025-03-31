@@ -29,7 +29,10 @@ def get_image_paths(directory: str) -> List[str]:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run OCR comparison pipeline")
     parser.add_argument(
-        "--image_dir", type=str, default="assets", help="Directory containing images to process (default: assets)"
+        "--image_dir",
+        type=str,
+        default="assets",
+        help="Directory containing images to process (default: assets)",
     )
     parser.add_argument("--custom_prompt", type=str, help="Custom prompt to use for OCR models")
     parser.add_argument(
@@ -59,7 +62,6 @@ if __name__ == "__main__":
     pipeline_run = ocr_comparison_pipeline(
         images=image_paths,
         custom_prompt=args.custom_prompt,
-        ground_truth_texts=args.ground_truth,
     )
 
     print(f"\nPipeline run completed: {pipeline_run.id}")
