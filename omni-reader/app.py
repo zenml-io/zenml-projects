@@ -176,13 +176,8 @@ if uploaded_file is not None:
                     col1, col2 = st.columns(2)
 
                     start = time.time()
-                    # gemma_result = run_ocr_from_ui(
-                    #     image=image, model="ollama/gemma3:27b", custom_prompt=prompt_param
-                    # )
-                    gemma_result = run_ollama_ocr_from_ui(
-                        image,
-                        model="gemma3:27b",
-                        custom_prompt=prompt_param,
+                    gemma_result = run_ocr_from_ui(
+                        image=image, model="ollama/gemma3:27b", custom_prompt=prompt_param
                     )
                     gemma_time = time.time() - start
 
@@ -266,14 +261,9 @@ if uploaded_file is not None:
             with st.spinner(f"Processing image with {model_choice}..."):
                 try:
                     start = time.time()
-                    if "gemma" in model_param.lower():
-                        response = run_ollama_ocr_from_ui(
-                            image, model="gemma3:27b", custom_prompt=prompt_param
-                        )
-                    else:
-                        response = run_ocr_from_ui(
-                            image=image, model=model_param, custom_prompt=prompt_param
-                        )
+                    response = run_ocr_from_ui(
+                        image=image, model=model_param, custom_prompt=prompt_param
+                    )
                     proc_time = time.time() - start
                     st.session_state["ocr_result"] = response
 

@@ -3,7 +3,7 @@
 # Image input configuration
 input:
   image_paths: [] # List of specific image paths to process
-  image_folder: "assets/handwriting" # Folder containing images to process
+  image_folder: "assets/street_signs" # Folder containing images to process
 
 models:
   custom_prompt: null # Optional custom prompt to use for both models

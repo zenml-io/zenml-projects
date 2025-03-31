@@ -85,7 +85,7 @@ def run_ocr_from_ui(
 
 def run_ollama_ocr_from_ui(
     image: str | Image.Image,
-    model: str = "gemma3:27b",
+    model: str = "ollama/gemma3:27b",
     custom_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run OCR using Ollama.
