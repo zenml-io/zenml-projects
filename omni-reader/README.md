@@ -1,15 +1,15 @@
 # OmniReader - Multi-model text extraction comparison
 
-OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models - specifically Gemma 3 and Mistral AI Pixtral12B. It provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. This dual-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model.
+OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models. It provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. The multi-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model. It also supports parallel processing for faster batch operations and can compare an arbitrary number of models simultaneously.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.9+
-- [Ollama](https://ollama.ai/) installed and configured for Gemma3
 - Mistral API key (set as environment variable `MISTRAL_API_KEY`)
-- ZenML installed and configured
+- OpenAI API key (set as environment variable `OPENAI_API_KEY`)
+- ZenML >= 0.80.0
 
 ### Installation
 
@@ -23,20 +23,20 @@ pip install -r requirements.txt
 1. Ensure Ollama is running with the required models:
 
 ```bash
-# For using the default Gemma3 model
-ollama pull gemma3:27b
+# For using the default Qwen2 model
+ollama pull llama3.2-vision:11b
+ollama pull gemma3:12b
 
 # If using other Ollama models in your config, pull those as well
 # ollama pull llama3:70b
 # ollama pull dolphin-mixtral:8x7b
 ```
 
-NOTE: When using Ollama models in your configuration, you must ensure they are pulled locally on your system.
-
-2. Set your Mistral API key:
+2. Set the following environment variables:
 
 ```bash
-export MISTRAL_API_KEY=your_mistral_api_key
+MISTRAL_API_KEY=your_mistral_api_key
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 ## 📌 Usage
@@ -44,14 +44,11 @@ export MISTRAL_API_KEY=your_mistral_api_key
 ### Using YAML Configuration (Recommended)
 
 ```bash
-# Generate a default configuration file
-python run.py --create-default-config my_config.yaml
+# Use the default config (ocr_config.yaml)
+python run.py
 
-# Run with a configuration file
+# Run with a custom config file
 python run.py --config my_config.yaml
-
-# Generate a configuration for a specific experiment
-python config_generator.py --name invoice_test --image-folder ./invoices --ground-truth-source openai
 ```
 
 ### Configuration Structure
@@ -66,9 +63,12 @@ input:
 
 # OCR model configuration
 models:
-  custom_prompt: null # Optional custom prompt for both models
-  model1: "ollama/gemma3:27b" # First model for comparison
-  model2: "pixtral-12b-2409" # Second model for comparison
+  custom_prompt: null # Optional custom prompt for all models
+  # Either specify individual models (for backward compatibility)
+  model1: "llama3.2-vision:11b" # First model for comparison
+  model2: "gemma3:12b" # Second model for comparison
+  # Or specify multiple models as a list (new approach)
+  models: ["llama3.2-vision:11b", "gemma3:12b"]
   ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 # Ground truth configuration
@@ -114,6 +114,12 @@ python run.py --list-ground-truth-files
 
 # For quicker processing of a single image without metadata or artifact tracking
 python run_compare_ocr.py --image assets/your_image.jpg --model both
+
+# Run comparison with multiple specific models in parallel
+python run_compare_ocr.py --image assets/your_image.jpg --model "gemma3:12b,llama3.2-vision:11b,moondream"
+
+# Run comparison with all available models in parallel
+python run_compare_ocr.py --image assets/your_image.jpg --model all
 ```
 
 ### Using the Streamlit App
@@ -130,12 +136,15 @@ The OCR comparison pipeline consists of the following components:
 
 ### Steps
 
-1. **Model 1 OCR Step**: Processes images with the first model (default: Ollama Gemma3)
-2. **Model 2 OCR Step**: Processes images with the second model (default: Pixtral 12B)
-3. **Ground Truth Step**: Optional step that uses a reference model for evaluation (default: GPT-4o Mini)
-4. **Evaluation Step**: Compares results and calculates metrics
+1. **Multi-Model OCR Step**: Processes images with multiple models in parallel
+   - Supports any number of models defined in configuration
+   - Models run in parallel using ThreadPoolExecutor
+   - Each model processes its assigned images with parallelized execution
+   - Progress tracking during batch processing
+2. **Ground Truth Step**: Optional step that uses a reference model for evaluation (default: GPT-4o Mini)
+3. **Evaluation Step**: Compares results and calculates metrics
 
-The pipeline now supports configurable models, allowing you to easily swap out the models used for OCR comparison and ground truth generation via the YAML configuration file.
+The pipeline supports configurable models, allowing you to easily swap out the models used for OCR comparison and ground truth generation via the YAML configuration file. It also supports processing any number of models in parallel for more comprehensive comparisons.
 
 ### Configuration Management
 
@@ -145,6 +154,8 @@ The new configuration system provides:
 - Parameter validation and intelligent defaults
 - Easy sharing and version control of experiment settings
 - Configuration generator for quickly creating new experiment setups
+- Support for multi-model configuration via arrays
+- Flexible model selection and comparison
 
 ### Metadata Tracking
 
@@ -153,6 +164,8 @@ ZenML's metadata tracking is used throughout the pipeline:
 - Processing times and performance metrics
 - Extracted text length and entity counts
 - Comparison metrics between models (CER, WER)
+- Progress tracking for batch operations
+- Parallel processing statistics
 
 ### Results Visualization
 
@@ -178,5 +191,4 @@ omni-reader/
 ## 🔗 Links
 
 - [ZenML Documentation](https://docs.zenml.io/)
-- [Mistral AI Vision Documentation](https://docs.mistral.ai/capabilities/vision/)
-- [Gemma3 Documentation](https://ai.google.dev/gemma/docs/core)
+- [Mistral AI Vision](https://docs.mistral.ai/capabilities/vision/)
