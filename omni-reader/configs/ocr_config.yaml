@@ -1,17 +1,19 @@
 # OCR Comparison Pipeline Configuration
 
 # Image input configuration
+# image_paths and image_folder are combined if both are provided
 input:
-  image_paths: [] # List of specific image paths to process
-  image_folder: "assets/street_signs" # Folder containing images to process
+  image_paths: ["assets/street_signs/montreal.jpg"] # List of specific image paths to process
+  image_folder: null # Folder containing images to process
 
 models:
-  custom_prompt: null # Optional custom prompt to use for both models
-  model1: "llama3.2-vision:11b" # First model for comparison
-  model2: "pixtral-12b-2409" # Second model for comparison
-  models:
-    - "llama3.2-vision:11b"
-    - "pixtral-12b-2409"
+  custom_prompt: null # Optional custom prompt
+  model1: null # First model for comparison
+  model2: null # Second model for comparison
+  models: # List of models to compare (takes precedence over model1 and model2)
+    - mistral/pixtral-12b-2409
+    - llama3.2-vision:11b
+    - gemma3:27b
   ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 ground_truth:

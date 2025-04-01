@@ -120,7 +120,7 @@ def ocr_comparison_pipeline(
     elif ground_truth_source == "file" and ground_truth_file:
         ground_truth_df = load_ground_truth_file(filepath=ground_truth_file)
 
-    gt_model_param = "gpt-4o-mini" if ground_truth_source == "openai" else None
+    gt_model_param = ground_truth_model if ground_truth_source == "openai" else None
 
     visualization = evaluate_models(
         model_results=model_results,
