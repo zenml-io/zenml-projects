@@ -125,18 +125,29 @@ For interactive use, the project includes a Streamlit app:
 streamlit run app.py
 ```
 
-### Remote Artifact Storage or Running Remotely
+### ### Remote Artifact Storage and Execution
 
-For remote artifact storage or running remotely, install the ZenML integrations for your cloud provider.
+This project supports storing artifacts remotely and executing pipelines on cloud infrastructure. Follow these steps to configure your environment for remote operation:
 
-For example, for AWS, install the AWS integration:
+#### Setting Up Cloud Provider Integrations
+
+Install the appropriate ZenML integrations for your preferred cloud provider:
 
 ```bash
-zenml integration install aws -y
-zenml integration install s3 -y
+# For AWS
+zenml integration install aws s3 -y
+
+# For Azure
+zenml integration install azure azure-blob -y
+
+# For Google Cloud
+zenml integration install gcp gcs -y
 ```
 
-And ensure your stack has a remote
+For detailed configuration options and other components, refer to the ZenML documentation:
+
+- [Artifact Stores](https://docs.zenml.io/stacks/artifact-stores)
+- [Orchestrators](https://docs.zenml.io/stacks/orchestrators)
 
 ## 📋 Pipeline Architecture
 
