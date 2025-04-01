@@ -15,7 +15,6 @@
 # limitations under the License.
 """OCR Comparison Pipeline implementation with YAML configuration support."""
 
-import os
 from typing import Any, Dict, List, Literal, Optional
 
 from dotenv import load_dotenv
@@ -35,25 +34,12 @@ from steps import (
 load_dotenv()
 
 docker_settings = DockerSettings(
-    dockerfile="Dockerfile",
-    requirements=[
-        "polars==1.26.0",
-        "textdistance==4.6.3",
-        "instructor==1.7.7",
-        "jiwer==3.0.5",
-        "litellm==1.64.1",
-        "openai==1.69.0",
-        "mistralai==1.5.0",
-        "Pillow==11.1.0",
-        "ollama==0.4.7",
-        "pyarrow>=7.0",
-    ],
+    requirements=["requirements.txt"],
+    python_package_installer="uv",
     environment={
-        "OLLAMA_HOST": "${OLLAMA_HOST:-http://localhost:11434}",
-        "OLLAMA_MODELS": "/root/.ollama",
-        "OLLAMA_TIMEOUT": "600s",
-        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
         "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "ZENML_ENABLE_IMPLICIT_AUTH_METHODS": "true",
     },
 )
 
@@ -82,7 +68,7 @@ def ocr_comparison_pipeline(
     image_folder: Optional[str] = None,
     custom_prompt: Optional[str] = None,
     models: Optional[List[str]] = None,
-    ground_truth_model: str = "gpt-4o-mini",
+    ground_truth_model: Optional[str] = None,
     ground_truth_source: Literal["openai", "manual", "file", "none"] = "none",
     ground_truth_file: Optional[str] = None,
     save_ground_truth_data: bool = False,
@@ -115,22 +101,17 @@ def ocr_comparison_pipeline(
     """
     images = load_images(image_paths=image_paths, image_folder=image_folder)
 
-    # Default to two models if none provided
     if not models or len(models) < 2:
-        models = ["llama3.2-vision:11b", "pixtral-12b-2409"]
+        raise ValueError("At least two models are required for comparison")
 
-    # Process all models in parallel
     model_results = run_ocr(images=images, model_names=models, custom_prompt=custom_prompt)
 
-    # Process ground truth separately to avoid including it in the main comparison
     ground_truth_df = None
     if ground_truth_source == "openai":
-        # Run OCR on the ground truth model
         ground_truth_results = run_ocr(
             images=images, model_names=[ground_truth_model], custom_prompt=custom_prompt
         )
 
-        # Extract the ground truth DataFrame from the results dictionary
         ground_truth_df = extract_ground_truth_df(
             ground_truth_results=ground_truth_results, ground_truth_model=ground_truth_model
         )
@@ -139,16 +120,15 @@ def ocr_comparison_pipeline(
     elif ground_truth_source == "file" and ground_truth_file:
         ground_truth_df = load_ground_truth_file(filepath=ground_truth_file)
 
-    # Select the first two models as primary for visualization (maintaining backward compatibility)
-    primary_models = models[:2]
+    gt_model_param = "gpt-4o-mini" if ground_truth_source == "openai" else None
 
     visualization = evaluate_models(
         model_results=model_results,
         ground_truth_df=ground_truth_df,
-        primary_models=primary_models,
+        ground_truth_model=gt_model_param,
     )
 
-    # Save OCR results if requested
+    # save ocr results if requested
     if save_ocr_results_data or save_ground_truth_data:
         save_ocr_results(
             ocr_results=model_results,
@@ -159,7 +139,7 @@ def ocr_comparison_pipeline(
             save_ground_truth=save_ground_truth_data,
         )
 
-    # Save HTML visualization if requested
+    # save html visualization if requested
     if save_visualization_data:
         save_visualization(visualization, output_dir=visualization_output_dir)
 
