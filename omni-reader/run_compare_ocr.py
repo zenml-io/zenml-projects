@@ -15,7 +15,6 @@ from utils.encode_image import encode_image
 from utils.extract_json import try_extract_json_from_response
 from utils.model_configs import (
     DEFAULT_MODEL,
-    DEMO_MODELS,
     MODEL_CONFIGS,
 )
 from utils.ocr_processing import process_image
@@ -207,7 +206,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="all",
+        default=DEFAULT_MODEL.name,
         help="Model to use: a specific model ID, 'all' to compare all, or a comma-separated list",
     )
     parser.add_argument(
@@ -235,9 +234,9 @@ def main():
 
     if args.model.lower() == "all":
         # Run all models in parallel
-        print(f"Processing image with all {len(DEMO_MODELS)} models in parallel...")
+        print(f"Processing image with all {len(MODEL_CONFIGS)} models in parallel...")
 
-        results = run_models_in_parallel(args.image, DEMO_MODELS, args.prompt)
+        results = run_models_in_parallel(args.image, list(MODEL_CONFIGS.keys()), args.prompt)
 
         successful_models = sum(1 for result in results.values() if "error" not in result)
         failed_models = len(results) - successful_models
