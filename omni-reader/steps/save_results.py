@@ -30,7 +30,7 @@ from utils.model_configs import MODEL_CONFIGS, get_model_info
 logger = get_logger(__name__)
 
 
-@step(enable_cache=False)
+@step()
 def save_ocr_results(
     ocr_results: Dict[str, pl.DataFrame] = None,
     ground_truth_results: Optional[pl.DataFrame] = None,
@@ -56,19 +56,18 @@ def save_ocr_results(
     metadata_dict = {}
 
     results_mapping = []
-    
+
     if not model_names and ocr_results:
         model_names = list(ocr_results.keys())
 
     if ocr_results and model_names:
         for model_name in model_names:
             if model_name in ocr_results:
-                
                 if model_name in MODEL_CONFIGS:
                     model_prefix = MODEL_CONFIGS[model_name].prefix
                 else:
                     _, model_prefix = get_model_info(model_name)
-                
+
                 results_mapping.append(
                     {
                         "model_name": model_name,
@@ -82,14 +81,14 @@ def save_ocr_results(
         # Handle ground truth as a dictionary of model results
         if isinstance(ground_truth_results, dict) and len(ground_truth_results) > 0:
             gt_model_name = list(ground_truth_results.keys())[0]
-            
+
             # Determine prefix based on model name
             if gt_model_name in MODEL_CONFIGS:
                 gt_prefix = "gt_" + MODEL_CONFIGS[gt_model_name].prefix
             else:
                 _, model_prefix = get_model_info(gt_model_name)
                 gt_prefix = "gt_" + model_prefix
-                
+
             # Save only once in the ground_truth directory with gt_ prefix
             results_mapping.append(
                 {
@@ -128,6 +127,7 @@ def save_ocr_results(
     log_metadata(metadata={"ocr_results_saved": metadata_dict})
 
     return saved_paths
+
 
 @step
 def save_visualization(

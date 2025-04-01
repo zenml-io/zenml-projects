@@ -51,7 +51,7 @@ def load_images(
         logger.info(f"Added {len(image_paths)} directly specified images")
 
     if image_folder:
-        patterns_to_use = ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif"]
+        patterns_to_use = ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.tiff"]
 
         for pattern in patterns_to_use:
             full_pattern = os.path.join(image_folder, pattern)
