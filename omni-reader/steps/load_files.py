@@ -97,14 +97,14 @@ def load_images(
 @step
 def load_ground_truth_file(
     filepath: str,
-) -> Annotated[Dict[str, pl.DataFrame], "ground_truth"]:
+) -> Annotated[pl.DataFrame, "ground_truth"]:
     """Load ground truth data from a JSON file.
 
     Args:
         filepath: Path to the ground truth file
 
     Returns:
-        Dictionary containing ground truth results
+        pl.DataFrame containing ground truth results
     """
     from utils.io_utils import load_ocr_data_from_json
 
@@ -115,4 +115,4 @@ def load_ground_truth_file(
 
     log_metadata(metadata={"ground_truth_loaded": {"path": filepath, "count": len(df)}})
 
-    return {"ground_truth_results": df}
+    return df

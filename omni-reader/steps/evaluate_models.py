@@ -235,8 +235,8 @@ def create_summary_visualization(
                         <div class="text-right font-medium">{avg_metrics["avg_models_similarity"]:.4f}</div>
                         <div class="text-gray-600">Time Diff:</div>
                         <div class="text-right font-medium">{time_comparison["time_difference"]:.2f}s</div>
-                        <div class="text-gray-600">Faster Model:</div>
-                        <div class="text-right font-medium">{time_comparison["faster_model"]}</div>
+                        <div class="text-gray-600">Fastest Model:</div>
+                        <div class="text-right font-medium">{time_comparison["fastest_model"]}</div>
                         <div class="text-gray-600">Better CER:</div>
                         <div class="text-right font-medium">
                             {model1_display if avg_metrics[f"avg_{model1_prefix}_cer"] < avg_metrics[f"avg_{model2_prefix}_cer"] else model2_display}
@@ -267,8 +267,8 @@ def create_summary_visualization(
                         <div class="text-xl font-bold">{time_comparison["time_difference"]:.2f}s</div>
                     </div>
                     <div>
-                        <div class="text-gray-600 mb-1">Faster Model</div>
-                        <div class="text-xl font-bold">{time_comparison["faster_model"]}</div>
+                        <div class="text-gray-600 mb-1">Fastest Model</div>
+                        <div class="text-xl font-bold">{time_comparison["fastest_model"]}</div>
                     </div>
                 </div>
             </div>
@@ -325,33 +325,61 @@ def create_summary_visualization(
 
 @step()
 def evaluate_models(
-    model1_df: pl.DataFrame,
-    model2_df: pl.DataFrame,
+    model_results: Dict[str, pl.DataFrame],
     ground_truth_df: Optional[pl.DataFrame] = None,
-    model1_name: str = "ollama/gemma3:27b",
-    model2_name: str = "pixtral-12b-2409",
+    primary_models: Optional[List[str]] = None,
 ) -> Annotated[HTMLString, "ocr_visualization"]:
-    """Compare the performance of two configurable models with visualization.
+    """Compare the performance of multiple configurable models with visualization.
 
     Args:
-        model1_df: First model results DataFrame
-        model2_df: Second model results DataFrame
+        model_results: Dictionary mapping model names to their results DataFrames
         ground_truth_df: Optional ground truth results DataFrame
-        model1_name: Name of the first model (default: ollama/gemma3:27b)
-        model2_name: Name of the second model (default: pixtral-12b-2409)
-        model1_display: Display name for the first model (default: Gemma)
-        model2_display: Display name for the second model (default: Mistral)
+        primary_models: Optional list of model names to highlight in comparison.
+            If None or less than 2 models, uses the first two models from model_results.
 
     Returns:
         HTMLString visualization of the results
     """
+    # Ensure we have at least two models for comparison
+    if len(model_results) < 2:
+        raise ValueError("At least two models are required for comparison")
+
+    # If primary_models not specified or invalid, use the first two models
+    if not primary_models or len(primary_models) < 2:
+        primary_models = list(model_results.keys())[:2]
+
+    # Extract the primary models for main comparison
+    model1_name = primary_models[0]
+    model2_name = primary_models[1]
+
+    model1_df = model_results[model1_name]
+    model2_df = model_results[model2_name]
+
     model1_display, model1_prefix = get_model_info(model1_name)
     model2_display, model2_prefix = get_model_info(model2_name)
 
     # Join results
-    results = model1_df.join(model2_df, on=["id", "image_name"], how="inner")
+    results = model1_df.join(model2_df, on=["id", "image_name"], how="inner", suffix="_right")
     evaluation_metrics = []
     processed_results = []
+
+    # Calculate processing times for all models
+    all_model_times = {}
+    for model_name, df in model_results.items():
+        display, prefix = get_model_info(model_name)
+        time_key = f"avg_{prefix}_time"
+        all_model_times[time_key] = df.select("processing_time").to_series().mean()
+        all_model_times[f"{prefix}_display"] = display
+
+    # Find fastest model
+    fastest_model_time = min(
+        [(time, model) for model, time in all_model_times.items() if not model.endswith("_display")]
+    )
+    fastest_model_key = fastest_model_time[1]
+    fastest_model_prefix = fastest_model_key.replace("avg_", "").replace("_time", "")
+    fastest_model_display = all_model_times.get(
+        f"{fastest_model_prefix}_display", fastest_model_prefix
+    )
 
     if ground_truth_df is not None:
         results = results.join(
@@ -412,37 +440,48 @@ def evaluate_models(
                 ].mean(),
             }
 
-            model1_times = model1_df.select("processing_time").to_series().mean()
-            model2_times = model2_df.select("processing_time").to_series().mean()
             model1_time_key = f"avg_{model1_prefix}_time"
             model2_time_key = f"avg_{model2_prefix}_time"
+
+            # Combine processing times with other metrics
             time_comparison = {
-                model1_time_key: model1_times,
-                model2_time_key: model2_times,
-                "time_difference": abs(model1_times - model2_times),
-                "faster_model": model1_display if model1_times < model2_times else model2_display,
+                **all_model_times,
+                "time_difference": abs(
+                    all_model_times[model1_time_key] - all_model_times[model2_time_key]
+                ),
+                "fastest_model": fastest_model_display,
             }
 
-            # Log metadata for ZenML dashboard
-            log_metadata(
-                metadata={
+            # Prepare metadata for ZenML dashboard
+            metadata_dict = {
+                **{
+                    f"avg_{model}_time": float(time)
+                    for model, time in all_model_times.items()
+                    if not model.endswith("_display")
+                },
+                "fastest_model": fastest_model_display,
+                "model_count": len(model_results),
+                "avg_models_similarity": float(avg_metrics["avg_models_similarity"]),
+            }
+
+            # Add accuracy metrics for primary models
+            metadata_dict.update(
+                {
                     f"avg_{model1_prefix}_cer": float(avg_metrics[f"avg_{model1_prefix}_cer"]),
                     f"avg_{model1_prefix}_wer": float(avg_metrics[f"avg_{model1_prefix}_wer"]),
                     f"avg_{model2_prefix}_cer": float(avg_metrics[f"avg_{model2_prefix}_cer"]),
                     f"avg_{model2_prefix}_wer": float(avg_metrics[f"avg_{model2_prefix}_wer"]),
-                    "avg_models_similarity": float(avg_metrics["avg_models_similarity"]),
                     f"avg_{model1_prefix}_gt_similarity": float(
                         avg_metrics[f"avg_{model1_prefix}_gt_similarity"]
                     ),
                     f"avg_{model2_prefix}_gt_similarity": float(
                         avg_metrics[f"avg_{model2_prefix}_gt_similarity"]
                     ),
-                    model1_time_key: float(time_comparison[model1_time_key]),
-                    model2_time_key: float(time_comparison[model2_time_key]),
-                    "time_difference": float(time_comparison["time_difference"]),
-                    "faster_model": time_comparison["faster_model"],
                 }
             )
+
+            # Log metadata for ZenML dashboard
+            log_metadata(metadata=metadata_dict)
 
             html_visualization = create_summary_visualization(
                 avg_metrics=avg_metrics,
@@ -456,16 +495,15 @@ def evaluate_models(
             return html_visualization
 
         # FALLBACK: if no ground truth metrics, only use processing times.
-        model1_times = model1_df.select("processing_time").to_series().mean()
-        model2_times = model2_df.select("processing_time").to_series().mean()
-        model1_time_key = f"avg_{model1_prefix}_time"
-        model2_time_key = f"avg_{model2_prefix}_time"
         time_comparison = {
-            model1_time_key: model1_times,
-            model2_time_key: model2_times,
-            "time_difference": abs(model1_times - model2_times),
-            "faster_model": model1_display if model1_times < model2_times else model2_display,
+            **all_model_times,
+            "time_difference": abs(
+                all_model_times[f"avg_{model1_prefix}_time"]
+                - all_model_times[f"avg_{model2_prefix}_time"]
+            ),
+            "fastest_model": fastest_model_display,
         }
+
         html_visualization = create_summary_visualization(
             avg_metrics={},
             time_comparison=time_comparison,
@@ -473,13 +511,17 @@ def evaluate_models(
             model2_name=model2_name,
         )
 
-        log_metadata(
-            metadata={
-                model1_time_key: float(time_comparison[model1_time_key]),
-                model2_time_key: float(time_comparison[model2_time_key]),
-                "time_difference": float(time_comparison["time_difference"]),
-                "faster_model": time_comparison["faster_model"],
-            }
-        )
+        # Prepare metadata for ZenML dashboard
+        metadata_dict = {
+            **{
+                f"avg_{model}_time": float(time)
+                for model, time in all_model_times.items()
+                if not model.endswith("_display")
+            },
+            "fastest_model": fastest_model_display,
+            "model_count": len(model_results),
+        }
+
+        log_metadata(metadata=metadata_dict)
 
         return html_visualization

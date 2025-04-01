@@ -31,24 +31,24 @@ logger = get_logger(__name__)
 
 @step(enable_cache=False)
 def save_ocr_results(
-    model1_results: Optional[pl.DataFrame] = None,
-    model2_results: Optional[pl.DataFrame] = None,
+    ocr_results: Dict[str, pl.DataFrame] = None,
     ground_truth_results: Optional[pl.DataFrame] = None,
     model_names: List[str] = None,
     output_dir: str = "ocr_results",
     ground_truth_output_dir: str = "ocr_results",
     save_ground_truth: bool = False,
+    primary_models: Optional[List[str]] = None,
 ) -> Dict[str, str]:
     """Save OCR results from multiple models.
 
     Args:
-        model1_results: First model OCR results
-        model2_results: Second model OCR results
+        ocr_results: Dictionary mapping model names to their DataFrame results
         ground_truth_results: Ground truth model OCR results
-        model_names: List of model names that were run [model1, model2, ground_truth_model]
+        model_names: List of model names that were run
         output_dir: Base directory to save OCR results
         ground_truth_output_dir: Directory to save ground truth OCR results
         save_ground_truth: Whether to save ground truth results
+        primary_models: Optional list of primary models to focus on
 
     Returns:
         Dictionary of model names to file paths
@@ -58,49 +58,51 @@ def save_ocr_results(
 
     results_mapping = []
 
-    # Process model 1 results
-    if model1_results is not None and model_names and len(model_names) > 0:
-        model1_name = model_names[0]
-        model1_prefix = model1_name.split("/")[-1].split(":")[0].lower()
-        results_mapping.append(
-            {
-                "model_name": model1_name,
-                "data": model1_results,
-                "subdir": os.path.join(output_dir, model1_prefix),
-                "prefix": model1_prefix,
-            }
-        )
+    # Get primary models if provided
+    if not primary_models and model_names:
+        primary_models = model_names[: min(2, len(model_names))]
 
-    # Process model 2 results
-    if model2_results is not None and model_names and len(model_names) > 1:
-        model2_name = model_names[1]
-        model2_prefix = model2_name.split("/")[-1].split(":")[0].lower()
-        results_mapping.append(
-            {
-                "model_name": model2_name,
-                "data": model2_results,
-                "subdir": os.path.join(output_dir, model2_prefix),
-                "prefix": model2_prefix,
-            }
-        )
+    # Process all model results from the dictionary
+    if ocr_results and model_names:
+        for model_name in model_names:
+            # Only process models that exist in the results
+            if model_name in ocr_results:
+                model_prefix = model_name.split("/")[-1].split(":")[0].lower()
+                results_mapping.append(
+                    {
+                        "model_name": model_name,
+                        "data": ocr_results[model_name],
+                        "subdir": os.path.join(output_dir, model_prefix),
+                        "prefix": model_prefix,
+                    }
+                )
 
     # Process ground truth results
-    if (
-        ground_truth_results is not None
-        and model_names
-        and len(model_names) > 2
-        and save_ground_truth
-    ):
-        gt_model_name = model_names[2]
-        gt_prefix = "gt_" + gt_model_name.split("/")[-1].split(":")[0].lower()
-        results_mapping.append(
-            {
-                "model_name": gt_model_name,
-                "data": ground_truth_results,
-                "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
-                "prefix": gt_prefix,
-            }
-        )
+    if ground_truth_results is not None and save_ground_truth:
+        # Handle ground truth as a dictionary (like the model results)
+        if isinstance(ground_truth_results, dict) and len(ground_truth_results) > 0:
+            # Get the first key as the ground truth model name
+            gt_model_name = list(ground_truth_results.keys())[0]
+            gt_prefix = "gt_" + gt_model_name.split("/")[-1].split(":")[0].lower()
+            results_mapping.append(
+                {
+                    "model_name": gt_model_name,
+                    "data": ground_truth_results[gt_model_name],
+                    "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
+                    "prefix": gt_prefix,
+                }
+            )
+        else:
+            # Handle direct DataFrame ground truth (old format)
+            gt_prefix = "ground_truth"
+            results_mapping.append(
+                {
+                    "model_name": "ground_truth",
+                    "data": ground_truth_results,
+                    "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
+                    "prefix": gt_prefix,
+                }
+            )
 
     # Process each model's results
     for result_info in results_mapping:
@@ -139,18 +141,15 @@ def save_visualization(
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    # Create filename with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"ocr_visualization_{timestamp}.html"
     filepath = os.path.join(output_dir, filename)
 
-    # Write HTML to file
     with open(filepath, "w") as f:
         f.write(str(visualization))
 
     logger.info(f"Visualization saved to: {filepath}")
 
-    # Log metadata
     log_metadata(
         metadata={
             "visualization_saved": {

@@ -15,53 +15,86 @@
 # limitations under the License.
 """This module contains a unified OCR step that works with multiple models."""
 
-from typing import List, Optional
+import os
+from typing import Dict, List, Optional
 
 import polars as pl
 from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
-from utils import (
-    MODEL_CONFIGS,
-    process_images_with_model,
-)
+from utils.model_configs import MODEL_CONFIGS
+from utils.ocr_processing import process_images_with_model
 
 logger = get_logger(__name__)
 
 
-@step(enable_cache=False)
+@step()
 def run_ocr(
-    images: List[str], model_name: str, custom_prompt: Optional[str] = None
-) -> Annotated[pl.DataFrame, "ocr_results"]:
-    """Extract text from images using the specified model.
+    images: List[str], model_names: List[str], custom_prompt: Optional[str] = None
+) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:
+    """Extract text from images using multiple models in parallel.
 
     Args:
         images: List of paths to image files
-        model_name: Name of the model to use (e.g., "gpt-4o-mini", "ollama/gemma3:27b", "pixtral-12b-2409")
+        model_names: List of model names to use
         custom_prompt: Optional custom prompt to override the default prompt
 
     Returns:
-        Dict: Containing results dataframe with OCR results
+        Dict: Mapping of model name to results dataframe with OCR results
 
     Raises:
-        ValueError: If the model_name is not supported
+        ValueError: If any model_name is not supported
     """
-    if model_name not in MODEL_CONFIGS:
-        supported_models = ", ".join(MODEL_CONFIGS.keys())
-        raise ValueError(
-            f"Unsupported model: {model_name}. Supported models are: {supported_models}"
-        )
+    from concurrent.futures import ThreadPoolExecutor
 
-    model_config = MODEL_CONFIGS[model_name]
+    from tqdm import tqdm
 
-    logger.info(f"Running OCR with model: {model_name}")
+    # Validate all models
+    for model_name in model_names:
+        if model_name not in MODEL_CONFIGS:
+            supported_models = ", ".join(MODEL_CONFIGS.keys())
+            raise ValueError(
+                f"Unsupported model: {model_name}. Supported models are: {supported_models}"
+            )
+
+    logger.info(f"Running OCR with {len(model_names)} models: {', '.join(model_names)}")
     logger.info(f"Processing {len(images)} images")
 
-    results_df = process_images_with_model(
-        model_config=model_config,
-        images=images,
-        custom_prompt=custom_prompt,
-    )
+    results = {}
 
-    return results_df
+    with ThreadPoolExecutor(max_workers=min(len(model_names), 5)) as executor:
+        futures = {
+            model_name: executor.submit(
+                process_images_with_model,
+                model_config=MODEL_CONFIGS[model_name],
+                images=images,
+                custom_prompt=custom_prompt,
+            )
+            for model_name in model_names
+        }
+
+        with tqdm(total=len(model_names), desc="Processing models") as pbar:
+            for model_name, future in futures.items():
+                try:
+                    results_df = future.result()
+                    results[model_name] = results_df
+                    logger.info(f"Completed processing with model: {model_name}")
+                except Exception as e:
+                    logger.error(f"Error processing model {model_name}: {str(e)}")
+                    # empty dataframe with error message to avoid pipeline failure
+                    results[model_name] = pl.DataFrame(
+                        {
+                            "id": range(len(images)),
+                            "image_name": [os.path.basename(img) for img in images],
+                            "raw_text": [f"Error processing with {model_name}: {str(e)}"]
+                            * len(images),
+                            "processing_time": [0.0] * len(images),
+                            "confidence": [0.0] * len(images),
+                            "error": [str(e)] * len(images),
+                        }
+                    )
+                finally:
+                    pbar.update(1)
+
+    return results
