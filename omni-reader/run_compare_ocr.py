@@ -12,15 +12,13 @@ from openai import OpenAI
 from PIL import Image
 
 from utils.encode_image import encode_image
+from utils.extract_json import try_extract_json_from_response
 from utils.model_configs import (
-    BASE_URL,
     DEFAULT_MODEL,
+    DEMO_MODELS,
     MODEL_CONFIGS,
-    ModelConfig,
-    get_mistral_client,
-    get_openai_client,
 )
-from utils.ocr_processing import try_extract_json_from_response
+from utils.ocr_processing import process_image
 from utils.prompt import ImageDescription, get_prompt
 
 load_dotenv()
@@ -47,43 +45,6 @@ def create_completion(
         response_model=ImageDescription,
     )
     result_json = try_extract_json_from_response(response)
-    return result_json
-
-
-def run_mistral_ocr(messages: List[Dict[str, Any]]) -> ImageDescription:
-    """Run Mistral OCR on an image."""
-    client = get_mistral_client()
-    return create_completion(client, "pixtral-12b-2409", messages)
-
-
-def run_openai_ocr(messages: List[Dict[str, Any]]) -> ImageDescription:
-    """Run OpenAI OCR on an image."""
-    client = get_openai_client()
-    return create_completion(client, "gpt-4o-mini", messages)
-
-
-def run_ollama_ocr(model_config: ModelConfig, image_base64: str) -> ImageDescription:
-    """Run Ollama OCR on an image."""
-    base_url = getattr(model_config, "base_url", BASE_URL)
-    if not base_url:
-        base_url = BASE_URL
-
-    payload = {
-        "model": model_config.name,
-        "prompt": get_prompt(),
-        "stream": False,
-        "images": [image_base64],
-    }
-
-    response = requests.post(
-        base_url,
-        json=payload,
-    )
-
-    response.raise_for_status()
-    res = response.json().get("response", "")
-    result_json = try_extract_json_from_response(res)
-
     return result_json
 
 
@@ -122,7 +83,7 @@ def run_ocr_from_ui(
     prompt = custom_prompt if custom_prompt else get_prompt()
 
     try:
-        result_json = model_config.process_image(prompt, image_base64, content_type)
+        result_json = process_image(model_config, prompt, image_base64, content_type)
         processing_time = time.time() - start_time
 
         result = {
@@ -246,7 +207,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default=DEFAULT_MODEL.name,
+        default="all",
         help="Model to use: a specific model ID, 'all' to compare all, or a comma-separated list",
     )
     parser.add_argument(
@@ -274,10 +235,9 @@ def main():
 
     if args.model.lower() == "all":
         # Run all models in parallel
-        model_ids = list(MODEL_CONFIGS.keys())
-        print(f"Processing image with all {len(model_ids)} models in parallel...")
+        print(f"Processing image with all {len(DEMO_MODELS)} models in parallel...")
 
-        results = run_models_in_parallel(args.image, model_ids, args.prompt)
+        results = run_models_in_parallel(args.image, DEMO_MODELS, args.prompt)
 
         successful_models = sum(1 for result in results.values() if "error" not in result)
         failed_models = len(results) - successful_models
