@@ -24,19 +24,31 @@ class ImageDescription(BaseModel):
     """Base model for OCR results."""
 
     raw_text: str
-    confidence: float
+    confidence: Optional[float] = None
 
 
-def get_prompt(custom_prompt: Optional[str] = None, language: str = "English") -> str:
-    """Return the prompt for the OCR model."""
+def get_prompt(custom_prompt: Optional[str] = None) -> str:
+    """Default prompt for the OCR model."""
     if custom_prompt:
         return custom_prompt
-    return f"""Extract all visible text from this image in {language} **without any changes**.
+    return """Extract all visible text from this image **without any changes**.
         - **Do not summarize, paraphrase, or infer missing text.**
         - Retain all spacing, punctuation, and formatting exactly as in the image.
         - If text is unclear or partially visible, extract as much as possible without guessing.
         - **Include all text, even if it seems irrelevant or repeated.** 
         - Return your response as a JSON object with the following fields:
+            - raw_text: The extracted text from the image
+            - confidence: The confidence score in the extracted text as a float between 0 and 1
+        """
+
+
+def get_json_prompt() -> str:
+    """Alternative prompt focusing on JSON output."""
+    return """Extract all text from this image and format it as JSON, **strictly preserving** the structure.
+        - **Do not summarize, add, or modify any text.**
+        - Maintain hierarchical sections and subsections as they appear.
+        - Include all text, even if fragmented, blurry, or unclear.
+        - Use the following keys:
             - raw_text: The extracted text from the image
             - confidence: The confidence score in the extracted text as a float between 0 and 1
         """

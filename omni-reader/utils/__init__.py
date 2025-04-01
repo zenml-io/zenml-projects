@@ -16,7 +16,7 @@
 
 from .encode_image import encode_image
 from .metrics import compare_results
-from .ocr_model_utils import (
+from .ocr_processing import (
     log_image_metadata,
     log_error_metadata,
     log_summary_metadata,
@@ -32,11 +32,10 @@ from .io_utils import (
     load_ground_truth_from_json,
     list_available_ground_truth_files,
 )
-from .model_info import (
+from .model_configs import (
     MODEL_CONFIGS,
     ModelConfig,
     get_openai_client,
     get_mistral_client,
-    get_gemma_client,
     get_model_info,
 )
