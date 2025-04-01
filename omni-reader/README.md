@@ -125,6 +125,11 @@ For interactive use, the project includes a Streamlit app:
 streamlit run app.py
 ```
 
+<div align="center">
+  <img src="assets/streamlit.png" alt="Streamlit UI Interface" width="800"/>
+  <p><em>Interactive Streamlit interface for easy document processing and model comparison</em></p>
+</div>
+
 ### ### Remote Artifact Storage and Execution
 
 This project supports storing artifacts remotely and executing pipelines on cloud infrastructure. Follow these steps to configure your environment for remote operation:
@@ -191,6 +196,11 @@ ZenML's metadata tracking is used throughout the pipeline:
 - Pipeline results are available in the ZenML Dashboard
 - HTML visualizations can be automatically saved to configurable directories
 
+<div align="center">
+  <img src="assets/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
+  <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
+</div>
+
 ## 📁 Project Organization
 
 ```
@@ -210,4 +220,5 @@ omni-reader/
 ## 🔗 Links
 
 - [ZenML Documentation](https://docs.zenml.io/)
-- [Mistral AI Vision](https://docs.mistral.ai/capabilities/vision/)
+- [Mistral AI Vision Documentation](https://docs.mistral.ai/capabilities/vision/)
+- [Gemma 3 Documentation](https://ai.google.dev/gemma/docs/integrations/ollama)
