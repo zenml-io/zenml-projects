@@ -35,7 +35,6 @@ from .io_utils import (
 )
 from .model_configs import (
     MODEL_CONFIGS,
-    DEMO_MODELS,
     ModelConfig,
     get_model_info,
 )
