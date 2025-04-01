@@ -7,8 +7,11 @@ input:
 
 models:
   custom_prompt: null # Optional custom prompt to use for both models
-  model1: "ollama/gemma3:27b" # First model for comparison (default: Gemma 3)
-  model2: "pixtral-12b-2409" # Second model for comparison (default: Mistral)
+  model1: "llama3.2-vision:11b" # First model for comparison
+  model2: "pixtral-12b-2409" # Second model for comparison
+  models:
+    - "llama3.2-vision:11b"
+    - "pixtral-12b-2409"
   ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 ground_truth:
