@@ -20,23 +20,18 @@ pip install -r requirements.txt
 
 ### Configuration
 
-1. Ensure Ollama is running with the required models:
+1. Ensure any Ollama models you want to use are pulled, e.g.:
 
 ```bash
-# For using the default Qwen2 model
 ollama pull llama3.2-vision:11b
 ollama pull gemma3:12b
-
-# If using other Ollama models in your config, pull those as well
-# ollama pull llama3:70b
-# ollama pull dolphin-mixtral:8x7b
 ```
 
 2. Set the following environment variables:
 
 ```bash
-MISTRAL_API_KEY=your_mistral_api_key
 OPENAI_API_KEY=your_openai_api_key
+MISTRAL_API_KEY=your_mistral_api_key
 ```
 
 ## 📌 Usage
@@ -66,9 +61,9 @@ models:
   custom_prompt: null # Optional custom prompt for all models
   # Either specify individual models (for backward compatibility)
   model1: "llama3.2-vision:11b" # First model for comparison
-  model2: "gemma3:12b" # Second model for comparison
+  model2: "mistral/pixtral-12b-2409" # Second model for comparison
   # Or specify multiple models as a list (new approach)
-  models: ["llama3.2-vision:11b", "gemma3:12b"]
+  models: ["llama3.2-vision:11b", "mistral/pixtral-12b-2409"]
   ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
 
 # Ground truth configuration
@@ -129,6 +124,19 @@ For interactive use, the project includes a Streamlit app:
 ```bash
 streamlit run app.py
 ```
+
+### Remote Artifact Storage or Running Remotely
+
+For remote artifact storage or running remotely, install the ZenML integrations for your cloud provider.
+
+For example, for AWS, install the AWS integration:
+
+```bash
+zenml integration install aws -y
+zenml integration install s3 -y
+```
+
+And ensure your stack has a remote
 
 ## 📋 Pipeline Architecture
 
