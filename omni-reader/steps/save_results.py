@@ -25,6 +25,7 @@ from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from utils import save_ocr_data_to_json
+from utils.model_configs import MODEL_CONFIGS, get_model_info
 
 logger = get_logger(__name__)
 
@@ -37,7 +38,6 @@ def save_ocr_results(
     output_dir: str = "ocr_results",
     ground_truth_output_dir: str = "ocr_results",
     save_ground_truth: bool = False,
-    primary_models: Optional[List[str]] = None,
 ) -> Dict[str, str]:
     """Save OCR results from multiple models.
 
@@ -48,7 +48,6 @@ def save_ocr_results(
         output_dir: Base directory to save OCR results
         ground_truth_output_dir: Directory to save ground truth OCR results
         save_ground_truth: Whether to save ground truth results
-        primary_models: Optional list of primary models to focus on
 
     Returns:
         Dictionary of model names to file paths
@@ -57,17 +56,19 @@ def save_ocr_results(
     metadata_dict = {}
 
     results_mapping = []
+    
+    if not model_names and ocr_results:
+        model_names = list(ocr_results.keys())
 
-    # Get primary models if provided
-    if not primary_models and model_names:
-        primary_models = model_names[: min(2, len(model_names))]
-
-    # Process all model results from the dictionary
     if ocr_results and model_names:
         for model_name in model_names:
-            # Only process models that exist in the results
             if model_name in ocr_results:
-                model_prefix = model_name.split("/")[-1].split(":")[0].lower()
+                
+                if model_name in MODEL_CONFIGS:
+                    model_prefix = MODEL_CONFIGS[model_name].prefix
+                else:
+                    _, model_prefix = get_model_info(model_name)
+                
                 results_mapping.append(
                     {
                         "model_name": model_name,
@@ -77,23 +78,29 @@ def save_ocr_results(
                     }
                 )
 
-    # Process ground truth results
     if ground_truth_results is not None and save_ground_truth:
-        # Handle ground truth as a dictionary (like the model results)
+        # Handle ground truth as a dictionary of model results
         if isinstance(ground_truth_results, dict) and len(ground_truth_results) > 0:
-            # Get the first key as the ground truth model name
             gt_model_name = list(ground_truth_results.keys())[0]
-            gt_prefix = "gt_" + gt_model_name.split("/")[-1].split(":")[0].lower()
+            
+            # Determine prefix based on model name
+            if gt_model_name in MODEL_CONFIGS:
+                gt_prefix = "gt_" + MODEL_CONFIGS[gt_model_name].prefix
+            else:
+                _, model_prefix = get_model_info(gt_model_name)
+                gt_prefix = "gt_" + model_prefix
+                
+            # Save only once in the ground_truth directory with gt_ prefix
             results_mapping.append(
                 {
-                    "model_name": gt_model_name,
+                    "model_name": "ground_truth",
                     "data": ground_truth_results[gt_model_name],
                     "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
                     "prefix": gt_prefix,
                 }
             )
         else:
-            # Handle direct DataFrame ground truth (old format)
+            # Handle ground truth as a direct DataFrame
             gt_prefix = "ground_truth"
             results_mapping.append(
                 {
@@ -104,7 +111,6 @@ def save_ocr_results(
                 }
             )
 
-    # Process each model's results
     for result_info in results_mapping:
         model_name = result_info["model_name"]
         df = result_info["data"]
@@ -119,11 +125,9 @@ def save_ocr_results(
 
         logger.info(f"{model_name} results saved to: {filepath}")
 
-    # Log metadata
     log_metadata(metadata={"ocr_results_saved": metadata_dict})
 
     return saved_paths
-
 
 @step
 def save_visualization(

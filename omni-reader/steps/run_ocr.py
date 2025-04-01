@@ -29,7 +29,7 @@ from utils.ocr_processing import process_images_with_model
 logger = get_logger(__name__)
 
 
-@step()
+@step(enable_cache=False)
 def run_ocr(
     images: List[str], model_names: List[str], custom_prompt: Optional[str] = None
 ) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:

@@ -105,7 +105,7 @@ def load_ground_truth_from_json(filepath: str) -> pl.DataFrame:
 
 
 def list_available_ground_truth_files(
-    directory: str = "ground_truth", pattern: str = "gt_*.json"
+    directory: str = "ocr_results/ground_truth", pattern: str = "gt_*.json"
 ) -> List[str]:
     """List available ground truth files.
 

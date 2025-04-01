@@ -27,7 +27,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=False)
 def load_images(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,

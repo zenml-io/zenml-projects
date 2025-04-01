@@ -1,40 +1,36 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2025. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """This module contains the steps for evaluating the OCR models."""
 
+import base64
+import os
+import re
+import unicodedata
 from typing import Any, Dict, List, Optional
 
 import polars as pl
 import textdistance
+from jiwer import cer, wer
 from typing_extensions import Annotated
 from zenml import get_step_context, log_metadata, step
 from zenml.types import HTMLString
 
-from utils import compare_results, get_model_info
+from utils import compare_multi_model, get_model_info
+from utils.model_configs import MODEL_CONFIGS
+
+
+def load_svg_logo(logo_name: str) -> str:
+    """Load an SVG logo as base64 encoded string."""
+    logo_path = os.path.join("./assets/logos", logo_name)
+    try:
+        if os.path.exists(logo_path):
+            with open(logo_path, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+    except Exception:
+        pass
+    return ""
 
 
 def create_metrics_table(metrics: Dict[str, float]) -> str:
-    """Create an HTML table for metrics.
-
-    Args:
-        metrics: Dictionary of metrics to display
-
-    Returns:
-        str: HTML table string
-    """
+    """Create an HTML table for metrics."""
     rows = ""
     for key, value in metrics.items():
         rows += f"""
@@ -43,7 +39,6 @@ def create_metrics_table(metrics: Dict[str, float]) -> str:
             <td class="p-2 border text-right">{value:.4f}</td>
         </tr>
         """
-
     table = f"""
     <table class="min-w-full bg-white border border-gray-300 shadow-sm">
         <thead>
