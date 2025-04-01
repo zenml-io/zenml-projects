@@ -15,9 +15,11 @@
 # limitations under the License.
 """OCR Comparison Pipeline implementation with YAML configuration support."""
 
+import os
 from typing import Any, Dict, List, Literal, Optional
 
-from zenml import pipeline
+from dotenv import load_dotenv
+from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.logger import get_logger
 
@@ -29,6 +31,8 @@ from steps import (
     save_ocr_results,
     save_visualization,
 )
+
+load_dotenv()
 
 docker_settings = DockerSettings(
     dockerfile="Dockerfile",
@@ -44,9 +48,32 @@ docker_settings = DockerSettings(
         "ollama==0.4.7",
         "pyarrow>=7.0",
     ],
+    environment={
+        "OLLAMA_HOST": "${OLLAMA_HOST:-http://localhost:11434}",
+        "OLLAMA_MODELS": "/root/.ollama",
+        "OLLAMA_TIMEOUT": "600s",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    },
 )
 
 logger = get_logger(__name__)
+
+
+@step
+def extract_ground_truth_df(ground_truth_results, ground_truth_model):
+    """Extract ground truth DataFrame from the results dictionary.
+
+    Args:
+        ground_truth_results: Dictionary with model results returned by run_ocr
+        ground_truth_model: Name of the ground truth model
+
+    Returns:
+        The ground truth DataFrame
+    """
+    if ground_truth_model in ground_truth_results:
+        return ground_truth_results[ground_truth_model]
+    return None
 
 
 @pipeline(settings={"docker": docker_settings})
@@ -54,8 +81,7 @@ def ocr_comparison_pipeline(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
     custom_prompt: Optional[str] = None,
-    model1: str = "ollama/gemma3:27b",
-    model2: str = "pixtral-12b-2409",
+    models: Optional[List[str]] = None,
     ground_truth_model: str = "gpt-4o-mini",
     ground_truth_source: Literal["openai", "manual", "file", "none"] = "none",
     ground_truth_file: Optional[str] = None,
@@ -66,14 +92,13 @@ def ocr_comparison_pipeline(
     save_visualization_data: bool = False,
     visualization_output_dir: str = "visualizations",
 ) -> None:
-    """Run OCR comparison pipeline between two configurable models.
+    """Run OCR comparison pipeline between multiple configurable models.
 
     Args:
         image_paths: Optional list of specific image paths to process
         image_folder: Optional folder to search for images
         custom_prompt: Optional custom prompt to use for both models
-        model1: Name of the first model to use (default: ollama/gemma3:27b)
-        model2: Name of the second model to use (default: pixtral-12b-2409)
+        models: List of model names to use (if None, uses default models)
         ground_truth_model: Name of the model to use for ground truth when source is "openai"
         ground_truth_source: Source of ground truth - "openai" to use configured model, "manual" for user-provided texts,
                             "file" to load from a saved JSON file, or "none" to skip ground truth evaluation
@@ -89,43 +114,46 @@ def ocr_comparison_pipeline(
         None
     """
     images = load_images(image_paths=image_paths, image_folder=image_folder)
-    model_names = []
 
-    model1_results = run_ocr(images=images, model_name=model1, custom_prompt=custom_prompt)
-    model_names.append(model1)
+    # Default to two models if none provided
+    if not models or len(models) < 2:
+        models = ["llama3.2-vision:11b", "pixtral-12b-2409"]
 
-    model2_results = run_ocr(images=images, model_name=model2, custom_prompt=custom_prompt)
-    model_names.append(model2)
+    # Process all models in parallel
+    model_results = run_ocr(images=images, model_names=models, custom_prompt=custom_prompt)
 
-    # Handle ground truth based on the selected source
-    ground_truth = None
-    openai_results = None
-
+    # Process ground truth separately to avoid including it in the main comparison
+    ground_truth_df = None
     if ground_truth_source == "openai":
-        openai_results = run_ocr(
-            images=images, model_name=ground_truth_model, custom_prompt=custom_prompt
+        # Run OCR on the ground truth model
+        ground_truth_results = run_ocr(
+            images=images, model_names=[ground_truth_model], custom_prompt=custom_prompt
         )
-        ground_truth = openai_results
-        model_names.append(ground_truth_model)
-    elif ground_truth_source == "file" and ground_truth_file:
-        ground_truth = load_ground_truth_file(filepath=ground_truth_file)
 
-    # Evaluate models
+        # Extract the ground truth DataFrame from the results dictionary
+        ground_truth_df = extract_ground_truth_df(
+            ground_truth_results=ground_truth_results, ground_truth_model=ground_truth_model
+        )
+
+        models.append(ground_truth_model)
+    elif ground_truth_source == "file" and ground_truth_file:
+        ground_truth_df = load_ground_truth_file(filepath=ground_truth_file)
+
+    # Select the first two models as primary for visualization (maintaining backward compatibility)
+    primary_models = models[:2]
+
     visualization = evaluate_models(
-        model1_df=model1_results,
-        model2_df=model2_results,
-        ground_truth_df=ground_truth,
-        model1_name=model1,
-        model2_name=model2,
+        model_results=model_results,
+        ground_truth_df=ground_truth_df,
+        primary_models=primary_models,
     )
 
     # Save OCR results if requested
     if save_ocr_results_data or save_ground_truth_data:
         save_ocr_results(
-            model1_results=model1_results,
-            model2_results=model2_results,
-            ground_truth_results=ground_truth,
-            model_names=model_names,
+            ocr_results=model_results,
+            ground_truth_results=ground_truth_df,
+            model_names=models,
             output_dir=ocr_results_output_dir,
             ground_truth_output_dir=ground_truth_output_dir,
             save_ground_truth=save_ground_truth_data,
@@ -145,12 +173,18 @@ def run_ocr_pipeline(config: Dict[str, Any]) -> None:
     Returns:
         None
     """
+    models = config["models"].get("models")
+    if not models:
+        models = [
+            config["models"].get("model1", "llama3.2-vision:11b"),
+            config["models"].get("model2", "pixtral-12b-2409"),
+        ]
+
     ocr_comparison_pipeline(
         image_paths=config["input"].get("image_paths"),
         image_folder=config["input"].get("image_folder"),
         custom_prompt=config["models"].get("custom_prompt"),
-        model1=config["models"].get("model1", "ollama/gemma3:27b"),
-        model2=config["models"].get("model2", "pixtral-12b-2409"),
+        models=models,
         ground_truth_model=config["models"].get("ground_truth_model", "gpt-4o-mini"),
         ground_truth_source=config["ground_truth"].get("source", "none"),
         ground_truth_file=config["ground_truth"].get("file"),
