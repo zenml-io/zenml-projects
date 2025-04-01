@@ -15,12 +15,13 @@
 # limitations under the License.
 
 from .encode_image import encode_image
-from .metrics import compare_results
+from .metrics import compare_multi_model
 from .ocr_processing import (
     log_image_metadata,
     log_error_metadata,
     log_summary_metadata,
     process_images_with_model,
+    process_image,
 )
 from .prompt import (
     get_prompt,
@@ -34,8 +35,8 @@ from .io_utils import (
 )
 from .model_configs import (
     MODEL_CONFIGS,
+    DEMO_MODELS,
     ModelConfig,
-    get_openai_client,
-    get_mistral_client,
     get_model_info,
 )
+from .extract_json import try_extract_json_from_response

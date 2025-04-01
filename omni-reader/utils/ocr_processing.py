@@ -15,72 +15,25 @@
 # limitations under the License.
 """Utility functions for OCR operations across different models."""
 
-import contextlib
-import json
 import os
-import re
 import statistics
 import time
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import polars as pl
+import requests
 from dotenv import load_dotenv
 from zenml import log_metadata
 from zenml.logger import get_logger
 
 from utils.encode_image import encode_image
+from utils.extract_json import try_extract_json_from_response
 from utils.model_configs import ModelConfig
 from utils.prompt import ImageDescription, get_prompt
 
 load_dotenv()
+
 logger = get_logger(__name__)
-
-
-def try_extract_json_from_response(response: Any) -> Dict:
-    """Extract JSON from a response, handling various formats.
-
-    Args:
-        response: The response which could be string, dict, or object
-
-    Returns:
-        Dict with extracted data
-    """
-    # If already a dict with raw_text, return it
-    if isinstance(response, dict) and "raw_text" in response:
-        return response
-
-    # Convert to string if it's an object with content
-    response_text = ""
-    if hasattr(response, "choices") and len(response.choices) > 0:
-        if hasattr(response.choices[0], "message") and hasattr(
-            response.choices[0].message, "content"
-        ):
-            response_text = response.choices[0].message.content
-    elif isinstance(response, str):
-        response_text = response
-    elif hasattr(response, "raw_text"):
-        # This handles the ImageDescription object case
-        return {"raw_text": response.raw_text, "confidence": getattr(response, "confidence", None)}
-
-    # Try to extract JSON from the text
-    JSON_PATTERN = re.compile(r"```json\n(.*?)```", re.DOTALL)
-    DIRECT_JSON_PATTERN = re.compile(r"\{[^}]*\}", re.DOTALL)
-
-    try:
-        if match := JSON_PATTERN.search(response_text):
-            json_results = match.group(1)
-            with contextlib.suppress(json.JSONDecodeError):
-                return json.loads(json_results)
-        if match := DIRECT_JSON_PATTERN.search(response_text):
-            json_text = match.group(0)
-            with contextlib.suppress(json.JSONDecodeError):
-                return json.loads(json_text)
-
-        # If we get here, no JSON could be extracted, so use the text as raw_text
-        return {"raw_text": response_text, "confidence": None}
-    except Exception as e:
-        # Fallback for any other errors
-        return {"raw_text": f"Error: {str(e)}", "confidence": 0.0, "success": False}
 
 
 def log_image_metadata(
@@ -176,6 +129,118 @@ def log_summary_metadata(
     )
 
 
+def process_ollama_based(model_name, prompt, image_base64):
+    """Process an image with an Ollama model."""
+    # DOCKER_BASE_URL = "http://host.docker.internal:11434/api/generate"
+    BASE_URL = "http://localhost:11434/api/generate"
+
+    payload = {
+        "model": model_name,
+        "prompt": prompt,
+        "stream": False,
+        "images": [image_base64],
+    }
+
+    try:
+        response = requests.post(
+            BASE_URL,
+            json=payload,
+            timeout=120,  # 2mins, in case of really complex images
+        )
+        response.raise_for_status()
+        res = response.json().get("response", "")
+        result_json = try_extract_json_from_response(res)
+
+        return result_json
+    except Exception as e:
+        logger.error(f"Error processing with Ollama model {model_name}: {str(e)}")
+        return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
+
+
+def process_openai_based(model_name, prompt, image_url):
+    """Process an image with an API-based model (OpenAI, Mistral)."""
+    import instructor
+    from openai import OpenAI
+
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = instructor.from_openai(openai_client)
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": image_url},
+                },
+            ],
+        }
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            response_model=ImageDescription,
+            temperature=0.0,
+        )
+
+        result_json = try_extract_json_from_response(response)
+        return result_json
+    except Exception as e:
+        logger.error(f"Error processing with {model_name}: {str(e)}")
+        return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
+
+
+def process_litellm_based(model_config, prompt, image_url):
+    """Process an image with a Litellm model."""
+    from litellm import completion
+
+    os.environ["MISTRAL_API_KEY"] = os.getenv("MISTRAL_API_KEY")
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": prompt,
+                },
+                {
+                    "type": "image_url",
+                    "image_url": image_url,
+                },
+            ],
+        },
+    ]
+
+    response = completion(
+        model=model_config.name,
+        messages=messages,
+        custom_llm_provider=model_config.provider,
+        temperature=0.0,
+    )
+
+    result_text = response["choices"][0]["message"]["content"]
+    ocr_result = try_extract_json_from_response(result_text)
+    return ocr_result
+
+
+def process_image(model_config, prompt, image_base64, content_type="image/jpeg"):
+    """Process an image with this model."""
+    model_name = model_config.name
+    image_url = f"data:{content_type};base64,{image_base64}"
+    if model_config.provider == "mistral":
+        return process_litellm_based(model_config, prompt, image_url)
+    elif model_config.provider == "ollama":
+        return process_ollama_based(model_name, prompt, image_base64)
+    elif model_config.provider == "openai":
+        return process_openai_based(model_name, prompt, image_url)
+    else:
+        raise ValueError(f"Unsupported provider: {model_config.provider}")
+
+
 def process_images_with_model(
     model_config: ModelConfig,
     images: List[str],
@@ -217,7 +282,7 @@ def process_images_with_model(
         try:
             content_type, image_base64 = encode_image(image_path)
 
-            result_json = model_config.process_image(prompt, image_base64, content_type)
+            result_json = process_image(model_config, prompt, image_base64, content_type)
 
             raw_text = result_json.get("raw_text", "No text found")
             confidence = result_json.get("confidence", model_config.default_confidence)

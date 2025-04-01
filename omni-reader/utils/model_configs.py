@@ -15,17 +15,8 @@
 # limitations under the License.
 """Model configuration utilities for OCR operations."""
 
-import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
-
-import instructor
-import requests
-from mistralai import Mistral
-from openai import OpenAI
-from zenml.logger import get_logger
-
-logger = get_logger(__name__)
 
 
 @dataclass
@@ -37,106 +28,11 @@ class ModelConfig:
     provider: str
     prefix: str
     logo: Optional[str] = None
-    base_url: Optional[str] = None
     additional_params: Dict[str, Any] = field(default_factory=dict)
     default_confidence: float = 0.5
 
-    def get_client(self):
-        """Get the appropriate client for this model configuration."""
-        if self.provider == "openai":
-            return get_openai_client()
-        elif self.provider == "mistral":
-            return get_mistral_client()
-        else:
-            raise ValueError(f"Unsupported provider: {self.provider}")
 
-    def process_image(self, prompt, image_base64, content_type="image/jpeg"):
-        """Process an image with this model."""
-        if self.provider == "ollama":
-            return self._process_ollama(prompt, image_base64)
-        else:
-            return self._process_api_based(prompt, image_base64, content_type)
-
-    def _process_ollama(self, prompt, image_base64):
-        """Process an image with an Ollama model."""
-        from utils.ocr_processing import try_extract_json_from_response
-
-        base_url = self.base_url or DOCKER_BASE_URL
-
-        payload = {
-            "model": self.name,
-            "prompt": prompt,
-            "stream": False,
-            "images": [image_base64],
-        }
-
-        try:
-            response = requests.post(
-                base_url,
-                json=payload,
-                timeout=120,  # Increase timeout for larger images
-            )
-            response.raise_for_status()
-            res = response.json().get("response", "")
-            result_json = try_extract_json_from_response(res)
-
-            return result_json
-        except Exception as e:
-            logger.error(f"Error processing with Ollama model {self.name}: {str(e)}")
-            return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
-
-    def _process_api_based(self, prompt, image_base64, content_type):
-        """Process an image with an API-based model (OpenAI, Mistral)."""
-        from utils.ocr_processing import try_extract_json_from_response
-        from utils.prompt import ImageDescription
-
-        client = self.get_client()
-
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{content_type};base64,{image_base64}"},
-                    },
-                ],
-            }
-        ]
-
-        try:
-            response = client.chat.completions.create(
-                model=self.name,
-                messages=messages,
-                response_model=ImageDescription,
-                **self.additional_params,
-            )
-
-            result_json = try_extract_json_from_response(response)
-            return result_json
-        except Exception as e:
-            logger.error(f"Error processing with {self.provider} model {self.name}: {str(e)}")
-            return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
-
-
-# --------- Ollama models ---------
-DOCKER_BASE_URL = "http://host.docker.internal:11434/api/generate"
-BASE_URL = "http://localhost:11434/api/generate"
-
-
-def get_openai_client():
-    """Get an OpenAI client with instructor integration."""
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    return instructor.from_openai(client)
-
-
-def get_mistral_client():
-    """Get a Mistral client with instructor integration."""
-    client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
-    return instructor.from_mistral(client)
-
-
+# --------- Model info ---------
 def get_model_info(model_name: str) -> Tuple[str, str]:
     """Returns a tuple (display, prefix) for a given model name.
 
@@ -173,12 +69,12 @@ def get_model_info(model_name: str) -> Tuple[str, str]:
 
 # ---------  models ---------
 MODEL_CONFIGS = {
-    "pixtral-12b-2409": ModelConfig(
-        name="pixtral-12b-2409",
+    "mistral/pixtral-12b-2409": ModelConfig(
+        name="mistral/pixtral-12b-2409",
         display="Mistral Pixtral 12B",
         provider="mistral",
         prefix="pixtral_12b_2409",
-        logo="mistral.svg",
+        logo="mistralai.svg",
     ),
     "gpt-4o-mini": ModelConfig(
         name="gpt-4o-mini",
@@ -193,7 +89,13 @@ MODEL_CONFIGS = {
         provider="ollama",
         prefix="gemma3_12b",
         logo="gemma.svg",
-        base_url=BASE_URL,
+    ),
+    "gemma3:27b": ModelConfig(
+        name="gemma3:27b",
+        display="Gemma 3 27B",
+        provider="ollama",
+        prefix="gemma3_27b",
+        logo="gemma.svg",
     ),
     "llama3.2-vision:11b": ModelConfig(
         name="llama3.2-vision:11b",
@@ -201,23 +103,20 @@ MODEL_CONFIGS = {
         provider="ollama",
         prefix="llama3_2_vision_11b",
         logo="ollama.svg",
-        base_url=BASE_URL,
     ),
     "granite3.2-vision": ModelConfig(
         name="granite3.2-vision",
         display="Granite 3.2 Vision",
         provider="ollama",
         prefix="granite3_2_vision",
-        logo="granite.svg",
-        base_url=BASE_URL,
+        logo="ollama.svg",
     ),
     "llava:7b": ModelConfig(
         name="llava:7b",
         display="Llava 7B",
         provider="ollama",
         prefix="llava_7b",
-        logo="llava.svg",
-        base_url=BASE_URL,
+        logo="ollama.svg",
     ),
     "moondream": ModelConfig(
         name="moondream",
@@ -225,7 +124,6 @@ MODEL_CONFIGS = {
         provider="ollama",
         prefix="moondream_v",
         logo="moondream.svg",
-        base_url=BASE_URL,
     ),
     "minicpm-v": ModelConfig(
         name="minicpm-v",
@@ -233,16 +131,8 @@ MODEL_CONFIGS = {
         provider="ollama",
         prefix="minicpm_v",
         logo="ollama.svg",
-        base_url=BASE_URL,
-    ),
-    "qwen2:latest": ModelConfig(
-        name="qwen2:latest",
-        display="Qwen2",
-        provider="ollama",
-        prefix="qwen2_latest",
-        logo="qwen.svg",
-        base_url=BASE_URL,
     ),
 }
 
-DEFAULT_MODEL = MODEL_CONFIGS["llama3.2-vision:11b"]
+
+DEFAULT_MODEL = MODEL_CONFIGS["mistral/pixtral-12b-2409"]

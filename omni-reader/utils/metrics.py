@@ -19,7 +19,7 @@ import difflib
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 from jiwer import cer, wer
 
@@ -110,69 +110,48 @@ def analyze_errors(ground_truth: str, predicted: str) -> ErrorAnalysis:
     )
 
 
-def compare_results(
+def compare_multi_model(
     ground_truth: str,
-    model1_text: str,
-    model2_text: str,
-    model1_display: str = "Gemma",
-    model2_display: str = "Mistral",
-) -> dict:
-    """Compares OCR results from the two models with the ground truth.
+    model_texts: Dict[str, str],
+) -> Dict[str, Dict[str, Union[float, int, Dict]]]:
+    """Compares OCR results from multiple models with the ground truth.
 
     Args:
         ground_truth (str): The ground truth text.
-        model1_text (str): The text extracted by the first model.
-        model2_text (str): The text extracted by the second model.
-        model1_display (str): Display name for the first model.
-        model2_display (str): Display name for the second model.
+        model_texts (Dict[str, str]): Dictionary mapping model display names to extracted text.
 
     Returns:
-        dict: A dictionary containing metrics and error analysis for each model.
+        Dict[str, Dict[str, Union[float, int, Dict]]]: A dictionary of model names to metrics.
     """
-    # Basic metrics
-    metrics = {
-        f"{model1_display} CER": cer(ground_truth, model1_text),
-        f"{model1_display} WER": wer(ground_truth, model1_text),
-        f"{model2_display} CER": cer(ground_truth, model2_text),
-        f"{model2_display} WER": wer(ground_truth, model2_text),
-    }
+    # Initialize results dictionary
+    results = {}
 
-    # Detailed error analysis
-    model1_analysis = analyze_errors(ground_truth, model1_text)
-    model2_analysis = analyze_errors(ground_truth, model2_text)
+    # Calculate metrics for each model
+    for model_display, text in model_texts.items():
+        model_metrics = {}
 
-    # Add detailed metrics to the results
-    metrics.update(
-        {
-            f"{model1_display} Insertions": model1_analysis.insertions,
-            f"{model1_display} Deletions": model1_analysis.deletions,
-            f"{model1_display} Substitutions": model1_analysis.substitutions,
-            f"{model1_display} Insertion Rate": model1_analysis.error_distribution.get(
-                "insertions", 0
-            ),
-            f"{model1_display} Deletion Rate": model1_analysis.error_distribution.get(
-                "deletions", 0
-            ),
-            f"{model1_display} Substitution Rate": model1_analysis.error_distribution.get(
-                "substitutions", 0
-            ),
-            f"{model1_display} Error Positions": model1_analysis.error_positions,
-            f"{model1_display} Common Substitutions": model1_analysis.common_substitutions,
-            f"{model2_display} Insertions": model2_analysis.insertions,
-            f"{model2_display} Deletions": model2_analysis.deletions,
-            f"{model2_display} Substitutions": model2_analysis.substitutions,
-            f"{model2_display} Insertion Rate": model2_analysis.error_distribution.get(
-                "insertions", 0
-            ),
-            f"{model2_display} Deletion Rate": model2_analysis.error_distribution.get(
-                "deletions", 0
-            ),
-            f"{model2_display} Substitution Rate": model2_analysis.error_distribution.get(
-                "substitutions", 0
-            ),
-            f"{model2_display} Error Positions": model2_analysis.error_positions,
-            f"{model2_display} Common Substitutions": model2_analysis.common_substitutions,
-        }
-    )
+        # Basic metrics
+        model_metrics["CER"] = cer(ground_truth, text)
+        model_metrics["WER"] = wer(ground_truth, text)
 
-    return metrics
+        # Detailed error analysis
+        model_analysis = analyze_errors(ground_truth, text)
+
+        # Add detailed metrics
+        model_metrics.update(
+            {
+                "Insertions": model_analysis.insertions,
+                "Deletions": model_analysis.deletions,
+                "Substitutions": model_analysis.substitutions,
+                "Insertion Rate": model_analysis.error_distribution.get("insertions", 0),
+                "Deletion Rate": model_analysis.error_distribution.get("deletions", 0),
+                "Substitution Rate": model_analysis.error_distribution.get("substitutions", 0),
+                "Error Positions": model_analysis.error_positions,
+                "Common Substitutions": model_analysis.common_substitutions,
+            }
+        )
+
+        # Store in results
+        results[model_display] = model_metrics
+
+    return results
