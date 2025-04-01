@@ -1,25 +1,95 @@
-"""Module for running OCR comparison without using ZenML pipeline."""
+"""Module for running OCR comparison from Streamlit app."""
 
 import argparse
 import os
 import time
 from typing import Any, Dict, List, Optional
 
-import instructor
+import requests
 from dotenv import load_dotenv
-from litellm import completion
 from mistralai import Mistral
+from openai import OpenAI
 from PIL import Image
 
 from utils.encode_image import encode_image
+from utils.model_configs import (
+    BASE_URL,
+    DEFAULT_MODEL,
+    MODEL_CONFIGS,
+    ModelConfig,
+    get_mistral_client,
+    get_openai_client,
+)
+from utils.ocr_processing import try_extract_json_from_response
 from utils.prompt import ImageDescription, get_prompt
 
 load_dotenv()
 
 
+def create_completion(
+    client: Mistral | OpenAI,
+    model_name: str,
+    messages: List[Dict[str, Any]],
+) -> ImageDescription:
+    """Create a completion for a given model.
+
+    Args:
+        client: The client to use to create the completion
+        model_name: The name of the model to use
+        messages: The messages to use to create the completion
+
+    Returns:
+        The completion as a JSON object (ImageDescription)
+    """
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=messages,
+        response_model=ImageDescription,
+    )
+    result_json = try_extract_json_from_response(response)
+    return result_json
+
+
+def run_mistral_ocr(messages: List[Dict[str, Any]]) -> ImageDescription:
+    """Run Mistral OCR on an image."""
+    client = get_mistral_client()
+    return create_completion(client, "pixtral-12b-2409", messages)
+
+
+def run_openai_ocr(messages: List[Dict[str, Any]]) -> ImageDescription:
+    """Run OpenAI OCR on an image."""
+    client = get_openai_client()
+    return create_completion(client, "gpt-4o-mini", messages)
+
+
+def run_ollama_ocr(model_config: ModelConfig, image_base64: str) -> ImageDescription:
+    """Run Ollama OCR on an image."""
+    base_url = getattr(model_config, "base_url", BASE_URL)
+    if not base_url:
+        base_url = BASE_URL
+
+    payload = {
+        "model": model_config.name,
+        "prompt": get_prompt(),
+        "stream": False,
+        "images": [image_base64],
+    }
+
+    response = requests.post(
+        base_url,
+        json=payload,
+    )
+
+    response.raise_for_status()
+    res = response.json().get("response", "")
+    result_json = try_extract_json_from_response(res)
+
+    return result_json
+
+
 def run_ocr_from_ui(
     image: str | Image.Image,
-    model: str = "ollama/gemma3:27b",
+    model: str,
     custom_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Extract text directly using OCR model.
@@ -28,194 +98,244 @@ def run_ocr_from_ui(
 
     Args:
         image: Path to image or PIL image
+        model: ID of the model to use
         custom_prompt: Optional custom prompt
-        model: Name of the model to use
+
     Returns:
         Dict with extraction results
     """
     start_time = time.time()
-    content_type, image_base64 = encode_image(image)
 
-    if "gemma" in model.lower():
-        client = instructor.from_litellm(completion)
-    elif "mistral" in model.lower() or "pixtral" in model.lower():
-        mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
-        client = instructor.from_mistral(mistral_client)
-    else:
-        raise ValueError(f"Unsupported model: {model}")
+    # Get model configuration based on model ID
+    if model not in MODEL_CONFIGS:
+        return {
+            "raw_text": f"Error: Model '{model}' not found in MODEL_CONFIGS",
+            "error": f"Invalid model: {model}",
+            "processing_time": 0,
+            "model": model,
+        }
+
+    model_config = MODEL_CONFIGS[model]
+
+    content_type, image_base64 = encode_image(image)
 
     prompt = custom_prompt if custom_prompt else get_prompt()
 
     try:
-        response = client.chat.completions.create(
-            model=model,
-            response_model=ImageDescription,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": f"data:{content_type};base64,{image_base64}",
-                        },
-                    ],
-                }
-            ],
-        )
-
+        result_json = model_config.process_image(prompt, image_base64, content_type)
         processing_time = time.time() - start_time
 
         result = {
-            "raw_text": response.raw_text if response.raw_text else "No text found",
+            "raw_text": result_json.get("raw_text", "No text found"),
             "processing_time": processing_time,
             "model": model,
+            "display_name": model_config.display,
+            "provider": model_config.provider,
         }
+
+        for key, value in result_json.items():
+            if key not in ["raw_text", "processing_time", "model", "display_name", "provider"]:
+                result[key] = value
 
         return result
     except Exception as e:
-        error_message = f"An unexpected error occurred: {str(e)}"
+        processing_time = time.time() - start_time
         return {
-            "raw_text": "Error: Failed to extract text",
-            "error": error_message,
-            "processing_time": time.time() - start_time,
+            "raw_text": f"Error: Failed to extract text - {str(e)}",
+            "error": str(e),
+            "processing_time": processing_time,
             "model": model,
+            "display_name": model_config.display,
+            "provider": model_config.provider,
         }
 
 
-def run_ollama_ocr_from_ui(
-    image: str | Image.Image,
-    model: str = "ollama/gemma3:27b",
+def run_models_in_parallel(
+    image_path: str,
+    model_ids: List[str],
     custom_prompt: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Run OCR using Ollama.
+) -> Dict[str, Dict[str, Any]]:
+    """Process an image with multiple models in parallel.
 
     Args:
-        image: Path to the image file to process
-        model: Name of the model to use
+        image_path: Path to the image file
+        model_ids: List of model IDs to process
         custom_prompt: Optional custom prompt
 
     Returns:
-        Dict containing OCR results
+        Dictionary mapping model IDs to their results
     """
-    import ollama
+    from concurrent.futures import ThreadPoolExecutor
 
-    from utils.ocr_model_utils import try_extract_json_from_response
+    from tqdm import tqdm
 
-    start_time = time.time()
+    max_workers = min(len(model_ids), 5)
 
-    _, image_base64 = encode_image(image)
-
-    try:
-        response = ollama.chat(
-            model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": custom_prompt if custom_prompt else get_prompt(),
-                    "images": [image_base64],
-                    "format": ImageDescription.model_json_schema(),
-                }
-            ],
-        )
-        result_json = response.message.content
-        processing_time = time.time() - start_time
-
-        result_dict = try_extract_json_from_response(result_json)
-        return {
-            "raw_text": result_dict.get("raw_text", ""),
-            "processing_time": processing_time,
-            "model": model,
-        }
-    except Exception as e:
-        print(f"Error with Gemma OCR: {e}")
-        return {"raw_text": f"Error: {str(e)}", "success": False}
-
-
-def compare_models(
-    image_paths: List[str],
-    custom_prompt: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Compare Gemma3 and Mistral OCR capabilities on a list of images.
-
-    Args:
-        image_paths: List of paths to images
-        custom_prompt: Optional custom prompt to use for both models
-    Returns:
-        Dictionary with comparison results
-    """
-    results = {
-        "gemma_results": [],
-        "mistral_results": [],
-        "ground_truth": [],
-    }
-
-    for i, image_path in enumerate(image_paths):
-        image_name = os.path.basename(image_path)
-
-        print(f"Processing image {i + 1}/{len(image_paths)}: {image_name}")
-
-        # Run both models
-        gemma_result = run_ocr_from_ui(
-            image=image_path,
-            model_name="ollama/gemma3:27b",
-            custom_prompt=custom_prompt,
-        )
-        mistral_result = run_ocr_from_ui(
-            image=image_path,
-            model_name="pixtral-12b-2409",
-            custom_prompt=custom_prompt,
-        )
-
-        # Create entries for dataframes
-        gemma_entry = {
-            "id": i,
-            "image_name": image_name,
-            "gemma_text": gemma_result["raw_text"],
-            "gemma_processing_time": gemma_result.get("processing_time", 0),
+    results = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            model_id: executor.submit(run_ocr_from_ui, image_path, model_id, custom_prompt)
+            for model_id in model_ids
         }
 
-        mistral_entry = {
-            "id": i,
-            "image_name": image_name,
-            "mistral_text": mistral_result["raw_text"],
-            "mistral_processing_time": mistral_result.get("processing_time", 0),
-        }
-
-        results["gemma_results"].append(gemma_entry)
-        results["mistral_results"].append(mistral_entry)
+        with tqdm(total=len(model_ids), desc="Processing models") as pbar:
+            for model_id, future in futures.items():
+                try:
+                    result = future.result()
+                    results[model_id] = result
+                except Exception as e:
+                    print(f"Error processing model {model_id}: {str(e)}")
+                    results[model_id] = {
+                        "raw_text": f"Error: {str(e)}",
+                        "error": str(e),
+                        "processing_time": 0,
+                        "model": model_id,
+                    }
+                finally:
+                    pbar.update(1)
 
     return results
 
 
-if __name__ == "__main__":
+def list_supported_models():
+    """List all supported models."""
+    print("\nSupported models:")
+    print("-" * 70)
+    print(f"{'Model ID':<25} {'Display Name':<30} {'Provider':<15}")
+    print("-" * 70)
+
+    for model_id, config in MODEL_CONFIGS.items():
+        print(f"{model_id:<25} {config.display:<30} {config.provider:<15}")
+
+    print("\nDefault model:", DEFAULT_MODEL.name)
+    print("-" * 70)
+
+
+def format_model_results(model_id, result):
+    """Format results for a specific model."""
+    model_config = MODEL_CONFIGS.get(model_id, None)
+    model_display = model_config.display if model_config else model_id
+
+    output = f"\n{model_display} results:"
+
+    if "error" in result:
+        output += f"\n❌ Error: {result.get('error', 'Unknown error')}"
+    else:
+        text = result["raw_text"]
+        if len(text) > 150:
+            text = f"{text[:150]}..."
+        output += f"\n✅ Text: {text}"
+
+    output += f"\n⏱️ Processing time: {result.get('processing_time', 0):.2f}s"
+
+    if "confidence" in result and result["confidence"] is not None:
+        output += f"\n🎯 Confidence: {result['confidence']:.2%}"
+
+    return output
+
+
+def main():
+    """Main entry point for the CLI tool."""
     parser = argparse.ArgumentParser(description="Compare OCR models")
-    parser.add_argument("--image", type=str, required=True, help="Path to image file")
+    parser.add_argument(
+        "--image",
+        type=str,
+        default="assets/street_signs/paris.jpg",
+        help="Path to image file",
+    )
     parser.add_argument(
         "--model",
         type=str,
-        default="both",
-        help="Model to use: 'gemma3', 'mistral', or 'both'",
+        default=DEFAULT_MODEL.name,
+        help="Model to use: a specific model ID, 'all' to compare all, or a comma-separated list",
     )
-    parser.add_argument("--prompt", type=str, help="Custom prompt to use")
+    parser.add_argument(
+        "--prompt",
+        type=str,
+        help="Custom prompt to use",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all supported models and exit",
+    )
 
     args = parser.parse_args()
 
-    if args.model.lower() == "both":
-        start_time = time.time()
-        gemma_result = run_ocr_from_ui(args.image, "ollama/gemma3:27b", args.prompt)
-        mistral_result = run_ocr_from_ui(args.image, "pixtral-12b-2409", args.prompt)
-        print("\nGemma3 results:")
-        print(f"Text: {gemma_result['raw_text']}")
-        print(f"Processing time: {gemma_result.get('processing_time', 0):.2f}s")
+    if args.list:
+        list_supported_models()
+        return
 
-        print("\nMistral results:")
-        print(f"Text: {mistral_result['raw_text']}")
-        print(f"Processing time: {mistral_result.get('processing_time', 0):.2f}s")
+    if not os.path.exists(args.image):
+        print(f"Error: Image file '{args.image}' not found.")
+        return
 
-        print(f"\nTotal time: {time.time() - start_time:.2f}s")
+    start_time = time.time()
+
+    if args.model.lower() == "all":
+        # Run all models in parallel
+        model_ids = list(MODEL_CONFIGS.keys())
+        print(f"Processing image with all {len(model_ids)} models in parallel...")
+
+        results = run_models_in_parallel(args.image, model_ids, args.prompt)
+
+        successful_models = sum(1 for result in results.values() if "error" not in result)
+        failed_models = len(results) - successful_models
+
+        print("\n" + "=" * 50)
+        print(f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)")
+        print("=" * 50)
+
+        # individual model results
+        for model_id, result in results.items():
+            print(format_model_results(model_id, result))
+
+        print(f"\n⏱️ Total time: {time.time() - start_time:.2f}s")
+        print("=" * 50)
+
+    elif "," in args.model:
+        # Run specific models in parallel
+        model_ids = [model_id.strip() for model_id in args.model.split(",")]
+
+        invalid_models = [model_id for model_id in model_ids if model_id not in MODEL_CONFIGS]
+        if invalid_models:
+            print(f"Error: The following models are not supported: {', '.join(invalid_models)}")
+            print("Use --list to see all supported models.")
+            return
+
+        print(f"Processing image with {len(model_ids)} selected models in parallel...")
+        results = run_models_in_parallel(args.image, model_ids, args.prompt)
+
+        successful_models = sum(1 for result in results.values() if "error" not in result)
+        failed_models = len(results) - successful_models
+
+        print("\n" + "=" * 50)
+        print(f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)")
+        print("=" * 50)
+
+        # individual model results
+        for model_id, result in results.items():
+            print(format_model_results(model_id, result))
+
+        print(f"\n⏱️ Total time: {time.time() - start_time:.2f}s")
+        print("=" * 50)
+
     else:
+        # Run a single model
+        if args.model not in MODEL_CONFIGS:
+            print(f"Error: Model '{args.model}' not supported.")
+            print("Use --list to see all supported models.")
+            return
+
+        print(f"\nProcessing with {args.model} model...")
         result = run_ocr_from_ui(args.image, args.model, args.prompt)
-        print(f"\n{args.model} results:")
-        print(f"Text: {result['raw_text']}")
-        print(f"Processing time: {result.get('processing_time', 0):.2f}s")
+
+        print("\n" + "=" * 50)
+        print(f"OCR RESULT FOR {args.model}")
+        print("=" * 50)
+        print(format_model_results(args.model, result))
+        print("=" * 50)
+
+
+if __name__ == "__main__":
+    main()

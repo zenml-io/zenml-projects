@@ -32,9 +32,7 @@ from utils.io_utils import list_available_ground_truth_files
 
 def main():
     """Run the OCR comparison pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Run OCR comparison between Mistral and Gemma3 using ZenML"
-    )
+    parser = argparse.ArgumentParser(description="Run OCR comparison between various vision models")
 
     # Config file options
     config_group = parser.add_argument_group("Configuration")
