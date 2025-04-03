@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""OCR comparison pipelines package."""
+"""OCR pipelines package."""
 
-from pipelines.ocr_pipeline import ocr_comparison_pipeline
-
-__all__ = ["ocr_comparison_pipeline"]
+from pipelines.batch_pipeline import ocr_batch_pipeline, run_ocr_batch_pipeline
+from pipelines.evaluation_pipeline import ocr_evaluation_pipeline, run_ocr_evaluation_pipeline
