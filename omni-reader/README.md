@@ -1,6 +1,48 @@
-# OmniReader - Multi-model text extraction comparison
+# OmniReader
 
-OmniReader is a document processing workflow that ingests unstructured documents (PDFs, images, scans) and extracts text using multiple OCR models. It provides side-by-side comparison of extraction results, highlighting differences in accuracy, formatting, and content recognition. The multi-model approach allows users to evaluate OCR performance across different document types, languages, and formatting complexity. OmniReader delivers reproducible, automated, and cloud-agnostic analysis, with comprehensive metrics on extraction quality, processing time, and confidence scores for each model. It also supports parallel processing for faster batch operations and can compare an arbitrary number of models simultaneously.
+A scalable multi-model text extraction solution for unstructured documents.
+
+<div align="center">
+  <img src="assets/docs/pipeline_dags.png" alt="Pipeline DAG" width="600" />
+</div>
+
+✨ **Extract Structured Text from Any Document**
+OmniReader is built for teams who routinely work with unstructured documents (e.g., PDFs, images, scanned forms) and want a scalable workflow for structured text extraction. It provides an end-to-end batch OCR pipeline with optional multi-model comparison to help ML engineers evaluate different OCR solutions before deployment.
+
+<div align="center">
+  <img src="assets/demo/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
+  <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
+</div>
+
+## 🌟 Key Features
+
+- **End-to-end workflow management** from evaluation to production deployment
+- **Multi-model comparison** to identify the best model for your specific document types
+- **Scalable batch processing** that can handle enterprise document volumes
+- **Quantitative evaluation metrics** to inform business and technical decisions
+- **ZenML integration** providing reproducibility, cloud-agnostic deployment, and monitoring
+
+## 🎭 How It Works
+
+OmniReader provides two primary pipeline workflows that can be run separately:
+
+1. **Batch OCR Pipeline**: Run large batches of documents through a single model to extract structured text and metadata.
+2. **Evaluation Pipeline**: Compare multiple OCR models side-by-side and generate evaluation reports using CER/WER and HTML visualizations against ground truth text files.
+
+Behind the scenes, OmniReader leverages state-of-the-art vision-language models and ZenML's MLOps framework to create a reproducible, scalable document processing system.
+
+## 📚 Supported Models
+
+OmniReader supports a wide range of OCR models, including:
+
+- **Mistral/pixtral-12b-2409**: Mistral AI's vision-language model specializing in document understanding with strong OCR capabilities for complex layouts.
+- **GPT-4o-mini**: OpenAI's efficient vision model offering a good balance of accuracy and speed for general document processing tasks.
+- **Gemma3:27b**: Google's open-source multimodal model supporting 140+ languages with a 128K context window, optimized for text extraction from diverse document types.
+- **Llava:34b**: Large multilingual vision-language model with strong performance on document understanding tasks requiring contextual interpretation.
+- **Llava-phi3**: Microsoft's efficient multimodal model combining phi-3 language capabilities with vision understanding, ideal for mixed text-image documents.
+- **Granite3.2-vision**: Specialized for visual document understanding, offering excellent performance on tables, charts, and technical diagrams.
+
+> ⚠️ Note: For production deployments, we recommend using the non-GGUF hosted model versions via their respective APIs for better performance and accuracy. The Ollama models mentioned here are primarily for convenience.
 
 ## 🚀 Getting Started
 
@@ -10,215 +52,140 @@ OmniReader is a document processing workflow that ingests unstructured documents
 - Mistral API key (set as environment variable `MISTRAL_API_KEY`)
 - OpenAI API key (set as environment variable `OPENAI_API_KEY`)
 - ZenML >= 0.80.0
+- Ollama (required for running local models)
 
-### Installation
+### Quick Start
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/omni-reader.git
+
+# Navigate to OmniReader
+cd omni-reader
+
 # Install dependencies
 pip install -r requirements.txt
+
+# Start Ollama (if using local models)
+ollama serve
 ```
 
-### Configuration
+### Prepare Your Models
 
-1. Ensure any Ollama models you want to use are pulled, e.g.:
+If using local models, ensure any Ollama models you want to use are pulled:
 
 ```bash
-ollama pull llama3.2-vision:11b
-ollama pull gemma3:12b
+ollama pull gemma3:27b
+ollama pull llava-phi3
+ollama pull granite3.2-vision
 ```
 
-2. Set the following environment variables:
+### Set Up Your Environment
+
+Configure your API keys:
 
 ```bash
-OPENAI_API_KEY=your_openai_api_key
-MISTRAL_API_KEY=your_mistral_api_key
+export OPENAI_API_KEY=your_openai_api_key
+export MISTRAL_API_KEY=your_mistral_api_key
+export OLLAMA_HOST=base_url_for_ollama_host # defaults to "http://localhost:11434/api/generate" if not set
 ```
 
-## 📌 Usage
-
-### Using YAML Configuration (Recommended)
+### Run OmniReader
 
 ```bash
-# Use the default config (ocr_config.yaml)
+# Use the default config (config.yaml)
 python run.py
 
 # Run with a custom config file
 python run.py --config my_config.yaml
 ```
 
-### Configuration Structure
+### Interactive UI
 
-YAML configuration files organize parameters into logical sections:
+The project also includes a Streamlit app that allows you to:
 
-```yaml
-# Image input configuration
-input:
-  image_paths: [] # List of specific image paths
-  image_folder: "./assets" # Folder containing images
-
-# OCR model configuration
-models:
-  custom_prompt: null # Optional custom prompt for all models
-  # Either specify individual models (for backward compatibility)
-  model1: "llama3.2-vision:11b" # First model for comparison
-  model2: "mistral/pixtral-12b-2409" # Second model for comparison
-  # Or specify multiple models as a list (new approach)
-  models: ["llama3.2-vision:11b", "mistral/pixtral-12b-2409"]
-  ground_truth_model: "gpt-4o-mini" # Model to use for ground truth when source is "openai"
-
-# Ground truth configuration
-ground_truth:
-  source: "openai" # Source: "openai", "manual", "file", or "none"
-  texts: [] # Ground truth texts (for manual source)
-  file: null # Path to ground truth JSON file (for file source)
-
-# Output configuration
-output:
-  ground_truth:
-    save: false # Whether to save ground truth data
-    directory: "ocr_results" # Directory for ground truth data
-
-  ocr_results:
-    save: false # Whether to save OCR results
-    directory: "ocr_results" # Directory for OCR results
-
-  visualization:
-    save: false # Whether to save HTML visualization
-    directory: "visualizations" # Directory for visualization
-```
-
-### Running with Command Line Arguments
-
-You can still use command line arguments for quick runs:
+- Upload documents for instant OCR processing
+- Compare results from multiple models side-by-side
+- Customize prompts for improved extraction
 
 ```bash
-# Run with default settings (processes all images in assets directory)
-python run.py --image-folder assets
-
-# Run with custom prompt
-python run.py --image-folder assets --custom-prompt "Extract all text from this image."
-
-# Run with specific images
-python run.py --image-paths assets/image1.jpg assets/image2.png
-
-# Run with OpenAI ground truth for evaluation
-python run.py --image-folder assets --ground-truth openai --save-ground-truth
-
-# List available ground truth files
-python run.py --list-ground-truth-files
-
-# For quicker processing of a single image without metadata or artifact tracking
-python run_compare_ocr.py --image assets/your_image.jpg --model both
-
-# Run comparison with multiple specific models in parallel
-python run_compare_ocr.py --image assets/your_image.jpg --model "gemma3:12b,llama3.2-vision:11b,moondream"
-
-# Run comparison with all available models in parallel
-python run_compare_ocr.py --image assets/your_image.jpg --model all
-```
-
-### Using the Streamlit App
-
-For interactive use, the project includes a Streamlit app:
-
-```bash
+# Launch the Streamlit interface
 streamlit run app.py
 ```
 
 <div align="center">
-  <img src="assets/streamlit.png" alt="Streamlit UI Interface" width="800"/>
-  <p><em>Interactive Streamlit interface for easy document processing and model comparison</em></p>
+  <img src="assets/demo/streamlit.png" alt="Model Comparison Results" width="800"/>
+  <p><em>Side-by-side comparison of OCR results across different models</em></p>
 </div>
 
-### ### Remote Artifact Storage and Execution
+## ☁️ Cloud Deployment
 
-This project supports storing artifacts remotely and executing pipelines on cloud infrastructure. Follow these steps to configure your environment for remote operation:
+OmniReader supports storing artifacts remotely and executing pipelines on cloud infrastructure:
 
-#### Setting Up Cloud Provider Integrations
-
-Install the appropriate ZenML integrations for your preferred cloud provider:
+### Set Up Cloud Provider Integrations
 
 ```bash
 # For AWS
-zenml integration install aws s3 -y
+zenml integration install aws s3
 
 # For Azure
-zenml integration install azure azure-blob -y
+zenml integration install azure
 
 # For Google Cloud
-zenml integration install gcp gcs -y
+zenml integration install gcp gcs
+```
+
+Run your pipeline in the cloud:
+
+```bash
+# Configure your cloud stack
+zenml stack register my-cloud-stack -a cloud-artifact-store -o cloud-orchestrator
 ```
 
 For detailed configuration options and other components, refer to the ZenML documentation:
 
-- [Artifact Stores](https://docs.zenml.io/stacks/artifact-stores)
-- [Orchestrators](https://docs.zenml.io/stacks/orchestrators)
+- [AWS Integration Guide](https://docs.zenml.io/how-to/popular-integrations/aws-guide)
+- [GCP Integration Guide](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)
+- [Azure Integration Guide](https://docs.zenml.io/how-to/popular-integrations/azure-guide)
 
-## 📋 Pipeline Architecture
-
-The OCR comparison pipeline consists of the following components:
-
-### Steps
-
-1. **Multi-Model OCR Step**: Processes images with multiple models in parallel
-   - Supports any number of models defined in configuration
-   - Models run in parallel using ThreadPoolExecutor
-   - Each model processes its assigned images with parallelized execution
-   - Progress tracking during batch processing
-2. **Ground Truth Step**: Optional step that uses a reference model for evaluation (default: GPT-4o Mini)
-3. **Evaluation Step**: Compares results and calculates metrics
-
-The pipeline supports configurable models, allowing you to easily swap out the models used for OCR comparison and ground truth generation via the YAML configuration file. It also supports processing any number of models in parallel for more comprehensive comparisons.
-
-### Configuration Management
-
-The new configuration system provides:
-
-- Structured YAML files for experiment parameters
-- Parameter validation and intelligent defaults
-- Easy sharing and version control of experiment settings
-- Configuration generator for quickly creating new experiment setups
-- Support for multi-model configuration via arrays
-- Flexible model selection and comparison
-
-### Metadata Tracking
-
-ZenML's metadata tracking is used throughout the pipeline:
-
-- Processing times and performance metrics
-- Extracted text length and entity counts
-- Comparison metrics between models (CER, WER)
-- Progress tracking for batch operations
-- Parallel processing statistics
-
-### Results Visualization
-
-- Pipeline results are available in the ZenML Dashboard
-- HTML visualizations can be automatically saved to configurable directories
-
-<div align="center">
-  <img src="assets/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
-  <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
-</div>
-
-## 📁 Project Organization
+## 🛠️ Project Structure
 
 ```
 omni-reader/
 │
+├── app.py                 # Streamlit UI for interactive document processing
+├── assets/                # Sample images for ocr
 ├── configs/               # YAML configuration files
+├── ground_truth_texts/    # Text files containing ground truth for evaluation
 ├── pipelines/             # ZenML pipeline definitions
+│   ├── batch_pipeline.py  # Batch OCR pipeline (single or multiple models)
+│   └── evaluation_pipeline.py # Evaluation pipeline (multiple models)
 ├── steps/                 # Pipeline step implementations
-├── utils/                 # Utility functions
+│   ├── evaluate_models.py # Model comparison and metrics
+│   ├── loaders.py         # Loading images and ground truth texts
+│   ├── run_ocr.py         # Running OCR with selected models
+│   └── save_results.py    # Saving results and visualizations
+├── utils/                 # Utility functions and helpers
+│   ├── ocr_processing.py  # OCR processing core logic
 │   ├── config.py          # Configuration utilities
-│   └── ...
-├── run.py                 # Main script for running the pipeline
-├── config_generator.py    # Tool for generating experiment configurations
+│   └── model_configs.py   # Model configuration and registry
+├── run.py                 # Main entrypoint for running the pipeline
 └── README.md              # Project documentation
 ```
 
-## 🔗 Links
+## 🔮 Use Cases
 
-- [ZenML Documentation](https://docs.zenml.io/)
+- **Document Processing Automation**: Extract structured data from invoices, receipts, and forms
+- **Content Digitization**: Convert scanned documents and books into searchable digital content
+- **Regulatory Compliance**: Extract and validate information from compliance documents
+- **Data Migration**: Convert legacy paper documents into structured digital formats
+- **Research & Analysis**: Extract data from academic papers, reports, and publications
+
+## 📚 Documentation
+
+For more information about ZenML and building MLOps pipelines, refer to the [ZenML documentation](https://docs.zenml.io/).
+
+For model-specific documentation:
+
 - [Mistral AI Vision Documentation](https://docs.mistral.ai/capabilities/vision/)
-- [Gemma 3 Documentation](https://ai.google.dev/gemma/docs/integrations/ollama)
+- [Ollama Models Library](https://ollama.com/library)
