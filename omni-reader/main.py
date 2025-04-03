@@ -1,4 +1,8 @@
-"""Main script to run the OCR comparison pipeline."""
+"""Main script to run the OCR comparison pipeline.
+
+DEPRECATED: This module has been consolidated into run.py.
+All functionality is now available in run.py using the default pipeline mode.
+"""
 
 import argparse
 import glob
