@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .evaluate_models import evaluate_models
-from .load_files import (
+from .loaders import (
     load_ground_truth_file,
+    load_ground_truth_texts,
+    load_ocr_results,
     load_images,
 )
 from .run_ocr import run_ocr

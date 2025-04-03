@@ -33,21 +33,15 @@ logger = get_logger(__name__)
 @step()
 def save_ocr_results(
     ocr_results: Dict[str, pl.DataFrame] = None,
-    ground_truth_results: Optional[pl.DataFrame] = None,
     model_names: List[str] = None,
     output_dir: str = "ocr_results",
-    ground_truth_output_dir: str = "ocr_results",
-    save_ground_truth: bool = False,
 ) -> Dict[str, str]:
     """Save OCR results from multiple models.
 
     Args:
         ocr_results: Dictionary mapping model names to their DataFrame results
-        ground_truth_results: Ground truth model OCR results
         model_names: List of model names that were run
         output_dir: Base directory to save OCR results
-        ground_truth_output_dir: Directory to save ground truth OCR results
-        save_ground_truth: Whether to save ground truth results
 
     Returns:
         Dictionary of model names to file paths
@@ -76,39 +70,6 @@ def save_ocr_results(
                         "prefix": model_prefix,
                     }
                 )
-
-    if ground_truth_results is not None and save_ground_truth:
-        # Handle ground truth as a dictionary of model results
-        if isinstance(ground_truth_results, dict) and len(ground_truth_results) > 0:
-            gt_model_name = list(ground_truth_results.keys())[0]
-
-            # Determine prefix based on model name
-            if gt_model_name in MODEL_CONFIGS:
-                gt_prefix = "gt_" + MODEL_CONFIGS[gt_model_name].prefix
-            else:
-                _, model_prefix = get_model_info(gt_model_name)
-                gt_prefix = "gt_" + model_prefix
-
-            # Save only once in the ground_truth directory with gt_ prefix
-            results_mapping.append(
-                {
-                    "model_name": "ground_truth",
-                    "data": ground_truth_results[gt_model_name],
-                    "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
-                    "prefix": gt_prefix,
-                }
-            )
-        else:
-            # Handle ground truth as a direct DataFrame
-            gt_prefix = "ground_truth"
-            results_mapping.append(
-                {
-                    "model_name": "ground_truth",
-                    "data": ground_truth_results,
-                    "subdir": os.path.join(ground_truth_output_dir, "ground_truth"),
-                    "prefix": gt_prefix,
-                }
-            )
 
     for result_info in results_mapping:
         model_name = result_info["model_name"]

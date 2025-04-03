@@ -3,17 +3,22 @@
 import base64
 import os
 import re
-from typing import Any, Dict, List, Optional
+from difflib import SequenceMatcher
+from typing import Any, Dict, List
 
 import polars as pl
 from jiwer import cer, wer
-from textdistance import jaccard
 from typing_extensions import Annotated
 from zenml import get_step_context, log_metadata, step
 from zenml.types import HTMLString
 
 from utils import compare_multi_model, get_model_info
 from utils.model_configs import MODEL_CONFIGS
+
+
+def levenshtein_ratio(s1: str, s2: str) -> float:
+    """Calculate the Levenshtein ratio between two strings."""
+    return SequenceMatcher(None, s1, s2).ratio()
 
 
 def load_svg_logo(logo_name: str) -> str:
@@ -137,7 +142,6 @@ def create_model_comparison_card(
     ground_truth: str,
     model_texts: Dict[str, str],
     model_metrics: Dict[str, Dict[str, Any]],
-    ground_truth_model: Optional[str] = None,
 ) -> str:
     """Create a card for comparing OCR results for a specific image across models."""
     model_sections = ""
@@ -183,18 +187,8 @@ def create_model_comparison_card(
         </div>
         """
 
-    # Add OpenAI logo to Ground Truth header if applicable
-    ground_truth_header = '<h4 class="font-bold mb-2 text-gray-700">Ground Truth</h4>'
-    if ground_truth_model and ground_truth_model in MODEL_CONFIGS:
-        gt_config = MODEL_CONFIGS[ground_truth_model]
-        if gt_config.logo:
-            logo_b64 = load_svg_logo(gt_config.logo)
-            ground_truth_header = f"""
-            <h4 class="font-bold mb-2 text-gray-700 flex items-center">
-                <img src="data:image/svg+xml;base64,{logo_b64}" width="20" class="inline mr-1" alt="{gt_config.display} logo">
-                Ground Truth
-            </h4>
-            """
+    # Simple header for ground truth text files
+    ground_truth_header = '<h4 class="font-bold mb-2 text-gray-700">📄 Ground Truth</h4>'
 
     card = f"""
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
@@ -266,21 +260,11 @@ def create_summary_visualization(
     model_metrics: Dict[str, Dict[str, float]],
     time_comparison: Dict[str, Any],
     similarities: Dict[str, float] = None,
-    ground_truth_model: str = None,
 ) -> HTMLString:
     """Create an HTML visualization of evaluation results for multiple models."""
     step_context = get_step_context()
     pipeline_run_name = step_context.pipeline_run.name
     models = list(model_metrics.keys())
-
-    # Exclude ground truth model from best model calculations
-    exclude_from_best = []
-    if ground_truth_model:
-        for display_name in models:
-            for model_id, config in MODEL_CONFIGS.items():
-                if config.display == display_name and model_id == ground_truth_model:
-                    exclude_from_best.append(display_name)
-                    break
 
     model_cards = ""
     cols_per_row = min(3, len(models))
@@ -299,15 +283,9 @@ def create_summary_visualization(
 
     fastest_model = time_comparison["fastest_model"]
 
-    best_cer = find_best_model(
-        model_metrics, "CER", lower_is_better=True, exclude_model_names=exclude_from_best
-    )
-    best_wer = find_best_model(
-        model_metrics, "WER", lower_is_better=True, exclude_model_names=exclude_from_best
-    )
-    best_similarity = find_best_model(
-        model_metrics, "GT Similarity", lower_is_better=False, exclude_model_names=exclude_from_best
-    )
+    best_cer = find_best_model(model_metrics, "CER", lower_is_better=True)
+    best_wer = find_best_model(model_metrics, "WER", lower_is_better=True)
+    best_similarity = find_best_model(model_metrics, "GT Similarity", lower_is_better=False)
 
     metrics_grid = f"""
     <div class="grid grid-cols-1 md:grid-cols-{cols_per_row} gap-6 mb-6">
@@ -391,6 +369,7 @@ def normalize_text(s: str) -> str:
     """Normalize text for comparison."""
     s = s.lower()
     s = re.sub(r"\s+", " ", s).strip()
+    s = s.replace("\n", " ")
     # Normalize apostrophes and similar characters
     s = re.sub(r"[''′`]", "'", s)
     return s
@@ -399,7 +378,7 @@ def normalize_text(s: str) -> str:
 def calculate_model_similarities(
     results: List[Dict[str, Any]], model_displays: List[str]
 ) -> Dict[str, float]:
-    """Calculate the average pairwise Jaccard similarity between model outputs.
+    """Calculate the average pairwise Levenshtein ratio between model outputs.
 
     Expects each result to have keys formatted as:
         "raw_text_{model_display}"
@@ -440,7 +419,7 @@ def calculate_model_similarities(
                     continue
                 text1 = model_texts[model1]
                 text2 = model_texts[model2]
-                similarity = jaccard.normalized_similarity(text1, text2)
+                similarity = levenshtein_ratio(text1, text2)
                 pair_key = f"{model1}_{model2}"
                 similarity_sums[pair_key] = similarity_sums.get(pair_key, 0) + similarity
                 similarity_counts[pair_key] = similarity_counts.get(pair_key, 0) + 1
@@ -456,16 +435,12 @@ def find_best_model(
     model_metrics: Dict[str, Dict[str, float]],
     metric: str,
     lower_is_better: bool = True,
-    exclude_model_names: List[str] = None,
 ) -> str:
     """Find the best performing model(s) for a given metric, showing ties when they occur."""
     best_models = []
     best_value = None
-    exclude_model_names = exclude_model_names or []
 
     for model, metrics in model_metrics.items():
-        if model in exclude_model_names:
-            continue
         if metric in metrics:
             value = metrics[metric]
             if (
@@ -476,8 +451,6 @@ def find_best_model(
                 best_value = value
     if best_value is not None:
         for model, metrics in model_metrics.items():
-            if model in exclude_model_names:
-                continue
             if metric in metrics:
                 value = metrics[metric]
                 if (lower_is_better and abs(value - best_value) < 1e-6) or (
@@ -495,7 +468,9 @@ def find_best_model(
 
 
 def calculate_custom_metrics(
-    ground_truth_text: str, model_texts: Dict[str, str], model_displays: List[str]
+    ground_truth_text: str,
+    model_texts: Dict[str, str],
+    model_displays: List[str],
 ) -> Dict[str, Dict[str, float]]:
     """Calculate metrics for each model and between model pairs."""
     all_metrics = {}
@@ -507,16 +482,14 @@ def calculate_custom_metrics(
         if ground_truth_text:
             all_metrics[model1]["CER"] = cer(ground_truth_text, text1)
             all_metrics[model1]["WER"] = wer(ground_truth_text, text1)
-            all_metrics[model1]["GT Similarity"] = jaccard.normalized_similarity(
-                ground_truth_text, text1
-            )
+            all_metrics[model1]["GT Similarity"] = levenshtein_ratio(ground_truth_text, text1)
         for j, model2 in enumerate(model_displays):
             if i < j:
                 model_pairs.append((model1, model2))
     for model1, model2 in model_pairs:
         text1 = model_texts.get(model1, "")
         text2 = model_texts.get(model2, "")
-        similarity = jaccard.normalized_similarity(text1, text2)
+        similarity = levenshtein_ratio(text1, text2)
         pair_key = f"{model1}_{model2}"
         all_metrics[pair_key] = similarity
     return all_metrics
@@ -525,28 +498,24 @@ def calculate_custom_metrics(
 @step(enable_cache=False)
 def evaluate_models(
     model_results: Dict[str, pl.DataFrame],
-    ground_truth_df: Optional[pl.DataFrame] = None,
-    ground_truth_model: Optional[str] = None,
+    ground_truth_df: pl.DataFrame,
 ) -> Annotated[HTMLString, "ocr_visualization"]:
     """Compare the performance of multiple configurable models with visualization.
 
-    The ground truth model is separated from evaluation models so that it is used only
-    for displaying the reference text. All metric calculations, similarity computations,
-    and best model indicators are performed solely on evaluation models.
+    Args:
+        model_results: Dictionary mapping model names to results DataFrames
+        ground_truth_df: DataFrame containing ground truth texts
+
+    Returns:
+        HTML visualization of the evaluation results
     """
     if not model_results:
         raise ValueError("At least one model is required for evaluation")
 
-    # --- 1. Separate the ground truth model from evaluation models ---
-    if ground_truth_model and ground_truth_model in model_results:
-        gt_df = model_results[ground_truth_model].clone()
-        del model_results[ground_truth_model]
-    else:
-        gt_df = None
+    if ground_truth_df is None or ground_truth_df.is_empty():
+        raise ValueError("Ground truth data is required for evaluation")
 
-    # If a separate ground_truth_df is provided, that overrides any GT model data.
-    if ground_truth_df is not None:
-        gt_df = ground_truth_df
+    gt_df = ground_truth_df
 
     # --- 2. Build model info for evaluation models ---
     model_keys = list(model_results.keys())
@@ -598,9 +567,10 @@ def evaluate_models(
     evaluation_metrics = []
     image_cards_html = ""
     gt_text_col = "ground_truth_text"
-    if gt_text_col not in merged_results.columns:
-        if "raw_text_gt" in merged_results.columns:
-            gt_text_col = "raw_text_gt"
+
+    # Check if we have ground truth data in our joined dataset
+    if gt_text_col not in merged_results.columns and "raw_text_gt" in merged_results.columns:
+        gt_text_col = "raw_text_gt"  # Fall back to legacy ground truth model format
 
     for row in merged_results.iter_rows(named=True):
         if gt_text_col not in row:
@@ -637,7 +607,6 @@ def evaluate_models(
             ground_truth=ground_truth,
             model_texts=model_texts,
             model_metrics=error_analysis,
-            ground_truth_model=ground_truth_model,
         )
         image_cards_html += comparison_card
 
@@ -697,13 +666,6 @@ def evaluate_models(
         if tk1 in all_model_times and tk2 in all_model_times:
             time_comparison["time_difference"] = abs(all_model_times[tk1] - all_model_times[tk2])
 
-    # --- 10. Exclude GT model from final summary metrics ---
-    if ground_truth_model:
-        for model_id, cfg in MODEL_CONFIGS.items():
-            if model_id == ground_truth_model and cfg.display in model_metric_averages:
-                del model_metric_averages[cfg.display]
-                break
-
     # Log metadata (customize the metadata_dict as needed)
     log_metadata(metadata={"fastest_model": fastest_display, "model_count": len(model_keys)})
 
@@ -711,10 +673,9 @@ def evaluate_models(
         model_metrics=model_metric_averages,
         time_comparison=time_comparison,
         similarities=similarities,
-        ground_truth_model=ground_truth_model,
     )
 
-    # --- 11. Combine summary and per-image details ---
+    # --- 10. Combine summary and per-image details ---
     final_html = f"""
     {summary_html}
     <div class="container mx-auto px-4">

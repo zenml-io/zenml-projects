@@ -31,13 +31,15 @@ logger = get_logger(__name__)
 
 @step()
 def run_ocr(
-    images: List[str], model_names: List[str], custom_prompt: Optional[str] = None
+    images: List[str],
+    models: List[str],
+    custom_prompt: Optional[str] = None,
 ) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:
     """Extract text from images using multiple models in parallel.
 
     Args:
         images: List of paths to image files
-        model_names: List of model names to use
+        models: List of model names to use
         custom_prompt: Optional custom prompt to override the default prompt
 
     Returns:
@@ -51,44 +53,43 @@ def run_ocr(
     from tqdm import tqdm
 
     # Validate all models
-    for model_name in model_names:
-        if model_name not in MODEL_CONFIGS:
+    for model in models:
+        if model not in MODEL_CONFIGS:
             supported_models = ", ".join(MODEL_CONFIGS.keys())
             raise ValueError(
-                f"Unsupported model: {model_name}. Supported models are: {supported_models}"
+                f"Unsupported model: {model}. Supported models are: {supported_models}"
             )
 
-    logger.info(f"Running OCR with {len(model_names)} models: {', '.join(model_names)}")
+    logger.info(f"Running OCR with {len(models)} models: {', '.join(models)}")
     logger.info(f"Processing {len(images)} images")
 
     results = {}
 
-    with ThreadPoolExecutor(max_workers=min(len(model_names), 5)) as executor:
+    with ThreadPoolExecutor(max_workers=min(len(models), 5)) as executor:
         futures = {
-            model_name: executor.submit(
+            model: executor.submit(
                 process_images_with_model,
-                model_config=MODEL_CONFIGS[model_name],
+                model_config=MODEL_CONFIGS[model],
                 images=images,
                 custom_prompt=custom_prompt,
             )
-            for model_name in model_names
+            for model in models
         }
 
-        with tqdm(total=len(model_names), desc="Processing models") as pbar:
-            for model_name, future in futures.items():
+        with tqdm(total=len(models), desc="Processing models") as pbar:
+            for model, future in futures.items():
                 try:
                     results_df = future.result()
-                    results[model_name] = results_df
-                    logger.info(f"Completed processing with model: {model_name}")
+                    results[model] = results_df
+                    logger.info(f"Completed processing with model: {model}")
                 except Exception as e:
-                    logger.error(f"Error processing model {model_name}: {str(e)}")
+                    logger.error(f"Error processing model {model}: {str(e)}")
                     # empty dataframe with error message to avoid pipeline failure
-                    results[model_name] = pl.DataFrame(
+                    results[model] = pl.DataFrame(
                         {
                             "id": range(len(images)),
                             "image_name": [os.path.basename(img) for img in images],
-                            "raw_text": [f"Error processing with {model_name}: {str(e)}"]
-                            * len(images),
+                            "raw_text": [f"Error processing with {model}: {str(e)}"] * len(images),
                             "processing_time": [0.0] * len(images),
                             "confidence": [0.0] * len(images),
                             "error": [str(e)] * len(images),
