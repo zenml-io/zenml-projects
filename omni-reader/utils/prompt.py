@@ -17,7 +17,7 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ImageDescription(BaseModel):
@@ -32,23 +32,45 @@ def get_prompt(custom_prompt: Optional[str] = None) -> str:
     if custom_prompt:
         return custom_prompt
     return """Extract all visible text from this image **without any changes**.
-        - **Do not summarize, paraphrase, or infer missing text.**
         - Retain all spacing, punctuation, and formatting exactly as in the image.
-        - If text is unclear or partially visible, extract as much as possible without guessing.
-        - **Include all text, even if it seems irrelevant or repeated.** 
+        - If text is unclear or ambiguous (e.g., handwritten, blurry), use best judgment to **make educated guesses based on visual context**
         - Return your response as a JSON object with the following fields:
             - raw_text: The extracted text from the image
             - confidence: The confidence score in the extracted text as a float between 0 and 1
         """
 
 
-def get_json_prompt() -> str:
-    """Alternative prompt focusing on JSON output."""
-    return """Extract all text from this image and format it as JSON, **strictly preserving** the structure.
-        - **Do not summarize, add, or modify any text.**
-        - Maintain hierarchical sections and subsections as they appear.
-        - Include all text, even if fragmented, blurry, or unclear.
-        - Use the following keys:
-            - raw_text: The extracted text from the image
-            - confidence: The confidence score in the extracted text as a float between 0 and 1
-        """
+# def get_prompt(custom_prompt: Optional[str] = None) -> str:
+#     """Default prompt for the OCR model."""
+#     if custom_prompt:
+#         return custom_prompt
+#     return """Extract all visible text from this image, prioritizing accuracy and completeness.
+
+#     - Preserve spacing, punctuation, and formatting **as faithfully as possible**.
+#     - If text is unclear or ambiguous (e.g., handwritten, blurry), use best judgment to **make educated guesses based on visual context**, especially for:
+#         - Medical prescriptions
+#         - Handwritten notes or letters
+#         - Street signs or standard labels
+#     - If multiple plausible interpretations exist, extract the one that visually aligns best, and annotate any uncertainty if possible.
+#     - **Do not hallucinate content that is completely missing** or fabricate data.
+#     - Return your response as a JSON object with:
+#         - raw_text: Extracted or interpreted text
+#         - confidence: A float (0 to 1) representing the overall confidence in the output
+#     """
+
+
+# def get_prompt(custom_prompt: Optional[str] = None) -> str:
+#     """Default prompt for the OCR model with smart inference for ambiguous or handwritten text."""
+#     if custom_prompt:
+#         return custom_prompt
+#     return """Extract all visible text from this image, aiming to preserve accuracy and structure.
+
+# - If the text is clearly legible, extract it **exactly as written**, preserving spelling, formatting, and spacing.
+# - If the handwriting is difficult to read or partially obscured, **do your best to deduce the intended text**, especially if it's written in a known domain (e.g., medicine, receipts, signage).
+# - You may correct likely spelling or interpretation errors, **but do not hallucinate** content that is not visibly present.
+# - Inferred or low-confidence segments should be marked with square brackets and a `?` if unclear, e.g., `[linagliptin?]`.
+
+# Return a JSON object with:
+# - raw_text: A string of the extracted (and partially inferred) text
+# - confidence: A float score between 0 and 1 representing your confidence in the overall output
+# """

@@ -92,26 +92,14 @@ def load_ocr_data_from_json(filepath: str) -> pl.DataFrame:
     return pl.DataFrame(ocr_data)
 
 
-def load_ground_truth_from_json(filepath: str) -> pl.DataFrame:
-    """Load ground truth data from a JSON file.
-
-    Args:
-        filepath: Path to the ground truth JSON file
-
-    Returns:
-        DataFrame containing ground truth data
-    """
-    return load_ocr_data_from_json(filepath)
-
-
 def list_available_ground_truth_files(
-    directory: str = "ocr_results/ground_truth", pattern: str = "gt_*.json"
+    directory: str = "ground_truth_texts", pattern: str = "*.txt"
 ) -> List[str]:
-    """List available ground truth files.
+    """List available ground truth text files.
 
     Args:
         directory: Directory containing ground truth files
-        pattern: Glob pattern to match files
+        pattern: Glob pattern to match files (defaults to all text files)
 
     Returns:
         List of paths to ground truth files
@@ -124,4 +112,4 @@ def list_available_ground_truth_files(
     # Find matching files
     files = glob.glob(path_pattern)
 
-    return sorted(files, reverse=True)  # Sort by newest first
+    return sorted(files)  # Sort alphabetically

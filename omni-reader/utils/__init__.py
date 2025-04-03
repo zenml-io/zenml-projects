@@ -30,12 +30,14 @@ from .prompt import (
 from .io_utils import (
     save_ocr_data_to_json,
     load_ocr_data_from_json,
-    load_ground_truth_from_json,
     list_available_ground_truth_files,
 )
 from .model_configs import (
     MODEL_CONFIGS,
-    ModelConfig,
+    DEFAULT_MODEL,
     get_model_info,
+    model_registry,
+    ModelConfig,
+    get_model_prefix,
 )
 from .extract_json import try_extract_json_from_response

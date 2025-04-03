@@ -15,25 +15,15 @@
 # limitations under the License.
 """Utilities for handling configuration."""
 
+import glob
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 import yaml
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
-    """Load configuration from YAML file.
-
-    Args:
-        config_path: Path to YAML configuration file
-
-    Returns:
-        Dictionary containing configuration
-
-    Raises:
-        FileNotFoundError: If the configuration file does not exist
-        ValueError: If the configuration file is not valid YAML
-    """
+    """Load configuration from YAML file."""
     if not os.path.isfile(config_path):
         raise FileNotFoundError(f"Configuration file does not exist: {config_path}")
 
@@ -46,185 +36,161 @@ def load_config(config_path: str) -> Dict[str, Any]:
 
 
 def validate_config(config: Dict[str, Any]) -> None:
-    """Validate configuration.
+    """Validate ZenML configuration."""
+    # Validate required sections
+    if "parameters" not in config:
+        raise ValueError("Missing required 'parameters' section in configuration")
 
-    Args:
-        config: Dictionary containing configuration
-
-    Raises:
-        ValueError: If the configuration is invalid
-    """
-    # Validate top-level sections
-    required_sections = ["input", "models", "ground_truth", "output"]
-    for section in required_sections:
-        if section not in config:
-            raise ValueError(f"Missing required section '{section}' in configuration")
-
-    # Validate input section
-    if not config["input"].get("image_paths") and not config["input"].get("image_folder"):
-        raise ValueError("Either input.image_paths or input.image_folder must be provided")
-
-    if config["input"].get("image_folder") and not os.path.isdir(
-        config["input"].get("image_folder")
-    ):
-        raise ValueError(f"Image folder does not exist: {config['input'].get('image_folder')}")
-
-    # Validate ground truth configuration
-    gt_source = config["ground_truth"].get("source", "none")
-    if gt_source not in ["openai", "manual", "file", "none"]:
+    # Validate input parameters
+    params = config.get("parameters", {})
+    if not params.get("input_image_paths") and not params.get("input_image_folder"):
         raise ValueError(
-            f"Invalid ground_truth.source: {gt_source}. Must be one of: openai, manual, file, none"
+            "Either parameters.input_image_paths or parameters.input_image_folder must be provided"
         )
 
-    if gt_source == "manual" and not config["ground_truth"].get("texts"):
-        raise ValueError(
-            "When using ground_truth.source=manual, you must provide ground_truth.texts"
-        )
+    # Validate input folder exists
+    image_folder = params.get("input_image_folder")
+    if image_folder and not os.path.isdir(image_folder):
+        raise ValueError(f"Image folder does not exist: {image_folder}")
 
-    if gt_source == "file" and not config["ground_truth"].get("file"):
-        raise ValueError("When using ground_truth.source=file, you must provide ground_truth.file")
+    # Validate steps configuration if present
+    steps = config.get("steps", {})
 
-    if gt_source == "file" and not os.path.isfile(config["ground_truth"].get("file")):
-        raise ValueError(f"Ground truth file does not exist: {config['ground_truth'].get('file')}")
+    # Validate model configuration
+    if "ocr_processor" in steps:
+        if "parameters" not in steps["ocr_processor"]:
+            raise ValueError("Missing parameters section in steps.ocr_processor")
+
+        if "selected_models" not in params:
+            raise ValueError("Missing selected_models in parameters")
+
+    # Validate result saving configuration
+    if "result_saver" in steps:
+        if "parameters" not in steps["result_saver"]:
+            raise ValueError("Missing parameters section in steps.result_saver")
 
 
 def override_config_with_cli_args(
     config: Dict[str, Any], cli_args: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Override configuration with command-line arguments.
-
-    Args:
-        config: Dictionary containing configuration
-        cli_args: Dictionary containing command-line arguments
-
-    Returns:
-        Updated configuration dictionary
-    """
+    """Override configuration with command-line arguments."""
     # Deep copy the config to avoid modifying the original
     config = {**config}
 
+    # Ensure parameters section exists
+    if "parameters" not in config:
+        config["parameters"] = {}
+
+    # Ensure steps section exists
+    if "steps" not in config:
+        config["steps"] = {}
+
     # Override input configuration
     if cli_args.get("image_paths"):
-        config["input"]["image_paths"] = cli_args["image_paths"]
+        config["parameters"]["input_image_paths"] = cli_args["image_paths"]
     if cli_args.get("image_folder"):
-        config["input"]["image_folder"] = cli_args["image_folder"]
+        config["parameters"]["input_image_folder"] = cli_args["image_folder"]
 
     # Override model configuration
-    if cli_args.get("custom_prompt"):
-        config["models"]["custom_prompt"] = cli_args["custom_prompt"]
+    if cli_args.get("custom_prompt") and "ocr_processor" not in config["steps"]:
+        config["steps"]["ocr_processor"] = {"parameters": {}}
 
-    # Override ground truth configuration
-    if cli_args.get("ground_truth"):
-        config["ground_truth"]["source"] = cli_args["ground_truth"]
-    if cli_args.get("ground_truth_file"):
-        config["ground_truth"]["file"] = cli_args["ground_truth_file"]
+    if cli_args.get("custom_prompt"):
+        config["steps"]["ocr_processor"]["parameters"]["custom_prompt"] = cli_args["custom_prompt"]
 
     # Override output configuration
-    if cli_args.get("save_ground_truth"):
-        config["output"]["ground_truth"]["save"] = cli_args["save_ground_truth"]
-    if cli_args.get("ground_truth_dir"):
-        config["output"]["ground_truth"]["directory"] = cli_args["ground_truth_dir"]
-    if cli_args.get("save_ocr_results"):
-        config["output"]["ocr_results"]["save"] = cli_args["save_ocr_results"]
-    if cli_args.get("ocr_results_dir"):
-        config["output"]["ocr_results"]["directory"] = cli_args["ocr_results_dir"]
-    if cli_args.get("save_visualization"):
-        config["output"]["visualization"]["save"] = cli_args["save_visualization"]
-    if cli_args.get("visualization_dir"):
-        config["output"]["visualization"]["directory"] = cli_args["visualization_dir"]
+    if cli_args.get("save_results"):
+        if "result_saver" not in config["steps"]:
+            config["steps"]["result_saver"] = {"parameters": {}}
+        config["steps"]["result_saver"]["parameters"]["save_results"] = cli_args["save_results"]
+
+    if cli_args.get("results_directory"):
+        if "result_saver" not in config["steps"]:
+            config["steps"]["result_saver"] = {"parameters": {}}
+        config["steps"]["result_saver"]["parameters"]["results_directory"] = cli_args[
+            "results_directory"
+        ]
+
+    if cli_args.get("save_visualizations"):
+        if "visualizer" not in config["steps"]:
+            config["steps"]["visualizer"] = {"parameters": {}}
+        config["steps"]["visualizer"]["parameters"]["save_visualizations"] = cli_args[
+            "save_visualizations"
+        ]
+
+    if cli_args.get("visualization_directory"):
+        if "visualizer" not in config["steps"]:
+            config["steps"]["visualizer"] = {"parameters": {}}
+        config["steps"]["visualizer"]["parameters"]["visualization_directory"] = cli_args[
+            "visualization_directory"
+        ]
 
     return config
 
 
 def print_config_summary(config: Dict[str, Any]) -> None:
-    """Print a summary of the configuration.
+    """Print a summary of the ZenML configuration."""
+    print("\n===== OCR Pipeline Configuration =====")
 
-    Args:
-        config: Dictionary containing configuration
-    """
-    print("\n===== OCR Comparison Pipeline Configuration =====")
+    # Get parameters
+    params = config.get("parameters", {})
 
-    # Input configuration
-    print("\nInput:")
-    if config["input"].get("image_paths"):
-        print(f"  • Using {len(config['input'].get('image_paths'))} specified image paths")
-    if config["input"].get("image_folder"):
-        print(f"  • Searching for images in folder: {config['input'].get('image_folder')}")
+    # Print pipeline mode
+    mode = params.get("mode", "evaluation")
+    print(f"Pipeline mode: {mode}")
 
-    # Model configuration
-    print("\nModels:")
-    if config["models"].get("custom_prompt"):
-        print(f"  • Using custom prompt: {config['models'].get('custom_prompt')[:50]}...")
-    else:
-        print("  • Using default prompts")
+    # Print model information
+    selected_models = params.get("selected_models", [])
+    if selected_models:
+        print(f"Selected models: {', '.join(selected_models)}")
 
-    # Ground truth configuration
-    print("\nGround Truth:")
-    gt_source = config["ground_truth"].get("source", "none")
-    print(f"  • Source: {gt_source}")
-    if gt_source == "file":
-        print(f"  • File: {config['ground_truth'].get('file')}")
-    elif gt_source == "manual":
-        print(f"  • Manual texts: {len(config['ground_truth'].get('texts', []))} provided")
+    # Print input information
+    image_paths = params.get("input_image_paths", [])
+    if image_paths:
+        print(f"Input images: {len(image_paths)} specified")
 
-    # Output configuration
-    print("\nOutput:")
-    if config["output"]["ground_truth"].get("save", False):
+    image_folder = params.get("input_image_folder")
+    if image_folder:
+        print(f"Input folder: {image_folder}")
+
+    # Print ground truth information if available
+    steps = config.get("steps", {})
+    evaluator = steps.get("result_evaluator", {}).get("parameters", {})
+    gt_folder = evaluator.get("ground_truth_folder")
+    if gt_folder:
+        print(f"Ground truth folder: {gt_folder}")
+        gt_files = list_available_ground_truth_files(directory=gt_folder)
+        print(f"Found {len(gt_files)} ground truth text files")
+
+    # Print output information
+    result_saver = steps.get("result_saver", {}).get("parameters", {})
+    if result_saver.get("save_results", False):
+        print(f"Results will be saved to: {result_saver.get('results_directory', 'ocr_results')}")
+
+    visualizer = steps.get("visualizer", {}).get("parameters", {})
+    if visualizer.get("save_visualizations", False):
         print(
-            f"  • Saving ground truth data to: {config['output']['ground_truth'].get('directory')}"
+            f"Visualizations will be saved to: {visualizer.get('visualization_directory', 'visualizations')}"
         )
-    if config["output"]["ocr_results"].get("save", False):
-        print(f"  • Saving OCR results to: {config['output']['ocr_results'].get('directory')}")
-    if config["output"]["visualization"].get("save", False):
-        print(f"  • Saving visualization to: {config['output']['visualization'].get('directory')}")
 
-    print("\n================================================\n")
+    print("=" * 40 + "\n")
 
 
-def create_default_config() -> Dict[str, Any]:
-    """Create a default configuration.
+def get_image_paths(directory: str) -> List[str]:
+    """Get all image paths from a directory."""
+    image_extensions = ["*.jpg", "*.jpeg", "*.png", "*.webp"]
+    image_paths = []
 
-    Returns:
-        Dictionary containing default configuration
-    """
-    return {
-        "input": {
-            "image_paths": [],
-            "image_folder": None,
-        },
-        "models": {
-            "custom_prompt": None,
-        },
-        "ground_truth": {
-            "source": "none",
-            "texts": [],
-            "file": None,
-        },
-        "output": {
-            "ground_truth": {
-                "save": False,
-                "directory": "ground_truth",
-            },
-            "ocr_results": {
-                "save": False,
-                "directory": "ocr_results",
-            },
-            "visualization": {
-                "save": False,
-                "directory": "visualizations",
-            },
-        },
-    }
+    for ext in image_extensions:
+        image_paths.extend(glob.glob(os.path.join(directory, ext)))
+
+    return sorted(image_paths)
 
 
-def save_config(config: Dict[str, Any], config_path: str) -> None:
-    """Save configuration to YAML file.
+def list_available_ground_truth_files(directory: Optional[str] = None) -> List[str]:
+    """List available ground truth text files in the given directory."""
+    if not directory or not os.path.isdir(directory):
+        return []
 
-    Args:
-        config: Dictionary containing configuration
-        config_path: Path to save the configuration file
-    """
-    os.makedirs(os.path.dirname(os.path.abspath(config_path)), exist_ok=True)
-
-    with open(config_path, "w") as f:
-        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+    text_files = glob.glob(os.path.join(directory, "*.txt"))
+    return sorted(text_files)
