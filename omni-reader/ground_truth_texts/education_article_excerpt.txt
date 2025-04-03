@@ -1,0 +1,13 @@
+Only a matter of style?
+
+For educational purposes we analyse the opening pages of an 11-page article that appeared in The American Mathematical Monthly, Volume 102 Number 2 / February 1995. We have added line numbers in the right margin.
+
+line 4: Since in this article, squares don’t get alternating colours, it could be argued that the term “chessboard” is misplaced.
+
+line 4: The introduction of the name “B” seems unnecessary; it is used in the combination “the board B” in the text for Figure 1 and in line 7; in both cases just “the board” would have done fine. In line 77 occurs the last use of B, viz. in “X⊂B”, which is dubious since B was a board and not a set; in line 77, I would have preferred “Given a set X of cells”.
+
+line 7/8: The first move, being a move like any other, does not deserve a separate description. The term “step” is redundant.
+
+line 8: Why not “a move consists of”?
+
+line 10/11: At this stage the italics are puzzling, since a move is possible if,
