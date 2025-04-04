@@ -10,7 +10,7 @@ A scalable multi-model text extraction solution for unstructured documents.
 OmniReader is built for teams who routinely work with unstructured documents (e.g., PDFs, images, scanned forms) and want a scalable workflow for structured text extraction. It provides an end-to-end batch OCR pipeline with optional multi-model comparison to help ML engineers evaluate different OCR solutions before deployment.
 
 <div align="center">
-  <img src="assets/docs/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
+  <img src="assets/docs/visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
   <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
 </div>
 
