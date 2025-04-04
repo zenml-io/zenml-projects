@@ -10,7 +10,7 @@ A scalable multi-model text extraction solution for unstructured documents.
 OmniReader is built for teams who routinely work with unstructured documents (e.g., PDFs, images, scanned forms) and want a scalable workflow for structured text extraction. It provides an end-to-end batch OCR pipeline with optional multi-model comparison to help ML engineers evaluate different OCR solutions before deployment.
 
 <div align="center">
-  <img src="assets/demo/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
+  <img src="assets/docs/html_visualization.png" alt="HTML Visualization of OCR Results" width="800"/>
   <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
 </div>
 
@@ -106,7 +106,7 @@ The project also includes a Streamlit app that allows you to:
 
 - Upload documents for instant OCR processing
 - Compare results from multiple models side-by-side
-- Customize prompts for improved extraction
+- Experiment with custom prompts to improve extraction quality
 
 ```bash
 # Launch the Streamlit interface
@@ -114,7 +114,7 @@ streamlit run app.py
 ```
 
 <div align="center">
-  <img src="assets/demo/streamlit.png" alt="Model Comparison Results" width="800"/>
+  <img src="assets/docs/streamlit.png" alt="Model Comparison Results" width="800"/>
   <p><em>Side-by-side comparison of OCR results across different models</em></p>
 </div>
 
