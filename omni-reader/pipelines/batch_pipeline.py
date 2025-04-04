@@ -15,10 +15,12 @@
 # limitations under the License.
 """OCR Batch Pipeline implementation for processing images with multiple models."""
 
+import os
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from zenml import pipeline
+from zenml.config import DockerSettings
 from zenml.logger import get_logger
 
 from steps import (
@@ -31,8 +33,16 @@ load_dotenv()
 
 logger = get_logger(__name__)
 
+docker_settings = DockerSettings(
+    requirements_file="requirements.txt",
+    environment={
+        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+        "MISTRAL_API_KEY": os.getenv("MISTRAL_API_KEY"),
+    },
+)
 
-@pipeline
+
+@pipeline(settings={"docker": docker_settings})
 def ocr_batch_pipeline(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,

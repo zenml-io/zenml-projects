@@ -15,18 +15,6 @@ parameters:
   input_image_paths: []
   selected_models: ["gpt4o", "granite", "llava34b", "pixtral", "gemma3", "llava-phi3"]
 
-# Pipeline settings
-settings:
-  docker:
-    requirements:
-      - "litellm>=1.10.0"
-      - "openai>=1.10.0"
-      - "pillow>=10.0.0"
-      - "ollama>=0.1.0"
-      - "jiwer>=3.0.0"
-      - "textdistance>=4.6.0"
-      - "polars>=0.19.19"
-
 # Component-specific configurations
 steps:
   run_ocr:
