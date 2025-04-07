@@ -19,7 +19,8 @@ import difflib
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from difflib import SequenceMatcher
+from typing import Any, Dict, List, Union
 
 from jiwer import cer, wer
 
@@ -110,6 +111,75 @@ def analyze_errors(ground_truth: str, predicted: str) -> ErrorAnalysis:
     )
 
 
+def levenshtein_ratio(s1: str, s2: str) -> float:
+    """Calculate the Levenshtein ratio between two strings."""
+    return SequenceMatcher(None, s1, s2).ratio()
+
+
+def find_best_model(
+    model_metrics: Dict[str, Dict[str, float]],
+    metric: str,
+    lower_is_better: bool = True,
+) -> str:
+    """Find the best performing model(s) for a given metric, showing ties when they occur."""
+    best_models = []
+    best_value = None
+
+    for model, metrics in model_metrics.items():
+        if metric in metrics:
+            value = metrics[metric]
+            if (
+                best_value is None
+                or (lower_is_better and value < best_value)
+                or (not lower_is_better and value > best_value)
+            ):
+                best_value = value
+    if best_value is not None:
+        for model, metrics in model_metrics.items():
+            if metric in metrics:
+                value = metrics[metric]
+                if (lower_is_better and abs(value - best_value) < 1e-6) or (
+                    not lower_is_better and abs(value - best_value) < 1e-6
+                ):
+                    best_models.append(model)
+
+    if not best_models:
+        return "N/A"
+    elif len(best_models) == 1:
+        return best_models[0]
+    else:
+        # return ties as a comma-separated list
+        return ", ".join(best_models)
+
+
+def calculate_custom_metrics(
+    ground_truth_text: str,
+    model_texts: Dict[str, str],
+    model_displays: List[str],
+) -> Dict[str, Dict[str, float]]:
+    """Calculate metrics for each model and between model pairs."""
+    all_metrics = {}
+    model_pairs = []
+    for i, model1 in enumerate(model_displays):
+        if model1 not in all_metrics:
+            all_metrics[model1] = {}
+        text1 = model_texts.get(model1, "")
+        if ground_truth_text:
+            all_metrics[model1]["CER"] = cer(ground_truth_text, text1)
+            all_metrics[model1]["WER"] = wer(ground_truth_text, text1)
+            all_metrics[model1]["GT Similarity"] = levenshtein_ratio(ground_truth_text, text1)
+        for j, model2 in enumerate(model_displays):
+            if i < j:
+                model_pairs.append((model1, model2))
+    for model1, model2 in model_pairs:
+        text1 = model_texts.get(model1, "")
+        text2 = model_texts.get(model2, "")
+        similarity = levenshtein_ratio(text1, text2)
+        pair_key = f"{model1}_{model2}"
+        all_metrics[pair_key] = similarity
+    return all_metrics
+
+
 def compare_multi_model(
     ground_truth: str,
     model_texts: Dict[str, str],
@@ -155,3 +225,69 @@ def compare_multi_model(
         results[model_display] = model_metrics
 
     return results
+
+
+def normalize_text(s: str) -> str:
+    """Normalize text for comparison."""
+    s = s.lower()
+    s = re.sub(r"\s+", " ", s).strip()
+    s = s.replace("\n", " ")
+    # Normalize apostrophes and similar characters
+    s = re.sub(r"[''′`]", "'", s)
+    return s
+
+
+def calculate_model_similarities(
+    results: List[Dict[str, Any]], model_displays: List[str]
+) -> Dict[str, float]:
+    """Calculate the average pairwise Levenshtein ratio between model outputs.
+
+    Expects each result to have keys formatted as:
+        "raw_text_{model_display}"
+    where model_display is converted to lowercase and spaces are replaced with underscores.
+
+    Args:
+        results (List[Dict[str, Any]]): List of dictionaries containing model outputs.
+        model_displays (List[str]): List of model display names.
+
+    Returns:
+        Dict[str, float]: Dictionary mapping each model pair (formatted as "Model1_Model2")
+                          to their average similarity score.
+    """
+    similarity_sums = {}
+    similarity_counts = {}
+
+    for result in results:
+        # Build a mapping from model display names to their corresponding text.
+        model_texts = {}
+        for display in model_displays:
+            key = f"raw_text_{display.lower().replace(' ', '_')}"
+            text = result.get(key, "")
+            if isinstance(text, str):
+                text = normalize_text(text)
+                if text:
+                    model_texts[display] = text
+
+        # Only proceed if at least two models have valid text.
+        if len(model_texts) < 2:
+            continue
+
+        # Compute pairwise similarity for each combination.
+        for i in range(len(model_displays)):
+            for j in range(i + 1, len(model_displays)):
+                model1 = model_displays[i]
+                model2 = model_displays[j]
+                if model1 not in model_texts or model2 not in model_texts:
+                    continue
+                text1 = model_texts[model1]
+                text2 = model_texts[model2]
+                similarity = levenshtein_ratio(text1, text2)
+                pair_key = f"{model1}_{model2}"
+                similarity_sums[pair_key] = similarity_sums.get(pair_key, 0) + similarity
+                similarity_counts[pair_key] = similarity_counts.get(pair_key, 0) + 1
+
+    # Average the similarities for each pair.
+    similarities = {
+        pair: similarity_sums[pair] / similarity_counts[pair] for pair in similarity_sums
+    }
+    return similarities

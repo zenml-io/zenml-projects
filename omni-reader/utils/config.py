@@ -35,145 +35,198 @@ def load_config(config_path: str) -> Dict[str, Any]:
             raise ValueError(f"Invalid YAML configuration file: {e}")
 
 
-def validate_config(config: Dict[str, Any]) -> None:
-    """Validate ZenML configuration."""
-    # Validate required sections
-    if "parameters" not in config:
-        raise ValueError("Missing required 'parameters' section in configuration")
+def validate_batch_config(config: Dict[str, Any]) -> None:
+    """Validate batch pipeline configuration."""
+    if "steps" not in config:
+        raise ValueError("Missing required 'steps' section in batch configuration")
 
-    # Validate input parameters
-    params = config.get("parameters", {})
-    if not params.get("input_image_paths") and not params.get("input_image_folder"):
+    steps = config.get("steps", {})
+
+    if "load_images" not in steps:
+        raise ValueError("Missing required 'load_images' step in batch pipeline configuration")
+
+    if "run_ocr" not in steps:
+        raise ValueError("Missing required 'run_ocr' step in batch pipeline configuration")
+
+    load_images_params = steps.get("load_images", {}).get("parameters", {})
+    if not load_images_params.get("image_folder") and not load_images_params.get("image_paths"):
         raise ValueError(
-            "Either parameters.input_image_paths or parameters.input_image_folder must be provided"
+            "Either image_folder or image_paths must be provided in load_images.parameters"
         )
 
-    # Validate input folder exists
-    image_folder = params.get("input_image_folder")
+    image_folder = load_images_params.get("image_folder")
     if image_folder and not os.path.isdir(image_folder):
         raise ValueError(f"Image folder does not exist: {image_folder}")
 
-    # Validate steps configuration if present
+    run_ocr_params = steps.get("run_ocr", {}).get("parameters", {})
+    if "models" not in run_ocr_params or not run_ocr_params["models"]:
+        raise ValueError("At least one model must be specified in run_ocr.parameters.models")
+
+    if "models_registry" not in config or not config["models_registry"]:
+        raise ValueError("models_registry section is required with at least one model definition")
+
+
+def validate_evaluation_config(config: Dict[str, Any]) -> None:
+    """Validate evaluation pipeline configuration."""
+    if "steps" not in config:
+        raise ValueError("Missing required 'steps' section in evaluation configuration")
+
     steps = config.get("steps", {})
 
-    # Validate model configuration
-    if "ocr_processor" in steps:
-        if "parameters" not in steps["ocr_processor"]:
-            raise ValueError("Missing parameters section in steps.ocr_processor")
+    if "load_ocr_results" not in steps:
+        raise ValueError(
+            "Missing required 'load_ocr_results' step in evaluation pipeline configuration"
+        )
 
-        if "selected_models" not in params:
-            raise ValueError("Missing selected_models in parameters")
+    if "load_ground_truth_texts" not in steps:
+        raise ValueError(
+            "Missing required 'load_ground_truth_texts' step in evaluation pipeline configuration"
+        )
 
-    # Validate result saving configuration
-    if "result_saver" in steps:
-        if "parameters" not in steps["result_saver"]:
-            raise ValueError("Missing parameters section in steps.result_saver")
+    gt_params = steps.get("load_ground_truth_texts", {}).get("parameters", {})
+    gt_folder = gt_params.get("ground_truth_folder")
+    if gt_folder and not os.path.isdir(gt_folder):
+        raise ValueError(f"Ground truth folder does not exist: {gt_folder}")
 
 
-def override_config_with_cli_args(
-    config: Dict[str, Any], cli_args: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Override configuration with command-line arguments."""
-    # Deep copy the config to avoid modifying the original
-    config = {**config}
+def override_batch_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> Dict[str, Any]:
+    """Override batch pipeline configuration with command-line arguments."""
+    modified_config = {**config}
 
-    # Ensure parameters section exists
-    if "parameters" not in config:
-        config["parameters"] = {}
+    steps = modified_config.get("steps", {})
 
-    # Ensure steps section exists
-    if "steps" not in config:
-        config["steps"] = {}
+    if "load_images" not in steps:
+        steps["load_images"] = {"parameters": {}}
+    elif "parameters" not in steps["load_images"]:
+        steps["load_images"]["parameters"] = {}
 
-    # Override input configuration
     if cli_args.get("image_paths"):
-        config["parameters"]["input_image_paths"] = cli_args["image_paths"]
-    if cli_args.get("image_folder"):
-        config["parameters"]["input_image_folder"] = cli_args["image_folder"]
+        steps["load_images"]["parameters"]["image_paths"] = cli_args["image_paths"]
 
-    # Override model configuration
-    if cli_args.get("custom_prompt") and "ocr_processor" not in config["steps"]:
-        config["steps"]["ocr_processor"] = {"parameters": {}}
+    if cli_args.get("image_folder"):
+        steps["load_images"]["parameters"]["image_folder"] = cli_args["image_folder"]
+
+    if "run_ocr" not in steps:
+        steps["run_ocr"] = {"parameters": {}}
+    elif "parameters" not in steps["run_ocr"]:
+        steps["run_ocr"]["parameters"] = {}
 
     if cli_args.get("custom_prompt"):
-        config["steps"]["ocr_processor"]["parameters"]["custom_prompt"] = cli_args["custom_prompt"]
+        steps["run_ocr"]["parameters"]["custom_prompt"] = cli_args["custom_prompt"]
 
-    # Override output configuration
-    if cli_args.get("save_results"):
-        if "result_saver" not in config["steps"]:
-            config["steps"]["result_saver"] = {"parameters": {}}
-        config["steps"]["result_saver"]["parameters"]["save_results"] = cli_args["save_results"]
+    return modified_config
 
-    if cli_args.get("results_directory"):
-        if "result_saver" not in config["steps"]:
-            config["steps"]["result_saver"] = {"parameters": {}}
-        config["steps"]["result_saver"]["parameters"]["results_directory"] = cli_args[
-            "results_directory"
+
+def override_evaluation_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> Dict[str, Any]:
+    """Override evaluation pipeline configuration with command-line arguments."""
+    modified_config = {**config}
+
+    steps = modified_config.get("steps", {})
+
+    if "load_ground_truth_texts" not in steps:
+        steps["load_ground_truth_texts"] = {"parameters": {}}
+    elif "parameters" not in steps["load_ground_truth_texts"]:
+        steps["load_ground_truth_texts"]["parameters"] = {}
+
+    if cli_args.get("ground_truth_dir"):
+        steps["load_ground_truth_texts"]["parameters"]["ground_truth_folder"] = cli_args[
+            "ground_truth_dir"
         ]
 
-    if cli_args.get("save_visualizations"):
-        if "visualizer" not in config["steps"]:
-            config["steps"]["visualizer"] = {"parameters": {}}
-        config["steps"]["visualizer"]["parameters"]["save_visualizations"] = cli_args[
-            "save_visualizations"
-        ]
-
-    if cli_args.get("visualization_directory"):
-        if "visualizer" not in config["steps"]:
-            config["steps"]["visualizer"] = {"parameters": {}}
-        config["steps"]["visualizer"]["parameters"]["visualization_directory"] = cli_args[
-            "visualization_directory"
-        ]
-
-    return config
+    return modified_config
 
 
-def print_config_summary(config: Dict[str, Any]) -> None:
-    """Print a summary of the ZenML configuration."""
-    print("\n===== OCR Pipeline Configuration =====")
+def print_batch_config_summary(config: Dict[str, Any]) -> None:
+    """Print a summary of the batch pipeline configuration."""
+    steps = config.get("steps", {})
 
-    # Get parameters
-    params = config.get("parameters", {})
+    print("\n===== Batch OCR Pipeline Configuration =====")
+    print(f"Build: {config.get('build', 'N/A')}")
+    print(f"Run name: {config.get('run_name', 'N/A')}")
 
-    # Print pipeline mode
-    mode = params.get("mode", "evaluation")
-    print(f"Pipeline mode: {mode}")
-
-    # Print model information
-    selected_models = params.get("selected_models", [])
-    if selected_models:
-        print(f"Selected models: {', '.join(selected_models)}")
+    # Print caching and logging info
+    print(f"Cache enabled: {config.get('enable_cache', False)}")
+    print(f"Step logs enabled: {config.get('enable_step_logs', False)}")
 
     # Print input information
-    image_paths = params.get("input_image_paths", [])
+    load_params = steps.get("load_images", {}).get("parameters", {})
+
+    image_paths = load_params.get("image_paths", [])
     if image_paths:
         print(f"Input images: {len(image_paths)} specified")
 
-    image_folder = params.get("input_image_folder")
+    image_folder = load_params.get("image_folder")
     if image_folder:
         print(f"Input folder: {image_folder}")
+        try:
+            num_images = len(get_image_paths(image_folder))
+            print(f"Found {num_images} images in folder")
+        except Exception as e:
+            print(f"Unable to access image folder: {e}")
 
-    # Print ground truth information if available
+    # Print model information
+    run_ocr_params = steps.get("run_ocr", {}).get("parameters", {})
+    models = run_ocr_params.get("models", [])
+    if models:
+        print(f"Models to run: {', '.join(models)}")
+
+    # Print custom prompt if provided
+    custom_prompt = run_ocr_params.get("custom_prompt")
+    if custom_prompt:
+        print(f"Custom prompt: {custom_prompt}")
+
+    # List models from registry
+    models_registry = config.get("models_registry", [])
+    if models_registry:
+        print(f"\nModels in registry: {len(models_registry)}")
+        for model in models_registry:
+            print(f"  - {model.get('name')} (shorthand: {model.get('shorthand')})")
+
+    print("=" * 40 + "\n")
+
+
+def print_evaluation_config_summary(config: Dict[str, Any]) -> None:
+    """Print a summary of the evaluation pipeline configuration."""
     steps = config.get("steps", {})
-    evaluator = steps.get("result_evaluator", {}).get("parameters", {})
-    gt_folder = evaluator.get("ground_truth_folder")
+
+    print("\n===== OCR Evaluation Pipeline Configuration =====")
+    print(f"Build: {config.get('build', 'N/A')}")
+    print(f"Run name: {config.get('run_name', 'N/A')}")
+
+    # Print caching and logging info
+    print(f"Cache enabled: {config.get('enable_cache', False)}")
+    print(f"Step logs enabled: {config.get('enable_step_logs', False)}")
+
+    # Print OCR results information
+    load_results_params = steps.get("load_ocr_results", {}).get("parameters", {})
+    artifact_name = load_results_params.get("artifact_name", "ocr_results")
+    artifact_version = load_results_params.get("version", "latest")
+    print(f"Loading OCR results from: {artifact_name} (version: {artifact_version})")
+
+    # Print ground truth information
+    gt_params = steps.get("load_ground_truth_texts", {}).get("parameters", {})
+    gt_folder = gt_params.get("ground_truth_folder")
     if gt_folder:
         print(f"Ground truth folder: {gt_folder}")
         gt_files = list_available_ground_truth_files(directory=gt_folder)
         print(f"Found {len(gt_files)} ground truth text files")
 
-    # Print output information
-    result_saver = steps.get("result_saver", {}).get("parameters", {})
-    if result_saver.get("save_results", False):
-        print(f"Results will be saved to: {result_saver.get('results_directory', 'ocr_results')}")
+    gt_files = gt_params.get("ground_truth_files", [])
+    if gt_files:
+        print(f"Using {len(gt_files)} specific ground truth files")
 
-    visualizer = steps.get("visualizer", {}).get("parameters", {})
-    if visualizer.get("save_visualizations", False):
-        print(
-            f"Visualizations will be saved to: {visualizer.get('visualization_directory', 'visualizations')}"
-        )
+    print("=" * 45 + "\n")
 
-    print("=" * 40 + "\n")
+
+def print_config_summary(
+    config: Dict[str, Any],
+    is_evaluation_config: bool = False,
+) -> None:
+    """Print a summary of the ZenML configuration."""
+    if is_evaluation_config:
+        print_evaluation_config_summary(config)
+    else:
+        print_batch_config_summary(config)
 
 
 def get_image_paths(directory: str) -> List[str]:
@@ -187,10 +240,32 @@ def get_image_paths(directory: str) -> List[str]:
     return sorted(image_paths)
 
 
-def list_available_ground_truth_files(directory: Optional[str] = None) -> List[str]:
-    """List available ground truth text files in the given directory."""
+def list_available_ground_truth_files(directory: Optional[str] = "ground_truth_texts") -> List[str]:
+    """List available ground truth text files in the given directory.
+
+    Args:
+        directory: Directory containing ground truth text files
+
+    Returns:
+        List of paths to available ground truth text files
+    """
     if not directory or not os.path.isdir(directory):
         return []
 
     text_files = glob.glob(os.path.join(directory, "*.txt"))
     return sorted(text_files)
+
+
+def select_config_path(evaluation_mode: bool) -> str:
+    """Select the appropriate configuration file path based on the pipeline mode.
+
+    Args:
+        evaluation_mode: Whether to use evaluation pipeline configuration
+
+    Returns:
+        Path to the configuration file
+    """
+    if evaluation_mode:
+        return "configs/evaluation_pipeline.yaml"
+    else:
+        return "configs/batch_pipeline.yaml"

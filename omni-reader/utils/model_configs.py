@@ -40,7 +40,7 @@ class ModelConfig:
 class ModelRegistry:
     """Registry for OCR model configurations."""
 
-    def __init__(self, config_path: str = "configs/config.yaml"):
+    def __init__(self, config_path: str = "configs/batch_pipeline.yaml"):
         """Initialize the model registry from configuration YAML."""
         self.models = {}
         self.default_model = None

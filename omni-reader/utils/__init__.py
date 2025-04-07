@@ -15,7 +15,22 @@
 # limitations under the License.
 
 from .encode_image import encode_image
-from .metrics import compare_multi_model
+from .metrics import (
+    analyze_errors,
+    calculate_custom_metrics,
+    calculate_model_similarities,
+    compare_multi_model,
+    find_best_model,
+    normalize_text,
+)
+from .visualizations import (
+    create_metrics_table,
+    create_comparison_table,
+    create_model_card_with_logo,
+    create_model_comparison_card,
+    create_model_similarity_matrix,
+    create_summary_visualization,
+)
 from .ocr_processing import (
     log_image_metadata,
     log_error_metadata,
@@ -26,11 +41,6 @@ from .ocr_processing import (
 from .prompt import (
     get_prompt,
     ImageDescription,
-)
-from .io_utils import (
-    save_ocr_data_to_json,
-    load_ocr_data_from_json,
-    list_available_ground_truth_files,
 )
 from .model_configs import (
     MODEL_CONFIGS,
