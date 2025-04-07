@@ -44,8 +44,7 @@ docker_settings = DockerSettings(
 )
 
 
-# settings={"docker": docker_settings}
-@pipeline()
+@pipeline(settings={"docker": docker_settings})
 def ocr_evaluation_pipeline(
     ground_truth_folder: Optional[str] = None,
     ground_truth_files: Optional[List[str]] = None,

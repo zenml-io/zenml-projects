@@ -42,8 +42,7 @@ docker_settings = DockerSettings(
 )
 
 
-# settings={"docker": docker_settings}
-@pipeline()
+@pipeline(settings={"docker": docker_settings})
 def batch_ocr_pipeline(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
