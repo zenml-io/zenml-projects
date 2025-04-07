@@ -1,0 +1,23 @@
+# Pipeline configuration
+build: "ocr-evaluation-pipeline-20254007"
+run_name: "ocr_evaluation_run"
+
+# Enable flags
+enable_artifact_metadata: True
+enable_artifact_visualization: True
+enable_cache: False
+enable_step_logs: True
+
+# Steps
+steps:
+  load_ocr_results: # loads OCR results from batch pipeline runs
+    enable_cache: False
+    parameters:
+      artifact_name: "ocr_results"
+      version: null
+
+  load_ground_truth_texts:
+    enable_cache: False
+    parameters:
+      ground_truth_folder: "ground_truth_texts"
+      ground_truth_files: []

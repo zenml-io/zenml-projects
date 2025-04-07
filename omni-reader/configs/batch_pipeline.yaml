@@ -1,0 +1,56 @@
+# Pipeline configuration
+build: "batch-ocr-pipeline-20254007"
+run_name: "run_ocr"
+
+# Enable flags
+enable_artifact_metadata: True
+enable_artifact_visualization: True
+enable_cache: False
+enable_step_logs: True
+
+# Steps
+steps:
+  load_images:
+    parameters:
+      image_folder: "./assets/samples_for_ocr"
+      image_paths: []
+    enable_cache: False
+
+  run_ocr:
+    parameters:
+      custom_prompt: null
+      models: # can be model names or shorthands
+        - "pixtral"
+        - "llava-phi3"
+        - "gpt4o"
+        - "granite3.2-vision"
+        - "gemma3"
+    enable_cache: False
+
+# Vision models registry – provides model metadata needed to run the pipeline
+# -- update this list with whatever models you want to test
+models_registry:
+  - name: "mistral/pixtral-12b-2409"
+    shorthand: "pixtral"
+    ocr_processor: "litellm"
+    provider: "mistral"
+
+  - name: "gpt-4o-mini"
+    shorthand: "gpt4o"
+    ocr_processor: "openai"
+
+  - name: "gemma3:27b"
+    shorthand: "gemma3"
+    ocr_processor: "ollama"
+
+  - name: "llava:34b"
+    shorthand: "llava34b"
+    ocr_processor: "ollama"
+
+  - name: "llava-phi3"
+    shorthand: "llava-phi3"
+    ocr_processor: "ollama"
+
+  - name: "granite3.2-vision"
+    shorthand: "granite"
+    ocr_processor: "ollama"
