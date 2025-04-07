@@ -16,16 +16,15 @@
 """This module contains the ground truth and OCR results loader steps."""
 
 import glob
-import json
 import os
 from typing import Dict, List, Optional
 
 import polars as pl
 from typing_extensions import Annotated
 from zenml import log_metadata, step
+from zenml.artifacts.utils import load_artifact
+from zenml.client import Client
 from zenml.logger import get_logger
-
-from utils.model_configs import get_model_prefix
 
 logger = get_logger(__name__)
 
@@ -98,30 +97,6 @@ def load_images(
 
 
 @step(enable_cache=False)
-def load_ground_truth_file(
-    filepath: str,
-) -> Annotated[pl.DataFrame, "ground_truth"]:
-    """Load ground truth data from a JSON file.
-
-    Args:
-        filepath: Path to the ground truth file
-
-    Returns:
-        pl.DataFrame containing ground truth results
-    """
-    from utils.io_utils import load_ocr_data_from_json
-
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"Ground truth file not found: {filepath}")
-
-    df = load_ocr_data_from_json(filepath)
-
-    log_metadata(metadata={"ground_truth_loaded": {"path": filepath, "count": len(df)}})
-
-    return df
-
-
-@step(enable_cache=False)
 def load_ground_truth_texts(
     model_results: Dict[str, pl.DataFrame],
     ground_truth_folder: Optional[str] = None,
@@ -131,9 +106,12 @@ def load_ground_truth_texts(
     if not ground_truth_folder and not ground_truth_files:
         raise ValueError("Either ground_truth_folder or ground_truth_files must be provided")
 
-    # Grab image names from any model result
-    sample_model_df = next(iter(model_results.values()))
-    image_names = sample_model_df.select("image_name").to_series().to_list()
+    # Get the first model column to extract image names
+    first_model_column = list(model_results.keys())[0]
+
+    image_names = model_results[first_model_column]["image_name"].to_list()
+
+    logger.info(f"Extracted {len(image_names)} image names")
 
     gt_path_map = {}
 
@@ -184,63 +162,33 @@ def load_ground_truth_texts(
     return pl.DataFrame(data)
 
 
-@step(enable_cache=False)
+@step()
 def load_ocr_results(
-    model_names: List[str],
-    results_dir: str = "ocr_results",
-    result_files: Optional[List[str]] = None,
-) -> Dict[str, pl.DataFrame]:
-    """Load OCR results from previously saved JSON files."""
-    results = {}
-    model_to_prefix = {model: get_model_prefix(model) for model in model_names}
+    artifact_name: str = "ocr_results",
+    version: Optional[int] = None,
+) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:
+    """Load OCR results from ZenML artifact.
 
-    if result_files:
-        for file_path in result_files:
-            if not os.path.exists(file_path):
-                logger.warning(f"Result file not found: {file_path}")
-                continue
+    Args:
+        artifact_name: Name of the ZenML artifact
+        version: Version of the ZenML artifact
 
-            file_name = os.path.basename(file_path)
-            for model, prefix in model_to_prefix.items():
-                # Check for exact prefix match at start of filename
-                if file_name.startswith(f"{prefix}_"):
-                    try:
-                        with open(file_path, "r") as f:
-                            data = json.load(f)
-                            if "ocr_data" in data:
-                                results[model] = pl.DataFrame(data["ocr_data"])
-                            else:
-                                results[model] = pl.DataFrame(data)
-                        break
-                    except Exception as e:
-                        logger.error(f"Error loading {model} results: {str(e)}")
-    else:
-        for model, prefix in model_to_prefix.items():
-            model_dir = os.path.join(results_dir, prefix)
-            if not os.path.exists(model_dir):
-                logger.warning(f"No results directory found for model: {model}")
-                continue
+    Returns:
+        dict: Dictionary mapping model names to OCR results DataFrames
 
-            # Find files matching the exact prefix pattern
-            json_files = glob.glob(os.path.join(model_dir, f"{prefix}_*.json"))
-            if not json_files:
-                logger.warning(f"No result files found for model: {model}")
-                continue
+    Raises:
+        ValueError: If the parameters are invalid or the dataset cannot be loaded
+    """
+    try:
+        client = Client()
 
-            latest_file = sorted(json_files, key=os.path.getmtime, reverse=True)[0]
-            logger.info(f"Loading results for {model} from {latest_file}")
+        artifact = client.get_artifact_version(name_id_or_prefix=artifact_name, version=version)
 
-            try:
-                with open(latest_file, "r") as f:
-                    data = json.load(f)
-                    if "ocr_data" in data:
-                        results[model] = pl.DataFrame(data["ocr_data"])
-                    else:
-                        results[model] = pl.DataFrame(data)
-            except Exception as e:
-                logger.error(f"Error loading results for {model}: {str(e)}")
+        ocr_results = load_artifact(artifact.id)
 
-    if not results:
-        raise ValueError("No model results could be loaded. Run the batch pipeline first.")
+        logger.info(f"Successfully loaded OCR results for {len(ocr_results)} models")
 
-    return results
+        return ocr_results
+    except Exception as e:
+        logger.error(f"Failed to load OCR results: {str(e)}")
+        raise
