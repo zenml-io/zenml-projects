@@ -28,13 +28,18 @@ from typing import Any, Dict, List, Optional, Union
 from dotenv import load_dotenv
 from PIL import Image
 
-from pipelines.batch_pipeline import run_ocr_batch_pipeline
+from pipelines.batch_pipeline import run_batch_ocr_pipeline
 from pipelines.evaluation_pipeline import run_ocr_evaluation_pipeline
 from utils.config import (
     get_image_paths,
     list_available_ground_truth_files,
     load_config,
+    override_batch_config,
+    override_evaluation_config,
     print_config_summary,
+    select_config_path,
+    validate_batch_config,
+    validate_evaluation_config,
 )
 from utils.model_configs import DEFAULT_MODEL, MODEL_CONFIGS
 from utils.ocr_processing import run_ocr
@@ -265,7 +270,7 @@ def run_ui_mode(args, parser):
 
 def run_pipeline_mode(args, parser):
     """Run the application in full pipeline mode with ZenML tracking."""
-    # List available ground truth files
+    # List available ground truth files if requested
     if args.list_ground_truth_files:
         gt_files = list_available_ground_truth_files(directory=args.ground_truth_dir)
         if gt_files:
@@ -276,65 +281,57 @@ def run_pipeline_mode(args, parser):
             print(f"No ground truth files found in '{args.ground_truth_dir}'")
         return
 
-    # Load configuration
+    # Determine pipeline mode and select config path
+    evaluation_mode = args.eval
+
     if args.config:
-        config = load_config(args.config)
+        config_path = args.config
     else:
-        parser.error("Please provide a configuration file with --config")
+        config_path = select_config_path(evaluation_mode)
+        print(f"Auto-selecting config file: {config_path}")
+
+    if not os.path.exists(config_path):
+        parser.error(f"Config file not found: {config_path}")
         return
 
-    # Override config with CLI arguments if provided
-    if args.image_paths or args.image_folder or args.custom_prompt:
-        # Create parameters section if it doesn't exist
-        if "parameters" not in config:
-            config["parameters"] = {}
+    # Load the configuration
+    try:
+        config = load_config(config_path)
+    except (ValueError, FileNotFoundError) as e:
+        parser.error(f"Error loading configuration: {str(e)}")
+        return
 
-        # Update parameters with CLI arguments
-        if args.image_paths:
-            config["parameters"]["input_image_paths"] = args.image_paths
-        if args.image_folder:
-            config["parameters"]["input_image_folder"] = args.image_folder
-        if args.custom_prompt:
-            # Create steps section if needed
-            if "steps" not in config:
-                config["steps"] = {}
-            if "ocr_processor" not in config["steps"]:
-                config["steps"]["ocr_processor"] = {"parameters": {}}
+    cli_args = {
+        "image_paths": args.image_paths,
+        "image_folder": args.image_folder,
+        "custom_prompt": args.custom_prompt,
+        "ground_truth_dir": args.ground_truth_dir,
+    }
 
-            # Set custom prompt
-            config["steps"]["ocr_processor"]["parameters"]["custom_prompt"] = args.custom_prompt
+    # Override configuration with CLI arguments if provided
+    try:
+        if evaluation_mode:
+            config = override_evaluation_config(config, cli_args)
+            validate_evaluation_config(config)
+        else:
+            config = override_batch_config(config, cli_args)
+            validate_batch_config(config)
+    except ValueError as e:
+        parser.error(f"Configuration error: {str(e)}")
+        return
 
-    print_config_summary(config)
+    print_config_summary(config, is_evaluation_config=evaluation_mode)
 
-    # Create output directories if needed
-    if (
-        "steps" in config
-        and "save_ocr_results" in config["steps"]
-        and config["steps"]["save_ocr_results"].get("parameters", {}).get("save_results", False)
-    ):
-        results_dir = config["steps"]["save_ocr_results"]["parameters"].get(
-            "results_directory", "ocr_results"
-        )
-        os.makedirs(results_dir, exist_ok=True)
-
-    if (
-        "steps" in config
-        and "save_visualization" in config["steps"]
-        and config["steps"]["save_visualization"].get("parameters", {}).get("save_locally", False)
-    ):
-        viz_dir = config["steps"]["save_visualization"]["parameters"].get(
-            "visualization_directory", "visualizations"
-        )
-        os.makedirs(viz_dir, exist_ok=True)
-
-    # Run pipeline in specified mode
-    mode = config.get("parameters", {}).get("mode", "evaluation")
-    if mode == "batch":
-        print("Running OCR Batch Pipeline...")
-        run_ocr_batch_pipeline(config)
-    else:  # Default to evaluation mode
-        print("Running OCR Evaluation Pipeline...")
-        run_ocr_evaluation_pipeline(config)
+    try:
+        if evaluation_mode:
+            print("Running OCR Evaluation Pipeline...")
+            run_ocr_evaluation_pipeline(config)
+        else:
+            print("Running OCR Batch Pipeline...")
+            run_batch_ocr_pipeline(config)
+    except Exception as e:
+        print(f"Error running pipeline: {str(e)}")
+        return
 
 
 def main():
@@ -355,14 +352,12 @@ def main():
     config_group.add_argument(
         "--config",
         type=str,
-        default="configs/config.yaml",
         help="Path to YAML configuration file (for pipeline mode)",
     )
     config_group.add_argument(
-        "--create-default-config",
-        type=str,
-        metavar="PATH",
-        help="Create a default configuration file at the specified path and exit",
+        "--eval",
+        action="store_true",
+        help="Run in evaluation pipeline mode (defaults to batch pipeline if not specified)",
     )
 
     # Ground truth utilities (pipeline mode)
