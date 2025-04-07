@@ -3,7 +3,7 @@ jiwer
 jiter
 importlib-metadata<7.0,>=1.4.0
 litellm
-mistralai>=1.0.3
+mistralai==1.0.3
 numpy<2.0,>=1.9.0
 openai==1.69.0
 Pillow==11.1.0
