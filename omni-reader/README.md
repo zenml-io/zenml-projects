@@ -14,6 +14,14 @@ OmniReader is built for teams who routinely work with unstructured documents (e.
   <p><em>HTML visualization showing metrics and comparison results from the OCR pipeline</em></p>
 </div>
 
+## 🔮 Use Cases
+
+- **Document Processing Automation**: Extract structured data from invoices, receipts, and forms
+- **Content Digitization**: Convert scanned documents and books into searchable digital content
+- **Regulatory Compliance**: Extract and validate information from compliance documents
+- **Data Migration**: Convert legacy paper documents into structured digital formats
+- **Research & Analysis**: Extract data from academic papers, reports, and publications
+
 ## 🌟 Key Features
 
 - **End-to-end workflow management** from evaluation to production deployment
@@ -44,6 +52,74 @@ OmniReader supports a wide range of OCR models, including:
 
 > ⚠️ Note: For production deployments, we recommend using the non-GGUF hosted model versions via their respective APIs for better performance and accuracy. The Ollama models mentioned here are primarily for convenience.
 
+### 🔧 OCR Processor Configuration
+
+OmniReader supports multiple OCR processors to handle different models:
+
+1. **litellm**: For using LiteLLM-compatible models including those from Mistral and other providers.
+
+- Set API keys for your providers (e.g., `MISTRAL_API_KEY`)
+- **Important**: When using `litellm` as the processor, you must specify the `provider` field in your model configuration.
+
+2. **ollama**: For running local models through Ollama.
+
+   - Requires: [Ollama](https://ollama.com/) installed and running
+   - Set `OLLAMA_HOST` (defaults to "http://localhost:11434/api/generate")
+   - If using local models, they must be pulled before use with `ollama pull model_name`
+
+3. **openai**: For using OpenAI models like GPT-4o.
+   - Set `OPENAI_API_KEY` environment variable
+
+Example model configurations in your `configs/batch_pipeline.yaml`:
+
+```yaml
+models_registry:
+  - name: "gpt-4o-mini"
+    shorthand: "gpt4o"
+    ocr_processor: "openai"
+    # No provider needed for OpenAI
+
+  - name: "gemma3:27b"
+    shorthand: "gemma3"
+    ocr_processor: "ollama"
+    # No provider needed for Ollama
+
+  - name: "mistral/pixtral-12b-2409"
+    shorthand: "pixtral"
+    ocr_processor: "litellm"
+    provider: "mistral" # Provider field required for litellm processor
+```
+
+To add your own models, extend the `models_registry` with the appropriate processor and provider configurations based on the model source.
+
+## 🛠️ Project Structure
+
+```
+omni-reader/
+│
+├── app.py                 # Streamlit UI for interactive document processing
+├── assets/                # Sample images for ocr
+├── configs/               # YAML configuration files
+├── ground_truth_texts/    # Text files containing ground truth for evaluation
+├── pipelines/             # ZenML pipeline definitions
+│   ├── batch_pipeline.py  # Batch OCR pipeline (single or multiple models)
+│   └── evaluation_pipeline.py # Evaluation pipeline (multiple models)
+├── steps/                 # Pipeline step implementations
+│   ├── evaluate_models.py # Model comparison and metrics
+│   ├── loaders.py         # Loading images and ground truth texts
+│   └── run_ocr.py         # Running OCR with selected models
+├── utils/                 # Utility functions and helpers
+│   ├── ocr_processing.py  # OCR processing core logic
+│   ├── metrics.py         # Metrics for evaluation
+│   ├── visualizations.py  # Visualization utilities for the evaluation pipeline
+│   ├── encode_image.py    # Image encoding utilities for OCR processing
+│   ├── prompt.py          # Prompt template for vision models
+│   ├── config.py          # Utilities for loading and validating configs
+│   └── model_configs.py   # Model configuration and registry
+├── run.py                 # Main entrypoint for running the pipeline
+└── README.md              # Project documentation
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -57,27 +133,11 @@ OmniReader supports a wide range of OCR models, including:
 ### Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/omni-reader.git
-
-# Navigate to OmniReader
-cd omni-reader
-
 # Install dependencies
 pip install -r requirements.txt
 
 # Start Ollama (if using local models)
 ollama serve
-```
-
-### Prepare Your Models
-
-If using local models, ensure any Ollama models you want to use are pulled:
-
-```bash
-ollama pull gemma3:27b
-ollama pull llava-phi3
-ollama pull granite3.2-vision
 ```
 
 ### Set Up Your Environment
@@ -93,11 +153,20 @@ export OLLAMA_HOST=base_url_for_ollama_host # defaults to "http://localhost:1143
 ### Run OmniReader
 
 ```bash
-# Use the default config (config.yaml)
+# Run the batch pipeline (default)
 python run.py
 
+# Run the evaluation pipeline
+python run.py --eval
+
 # Run with a custom config file
-python run.py --config my_config.yaml
+python run.py --config my_custom_config.yaml
+
+# Run with custom input
+python run.py --image-folder ./my_images
+
+# List ground truth files
+python run.py --list-ground-truth-files
 ```
 
 ### Interactive UI
@@ -120,66 +189,107 @@ streamlit run app.py
 
 ## ☁️ Cloud Deployment
 
-OmniReader supports storing artifacts remotely and executing pipelines on cloud infrastructure:
+OmniReader supports storing artifacts remotely and executing pipelines on cloud infrastructure. For this example, we'll use AWS, but you can use any cloud provider you want.
 
-### Set Up Cloud Provider Integrations
+### AWS Setup
 
-```bash
-# For AWS
-zenml integration install aws s3
+1. **Install required integrations**:
 
-# For Azure
-zenml integration install azure
+   ```bash
+   zenml integration install aws s3
+   ```
 
-# For Google Cloud
-zenml integration install gcp gcs
-```
+2. **Set up your AWS credentials**:
 
-Run your pipeline in the cloud:
+   - Create an IAM role with appropriate permissions (S3, ECR, SageMaker)
+   - Configure your role ARN and region
 
-```bash
-# Configure your cloud stack
-zenml stack register my-cloud-stack -a cloud-artifact-store -o cloud-orchestrator
-```
+3. **Register an AWS service connector**:
 
-For detailed configuration options and other components, refer to the ZenML documentation:
+   ```bash
+   zenml service-connector register aws_connector \
+     --type aws \
+     --auth-method iam-role \
+     --role_arn=<ROLE_ARN> \
+     --region=<YOUR_REGION> \
+     --aws_access_key_id=<YOUR_ACCESS_KEY_ID> \
+     --aws_secret_access_key=<YOUR_SECRET_ACCESS_KEY>
+   ```
+
+4. **Configure stack components**:
+
+   a. **S3 Artifact Store**:
+
+   ```bash
+   zenml artifact-store register s3_artifact_store \
+     -f s3 \
+     --path=s3://<YOUR_BUCKET_NAME> \
+     --connector aws_connector
+   ```
+
+   b. **SageMaker Orchestrator**:
+
+   ```bash
+   zenml orchestrator register sagemaker_orchestrator \
+     --flavor=sagemaker \
+     --region=<YOUR_REGION> \
+     --execution_role=<ROLE_ARN>
+   ```
+
+   c. **ECR Container Registry**:
+
+   ```bash
+   zenml container-registry register ecr_registry \
+     --flavor=aws \
+     --uri=<ACCOUNT_ID>.dkr.ecr.<YOUR_REGION>.amazonaws.com \
+     --connector aws_connector
+   ```
+
+5. **Register and activate your stack**:
+   ```bash
+   zenml stack register aws_stack \
+     -a s3_artifact_store \
+     -o sagemaker_orchestrator \
+     -c ecr_registry \
+     --set
+   ```
+
+### Other Cloud Providers
+
+Similar setup processes can be followed for other cloud providers:
+
+- **Azure**: Install the Azure integration (`zenml integration install azure`) and set up Azure Blob Storage, AzureML, and Azure Container Registry
+- **Google Cloud**: Install the GCP integration (`zenml integration install gcp gcs`) and set up GCS, Vertex AI, and GCR
+
+For detailed configuration options for these providers, refer to the ZenML documentation:
 
 - [AWS Integration Guide](https://docs.zenml.io/how-to/popular-integrations/aws-guide)
 - [GCP Integration Guide](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)
 - [Azure Integration Guide](https://docs.zenml.io/how-to/popular-integrations/azure-guide)
 
-## 🛠️ Project Structure
+### 🐳 Docker Settings for Cloud Deployment
 
+For cloud execution, you'll need to configure Docker settings in your pipeline:
+
+```python
+from zenml.config import DockerSettings
+
+# Create Docker settings
+docker_settings = DockerSettings(
+    required_integrations=["aws", "s3"],  # Based on your cloud provider
+    requirements="requirements.txt",
+    python_package_installer="uv", # Optional, defaults to "pip"
+    environment={
+        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+        "MISTRAL_API_KEY": os.getenv("MISTRAL_API_KEY"),
+    },
+)
+
+# Use in your pipeline definition
+@pipeline(settings={"docker": docker_settings})
+def batch_ocr_pipeline(...):
+    ...
 ```
-omni-reader/
-│
-├── app.py                 # Streamlit UI for interactive document processing
-├── assets/                # Sample images for ocr
-├── configs/               # YAML configuration files
-├── ground_truth_texts/    # Text files containing ground truth for evaluation
-├── pipelines/             # ZenML pipeline definitions
-│   ├── batch_pipeline.py  # Batch OCR pipeline (single or multiple models)
-│   └── evaluation_pipeline.py # Evaluation pipeline (multiple models)
-├── steps/                 # Pipeline step implementations
-│   ├── evaluate_models.py # Model comparison and metrics
-│   ├── loaders.py         # Loading images and ground truth texts
-│   ├── run_ocr.py         # Running OCR with selected models
-│   └── save_results.py    # Saving results and visualizations
-├── utils/                 # Utility functions and helpers
-│   ├── ocr_processing.py  # OCR processing core logic
-│   ├── config.py          # Configuration utilities
-│   └── model_configs.py   # Model configuration and registry
-├── run.py                 # Main entrypoint for running the pipeline
-└── README.md              # Project documentation
-```
-
-## 🔮 Use Cases
-
-- **Document Processing Automation**: Extract structured data from invoices, receipts, and forms
-- **Content Digitization**: Convert scanned documents and books into searchable digital content
-- **Regulatory Compliance**: Extract and validate information from compliance documents
-- **Data Migration**: Convert legacy paper documents into structured digital formats
-- **Research & Analysis**: Extract data from academic papers, reports, and publications
 
 ## 📚 Documentation
 
@@ -188,4 +298,6 @@ For more information about ZenML and building MLOps pipelines, refer to the [Zen
 For model-specific documentation:
 
 - [Mistral AI Vision Documentation](https://docs.mistral.ai/capabilities/vision/)
+- [LiteLLM Providers Documentation](https://docs.litellm.ai/docs/providers)
+- [Gemma3 Documentation](https://ai.google.dev/gemma/docs/integrations/ollama)
 - [Ollama Models Library](https://ollama.com/library)
