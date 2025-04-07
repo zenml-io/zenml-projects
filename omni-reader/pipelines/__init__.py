@@ -13,8 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""OCR pipelines"""
 
-"""OCR pipelines package."""
-
-from pipelines.batch_pipeline import ocr_batch_pipeline, run_ocr_batch_pipeline
+from pipelines.batch_pipeline import batch_ocr_pipeline, run_batch_ocr_pipeline
 from pipelines.evaluation_pipeline import ocr_evaluation_pipeline, run_ocr_evaluation_pipeline

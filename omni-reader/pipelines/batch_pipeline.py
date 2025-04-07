@@ -26,7 +26,6 @@ from zenml.logger import get_logger
 from steps import (
     load_images,
     run_ocr,
-    save_ocr_results,
 )
 
 load_dotenv()
@@ -34,7 +33,8 @@ load_dotenv()
 logger = get_logger(__name__)
 
 docker_settings = DockerSettings(
-    requirements_file="requirements.txt",
+    required_integrations=["s3", "aws"],
+    python_package_installer="uv",
     environment={
         "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
         "MISTRAL_API_KEY": os.getenv("MISTRAL_API_KEY"),
@@ -42,14 +42,13 @@ docker_settings = DockerSettings(
 )
 
 
-@pipeline(settings={"docker": docker_settings})
-def ocr_batch_pipeline(
+# settings={"docker": docker_settings}
+@pipeline()
+def batch_ocr_pipeline(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
     custom_prompt: Optional[str] = None,
     models: List[str] = None,
-    save_ocr_results_data: bool = False,
-    ocr_results_output_dir: str = "ocr_results",
 ) -> None:
     """Run OCR batch processing pipeline with multiple models.
 
@@ -58,34 +57,22 @@ def ocr_batch_pipeline(
         image_folder: Optional folder to search for images
         custom_prompt: Optional custom prompt to use for the models
         models: List of model names to use for OCR
-        save_ocr_results_data: Whether to save OCR results
-        ocr_results_output_dir: Directory to save OCR results
-
-    Returns:
-        None
     """
-    if not models or len(models) == 0:
-        raise ValueError("At least one model must be specified for the batch pipeline")
-
     images = load_images(
         image_paths=image_paths,
         image_folder=image_folder,
     )
+
     model_results = run_ocr(
         images=images,
         models=models,
         custom_prompt=custom_prompt,
     )
 
-    if save_ocr_results_data:
-        save_ocr_results(
-            ocr_results=model_results,
-            model_names=models,
-            output_dir=ocr_results_output_dir,
-        )
+    logger.info(f"Model results: {model_results}")
 
 
-def run_ocr_batch_pipeline(config: Dict[str, Any]) -> None:
+def run_batch_ocr_pipeline(config: Dict[str, Any]) -> None:
     """Run the OCR batch pipeline from a configuration dictionary.
 
     Args:
@@ -94,34 +81,42 @@ def run_ocr_batch_pipeline(config: Dict[str, Any]) -> None:
     Returns:
         None
     """
-    # Check pipeline mode
-    mode = config.get("parameters", {}).get("mode", "batch")
-    if mode != "batch":
-        logger.warning(f"Expected mode 'batch', but got '{mode}'. Proceeding anyway.")
-
-    # Get selected models from config
-    selected_models = config.get("parameters", {}).get("selected_models", [])
-    if not selected_models:
-        raise ValueError(
-            "No models selected in configuration. Add 'selected_models' to parameters section."
-        )
-
-    # Create pipeline instance
-    pipeline_instance = ocr_batch_pipeline.with_options(
+    pipeline_instance = batch_ocr_pipeline.with_options(
         enable_cache=config.get("enable_cache", False),
     )
 
-    # Get params from config
-    pipeline_params = config.get("parameters", {})
-    pipeline_steps = config.get("steps", {})
-    save_ocr_results_params = pipeline_steps.get("save_ocr_results", {}).get("parameters", {})
+    load_images_params = config.get("steps", {}).get("load_images", {}).get("parameters", {})
+    image_folder = load_images_params.get("image_folder")
+    image_paths = load_images_params.get("image_paths", [])
+    if not image_folder and len(image_paths) == 0:
+        raise ValueError("Either image_folder or image_paths must be provided")
 
-    # Run the pipeline
+    run_ocr_params = config.get("steps", {}).get("run_ocr", {}).get("parameters", {})
+    custom_prompt = run_ocr_params.get("custom_prompt")
+    selected_models = run_ocr_params.get("models", [])
+    if not selected_models or len(selected_models) == 0:
+        raise ValueError(
+            "No models found in the run_ocr step of the batch_ocr_pipeline config file. At least one model must be specified in the 'models' parameter."
+        )
+
+    # model_registry = config.get("models_registry", [])
+    # model_names = []
+    # shorthand_to_name = {
+    #     m.get("shorthand"): m.get("name") for m in model_registry if "shorthand" in m
+    # }
+    # for model_id in selected_models:
+    #     if model_id in shorthand_to_name:
+    #         model_names.append(shorthand_to_name[model_id])
+    #     else:
+    #         if any(m.get("name") == model_id for m in model_registry):
+    #             model_names.append(model_id)
+    #         else:
+    #             logger.warning(f"Model '{model_id}' not found in registry, using as-is")
+    #             model_names.append(model_id)
+
     pipeline_instance(
-        image_paths=pipeline_params.get("input_image_paths", []),
-        image_folder=pipeline_params.get("input_image_folder"),
-        custom_prompt=pipeline_steps.get("run_ocr", {}).get("parameters", {}).get("custom_prompt"),
+        image_paths=image_paths,
+        image_folder=image_folder,
+        custom_prompt=custom_prompt,
         models=selected_models,
-        save_ocr_results_data=save_ocr_results_params.get("save_locally", False),
-        ocr_results_output_dir=save_ocr_results_params.get("output_dir", "ocr_results"),
     )
