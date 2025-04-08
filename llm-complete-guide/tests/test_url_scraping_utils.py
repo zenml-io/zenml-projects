@@ -22,15 +22,15 @@ from steps.url_scraping_utils import extract_parent_section
     "url, expected_parent_section",
     [
         (
-            "https://docs.zenml.io/user-guide/starter-guide/create-an-ml-pipeline",
+            "https://docs.zenml.io/user-guides/starter-guide/create-an-ml-pipeline",
             "user-guide",
         ),
         (
-            "https://docs.zenml.io/v/docs/user-guide/production-guide/deploying-zenml",
+            "https://docs.zenml.io/v/docs/user-guides/production-guide/deploying-zenml",
             "user-guide",
         ),
         (
-            "https://docs.zenml.io/v/0.56.1/stack-components/integration-overview",
+            "https://docs.zenml.io/stacks",
             "stacks-and-components",
         ),
     ],

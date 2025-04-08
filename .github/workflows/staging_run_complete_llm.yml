@@ -11,6 +11,7 @@ concurrency:
 jobs:
   run-staging-workflow:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     env:
       ZENML_STORE_URL: ${{ secrets.ZENML_PROJECTS_HOST }}
       ZENML_STORE_API_KEY: ${{ secrets.ZENML_PROJECTS_API_KEY }}
@@ -43,6 +44,18 @@ jobs:
         working-directory: ./llm-complete-guide
         run: |
           zenml init
+
+      - name: List and describe ZenML projects
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml project list || echo "Could not list projects"
+          zenml project describe || echo "Failed to describe project"
+
+      - name: Register Set ZenML project
+        working-directory: ./llm-complete-guide
+        run: |
+          zenml project register llm-complete-guide || echo "Failed to register project"
+          zenml project set llm-complete-guide || echo "Failed to set project"
 
       - name: Set stack (Staging)
         working-directory: ./llm-complete-guide

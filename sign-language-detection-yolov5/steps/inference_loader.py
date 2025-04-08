@@ -12,17 +12,19 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import os
-from typing import Dict, List
+from typing import Annotated, Dict, List
 
 import cv2
-from zenml.post_execution import get_pipeline
-from zenml.steps import Output, step
+from zenml.client import Client
+from zenml.steps import step
 
 
 @step
-def inference_loader() -> Output(images_path=List):
+def inference_loader() -> Annotated[List, "images_path"]:
     """Loads the trained models from previous training pipeline runs."""
-    training_pipeline = get_pipeline("yolov5_pipeline")
+    training_pipeline = Client().get_pipeline(
+        "sign_language_detection_train_pipeline"
+    )
     last_run = training_pipeline.runs[0]
 
     try:

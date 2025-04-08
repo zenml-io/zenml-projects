@@ -47,12 +47,13 @@ from pipelines import (
     generate_synthetic_data,
     llm_basic_rag,
     llm_eval,
-    rag_deployment,
     llm_index_and_evaluate,
+    llm_langfuse_evaluation,
+    rag_deployment,
 )
 from structures import Document
-from zenml.materializers.materializer_registry import materializer_registry
 from zenml import Model
+from zenml.materializers.materializer_registry import materializer_registry
 
 logger = get_logger(__name__)
 
@@ -76,6 +77,7 @@ Run the ZenML LLM RAG complete guide project pipelines.
             "embeddings",
             "chunks",
             "basic_rag",
+            "langfuse_evaluation",
         ]
     ),
     required=True,
@@ -136,6 +138,12 @@ Run the ZenML LLM RAG complete guide project pipelines.
     default=None,
     help="Path to config",
 )
+@click.option(
+    "--query-text",
+    "query_text",
+    default=None,
+    help="Query text",
+)
 def main(
     pipeline: str,
     query_text: Optional[str] = None,
@@ -169,9 +177,9 @@ def main(
             }
         },
     }
-    
+
     # Read the model version from a file in the root of the repo
-    #  called "ZENML_VERSION.txt".    
+    #  called "ZENML_VERSION.txt".
     if zenml_model_version == "staging":
         postfix = "-rc0"
     elif zenml_model_version == "production":
@@ -226,8 +234,12 @@ def main(
             raise click.UsageError(
                 "--query-text is required when using 'query' command"
             )
+        # add the prod flag here
         response = process_input_with_retrieval(
-            query_text, model=model, use_reranking=use_reranker
+            query_text,
+            model=model,
+            use_reranking=use_reranker,
+            tracing_tags=["cli", "dev"],
         )
         console = Console()
         md = Markdown(response)
@@ -257,6 +269,10 @@ def main(
         pipeline_args["enable_cache"] = False
         llm_eval.with_options(model=zenml_model, config_path=config_path)()
 
+    elif pipeline == "langfuse_evaluation":
+        pipeline_args["enable_cache"] = False
+        llm_langfuse_evaluation.with_options(model=zenml_model)()
+
     elif pipeline == "synthetic":
         generate_synthetic_data.with_options(
             model=zenml_model, config_path=config_path, **pipeline_args
@@ -264,7 +280,9 @@ def main(
 
     elif pipeline == "embeddings":
         finetune_embeddings.with_options(
-            model=zenml_model, config_path=config_path, **embeddings_finetune_args
+            model=zenml_model,
+            config_path=config_path,
+            **embeddings_finetune_args,
         )()
 
     elif pipeline == "chunks":

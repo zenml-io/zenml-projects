@@ -12,23 +12,13 @@
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 import click
-from pipelines.deployment_pipeline import yolov5_deployment_pipeline
-from pipelines.inference_pipeline import yolov5_inference_pipeline
-from pipelines.train_pipeline import yolov5_pipeline
-from steps import (
-    PredictionServiceLoaderStepParameters,
-    bento_builder,
-    bentoml_model_deployer,
-    bentoml_prediction_service_loader,
-    data_loader,
-    deployment_trigger,
-    inference_loader,
-    model_loader,
-    predictor,
-    train_augmenter,
-    trainer,
-    valid_augmenter,
+from pipelines.deployment_pipeline import (
+    sign_language_detection_deployment_pipeline,
 )
+from pipelines.inference_pipeline import (
+    sign_language_detection_inference_pipeline,
+)
+from pipelines.train_pipeline import sign_language_detection_train_pipeline
 
 TRAIN = "train"
 DEPLOY = "deploy"
@@ -56,33 +46,13 @@ def main(
     predict = config == PREDICT or config == TRAIN_AND_DEPLOY_AND_PREDICT
 
     if train:
-        training_pipeline = yolov5_pipeline(
-            data_loader=data_loader(),
-            train_augmenter=train_augmenter(),
-            valid_augmenter=valid_augmenter(),
-            trainer=trainer(),
-        )
+        training_pipeline = sign_language_detection_train_pipeline()
         training_pipeline.run()
     if deploy:
-        deployment_pipeline = yolov5_deployment_pipeline(
-            model_loader=model_loader(),
-            deployment_trigger=deployment_trigger(),
-            bento_builder=bento_builder,
-            deployer=bentoml_model_deployer,
-        )
+        deployment_pipeline = sign_language_detection_deployment_pipeline()
         deployment_pipeline.run()
     if predict:
-        inference_pipeline = yolov5_inference_pipeline(
-            inference_loader=inference_loader(),
-            prediction_service_loader=bentoml_prediction_service_loader(
-                params=PredictionServiceLoaderStepParameters(
-                    model_name="sign_language_yolov5",
-                    pipeline_name="yolov5_deployment_pipeline",
-                    step_name="deployer",
-                )
-            ),
-            predictor=predictor(),
-        )
+        inference_pipeline = sign_language_detection_inference_pipeline()
         inference_pipeline.run()
 
 

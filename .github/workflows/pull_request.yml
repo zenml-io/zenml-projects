@@ -8,6 +8,7 @@ jobs:
   spell-check:
     name: spell-check
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     env:
       ZENML_DEBUG: 1
       ZENML_ANALYTICS_OPT_IN: false
@@ -23,3 +24,4 @@ jobs:
 
   markdown-link-check:
     uses: ./.github/workflows/markdown-link-check.yml
+    if: github.event.pull_request.draft == false

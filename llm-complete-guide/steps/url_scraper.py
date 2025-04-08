@@ -16,7 +16,7 @@
 import json
 
 from typing_extensions import Annotated
-from zenml import ArtifactConfig, log_artifact_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 from steps.url_scraping_utils import get_all_pages
 
@@ -26,7 +26,7 @@ def url_scraper(
     docs_url: str = "https://docs.zenml.io",
     repo_url: str = "https://github.com/zenml-io/zenml",
     website_url: str = "https://zenml.io",
-    use_dev_set: bool = False
+    use_dev_set: bool = False,
 ) -> Annotated[str, ArtifactConfig(name="urls")]:
     """Generates a list of relevant URLs to scrape.
 
@@ -40,28 +40,35 @@ def url_scraper(
     """
     # We comment this out to make this pipeline faster
     # examples_readme_urls = get_nested_readme_urls(repo_url)
-    use_dev_set = False
     if use_dev_set:
-
         docs_urls = [
             "https://docs.zenml.io/getting-started/system-architectures",
             "https://docs.zenml.io/getting-started/core-concepts",
-            "https://docs.zenml.io/user-guide/llmops-guide/rag-with-zenml/rag-85-loc",
+            "https://docs.zenml.io/user-guides/llmops-guide/rag-with-zenml/rag-85-loc",
             "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
             "https://docs.zenml.io/how-to/debug-and-solve-issues",
             "https://docs.zenml.io/stack-components/step-operators/azureml",
-            "https://docs.zenml.io/how-to/interact-with-secrets",
+            # "https://docs.zenml.io/how-to/interact-with-secrets",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/service-connectors-guide",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/hyperai-service-connector",
+            # "https://docs.zenml.io/stack-components/data-validators/evidently",
+            # "https://docs.zenml.io/stack-components/data-validators",
+            # "https://docs.zenml.io/stack-components/step-operators/sagemaker",
+            # "https://docs.zenml.io/stack-components/alerters/slack",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/kubernetes-service-connector",
+            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/azure-service-connector"
         ]
     else:
         docs_urls = get_all_pages(docs_url)
 
     # website_urls = get_all_pages(website_url)
-    # all_urls = docs_urls + website_urls + examples_readme_urls
+    # all_urls = docs_urls + website_urls
+    # all_urls = website_urls
     all_urls = docs_urls
-    log_artifact_metadata(
-        artifact_name="urls",
+    log_metadata(
         metadata={
             "count": len(all_urls),
         },
+        infer_artifact=True,
     )
     return json.dumps(all_urls)

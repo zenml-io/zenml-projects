@@ -1,4 +1,4 @@
-zenml[server]
+git+https://github.com/zenml-io/zenml.git@develop#egg=zenml[server] # will work for zenml>=0.75.0
 ratelimit
 pgvector
 psycopg2-binary
@@ -18,9 +18,12 @@ pyarrow
 rerankers[flashrank]
 datasets
 torch
-gradio
+gradio>=5.13.0
 huggingface-hub
 elasticsearch
+tenacity
+langfuse
+pinecone
 
 # optional requirements for S3 artifact store
 # s3fs>2022.3.0

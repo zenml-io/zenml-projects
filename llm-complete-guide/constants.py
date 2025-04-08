@@ -17,7 +17,7 @@
 import os
 
 # Vector Store constants
-CHUNK_SIZE = 2000
+CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 50
 EMBEDDING_DIMENSIONALITY = (
     384  # Update this to match the dimensionality of the new model
@@ -25,6 +25,8 @@ EMBEDDING_DIMENSIONALITY = (
 
 # ZenML constants
 ZENML_CHATBOT_MODEL = "zenml-docs-qa-chatbot"
+ZENML_CHATBOT_MODEL_NAME = "zenml-docs-qa-chatbot"
+ZENML_CHATBOT_MODEL_VERSION = "0.74.0-dev"
 
 # Scraping constants
 RATE_LIMIT = 5  # Maximum number of requests per second
@@ -35,8 +37,8 @@ EMBEDDINGS_MODEL = "sentence-transformers/all-MiniLM-L12-v2"
 MODEL_NAME_MAP = {
     "gpt4": "gpt-4",
     "gpt35": "gpt-3.5-turbo",
-    "claude3": "claude-3-opus-20240229",
-    "claudehaiku": "claude-3-haiku-20240307",
+    "claude3": "claude-3-5-sonnet-latest",
+    "claudehaiku": "claude-3-5-haiku-latest",
 }
 
 # CHUNKING_METHOD = "split-by-document"
@@ -80,5 +82,16 @@ EMBEDDINGS_MODEL_MATRYOSHKA_DIMS: list[int] = [
 ]  # Important: large to small
 USE_ARGILLA_ANNOTATIONS = False
 
+# Vector store secrets
 SECRET_NAME = os.getenv("ZENML_PROJECT_SECRET_NAME", "llm-complete")
 SECRET_NAME_ELASTICSEARCH = "elasticsearch-zenml"
+
+DEFAULT_PROMPT = """You are a friendly chatbot. \
+    You can answer questions about ZenML, its features and its use cases. \
+    You respond in a concise, technically credible tone. \
+    You ONLY use the context from the ZenML documentation to provide relevant
+    answers. \
+    You do not make up answers or provide opinions that you don't have
+    information to support. \
+    If you are unsure or don't know, just say so.
+"""

@@ -26,9 +26,9 @@ logger = get_logger(__name__)
 @step
 def upload_labels_to_label_studio(
     labels_dict: Dict[str, Any],
-    ls_project_id: int = 8,
+    ls_project_id: int = 1,
+    ls_storage_id: int = 2,
     storage_type: str = "gcs",
-    storage_id: int = 1,
 ):
     """Uploads ground truth labels for images to label studio.
 
@@ -51,7 +51,7 @@ def upload_labels_to_label_studio(
     lsc = annotator._get_client()
 
     project = lsc.get_project(ls_project_id)
-    project.sync_storage(storage_type=storage_type, storage_id=storage_id)
+    project.sync_storage(storage_type=storage_type, storage_id=ls_storage_id)
 
     tasks = project.get_tasks()
 

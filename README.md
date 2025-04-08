@@ -1,5 +1,5 @@
 <!-- PROJECT LOGO -->
-<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81085bc925ec" />
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=03d804c9-e44a-471e-b56d-81685bc925ec" />
 
 <br />
 <div align="center">
@@ -55,29 +55,20 @@ you can adapt for your application. We maintain a growing list of projects
 from various ML domains including time-series, tabular data, computer vision, 
 etc.
 
-# 🧱 Project List
-
-A list of updated and maintained projects by the ZenML team and the community:
-
-| Project                                                                | Tags                                  | Integrations                                                             |
-|------------------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------------|
-| [NBA Three-Pointer Predictor](nba-pipeline)                            | Time-series                           | `mlflow` `kubeflow` `evidently` `sklearn` `aws`                          |
-| [Time Series Forecasting](time-series-forecast)                        | Time-series                           | `gcp`                                                                    |
-| [Customer Satisfaction](customer-satisfaction)                         | Tabular                               | `mlflow` `kubeflow`                                                      |
-| [Customer Churn](customer-churn)                                       | Tabular                               | `kubeflow` `seldon`                                                      |
-| [Label Studio Annotation](label_studio_annotation)                     | Data Annotation                       | `label-studio`                                                           | 
-| [YOLOv5 Object Detection](sign-language-detection-yolov5)              | Computer-vision                       | `mlflow` `gcp`                                                           |
-| [LLMs To Analyze Databases](supabase-openai-summary)                   | NLP, LLMs                             | `gcp` `slack`                                                            |
-| [GitFlow ZenML Project](https://github.com/zenml-io/zenml-gitflow)     | MLOps with ZenML and GitHub Workflows | `mlflow` `deepchecks` `kserve` `kubeflow` `sklearn` `vertex` `aws` `gcp` |
-| [ZenNews](zen-news-summarization)                                      | NLP                                   | `gcp` `vertex` `discord`                                                 |
-| [LLM RAG Pipeline with Langchain and OpenAI](llm-agents/)                    | NLP, LLMs                             | `slack` `langchain` `llama_index`                                        |
-| [Orbit User Analysis](orbit-user-analysis)                             | Data Analysis, Tabular                | -                                                                        |
-| [Huggingface to Sagemaker](huggingface-sagemaker)                      | NLP                                   | `pytorch` `mlflow` `huggingface` `aws` `s3` `kubeflow` `slack` `github`  |
-| [Complete Guide to LLMs (from RAG to finetuning)](llm-complete-guide)               | NLP, LLMs, embeddings, finetuning                           | `openai` `supabase` `huggingface` `argilla`  |
-| [LLM LoRA Finetuning (Phi3 and Llama 3.1)](llm-lora-finetuning)               | NLP, LLMs                           | `gcp`  |
-| [ECP Price Prediction with GCP Cloud Composer](airflow-cloud-composer-etl-feature-train/README.md)               | Regression, Airflow                           | `cloud-composer` `airflow` |
-| [Simple LLM finetuning with Lightning Studio](simple-llm-finetuning/README.md)               | Lightning AI Studio, LLMs                           | `cloud-composer` `airflow` |
-| [Flux Dreambooth](flux-dreambooth/README.md)               | Flux, Dreambooth, LLMs                           | `modal` `kubernetes` |
+| Project | Domain | Key Features | Core Technologies |
+|---------|--------|-------------|-------------------|
+| [ZenML Support Agent](zenml-support-agent) | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational | langchain, llama_index, openai |
+| [ZenCoder](zencoder) | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning | huggingface, pytorch, wandb |
+| [Complete Guide to LLMs](llm-complete-guide) | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation | openai, huggingface, anthropic |
+| [Gamesense](gamesense) | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training | pytorch, peft, phi-2 |
+| [Nightwatch AI](nightwatch-ai) | 🤖 LLMOps | 📝 Summarization, 📊 Reporting | openai, supabase, slack |
+| [ResearchRadar](research-radar) | 🤖 LLMOps | 📝 Classification, 📊 Comparison | anthropic, huggingface, transformers |
+| [End-to-end Computer Vision](end-to-end-computer-vision) | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling | pytorch, label_studio, yolov8 |
+| [Magic Photobooth](magic-photobooth) | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen | stable-diffusion, huggingface |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time | mlflow, bentoml, vertex-ai |
+| [Huggingface to Sagemaker](huggingface-sagemaker) | 🚀 MLOps | 🔄 CI/CD, 📦 Deployment | mlflow, sagemaker, kubeflow |
+| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps | 📊 Monitoring, 🔍 Quality Assurance | databricks, evidently, shap |
+| [Eurorate Predictor](eurorate-predictor) | 📊 Data | ⏱️ Time Series, 🔄 ETL | airflow, bigquery, xgboost |
 
 # 💻 System Requirements
 
@@ -86,7 +77,7 @@ Read [our docs](https://docs.zenml.io/getting-started/installation) for
 installation details.
 
 - Linux or macOS.
-- Python 3.7, 3.8, 3.9 or 3.10
+- Python >=3.9
 
 # 🪃 Contributing
 
@@ -137,7 +128,6 @@ the Apache License Version 2.0.
 | 🗳 **[Vote for Features]**  | Pick what we work on next!                                              |
 | 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.               |
 | 📒 **[API Reference]**      | Detailed reference on ZenML's API.                                      |
-| 👨‍🍳 **[MLStacks]**        | Terraform-based infrastructure recipes for pre-made ZenML stacks.       |
 | ⚽️ **[Examples]**           | Learn best through examples where ZenML is used. We've got you covered. |
 | 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it.         |
 | 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.               |
@@ -145,13 +135,12 @@ the Apache License Version 2.0.
 | 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
 | 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
 
-[ZenML 101]: https://docs.zenml.io/user-guide/starter-guide
+[ZenML 101]: https://docs.zenml.io/user-guides/starter-guide
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
 [Our latest release]: https://github.com/zenml-io/zenml/releases
 [Vote for Features]: https://zenml.io/discussion
 [Docs]: https://docs.zenml.io/
 [API Reference]: https://apidocs.zenml.io/
-[MLStacks]: https://github.com/zenml-io/mlops-stacks
 [Examples]: https://github.com/zenml-io/zenml/tree/main/examples
 [Blog]: https://blog.zenml.io/
 [Podcast]: https://podcast.zenml.io/

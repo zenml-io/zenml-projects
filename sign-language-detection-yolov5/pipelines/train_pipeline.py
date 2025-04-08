@@ -13,6 +13,7 @@
 #  permissions and limitations under the License.
 
 
+from steps import data_loader, train_augmenter, trainer, valid_augmenter
 from zenml.config import DockerSettings
 from zenml.integrations.constants import GCP, MLFLOW
 from zenml.pipelines import pipeline
@@ -31,12 +32,7 @@ docker_settings = DockerSettings(
         "docker": docker_settings,
     },
 )
-def yolov5_pipeline(
-    data_loader,
-    train_augmenter,
-    valid_augmenter,
-    trainer,
-):
+def sign_language_detection_train_pipeline():
     train, valid, test = data_loader()
     augmented_trainset = train_augmenter(train)
     augmented_validset = valid_augmenter(valid)

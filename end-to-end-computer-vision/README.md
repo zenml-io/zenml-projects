@@ -20,7 +20,11 @@ model to detect ships in the images. Note that this isn't something that our
 YOLOv8 model is particularly good at out of the box, so it serves as a good
 example of how to build a pipeline that can be extended to other use cases.
 
-This project needs some infrastructure and tool setup to work. Here is a list of
+This project and the pipelines detailed below were showcased in a webinar we hosted. To watch the video click the following link:
+
+[![CleanShot 2025-03-25 at 16 11 19](https://github.com/user-attachments/assets/eb82d606-8b81-42f4-a883-d88ebbf29fd1)](https://youtu.be/77vylw-sh50?feature=shared&t=342)
+
+You will need some infrastructure and tooling setup for this project to work. Here is a list of
 things that you'll need to do.
 
 ## ZenML
@@ -31,7 +35,10 @@ deployed instance of ZenML:
 ### Set up your environment
 
 ```bash
-pip install -r requirements.txt
+pip install uv
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
 zenml integration install pytorch gcp mlflow label_studio -y
 pip uninstall wandb  # This comes in automatically
 ```
@@ -151,7 +158,9 @@ the `ls_project_id` to correspond to the id of your project within Label Studio.
 ### Run this pipeline
 
 Label Studio should be up and running for the whole duration of this pipeline
-run.
+run. 
+Also in `configs/ingest_data.yaml`, make sure to change the dataset name to the name of the dataset in Label Studio. You'll also want to make sure the storage type is set to `gcs` if you are using GCP, and don't forget to set `ls_storage_id` and `ls_project_id` 
+to the correct values.
 
 ```bash
 zenml stack set <local_stack>

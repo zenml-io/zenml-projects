@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from litellm import config_path
 
 from steps.populate_index import (
     generate_embeddings,
@@ -26,7 +25,7 @@ from steps.web_url_loader import web_url_loader
 from zenml import pipeline
 
 
-@pipeline
+@pipeline(enable_cache=True)
 def llm_basic_rag() -> None:
     """Executes the pipeline to train a basic RAG model.
 

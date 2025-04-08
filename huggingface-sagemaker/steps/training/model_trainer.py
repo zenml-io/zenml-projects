@@ -31,6 +31,7 @@ from typing_extensions import Annotated
 from utils.misc import compute_metrics
 from zenml import ArtifactConfig, log_artifact_metadata, step
 from zenml.client import Client
+from zenml.enums import ArtifactType
 from zenml.integrations.mlflow.experiment_trackers import (
     MLFlowExperimentTracker,
 )
@@ -65,11 +66,12 @@ def model_trainer(
     weight_decay: Optional[float] = 0.01,
 ) -> Tuple[
     Annotated[
-        PreTrainedModel, ArtifactConfig(name="model", is_model_artifact=True)
+        PreTrainedModel,
+        ArtifactConfig(name="model", artifact_type=ArtifactType.MODEL),
     ],
     Annotated[
         PreTrainedTokenizerBase,
-        ArtifactConfig(name="tokenizer", is_model_artifact=True),
+        ArtifactConfig(name="tokenizer", artifact_type=ArtifactType.MODEL),
     ],
 ]:
     """

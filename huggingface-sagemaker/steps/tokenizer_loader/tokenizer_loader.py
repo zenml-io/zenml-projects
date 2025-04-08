@@ -18,6 +18,7 @@
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,7 +29,7 @@ def tokenizer_loader(
     lower_case: bool,
 ) -> Annotated[
     PreTrainedTokenizerBase,
-    ArtifactConfig(name="base_tokenizer", is_model_artifact=True),
+    ArtifactConfig(name="base_tokenizer", artifact_type=ArtifactType.MODEL),
 ]:
     """Tokenizer selection step.
 
@@ -45,7 +46,7 @@ def tokenizer_loader(
     For more information on how to configure steps in a pipeline, refer to the
     following documentation:
 
-        https://docs.zenml.io/user-guide/advanced-guide/configure-steps-pipelines
+        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
 
     Args:
         lower_case: A boolean value indicating whether to convert the input text to

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+from steps.create_prompt import PROMPT
 from steps.eval_e2e import e2e_evaluation, e2e_evaluation_llm_judged
 from steps.eval_retrieval import (
     retrieval_evaluation_full,
@@ -25,12 +26,15 @@ from steps.eval_retrieval import (
     retrieval_evaluation_small_with_reranking,
 )
 from steps.eval_visualisation import visualize_evaluation_results
-from zenml import pipeline
+from zenml import pipeline, save_artifact
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=True)
 def llm_eval(after: Optional[str] = None) -> None:
     """Executes the pipeline to evaluate a RAG pipeline."""
+    # define prompt
+    prompt = save_artifact(PROMPT, "prompt")
+
     # Retrieval evals
     failure_rate_retrieval = retrieval_evaluation_small(after=after)
     full_retrieval_answers = retrieval_evaluation_full(after=after)
@@ -46,13 +50,15 @@ def llm_eval(after: Optional[str] = None) -> None:
         failure_rate_bad_answers,
         failure_rate_bad_immediate_responses,
         failure_rate_good_responses,
-    ) = e2e_evaluation(after=after)
+    ) = e2e_evaluation(tracing_tags=["eval"], after=after, prompt=prompt)
     (
         average_toxicity_score,
         average_faithfulness_score,
         average_helpfulness_score,
         average_relevance_score,
-    ) = e2e_evaluation_llm_judged(after=after)
+    ) = e2e_evaluation_llm_judged(
+        tracing_tags=["eval"], after=after, prompt=prompt
+    )
 
     visualize_evaluation_results(
         failure_rate_retrieval,

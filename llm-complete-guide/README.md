@@ -11,14 +11,14 @@ concepts covered in this guide to your own projects.
 
 Contained within this project is all the code needed to run the full pipelines.
 You can follow along [in our
-guide](https://docs.zenml.io/user-guide/llmops-guide/) to understand the
+guide](https://docs.zenml.io/user-guides/llmops-guide/) to understand the
 decisions and tradeoffs behind the pipeline and step code contained here. You'll
 build a solid understanding of how to leverage LLMs in your MLOps workflows
 using ZenML, enabling you to build powerful, scalable, and maintainable
 LLM-powered applications.
 
 This project contains all the pipeline and step code necessary to follow along
-with the guide. You'll need a PostgreSQL database to store the embeddings; full
+with the guide. You'll need a vector store to store the embeddings; full
 instructions are provided below for how to set that up.
 
 ## 📽️ Watch the webinars
@@ -55,7 +55,41 @@ zenml secret create llm-complete --openai_api_key=<your-openai-api-key>
 export ZENML_PROJECT_SECRET_NAME=llm-complete
 ```
 
-### Setting up Supabase
+### Setting up Pinecone
+
+[Pinecone](https://www.pinecone.io/) is the default vector store used in this project. It's a cloud-native vector database that's optimized for machine learning applications. You'll need to create a Pinecone account and get an API key to use it.
+
+Once you have your Pinecone account set up, you'll need to store your API key and index name as a ZenML secret. You can do this by running the following command:
+
+```shell
+zenml secret update llm-complete -v '{"pinecone_api_key": "YOUR_PINECONE_API_KEY", "pinecone_env": "YOUR_PINECONE_ENV", "pinecone_index": "YOUR_INDEX_NAME"}'
+
+```
+
+The `pinecone_index` value you specify will be used for all your development pipeline runs. Make sure the value consists only of alphanumeric characters and dashes. When you promote your ZenML model to production and run your ingestion pipeline again, it will automatically create a new production index called `<YOUR_INDEX_NAME>-prod`. This separation ensures that your development and production environments remain isolated.
+
+### Choosing Your Vector Store
+
+While Pinecone is the default vector store, this project supports multiple vector stores. You can choose between:
+
+1. **Pinecone** (default): A cloud-native vector database optimized for machine learning applications
+2. **PostgreSQL with pgvector**: A local or cloud PostgreSQL database with vector similarity search capabilities
+3. **Elasticsearch**: A distributed search engine with vector search support
+
+To switch between vector stores, you need to create or modify a pipeline configuration file (e.g., `configs/dev/rag.yaml`) and set the `index_type` parameter for the `index_generator` step. For example:
+
+```yaml
+steps:
+  index_generator:
+    parameters:
+        index_type: pinecone  # Options: pinecone, postgres, elasticsearch
+```
+
+This configuration will be used by both the basic RAG and RAG pipelines. Each vector store requires its own setup and credentials as described in their respective sections below.
+
+### Alternative: Setting up Supabase
+
+While Pinecone is the default vector store, you can still use Supabase's PostgreSQL database as an alternative. 
 
 [Supabase](https://supabase.com/) is a cloud provider that offers a PostgreSQL
 database. It's simple to use and has a free tier that should be sufficient for
@@ -76,7 +110,7 @@ string from the Supabase dashboard.
 
 ![](.assets/supabase-connection-string.png)
 
-In case Supabase is not an option for you, you can use a different database as the backend.
+In case neither Pinecone nor Supabase is an option for you, you can use a different database as the backend.
 
 ### Running the RAG pipeline
 
@@ -89,18 +123,23 @@ python run.py rag
 ```
 
 This will run the basic RAG pipeline, which scrapes the ZenML documentation and
-stores the embeddings in the Supabase database.
+stores the embeddings in your configured vector store (Pinecone by default).
 
 ### Querying your RAG pipeline assets
 
-Once the pipeline has run successfully, you can query the assets in the Supabase
-database using the `--query` flag as well as passing in the model you'd like to
+Once the pipeline has run successfully, you can query the assets in your vector store
+using the `--query` flag as well as passing in the model you'd like to
 use for the LLM.
+
+Note that you'll need to set the `LANGFUSE_API_KEY` environment variable for the
+tracing which is built in to the implementation of the inference. This will
+trace all LLM calls and store them in the [Langfuse](https://langfuse.com/)
+platform.
 
 When you're ready to make the query, run the following command:
 
 ```shell
-python run.py query "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
+python run.py query --query-text "how do I use a custom materializer inside my own zenml steps? i.e. how do I set it? inside the @step decorator?" --model=gpt4
 ```
 
 Alternative options for LLMs to use include:
@@ -147,13 +186,7 @@ export ZENML_HF_SPACE_NAME=<YOUR_HF_SPACE_NAME> # optional, defaults to "llm-com
 To deploy the RAG pipeline, you can use the following command:
 
 ```shell
-python run.py --deploy
-```
-
-Alternatively, you can run the basic RAG pipeline *and* deploy it in one go:
-
-```shell
-python run.py --rag --deploy
+python run.py deploy
 ```
 
 This will open a Hugging Face space in your browser where you can interact with
@@ -170,10 +203,25 @@ python run.py evaluation
 You'll need to have first run the RAG pipeline to have the necessary assets in
 the database to evaluate.
 
+## RAG evaluation with Langfuse
+
+You can run the Langfuse evaluation pipeline if you have marked some of your
+responses as good or bad in the deployed Hugging Face space.
+
+To run the evaluation pipeline, you can use the following command:
+
+```shell
+python run.py langfuse_evaluation
+```
+
+Note that this pipeline will only work if you have set the `LANGFUSE_API_KEY`
+environment variable. It will use this key to fetch the traces from Langfuse and
+evaluate the responses.
+
 ## Embeddings finetuning
 
 For embeddings finetuning we first generate synthetic data and then finetune the
-embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guide/llmops-guide/finetuning-embeddings) and
+embeddings. Both of these pipelines are described in [the LLMOps guide](https://docs.zenml.io/v/docs/user-guides/llmops-guide/finetuning-embeddings) and
 instructions for how to run them are provided below.
 
 ### Run the `distilabel` synthetic data generation pipeline
@@ -265,7 +313,7 @@ The project loosely follows [the recommended ZenML project structure](https://do
 ├── most_basic_eval.py                                  # Basic evaluation script
 ├── most_basic_rag_pipeline.py                          # Basic RAG pipeline script
 ├── notebooks
-│   └── visualise_embeddings.ipynb                      # Notebook to visualize embeddings
+│   └── visualize_embeddings.ipynb                      # Notebook to visualize embeddings
 ├── pipelines
 │   ├── __init__.py
 │   ├── generate_chunk_questions.py                     # Pipeline to generate chunk questions

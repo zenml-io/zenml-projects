@@ -71,7 +71,7 @@ make setup
 <summary><h3>Connect to a deployed ZenML and register secrets</h3></summary>
 
 After this, you should have ZenML and all the requirements of the project installed locally.
-Next thing to do is to connect to a [deployed ZenML instance](https://docs.zenml.io/deploying-zenml/). You can
+Next thing to do is to connect to a [deployed ZenML instance](https://docs.zenml.io/user-guides/production-guide/deploying-zenml). You can
 create a free trial using [ZenML Pro](https://cloud.zenml.io) to get setup quickly.
 
 Once you have your deployed ZenML ready, you can connect to it using:
@@ -93,13 +93,25 @@ zenml secret create huggingface_creds --username=HUGGINGFACE_USERNAME --token=HU
 <details>
 <summary><h3>Set up your local stack</h3></summary>
 
-To run this project, you need to create a [ZenML Stack](https://docs.zenml.io/user-guide/production-guide/understand-stacks) with the required components to run the pipelines.
+To run this project, you need to create a [ZenML Stack](https://docs.zenml.io/user-guides/production-guide/understand-stacks) with the required components to run the pipelines.
 
 ```shell
 make install-stack
 
 zenml stack hf-sagekamer-local
 ```
+
+Additionally, if you're using the local Docker orchestrator, you'll need to create a cache directory for the datasets and ensure it has the correct permissions:
+
+```shell
+# Create cache directory at project root
+mkdir -p cache/datasets
+
+# Set permissions to allow read/write access
+chmod -R 777 cache
+```
+
+This directory will be mounted into the Docker container and used as a cache for the Hugging Face datasets.
 
 </details>
 
@@ -202,7 +214,7 @@ This will train a model from Huggingface and register a new ZenML model on the M
 Please note the above screens are a cloud-only feature in [ZenML Pro](https://zenml.io/pro), and
 the CLI `zenml models list` should be used instead for OSS users.
 
-At the end of the pipeline, the model will also be pushed the Huggingface, and a link estabilished between the ZenML Control Plane and the Huggingface model repository.
+At the end of the pipeline, the model will also be pushed the Huggingface, and a link established between the ZenML Control Plane and the Huggingface model repository.
 
 <img src="assets/hf_repo_commit.png" alt="Huggingface Repo" width="800">
 

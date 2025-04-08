@@ -11,17 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 #  or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+from steps import (
+    bento_builder,
+    bentoml_model_deployer,
+    deployment_trigger,
+    model_loader,
+)
 from zenml.pipelines import pipeline
 
 
 @pipeline(enable_cache=False)
-def yolov5_deployment_pipeline(
-    model_loader,
-    deployment_trigger,
-    bento_builder,
-    deployer,
-):
+def sign_language_detection_deployment_pipeline():
     model_path, model = model_loader()
     decision = deployment_trigger(model_path)
     bento = bento_builder(model=model)
-    deployer(deploy_decision=decision, bento=bento)
+    bentoml_model_deployer(deploy_decision=decision, bento=bento)

@@ -1,6 +1,5 @@
 enable_cache: False
 
-# environment configuration
 settings:
   docker:
     requirements:
@@ -29,3 +28,6 @@ steps:
     parameters:
       docs_url: https://docs.zenml.io/
       use_dev_set: true
+  index_generator:
+    parameters:
+      index_type: pinecone

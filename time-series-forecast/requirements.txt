@@ -1,3 +1,0 @@
-zenml==0.35.1
-pandas-gbq==0.17.5
-tqdm
