@@ -193,21 +193,16 @@ def compare_multi_model(
     Returns:
         Dict[str, Dict[str, Union[float, int, Dict]]]: A dictionary of model names to metrics.
     """
-    # Initialize results dictionary
     results = {}
 
-    # Calculate metrics for each model
     for model_display, text in model_texts.items():
         model_metrics = {}
 
-        # Basic metrics
         model_metrics["CER"] = cer(ground_truth, text)
         model_metrics["WER"] = wer(ground_truth, text)
 
-        # Detailed error analysis
         model_analysis = analyze_errors(ground_truth, text)
 
-        # Add detailed metrics
         model_metrics.update(
             {
                 "Insertions": model_analysis.insertions,
@@ -221,7 +216,6 @@ def compare_multi_model(
             }
         )
 
-        # Store in results
         results[model_display] = model_metrics
 
     return results
@@ -258,7 +252,7 @@ def calculate_model_similarities(
     similarity_counts = {}
 
     for result in results:
-        # Build a mapping from model display names to their corresponding text.
+        # Map model display names to their corresponding text
         model_texts = {}
         for display in model_displays:
             key = f"raw_text_{display.lower().replace(' ', '_')}"
@@ -268,11 +262,11 @@ def calculate_model_similarities(
                 if text:
                     model_texts[display] = text
 
-        # Only proceed if at least two models have valid text.
+        # Only proceed if at least two models have valid text
         if len(model_texts) < 2:
             continue
 
-        # Compute pairwise similarity for each combination.
+        # Compute pairwise similarity for each combination
         for i in range(len(model_displays)):
             for j in range(i + 1, len(model_displays)):
                 model1 = model_displays[i]
@@ -286,7 +280,7 @@ def calculate_model_similarities(
                 similarity_sums[pair_key] = similarity_sums.get(pair_key, 0) + similarity
                 similarity_counts[pair_key] = similarity_counts.get(pair_key, 0) + 1
 
-    # Average the similarities for each pair.
+    # Average the similarities for each pair
     similarities = {
         pair: similarity_sums[pair] / similarity_counts[pair] for pair in similarity_sums
     }

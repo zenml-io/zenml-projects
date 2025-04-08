@@ -345,19 +345,21 @@ def process_result_and_track_metrics(
 
         confidence_scores.append(confidence)
 
+        text_length = len(formatted_result["raw_text"])
+
         if track_metadata:
             log_image_metadata(
                 prefix=prefix,
                 index=index,
                 image_name=image_name,
                 processing_time=processing_time,
-                text_length=len(formatted_result["raw_text"]),
+                text_length=text_length,
                 confidence=confidence,
             )
 
         logger.info(
             f"{display} OCR [{index + 1}/{len(images)}]: {image_name} - "
-            f"{len(formatted_result['raw_text'])} chars, "
+            f"{text_length} chars, "
             f"confidence: {confidence:.2f}, "
             f"{processing_time:.2f} seconds"
         )
@@ -517,7 +519,7 @@ def run_ocr(
 ) -> Union[Dict[str, Any], pl.DataFrame, Dict[str, pl.DataFrame]]:
     """Unified interface for running OCR on images with different modes.
 
-    This function intelligently handles different combinations of inputs:
+    This function handles different combinations of inputs:
     - Single image + single model
     - Single image + multiple models
     - Multiple images + single model

@@ -30,6 +30,7 @@ from .visualizations import (
     create_model_comparison_card,
     create_model_similarity_matrix,
     create_summary_visualization,
+    create_ocr_batch_visualization
 )
 from .ocr_processing import (
     log_image_metadata,
