@@ -20,6 +20,20 @@ import re
 from typing import Any, Dict
 
 
+def _ensure_string_raw_text(result: Dict) -> Dict:
+    """Ensure raw_text in result is a string and not a list.
+
+    Args:
+        result: Dictionary that may contain a raw_text field
+
+    Returns:
+        Dictionary with raw_text converted to string if needed
+    """
+    if "raw_text" in result and isinstance(result["raw_text"], list):
+        result["raw_text"] = "\n".join(result["raw_text"])
+    return result
+
+
 def try_extract_json_from_response(response: Any) -> Dict:
     """Extract JSON from a response, handling various formats efficiently.
 
@@ -30,7 +44,7 @@ def try_extract_json_from_response(response: Any) -> Dict:
         Dict with extracted data.
     """
     if isinstance(response, dict) and "raw_text" in response:
-        return response
+        return _ensure_string_raw_text(response)
 
     response_text = ""
     if hasattr(response, "choices") and response.choices:
@@ -40,14 +54,16 @@ def try_extract_json_from_response(response: Any) -> Dict:
     elif isinstance(response, str):
         response_text = response
     elif hasattr(response, "raw_text"):
-        return {"raw_text": response.raw_text, "confidence": getattr(response, "confidence", None)}
+        raw_text = response.raw_text
+        result = {"raw_text": raw_text, "confidence": getattr(response, "confidence", None)}
+        return _ensure_string_raw_text(result)
 
     response_text = response_text.strip()
 
     try:
         parsed = json.loads(response_text)
         if isinstance(parsed, dict):
-            return parsed
+            return _ensure_string_raw_text(parsed)
     except json.JSONDecodeError:
         pass
 
@@ -55,7 +71,8 @@ def try_extract_json_from_response(response: Any) -> Dict:
     if json_block:
         json_str = json_block.group(1).strip()
         try:
-            return json.loads(json_str)
+            parsed = json.loads(json_str)
+            return _ensure_string_raw_text(parsed)
         except json.JSONDecodeError:
             pass
 
@@ -63,7 +80,8 @@ def try_extract_json_from_response(response: Any) -> Dict:
     if json_substring:
         json_str = json_substring.group(0).strip()
         try:
-            return json.loads(json_str)
+            parsed = json.loads(json_str)
+            return _ensure_string_raw_text(parsed)
         except json.JSONDecodeError:
             pass
 
