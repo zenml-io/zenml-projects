@@ -16,18 +16,17 @@
 #
 
 # pipeline configuration
-build: "ocr-evaluation-pipeline-20254007"
-run_name: "ocr_evaluation_run"
+build: ocr-evaluation-pipeline-20254007
+run_name: ocr_evaluation_run
 
 # environment configuration
 settings:
   docker:
-    requirements:
-      - requirements.txt
+    requirements: requirements.txt
     required_integrations:
       - aws
       - s3
-    python_package_installer: "uv"
+    python_package_installer: uv
     environment:
       OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
       MISTRAL_API_KEY: ${{ env.MISTRAL_API_KEY }}
@@ -43,11 +42,14 @@ steps:
   load_ocr_results: # loads OCR results from batch pipeline runs
     enable_cache: False
     parameters:
-      artifact_name: "ocr_results"
+      artifact_name: ocr_results
       version: null
 
   load_ground_truth_texts:
     enable_cache: False
     parameters:
-      ground_truth_folder: "ground_truth_texts"
+      ground_truth_folder: ground_truth_texts
       ground_truth_files: []
+
+  evaluate_models:
+    enable_cache: False

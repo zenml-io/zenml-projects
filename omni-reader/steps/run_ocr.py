@@ -114,17 +114,15 @@ def run_ocr(
     combined_results = pl.concat(list(model_dfs.values()), how="diagonal")
 
     # Generate HTML visualization
-    try:
-        html_visualization = create_ocr_batch_visualization(combined_results)
-        log_metadata(
-            metadata={
-                "ocr_results_artifact_name": "ocr_results",
-                "ocr_results_artifact_type": "polars.DataFrame",
-                "ocr_batch_visualization_artifact_name": "ocr_batch_visualization",
-                "ocr_batch_visualization_artifact_type": "zenml.types.HTMLString",
-            },
-        )
-    except Exception as e:
-        logger.error(f"Error generating visualization: {e}")
+    html_visualization = create_ocr_batch_visualization(combined_results)
+
+    log_metadata(
+        metadata={
+            "ocr_results_artifact_name": "ocr_results",
+            "ocr_results_artifact_type": "polars.DataFrame",
+            "ocr_batch_visualization_artifact_name": "ocr_batch_visualization",
+            "ocr_batch_visualization_artifact_type": "zenml.types.HTMLString",
+        },
+    )
 
     return combined_results, html_visualization
