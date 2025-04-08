@@ -34,7 +34,7 @@ from utils import (
 
 @step(enable_cache=False)
 def evaluate_models(
-    model_results: Dict[str, pl.DataFrame],
+    model_results: pl.DataFrame,
     ground_truth_df: pl.DataFrame,
 ) -> Annotated[HTMLString, "ocr_visualization"]:
     """Compare the performance of multiple configurable models with visualization.
@@ -46,7 +46,7 @@ def evaluate_models(
     Returns:
         HTML visualization of the evaluation results
     """
-    if model_results is None or len(model_results.keys()) == 0:
+    if model_results is None or len(model_results.columns) == 0:
         raise ValueError("At least one model is required for evaluation")
 
     if ground_truth_df is None or ground_truth_df.is_empty():
@@ -55,7 +55,7 @@ def evaluate_models(
     gt_df = ground_truth_df
 
     # --- 2. Build model info for evaluation models ---
-    model_keys = list(model_results.keys())
+    model_keys = list(model_results.columns)
     model_info = {}
     model_displays = []
     model_prefixes = {}
@@ -210,7 +210,12 @@ def evaluate_models(
             time_comparison["time_difference"] = abs(all_model_times[tk1] - all_model_times[tk2])
 
     # Log metadata (customize the metadata_dict as needed)
-    log_metadata(metadata={"fastest_model": fastest_display, "model_count": len(model_keys)})
+    log_metadata(
+        metadata={
+            "fastest_model": fastest_display,
+            "model_count": len(model_keys),
+        }
+    )
 
     summary_html = create_summary_visualization(
         model_metrics=model_metric_averages,
