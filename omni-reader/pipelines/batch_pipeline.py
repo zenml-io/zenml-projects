@@ -62,13 +62,11 @@ def batch_ocr_pipeline(
         image_folder=image_folder,
     )
 
-    model_results = run_ocr(
+    run_ocr(
         images=images,
         models=models,
         custom_prompt=custom_prompt,
     )
-
-    logger.info(f"Model results: {model_results}")
 
 
 def run_batch_ocr_pipeline(config: Dict[str, Any]) -> None:
@@ -97,21 +95,6 @@ def run_batch_ocr_pipeline(config: Dict[str, Any]) -> None:
         raise ValueError(
             "No models found in the run_ocr step of the batch_ocr_pipeline config file. At least one model must be specified in the 'models' parameter."
         )
-
-    # model_registry = config.get("models_registry", [])
-    # model_names = []
-    # shorthand_to_name = {
-    #     m.get("shorthand"): m.get("name") for m in model_registry if "shorthand" in m
-    # }
-    # for model_id in selected_models:
-    #     if model_id in shorthand_to_name:
-    #         model_names.append(shorthand_to_name[model_id])
-    #     else:
-    #         if any(m.get("name") == model_id for m in model_registry):
-    #             model_names.append(model_id)
-    #         else:
-    #             logger.warning(f"Model '{model_id}' not found in registry, using as-is")
-    #             model_names.append(model_id)
 
     pipeline_instance(
         image_paths=image_paths,

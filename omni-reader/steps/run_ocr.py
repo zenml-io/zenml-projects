@@ -1,30 +1,31 @@
 # Apache Software License 2.0
 #
-# Copyright (c) ZenML GmbH 2025. All rights reserved.
+# Copyright (c) ZenML GmbH 2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""This module contains a unified OCR step that works with multiple models."""
+# Distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
+"""Unified step for running OCR with a one or multiple models."""
 
 import os
-from typing import Dict, List, Optional
+import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import List, Optional, Tuple
 
 import polars as pl
+from tqdm import tqdm
 from typing_extensions import Annotated
-from zenml import step
+from zenml import log_metadata, step
 from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 from utils.model_configs import MODEL_CONFIGS
 from utils.ocr_processing import process_images_with_model
+from utils.visualizations import create_ocr_batch_visualization
 
 logger = get_logger(__name__)
 
@@ -34,7 +35,10 @@ def run_ocr(
     images: List[str],
     models: List[str],
     custom_prompt: Optional[str] = None,
-) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:
+) -> Tuple[
+    Annotated[pl.DataFrame, "ocr_results"],
+    Annotated[HTMLString, "ocr_batch_visualization"],
+]:
     """Extract text from images using multiple models in parallel.
 
     Args:
@@ -43,27 +47,20 @@ def run_ocr(
         custom_prompt: Optional custom prompt to override the default prompt
 
     Returns:
-        Dict: Mapping of model name to results dataframe with OCR results
+        pl.DataFrame: Combined results from all models with OCR results
 
     Raises:
         ValueError: If any model_name is not supported
     """
-    from concurrent.futures import ThreadPoolExecutor
-
-    from tqdm import tqdm
-
-    # Validate all models
     for model in models:
         if model not in MODEL_CONFIGS:
-            supported_models = ", ".join(MODEL_CONFIGS.keys())
-            raise ValueError(
-                f"Unsupported model: {model}. Supported models are: {supported_models}"
-            )
+            supported = ", ".join(MODEL_CONFIGS.keys())
+            raise ValueError(f"Unsupported model: {model}. Supported models: {supported}")
 
-    logger.info(f"Running OCR with {len(models)} models: {', '.join(models)}")
-    logger.info(f"Processing {len(images)} images")
+    logger.info(f"Running OCR with {len(models)} models on {len(images)} images.")
 
-    results = {}
+    model_dfs = {}
+    performance_metrics = {}
 
     with ThreadPoolExecutor(max_workers=min(len(models), 5)) as executor:
         futures = {
@@ -72,30 +69,62 @@ def run_ocr(
                 model_config=MODEL_CONFIGS[model],
                 images=images,
                 custom_prompt=custom_prompt,
+                track_metadata=True,
             )
             for model in models
         }
-
         with tqdm(total=len(models), desc="Processing models") as pbar:
             for model, future in futures.items():
+                start = time.time()
                 try:
-                    results_df = future.result()
-                    results[model] = results_df
-                    logger.info(f"Completed processing with model: {model}")
+                    results = future.result()
+                    results = results.with_columns(
+                        pl.lit(model).alias("model_name"),
+                        pl.lit(MODEL_CONFIGS[model].display).alias("model_display_name"),
+                    )
+                    model_dfs[model] = results
+
+                    performance_metrics[model] = {
+                        "total_time": time.time() - start,
+                        "images_processed": len(images),
+                    }
                 except Exception as e:
-                    logger.error(f"Error processing model {model}: {str(e)}")
-                    # empty dataframe with error message to avoid pipeline failure
-                    results[model] = pl.DataFrame(
+                    logger.error(f"Error processing {model}: {e}")
+                    error_df = pl.DataFrame(
                         {
-                            "id": range(len(images)),
+                            "id": list(range(len(images))),
                             "image_name": [os.path.basename(img) for img in images],
-                            "raw_text": [f"Error processing with {model}: {str(e)}"] * len(images),
+                            "raw_text": [f"Error: {e}"] * len(images),
                             "processing_time": [0.0] * len(images),
                             "confidence": [0.0] * len(images),
                             "error": [str(e)] * len(images),
+                            "model_name": [model] * len(images),
+                            "model_display_name": [MODEL_CONFIGS[model].display] * len(images),
                         }
                     )
+                    model_dfs[model] = error_df
+                    performance_metrics[model] = {
+                        "error": str(e),
+                        "total_time": time.time() - start,
+                        "images_processed": 0,
+                    }
                 finally:
                     pbar.update(1)
 
-    return results
+    combined_results = pl.concat(list(model_dfs.values()), how="diagonal")
+
+    # Generate HTML visualization
+    try:
+        html_visualization = create_ocr_batch_visualization(combined_results)
+        log_metadata(
+            metadata={
+                "ocr_results_artifact_name": "ocr_results",
+                "ocr_results_artifact_type": "polars.DataFrame",
+                "ocr_batch_visualization_artifact_name": "ocr_batch_visualization",
+                "ocr_batch_visualization_artifact_type": "zenml.types.HTMLString",
+            },
+        )
+    except Exception as e:
+        logger.error(f"Error generating visualization: {e}")
+
+    return combined_results, html_visualization

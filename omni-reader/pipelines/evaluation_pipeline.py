@@ -82,7 +82,6 @@ def run_ocr_evaluation_pipeline(config: Dict[str, Any]) -> None:
     if mode != "evaluation":
         logger.warning(f"Expected mode 'evaluation', but got '{mode}'. Proceeding anyway.")
 
-    # Set up pipeline options
     pipeline_instance = ocr_evaluation_pipeline.with_options(
         enable_artifact_metadata=config.get("enable_artifact_metadata", True),
         enable_artifact_visualization=config.get("enable_artifact_visualization", True),
