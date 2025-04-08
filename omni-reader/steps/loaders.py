@@ -60,7 +60,9 @@ def load_images(
             matching_files = glob.glob(full_pattern)
             if matching_files:
                 all_images.extend(matching_files)
-                logger.info(f"Found {len(matching_files)} images matching pattern {pattern}")
+                logger.info(
+                    f"Found {len(matching_files)} images matching pattern {pattern}"
+                )
 
     # Validate image paths
     valid_images = []
@@ -72,7 +74,9 @@ def load_images(
 
     # Log metadata about the loaded images
     image_names = [os.path.basename(path) for path in valid_images]
-    image_extensions = [os.path.splitext(path)[1].lower() for path in valid_images]
+    image_extensions = [
+        os.path.splitext(path)[1].lower() for path in valid_images
+    ]
 
     extension_counts = {}
     for ext in image_extensions:
@@ -98,16 +102,18 @@ def load_images(
 
 @step(enable_cache=False)
 def load_ground_truth_texts(
-    model_results: Dict[str, pl.DataFrame],
+    model_results: pl.DataFrame,
     ground_truth_folder: Optional[str] = None,
     ground_truth_files: Optional[List[str]] = None,
 ) -> Annotated[pl.DataFrame, "ground_truth"]:
     """Load ground truth texts using image names found in model results."""
     if not ground_truth_folder and not ground_truth_files:
-        raise ValueError("Either ground_truth_folder or ground_truth_files must be provided")
+        raise ValueError(
+            "Either ground_truth_folder or ground_truth_files must be provided"
+        )
 
     # Get the first model column to extract image names
-    first_model_column = list(model_results.keys())[0]
+    first_model_column = list(model_results.columns)[0]
 
     image_names = model_results[first_model_column]["image_name"].to_list()
 
@@ -182,11 +188,15 @@ def load_ocr_results(
     try:
         client = Client()
 
-        artifact = client.get_artifact_version(name_id_or_prefix=artifact_name, version=version)
+        artifact = client.get_artifact_version(
+            name_id_or_prefix=artifact_name, version=version
+        )
 
         ocr_results = load_artifact(artifact.id)
 
-        logger.info(f"Successfully loaded OCR results for {len(ocr_results)} models")
+        logger.info(
+            f"Successfully loaded OCR results for {len(ocr_results)} models"
+        )
 
         return ocr_results
     except Exception as e:
