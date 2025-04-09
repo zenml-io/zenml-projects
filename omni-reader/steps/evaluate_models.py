@@ -97,10 +97,11 @@ def evaluate_models(
 
     # --- 6. Calculate processing times for evaluation models ---
     all_model_times = {}
-    for model_name, df in model_results.items():
+    for model_name in model_keys:
+        model_df = model_results.filter(pl.col("model_name") == model_name)
         disp, pref = model_info[model_name]
         time_key = f"avg_{pref}_time"
-        all_model_times[time_key] = df.select("processing_time").to_series().mean()
+        all_model_times[time_key] = model_df.select("processing_time").to_series().mean()
         all_model_times[f"{pref}_display"] = disp
 
     fastest_model_time, fastest_key = min(
