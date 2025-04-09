@@ -1,0 +1,84 @@
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2024. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# pipeline configuration
+build: batch-ocr-pipeline-20254007
+run_name: run_ocr
+
+# environment configuration
+settings:
+  docker:
+    requirements: requirements.txt
+    required_integrations:
+      - aws
+      - s3
+    python_package_installer: uv
+    environment:
+      OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+      MISTRAL_API_KEY: ${{ env.MISTRAL_API_KEY }}
+
+# enable flags
+enable_artifact_metadata: True
+enable_artifact_visualization: True
+enable_cache: False
+enable_step_logs: True
+
+# step configuration
+steps:
+  load_images:
+    parameters:
+      image_folder: ./assets/samples_for_ocr
+      image_paths: []
+    enable_cache: False
+
+  run_ocr:
+    parameters:
+      custom_prompt: null
+      models: # can be model names or shorthands
+        - pixtral
+        - gemma3
+        - llava-phi3
+        - gpt4o
+        - granite
+    enable_cache: False
+
+# vision models configuration
+models_registry:
+  - name: mistral/pixtral-12b-2409
+    shorthand: pixtral
+    ocr_processor: litellm
+    provider: mistral
+
+  - name: gpt-4o-mini
+    shorthand: gpt4o
+    ocr_processor: openai
+
+  - name: gemma3:27b
+    shorthand: gemma3
+    ocr_processor: ollama
+
+  - name: llava:34b
+    shorthand: llava34b
+    ocr_processor: ollama
+
+  - name: llava-phi3
+    shorthand: llava-phi3
+    ocr_processor: ollama
+
+  - name: granite3.2-vision
+    shorthand: granite
+    ocr_processor: ollama

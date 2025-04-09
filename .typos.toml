@@ -48,6 +48,8 @@ huggingface = "huggingface"
 answerdotai = "answerdotai"
 preprocessor = "preprocessor"
 logits = "logits"
+analyse = "analyse"
+Labour = "Labour"
 
 [default]
 locale = "en-us"
