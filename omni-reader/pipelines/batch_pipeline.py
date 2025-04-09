@@ -33,7 +33,6 @@ load_dotenv()
 logger = get_logger(__name__)
 
 docker_settings = DockerSettings(
-    required_integrations=["s3", "aws"],
     python_package_installer="uv",
     requirements="requirements.txt",
     environment={
