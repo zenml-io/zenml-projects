@@ -4,7 +4,7 @@
     "python.analysis.extraPaths": ["/workspace"],
     "workbench.startupEditor": "none",
     "terminal.integrated.defaultProfile.linux": "bash",
-    "workbench.colorTheme": "Dark Modern",
+    "workbench.colorTheme": "Default Dark Modern",
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "files.exclude": {
