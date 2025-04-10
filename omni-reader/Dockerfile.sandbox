@@ -34,10 +34,11 @@ RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenm
 RUN echo "OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE" > .env && \
     echo "MISTRAL_API_KEY=YOUR_MISTRAL_API_KEY_HERE" >> .env
 
-# Create a .vscode directory (mainly to auto-apply the dark theme)
-RUN mkdir -p /workspace/.vscode
-# Copy settings file
-COPY settings.json /workspace/.vscode/settings.json
+# Create a .vscode directory and settings.json file, and auto-apply the dark theme
+RUN mkdir -p /workspace/.vscode && \
+    echo '{\n'\
+    '  "workbench.colorTheme": "Default Dark Modern"\n'\
+    '}' > /workspace/.vscode/settings.json
 
 # Set environment variable to skip CPU checks for Polars as a fallback
 ENV POLARS_SKIP_CPU_CHECK=1
