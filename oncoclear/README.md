@@ -6,7 +6,11 @@ A production-ready MLOps pipeline for accurate breast cancer classification usin
 
 OncoClear is an end-to-end MLOps solution that transforms raw diagnostic measurements into reliable cancer classification predictions. Built with ZenML's robust framework, it delivers enterprise-grade machine learning pipelines that can be deployed in both development and production environments.
 
-![OncoClear Pipeline Overview](.assets/pipeline_overview.png)
+<div align="center">
+  <br/>
+    <img alt="OncoClear Pipelines" src=".assets/pipeline_overview.png" width="40%">
+  <br/>
+</div>
 
 ### Key Features
 
