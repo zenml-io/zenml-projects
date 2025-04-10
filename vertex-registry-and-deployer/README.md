@@ -3,7 +3,7 @@
 
 Welcome to your ZenML project for deploying ML models using Google Cloud's Vertex AI! This project provides a hands-on experience with MLOps pipelines using ZenML and Vertex AI. It contains a collection of ZenML steps, pipelines, and other artifacts to help you efficiently deploy your machine learning models.
 
-Using these pipelines, you can run data preparation, model training, registration, and deployment with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guide/production-guide/configure-pipeline). ZenML takes care of tracking your metadata and [containerizing your pipelines](https://docs.zenml.io/how-to/customize-docker-builds).
+Using these pipelines, you can run data preparation, model training, registration, and deployment with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guides/production-guide/configure-pipeline). ZenML takes care of tracking your metadata and [containerizing your pipelines](https://docs.zenml.io/how-to/customize-docker-builds).
 
 
 ## 🏃 How to run

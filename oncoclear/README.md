@@ -18,7 +18,7 @@ OncoClear is an end-to-end MLOps solution that transforms raw diagnostic measure
 
 <div align="center">
   <br/>
-    <img alt="OncoClear Architecture" src=".assets/architecture_diagram.png" width="70%">
+    <img alt="OncoClear Architecture" src=".assets/architecture_diagram.png" width="40%">
   <br/>
 </div>
 
@@ -34,7 +34,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Feature Engineering Pipeline" src=".assets/feature_engineering_pipeline.png" width="60%">
+       <img alt="Feature Engineering Pipeline" src=".assets/feature_engineering_pipeline.png" width="40%">
      <br/>
    </div>
 
@@ -46,7 +46,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Training Pipeline" src=".assets/training_pipeline.png" width="60%">
+       <img alt="Training Pipeline" src=".assets/training_pipeline.png" width="40%">
      <br/>
    </div>
 
@@ -57,7 +57,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Inference Pipeline" src=".assets/inference_pipeline.png" width="60%">
+       <img alt="Inference Pipeline" src=".assets/inference_pipeline.png" width="40%">
      <br/>
    </div>
 
