@@ -3,7 +3,7 @@
 A scalable multi-model text extraction solution for unstructured documents.
 
 <div align="center">
-  <img src="assets/docs/pipeline_dags.png" alt="Pipeline DAG" width="600" />
+  <img src="assets/docs/pipeline_dags.png" alt="Pipeline DAG" width="800" />
 </div>
 
 ✨ **Extract Structured Text from Any Document**

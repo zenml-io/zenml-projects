@@ -385,10 +385,16 @@ def create_summary_visualization(
 
 
 def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
-    """Create an HTML visualization of batch OCR processing results."""
-    # Extract metrics
+    """Create an HTML visualization of batch OCR processing results.
+
+    Args:
+        df: DataFrame containing OCR results (flattened for single/multi-model runs)
+
+    Returns:
+        HTMLString: HTML visualization of batch OCR processing results
+    """
+    # Calculate overall metrics
     total_results = len(df)
-    # Ensure all raw_text values are strings
     raw_texts = []
     for txt in df["raw_text"].to_list():
         if isinstance(txt, list):
@@ -400,14 +406,13 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
     total_proc_time = df["processing_time"].sum() if "processing_time" in df.columns else 0
     avg_proc_time = df["processing_time"].mean() if "processing_time" in df.columns else 0
 
-    # Get model-specific metrics
+    # Calculate model-specific metrics
     model_metrics = {}
     model_displays = []
 
     if "model_name" in df.columns:
         for model in df["model_name"].unique().to_list():
             mdf = df.filter(pl.col("model_name") == model)
-            # Ensure all model-specific raw_text values are strings
             m_raw_texts = []
             for txt in mdf["raw_text"].to_list():
                 if isinstance(txt, list):
@@ -523,8 +528,6 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
         if isinstance(raw_text, list):
             raw_text = "\n".join(raw_text)
         text_preview = str(raw_text)[:100] + ("..." if len(str(raw_text)) > 100 else "")
-
-        # Calculate the length properly
         text_length = len(str(raw_text)) if raw_text is not None else 0
 
         table_rows += f"""

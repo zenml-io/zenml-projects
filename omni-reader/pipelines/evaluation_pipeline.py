@@ -35,7 +35,6 @@ logger = get_logger(__name__)
 
 docker_settings = DockerSettings(
     requirements="requirements.txt",
-    required_integrations=["s3", "aws"],
     python_package_installer="uv",
     environment={
         "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),

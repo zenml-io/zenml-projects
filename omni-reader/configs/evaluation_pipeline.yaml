@@ -23,9 +23,6 @@ run_name: ocr_evaluation_run
 settings:
   docker:
     requirements: requirements.txt
-    required_integrations:
-      - aws
-      - s3
     python_package_installer: uv
     environment:
       OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}

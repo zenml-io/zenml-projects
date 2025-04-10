@@ -46,16 +46,20 @@ def evaluate_models(
     Returns:
         HTML visualization of the evaluation results
     """
-    if model_results is None or len(model_results.columns) == 0:
-        raise ValueError("At least one model is required for evaluation")
+    if model_results is None or model_results.is_empty():
+        raise ValueError("Model results are required for evaluation")
 
     if ground_truth_df is None or ground_truth_df.is_empty():
         raise ValueError("Ground truth data is required for evaluation")
 
     gt_df = ground_truth_df
 
+    # --- 1. Extract unique model names from the flat DataFrame structure ---
+    model_keys = model_results["model_name"].unique().to_list()
+    if not model_keys:
+        raise ValueError("No model names found in model_results")
+
     # --- 2. Build model info for evaluation models ---
-    model_keys = list(model_results.columns)
     model_info = {}
     model_displays = []
     model_prefixes = {}
@@ -65,11 +69,11 @@ def evaluate_models(
         model_displays.append(display)
         model_prefixes[display] = prefix
 
-    # --- 3. Convert DataFrame rows to dictionaries ---
+    # --- 3. Split model results by model ---
     model_results_dict = {}
     for model_name in model_keys:
-        model_data = model_results[model_name].to_dicts()
-        model_results_dict[model_name] = pl.DataFrame(model_data)
+        model_data = model_results.filter(pl.col("model_name") == model_name)
+        model_results_dict[model_name] = model_data
 
     # --- 4. Merge evaluation models' results ---
     base_model = model_keys[0]
@@ -93,10 +97,11 @@ def evaluate_models(
 
     # --- 6. Calculate processing times for evaluation models ---
     all_model_times = {}
-    for model_name, df in model_results.items():
+    for model_name in model_keys:
+        model_df = model_results.filter(pl.col("model_name") == model_name)
         disp, pref = model_info[model_name]
         time_key = f"avg_{pref}_time"
-        all_model_times[time_key] = df.select("processing_time").to_series().mean()
+        all_model_times[time_key] = model_df.select("processing_time").to_series().mean()
         all_model_times[f"{pref}_display"] = disp
 
     fastest_model_time, fastest_key = min(
@@ -113,7 +118,7 @@ def evaluate_models(
 
     # Check if we have ground truth data in our joined dataset
     if gt_text_col not in merged_results.columns and "raw_text_gt" in merged_results.columns:
-        gt_text_col = "raw_text_gt"  # Fall back to legacy ground truth model format
+        gt_text_col = "raw_text_gt"
 
     for row in merged_results.iter_rows(named=True):
         if gt_text_col not in row:
