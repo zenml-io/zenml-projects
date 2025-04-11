@@ -1,8 +1,11 @@
 # Sandbox base image
 FROM safoinext/zenml-sandbox:latest
 
+# Project metadata
+LABEL project_name="research-radar"
+LABEL project_version="0.1.0"
+
 # Install project-specific dependencies
-# Install polars-lts-cpu instead of polars (version compiled for CPU compatibility)
 RUN pip install --no-cache-dir \
     "accelerate==1.5.2" \
     "anthropic==0.46.0" \
@@ -15,16 +18,16 @@ RUN pip install --no-cache-dir \
     "pandas==2.2.3" \
     "polars-lts-cpu==1.22.0" \
     "psutil==6.1.1" \
+    "pydantic==2.8.2" \
+    "pydantic_core==2.20.1" \
     "python-dotenv==1.0.1" \
+    "scikit_learn==1.6.1" \
     "tenacity==9.0.0" \
     "torch==2.6.0" \
+    "tqdm>=4.64.0" \
     "transformers==4.48.0" \
     "typing_extensions==4.12.2" \
-    "scikit_learn==1.6.1" \
-    "pydantic>=2.8.2,<2.9.0" \
-    "tqdm>=4.66.4" \
-    "zenml>=0.80.0" \
-    uv
+    "zenml>=0.80.0"
 
 # Set workspace directory
 WORKDIR /workspace
@@ -35,15 +38,16 @@ RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenm
     rm -rf /tmp/zenml-projects
 
 # Create a template .env file for API keys
-RUN echo "ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY_HERE" > .env && \
-    echo "HF_TOKEN=YOUR_HUGGINGFACE_API_KEY_HERE" >> .env
+RUN echo "ANTHROPIC_API_KEY=YOUR_ANTHROPIC_KEY_HERE" && \
+    echo "HF_TOKEN=YOUR_HUGGINGFACE_TOKEN_HERE" > .env
 
-# Create a .vscode directory and settings.json file, and auto-apply the dark theme
+# Create a .vscode directory and settings.json file
 RUN mkdir -p /workspace/.vscode && \
     echo '{\n'\
     '  "workbench.colorTheme": "Default Dark Modern"\n'\
     '}' > /workspace/.vscode/settings.json
 
-# Set environment variable to skip CPU checks for Polars as a fallback
-ENV POLARS_SKIP_CPU_CHECK=1
 
+# Set environment variables for compatibility and performance
+ENV POLARS_SKIP_CPU_CHECK=1
+ENV TOKENIZERS_PARALLELISM=false
