@@ -20,12 +20,6 @@ OncoClear is an end-to-end MLOps solution that transforms raw diagnostic measure
 - **Batch Inference Pipeline**: Run predictions on new data with production models
 - **Local API Deployment**: Serve models through a FastAPI endpoint
 
-<div align="center">
-  <br/>
-    <img alt="OncoClear Architecture" src=".assets/architecture_diagram.png" width="40%">
-  <br/>
-</div>
-
 ## 💡 How It Works
 
 The OncoClear project consists of four integrated pipelines:
