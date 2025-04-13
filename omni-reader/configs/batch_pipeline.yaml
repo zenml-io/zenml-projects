@@ -16,16 +16,13 @@
 #
 
 # pipeline configuration
-build: batch-ocr-pipeline-20254007
+build: batch-ocr-pipeline
 run_name: run_ocr
 
 # environment configuration
 settings:
   docker:
     requirements: requirements.txt
-    required_integrations:
-      - aws
-      - s3
     python_package_installer: uv
     environment:
       OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
@@ -41,7 +38,7 @@ enable_step_logs: True
 steps:
   load_images:
     parameters:
-      image_folder: ./assets/samples_for_ocr
+      image_folder: ./assets/samples_for_ocr/handwritten
       image_paths: []
     enable_cache: False
 
@@ -50,10 +47,10 @@ steps:
       custom_prompt: null
       models: # can be model names or shorthands
         - pixtral
-        - gemma3
-        - llava-phi3
         - gpt4o
-        - granite
+        # - gemma3
+        # - llava-phi3
+        # - granite
     enable_cache: False
 
 # vision models configuration

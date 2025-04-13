@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 def load_images(
     image_paths: Optional[List[str]] = None,
     image_folder: Optional[str] = None,
-) -> List[str]:
+) -> Annotated[List[str], "loaded_images"]:
     """Load images for OCR processing.
 
     This step loads images from specified paths or by searching for
@@ -60,9 +60,7 @@ def load_images(
             matching_files = glob.glob(full_pattern)
             if matching_files:
                 all_images.extend(matching_files)
-                logger.info(
-                    f"Found {len(matching_files)} images matching pattern {pattern}"
-                )
+                logger.info(f"Found {len(matching_files)} images matching pattern {pattern}")
 
     # Validate image paths
     valid_images = []
@@ -74,9 +72,7 @@ def load_images(
 
     # Log metadata about the loaded images
     image_names = [os.path.basename(path) for path in valid_images]
-    image_extensions = [
-        os.path.splitext(path)[1].lower() for path in valid_images
-    ]
+    image_extensions = [os.path.splitext(path)[1].lower() for path in valid_images]
 
     extension_counts = {}
     for ext in image_extensions:
@@ -108,14 +104,9 @@ def load_ground_truth_texts(
 ) -> Annotated[pl.DataFrame, "ground_truth"]:
     """Load ground truth texts using image names found in model results."""
     if not ground_truth_folder and not ground_truth_files:
-        raise ValueError(
-            "Either ground_truth_folder or ground_truth_files must be provided"
-        )
+        raise ValueError("Either ground_truth_folder or ground_truth_files must be provided")
 
-    # Get the first model column to extract image names
-    first_model_column = list(model_results.columns)[0]
-
-    image_names = model_results[first_model_column]["image_name"].to_list()
+    image_names = model_results["image_name"].unique().to_list()
 
     logger.info(f"Extracted {len(image_names)} image names")
 
@@ -172,7 +163,7 @@ def load_ground_truth_texts(
 def load_ocr_results(
     artifact_name: str = "ocr_results",
     version: Optional[int] = None,
-) -> Annotated[Dict[str, pl.DataFrame], "ocr_results"]:
+) -> Annotated[pl.DataFrame, "ocr_results"]:
     """Load OCR results from ZenML artifact.
 
     Args:
@@ -180,7 +171,7 @@ def load_ocr_results(
         version: Version of the ZenML artifact
 
     Returns:
-        dict: Dictionary mapping model names to OCR results DataFrames
+        pl.DataFrame: OCR results DataFrame
 
     Raises:
         ValueError: If the parameters are invalid or the dataset cannot be loaded
@@ -188,15 +179,11 @@ def load_ocr_results(
     try:
         client = Client()
 
-        artifact = client.get_artifact_version(
-            name_id_or_prefix=artifact_name, version=version
-        )
+        artifact = client.get_artifact_version(name_id_or_prefix=artifact_name, version=version)
 
         ocr_results = load_artifact(artifact.id)
 
-        logger.info(
-            f"Successfully loaded OCR results for {len(ocr_results)} models"
-        )
+        logger.info(f"Successfully loaded OCR results for {len(ocr_results)} models")
 
         return ocr_results
     except Exception as e:

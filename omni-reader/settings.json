@@ -1,0 +1,14 @@
+{
+    "editor.formatOnSave": true,
+    "python.defaultInterpreterPath": "/opt/venv/bin/python",
+    "python.analysis.extraPaths": ["/workspace"],
+    "workbench.startupEditor": "none",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "workbench.colorTheme": "Default Dark Modern",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true
+    }
+}
