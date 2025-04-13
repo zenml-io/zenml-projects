@@ -8,7 +8,7 @@ OncoClear is an end-to-end MLOps solution that transforms raw diagnostic measure
 
 <div align="center">
   <br/>
-    <img alt="OncoClear Pipelines" src=".assets/pipeline_overview.png" width="40%">
+    <img alt="OncoClear Pipelines" src=".assets/pipeline_overview.png" width="50%">
   <br/>
 </div>
 
@@ -32,7 +32,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Feature Engineering Pipeline" src=".assets/feature_engineering_pipeline.png" width="40%">
+       <img alt="Feature Engineering Pipeline" src=".assets/feature_engineering_pipeline.png" width="50%">
      <br/>
    </div>
 
@@ -44,7 +44,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Training Pipeline" src=".assets/training_pipeline.png" width="40%">
+       <img alt="Training Pipeline" src=".assets/training_pipeline.png" width="50%">
      <br/>
    </div>
 
@@ -55,7 +55,7 @@ The OncoClear project consists of four integrated pipelines:
 
    <div align="center">
      <br/>
-       <img alt="Inference Pipeline" src=".assets/inference_pipeline.png" width="40%">
+       <img alt="Inference Pipeline" src=".assets/inference_pipeline.png" width="50%">
      <br/>
    </div>
 
@@ -385,12 +385,6 @@ OncoClear follows a modular architecture:
 ├── run.py                   # Command-line interface
 └── requirements.txt         # Project dependencies
 ```
-
-<div align="center">
-  <br/>
-    <img alt="Project Architecture" src=".assets/project_architecture.png" width="60%">
-  <br/>
-</div>
 
 ## 📚 Learn More
 
