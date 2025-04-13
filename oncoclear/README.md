@@ -356,7 +356,7 @@ If you are a [ZenML Pro](https://zenml.io/pro) user, you can visualize the entir
 
 <div align="center">
   <br/>
-    <img alt="Model Control Plane" src=".assets/model_control_plane.png" width="70%">
+    <img alt="Model Control Plane" src=".assets/cloud_mcp.png" width="70%">
   <br/>
 </div>
 
