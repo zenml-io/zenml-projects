@@ -115,6 +115,6 @@ jobs:
           file: ${{ matrix.project }}/Dockerfile.sandbox
           push: true
           tags: |
-            safoinext/zenml-sandbox-${{ matrix.project }}:latest
+            zenmldocker/project-${{ matrix.project }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
