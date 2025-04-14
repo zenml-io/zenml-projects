@@ -23,6 +23,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from typing_extensions import Annotated
 from zenml import ArtifactConfig, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -34,7 +35,7 @@ def model_trainer(
     model_type: str = "sgd",
     target: Optional[str] = "target",
 ) -> Annotated[
-    ClassifierMixin, ArtifactConfig(name="sklearn_classifier", is_model_artifact=True)
+    ClassifierMixin, ArtifactConfig(name="sklearn_classifier", artifact_type=ArtifactType.MODEL)
 ]:
     """Configure and train a model on the training dataset.
 
