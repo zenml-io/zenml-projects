@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+scikit-learn # Replace with specific version later if needed
+zenml # Replace with specific version later if needed
+python-dotenv
+numpy
+pandas
+
+# AWS dependencies for S3 artifact store
+aws-profile-manager
+boto3
+s3fs>=2022.3.0 

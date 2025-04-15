@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment and editor files
+.env
+.venv
+venv/
+ENV/
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+
+# Documentation or local development files
+README.md
+CHANGELOG.md
+docs/
+tests/
+
+# Git and GitHub
+.git/
+.github/
+.gitignore
+
+# Docker
+Dockerfile.*
+docker-compose*.yml
+
+# Miscellaneous
+.DS_Store 
