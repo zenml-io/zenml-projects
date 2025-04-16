@@ -9,7 +9,7 @@ from textwrap import dedent
 
 def get_hello_world_str():
     return dedent(
-        f"""\
+        """\
 import logging
 
 def main():
