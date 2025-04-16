@@ -150,10 +150,12 @@ def detect_env_variables(project_dir, dependencies):
     return env_vars
 
 
-def generate_dockerfile(project_name, output_dir=None):
+def generate_dockerfile(project_path, output_dir=None):
     """Generate a Dockerfile.sandbox for the specified project."""
     if output_dir is None:
-        output_dir = project_name
+        output_dir = project_path
+
+    base_project_name = os.path.basename(project_path)
 
     project_dir = Path(output_dir)
     if not project_dir.exists():
@@ -188,7 +190,7 @@ def generate_dockerfile(project_name, output_dir=None):
 
     # Generate Dockerfile content
     dockerfile_content = DOCKERFILE_TEMPLATE.format(
-        project_name=project_name,
+        project_name=base_project_name,
         dependencies=formatted_deps,
         api_vars=formatted_api_vars,
         env_vars_block=env_vars_block,
@@ -200,7 +202,7 @@ def generate_dockerfile(project_name, output_dir=None):
         f.write(dockerfile_content)
 
     print(
-        f"Generated Dockerfile.sandbox for {project_name} at {dockerfile_path}"
+        f"Generated Dockerfile.sandbox for {base_project_name} at {dockerfile_path}"
     )
     return True
 
