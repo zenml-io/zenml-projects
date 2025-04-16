@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 DOCKERFILE_TEMPLATE = """# Sandbox base image
-FROM safoinext/zenml-sandbox:latest
+FROM zenmldocker/zenml-sandbox:latest
 
 # Project metadata
 LABEL project_name="{project_name}"
