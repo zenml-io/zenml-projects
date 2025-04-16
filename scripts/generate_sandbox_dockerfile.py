@@ -45,14 +45,11 @@ RUN mkdir -p /workspace/.vscode && \\
 
 def format_env_key(key):
     """Format environment variable placeholder text."""
-    # Extract the service name from the key
-    service = key.split("_")[0] if "_" in key else key
     # Special case handling
     if key == "GOOGLE_APPLICATION_CREDENTIALS":
         return f"{key}=PATH_TO_YOUR_GOOGLE_CREDENTIALS_FILE"
-    if key == "HF_TOKEN":
-        return f"{key}=YOUR_HUGGINGFACE_TOKEN_HERE"
-    return f"{key}=YOUR_{service}_KEY_HERE"
+
+    return f"{key}=YOUR_{key}"
 
 
 def parse_requirements(project_dir):

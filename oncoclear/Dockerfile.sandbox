@@ -1,5 +1,5 @@
 # Sandbox base image
-FROM safoinext/zenml-sandbox:latest
+FROM zenmldocker/zenml-sandbox:latest
 
 # Project metadata
 LABEL project_name="oncoclear"
@@ -22,9 +22,9 @@ RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenm
     rm -rf /tmp/zenml-projects
 
 # Create a template .env file for API keys
-RUN echo "ZENML_PROJECT_SECRET_NAME=YOUR_ZENML_KEY_HERE" && \
-    echo "ZENML_STORE_URL=YOUR_ZENML_KEY_HERE" && \
-    echo "ZENML_STORE_API_KEY=YOUR_ZENML_KEY_HERE" > .env
+RUN echo "ZENML_PROJECT_SECRET_NAME=YOUR_ZENML_PROJECT_SECRET_NAME" && \
+    echo "ZENML_STORE_URL=YOUR_ZENML_STORE_URL" && \
+    echo "ZENML_STORE_API_KEY=YOUR_ZENML_STORE_API_KEY" > .env
 
 # Create a .vscode directory and settings.json file
 RUN mkdir -p /workspace/.vscode && \
