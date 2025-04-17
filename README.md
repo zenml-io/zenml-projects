@@ -57,6 +57,7 @@ etc.
 
 | Project | Domain | Key Features | Core Technologies |
 |---------|--------|-------------|-------------------|
+| [Oncoclear](oncoclear) | 🩺 Healthcare | 🔍 Classification, 📊 Tabular Data | scikit-learn, pandas, zenml |
 | [ZenML Support Agent](zenml-support-agent) | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational | langchain, llama_index, openai |
 | [ZenCoder](zencoder) | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning | huggingface, pytorch, wandb |
 | [Complete Guide to LLMs](llm-complete-guide) | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation | openai, huggingface, anthropic |
