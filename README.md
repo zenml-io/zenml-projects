@@ -57,7 +57,6 @@ etc.
 
 | Project | Domain | Key Features | Core Technologies |
 |---------|--------|-------------|-------------------|
-| [Oncoclear](oncoclear) | 🩺 Healthcare | 🔍 Classification, 📊 Tabular Data | scikit-learn, pandas, zenml |
 | [ZenML Support Agent](zenml-support-agent) | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational | langchain, llama_index, openai |
 | [ZenCoder](zencoder) | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning | huggingface, pytorch, wandb |
 | [Complete Guide to LLMs](llm-complete-guide) | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation | openai, huggingface, anthropic |
@@ -66,7 +65,7 @@ etc.
 | [ResearchRadar](research-radar) | 🤖 LLMOps | 📝 Classification, 📊 Comparison | anthropic, huggingface, transformers |
 | [End-to-end Computer Vision](end-to-end-computer-vision) | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling | pytorch, label_studio, yolov8 |
 | [Magic Photobooth](magic-photobooth) | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen | stable-diffusion, huggingface |
-| [Oncoclear](oncoclear) | 🚀 MLOps | 📦 Deployment, 🔄 CI/CD | docker, kubernetes |
+| [Oncoclear](oncoclear) | 🚀 MLOps | 📦 Deployment, 🔄 CI/CD | docker, kubernetes, scikit-learn |
 | [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time | mlflow, bentoml, vertex-ai |
 | [Huggingface to Sagemaker](huggingface-sagemaker) | 🚀 MLOps | 🔄 CI/CD, 📦 Deployment | mlflow, sagemaker, kubeflow |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps | 📊 Monitoring, 🔍 Quality Assurance | databricks, evidently, shap |
