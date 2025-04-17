@@ -65,6 +65,7 @@ etc.
 | [ResearchRadar](research-radar) | 🤖 LLMOps | 📝 Classification, 📊 Comparison | anthropic, huggingface, transformers |
 | [End-to-end Computer Vision](end-to-end-computer-vision) | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling | pytorch, label_studio, yolov8 |
 | [Magic Photobooth](magic-photobooth) | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen | stable-diffusion, huggingface |
+| [Oncoclear](oncoclear) | 🚀 MLOps | 📦 Deployment, 🔄 CI/CD | docker, kubernetes |
 | [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time | mlflow, bentoml, vertex-ai |
 | [Huggingface to Sagemaker](huggingface-sagemaker) | 🚀 MLOps | 🔄 CI/CD, 📦 Deployment | mlflow, sagemaker, kubeflow |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps | 📊 Monitoring, 🔍 Quality Assurance | databricks, evidently, shap |
