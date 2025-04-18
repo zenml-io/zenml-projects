@@ -121,7 +121,7 @@ def get_dependencies(project_dir: Path, use_uv: bool) -> str:
     else:
         lines.append("RUN pip install --no-cache-dir \\")
     lines += [f'    "{d}" \\' for d in deps[:-1]] + [f'    "{deps[-1]}"']
-    return "\n".join(lines)
+    return "\n".join(lines), deps
 
 
 def find_env_keys(project_dir: Path) -> set[str]:
@@ -143,40 +143,48 @@ def find_env_keys(project_dir: Path) -> set[str]:
     return keys or {"API_KEY"}
 
 
-def gen_env_block(project_dir: Path, keys: set[str]) -> str:
+def gen_env_block(
+    project_dir: Path, keys: set[str], installed_deps: list[str]
+) -> str:
     """Generate Dockerfile commands to set up .env with detected keys and runtime tweaks.
 
-    Copies existing .env or creates a new one, appends missing keys,
-    and adds ENV lines for Polars and tokenizers settings.
+    Looks for any .env* files (like .env.example) and uses that for reference.
+    Does not create a .env file if one doesn't exist.
+    Adds Polars ENV only if polars-lts-cpu was installed.
     """
-    has_env = (project_dir / ".env").exists()
-    if has_env:
-        existing = {
-            line.split("=", 1)[0]
-            for line in (project_dir / ".env").read_text().splitlines()
-            if "=" in line
-        }
-        block = "# Copy existing .env\nCOPY .env /workspace/.env"
+    lines = []
+
+    # Look for any .env* files (.env, .env.example, etc.)
+    env_files = list(project_dir.glob(".env*"))
+
+    if env_files:
+        # Use the first .env* file found
+        env_file = env_files[0]
+        env_file_name = env_file.name
+
+        # Parse the existing keys from the file
+        existing = set()
+        try:
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                if line and not line.startswith("#") and "=" in line:
+                    existing.add(line.split("=", 1)[0].strip())
+        except Exception:
+            existing = set()
+
+        # Copy the existing .env* file
+        lines.append(f"# Copy {env_file_name}")
+        lines.append(f"COPY {env_file_name} /workspace/.env")
+
+        # Add missing keys only if we're copying a template
         missing = keys - existing
-    else:
-        block = "# Create a template .env file for API keys"
-        missing = keys
-    for k in sorted(missing):
-        val = (
-            "PATH_TO_YOUR_GOOGLE_CREDENTIALS_FILE"
-            if k == "GOOGLE_APPLICATION_CREDENTIALS"
-            else f"YOUR_{k}"
-        )
-        block += f'\nRUN echo "{k}={val}" >> /workspace/.env'
-    # runtime adjustments
-    if any("polars" in d.lower() for d in keys):
-        # Add POLARS_SKIP_CPU_CHECK if polars is used - this prevents Polars from
-        # generating warnings or errors when running in container environments where
-        # CPU feature detection may not work correctly
-        block += "\nENV POLARS_SKIP_CPU_CHECK=1"
-    if any(d.lower().startswith(("transform", "token")) for d in keys):
-        block += "\nENV TOKENIZERS_PARALLELISM=false"
-    return block
+        for k in sorted(missing):
+            lines.append(f'RUN echo "{k}=YOUR_{k}" >> /workspace/.env')
+
+    # Add Polars ENV only if we actually installed polars-lts-cpu
+    if any("polars-lts-cpu" in dep for dep in installed_deps):
+        lines.append("ENV POLARS_SKIP_CPU_CHECK=1")
+
+    return "\n".join(lines) if lines else ""
 
 
 def generate_dockerfile(
@@ -193,9 +201,9 @@ def generate_dockerfile(
         print(f"Error: {out} not found")
         return False
     name = Path(project_path).name
-    deps_block = get_dependencies(out, use_uv)
+    deps_block, installed_deps = get_dependencies(out, use_uv)
     keys = find_env_keys(out)
-    env_block = gen_env_block(out, keys)
+    env_block = gen_env_block(out, keys, installed_deps)
     content = DOCKER_TEMPLATE.format(
         name=name, deps=deps_block, env_block=env_block
     )

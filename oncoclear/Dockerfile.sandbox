@@ -5,8 +5,9 @@ FROM zenmldocker/zenml-sandbox:latest
 LABEL project_name="oncoclear"
 LABEL project_version="0.1.0"
 
-# Install project-specific dependencies
-RUN pip install --no-cache-dir \
+# Install dependencies
+RUN pip install uv
+RUN uv pip install --system \
     "zenml[server]>=0.50.0" \
     "notebook" \
     "scikit-learn" \
