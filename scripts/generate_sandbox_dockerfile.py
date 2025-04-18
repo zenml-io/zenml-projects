@@ -1,224 +1,231 @@
 #!/usr/bin/env python3
 
-"""Script to generate Dockerfile.sandbox files for ZenML projects.
-
-This ensures consistency across all project Docker images.
-"""
+"""Generate Dockerfile.sandbox for ZenML projects."""
 
 import argparse
-import os
 import re
 import sys
 from pathlib import Path
 
-DOCKERFILE_TEMPLATE = """# Sandbox base image
+import tomli
+
+# Dockerfile template
+DOCKER_TEMPLATE = """# Sandbox base image
 FROM zenmldocker/zenml-sandbox:latest
 
 # Project metadata
-LABEL project_name="{project_name}"
+LABEL project_name="{name}"
 LABEL project_version="0.1.0"
 
-# Install project-specific dependencies
-RUN pip install --no-cache-dir \\
-{dependencies}
+{deps}
 
 # Set workspace directory
 WORKDIR /workspace
 
 # Clone only the project directory and reorganize
 RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenml-projects && \\
-    cp -r /tmp/zenml-projects/{project_name}/* /workspace/ && \\
+    cp -r /tmp/zenml-projects/{name}/* /workspace/ && \\
     rm -rf /tmp/zenml-projects
 
-# Create a template .env file for API keys
-RUN echo "{api_vars}" > .env
-
-# Create a .vscode directory and settings.json file
+# VSCode settings
 RUN mkdir -p /workspace/.vscode && \\
-    echo '{{\\n'\\
-    '  "workbench.colorTheme": "Default Dark Modern"\\n'\\
-    '}}' > /workspace/.vscode/settings.json
+    printf '{{\\n  "workbench.colorTheme": "Default Dark Modern"\\n}}' > /workspace/.vscode/settings.json
 
-{env_vars_block}
+{env_block}
 """
 
+# Patterns to detect environment variables in code
+ENV_PATTERN = re.compile(
+    r"os\.(?:getenv|environ(?:\[|\\.get))\(['\"]([A-Za-z0-9_]+)['\"]\)"
+)
+DOTENV_PATTERN = re.compile(
+    r"(?:load_dotenv|dotenv).*?['\"]([A-Za-z0-9_]+)['\"]"
+)
 
-def format_env_key(key):
-    """Format environment variable placeholder text."""
-    # Special case handling
-    if key == "GOOGLE_APPLICATION_CREDENTIALS":
-        return f"{key}=PATH_TO_YOUR_GOOGLE_CREDENTIALS_FILE"
 
-    return f"{key}=YOUR_{key}"
+def replace_polars(dep: str) -> str:
+    """Replaces 'polars' with 'polars-lts-cpu', a CPU-optimized LTS version for container environments."""
+    return (
+        dep.replace("polars", "polars-lts-cpu")
+        if dep.startswith("polars")
+        else dep
+    )
 
 
-def parse_requirements(project_dir):
-    """Parse requirements.txt file if it exists."""
-    req_file = Path(project_dir) / "requirements.txt"
+def parse_requirements(project_dir: Path) -> list[str]:
+    """Parse requirements.txt and apply LTS replacement for Polars.
+
+    Replaces 'polars' with 'polars-lts-cpu', a CPU-optimized LTS version for container environments.
+    """
+    req_file = project_dir / "requirements.txt"
     if not req_file.exists():
-        print(f"Warning: No requirements.txt found in {project_dir}")
+        return []
+    deps = []
+    for line in req_file.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            deps.append(replace_polars(line))
+    return deps
+
+
+def parse_pyproject(project_dir: Path) -> list[str]:
+    """Parse pyproject.toml supporting PEP 621, Poetry, and PDM; replace Polars with its LTS CPU version.
+
+    Supports dependencies under [project.dependencies], [tool.poetry.dependencies], and [tool.pdm.dependencies].
+    """
+    file = project_dir / "pyproject.toml"
+    if not file.exists():
+        return []
+    try:
+        data = tomli.loads(file.read_bytes())
+        # PEP 621
+        if deps := data.get("project", {}).get("dependencies"):  # type: ignore
+            raw = deps
+        # Poetry
+        elif (
+            poetry := data.get("tool", {})
+            .get("poetry", {})
+            .get("dependencies")
+        ):  # type: ignore
+            raw = [
+                f"{n}=={v}" if isinstance(v, str) else n
+                for n, v in poetry.items()
+                if n != "python"
+            ]
+        # PDM
+        elif pdm := data.get("tool", {}).get("pdm", {}).get("dependencies"):  # type: ignore
+            raw = pdm
+        else:
+            return []
+        return [replace_polars(d) for d in raw]
+    except Exception as e:
+        print(f"Warning: pyproject.toml parse error: {e}")
         return []
 
-    dependencies = []
-    with open(req_file, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                if line.startswith("polars"):
-                    line = line.replace("polars", "polars-lts-cpu")
-                dependencies.append(line)
 
-    return dependencies
+def get_dependencies(project_dir: Path, use_uv: bool) -> str:
+    """Aggregate dependencies from requirements or pyproject and format the install block.
 
-
-def detect_api_keys(project_dir):
-    """Attempt to detect required API keys by scanning Python files."""
-    api_patterns = {
-        # LLM Provider API Keys
-        "HF_TOKEN": r"huggingface|hf_token",
-        "OPENAI_API_KEY": r"openai|gpt",
-        "ANTHROPIC_API_KEY": r"anthropic|claude",
-        "MISTRAL_API_KEY": r"mistral|mistralai",
-        "GEMINI_API_KEY": r"gemini|google",
-        # ZenML-specific API Keys and Environment Variables
-        "ZENML_STORE_API_KEY": r"zenml.*api_key|zenml_store_api_key",
-        "ZENML_STORE_URL": r"zenml_store_url|zenml.*url",
-        "ZENML_PROJECT_SECRET_NAME": r"zenml.*secret|secret_name",
-        "ZENML_HF_USERNAME": r"zenml_hf_username|hf_username",
-        "ZENML_HF_SPACE_NAME": r"zenml_hf_space_name|hf_space_name",
-        # Monitoring and Logging
-        "LANGFUSE_PUBLIC_KEY": r"langfuse.*public",
-        "LANGFUSE_SECRET_KEY": r"langfuse.*secret",
-        "LANGFUSE_HOST": r"langfuse.*host",
-        # Vector Databases
-        "PINECONE_API_KEY": r"pinecone",
-        "SUPABASE_USER": r"supabase.*user",
-        "SUPABASE_PASSWORD": r"supabase.*password",
-        "SUPABASE_HOST": r"supabase.*host",
-        "SUPABASE_PORT": r"supabase.*port",
-        # Cloud Provider Keys
-        "AWS_ACCESS_KEY_ID": r"aws.*access|aws_access_key_id",
-        "AWS_SECRET_ACCESS_KEY": r"aws.*secret|aws_secret_access_key",
-        "AWS_SESSION_TOKEN": r"aws.*session|aws_session_token",
-        "AWS_REGION": r"aws.*region|aws_region",
-        "GOOGLE_APPLICATION_CREDENTIALS": r"google.*credentials",
-        # Other Service-Specific Keys
-        "FIFTYONE_LABELSTUDIO_API_KEY": r"fiftyone|labelstudio",
-        "NEPTUNE_API_TOKEN": r"neptune",
-        "GH_ACCESS_TOKEN": r"gh_access_token|github",
-    }
-
-    detected_keys = []
-
-    for py_file in Path(project_dir).glob("**/*.py"):
-        with open(py_file, "r", encoding="utf-8", errors="ignore") as f:
-            content = f.read().lower()
-            for key, pattern in api_patterns.items():
-                if re.search(pattern, content):
-                    detected_keys.append(key)
-
-    # Remove duplicates
-    detected_keys = list(set(detected_keys))
-
-    if not detected_keys:
-        detected_keys = ["API_KEY=YOUR_API_KEY_HERE"]
-
-    return [format_env_key(key) for key in detected_keys]
-
-
-def detect_env_variables(project_dir, dependencies):
-    """Detect which environment variables are needed based on dependencies and content."""
-    env_vars = []
-
-    # Only add POLARS_SKIP_CPU_CHECK if any polars package is in dependencies
-    if any("polars" in dep.lower() for dep in dependencies):
-        env_vars.append("POLARS_SKIP_CPU_CHECK=1")
-
-    # Only add TOKENIZERS_PARALLELISM if transformers or tokenizers is used
-    if any(
-        dep.lower().startswith(("transform", "token")) for dep in dependencies
-    ):
-        env_vars.append("TOKENIZERS_PARALLELISM=false")
-
-    # These are development convenience variables - could be made optional
-    # env_vars.append("PYTHONUNBUFFERED=1")
-    # env_vars.append("PYTHONDONTWRITEBYTECODE=1")
-
-    return env_vars
-
-
-def generate_dockerfile(project_path, output_dir=None):
-    """Generate a Dockerfile.sandbox for the specified project."""
-    if output_dir is None:
-        output_dir = project_path
-
-    base_project_name = os.path.basename(project_path)
-
-    project_dir = Path(output_dir)
-    if not project_dir.exists():
-        print(f"Error: Project directory {project_dir} not found")
-        return False
-
-    # Get dependencies
-    dependencies = parse_requirements(project_dir)
-    if dependencies:
-        formatted_deps = "\n".join(
-            f'    "{dep}" \\' for dep in dependencies[:-1]
-        )
-        if formatted_deps:
-            formatted_deps += f'\n    "{dependencies[-1]}"'
-        else:
-            formatted_deps = f'    "{dependencies[-1]}"'
+    Includes a warning if no dependencies are found.
+    """
+    deps = parse_requirements(project_dir) or parse_pyproject(project_dir)
+    if not deps:
+        print(f"Warning: no dependencies found in {project_dir}")
+        return "# No dependencies found"
+    # build install commands
+    lines = []
+    lines.append("# Install dependencies")
+    if use_uv:
+        lines.append("RUN pip install uv")
+        lines.append("RUN uv pip install --system \\")
     else:
-        formatted_deps = ""
+        lines.append("RUN pip install --no-cache-dir \\")
+    lines += [f'    "{d}" \\' for d in deps[:-1]] + [f'    "{deps[-1]}"']
+    return "\n".join(lines)
 
-    # Detect API keys
-    api_vars = detect_api_keys(project_dir)
-    formatted_api_vars = '" && \\\n    echo "'.join(api_vars)
 
-    env_vars = detect_env_variables(project_dir, dependencies)
-    env_vars_block = ""
-    if env_vars:
-        env_vars_block = (
-            "\n# Set environment variables for compatibility and performance"
+def find_env_keys(project_dir: Path) -> set[str]:
+    """Detect environment variable keys from .env and Python source files.
+
+    Scans .env for explicit keys and searches code for os.getenv, os.environ, and dotenv references.
+    Defaults to {'API_KEY'} if none found.
+    """
+    keys = set()
+    env_file = project_dir / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if line and not line.startswith("#") and "=" in line:
+                keys.add(line.split("=", 1)[0].strip())
+    for py in project_dir.rglob("*.py"):
+        txt = py.read_text(errors="ignore")
+        keys |= set(ENV_PATTERN.findall(txt))
+        keys |= set(DOTENV_PATTERN.findall(txt))
+    return keys or {"API_KEY"}
+
+
+def gen_env_block(project_dir: Path, keys: set[str]) -> str:
+    """Generate Dockerfile commands to set up .env with detected keys and runtime tweaks.
+
+    Copies existing .env or creates a new one, appends missing keys,
+    and adds ENV lines for Polars and tokenizers settings.
+    """
+    has_env = (project_dir / ".env").exists()
+    if has_env:
+        existing = {
+            line.split("=", 1)[0]
+            for line in (project_dir / ".env").read_text().splitlines()
+            if "=" in line
+        }
+        block = "# Copy existing .env\nCOPY .env /workspace/.env"
+        missing = keys - existing
+    else:
+        block = "# Create a template .env file for API keys"
+        missing = keys
+    for k in sorted(missing):
+        val = (
+            "PATH_TO_YOUR_GOOGLE_CREDENTIALS_FILE"
+            if k == "GOOGLE_APPLICATION_CREDENTIALS"
+            else f"YOUR_{k}"
         )
-        for var in env_vars:
-            env_vars_block += f"\nENV {var}"
+        block += f'\nRUN echo "{k}={val}" >> /workspace/.env'
+    # runtime adjustments
+    if any("polars" in d.lower() for d in keys):
+        # Add POLARS_SKIP_CPU_CHECK if polars is used - this prevents Polars from
+        # generating warnings or errors when running in container environments where
+        # CPU feature detection may not work correctly
+        block += "\nENV POLARS_SKIP_CPU_CHECK=1"
+    if any(d.lower().startswith(("transform", "token")) for d in keys):
+        block += "\nENV TOKENIZERS_PARALLELISM=false"
+    return block
 
-    # Generate Dockerfile content
-    dockerfile_content = DOCKERFILE_TEMPLATE.format(
-        project_name=base_project_name,
-        dependencies=formatted_deps,
-        api_vars=formatted_api_vars,
-        env_vars_block=env_vars_block,
+
+def generate_dockerfile(
+    project_path: str,
+    output_dir: str | None = None,
+    use_uv: bool = True,
+) -> bool:
+    """Create Dockerfile.sandbox using the template, dependencies, and environment setup.
+
+    Returns True on success, False otherwise.
+    """
+    out = Path(output_dir or project_path)
+    if not out.exists():
+        print(f"Error: {out} not found")
+        return False
+    name = Path(project_path).name
+    deps_block = get_dependencies(out, use_uv)
+    keys = find_env_keys(out)
+    env_block = gen_env_block(out, keys)
+    content = DOCKER_TEMPLATE.format(
+        name=name, deps=deps_block, env_block=env_block
     )
-
-    # Write Dockerfile
-    dockerfile_path = project_dir / "Dockerfile.sandbox"
-    with open(dockerfile_path, "w") as f:
-        f.write(dockerfile_content)
-
-    print(
-        f"Generated Dockerfile.sandbox for {base_project_name} at {dockerfile_path}"
-    )
+    (out / "Dockerfile.sandbox").write_text(content)
+    print(f"Generated Dockerfile.sandbox at {out / 'Dockerfile.sandbox'}")
     return True
 
 
-def main():
-    """Main function to parse arguments and generate Dockerfile.sandbox."""
+def main() -> None:
+    """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Generate Dockerfile.sandbox for ZenML projects"
+        "Generate Dockerfile.sandbox for ZenML projects"
     )
-    parser.add_argument("project", help="Project name")
+    parser.add_argument("project", help="Path to the project directory")
     parser.add_argument(
-        "--output-dir", help="Output directory (defaults to project name)"
+        "--output-dir", help="Output directory (defaults to project path)"
     )
-
+    parser.add_argument(
+        "--use-uv",
+        action="store_true",
+        default=True,
+        help="Use uv for dependency installation (default: True)",
+    )
     args = parser.parse_args()
-
-    success = generate_dockerfile(args.project, args.output_dir)
-    return 0 if success else 1
+    sys.exit(
+        0
+        if generate_dockerfile(args.project, args.output_dir, args.use_uv)
+        else 1
+    )
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
