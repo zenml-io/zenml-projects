@@ -1,5 +1,5 @@
 # Sandbox base image
-FROM zenmldocker/zenml-sandbox:latest
+FROM zenmldocker/zenml-projects:base
 
 # Install uv from official distroless image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
