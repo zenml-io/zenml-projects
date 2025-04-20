@@ -13,6 +13,13 @@ import tomli
 DOCKER_TEMPLATE = """# Sandbox base image
 FROM zenmldocker/zenml-sandbox:latest
 
+# Install uv from official distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set uv environment variables for optimization
+ENV UV_SYSTEM_PYTHON=1
+ENV UV_COMPILE_BYTECODE=1
+
 # Project metadata
 LABEL project_name="{name}"
 LABEL project_version="0.1.0"
@@ -103,7 +110,7 @@ def parse_pyproject(project_dir: Path) -> list[str]:
         return []
 
 
-def get_dependencies(project_dir: Path, use_uv: bool) -> str:
+def get_dependencies(project_dir: Path) -> tuple[str, list[str]]:
     """Aggregate dependencies from requirements or pyproject and format the install block.
 
     Includes a warning if no dependencies are found.
@@ -111,15 +118,13 @@ def get_dependencies(project_dir: Path, use_uv: bool) -> str:
     deps = parse_requirements(project_dir) or parse_pyproject(project_dir)
     if not deps:
         print(f"Warning: no dependencies found in {project_dir}")
-        return "# No dependencies found"
+        return "# No dependencies found", []
     # build install commands
     lines = []
-    lines.append("# Install dependencies")
-    if use_uv:
-        lines.append("RUN pip install uv")
-        lines.append("RUN uv pip install --system \\")
-    else:
-        lines.append("RUN pip install --no-cache-dir \\")
+    lines.append("# Install dependencies with uv and cache optimization")
+    lines.append("RUN --mount=type=cache,target=/root/.cache/uv \\")
+    lines.append("    uv pip install --system \\")
+
     lines += [f'    "{d}" \\' for d in deps[:-1]] + [f'    "{deps[-1]}"']
     return "\n".join(lines), deps
 
@@ -190,7 +195,6 @@ def gen_env_block(
 def generate_dockerfile(
     project_path: str,
     output_dir: str | None = None,
-    use_uv: bool = True,
 ) -> bool:
     """Create Dockerfile.sandbox using the template, dependencies, and environment setup.
 
@@ -201,7 +205,7 @@ def generate_dockerfile(
         print(f"Error: {out} not found")
         return False
     name = Path(project_path).name
-    deps_block, installed_deps = get_dependencies(out, use_uv)
+    deps_block, installed_deps = get_dependencies(out)
     keys = find_env_keys(out)
     env_block = gen_env_block(out, keys, installed_deps)
     content = DOCKER_TEMPLATE.format(
@@ -228,11 +232,7 @@ def main() -> None:
         help="Use uv for dependency installation (default: True)",
     )
     args = parser.parse_args()
-    sys.exit(
-        0
-        if generate_dockerfile(args.project, args.output_dir, args.use_uv)
-        else 1
-    )
+    sys.exit(0 if generate_dockerfile(args.project, args.output_dir) else 1)
 
 
 if __name__ == "__main__":
