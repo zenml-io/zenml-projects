@@ -1,13 +1,20 @@
 # Sandbox base image
 FROM zenmldocker/zenml-sandbox:latest
 
+# Install uv from official distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set uv environment variables for optimization
+ENV UV_SYSTEM_PYTHON=1
+ENV UV_COMPILE_BYTECODE=1
+
 # Project metadata
 LABEL project_name="oncoclear"
 LABEL project_version="0.1.0"
 
-# Install dependencies
-RUN pip install uv
-RUN uv pip install --system \
+# Install dependencies with uv and cache optimization
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
     "zenml[server]>=0.50.0" \
     "notebook" \
     "scikit-learn" \
@@ -22,15 +29,8 @@ RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenm
     cp -r /tmp/zenml-projects/oncoclear/* /workspace/ && \
     rm -rf /tmp/zenml-projects
 
-# Create a template .env file for API keys
-RUN echo "ZENML_PROJECT_SECRET_NAME=YOUR_ZENML_PROJECT_SECRET_NAME" && \
-    echo "ZENML_STORE_URL=YOUR_ZENML_STORE_URL" && \
-    echo "ZENML_STORE_API_KEY=YOUR_ZENML_STORE_API_KEY" > .env
-
-# Create a .vscode directory and settings.json file
+# VSCode settings
 RUN mkdir -p /workspace/.vscode && \
-    echo '{\n'\
-    '  "workbench.colorTheme": "Default Dark Modern"\n'\
-    '}' > /workspace/.vscode/settings.json
+    printf '{\n  "workbench.colorTheme": "Default Dark Modern"\n}' > /workspace/.vscode/settings.json
 
 
