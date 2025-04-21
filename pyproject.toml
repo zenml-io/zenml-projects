@@ -6,7 +6,7 @@ authors = ["ZenML CodeMonkey <codemonkey@zenml.io>"]
 
 [tool.poetry.dependencies]
 python = ">=3.7.0,<3.9.0"
-tomli = "^2.0.1"  # Added for parsing pyproject.toml files when generating Dockerfile.sandbox
+tomli = "^2.0.1"  # Added for parsing pyproject.toml files when generating Dockerfile.codespace
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

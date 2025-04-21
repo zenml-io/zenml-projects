@@ -85,14 +85,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for Dockerfile.sandbox
+      - name: Check for Dockerfile.codespace
         id: check-dockerfile
         run: |
-          if [ -f "${{ matrix.project }}/Dockerfile.sandbox" ]; then
+          if [ -f "${{ matrix.project }}/Dockerfile.codespace" ]; then
             echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
           else
             echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
-            echo "No Dockerfile.sandbox found in ${{ matrix.project }}, will generate one."
+            echo "No Dockerfile.codespace found in ${{ matrix.project }}, will generate one."
           fi
 
       - name: Set up Python
@@ -101,22 +101,22 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Generate Dockerfile.sandbox if needed
+      - name: Generate Dockerfile.codespace if needed
         if: steps.check-dockerfile.outputs.dockerfile_exists == 'false'
         id: generate-dockerfile
         run: |
           python generate_sandbox_dockerfile.py "${{ matrix.project }}"
-          echo "Generated Dockerfile.sandbox for ${{ matrix.project }}"
+          echo "Generated Dockerfile.codespace for ${{ matrix.project }}"
 
       - name: Create Pull Request for new Dockerfile
         if: steps.check-dockerfile.outputs.dockerfile_exists == 'false'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Auto-generate Dockerfile.sandbox for ${{ matrix.project }}"
-          title: "Auto-generate Dockerfile.sandbox for ${{ matrix.project }}"
+          commit-message: "Auto-generate Dockerfile.codespace for ${{ matrix.project }}"
+          title: "Auto-generate Dockerfile.codespace for ${{ matrix.project }}"
           body: |
-            This PR adds a generated Dockerfile.sandbox for the ${{ matrix.project }} project.
+            This PR adds a generated Dockerfile.codespace for the ${{ matrix.project }} project.
 
             Please review the changes and merge if they look good.
 
@@ -145,7 +145,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ${{ matrix.project }}/Dockerfile.sandbox
+          file: ${{ matrix.project }}/Dockerfile.codespace
           push: true
           tags: |
             zenmldocker/projects-${{ matrix.project }}:latest

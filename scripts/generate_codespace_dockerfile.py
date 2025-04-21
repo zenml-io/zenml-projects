@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Generate Dockerfile.sandbox for ZenML projects."""
+"""Generate Dockerfile.codespace for ZenML projects."""
 
 import argparse
 import re
@@ -196,7 +196,7 @@ def generate_dockerfile(
     project_path: str,
     output_dir: str | None = None,
 ) -> bool:
-    """Create Dockerfile.sandbox using the template, dependencies, and environment setup.
+    """Create Dockerfile.codespace using the template, dependencies, and environment setup.
 
     Returns True on success, False otherwise.
     """
@@ -211,15 +211,15 @@ def generate_dockerfile(
     content = DOCKER_TEMPLATE.format(
         name=name, deps=deps_block, env_block=env_block
     )
-    (out / "Dockerfile.sandbox").write_text(content)
-    print(f"Generated Dockerfile.sandbox at {out / 'Dockerfile.sandbox'}")
+    (out / "Dockerfile.codespace").write_text(content)
+    print(f"Generated Dockerfile.codespace at {out / 'Dockerfile.codespace'}")
     return True
 
 
 def main() -> None:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        "Generate Dockerfile.sandbox for ZenML projects"
+        "Generate Dockerfile.codespace for ZenML projects"
     )
     parser.add_argument("project", help="Path to the project directory")
     parser.add_argument(
