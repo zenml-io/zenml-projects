@@ -7,7 +7,7 @@ import re
 import sys
 from pathlib import Path
 
-import tomli
+import tomllib
 
 # Dockerfile template
 DOCKER_TEMPLATE = """# Sandbox base image
@@ -84,7 +84,7 @@ def parse_pyproject(project_dir: Path) -> list[str]:
     if not file.exists():
         return []
     try:
-        data = tomli.loads(file.read_bytes())
+        data = tomllib.loads(file.read_bytes())
         # PEP 621
         if deps := data.get("project", {}).get("dependencies"):  # type: ignore
             raw = deps
