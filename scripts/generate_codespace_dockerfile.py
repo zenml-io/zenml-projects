@@ -10,8 +10,8 @@ from pathlib import Path
 import tomllib
 
 # Dockerfile template
-DOCKER_TEMPLATE = """# Sandbox base image -- need to explicitly specify platform for GH action
-FROM --platform=linux/amd64 zenmldocker/zenml-sandbox:latest
+DOCKER_TEMPLATE = """# Sandbox base image
+FROM zenmldocker/zenml-sandbox:latest
 
 # Install uv from official distroless image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
