@@ -44,26 +44,18 @@ jobs:
           else
             # Otherwise auto-diff HEAD^ → HEAD for any changed top-level dirs
             CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-            CHANGED_DIRS=$(echo "$CHANGED_FILES" \
-              | awk -F/ '{print $1}' \
-              | sort -u \
-              | grep -v '^$')
-            ALL_PROJECT_DIRS=$(find . -maxdepth 1 -type d \
-              -not -path '*/\.*' \
-              -not -path '.' \
-              | sed 's|^\./||' \
-              | grep -v '^_')
+            CHANGED_DIRS=$(echo "$CHANGED_FILES" | grep -o "^[^/]*" | sort -u | grep -v "^$")
+            ALL_PROJECT_DIRS=$(find . -maxdepth 1 -type d -not -path "*/\.*" -not -path "." | sed 's|^\./||' | grep -vE "^(scripts|_).*$")
             PROJECTS="["
-            sep=""
-            for d in $CHANGED_DIRS; do
-              if echo "$ALL_PROJECT_DIRS" | grep -qx "$d"; then
-                PROJECTS+="${sep}\"$d\""
-                sep=","
+            COMMA=""
+            for DIR in $CHANGED_DIRS; do
+              if echo "$ALL_PROJECT_DIRS" | grep -q "^$DIR$"; then
+                PROJECTS="${PROJECTS}${COMMA}\"${DIR}\""
+                COMMA=","
               fi
             done
-            PROJECTS+="]"
+            PROJECTS="${PROJECTS}]"
           fi
-
           echo "matrix=$PROJECTS" >> $GITHUB_OUTPUT
           echo "Projects to build: $PROJECTS"
 
@@ -111,7 +103,7 @@ jobs:
       - name: Generate Dockerfile.codespace
         id: generate-dockerfile
         run: |
-          python scripts/generate_codespace_dockerfile.py "${{ matrix.project }}"
+          python ./scripts/generate_codespace_dockerfile.py "${{ matrix.project }}"
           echo "Generated Dockerfile.codespace for ${{ matrix.project }}"
 
       - name: Create Pull Request for new Dockerfile
