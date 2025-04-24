@@ -82,6 +82,13 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug Docker image
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker pull zenmldocker/zenml-sandbox:latest
+          docker image inspect zenmldocker/zenml-sandbox:latest || echo "Failed to inspect image"
+          docker manifest inspect zenmldocker/zenml-sandbox:latest || echo "Failed to inspect manifest"
+
       # ── Generate & submit PR if missing ─────────────────
       - name: Generate Dockerfile.codespace
         if: steps.check.outputs.exists == 'false'

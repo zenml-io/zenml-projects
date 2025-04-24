@@ -11,7 +11,7 @@ import tomllib
 
 # Dockerfile template
 DOCKER_TEMPLATE = """# Sandbox base image
-FROM zenmldocker/zenml-sandbox:latest
+FROM zenmldocker/zenml-sandbox@sha256:bc9716318ac1441ab4887f5824979ac0653dcae54f667d5435d08b369d057e88
 
 # Install uv from official distroless image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
