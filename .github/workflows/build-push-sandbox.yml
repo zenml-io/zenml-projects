@@ -1,4 +1,4 @@
-name: Build and Push Project Sandbox Images
+name: Build and Push Project Codespace Images
 
 on:
   push:
@@ -88,7 +88,6 @@ jobs:
             echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
           else
             echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
-            echo "No Dockerfile.codespace found in ${{ matrix.project }}, will generate one."
           fi
 
   generate-dockerfile:
@@ -112,7 +111,7 @@ jobs:
       - name: Generate Dockerfile.codespace
         id: generate-dockerfile
         run: |
-          python generate_sandbox_dockerfile.py "${{ matrix.project }}"
+          python scripts/generate_codespace_dockerfile.py "${{ matrix.project }}"
           echo "Generated Dockerfile.codespace for ${{ matrix.project }}"
 
       - name: Create Pull Request for new Dockerfile
@@ -132,7 +131,7 @@ jobs:
           labels: |
             automated-pr
             dockerfile
-            sandbox
+            codespace
 
   build-and-push:
     needs: [detect-changes, check-dockerfile]
