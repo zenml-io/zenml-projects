@@ -127,11 +127,12 @@ jobs:
 
   build-and-push:
     needs: [detect-changes, check-dockerfile]
-    if: needs.check-dockerfile.outputs.dockerfile_exists == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         project: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    if: needs.check-dockerfile.outputs.dockerfile_exists == 'true'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -153,6 +154,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Debug file structure
+        run: |
+          ls -la
+          ls -la ${{ matrix.project }} || echo "Project directory not found"
+          find . -name "Dockerfile.codespace"
 
       - name: Build and push
         uses: docker/build-push-action@v4
