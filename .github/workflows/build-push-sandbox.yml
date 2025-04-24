@@ -85,6 +85,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set image tag timestamp
+        id: timestamp
+        run: |
+          echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Check for Dockerfile.codespace
         id: check-dockerfile
         run: |
@@ -92,7 +97,6 @@ jobs:
             echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
           else
             echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
-            echo "No Dockerfile.codespace found in ${{ matrix.project }}, will generate one."
           fi
 
       - name: Set up Python
@@ -148,6 +152,6 @@ jobs:
           file: ${{ matrix.project }}/Dockerfile.codespace
           push: true
           tags: |
-            zenmldocker/projects-${{ matrix.project }}:latest
+            zenmldocker/projects-${{ matrix.project }}:${{ steps.timestamp.outputs.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
