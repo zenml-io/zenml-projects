@@ -64,6 +64,7 @@ jobs:
   build-or-generate:
     needs: detect-changes
     runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.detect-changes.outputs.matrix)[0] != null }}
     strategy:
       matrix:
         project: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
