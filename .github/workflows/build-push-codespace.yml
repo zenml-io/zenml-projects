@@ -136,7 +136,7 @@ jobs:
         if: steps.check.outputs.exists == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.project }}
           file: ${{ matrix.project }}/Dockerfile.codespace
           platforms: linux/amd64 # Force amd64 build
           push: true
