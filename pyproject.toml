@@ -5,7 +5,7 @@ description = "Explore MLOps production use-cases with ZenML."
 authors = ["ZenML CodeMonkey <codemonkey@zenml.io>"]
 
 [tool.poetry.dependencies]
-python = ">=3.7.0,<3.9.0"
+python = ">=3.11,<3.13"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
