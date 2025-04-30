@@ -108,7 +108,7 @@ Install the required packages via the `requirements.txt` file located in the
 `/src` directory.
 
 ```bash
-pip install -r src/requirements.txt
+pip install -r requirements.txt
 ```
 
 You will also need to set your `OPENAI_API_KEY` as an environment variable wherever you plan to run the pipeline.
