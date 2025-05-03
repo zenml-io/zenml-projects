@@ -51,25 +51,26 @@ integrations.</h3>
 
 This repository showcases production-grade ML use cases built with ZenML.
 The goal of this repository is to provide you a ready-to-use MLOps workflow that
-you can adapt for your application. We maintain a growing list of projects 
-from various ML domains including time-series, tabular data, computer vision, 
+you can adapt for your application. We maintain a growing list of projects
+from various ML domains including time-series, tabular data, computer vision,
 etc.
 
-| Project | Domain | Key Features | Core Technologies |
-|---------|--------|-------------|-------------------|
-| [ZenML Support Agent](zenml-support-agent) | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational | langchain, llama_index, openai |
-| [ZenCoder](zencoder) | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning | huggingface, pytorch, wandb |
-| [Complete Guide to LLMs](llm-complete-guide) | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation | openai, huggingface, anthropic |
-| [Gamesense](gamesense) | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training | pytorch, peft, phi-2 |
-| [Nightwatch AI](nightwatch-ai) | 🤖 LLMOps | 📝 Summarization, 📊 Reporting | openai, supabase, slack |
-| [ResearchRadar](research-radar) | 🤖 LLMOps | 📝 Classification, 📊 Comparison | anthropic, huggingface, transformers |
-| [End-to-end Computer Vision](end-to-end-computer-vision) | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling | pytorch, label_studio, yolov8 |
-| [Magic Photobooth](magic-photobooth) | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen | stable-diffusion, huggingface |
-| [Oncoclear](oncoclear) | 🚀 MLOps | 📦 Deployment, 🔄 CI/CD | docker, kubernetes, scikit-learn |
-| [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time | mlflow, bentoml, vertex-ai |
-| [Huggingface to Sagemaker](huggingface-sagemaker) | 🚀 MLOps | 🔄 CI/CD, 📦 Deployment | mlflow, sagemaker, kubeflow |
-| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps | 📊 Monitoring, 🔍 Quality Assurance | databricks, evidently, shap |
-| [Eurorate Predictor](eurorate-predictor) | 📊 Data | ⏱️ Time Series, 🔄 ETL | airflow, bigquery, xgboost |
+| Project                                                   | Domain    | Key Features                               | Core Technologies                    |
+| --------------------------------------------------------- | --------- | ------------------------------------------ | ------------------------------------ |
+| [ZenML Support Agent](zenml-support-agent)                | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational    | langchain, llama_index, openai       |
+| [ZenCoder](zencoder)                                      | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning       | huggingface, pytorch, wandb          |
+| [Complete Guide to LLMs](llm-complete-guide)              | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation      | openai, huggingface, anthropic       |
+| [Gamesense](gamesense)                                    | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training             | pytorch, peft, phi-2                 |
+| [Nightwatch AI](nightwatch-ai)                            | 🤖 LLMOps | 📝 Summarization, 📊 Reporting             | openai, supabase, slack              |
+| [ResearchRadar](research-radar)                           | 🤖 LLMOps | 📝 Classification, 📊 Comparison           | anthropic, huggingface, transformers |
+| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
+| [Magic Photobooth](magic-photobooth)                      | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen                 | stable-diffusion, huggingface        |
+| [OmniReader](omni-reader)                                 | 👁️ Vision | 📝 OCR, 📊 Evaluation, 🔄 Batch Processing | polars, litellm, openai, ollama      |
+| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
+| [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
+| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
+| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🔄 ETL                     | airflow, bigquery, xgboost           |
 
 # 💻 System Requirements
 
