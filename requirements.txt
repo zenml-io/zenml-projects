@@ -1,0 +1,15 @@
+datasets>=3.6.0
+fairlearn>=0.12.0
+flask>=3.1.0
+pyyaml>=6.0.0
+markdown>=3.8
+modal>=0.74.55
+openpyxl>=3.1.5
+pandas>=2.2.3
+scikit-learn>=1.6.1
+slack-sdk>=3.35.0
+tensorflow>=2.19.0
+torch>=2.7.0
+weasyprint>=65.1
+whylogs>=1.6.4
+zenml>=0.82.0

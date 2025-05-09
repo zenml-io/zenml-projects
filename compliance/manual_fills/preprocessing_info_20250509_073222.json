@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "preprocessing_start": "2025-05-09T07:32:22.731087",
+  "preprocessing_end": "2025-05-09T07:32:22.743639",
+  "steps": [
+    {
+      "step": "initial_state",
+      "timestamp": "2025-05-09T07:32:22.735716",
+      "train_shape": [
+        3544,
+        78
+      ],
+      "test_shape": [
+        886,
+        78
+      ],
+      "train_checksum": "14010435424521952400",
+      "test_checksum": "5211879636887953325",
+      "missing_values_train": 0,
+      "missing_values_test": 0
+    },
+    {
+      "step": "ct",
+      "timestamp": "2025-05-09T07:32:22.736175"
+    },
+    {
+      "step": "final_state",
+      "timestamp": "2025-05-09T07:32:22.739302",
+      "train_shape": [
+        3544,
+        77
+      ],
+      "test_shape": [
+        886,
+        77
+      ],
+      "train_checksum": "11961607934435708290",
+      "test_checksum": "15293344010786633017",
+      "missing_values_train": 0,
+      "missing_values_test": 0
+    }
+  ],
+  "feature_count": 77,
+  "target_column": "target",
+  "sensitive_attributes": [
+    "scale__wallet_age",
+    "scale__outgoing_tx_sum_eth",
+    "scale__incoming_tx_sum_eth",
+    "scale__total_balance_eth",
+    "scale__risk_factor",
+    "scale__avg_weighted_risk_factor",
+    "scale__risk_factor_above_threshold_daily_count",
+    "scale__avg_risk_factor",
+    "scale__max_risk_factor"
+  ],
+  "random_state": 42
+}
