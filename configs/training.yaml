@@ -1,23 +1,25 @@
 # environment configuration
-settings:
-  docker:
-    required_integrations:
-      - sklearn
-      - pandas
-    requirements:
-      - pyarrow
+# settings:
+#   docker:
+#     required_integrations:
+#       - sklearn
+#       - pandas
+#     requirements:
+#       - pyarrow
 
-# configuration of the Model Control Plane
-model:
-  name: credit_scoring_model
-  version: gb
-  license: Apache 2.0
-  description: A credit scoring model
-  tags: ["credit_scoring", "classifier"]
+# Pipeline options
+enable_cache: True
+enable_artifact_metadata: True
 
-# Configure the pipeline
+# Pipeline parameters
 parameters:
-  model_type: "gb" # GradientBoosting
   protected_attributes:
-    - "gender"
-    - "age_group"
+    - "scale__wallet_age"
+    - "scale__total_balance_eth"
+    - "scale__incoming_tx_sum_eth"
+    - "scale__outgoing_tx_sum_eth"
+    - "scale__max_eth_ever"
+    - "scale__first_tx_timestamp"
+    - "scale__last_tx_timestamp"
+    - "scale__net_incoming_tx_count"
+    - "scale__risk_factor"
