@@ -18,20 +18,23 @@
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from zenml.pipelines import pipeline
+from zenml import pipeline
+from zenml.client import Client
 
+from constants import TEST_DATASET_NAME, TRAIN_DATASET_NAME
 from steps import (
     evaluate_model,
     risk_assessment,
     train_model,
 )
+from utils import model_definition
 
 
-@pipeline
+@pipeline(model=model_definition)
 def training(
-    train_df: pd.DataFrame,
-    test_df: pd.DataFrame,
-    target: str = "loan_approved",
+    train_df: Optional[pd.DataFrame],
+    test_df: Optional[pd.DataFrame],
+    target: str = "target",
     hyperparameters: Optional[Dict[str, Any]] = None,
     protected_attributes: Optional[List[str]] = None,
 ):
@@ -43,8 +46,8 @@ def training(
     3. Risk assessment (Article 9)
 
     Args:
-        train_df: Training data from feature_engineering pipeline
-        test_df: Test data from feature_engineering pipeline
+        train_df: Training dataset.
+        test_df: Test dataset.
         target: Name of the target column
         hyperparameters: Optional model hyperparameters
         protected_attributes: List of columns to check for fairness
@@ -52,21 +55,25 @@ def training(
     Returns:
         Dictionary with model, evaluation results, and risk assessment
     """
+    if train_df is None or test_df is None:
+        client = Client()
+        train_df = client.get_artifact_version(name_id_or_prefix=TRAIN_DATASET_NAME)
+        test_df = client.get_artifact_version(name_id_or_prefix=TEST_DATASET_NAME)
     # Set defaults for protected attributes
     if protected_attributes is None:
         protected_attributes = ["gender", "age_group"]
 
     # Train model with provided data
-    model = train_model(
+    model_path = train_model(
         train_df=train_df,
-        test_df=test_df,  # Use test_df as validation set
+        test_df=test_df,
         target=target,
         hyperparameters=hyperparameters,
     )
 
     # Evaluate model for performance and fairness
     eval_results = evaluate_model(
-        model=model,
+        model_path=model_path,
         test_df=test_df,
         target=target,
         protected_attributes=protected_attributes,
@@ -77,7 +84,7 @@ def training(
 
     # Return artifacts to be used by deployment pipeline
     return {
-        "model_path": model,
+        "model_path": model_path,
         "evaluation": eval_results,
         "risk": risk_info,
     }

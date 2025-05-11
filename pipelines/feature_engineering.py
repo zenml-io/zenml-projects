@@ -27,7 +27,7 @@ from steps import (
 )
 
 
-@pipeline
+@pipeline(name="credit_score_feature_eng")
 def feature_engineering(
     test_size: float = 0.2,
     drop_na: bool = True,
@@ -58,7 +58,7 @@ def feature_engineering(
     )
 
     # Preprocess the data
-    train_df, test_df, preprocess_pipeline, preprocessing_metadata = data_preprocessor(
+    dataset_trn, dataset_tst, preprocess_pipeline, preprocessing_metadata = data_preprocessor(
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
         drop_na=drop_na,
@@ -69,8 +69,8 @@ def feature_engineering(
 
     # Generate compliance documentation
     compliance_info = generate_compliance_metadata(
-        train_df=train_df,
-        test_df=test_df,
+        dataset_trn=dataset_trn,
+        dataset_tst=dataset_tst,
         original_train_df=dataset_trn,
         original_test_df=dataset_tst,
         preprocessing_metadata=preprocessing_metadata,
@@ -78,4 +78,4 @@ def feature_engineering(
         random_state=random_state,
     )
 
-    return train_df, test_df, preprocess_pipeline
+    return dataset_trn, dataset_tst, preprocess_pipeline
