@@ -58,19 +58,20 @@ def feature_engineering(
     )
 
     # Preprocess the data
-    dataset_trn, dataset_tst, preprocess_pipeline, preprocessing_metadata = data_preprocessor(
+    train_df, test_df, preprocess_pipeline, preprocessing_metadata = data_preprocessor(
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
         drop_na=drop_na,
         normalize=normalize,
         drop_columns=drop_columns,
         target=target,
+        random_state=random_state,
     )
 
     # Generate compliance documentation
     compliance_info = generate_compliance_metadata(
-        dataset_trn=dataset_trn,
-        dataset_tst=dataset_tst,
+        train_df=train_df,
+        test_df=test_df,
         original_train_df=dataset_trn,
         original_test_df=dataset_tst,
         preprocessing_metadata=preprocessing_metadata,
@@ -78,4 +79,4 @@ def feature_engineering(
         random_state=random_state,
     )
 
-    return dataset_trn, dataset_tst, preprocess_pipeline
+    return train_df, test_df, preprocess_pipeline

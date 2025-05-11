@@ -27,13 +27,13 @@ from steps import (
     risk_assessment,
     train_model,
 )
-from utils import model_definition
+from utils.model_definition import model_definition
 
 
 @pipeline(model=model_definition)
 def training(
-    train_df: Optional[pd.DataFrame],
-    test_df: Optional[pd.DataFrame],
+    train_df: Any = None,
+    test_df: Any = None,
     target: str = "target",
     hyperparameters: Optional[Dict[str, Any]] = None,
     protected_attributes: Optional[List[str]] = None,
@@ -59,9 +59,6 @@ def training(
         client = Client()
         train_df = client.get_artifact_version(name_id_or_prefix=TRAIN_DATASET_NAME)
         test_df = client.get_artifact_version(name_id_or_prefix=TEST_DATASET_NAME)
-    # Set defaults for protected attributes
-    if protected_attributes is None:
-        protected_attributes = ["gender", "age_group"]
 
     # Train model with provided data
     model_path = train_model(
@@ -75,8 +72,8 @@ def training(
     eval_results = evaluate_model(
         model_path=model_path,
         test_df=test_df,
-        target=target,
         protected_attributes=protected_attributes,
+        target=target,
     )
 
     # Perform risk assessment based on evaluation results
