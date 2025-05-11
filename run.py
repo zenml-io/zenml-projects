@@ -21,12 +21,12 @@ from pathlib import Path
 import click
 from zenml.logger import get_logger
 
+from constants import TEST_DATASET_NAME, TRAIN_DATASET_NAME
 from pipelines import (
     deployment,
     feature_engineering,
     training,
 )
-from steps.post_run_annex import generate_annex_iv_documentation
 
 logger = get_logger(__name__)
 
@@ -196,12 +196,27 @@ def main(
 
     # Run feature engineering pipeline if requested
     if feature:
+        from zenml.client import Client
+
+        client = Client()
         config_path = config_dir / "feature_engineering.yaml"
         if config_path.exists():
             pipeline_args["config_path"] = str(config_path)
 
+        run_args = {}
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline()
+        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline(**run_args)
+
+        logger.info("✅ Feature engineering pipeline finished successfully!\n\n")
+
+        train_dataset_artifact = client.get_artifact_version(TRAIN_DATASET_NAME)
+        test_dataset_artifact = client.get_artifact_version(TEST_DATASET_NAME)
+        logger.info(
+            "The latest feature engineering pipeline produced the following "
+            f"artifacts: \n\n1. Train Dataset - Name: {TRAIN_DATASET_NAME}, "
+            f"Version Name: {train_dataset_artifact.version} \n2. Test Dataset: "
+            f"Name: {TEST_DATASET_NAME}, Version Name: {test_dataset_artifact.version}"
+        )
 
         # Store for potential chaining
         outputs["train_df"] = train_df

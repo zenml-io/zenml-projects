@@ -86,3 +86,60 @@ zenml up && zenml run credit_scoring
 # -> compliance/records/ contains run artifacts
 # -> compliance/manual_fills/ contains required inputs
 ```
+
+### Running Pipelines
+
+The project provides several pipeline options through the `run.py` script. Here are the available commands:
+
+#### Basic Pipeline Options
+
+```bash
+# Run feature engineering pipeline (Articles 10, 12)
+python run.py --feature
+
+# Run model training pipeline (Articles 9, 11, 15)
+python run.py --train
+
+# Run deployment pipeline (Articles 14, 17, 18)
+python run.py --deploy
+
+# Run complete end-to-end workflow
+python run.py --all
+```
+
+#### Additional Options
+
+```bash
+# Specify custom config directory
+python run.py --feature --config-dir custom_configs
+
+# Deploy specific model by ID
+python run.py --deploy --model-id <model_id>
+
+# Generate EU AI Act Annex IV documentation
+python run.py --all --generate-docs
+
+# Auto-approve deployment (useful for CI/CD)
+python run.py --deploy --auto-approve
+
+# Disable caching for pipeline runs
+python run.py --all --no-cache
+```
+
+#### Pipeline Dependencies
+
+- The feature engineering pipeline prepares the data and generates preprocessing artifacts
+- The training pipeline can use outputs from feature engineering if run sequentially
+- The deployment pipeline requires either:
+  - A model from a previous training run
+  - A specific model ID provided via `--model-id`
+
+#### Configuration
+
+Pipeline configurations are stored in the `configs/` directory:
+
+- `feature_engineering.yaml`
+- `training.yaml`
+- `deployment.yaml`
+
+You can specify a custom config directory using the `--config-dir` option.

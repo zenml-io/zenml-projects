@@ -23,3 +23,6 @@ TARGET_COLUMN = "target"
 
 # Ignore WhyLogs optional usage-telemetry API
 os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
+
+TRAIN_DATASET_NAME = "credit_scoring_train_df"
+TEST_DATASET_NAME = "credit_scoring_test_df"
