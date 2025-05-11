@@ -239,12 +239,12 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        training_results = training_pipeline(**train_args)
+        model_path, eval_results, risk_info, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
-        outputs["model_path"] = training_results["model_path"]
-        outputs["evaluation"] = training_results["evaluation"]
-        outputs["risk"] = training_results["risk"]
+        outputs["model_path"] = model_path
+        outputs["evaluation"] = eval_results
+        outputs["risk"] = risk_info
 
         logger.info("✅ Training pipeline completed")
 

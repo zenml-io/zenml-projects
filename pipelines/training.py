@@ -80,8 +80,4 @@ def training(
     risk_info = risk_assessment(evaluation_results=eval_results)
 
     # Return artifacts to be used by deployment pipeline
-    return {
-        "model_path": model_path,
-        "evaluation": eval_results,
-        "risk": risk_info,
-    }
+    return model_path, eval_results, risk_info

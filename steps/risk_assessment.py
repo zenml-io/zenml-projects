@@ -70,7 +70,7 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
     else:
         row_idx = ws.max_row + 1
 
-    ws.cell(row=row_idx, column=1).value = run_id
+    ws.cell(row=row_idx, column=1).value = str(run_id)
     ws.cell(row=row_idx, column=2).value = scores["overall"]
     ws.cell(row=row_idx, column=3).value = scores["risk_auc"]
     ws.cell(row=row_idx, column=4).value = scores["risk_bias"]
