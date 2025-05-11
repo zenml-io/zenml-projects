@@ -16,6 +16,7 @@
 #
 
 import hashlib
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Dict, Optional
@@ -25,7 +26,7 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from zenml import log_metadata, step
 
-from utils import model_definition
+from utils.model_definition import model_definition
 
 
 @step(model=model_definition)
@@ -55,15 +56,21 @@ def train_model(
         "random_state": 42,
     }
 
-    X_train, y_train = train_df.drop(columns=[target]), train_df[target]
-    X_val, y_val = test_df.drop(columns=[target]), test_df[target]
+    # data preprocessor set may have added a suffix to the target column
+    target_col = next(
+        col for col in train_df.columns if col.endswith(f"__{target}") or col == target
+    )
+
+    X_train, y_train = train_df.drop(columns=[target_col]), train_df[target_col]
+    X_val, y_val = test_df.drop(columns=[target_col]), test_df[target_col]
 
     start_time = datetime.now()
     model = GradientBoostingClassifier(**params).fit(X_train, y_train)
     end_time = datetime.now()
 
     # Persist model
-    model_path = "model.pkl"
+    os.makedirs("models", exist_ok=True)
+    model_path = os.path.join("models", "model.pkl")
     joblib.dump(model, model_path)
 
     # Checksum for integrity
@@ -88,10 +95,12 @@ def train_model(
         "performance_metrics": {"val_accuracy": model.score(X_val, y_val)},
     }
 
+    # log metadata to model
     log_metadata(
         metadata={
             "model_card": model_card_info,
-        }
+        },
+        infer_model=True,
     )
 
     return model_path  # downstream steps can load via joblib

@@ -23,8 +23,11 @@ import pandas as pd
 from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score, roc_auc_score
 from zenml import log_metadata, step
+from zenml.logger import get_logger
 
-from utils import model_definition
+from utils.model_definition import model_definition
+
+logger = get_logger(__name__)
 
 
 @step(model=model_definition)
@@ -46,7 +49,12 @@ def evaluate_model(
     """
     model = joblib.load(Path(model_path))
 
-    X_test, y_test = test_df.drop(columns=[target]), test_df[target]
+    # data preprocessor set may have added a suffix to the target column
+    target_col = next(
+        col for col in test_df.columns if col.endswith(f"__{target}") or col == target
+    )
+
+    X_test, y_test = test_df.drop(columns=[target_col]), test_df[target_col]
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
 
@@ -58,7 +66,20 @@ def evaluate_model(
     # ---- Fairness per protected attr --------------------------------------
     fairness_report = {}
     bias_flag = False
+
     for attr in protected_attributes:
+        if attr in test_df.columns:
+            sensitive_col = attr
+        else:
+            # Try to find a matching column
+            matching_cols = [col for col in test_df.columns if attr in col]
+            if not matching_cols:
+                print(f"Warning: Skipping protected attribute '{attr}' - not found in dataset")
+                continue
+            sensitive_col = matching_cols[0]
+            print(f"Using '{sensitive_col}' for protected attribute '{attr}'")
+
+        # use the matched column
         frame = MetricFrame(
             metrics={
                 "selection_rate": selection_rate,
@@ -66,10 +87,10 @@ def evaluate_model(
             },
             y_true=y_test,
             y_pred=y_pred,
-            sensitive_features=test_df[attr],
+            sensitive_features=test_df[sensitive_col],
         )
         disparity = frame.difference(method="between_groups")["selection_rate"]
-        fairness_report[attr] = {
+        fairness_report[sensitive_col] = {
             "selection_rate_by_group": frame.by_group["selection_rate"].to_dict(),
             "accuracy_by_group": frame.by_group["accuracy"].to_dict(),
             "selection_rate_disparity": disparity,

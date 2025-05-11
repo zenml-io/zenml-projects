@@ -55,7 +55,7 @@ def generate_annex_iv_documentation(
     logger.info(f"Pipeline name: {pipeline.name}")
 
     # Create output directory if it doesn't exist
-    output_dir = os.path.join(os.getcwd(), "reports")
+    output_dir = os.path.join(os.getcwd(), "compliance", "reports")
     os.makedirs(output_dir, exist_ok=True)
 
     # Step 1: Collect metadata from context

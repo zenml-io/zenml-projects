@@ -33,8 +33,8 @@ def data_preprocessor(
     drop_columns: Optional[List[str]] = None,
     random_state: int = 42,
 ) -> Tuple[
-    Annotated[pd.DataFrame, "train_df"],
-    Annotated[pd.DataFrame, "test_df"],
+    Annotated[pd.DataFrame, "credit_scoring_train_df"],
+    Annotated[pd.DataFrame, "credit_scoring_test_df"],
     Annotated[SkPipeline, "preprocess_pipeline"],
     Annotated[Dict[str, Any], "preprocessing_metadata"],
 ]:

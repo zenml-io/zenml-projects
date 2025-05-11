@@ -20,7 +20,7 @@ from typing import Annotated, Dict
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
-from zenml import log_metadata, step
+from zenml import get_step_context, log_metadata, step
 
 from utils import score_risk
 
@@ -60,12 +60,8 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
     wb = load_workbook(reg_path)
     ws = wb["Risks"]
 
-    run_id = (
-        __import__("zenml")
-        .client.Client()
-        .active_stack.experiment_tracker.get_context()
-        .pipeline_run_id
-    )
+    # Get run_id from step context
+    run_id = get_step_context().pipeline_run.id
 
     # Check if this run already logged
     run_ids = [cell.value for cell in ws["A"][1:]]  # skip header
