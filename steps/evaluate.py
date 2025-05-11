@@ -15,26 +15,24 @@
 # limitations under the License.
 #
 
-import os
 from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
 import joblib
 import pandas as pd
-
-# fairness
 from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score, roc_auc_score
 from zenml import log_metadata, step
-from zenml.client import Client
+
+from utils import model_definition
 
 
-@step
+@step(model=model_definition)
 def evaluate_model(
-    model_path: str,
-    test_df: pd.DataFrame,
+    model_path: Annotated[str, "model_path"],
+    test_df: Annotated[pd.DataFrame, "test_df"],
     protected_attributes: List[str],
-    target: str = "loan_approved",
+    target: str = "target",
 ) -> Annotated[Dict[str, Any], "evaluation_results"]:
     """Compute performance + fairness metrics, emit Slack alert if disparity > 0.2.
 

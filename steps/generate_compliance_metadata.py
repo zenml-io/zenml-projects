@@ -25,8 +25,8 @@ from zenml import log_metadata, step
 
 @step
 def generate_compliance_metadata(
-    train_df: pd.DataFrame,
-    test_df: pd.DataFrame,
+    dataset_trn: pd.DataFrame,
+    dataset_tst: pd.DataFrame,
     original_train_df: pd.DataFrame,
     original_test_df: pd.DataFrame,
     preprocessing_metadata: Dict[str, Any],
@@ -39,11 +39,10 @@ def generate_compliance_metadata(
     12 (Record-keeping), and 15 (Accuracy).
 
     Args:
-        train_df: Preprocessed training dataframe
-        test_df: Preprocessed test dataframe
+        dataset_trn: Preprocessed training dataframe
+        dataset_tst: Preprocessed test dataframe
         original_train_df: Original training data before preprocessing
         original_test_df: Original test data before preprocessing
-        preprocess_pipeline: Preprocessing pipeline used in training
         preprocessing_metadata: Metadata from the preprocessing step
         target: Name of target column
         random_state: Random state used
@@ -52,30 +51,30 @@ def generate_compliance_metadata(
     feature_metadata = {"target": target, "features": []}
     sensitive_attributes = []
 
-    for col in train_df.columns:
+    for col in dataset_trn.columns:
         if col == target:
             continue
 
-        col_meta = {"name": col, "dtype": str(train_df[col].dtype)}
+        col_meta = {"name": col, "dtype": str(dataset_trn[col].dtype)}
 
         # Categorize as numerical or categorical
-        if pd.api.types.is_numeric_dtype(train_df[col]):
+        if pd.api.types.is_numeric_dtype(dataset_trn[col]):
             col_meta.update(
                 {
                     "type": "numerical",
-                    "min": float(train_df[col].min()),
-                    "max": float(train_df[col].max()),
-                    "mean": float(train_df[col].mean()),
-                    "std": float(train_df[col].std()),
+                    "min": float(dataset_trn[col].min()),
+                    "max": float(dataset_trn[col].max()),
+                    "mean": float(dataset_trn[col].mean()),
+                    "std": float(dataset_trn[col].std()),
                 }
             )
         else:
             col_meta.update(
                 {
                     "type": "categorical",
-                    "categories": train_df[col].unique().tolist(),
-                    "most_common": train_df[col].value_counts().index[0]
-                    if len(train_df[col].value_counts()) > 0
+                    "categories": dataset_trn[col].unique().tolist(),
+                    "most_common": dataset_trn[col].value_counts().index[0]
+                    if len(dataset_trn[col].value_counts()) > 0
                     else None,
                 }
             )
@@ -105,7 +104,7 @@ def generate_compliance_metadata(
         "version": "1.0.0",  # Documentation version
         "dataset_type": "cryptocurrency_lending",  # Domain-specific metadata
         "preprocessing_details": preprocessing_metadata,
-        "feature_count": len(train_df.columns),
+        "feature_count": len(dataset_trn.columns),
         "target_column": target,
         "sensitive_attributes": sensitive_attributes,
         "random_state": random_state,
@@ -115,17 +114,17 @@ def generate_compliance_metadata(
                 "test": int(original_test_df.isna().sum().sum()),
             },
             "missing_values_processed": {
-                "train": int(train_df.isna().sum().sum()),
-                "test": int(test_df.isna().sum().sum()),
+                "train": int(dataset_trn.isna().sum().sum()),
+                "test": int(dataset_tst.isna().sum().sum()),
             },
             "shape_changes": {
                 "train": {
                     "original": original_train_df.shape,
-                    "processed": train_df.shape,
+                    "processed": dataset_trn.shape,
                 },
                 "test": {
                     "original": original_test_df.shape,
-                    "processed": test_df.shape,
+                    "processed": dataset_tst.shape,
                 },
             },
         },

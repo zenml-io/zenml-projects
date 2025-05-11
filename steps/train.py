@@ -25,12 +25,14 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from zenml import log_metadata, step
 
+from utils import model_definition
 
-@step
+
+@step(model=model_definition)
 def train_model(
-    train_df: pd.DataFrame,
-    val_df: pd.DataFrame,
-    target: str = "loan_approved",
+    train_df: Annotated[pd.DataFrame, "train_df"],
+    test_df: Annotated[pd.DataFrame, "test_df"],
+    target: str = "target",
     hyperparameters: Optional[Dict] = None,
 ) -> Annotated[str, "model_path"]:
     """Train a GradientBoosting model.
@@ -39,7 +41,7 @@ def train_model(
 
     Args:
         train_df: Training dataset.
-        val_df: Validation dataset.
+        test_df: Test dataset.
         target: Target column name.
         hyperparameters: Hyperparameters for the model.
 
@@ -54,7 +56,7 @@ def train_model(
     }
 
     X_train, y_train = train_df.drop(columns=[target]), train_df[target]
-    X_val, y_val = val_df.drop(columns=[target]), val_df[target]
+    X_val, y_val = test_df.drop(columns=[target]), test_df[target]
 
     start_time = datetime.now()
     model = GradientBoostingClassifier(**params).fit(X_train, y_train)

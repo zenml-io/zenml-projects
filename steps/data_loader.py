@@ -119,7 +119,7 @@ def data_loader(
     profile_view: DatasetProfileView | None = None
     if log_data_profile:
         profile_view = why.log(df).view()
-        out_dir = Path("reports/data_profiles")
+        out_dir = Path("compliance/data_profiles")
         out_dir.mkdir(parents=True, exist_ok=True)
         # save dataset profile for compliance documentation (Article 10)
         profile_view.write(out_dir / f"profile_{timestamp}.bin")
