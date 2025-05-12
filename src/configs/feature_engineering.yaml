@@ -1,0 +1,28 @@
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - sklearn
+      - pandas
+    requirements:
+      - pyarrow
+
+# Pipeline options
+enable_cache: True
+enable_artifact_metadata: True
+
+# Pipeline configuration
+parameters:
+  test_size: 0.35
+  volume_metadata:
+    volume_name: credit-scoring
+    environment_name: main
+    preprocess_pipeline_path: pipelines/preprocess_pipeline.pkl
+
+steps:
+  data_preprocessor:
+    parameters:
+      volume_metadata:
+        volume_name: credit-scoring
+        environment_name: main
+        preprocess_pipeline_path: pipelines/preprocess_pipeline.pkl

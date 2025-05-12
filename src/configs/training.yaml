@@ -1,0 +1,32 @@
+# environment configuration
+# settings:
+#   docker:
+#     required_integrations:
+#       - sklearn
+#       - pandas
+#     requirements:
+#       - pyarrow
+
+# Pipeline options
+enable_cache: True
+enable_artifact_metadata: True
+
+# Pipeline parameters
+parameters:
+  protected_attributes:
+    - "scale__wallet_age"
+    - "scale__total_balance_eth"
+    - "scale__incoming_tx_sum_eth"
+    - "scale__outgoing_tx_sum_eth"
+    - "scale__max_eth_ever"
+    - "scale__first_tx_timestamp"
+    - "scale__last_tx_timestamp"
+    - "scale__net_incoming_tx_count"
+    - "scale__risk_factor"
+
+  volume_metadata:
+    environment_name: main
+    volume_name: credit-scoring
+    model_path: models/model.pkl
+    fairness_records_dir: compliance/fairness_records
+    risk_register_path: compliance/risk_register.xlsx

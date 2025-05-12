@@ -1,0 +1,18 @@
+additional_interactions: '[REQUIRED: Describe any interactions with external systems]'
+bias_mitigation: '[REQUIRED: Describe bias mitigation measures]'
+compliance_tradeoffs: '[REQUIRED: Describe any trade-offs made to comply with Chapter
+  III, Section 2]'
+computational_resources: '[REQUIRED: Describe computational resources used]'
+continuous_compliance_plan: '[REQUIRED: Describe plans for continuous compliance]'
+cybersec_measures: '[REQUIRED: Describe cybersecurity measures]'
+data_methodology: '[REQUIRED: Describe data selection methodology]'
+design_assumptions: '[REQUIRED: Describe key design choices, including rationale and
+  assumptions]'
+input_specifications: '[REQUIRED: Specify requirements for input data]'
+intended_purpose: '[REQUIRED: Describe the intended purpose of this AI system]'
+limitations: '[REQUIRED: Describe system limitations]'
+metric_appropriateness: '[REQUIRED: Justify chosen performance metrics]'
+oversight_assessment: '[REQUIRED: Provide an assessment of human oversight measures]'
+post_market_plan: '[REQUIRED: Describe post-market monitoring plan]'
+standards_list: '[REQUIRED: List harmonized standards applied]'
+unintended_outcomes: '[REQUIRED: Describe foreseeable unintended outcomes]'

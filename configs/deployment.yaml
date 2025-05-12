@@ -1,7 +1,0 @@
-# Pipeline options
-enable_cache: True
-enable_artifact_metadata: True
-
-# Pipeline parameters
-parameters:
-  model_path: "models/model.pkl"

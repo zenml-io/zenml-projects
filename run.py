@@ -21,8 +21,8 @@ from pathlib import Path
 import click
 from zenml.logger import get_logger
 
-from constants import TEST_DATASET_NAME, TRAIN_DATASET_NAME
-from pipelines import (
+from src.constants import TEST_DATASET_NAME, TRAIN_DATASET_NAME
+from src.pipelines import (
     deployment,
     feature_engineering,
     training,
@@ -78,14 +78,14 @@ Examples:
 )
 @click.option(
     "--config-dir",
-    default="configs",
+    default="src/configs",
     type=click.STRING,
     help="Directory containing configuration files.",
 )
 @click.option(
     "--auto-approve",
     is_flag=True,
-    default=False,
+    default=True,
     help="Auto-approve deployment (for CI/CD pipelines).",
 )
 @click.option(
@@ -99,8 +99,8 @@ def main(
     train: bool = False,
     deploy: bool = False,
     all: bool = False,
-    config_dir: str = "configs",
-    auto_approve: bool = False,
+    config_dir: str = "src/configs",
+    auto_approve: bool = True,
     no_cache: bool = False,
 ):
     """Main entry point for EU AI Act compliance pipelines.
@@ -178,9 +178,6 @@ def main(
 
     # Run feature engineering pipeline if requested
     if feature:
-        from zenml.client import Client
-
-        client = Client()
         config_path = config_dir / "feature_engineering.yaml"
         if config_path.exists():
             pipeline_args["config_path"] = str(config_path)
@@ -190,15 +187,6 @@ def main(
         train_df, test_df, preprocess_pipeline, *_ = fe_pipeline(**run_args)
 
         logger.info("✅ Feature engineering pipeline finished successfully!\n\n")
-
-        train_dataset_artifact = client.get_artifact_version(TRAIN_DATASET_NAME)
-        test_dataset_artifact = client.get_artifact_version(TEST_DATASET_NAME)
-        logger.info(
-            "The latest feature engineering pipeline produced the following "
-            f"artifacts: \n\n1. Train Dataset - Name: {TRAIN_DATASET_NAME}, "
-            f"Version Name: {train_dataset_artifact.version} \n2. Test Dataset: "
-            f"Name: {TEST_DATASET_NAME}, Version Name: {test_dataset_artifact.version}"
-        )
 
         # Store for potential chaining
         outputs["train_df"] = train_df
@@ -221,10 +209,10 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        model_path, eval_results, risk_scores, *_ = training_pipeline(**train_args)
+        volume_metadata, eval_results, risk_scores, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
-        outputs["model_path"] = model_path
+        outputs["volume_metadata"] = volume_metadata
         outputs["evaluation"] = eval_results
         outputs["risk_scores"] = risk_scores
 
@@ -239,8 +227,8 @@ def main(
         deploy_args = {}
 
         # Use model from training pipeline
-        if "model_path" in outputs:
-            deploy_args["model_path"] = outputs["model_path"]
+        if "volume_metadata" in outputs:
+            deploy_args["volume_metadata"] = outputs["volume_metadata"]
 
         # Add evaluation and risk info if available
         if "evaluation" in outputs:
