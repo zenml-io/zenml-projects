@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 def generate_annex_iv_documentation(
     model_path: Optional[str] = None,
     evaluation_results: Optional[Dict[str, Any]] = None,
-    risk_info: Optional[Dict[str, Any]] = None,
+    risk_scores: Optional[Dict[str, Any]] = None,
 ):
     """Generate Annex IV technical documentation.
 
@@ -41,7 +41,7 @@ def generate_annex_iv_documentation(
     Args:
         model_path: Optional path to the model artifact
         evaluation_results: Optional evaluation metrics
-        risk_info: Optional risk assessment information
+        risk_scores: Optional risk assessment information
 
     Returns:
         Path to the generated documentation
@@ -66,8 +66,8 @@ def generate_annex_iv_documentation(
         metadata["model_path"] = model_path
     if evaluation_results:
         metadata["evaluation_results"] = evaluation_results
-    if risk_info:
-        metadata["risk_info"] = risk_info
+    if risk_scores:
+        metadata["risk_scores"] = risk_scores
 
     # Step 2: Load any manual inputs from YAML files
     manual_inputs = load_manual_inputs(pipeline.name)

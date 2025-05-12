@@ -23,11 +23,20 @@ from typing import Annotated, Any, Dict
 
 from zenml import log_metadata, step
 
+from constants import (
+    APPROVED_NAME,
+    EVALUATION_RESULTS_NAME,
+    MODEL_PATH,
+    RISK_SCORES_NAME,
+)
+
 
 @step(enable_cache=False)
 def approve_deployment(
-    model_path: str, evaluation_results: Dict[str, Any], risk_info: Dict[str, Any]
-) -> Annotated[bool, "approved"]:
+    model_path: Annotated[str, MODEL_PATH],
+    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
+    risk_scores: Annotated[Dict[str, Any], RISK_SCORES_NAME],
+) -> Annotated[bool, APPROVED_NAME]:
     """Human oversight approval gate with comprehensive documentation (Article 14).
 
     Blocks deployment until a human reviews the model and approves it.
@@ -36,7 +45,7 @@ def approve_deployment(
     Args:
         model_path: Path to the model artifact
         evaluation_results: Dictionary containing evaluation metrics and fairness analysis
-        risk_info: Dictionary containing risk assessment information
+        risk_scores: Dictionary containing risk assessment information
 
     Returns:
         Boolean indicating whether deployment is approved
@@ -53,7 +62,11 @@ def approve_deployment(
     print("\n📊 PERFORMANCE METRICS:")
     print(f"  • Accuracy: {evaluation_results['metrics'].get('accuracy', 'N/A'):.4f}")
     print(f"  • AUC: {evaluation_results['metrics'].get('auc', 'N/A'):.4f}")
-    print(f"  • F1 Score: {evaluation_results['metrics'].get('f1', 'N/A'):.4f}")
+    f1_score = evaluation_results.get("metrics", {}).get("f1")
+    if f1_score is not None:
+        print(f"  • F1 Score: {f1_score:.4f}")
+    else:
+        print("  • F1 Score: N/A")
 
     # Fairness summary
     if "fairness_metrics" in evaluation_results:
@@ -68,16 +81,16 @@ def approve_deployment(
 
     # Risk assessment summary
     print("\n⚠️ RISK ASSESSMENT:")
-    print(f"  • Risk level: {risk_info.get('risk_level', 'N/A')}")
+    print(f"  • Risk level: {risk_scores.get('risk_level', 'N/A')}")
 
-    if "high_risk_factors" in risk_info and risk_info["high_risk_factors"]:
+    if "high_risk_factors" in risk_scores and risk_scores["high_risk_factors"]:
         print("  • High risk factors detected:")
-        for factor in risk_info["high_risk_factors"]:
+        for factor in risk_scores["high_risk_factors"]:
             print(f"    - {factor}")
 
-    if "mitigation_measures" in risk_info and risk_info["mitigation_measures"]:
+    if "mitigation_measures" in risk_scores and risk_scores["mitigation_measures"]:
         print("  • Mitigation measures:")
-        for measure in risk_info["mitigation_measures"]:
+        for measure in risk_scores["mitigation_measures"]:
             print(f"    - {measure}")
 
     # Decision prompt
@@ -116,8 +129,8 @@ def approve_deployment(
             "fairness_flags": evaluation_results.get("fairness_flags", []),
         },
         "risk_summary": {
-            "risk_level": risk_info.get("risk_level", "unknown"),
-            "high_risk_factors": risk_info.get("high_risk_factors", []),
+            "risk_level": risk_scores.get("risk_level", "unknown"),
+            "high_risk_factors": risk_scores.get("high_risk_factors", []),
         },
     }
 

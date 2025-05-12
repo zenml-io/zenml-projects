@@ -27,6 +27,14 @@ import modal
 from zenml import log_metadata, step
 from zenml.logger import get_logger
 
+from constants import (
+    APPROVED_NAME,
+    DEPLOYMENT_INFO_NAME,
+    EVALUATION_RESULTS_NAME,
+    MODEL_PATH,
+    PREPROCESS_PIPELINE_NAME,
+)
+
 logger = get_logger(__name__)
 
 # Base image for deployment with necessary packages
@@ -44,11 +52,11 @@ image = modal.Image.debian_slim().pip_install(
 
 @step(enable_cache=False)
 def deploy_model(
-    model_path: str,
-    approved: bool,
-    evaluation_results: Dict[str, Any],
-    preprocess_pipeline: Any,
-) -> Annotated[Dict[str, Any], "deployment_info"]:
+    model_path: Annotated[str, MODEL_PATH],
+    approved: Annotated[bool, APPROVED_NAME],
+    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
+    preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME],
+) -> Annotated[Dict[str, Any], DEPLOYMENT_INFO_NAME]:
     """Deploy model with monitoring and incident reporting (Articles 10, 17, 18).
 
     This step:

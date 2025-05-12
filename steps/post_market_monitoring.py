@@ -22,11 +22,18 @@ from typing import Annotated, Any, Dict
 
 from zenml import log_metadata, step
 
+from constants import (
+    DEPLOYMENT_INFO_NAME,
+    EVALUATION_RESULTS_NAME,
+    MONITORING_PLAN_NAME,
+)
+
 
 @step
 def post_market_monitoring(
-    deployment_info: Dict[str, Any], evaluation_results: Dict[str, Any]
-) -> Annotated[Dict[str, Any], "monitoring_plan"]:
+    deployment_info: Annotated[Dict[str, Any], DEPLOYMENT_INFO_NAME],
+    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
+) -> Annotated[Dict[str, Any], MONITORING_PLAN_NAME]:
     """Setup comprehensive post-market monitoring (Article 17).
 
     Creates a monitoring plan that satisfies EU AI Act Article 17 requirements
