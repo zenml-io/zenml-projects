@@ -24,5 +24,13 @@ TARGET_COLUMN = "target"
 # Ignore WhyLogs optional usage-telemetry API
 os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
+# Feature engineering pipeline
 TRAIN_DATASET_NAME = "credit_scoring_train_df"
 TEST_DATASET_NAME = "credit_scoring_test_df"
+PREPROCESS_PIPELINE_NAME = "credit_scoring_preprocess_pipeline"
+PREPROCESS_METADATA_NAME = "credit_scoring_preprocessing_metadata"
+
+# Training pipeline
+MODEL_PATH = "models/model.pkl"
+EVALUATION_RESULTS_NAME = "credit_scoring_evaluation_results"
+RISK_SCORES_NAME = "credit_scoring_risk_scores"

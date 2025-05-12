@@ -155,7 +155,6 @@ def deploy_model(
     def predict_proba(input_data):
         """Make predictions with the deployed model."""
         import base64
-        import json
         from datetime import datetime
 
         import joblib

@@ -50,10 +50,6 @@ Examples:
   \b
   # Run the deployment pipeline with human approval
     python run.py --deploy
-
-  \b
-  # Run complete end-to-end workflow with documentation
-    python run.py --all --generate-docs
 """
 )
 @click.option(
@@ -87,18 +83,6 @@ Examples:
     help="Directory containing configuration files.",
 )
 @click.option(
-    "--model-id",
-    default=None,
-    type=click.STRING,
-    help="ID of model to use for deployment (required for deployment).",
-)
-@click.option(
-    "--generate-docs",
-    is_flag=True,
-    default=True,
-    help="Generate EU AI Act Annex IV documentation.",
-)
-@click.option(
     "--auto-approve",
     is_flag=True,
     default=False,
@@ -116,8 +100,6 @@ def main(
     deploy: bool = False,
     all: bool = False,
     config_dir: str = "configs",
-    model_id: str = None,
-    generate_docs: bool = False,
     auto_approve: bool = False,
     no_cache: bool = False,
 ):
@@ -186,7 +168,7 @@ def main(
         deployment_pipeline(
             model_path=training_results["model_path"],
             evaluation_results=training_results["evaluation"],
-            risk_info=training_results["risk"],
+            risk_scores=training_results["risk_scores"],
             preprocess_pipeline=preprocess_pipeline,
         )
         logger.info("✅ Deployment pipeline completed")
@@ -239,12 +221,12 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        model_path, eval_results, risk_info, *_ = training_pipeline(**train_args)
+        model_path, eval_results, risk_scores, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
         outputs["model_path"] = model_path
         outputs["evaluation"] = eval_results
-        outputs["risk"] = risk_info
+        outputs["risk_scores"] = risk_scores
 
         logger.info("✅ Training pipeline completed")
 
@@ -256,24 +238,16 @@ def main(
 
         deploy_args = {}
 
-        # Use model from training pipeline or specified model_id
+        # Use model from training pipeline
         if "model_path" in outputs:
             deploy_args["model_path"] = outputs["model_path"]
-        elif model_id:
-            # Load model by ID
-            deploy_args["model_path"] = model_id
-        else:
-            raise ValueError(
-                "Model ID must be provided for deployment when not chaining pipelines. "
-                "Use --model-id to specify."
-            )
 
         # Add evaluation and risk info if available
         if "evaluation" in outputs:
             deploy_args["evaluation_results"] = outputs["evaluation"]
 
-        if "risk" in outputs:
-            deploy_args["risk_info"] = outputs["risk"]
+        if "risk_scores" in outputs:
+            deploy_args["risk_scores"] = outputs["risk_scores"]
 
         if "preprocess_pipeline" in outputs:
             deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]

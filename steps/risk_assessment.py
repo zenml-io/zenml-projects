@@ -22,10 +22,11 @@ import pandas as pd
 from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
 
+from constants import RISK_SCORES_NAME
 from utils import score_risk
 
 # --------------------------------------------------------------------------- #
-RiskScores = Annotated[Dict[str, float], "risk_scores"]
+RiskScores = Annotated[Dict[str, float], RISK_SCORES_NAME]
 # --------------------------------------------------------------------------- #
 
 

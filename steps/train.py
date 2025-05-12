@@ -26,16 +26,21 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from zenml import log_metadata, step
 
+from constants import (
+    MODEL_PATH,
+    TEST_DATASET_NAME,
+    TRAIN_DATASET_NAME,
+)
 from utils.model_definition import model_definition
 
 
 @step(model=model_definition)
 def train_model(
-    train_df: Annotated[pd.DataFrame, "train_df"],
-    test_df: Annotated[pd.DataFrame, "test_df"],
+    train_df: Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
+    test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     target: str = "target",
     hyperparameters: Optional[Dict] = None,
-) -> Annotated[str, "model_path"]:
+) -> Annotated[str, MODEL_PATH]:
     """Train a GradientBoosting model.
 
     Logs hyper-params & model checksum (Annex IV §2 b,g).

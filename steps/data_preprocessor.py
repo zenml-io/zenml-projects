@@ -22,6 +22,13 @@ from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import StandardScaler
 from zenml import step
 
+from constants import (
+    PREPROCESS_METADATA_NAME,
+    PREPROCESS_PIPELINE_NAME,
+    TEST_DATASET_NAME,
+    TRAIN_DATASET_NAME,
+)
+
 
 @step
 def data_preprocessor(
@@ -33,10 +40,10 @@ def data_preprocessor(
     drop_columns: Optional[List[str]] = None,
     random_state: int = 42,
 ) -> Tuple[
-    Annotated[pd.DataFrame, "credit_scoring_train_df"],
-    Annotated[pd.DataFrame, "credit_scoring_test_df"],
-    Annotated[SkPipeline, "preprocess_pipeline"],
-    Annotated[Dict[str, Any], "preprocessing_metadata"],
+    Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
+    Annotated[pd.DataFrame, TEST_DATASET_NAME],
+    Annotated[SkPipeline, PREPROCESS_PIPELINE_NAME],
+    Annotated[Dict[str, Any], PREPROCESS_METADATA_NAME],
 ]:
     """Data preprocessor step that focuses purely on data transformation.
 

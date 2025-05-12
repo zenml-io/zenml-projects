@@ -25,6 +25,11 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from zenml import log_metadata, step
 from zenml.logger import get_logger
 
+from constants import (
+    EVALUATION_RESULTS_NAME,
+    MODEL_PATH,
+    TEST_DATASET_NAME,
+)
 from utils.model_definition import model_definition
 
 logger = get_logger(__name__)
@@ -32,11 +37,11 @@ logger = get_logger(__name__)
 
 @step(model=model_definition)
 def evaluate_model(
-    model_path: Annotated[str, "model_path"],
-    test_df: Annotated[pd.DataFrame, "test_df"],
+    model_path: Annotated[str, MODEL_PATH],
+    test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     protected_attributes: List[str],
     target: str = "target",
-) -> Annotated[Dict[str, Any], "evaluation_results"]:
+) -> Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME]:
     """Compute performance + fairness metrics, emit Slack alert if disparity > 0.2.
 
     Articles 9 & 15 compliant.
