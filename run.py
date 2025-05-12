@@ -252,8 +252,7 @@ def main(
         if "preprocess_pipeline" in outputs:
             deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]
 
-        deployment_pipeline = deployment.with_options(**pipeline_args)
-        deployment_pipeline(**deploy_args)
+        deployment.with_options(**pipeline_args)(**deploy_args)
 
         logger.info("✅ Deployment pipeline completed")
 

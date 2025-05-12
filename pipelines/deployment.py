@@ -15,10 +15,17 @@
 # limitations under the License.
 #
 
-from typing import Any, Dict
+from typing import Annotated, Any, Dict
 
+from zenml.client import Client
 from zenml.pipelines import pipeline
 
+from constants import (
+    EVALUATION_RESULTS_NAME,
+    MODEL_PATH,
+    PREPROCESS_PIPELINE_NAME,
+    RISK_SCORES_NAME,
+)
 from steps import (
     approve_deployment,
     deploy_model,
@@ -29,10 +36,10 @@ from steps import (
 
 @pipeline(enable_cache=False)
 def deployment(
-    model_path: str,
-    evaluation_results: Dict[str, Any],
-    risk_info: Dict[str, Any],
-    preprocess_pipeline: Any,
+    model_path: Annotated[str, MODEL_PATH],
+    preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME] = None,
+    evaluation_results: Annotated[Any, EVALUATION_RESULTS_NAME] = None,
+    risk_scores: Annotated[Any, RISK_SCORES_NAME] = None,
 ):
     """EU AI Act compliant deployment pipeline.
 
@@ -50,9 +57,21 @@ def deployment(
     Returns:
         Dictionary with deployment and monitoring information
     """
+    client = Client()
+    if evaluation_results is None:
+        evaluation_results = client.get_artifact_version(name_id_or_prefix=EVALUATION_RESULTS_NAME)
+    if risk_scores is None:
+        risk_scores = client.get_artifact_version(name_id_or_prefix=RISK_SCORES_NAME)
+    if preprocess_pipeline is None:
+        preprocess_pipeline = client.get_artifact_version(
+            name_id_or_prefix=PREPROCESS_PIPELINE_NAME
+        )
+
     # Human oversight approval gate (Article 14)
     approved = approve_deployment(
-        model_path=model_path, evaluation_results=evaluation_results, risk_info=risk_info
+        model_path=model_path,
+        evaluation_results=evaluation_results,
+        risk_scores=risk_scores,
     )
 
     # Model deployment with integrated monitoring (Articles 10, 17, 18)
@@ -64,21 +83,13 @@ def deployment(
     )
 
     # Comprehensive post-market monitoring plan (Article 17)
-    monitoring_plan = post_market_monitoring(
+    post_market_monitoring(
         deployment_info=deployment_info,
         evaluation_results=evaluation_results,
     )
 
-    docs_path = generate_annex_iv_documentation(
+    generate_annex_iv_documentation(
         model_path=model_path,
         evaluation_results=evaluation_results,
-        risk_info=risk_info,
+        risk_scores=risk_scores,
     )
-
-    # Return deployment information
-    return {
-        "deployment": deployment_info,
-        "monitoring": monitoring_plan,
-        "approved": approved,
-        "docs_path": docs_path,
-    }

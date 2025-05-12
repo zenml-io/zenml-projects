@@ -1,0 +1,19 @@
+{
+  "approval_id": "approval_2025-05-12T07-18-31.851690",
+  "timestamp": "2025-05-12T07:18:31.851690",
+  "model_path": "models/model.pkl",
+  "approved": true,
+  "approver": "mzaarab",
+  "rationale": "acceptable AUC and accuracy",
+  "decision_mode": "interactive",
+  "evaluation_summary": {
+    "accuracy": 0.8110896196002579,
+    "auc": 0.8694280756299483,
+    "f1": null,
+    "fairness_flags": []
+  },
+  "risk_summary": {
+    "risk_level": "unknown",
+    "high_risk_factors": []
+  }
+}

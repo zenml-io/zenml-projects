@@ -34,3 +34,9 @@ PREPROCESS_METADATA_NAME = "credit_scoring_preprocessing_metadata"
 MODEL_PATH = "models/model.pkl"
 EVALUATION_RESULTS_NAME = "credit_scoring_evaluation_results"
 RISK_SCORES_NAME = "credit_scoring_risk_scores"
+
+# Deployment pipeline
+APPROVED_NAME = "credit_scoring_approved"
+DEPLOYMENT_INFO_NAME = "credit_scoring_deployment_info"
+MONITORING_PLAN_NAME = "credit_scoring_monitoring_plan"
+INCIDENT_REPORT_NAME = "credit_scoring_incident_report"

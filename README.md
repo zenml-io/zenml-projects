@@ -113,9 +113,6 @@ python run.py --all
 # Specify custom config directory
 python run.py --feature --config-dir custom_configs
 
-# Deploy specific model by ID
-python run.py --deploy --model-id <model_id>
-
 # Generate EU AI Act Annex IV documentation
 python run.py --all --generate-docs
 
