@@ -112,8 +112,6 @@ def main(
     config_dir = Path(config_dir)
     if not config_dir.is_absolute():
         config_dir = Path(os.path.dirname(os.path.realpath(__file__))) / config_dir
-
-    # Ensure config directory exists
     if not config_dir.exists():
         raise ValueError(f"Configuration directory {config_dir} not found")
 
@@ -134,49 +132,7 @@ def main(
     # Ignore WhyLogs optional usage-telemetry API
     os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
-    # Run complete workflow if requested
-    if all:
-        logger.info("Starting complete EU AI Act compliant workflow...")
-
-        # Run feature engineering pipeline
-        config_path = config_dir / "feature_engineering.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline()
-        logger.info("✅ Feature engineering pipeline completed")
-
-        # Run training pipeline
-        config_path = config_dir / "training.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        training_pipeline = training.with_options(**pipeline_args)
-        training_results = training_pipeline(
-            train_df=train_df,
-            test_df=test_df,
-        )
-        logger.info("✅ Training pipeline completed")
-
-        # Run deployment pipeline
-        config_path = config_dir / "deployment.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        deployment_pipeline = deployment.with_options(**pipeline_args)
-        deployment_pipeline(
-            model_path=training_results["model_path"],
-            evaluation_results=training_results["evaluation"],
-            risk_scores=training_results["risk_scores"],
-            preprocess_pipeline=preprocess_pipeline,
-        )
-        logger.info("✅ Deployment pipeline completed")
-
-        logger.info("🎉 Complete EU AI Act compliant workflow finished successfully!")
-        return
-
-    # Run feature engineering pipeline if requested
+    # Run feature engineering pipeline
     if feature:
         config_path = config_dir / "feature_engineering.yaml"
         if config_path.exists():
@@ -195,7 +151,7 @@ def main(
 
         logger.info("✅ Feature engineering pipeline completed")
 
-    # Run training pipeline if requested
+    # Run training pipeline
     if train:
         config_path = config_dir / "training.yaml"
         if config_path.exists():
@@ -218,7 +174,7 @@ def main(
 
         logger.info("✅ Training pipeline completed")
 
-    # Run deployment pipeline if requested
+    # Run deployment pipeline
     if deploy:
         config_path = config_dir / "deployment.yaml"
         if config_path.exists():
@@ -226,17 +182,12 @@ def main(
 
         deploy_args = {}
 
-        # Use model from training pipeline
         if "volume_metadata" in outputs:
             deploy_args["volume_metadata"] = outputs["volume_metadata"]
-
-        # Add evaluation and risk info if available
         if "evaluation" in outputs:
             deploy_args["evaluation_results"] = outputs["evaluation"]
-
         if "risk_scores" in outputs:
             deploy_args["risk_scores"] = outputs["risk_scores"]
-
         if "preprocess_pipeline" in outputs:
             deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]
 

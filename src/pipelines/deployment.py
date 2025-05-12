@@ -77,19 +77,19 @@ def deployment(
     # Model deployment with integrated monitoring (Articles 10, 17, 18)
     deployment_info = modal_deployment(
         volume_metadata=volume_metadata,
-        approved=True,
+        approved=approved,
         evaluation_results=evaluation_results,
         preprocess_pipeline=preprocess_pipeline,
     )
 
     # Post-market monitoring plan (Article 17)
-    # post_market_monitoring(
-    #     deployment_info=deployment_info,
-    #     evaluation_results=evaluation_results,
-    # )
+    post_market_monitoring(
+        deployment_info=deployment_info,
+        evaluation_results=evaluation_results,
+    )
 
-    # generate_annex_iv_documentation(
-    #     volume_metadata=volume_metadata,
-    #     evaluation_results=evaluation_results,
-    #     risk_scores=risk_scores,
-    # )
+    generate_annex_iv_documentation(
+        volume_metadata=volume_metadata,
+        evaluation_results=evaluation_results,
+        risk_scores=risk_scores,
+    )
