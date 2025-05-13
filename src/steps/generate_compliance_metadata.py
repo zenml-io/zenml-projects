@@ -24,6 +24,7 @@ from zenml import log_metadata, step
 from src.constants import (
     COMPLIANCE_METADATA_NAME,
     DATA_PROFILE_NAME,
+    SENSITIVE_ATTRIBUTES,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
@@ -88,20 +89,7 @@ def generate_compliance_metadata(
             )
 
         # Mark crypto-specific sensitive attributes that may have fairness implications
-        if any(
-            term in col.lower()
-            for term in [
-                "wallet_age",
-                "total_balance",
-                "incoming_tx_sum",
-                "outgoing_tx_sum",
-                "max_eth_ever",
-                "first_tx",
-                "balance",
-                "net_",
-                "risk_factor",
-            ]
-        ):
+        if any(term in col.lower() for term in SENSITIVE_ATTRIBUTES):
             col_meta["sensitive_attribute"] = True
             sensitive_attributes.append(col)
 

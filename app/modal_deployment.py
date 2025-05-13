@@ -63,7 +63,7 @@ def create_modal_app(python_version: str = "3.12.9"):
             "uvicorn",
         )
         .add_local_python_source("app")
-        .add_local_python_source("src/constants.py")
+        .add_local_file("src/constants.py", remote_path="/root/src/constants.py")
     )
 
     app_config = {
@@ -265,7 +265,7 @@ def _create_fastapi_app() -> FastAPI:
     )
 
     @web_app.get("/", response_model=ApiInfo)
-    async def root() -> Dict:
+    async def root() -> ApiInfo:
         """Root endpoint with API info."""
         logger.info("Root endpoint called")
         actual_url = str(fastapi_app.web_url).rstrip("/")
@@ -279,7 +279,7 @@ def _create_fastapi_app() -> FastAPI:
                 "monitor": f"{actual_url}/monitor",
                 "incident": f"{actual_url}/incident",
             },
-            "app_name": APP_NAME,
+            "model": APP_NAME,
             "timestamp": datetime.now().isoformat(),
         }
 

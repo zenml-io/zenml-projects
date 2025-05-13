@@ -25,7 +25,12 @@ from datasets import load_dataset
 from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
 
-from src.constants import DATA_PROFILE_NAME, HF_DATASET_NAME, TARGET_COLUMN
+from src.constants import (
+    DATA_PROFILE_NAME,
+    HF_DATASET_NAME,
+    SENSITIVE_ATTRIBUTES,
+    TARGET_COLUMN,
+)
 from src.utils.preprocess import to_native
 
 
@@ -86,11 +91,9 @@ def data_loader(
         "memory_bytes": int(df.memory_usage(deep=True).sum()),
     }
 
-    # --- potential sensitive attributes (for fairness checks)  -------------
+    # --- potential sensitive attributes for crypto lending dataset (for fairness checks) ----
     sensitive_attrs = [
-        c
-        for c in df.columns
-        if c.lower() in {"gender", "race", "ethnicity", "age", "nationality", "marital_status"}
+        c for c in df.columns if any(term in c.lower() for term in SENSITIVE_ATTRIBUTES)
     ]
 
     # --- dataset info for compliance documentation  -------------------------

@@ -117,3 +117,21 @@ TEMPLATES_DIR = COMPLIANCE_DIR / "templates"
 # Ensure minimal local directories exist
 for dir_path in [REPORTS_DIR, MANUAL_FILLS_DIR, TEMPLATES_DIR]:
     dir_path.mkdir(parents=True, exist_ok=True)
+
+# ======================================================================
+# Potential Sensitive Attributes for Fairness Checks
+# ======================================================================
+
+# List of potential sensitive attributes for crypto lending dataset (for fairness checks)
+SENSITIVE_ATTRIBUTES = [
+    "wallet_age",
+    "total_balance",
+    "incoming_tx_sum",
+    "outgoing_tx_sum",
+    "max_eth_ever",
+    "first_tx",
+    "last_tx",
+    "balance",
+    "net_incoming",
+    "risk_factor",
+]
