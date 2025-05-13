@@ -5,9 +5,10 @@ import torch
 import matplotlib.pyplot as plt
 from io import BytesIO
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
 from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from zenml.types import HTMLString
+from typing_extensions import Annotated
 
 
 @step
@@ -15,7 +16,14 @@ def make_predictions(
     model_artifacts: Optional[Dict[str, Any]],
     processed_data: dict,
     forecast_horizon: int = 14,  # Default to 14 days future forecast
-) -> Dict[str, Any]:
+) -> Tuple[
+    Annotated[Dict[str, Any], "forecast_data"],
+    Annotated[bytes, "forecast_plot"],
+    Annotated[Dict[str, Any], "sample_forecast"],
+    Annotated[int, "forecast_horizon"],
+    Annotated[str, "method"],
+    Annotated[HTMLString, "forecast_visualization"],
+]:
     """
     Generate predictions for future periods using the trained model.
     This step will:
@@ -25,6 +33,15 @@ def make_predictions(
     4. Return and visualize the predictions
 
     The step also generates an HTML visualization for the ZenML dashboard
+    
+    Returns:
+        Tuple containing:
+            - forecast_data: Dictionary containing forecast data
+            - forecast_plot: Bytes of the forecast plot image
+            - sample_forecast: Dictionary with sample forecasts
+            - forecast_horizon: Number of days in the forecast
+            - method: Name of the forecasting method used
+            - forecast_visualization: HTML visualization of forecast results
     """
     # Handle case where no model artifacts are passed (predict-only mode)
     # In a real application, you would fetch from a model registry
@@ -104,18 +121,33 @@ def make_predictions(
             },
         )
 
+        # Get sample forecasts without using pd.DataFrame methods
+        sample_records = {}
+        series_ids = []
+        dates = []
+        predictions = []
+        
+        # Group by series_id and get first record from each group
+        for series_id in forecast_df["series_id"].unique():
+            series_data = forecast_df[forecast_df["series_id"] == series_id]
+            first_row = series_data.iloc[0]
+            series_ids.append(series_id)
+            dates.append(first_row["date"])
+            predictions.append(first_row["sales_prediction"])
+        
+        sample_records["series_id"] = series_ids
+        sample_records["date"] = dates
+        sample_records["sales_prediction"] = predictions
+
         # Return naive forecast results
-        return {
-            "forecast_data": forecast_df.to_dict(),
-            "forecast_plot": forecast_plot_bytes,
-            "sample_forecast": forecast_df.groupby("series_id")
-            .first()
-            .reset_index()[["series_id", "date", "sales_prediction"]]
-            .to_dict(),
-            "forecast_horizon": forecast_horizon,
-            "method": "naive",
-            "forecast_visualization": html_visualization,
-        }
+        return (
+            forecast_df.to_dict(),
+            forecast_plot_bytes,
+            sample_records,
+            forecast_horizon,
+            "naive",
+            html_visualization,
+        )
 
     # Get model and training dataset from artifacts
     tft_model = model_artifacts["model"]
@@ -278,14 +310,23 @@ def make_predictions(
         f"Generated forecasts for {len(series)} series, {forecast_horizon} days ahead"
     )
 
-    # Show a sample of the forecasts
-    print("\nSample forecasts:")
-    sample_forecast = (
-        forecast_df.groupby("series_id")
-        .first()
-        .reset_index()[["series_id", "date", "sales_prediction"]]
-    )
-    print(sample_forecast.head())
+    # Create sample forecasts directly without relying on DataFrame operations
+    sample_records = {}
+    series_ids = []
+    dates = []
+    predictions = []
+    
+    # Group by series_id and get first record from each group
+    for series_id in forecast_df["series_id"].unique():
+        series_data = forecast_df[forecast_df["series_id"] == series_id]
+        first_row = series_data.iloc[0]
+        series_ids.append(series_id)
+        dates.append(first_row["date"])
+        predictions.append(first_row["sales_prediction"])
+    
+    sample_records["series_id"] = series_ids
+    sample_records["date"] = dates
+    sample_records["sales_prediction"] = predictions
 
     # Create HTML visualization
     html_visualization = create_forecast_visualization(
@@ -305,14 +346,14 @@ def make_predictions(
     )
 
     # Return forecasts as artifacts
-    return {
-        "forecast_data": forecast_df.to_dict(),  # Convert DataFrame to dict for artifact storage
-        "forecast_plot": forecast_plot_bytes,
-        "sample_forecast": sample_forecast.to_dict(),
-        "forecast_horizon": forecast_horizon,
-        "method": "tft",
-        "forecast_visualization": html_visualization,
-    }
+    return (
+        forecast_df.to_dict(),
+        forecast_plot_bytes,
+        sample_records,
+        forecast_horizon,
+        "tft",
+        html_visualization,
+    )
 
 
 def naive_forecast(

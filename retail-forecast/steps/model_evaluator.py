@@ -6,144 +6,135 @@ import matplotlib.pyplot as plt
 from io import BytesIO, StringIO
 from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.metrics import SMAPE, MAE, RMSE, QuantileLoss
-from typing import Dict, Any
+from typing import Dict, Any, Tuple, List
 from zenml.types import HTMLString
+from typing_extensions import Annotated
 
 
 @step
-def evaluate_model(
-    model_artifacts: Dict[str, Any], processed_data: dict
-) -> Dict[str, Any]:
+def evaluate_model(model_artifacts: Dict[str, Any], processed_data: dict) -> Tuple[
+    Annotated[float, "mae"],
+    Annotated[float, "rmse"],
+    Annotated[float, "smape"],
+    Annotated[float, "mape"],
+    Annotated[bytes, "error_plot"],
+    Annotated[List[str], "worst_series"],
+    Annotated[Dict[str, Any], "store_errors"],
+    Annotated[Dict[str, Any], "item_errors"],
+    Annotated[Dict[str, Any], "date_errors"],
+    Annotated[Any, "model"],
+    Annotated[HTMLString, "evaluation_visualization"]
+]:
     """
     Evaluate TFT model on the test set, calculating key retail metrics:
     - MAE (Mean Absolute Error)
     - RMSE (Root Mean Squared Error)
     - SMAPE (Symmetric Mean Absolute Percentage Error)
     - MAPE (Mean Absolute Percentage Error)
-
+    
     Also generates forecast plots for visualization and HTML visualizations for the ZenML dashboard.
+    
+    Returns:
+        Tuple containing:
+            - mae: Mean Absolute Error
+            - rmse: Root Mean Squared Error
+            - smape: Symmetric Mean Absolute Percentage Error
+            - mape: Mean Absolute Percentage Error
+            - error_plot: Visualization of largest errors
+            - worst_series: List of worst performing series
+            - store_errors: Error statistics by store
+            - item_errors: Error statistics by item
+            - date_errors: Error statistics by date
+            - model: The trained model for future predictions
+            - evaluation_visualization: HTML visualization of evaluation results
     """
     test_df = processed_data["test"]
-
+    
     # Get model and training dataset directly from previous step artifacts
     tft_model = model_artifacts["model"]
     training = model_artifacts["training_dataset"]
-
+    
     # Create test dataset using the same parameters as training
     test_dataset = training.from_dataset(training, test_df, predict=True)
     test_dataloader = test_dataset.to_dataloader(train=False, batch_size=128)
-
+    
     # Select device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tft_model.to(device)
-
+    
     # Make predictions
-    predictions, x = tft_model.predict(
-        test_dataloader, return_x=True, trainer_kwargs={"accelerator": device}
-    )
-
+    predictions, x = tft_model.predict(test_dataloader, return_x=True, trainer_kwargs={"accelerator": device})
+    
     # Get actuals and calculate errors
     actuals = torch.cat([y[0] for y in iter(test_dataloader)])
-
+    
     # Calculate metrics
     mae = MAE()(predictions, actuals)
     rmse = RMSE()(predictions, actuals)
     smape = SMAPE()(predictions, actuals)
-
+    
     # Calculate MAPE manually (avoid division by zero)
     actuals_np = actuals.numpy()
     preds_np = predictions.numpy()
     mask = actuals_np != 0  # Avoid division by zero
-    mape = (
-        np.mean(np.abs((actuals_np[mask] - preds_np[mask]) / actuals_np[mask]))
-        * 100
-    )
-
+    mape = np.mean(np.abs((actuals_np[mask] - preds_np[mask]) / actuals_np[mask])) * 100
+    
     # Print metrics
     print(f"Test MAE: {mae:.4f}")
     print(f"Test RMSE: {rmse:.4f}")
     print(f"Test SMAPE: {smape:.4f}%")
     print(f"Test MAPE: {mape:.4f}%")
-
+    
     # Prepare visualizations
     # Convert predictions to pandas for easier analysis
-    prediction_df = test_df[
-        ["date", "store", "item", "series_id", "sales"]
-    ].copy()
+    prediction_df = test_df[["date", "store", "item", "series_id", "sales"]].copy()
     prediction_df["prediction"] = preds_np
-
+    
     # Calculate percentage error for each prediction
-    prediction_df["abs_error"] = np.abs(
-        prediction_df["sales"] - prediction_df["prediction"]
-    )
+    prediction_df["abs_error"] = np.abs(prediction_df["sales"] - prediction_df["prediction"])
     prediction_df["percentage_error"] = np.where(
         prediction_df["sales"] > 0,
         prediction_df["abs_error"] / prediction_df["sales"] * 100,
-        np.nan,
+        np.nan
     )
-
+    
     # Aggregate errors by various dimensions
-    store_errors = (
-        prediction_df.groupby("store")["percentage_error"].mean().reset_index()
-    )
-    item_errors = (
-        prediction_df.groupby("item")["percentage_error"].mean().reset_index()
-    )
-    date_errors = (
-        prediction_df.groupby("date")["percentage_error"].mean().reset_index()
-    )
-
+    store_errors = prediction_df.groupby("store")["percentage_error"].mean().reset_index()
+    item_errors = prediction_df.groupby("item")["percentage_error"].mean().reset_index()
+    date_errors = prediction_df.groupby("date")["percentage_error"].mean().reset_index()
+    
     # Find top 3 series with highest errors
-    series_errors = (
-        prediction_df.groupby("series_id")["percentage_error"]
-        .mean()
-        .reset_index()
-    )
-    worst_series = series_errors.nlargest(3, "percentage_error")[
-        "series_id"
-    ].tolist()
-
+    series_errors = prediction_df.groupby("series_id")["percentage_error"].mean().reset_index()
+    worst_series = series_errors.nlargest(3, "percentage_error")["series_id"].tolist()
+    
     # Create error plot bytes for ZenML artifact
     plt.figure(figsize=(15, 10))
-
+    
     for i, series_id in enumerate(worst_series):
         series_data = prediction_df[prediction_df["series_id"] == series_id]
-        plt.subplot(3, 1, i + 1)
-        plt.plot(
-            series_data["date"], series_data["sales"], "b-", label="Actual"
-        )
-        plt.plot(
-            series_data["date"],
-            series_data["prediction"],
-            "r-",
-            label="Prediction",
-        )
-        plt.title(
-            f"Series: {series_id} - Mean Error: {series_data['percentage_error'].mean():.2f}%"
-        )
+        plt.subplot(3, 1, i+1)
+        plt.plot(series_data["date"], series_data["sales"], 'b-', label='Actual')
+        plt.plot(series_data["date"], series_data["prediction"], 'r-', label='Prediction')
+        plt.title(f"Series: {series_id} - Mean Error: {series_data['percentage_error'].mean():.2f}%")
         plt.legend()
         plt.grid(True)
-
+    
     plt.tight_layout()
-
+    
     # Instead of saving to disk, capture the plot as bytes to return as artifact
     error_plot_buffer = BytesIO()
-    plt.savefig(error_plot_buffer, format="png")
+    plt.savefig(error_plot_buffer, format='png')
     plt.close()
     error_plot_bytes = error_plot_buffer.getvalue()
-
+    
     # Create HTML visualization for ZenML dashboard
-    html_visualization = create_evaluation_visualization(
-        {
-            "mae": float(mae),
-            "rmse": float(rmse),
-            "smape": float(smape),
-            "mape": float(mape),
-        },
-        prediction_df,
-        worst_series,
-    )
-
+    html_visualization = create_evaluation_visualization({
+        "mae": float(mae),
+        "rmse": float(rmse),
+        "smape": float(smape),
+        "mape": float(mape),
+    }, prediction_df, worst_series)
+    
     # Log metadata about the artifacts
     log_metadata(
         metadata={
@@ -153,33 +144,38 @@ def evaluate_model(
             "visualization_artifact_type": "zenml.types.HTMLString",
         },
     )
+    
+    # Prepare dictionaries with primitive types
+    store_errors_dict = store_errors.to_dict()
+    item_errors_dict = item_errors.to_dict()
+    date_errors_dict = date_errors.to_dict() 
+    
+    # Return metrics and plot data as a tuple with annotated types
+    return (
+        float(mae),
+        float(rmse),
+        float(smape),
+        float(mape),
+        error_plot_bytes,
+        worst_series,
+        store_errors_dict,
+        item_errors_dict,
+        date_errors_dict,
+        tft_model,
+        html_visualization
+    )
 
-    # Return metrics and plot data
-    return {
-        "mae": float(mae),
-        "rmse": float(rmse),
-        "smape": float(smape),
-        "mape": float(mape),
-        "error_plot": error_plot_bytes,  # ZenML will handle this as a visualization artifact
-        "worst_series": worst_series,
-        "store_errors": store_errors.to_dict(),  # Convert DataFrame to dict for artifact storage
-        "item_errors": item_errors.to_dict(),
-        "date_errors": date_errors.to_dict(),
-        "model": tft_model,  # Pass model forward for inference pipeline
-        "evaluation_visualization": html_visualization,  # HTML visualization for ZenML dashboard
-    }
 
-
-def create_evaluation_visualization(
-    metrics: Dict[str, float], prediction_df: pd.DataFrame, worst_series: list
-) -> HTMLString:
+def create_evaluation_visualization(metrics: Dict[str, float], 
+                                   prediction_df: pd.DataFrame,
+                                   worst_series: list) -> HTMLString:
     """Create an HTML visualization of model evaluation results.
-
+    
     Args:
         metrics: Dictionary of evaluation metrics
         prediction_df: DataFrame containing actual and predicted values
         worst_series: List of series IDs with highest prediction errors
-
+        
     Returns:
         HTMLString: HTML visualization of evaluation results
     """
@@ -192,7 +188,7 @@ def create_evaluation_visualization(
             <td class="p-2 border text-right">{value:.4f}</td>
         </tr>
         """
-
+    
     metrics_table = f"""
     <table class="min-w-full bg-white border border-gray-300 shadow-sm">
         <thead>
@@ -206,38 +202,29 @@ def create_evaluation_visualization(
         </tbody>
     </table>
     """
-
+    
     # Create store error chart data
-    store_errors = (
-        prediction_df.groupby("store")["percentage_error"].mean().reset_index()
-    )
-    store_errors = store_errors.sort_values(
-        "percentage_error", ascending=False
-    )
-
+    store_errors = prediction_df.groupby("store")["percentage_error"].mean().reset_index()
+    store_errors = store_errors.sort_values("percentage_error", ascending=False)
+    
     store_data = []
     for _, row in store_errors.iterrows():
-        store_data.append(
-            {
-                "label": f"Store {row['store']}",
-                "value": row["percentage_error"],
-            }
-        )
-
+        store_data.append({
+            "label": f"Store {row['store']}",
+            "value": row["percentage_error"]
+        })
+    
     # Create item error chart data
-    item_errors = (
-        prediction_df.groupby("item")["percentage_error"].mean().reset_index()
-    )
-    item_errors = item_errors.sort_values(
-        "percentage_error", ascending=False
-    ).head(10)
-
+    item_errors = prediction_df.groupby("item")["percentage_error"].mean().reset_index()
+    item_errors = item_errors.sort_values("percentage_error", ascending=False).head(10)
+    
     item_data = []
     for _, row in item_errors.iterrows():
-        item_data.append(
-            {"label": f"Item {row['item']}", "value": row["percentage_error"]}
-        )
-
+        item_data.append({
+            "label": f"Item {row['item']}",
+            "value": row["percentage_error"]
+        })
+    
     # Create HTML visualization
     html = f"""
     <!DOCTYPE html>

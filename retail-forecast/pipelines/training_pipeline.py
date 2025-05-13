@@ -4,7 +4,8 @@ from steps.data_validator import validate_data
 from steps.data_preprocessor import preprocess_data
 from steps.model_trainer import train_model
 from steps.model_evaluator import evaluate_model
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
+from typing_extensions import Annotated
 
 
 @pipeline(name="retail_forecasting_training_pipeline")
@@ -16,7 +17,12 @@ def training_pipeline(
     max_encoder_length: int = 30,
     batch_size: int = 64,
     max_epochs: int = 10,  # Reduced for faster execution, increase for better results
-) -> Dict[str, Any]:
+) -> Tuple[
+    Annotated[float, "mae"],
+    Annotated[float, "rmse"],
+    Annotated[float, "smape"],
+    Annotated[float, "mape"]
+]:
     """
     Pipeline to train a retail demand forecasting model.
 
@@ -28,7 +34,11 @@ def training_pipeline(
     5. Evaluate model performance on test data
 
     Returns:
-        Dictionary containing evaluation metrics and model artifacts
+        Tuple containing key metrics:
+        - MAE: Mean Absolute Error
+        - RMSE: Root Mean Squared Error
+        - SMAPE: Symmetric Mean Absolute Percentage Error
+        - MAPE: Mean Absolute Percentage Error
     """
     # Load data
     data = load_data()
@@ -52,8 +62,21 @@ def training_pipeline(
     )
 
     # Evaluate model
-    metrics = evaluate_model(
+    (
+        mae, 
+        rmse, 
+        smape, 
+        mape, 
+        error_plot,
+        worst_series,
+        store_errors,
+        item_errors,
+        date_errors,
+        model,
+        evaluation_visualization
+    ) = evaluate_model(
         model_artifacts=model_artifacts, processed_data=processed_data
     )
 
-    return metrics
+    # Return just the key metrics
+    return mae, rmse, smape, mape
