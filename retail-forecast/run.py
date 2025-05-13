@@ -1,5 +1,5 @@
 import argparse
-from typing import Optional
+from typing import Optional, Dict, Any, List, Tuple
 import click
 from pipelines.training_pipeline import training_pipeline
 from pipelines.inference_pipeline import inference_pipeline
@@ -110,7 +110,7 @@ def main(
     if no_cache:
         pipeline_options["enable_cache"] = False
 
-    model_eval_results = None
+    model_artifacts = None
 
     if train:
         print("\n" + "=" * 80)
@@ -125,17 +125,32 @@ def main(
 
         # Extract evaluation results
         try:
-            model_eval_results = training_results.steps[
-                "evaluate_model"
-            ].output
-            metrics = model_eval_results.read()
+            # Get model artifacts from evaluate_model step
+            evaluate_step = training_results.steps["evaluate_model"]
+            
+            # Get model from the 10th output (index 9) of the evaluate_model step
+            model_output = evaluate_step.outputs['model']
+            model_artifacts = {
+                "model": model_output.read(),
+                "training_dataset": training_results.steps["train_model"].outputs['training_dataset'].read()
+            }
+            
+            # Get metrics which are now individual outputs
+            mae = evaluate_step.outputs['mae'].read()
+            rmse = evaluate_step.outputs['rmse'].read()
+            smape = evaluate_step.outputs['smape'].read()
+            mape = evaluate_step.outputs['mape'].read()
+            
             print(f"\nTraining complete! Model accuracy:")
-            print(f"MAE: {metrics.get('mae', 'N/A')}")
-            print(f"RMSE: {metrics.get('rmse', 'N/A')}")
-            print(f"MAPE: {metrics.get('mape', 'N/A')}%")
+            print(f"MAE: {mae:.4f}")
+            print(f"RMSE: {rmse:.4f}")
+            print(f"SMAPE: {smape:.4f}%")
+            print(f"MAPE: {mape:.4f}%")
             print("Evaluation plot saved in ZenML artifacts")
         except Exception as e:
             print(f"Warning: Could not extract training metrics: {e}")
+            import traceback
+            traceback.print_exc()
 
     if predict:
         print("\n" + "=" * 80)
@@ -152,13 +167,23 @@ def main(
         }
 
         # Only pass model_artifacts if we have them from training
-        if model_eval_results is not None:
-            inference_params["model_artifacts"] = model_eval_results
+        if model_artifacts is not None:
+            inference_params["model_artifacts"] = model_artifacts
 
         inference_results = configured_inference_pipeline(**inference_params)
 
-        print("\nForecasting complete!")
-        print("Forecast results and visualizations stored in ZenML artifacts")
+        # Extract forecast results
+        try:
+            forecast_data = inference_results.steps["make_predictions"].outputs['forecast_data'].read()
+            method = inference_results.steps["make_predictions"].outputs['method'].read()
+            
+            print(f"\nForecasting complete using {method} method!")
+            print(f"Generated forecasts for {forecast_horizon} days ahead")
+            print("Forecast results and visualizations stored in ZenML artifacts")
+        except Exception as e:
+            print(f"Warning: Could not extract forecast results: {e}")
+            import traceback
+            traceback.print_exc()
 
 
 if __name__ == "__main__":
