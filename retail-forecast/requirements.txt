@@ -1,0 +1,12 @@
+zenml>=0.57.0
+pandas>=1.5.0
+numpy>=1.22.0
+scikit-learn>=1.0.0
+matplotlib>=3.5.0
+torch==2.2.0
+pytorch-lightning==2.2.1
+pytorch-forecasting==1.0.0
+statsmodels>=0.13.0
+optuna>=3.0.0
+lightning-bolts>=0.5.0
+click>=8.0.0
