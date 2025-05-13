@@ -26,8 +26,10 @@ from zenml import log_metadata, step
 from src.constants import (
     APPROVED_NAME,
     EVALUATION_RESULTS_NAME,
+    MODAL_APPROVALS_DIR,
     RISK_SCORES_NAME,
 )
+from src.utils.modal_utils import save_artifact_to_modal
 
 
 @step(enable_cache=False)
@@ -131,11 +133,10 @@ def approve_deployment(
     }
 
     # Save approval record to file
-    approval_dir = Path("compliance/approval_records")
-    approval_dir.mkdir(parents=True, exist_ok=True)
-
-    with open(approval_dir / f"approval_{timestamp.replace(':', '-')}.json", "w") as f:
-        json.dump(approval_record, f, indent=2)
+    save_artifact_to_modal(
+        artifact=approval_record,
+        artifact_path=f"{MODAL_APPROVALS_DIR}/approval_{timestamp.replace(':', '-')}.json",
+    )
 
     # Log approval metadata for Annex IV documentation
     log_metadata(metadata={"approval_record": approval_record})

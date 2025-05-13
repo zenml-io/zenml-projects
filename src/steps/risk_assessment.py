@@ -96,7 +96,6 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
     save_artifact_to_modal(
         artifact=md,
         artifact_path=f"{MODAL_MANUAL_FILLS_DIR}/risk_register.md",
-        overwrite=True,
     )
 
     # Log metadata
