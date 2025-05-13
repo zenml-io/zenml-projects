@@ -21,7 +21,9 @@ from typing import Any, Dict, List, Optional
 
 import jinja2
 import yaml
+from git import Repo
 from zenml import get_step_context, log_metadata, step
+from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.models.v2.core.pipeline_run import PipelineRunResponseBody
 
@@ -137,23 +139,26 @@ def generate_annex_iv_documentation(
 def collect_zenml_metadata(context) -> Dict[str, Any]:
     """Collect all relevant metadata from ZenML for Annex IV documentation."""
     # Structure the metadata as expected by your template
+    repo = Repo(search_parent_directories=True)
+
+    client = Client()
     run = context.pipeline_run
+    runs = client.get_pipeline(run.pipeline.name).runs
+
     metadata = {
         "pipeline": {
             "name": run.pipeline.name,
             "id": run.pipeline.id,
             "description": getattr(run.pipeline, "description", None),
-            "previous_versions": [],  # will be populated from metadata
-            "deployments": [],  # will be populated from metadata
+            "previous_versions": [v.id for v in runs] if runs else [],
         },
         "run": {
             "id": run.id,
             "name": run.name,
             # Extract code reference if available
             "code_reference": {
-                "commit_sha": getattr(run, "commit_sha", None)
-                if hasattr(run, "commit_sha")
-                else None
+                "commit_sha": repo.head.commit.hexsha,
+                "repo_url": next(repo.remotes.origin.urls),
             },
             "metadata": {},  # will be populated below
             "metrics": {},  # will be populated below
@@ -164,6 +169,10 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
         "environment": {"frameworks": {}},
         "stack": None,
     }
+
+    # Get change log
+    change_log = repo.git.log("--pretty=format:%h %s", n=10)
+    metadata["run"]["metadata"]["change_log"] = change_log.split("\n")
 
     # Get stack information
     if hasattr(context, "stack") and context.stack:

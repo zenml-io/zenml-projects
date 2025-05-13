@@ -19,10 +19,13 @@ import tempfile
 from pathlib import Path
 from typing import Annotated, Dict
 
+import pandas as pd
 from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
 
 from src.constants import (
+    MODAL_COMPLIANCE_DIR,
+    MODAL_MANUAL_FILLS_DIR,
     MODAL_RISK_REGISTER_PATH,
     RISK_SCORES_NAME,
 )
@@ -85,6 +88,15 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
     save_artifact_to_modal(
         artifact=wb,
         artifact_path=MODAL_RISK_REGISTER_PATH,
+    )
+
+    # 3) (Optional) snapshot as Markdown and upload
+    df = pd.read_excel(wb_path, sheet_name="Risks")
+    md = df.to_markdown(index=False)
+    save_artifact_to_modal(
+        artifact=md,
+        artifact_path=f"{MODAL_MANUAL_FILLS_DIR}/risk_register.md",
+        overwrite=True,
     )
 
     # Log metadata

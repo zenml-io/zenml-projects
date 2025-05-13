@@ -24,7 +24,7 @@ from app.schemas import (
     PredictionResponse,
 )
 from src.constants import (
-    MODAL_DEPLOYMENT_NAME,
+    MODAL_APP_NAME,
     MODAL_ENVIRONMENT,
     MODAL_MODEL_PATH,
     MODAL_PREPROCESS_PIPELINE_PATH,
@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("credit-scoring-deployer")
 
 # -- Configuration ─────────────────────────────────────────────────────────────
-APP_NAME = os.getenv("APP_NAME", MODAL_DEPLOYMENT_NAME)
+APP_NAME = os.getenv("APP_NAME", MODAL_APP_NAME)
 VOLUME_NAME = os.getenv("VOLUME_NAME", MODAL_VOLUME_NAME)
 SECRET_NAME = os.getenv("SECRET_NAME", MODAL_SECRET_NAME)
 ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", MODAL_ENVIRONMENT)
@@ -367,7 +367,6 @@ def main(
     model: Any,
     evaluation_results: Dict,
     preprocess_pipeline: Any,
-    volume_metadata: Dict,
 ):
     """Deploy a model to Modal; returns (deployment_record, model_card)."""
     ts = datetime.now().isoformat()

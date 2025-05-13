@@ -67,7 +67,7 @@ MODEL_CARD_NAME = "cs_model_card"
 
 # Modal deployment settings
 MODAL_VOLUME_NAME = "credit-scoring"
-MODAL_DEPLOYMENT_NAME = "cs_modal_deployment"
+MODAL_APP_NAME = "credit-scoring-app"
 MODAL_SECRET_NAME = "credit-scoring-secrets"
 MODAL_ENVIRONMENT = "main"
 
@@ -81,11 +81,12 @@ MODAL_MONITORING_DIR = f"{MODAL_COMPLIANCE_DIR}/monitoring"
 MODAL_DEPLOYMENTS_DIR = f"{MODAL_COMPLIANCE_DIR}/deployments"
 MODAL_FAIRNESS_DIR = f"{MODAL_COMPLIANCE_DIR}/fairness"
 MODAL_REPORTS_DIR = f"{MODAL_COMPLIANCE_DIR}/reports"
-MODAL_RISK_REGISTER_PATH = f"{MODAL_COMPLIANCE_DIR}/risk_register.xlsx"
+MODAL_MANUAL_FILLS_DIR = f"{MODAL_COMPLIANCE_DIR}/manual_fills"
 
 # Default Modal artifact paths
 MODAL_MODEL_PATH = f"{MODAL_MODELS_DIR}/model.pkl"
 MODAL_PREPROCESS_PIPELINE_PATH = f"{MODAL_PIPELINES_DIR}/preprocess_pipeline.pkl"
+MODAL_RISK_REGISTER_PATH = f"{MODAL_MANUAL_FILLS_DIR}/risk_register.xlsx"
 
 # Standard keys for volume_metadata dictionary
 VOLUME_METADATA_KEYS = {
@@ -100,6 +101,7 @@ VOLUME_METADATA_KEYS = {
     "deployments_records_dir": MODAL_DEPLOYMENTS_DIR,
     "approvals_dir": MODAL_APPROVALS_DIR,
     "monitoring_dir": MODAL_MONITORING_DIR,
+    "manual_fills_dir": MODAL_MANUAL_FILLS_DIR,
 }
 
 # ======================================================================

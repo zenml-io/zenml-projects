@@ -7,13 +7,18 @@
 ### 1(a) Intended Purpose and Version
 **System Name:** {{ pipeline.name }}<br>
 **Provider:** {{ environment_variables.get('ORGANIZATION_NAME', '[ORGANIZATION NAME REQUIRED]') }}<br>
-**Version:** {{ pipeline.version or run.id }}
-{% if pipeline and pipeline.previous_versions is defined and pipeline.previous_versions %}<br>
-**Previous Versions:** {% for prev_version in pipeline.previous_versions %}{{ prev_version }}{% if not loop.last %}, {%
-endif %}{% endfor %}
+**Pipeline Version:** {{ pipeline.id }}
+**Pipeline Run Version:** {{ run.id }}
+
+{% if pipeline.previous_versions %}
+**Previous Versions:**<br>
+{% for v in pipeline.previous_versions %}
+{{ v }}{% if not loop.last %}, {% endif %}
+{% endfor %}
 {% else %}
 **Previous Versions:** [None or not applicable]
 {% endif %}
+
 **Intended Purpose:** {{ pipeline.description or '[REQUIRED: Describe the intended purpose of this AI system]' }}
 
 ### 1(b) System Interactions
