@@ -249,21 +249,6 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
         metadata["environment"]["python_version"] = sys.version
         metadata["environment"]["os"] = platform.platform()
 
-        # Add common ML framework versions if available
-        try:
-            import tensorflow
-
-            metadata["environment"]["frameworks"]["tensorflow"] = tensorflow.__version__
-        except ImportError:
-            pass
-
-        try:
-            import torch
-
-            metadata["environment"]["frameworks"]["pytorch"] = torch.__version__
-        except ImportError:
-            pass
-
         try:
             import sklearn
 
