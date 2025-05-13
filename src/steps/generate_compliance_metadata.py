@@ -14,38 +14,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 from datetime import datetime
-from pathlib import Path
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any, Dict, Optional
 
 import pandas as pd
+from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
+
+from src.constants import (
+    COMPLIANCE_METADATA_NAME,
+    DATA_PROFILE_NAME,
+    TEST_DATASET_NAME,
+    TRAIN_DATASET_NAME,
+)
 
 
 @step
 def generate_compliance_metadata(
-    train_df: Annotated[pd.DataFrame, "credit_scoring_train_df"],
-    test_df: Annotated[pd.DataFrame, "credit_scoring_test_df"],
+    train_df: Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
+    test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     original_train_df: pd.DataFrame,
     original_test_df: pd.DataFrame,
     preprocessing_metadata: Dict[str, Any],
     target: str,
     random_state: int,
-) -> Annotated[Dict[str, Any], "compliance_info"]:
+    data_profile: Annotated[Optional[DatasetProfileView], DATA_PROFILE_NAME] = None,
+) -> Annotated[Dict[str, Any], COMPLIANCE_METADATA_NAME]:
     """Generate compliance documentation for EU AI Act requirements.
 
     This step handles documentation for Articles 10 (Data Governance),
     12 (Record-keeping), and 15 (Accuracy).
 
     Args:
-        dataset_trn: Preprocessed training dataframe
-        dataset_tst: Preprocessed test dataframe
+        train_df: Preprocessed training dataframe
+        test_df: Preprocessed test dataframe
         original_train_df: Original training data before preprocessing
         original_test_df: Original test data before preprocessing
         preprocessing_metadata: Metadata from the preprocessing step
         target: Name of target column
         random_state: Random state used
+        data_profile: WhyLogs data profile (optional)
     """
     # Generate feature metadata for documentation (Article 10)
     feature_metadata = {"target": target, "features": []}
@@ -134,6 +142,21 @@ def generate_compliance_metadata(
             "article_15": "Accuracy - documents data quality improvements",
         },
     }
+
+    # Include WhyLogs profile reference if available
+    if data_profile:
+        compliance_info["data_profile_available"] = True
+        # pull column names and basic stats without triggering the full reader
+        summary = {
+            col: {
+                "count": data_profile.column_profile(col).counts.get("non_null", 0),
+                "distinct": data_profile.column_profile(col).metrics.get("unique_count", None),
+            }
+            for col in data_profile.columns
+        }
+        compliance_info["data_profile_summary"] = summary
+    else:
+        compliance_info["data_profile_available"] = False
 
     # log metadata for the pipeline
     log_metadata(

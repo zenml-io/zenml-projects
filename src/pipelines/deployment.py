@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any
 
 from zenml.client import Client
 from zenml.pipelines import pipeline
@@ -23,6 +23,7 @@ from zenml.pipelines import pipeline
 from src.constants import (
     DEPLOYMENT_PIPELINE_NAME,
     EVALUATION_RESULTS_NAME,
+    MODEL_NAME,
     PREPROCESS_PIPELINE_NAME,
     RISK_SCORES_NAME,
 )
@@ -36,7 +37,7 @@ from src.steps import (
 
 @pipeline(name=DEPLOYMENT_PIPELINE_NAME)
 def deployment(
-    volume_metadata: Annotated[Dict, "volume_metadata"],
+    model: Annotated[Any, MODEL_NAME] = None,
     preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME] = None,
     evaluation_results: Annotated[Any, EVALUATION_RESULTS_NAME] = None,
     risk_scores: Annotated[Any, RISK_SCORES_NAME] = None,
@@ -49,7 +50,7 @@ def deployment(
     - Article 18: Incident reporting system
 
     Args:
-        volume_metadata: Metadata for the Modal Volume
+        model: The trained model
         preprocess_pipeline: Preprocessing pipeline used in training
         evaluation_results: Model evaluation metrics and fairness analysis
         risk_scores: Risk assessment information
@@ -57,7 +58,10 @@ def deployment(
     Returns:
         Dictionary with deployment and monitoring information
     """
+    # Fetch artifacts from ZenML if not provided
     client = Client()
+    if model is None:
+        model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
     if evaluation_results is None:
         evaluation_results = client.get_artifact_version(name_id_or_prefix=EVALUATION_RESULTS_NAME)
     if risk_scores is None:
@@ -69,15 +73,14 @@ def deployment(
 
     # Human oversight approval gate (Article 14)
     approved = approve_deployment(
-        volume_metadata=volume_metadata,
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
     )
 
     # Model deployment with integrated monitoring (Articles 10, 17, 18)
     deployment_info = modal_deployment(
-        volume_metadata=volume_metadata,
         approved=approved,
+        model=model,
         evaluation_results=evaluation_results,
         preprocess_pipeline=preprocess_pipeline,
     )
@@ -89,7 +92,6 @@ def deployment(
     )
 
     generate_annex_iv_documentation(
-        volume_metadata=volume_metadata,
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
     )

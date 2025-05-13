@@ -20,27 +20,28 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import StandardScaler
-from zenml import log_metadata, step
+from zenml import step
 
 from src.constants import (
+    MODAL_PREPROCESS_PIPELINE_PATH,
     PREPROCESS_METADATA_NAME,
     PREPROCESS_PIPELINE_NAME,
+    TARGET_COLUMN,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
-from src.utils.modal_utils import save_artifact_to_modal
+from src.utils import save_artifact_to_modal
 
 
 @step
 def data_preprocessor(
     dataset_trn: pd.DataFrame,
     dataset_tst: pd.DataFrame,
-    target: str = "target",
+    target: str = TARGET_COLUMN,
     normalize: bool = True,
     drop_na: bool = True,
     drop_columns: Optional[List[str]] = None,
     random_state: int = 42,
-    volume_metadata: Dict = None,
 ) -> Tuple[
     Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
     Annotated[pd.DataFrame, TEST_DATASET_NAME],
@@ -59,7 +60,6 @@ def data_preprocessor(
         drop_na: Whether to drop rows with missing values
         drop_columns: List of columns to drop
         random_state: Random state for reproducibility
-        volume_metadata: Modal Volume metadata
 
     Returns:
         Processed datasets, the fitted pipeline, and preprocessing metadata
@@ -141,9 +141,8 @@ def data_preprocessor(
 
     # Save the pipeline to Modal Volume
     save_artifact_to_modal(
-        volume_metadata=volume_metadata,
         artifact=pipeline,
-        artifact_path=volume_metadata["preprocess_pipeline_path"],
+        artifact_path=MODAL_PREPROCESS_PIPELINE_PATH,
     )
 
     # Prepare metadata for compliance step

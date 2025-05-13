@@ -32,7 +32,6 @@ from src.constants import (
 
 @step(enable_cache=False)
 def approve_deployment(
-    volume_metadata: Annotated[Dict, "volume_metadata"],
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     risk_scores: Annotated[Dict[str, Any], RISK_SCORES_NAME],
 ) -> Annotated[bool, APPROVED_NAME]:
@@ -42,7 +41,6 @@ def approve_deployment(
     Generates required documentation for EU AI Act Article 14 compliance.
 
     Args:
-        volume_metadata: Metadata for the Modal Volume
         evaluation_results: Dictionary containing evaluation metrics and fairness analysis
         risk_scores: Dictionary containing risk assessment information
 
@@ -116,7 +114,6 @@ def approve_deployment(
     approval_record = {
         "approval_id": f"approval_{timestamp.replace(':', '-')}",
         "timestamp": timestamp,
-        "volume_metadata": volume_metadata,
         "approved": approved,
         "approver": approver,
         "rationale": rationale,

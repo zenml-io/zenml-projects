@@ -142,14 +142,12 @@ def main(
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
         train_df, test_df, preprocess_pipeline, *_ = fe_pipeline(**run_args)
 
-        logger.info("✅ Feature engineering pipeline finished successfully!\n\n")
+        logger.info("✅ Feature engineering pipeline finished successfully!")
 
         # Store for potential chaining
         outputs["train_df"] = train_df
         outputs["test_df"] = test_df
         outputs["preprocess_pipeline"] = preprocess_pipeline
-
-        logger.info("✅ Feature engineering pipeline completed")
 
     # Run training pipeline
     if train:
@@ -165,11 +163,11 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        volume_metadata, eval_results, risk_scores, *_ = training_pipeline(**train_args)
+        model, eval_results, risk_scores, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
-        outputs["volume_metadata"] = volume_metadata
-        outputs["evaluation"] = eval_results
+        outputs["model"] = model
+        outputs["evaluation_results"] = eval_results
         outputs["risk_scores"] = risk_scores
 
         logger.info("✅ Training pipeline completed")
@@ -182,10 +180,10 @@ def main(
 
         deploy_args = {}
 
-        if "volume_metadata" in outputs:
-            deploy_args["volume_metadata"] = outputs["volume_metadata"]
-        if "evaluation" in outputs:
-            deploy_args["evaluation_results"] = outputs["evaluation"]
+        if "model" in outputs:
+            deploy_args["model"] = outputs["model"]
+        if "evaluation_results" in outputs:
+            deploy_args["evaluation_results"] = outputs["evaluation_results"]
         if "risk_scores" in outputs:
             deploy_args["risk_scores"] = outputs["risk_scores"]
         if "preprocess_pipeline" in outputs:

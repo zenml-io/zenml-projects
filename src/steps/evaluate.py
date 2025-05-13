@@ -19,15 +19,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
-import joblib
 import pandas as pd
 from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score, roc_auc_score
 from zenml import log_metadata, step
+from zenml.client import Client
 from zenml.logger import get_logger
 
 from src.constants import (
     EVALUATION_RESULTS_NAME,
+    MODAL_FAIRNESS_DIR,
+    MODEL_NAME,
+    TARGET_COLUMN,
     TEST_DATASET_NAME,
 )
 from src.utils.modal_utils import save_artifact_to_modal
@@ -39,24 +42,25 @@ logger = get_logger(__name__)
 @step(model=model_definition)
 def evaluate_model(
     protected_attributes: List[str],
-    volume_metadata: Annotated[Dict, "volume_metadata"],
     test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
-    target: str = "target",
-    model_path: Annotated[str, "model_path"] = None,
+    target: str = TARGET_COLUMN,
+    model: Annotated[Any, MODEL_NAME] = None,
 ) -> Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME]:
     """Compute performance + fairness metrics, emit Slack alert if disparity > 0.2.
 
     Articles 9 & 15 compliant.
 
     Args:
-        volume_metadata: Metadata for the Modal Volume.
-        model_path: Path to the locally stored model file.
-        test_df: Test dataset.
         protected_attributes: List of protected attributes.
+        test_df: Test dataset.
         target: Target column name.
+        model: The trained model
     """
-    # Load the model from the Modal Volume
-    model = joblib.load(Path(model_path))
+    # Use model if provided, otherwise fetch from ZenML
+    if model is None:
+        # Fetch the model from ZenML artifact store
+        client = Client()
+        model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
 
     # data preprocessor set may have added a suffix to the target column
     target_col = next(
@@ -113,7 +117,7 @@ def evaluate_model(
     # ---------- save full report to Modal Volume ----------------------------------
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    fairness_dir = Path(volume_metadata["fairness_records_dir"])
+    fairness_dir = Path(MODAL_FAIRNESS_DIR)
     fairness_file_path = fairness_dir / f"fairness_report_{timestamp}.json"
     fairness_report = {
         "metrics": metrics,
@@ -121,16 +125,14 @@ def evaluate_model(
         "bias_flag": bias_flag,
         "protected_attributes_checked": protected_attributes,
         "timestamp": timestamp,
-        "volume_metadata": volume_metadata,
     }
 
     save_artifact_to_modal(
-        volume_metadata=volume_metadata,
         artifact=fairness_report,
         artifact_path=fairness_file_path,
     )
 
-    logger.info(f"Fairness report saved to {fairness_file_path}")
+    logger.info(f"Fairness report saved to Modal Volume: {fairness_file_path}")
 
     # ---- Log --------------------------------------------------------------
     log_metadata(
@@ -138,7 +140,6 @@ def evaluate_model(
             "metrics": metrics,
             "bias_flag": bias_flag,
             "fairness_file_path": str(fairness_file_path),
-            "volume_metadata": volume_metadata,
         }
     )
 

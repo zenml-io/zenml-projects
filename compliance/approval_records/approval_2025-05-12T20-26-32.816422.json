@@ -1,0 +1,18 @@
+{
+  "approval_id": "approval_2025-05-12T20-26-32.816422",
+  "timestamp": "2025-05-12T20:26:32.816422",
+  "approved": true,
+  "approver": "automated_ci",
+  "rationale": "Automatic approval via --auto-approve flag",
+  "decision_mode": "automated",
+  "evaluation_summary": {
+    "accuracy": 0.8110896196002579,
+    "auc": 0.8694280756299483,
+    "f1": null,
+    "fairness_flags": []
+  },
+  "risk_summary": {
+    "risk_level": "unknown",
+    "high_risk_factors": []
+  }
+}

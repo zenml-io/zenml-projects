@@ -8,7 +8,6 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict
 
 os.environ["MODAL_AUTOMOUNT"] = "false"
@@ -24,18 +23,27 @@ from app.schemas import (
     MonitorResponse,
     PredictionResponse,
 )
+from src.constants import (
+    MODAL_DEPLOYMENT_NAME,
+    MODAL_ENVIRONMENT,
+    MODAL_MODEL_PATH,
+    MODAL_PREPROCESS_PIPELINE_PATH,
+    MODAL_SECRET_NAME,
+    MODAL_VOLUME_NAME,
+)
 
 # -- Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("credit-scoring-deployer")
 
 # -- Configuration ─────────────────────────────────────────────────────────────
-APP_NAME = "credit-score-predictor"
-MODEL_PATH = os.getenv("MODEL_PATH", "/mnt/models/model.pkl")
-PREPROCESS_PATH = os.getenv("PREPROCESS_PATH", "/mnt/pipelines/preprocess_pipeline.pkl")
-VOLUME_NAME = os.getenv("VOLUME_NAME", "credit-scoring")
-SECRET_NAME = os.getenv("SECRET_NAME", "credit-scoring-secrets")
-MODAL_ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", "main")
+APP_NAME = os.getenv("APP_NAME", MODAL_DEPLOYMENT_NAME)
+VOLUME_NAME = os.getenv("VOLUME_NAME", MODAL_VOLUME_NAME)
+SECRET_NAME = os.getenv("SECRET_NAME", MODAL_SECRET_NAME)
+ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", MODAL_ENVIRONMENT)
+# Paths within the container (prefixed with /mnt)
+MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt{MODAL_MODEL_PATH}")
+PREPROCESS_PATH = os.getenv("PREPROCESS_PATH", f"/mnt{MODAL_PREPROCESS_PIPELINE_PATH}")
 
 
 # -- App & Image ─────────────────────────────────────────────────────────────
@@ -55,6 +63,7 @@ def create_modal_app(python_version: str = "3.12.9"):
             "uvicorn",
         )
         .add_local_python_source("app")
+        .add_local_python_source("src/constants.py")
     )
 
     app_config = {
@@ -355,16 +364,19 @@ fastapi_app = app.function()(modal.asgi_app(label=APP_NAME)(_create_fastapi_app)
 
 @app.local_entrypoint()
 def main(
-    model_path: str,
+    model: Any,
     evaluation_results: Dict,
     preprocess_pipeline: Any,
+    volume_metadata: Dict,
 ):
     """Deploy a model to Modal; returns (deployment_record, model_card)."""
     ts = datetime.now().isoformat()
     deployment_id = f"deployment_{ts.replace(':', '-')}"
 
-    # Generate checksum
-    model_bytes = Path(model_path).read_bytes()
+    # Generate model checksum without saving again
+    import pickle
+
+    model_bytes = pickle.dumps(model)
     model_checksum = hashlib.sha256(model_bytes).hexdigest()
 
     global app, load_model, load_pipeline, predict, fastapi_app, report_incident, monitor_data_drift
@@ -421,10 +433,11 @@ def main(
         "deployment_id": deployment_id,
         "timestamp": ts,
         "model_checksum": model_checksum,
-        "model_path": model_path,
+        "model_path": MODEL_PATH,
         "endpoints": urls,
         "metrics": evaluation_results.get("metrics", {}),
         "app_name": APP_NAME,
+        "volume_name": VOLUME_NAME,
     }
 
     # Add preprocessing pipeline info if available
@@ -435,7 +448,9 @@ def main(
         preprocess_bytes = pickle.dumps(preprocess_pipeline)
         preprocess_checksum = hashlib.sha256(preprocess_bytes).hexdigest()
 
+        # Add to deployment record
         deployment_record["preprocess_pipeline_checksum"] = preprocess_checksum
+        deployment_record["preprocess_pipeline_path"] = PREPROCESS_PATH
 
     # Create model card
     model_card = {

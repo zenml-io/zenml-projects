@@ -15,14 +15,17 @@
 # limitations under the License.
 #
 
+import tempfile
 from pathlib import Path
 from typing import Annotated, Dict
 
-import pandas as pd
 from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
 
-from src.constants import RISK_SCORES_NAME
+from src.constants import (
+    MODAL_RISK_REGISTER_PATH,
+    RISK_SCORES_NAME,
+)
 from src.utils import score_risk
 from src.utils.modal_utils import save_artifact_to_modal
 
@@ -32,7 +35,7 @@ RiskScores = Annotated[Dict[str, float], RISK_SCORES_NAME]
 
 
 @step
-def risk_assessment(evaluation_results: Dict, volume_metadata: Dict) -> RiskScores:
+def risk_assessment(evaluation_results: Dict) -> RiskScores:
     """Compute risk scores & update register. Article 9 compliant.
 
     Converts evaluation metrics + bias flag → quantitative risk score
@@ -41,27 +44,22 @@ def risk_assessment(evaluation_results: Dict, volume_metadata: Dict) -> RiskScor
 
     Args:
         evaluation_results: Dictionary containing evaluation results.
-        volume_metadata: Metadata for the Modal Volume.
 
     Returns:
         Dictionary containing risk scores.
     """
     scores = score_risk(evaluation_results)
 
-    # ---- update Excel risk register ---------------------------------------
-    reg_path = Path(volume_metadata["risk_register_path"])
-    reg_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Ensure workbook + sheet exist
-    if not reg_path.exists():
+    # Build or update the workbook in memory
+    wb_path = Path(tempfile.mkdtemp()) / "risk_register.xlsx"
+    if not wb_path.exists():
         wb = Workbook()
         ws = wb.active
         ws.title = "Risks"
         ws.append(["Run_ID", "Risk_overall", "Risk_auc", "Risk_bias", "Status"])
-        wb.save(reg_path)
-
-    wb = load_workbook(reg_path)
-    ws = wb["Risks"]
+    else:
+        wb = load_workbook(wb_path)
+        ws = wb["Risks"]
 
     # Get run_id from step context
     run_id = get_step_context().pipeline_run.id
@@ -81,22 +79,15 @@ def risk_assessment(evaluation_results: Dict, volume_metadata: Dict) -> RiskScor
         "Mitigation needed" if scores["overall"] > 0.4 else "Acceptable"
     )
 
-    wb.save(reg_path)
+    wb.save(wb_path)  # write into /tmp/risk_register.xlsx
 
-    # ---- save risk register to modal ---------------------------------------
+    # Save risk register to Modal Volume
     save_artifact_to_modal(
-        volume_metadata=volume_metadata,
         artifact=wb,
-        artifact_path=reg_path,
+        artifact_path=MODAL_RISK_REGISTER_PATH,
     )
 
-    # ---- export Markdown snapshot -----------------------------------------
-    df = pd.read_excel(reg_path, sheet_name="Risks")
-    md_path = Path("compliance/manual_fills/risk_register.md")
-    md_path.parent.mkdir(parents=True, exist_ok=True)
-    md_path.write_text(df.to_markdown(index=False))
-
-    # ---- log metadata ------------------------------------------------------
+    # Log metadata
     log_metadata({"risk_scores": scores})
 
     return scores

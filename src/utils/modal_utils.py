@@ -26,47 +26,22 @@ from typing import Any, Dict, Optional
 import joblib
 from modal import Volume
 
-
-def save_model_to_modal(volume_metadata: Dict, model: Any) -> str:
-    """Save a model to a Modal Volume.
-
-    Args:
-        volume_metadata: Metadata for the Modal Volume.
-        model: The model to save.
-
-    Returns:
-        The checksum of the model.
-    """
-    tmp = Path(tempfile.mkdtemp())
-    model_file = tmp / "model.pkl"
-    with open(model_file, "wb") as f:
-        pickle.dump(model, f)
-
-    vol = Volume.from_name(
-        volume_metadata["volume_name"],
-        create_if_missing=True,
-        environment_name=volume_metadata["environment_name"],
-    )
-
-    # Check if files exist in volume before putting them
-    files_in_volume = vol.listdir("/models")
-    for file_entry in files_in_volume:
-        if file_entry.path == volume_metadata["model_path"]:
-            print(f"Deleting existing file: {file_entry.path}")
-            vol.remove_file(file_entry.path)
-
-    # Upload the new files
-    with vol.batch_upload() as batch:
-        batch.put_file(str(model_file), volume_metadata["model_path"])
-
-    # Checksum for integrity
-    sha256 = hashlib.sha256(model_file.read_bytes()).hexdigest()
-
-    return sha256
+from src.constants import (
+    MODAL_APPROVALS_DIR,
+    MODAL_COMPLIANCE_DIR,
+    MODAL_DEPLOYMENTS_DIR,
+    MODAL_ENVIRONMENT,
+    MODAL_EVAL_RESULTS_DIR,
+    MODAL_FAIRNESS_DIR,
+    MODAL_MONITORING_DIR,
+    MODAL_PREPROCESS_PIPELINE_PATH,
+    MODAL_REPORTS_DIR,
+    MODAL_RISK_REGISTER_PATH,
+    MODAL_VOLUME_NAME,
+)
 
 
 def save_artifact_to_modal(
-    volume_metadata: Dict,
     artifact: Any,
     artifact_path: str,
     overwrite: bool = True,
@@ -74,7 +49,6 @@ def save_artifact_to_modal(
     """Save any artifact to a Modal Volume.
 
     Args:
-        volume_metadata: Metadata for the Modal Volume.
         artifact: The artifact to save.
         artifact_path: Path within the Modal Volume to save the artifact.
         overwrite: Whether to overwrite the artifact if it already exists.
@@ -101,21 +75,17 @@ def save_artifact_to_modal(
             pickle.dump(artifact, f)
 
     vol = Volume.from_name(
-        volume_metadata["volume_name"],
+        MODAL_VOLUME_NAME,
         create_if_missing=True,
-        environment_name=volume_metadata["environment_name"],
+        environment_name=MODAL_ENVIRONMENT,
     )
 
     # Check for existing file
     if overwrite:
         try:
-            files_in_volume = vol.listdir("/")
-            for file_entry in files_in_volume:
-                if file_entry.path == artifact_path:
-                    print(f"Deleting existing file: {file_entry.path}")
-                    vol.remove_file(file_entry.path)
-        except Exception as e:
-            print(f"Warning: Could not check for existing files: {e}")
+            vol.remove_file(artifact_path)
+        except Exception:
+            pass
 
     # Upload the file
     with vol.batch_upload() as batch:
@@ -127,13 +97,10 @@ def save_artifact_to_modal(
     return None
 
 
-def save_compliance_artifacts_to_modal(
-    volume_metadata: Dict, artifacts: Dict[str, Any]
-) -> Dict[str, str]:
+def save_compliance_artifacts_to_modal(artifacts: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
     """Save compliance-related artifacts to the Modal Volume.
 
     Args:
-        volume_metadata: Metadata for the Modal Volume.
         artifacts: Dictionary of artifacts to save with their corresponding paths.
 
     Returns:
@@ -144,28 +111,31 @@ def save_compliance_artifacts_to_modal(
 
     for artifact_name, artifact_data in artifacts.items():
         if artifact_name == "preprocess_pipeline":
-            path = volume_metadata.get(
-                "preprocess_pipeline_path", f"pipelines/preprocess_pipeline_{timestamp}.pkl"
-            )
+            path = MODAL_PREPROCESS_PIPELINE_PATH
         elif artifact_name == "evaluation_results":
-            path = volume_metadata.get(
-                "evaluation_results_path", f"evaluation/evaluation_results_{timestamp}.json"
-            )
+            path = f"{MODAL_EVAL_RESULTS_DIR}/evaluation_results_{timestamp}.json"
         elif artifact_name == "compliance_report":
-            path = f"{volume_metadata.get('reports_dir', 'compliance/reports')}/compliance_report_{timestamp}.md"
+            path = f"{MODAL_REPORTS_DIR}/compliance_report_{timestamp}.md"
         elif artifact_name == "model_card":
-            path = f"{volume_metadata.get('compliance_dir', 'compliance')}/model_cards/model_card_{timestamp}.json"
+            path = f"{MODAL_COMPLIANCE_DIR}/model_cards/model_card_{timestamp}.json"
         elif artifact_name == "deployment_record":
-            path = f"{volume_metadata.get('deployment_records_dir', 'compliance/deployment_records')}/deployment_{timestamp}.json"
+            path = f"{MODAL_DEPLOYMENTS_DIR}/deployment_{timestamp}.json"
         elif artifact_name == "approval_record":
-            path = f"{volume_metadata.get('approval_records_dir', 'compliance/approval_records')}/approval_{timestamp}.json"
+            path = f"{MODAL_APPROVALS_DIR}/approval_{timestamp}.json"
+        elif artifact_name == "risk_register":
+            path = MODAL_RISK_REGISTER_PATH
+        elif artifact_name == "fairness_report":
+            path = f"{MODAL_FAIRNESS_DIR}/fairness_report_{timestamp}.json"
+        elif artifact_name == "monitoring_plan":
+            path = f"{MODAL_MONITORING_DIR}/monitoring_plan_{timestamp}.json"
         else:
             # Custom path handling for other artifacts
-            path = (
-                f"artifacts/{artifact_name}_{timestamp}{get_extension_for_artifact(artifact_data)}"
-            )
+            path = f"{MODAL_COMPLIANCE_DIR}/artifacts/{artifact_name}_{timestamp}{get_extension_for_artifact(artifact_data)}"
 
-        checksum = save_artifact_to_modal(volume_metadata, artifact_data, path)
+        checksum = save_artifact_to_modal(
+            artifact=artifact_data,
+            artifact_path=path,
+        )
         results[artifact_name] = {"path": path, "checksum": checksum}
 
     return results

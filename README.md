@@ -103,8 +103,6 @@ python run.py --train
 # Run deployment pipeline (Articles 14, 17, 18)
 python run.py --deploy
 
-# Run complete end-to-end workflow
-python run.py --all
 ```
 
 #### Additional Options
@@ -113,14 +111,11 @@ python run.py --all
 # Specify custom config directory
 python run.py --feature --config-dir custom_configs
 
-# Generate EU AI Act Annex IV documentation
-python run.py --all --generate-docs
-
 # Auto-approve deployment (useful for CI/CD)
 python run.py --deploy --auto-approve
 
 # Disable caching for pipeline runs
-python run.py --all --no-cache
+python run.py --feature --no-cache
 ```
 
 #### Pipeline Dependencies

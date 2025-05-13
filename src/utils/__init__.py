@@ -18,8 +18,7 @@
 from .score_risk import score_risk
 from .preprocess import to_native
 from .modal_utils import (
-    save_model_to_modal,
     save_artifact_to_modal,
     save_compliance_artifacts_to_modal,
-    get_extension_for_artifact
+    get_extension_for_artifact,
 )

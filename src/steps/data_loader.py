@@ -16,10 +16,8 @@
 #
 
 import hashlib
-import os
 from datetime import datetime
-from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Tuple
 
 import pandas as pd
 import whylogs as why
@@ -27,23 +25,19 @@ from datasets import load_dataset
 from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
 
-from src.constants import HF_DATASET_FILE, HF_DATASET_NAME
+from src.constants import DATA_PROFILE_NAME, HF_DATASET_NAME, TARGET_COLUMN
 from src.utils.preprocess import to_native
-
-# ---------- Named output aliases -------------------------------------------
-# RawDF = Annotated[pd.DataFrame, "dataset"]
-# DatasetInfo = Annotated[Dict[str, Any], "dataset_info"]
-# WhyProfile = Annotated[DatasetProfileView, "dataset_profile"]
-# ---------------------------------------------------------------------------
 
 
 @step
 def data_loader(
     random_state: int = 42,
-    target: str = "target",
+    target: str = TARGET_COLUMN,
     sample_fraction: Optional[float] = None,
     log_data_profile: bool = True,
-) -> Annotated[pd.DataFrame, "credit_scoring_df"]:
+) -> Tuple[
+    Annotated[pd.DataFrame, "credit_scoring_df"], Annotated[DatasetProfileView, DATA_PROFILE_NAME]
+]:
     """Ingests credit scoring dataset and logs compliance metadata.
 
     EU AI Act Article 10 (Data Governance) and Article 12 (Record-keeping)
@@ -60,15 +54,13 @@ def data_loader(
 
     Returns:
         dataset: The loaded dataset
-        dataset_info: Metadata about the dataset for compliance documentation
-        dataset_profile: WhyLogs profile for data quality documentation
+        profile_view: WhyLogs profile for data quality documentation
     """
     # Record start time for logging
     start_time = datetime.now()
-    print(f"Loading dataset {HF_DATASET_NAME}/{HF_DATASET_FILE} at {start_time}")
+    print(f"Loading dataset {HF_DATASET_NAME} at {start_time}")
 
     # --- load --------------------------------------------------------------
-    # df = pd.read_parquet()
     ds = load_dataset(HF_DATASET_NAME, split="train")
     df = ds.to_pandas()
 
@@ -119,10 +111,6 @@ def data_loader(
     profile_view: DatasetProfileView | None = None
     if log_data_profile:
         profile_view = why.log(df).view()
-        out_dir = Path("compliance/data_profiles")
-        out_dir.mkdir(parents=True, exist_ok=True)
-        # save dataset profile for compliance documentation (Article 10)
-        profile_view.write(out_dir / f"profile_{timestamp}.bin")
 
     # --- compliance metadata --------------------------------------
     metadata = to_native(
@@ -130,7 +118,7 @@ def data_loader(
             "timestamp": timestamp,
             "data_snapshot": dataset_info,
             "sensitive_attrs": sensitive_attrs,
-            "whylogs_profile": str(profile_view) if profile_view else None,
+            "whylogs_profile_summary": str(profile_view) if profile_view else None,
         }
     )
     log_metadata(metadata=metadata)
@@ -139,4 +127,4 @@ def data_loader(
     print(f"Ingestion completed at {datetime.now()}, SHA-256: {sha256}")
 
     # --- return for pipeline  -----------------------------------------------
-    return df
+    return df, profile_view if profile_view else None

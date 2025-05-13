@@ -21,16 +21,20 @@ from typing import Any, Dict, List, Optional
 
 import jinja2
 import yaml
-from zenml import get_step_context, step
+from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 from zenml.models.v2.core.pipeline_run import PipelineRunResponseBody
+
+from src.constants import (
+    MODAL_VOLUME_NAME,
+    VOLUME_METADATA_KEYS,
+)
 
 logger = get_logger(__name__)
 
 
 @step(enable_cache=False)
 def generate_annex_iv_documentation(
-    volume_metadata: Dict[str, Any],
     evaluation_results: Optional[Dict[str, Any]] = None,
     risk_scores: Optional[Dict[str, Any]] = None,
 ):
@@ -40,7 +44,6 @@ def generate_annex_iv_documentation(
     at the end of a pipeline run.
 
     Args:
-        volume_metadata: Modal volume metadata for storing artifacts
         evaluation_results: Optional evaluation metrics
         risk_scores: Optional risk assessment information
 
@@ -63,8 +66,7 @@ def generate_annex_iv_documentation(
     metadata = collect_zenml_metadata(context)
 
     # Add passed artifacts to metadata
-    if volume_metadata:
-        metadata["volume_metadata"] = volume_metadata
+    metadata["volume_metadata"] = VOLUME_METADATA_KEYS
     if evaluation_results:
         metadata["evaluation_results"] = evaluation_results
     if risk_scores:
@@ -114,7 +116,7 @@ def generate_annex_iv_documentation(
         }
 
         # Store artifacts in Modal volume
-        artifact_paths = save_compliance_artifacts_to_modal(volume_metadata, compliance_artifacts)
+        artifact_paths = save_compliance_artifacts_to_modal(compliance_artifacts)
 
         logger.info(f"Compliance artifacts saved to Modal volume: {artifact_paths}")
 
@@ -122,7 +124,7 @@ def generate_annex_iv_documentation(
         log_metadata(
             metadata={
                 "compliance_artifacts": artifact_paths,
-                "modal_volume": volume_metadata["volume_name"],
+                "modal_volume": MODAL_VOLUME_NAME,
             }
         )
 

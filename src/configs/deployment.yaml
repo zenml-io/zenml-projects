@@ -1,18 +1,12 @@
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - sklearn
+      - pandas
+    requirements:
+      - pyarrow
+
 # Pipeline options
 enable_cache: False
 enable_artifact_metadata: True
-
-# Pipeline parameters
-parameters:
-  volume_metadata:
-    environment_name: main
-    volume_name: credit-scoring
-    compliance_dir: compliance
-    reports_dir: compliance/reports
-    deployment_records_dir: compliance/deployment_records
-    approval_records_dir: compliance/approval_records
-    fairness_records_dir: compliance/fairness_records
-    model_path: models/model.pkl
-    preprocess_pipeline_path: pipelines/preprocess_pipeline.pkl
-    evaluation_results_path: evaluation/evaluation_results.json
-    risk_register_path: compliance/risk_register.xlsx

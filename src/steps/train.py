@@ -16,19 +16,22 @@
 #
 
 from datetime import datetime
-from typing import Annotated, Dict, Optional
+from typing import Annotated, Dict, Optional, Tuple
 
 import joblib
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
+from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 from src.constants import (
+    MODAL_MODEL_PATH,
+    MODEL_NAME,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
-from src.utils.modal_utils import save_model_to_modal
+from src.utils import save_artifact_to_modal
 from src.utils.model_definition import model_definition
 
 logger = get_logger(__name__)
@@ -40,8 +43,10 @@ def train_model(
     test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     target: str = "target",
     hyperparameters: Optional[Dict] = None,
-    volume_metadata: Annotated[Dict, "volume_metadata"] = None,
-) -> Annotated[str, "model_path"]:
+) -> Annotated[
+    GradientBoostingClassifier,
+    ArtifactConfig(name=MODEL_NAME, artifact_type=ArtifactType.MODEL),
+]:
     """Train a GradientBoosting model.
 
     Logs hyper-params & model checksum (Annex IV §2 b,g).
@@ -51,10 +56,10 @@ def train_model(
         test_df: Test dataset.
         target: Target column name.
         hyperparameters: Hyperparameters for the model.
-        volume_metadata: Metadata for the Modal Volume.
 
     Returns:
-        Path to the trained model.
+        model: The trained GradientBoostingClassifier model
+        model_path: Path to the model in Modal Volume
     """
     params = hyperparameters or {
         "n_estimators": 200,
@@ -80,18 +85,20 @@ def train_model(
     joblib.dump(model, model_path)
 
     # Save model to Modal Volume
-    model_checksum = save_model_to_modal(volume_metadata, model)
+    model_checksum = save_artifact_to_modal(
+        artifact=model,
+        artifact_path=MODAL_MODEL_PATH,
+    )
 
     # Log metadata
     log_metadata(
         metadata={
-            "model_path": volume_metadata["model_path"],
+            "model_path": MODAL_MODEL_PATH,
             "model_checksum": model_checksum,
             "training_params": params,
             "val_accuracy": model.score(X_val, y_val),
             "training_start_time": start_time.isoformat(),
             "training_duration_seconds": (end_time - start_time).total_seconds(),
-            "volume_metadata": volume_metadata,
         }
     )
 
@@ -108,9 +115,8 @@ def train_model(
     log_metadata(
         metadata={
             "model_card": model_card_info,
-            "volume_metadata": volume_metadata,
         },
         infer_model=True,
     )
 
-    return volume_metadata["model_path"]
+    return model

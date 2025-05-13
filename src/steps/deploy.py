@@ -26,6 +26,9 @@ from src.constants import (
     APPROVED_NAME,
     DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
+    MODAL_ENVIRONMENT,
+    MODAL_VOLUME_NAME,
+    MODEL_NAME,
     PREPROCESS_PIPELINE_NAME,
 )
 
@@ -48,8 +51,8 @@ def load_python_module(file_path: str) -> Any:
 
 @step(enable_cache=False)
 def modal_deployment(
-    volume_metadata: Annotated[Dict, "volume_metadata"],
     approved: Annotated[bool, APPROVED_NAME],
+    model: Annotated[Any, MODEL_NAME],
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME],
 ) -> Annotated[Dict[str, Any], DEPLOYMENT_INFO_NAME]:
@@ -63,8 +66,8 @@ def modal_deployment(
     5. Saves all relevant artifacts to Modal volume for compliance
 
     Args:
-        volume_metadata: Metadata for the Modal Volume
         approved: Whether deployment was approved by human oversight
+        model: The trained model to deploy
         evaluation_results: Model evaluation metrics and fairness analysis
         preprocess_pipeline: The preprocessing pipeline used in training
 
@@ -78,7 +81,7 @@ def modal_deployment(
     module = load_python_module(str(DEPLOYMENT_SCRIPT_PATH))
 
     deployment_record, model_card = module.run_deployment_entrypoint(
-        model_path=volume_metadata["model_path"],
+        model=model,
         evaluation_results=evaluation_results,
         preprocess_pipeline=preprocess_pipeline,
     )
@@ -92,15 +95,15 @@ def modal_deployment(
     }
 
     # Save all artifacts to Modal volume
-    artifact_paths = save_compliance_artifacts_to_modal(volume_metadata, artifacts)
+    artifact_paths = save_compliance_artifacts_to_modal(artifacts)
 
     # Enhanced deployment info with Modal paths
     deployment_info = {
         "deployment_record": deployment_record,
         "model_card": model_card,
         "artifact_paths": artifact_paths,
-        "modal_volume": volume_metadata["volume_name"],
-        "environment": volume_metadata["environment_name"],
+        "modal_volume": MODAL_VOLUME_NAME,
+        "environment": MODAL_ENVIRONMENT,
     }
 
     # Log metadata for compliance documentation

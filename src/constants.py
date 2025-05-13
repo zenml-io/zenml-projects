@@ -16,39 +16,102 @@
 #
 
 import os
+from pathlib import Path
 
+# ======================================================================
+# Dataset Configuration
+# ======================================================================
 HF_DATASET_NAME = "spectrallabs/credit-scoring-training-dataset"
-HF_DATASET_FILE = "0xFDC1BE05aD924e6Fc4Ab2c6443279fF7C0AB5544_training_data.parquet"
 TARGET_COLUMN = "target"
 
 # Ignore WhyLogs optional usage-telemetry API
 os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
-# Feature engineering pipeline
-FEATURE_ENGINEERING_PIPELINE_NAME = "credit_scoring_feature_engineering"
-TRAIN_DATASET_NAME = "credit_scoring_train_df"
-TEST_DATASET_NAME = "credit_scoring_test_df"
-PREPROCESS_PIPELINE_NAME = "credit_scoring_preprocess_pipeline"
-PREPROCESS_METADATA_NAME = "credit_scoring_preprocessing_metadata"
+# ======================================================================
+# Pipeline Names
+# ======================================================================
+FEATURE_ENGINEERING_PIPELINE_NAME = "cs_feature_engineering"
+TRAINING_PIPELINE_NAME = "cs_training"
+DEPLOYMENT_PIPELINE_NAME = "cs_deployment"
 
-# Training pipeline
-TRAINING_PIPELINE_NAME = "credit_scoring_training"
-EVALUATION_RESULTS_NAME = "credit_scoring_evaluation_results"
-RISK_SCORES_NAME = "credit_scoring_risk_scores"
+# ======================================================================
+# ZenML Artifact Names
+# ======================================================================
 
-# Deployment pipeline
-DEPLOYMENT_PIPELINE_NAME = "credit_scoring_deployment"
-APPROVED_NAME = "credit_scoring_approved"
-DEPLOYMENT_INFO_NAME = "credit_scoring_deployment_info"
-MONITORING_PLAN_NAME = "credit_scoring_monitoring_plan"
-INCIDENT_REPORT_NAME = "credit_scoring_incident_report"
+# Feature engineering artifacts
+MODEL_NAME = "credit_scoring_model"
+TRAIN_DATASET_NAME = "cs_train_df"
+TEST_DATASET_NAME = "cs_test_df"
+PREPROCESS_PIPELINE_NAME = "cs_preprocess_pipeline"
+PREPROCESS_METADATA_NAME = "cs_preprocessing_metadata"
+DATA_PROFILE_NAME = "cs_data_profile"
 
-# Modal deployment
+# Training artifacts
+EVALUATION_RESULTS_NAME = "cs_evaluation_results"
+RISK_SCORES_NAME = "cs_risk_scores"
+FAIRNESS_REPORT_NAME = "cs_fairness_report"
+RISK_REGISTER_NAME = "cs_risk_register"
+
+# Deployment artifacts
+APPROVED_NAME = "cs_approved"
+DEPLOYMENT_INFO_NAME = "cs_deployment_info"
+MONITORING_PLAN_NAME = "cs_monitoring_plan"
+INCIDENT_REPORT_NAME = "cs_incident_report"
+COMPLIANCE_METADATA_NAME = "cs_compliance_metadata"
+COMPLIANCE_REPORT_NAME = "cs_compliance_report"
+MODEL_CARD_NAME = "cs_model_card"
+
+# ======================================================================
+# Modal Configuration
+# ======================================================================
+
+# Modal deployment settings
 MODAL_VOLUME_NAME = "credit-scoring"
-MODAL_DEPLOYMENT_NAME = "credit_scoring_modal_deployment"
+MODAL_DEPLOYMENT_NAME = "cs_modal_deployment"
 MODAL_SECRET_NAME = "credit-scoring-secrets"
+MODAL_ENVIRONMENT = "main"
 
-# Compliance artifacts
-COMPLIANCE_METADATA_NAME = "credit_scoring_compliance_metadata"
-COMPLIANCE_REPORT_NAME = "credit_scoring_compliance_report"
-MODEL_CARD_NAME = "credit_scoring_model_card"
+# Modal volume paths (for deployment)
+MODAL_MODELS_DIR = "/models"
+MODAL_PIPELINES_DIR = "/pipelines"
+MODAL_COMPLIANCE_DIR = "/compliance"
+MODAL_EVAL_RESULTS_DIR = "/evaluation"
+MODAL_APPROVALS_DIR = f"{MODAL_COMPLIANCE_DIR}/approvals"
+MODAL_MONITORING_DIR = f"{MODAL_COMPLIANCE_DIR}/monitoring"
+MODAL_DEPLOYMENTS_DIR = f"{MODAL_COMPLIANCE_DIR}/deployments"
+MODAL_FAIRNESS_DIR = f"{MODAL_COMPLIANCE_DIR}/fairness"
+MODAL_REPORTS_DIR = f"{MODAL_COMPLIANCE_DIR}/reports"
+MODAL_RISK_REGISTER_PATH = f"{MODAL_COMPLIANCE_DIR}/risk_register.xlsx"
+
+# Default Modal artifact paths
+MODAL_MODEL_PATH = f"{MODAL_MODELS_DIR}/model.pkl"
+MODAL_PREPROCESS_PIPELINE_PATH = f"{MODAL_PIPELINES_DIR}/preprocess_pipeline.pkl"
+
+# Standard keys for volume_metadata dictionary
+VOLUME_METADATA_KEYS = {
+    "volume_name": MODAL_VOLUME_NAME,
+    "environment_name": MODAL_ENVIRONMENT,
+    "model_path": MODAL_MODEL_PATH,
+    "preprocess_pipeline_path": MODAL_PREPROCESS_PIPELINE_PATH,
+    "risk_register_path": MODAL_RISK_REGISTER_PATH,
+    "compliance_dir": MODAL_COMPLIANCE_DIR,
+    "fairness_dir": MODAL_FAIRNESS_DIR,
+    "reports_dir": MODAL_REPORTS_DIR,
+    "deployments_records_dir": MODAL_DEPLOYMENTS_DIR,
+    "approvals_dir": MODAL_APPROVALS_DIR,
+    "monitoring_dir": MODAL_MONITORING_DIR,
+}
+
+# ======================================================================
+# Required Local Directories (minimal)
+# ======================================================================
+
+# Base path for Annex IV document generation
+COMPLIANCE_DIR = Path(os.getcwd()) / "compliance"
+REPORTS_DIR = COMPLIANCE_DIR / "reports"
+MANUAL_FILLS_DIR = COMPLIANCE_DIR / "manual_fills"
+TEMPLATES_DIR = COMPLIANCE_DIR / "templates"
+
+# Ensure minimal local directories exist
+for dir_path in [REPORTS_DIR, MANUAL_FILLS_DIR, TEMPLATES_DIR]:
+    dir_path.mkdir(parents=True, exist_ok=True)

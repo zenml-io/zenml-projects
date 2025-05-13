@@ -1,11 +1,11 @@
 # environment configuration
-# settings:
-#   docker:
-#     required_integrations:
-#       - sklearn
-#       - pandas
-#     requirements:
-#       - pyarrow
+settings:
+  docker:
+    required_integrations:
+      - sklearn
+      - pandas
+    requirements:
+      - pyarrow
 
 # Pipeline options
 enable_cache: True
@@ -23,10 +23,3 @@ parameters:
     - "scale__last_tx_timestamp"
     - "scale__net_incoming_tx_count"
     - "scale__risk_factor"
-
-  volume_metadata:
-    environment_name: main
-    volume_name: credit-scoring
-    model_path: models/model.pkl
-    fairness_records_dir: compliance/fairness_records
-    risk_register_path: compliance/risk_register.xlsx

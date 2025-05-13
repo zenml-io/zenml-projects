@@ -21,6 +21,7 @@ from zenml import pipeline
 from zenml.client import Client
 
 from src.constants import (
+    TARGET_COLUMN,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
     TRAINING_PIPELINE_NAME,
@@ -35,10 +36,9 @@ from src.utils.model_definition import model_definition
 
 @pipeline(name=TRAINING_PIPELINE_NAME, model=model_definition)
 def training(
-    volume_metadata: Dict[str, str],
     train_df: Any = None,
     test_df: Any = None,
-    target: str = "target",
+    target: str = TARGET_COLUMN,
     hyperparameters: Optional[Dict[str, Any]] = None,
     protected_attributes: Optional[List[str]] = None,
 ):
@@ -55,39 +55,38 @@ def training(
         target: Name of the target column
         hyperparameters: Optional model hyperparameters
         protected_attributes: List of columns to check for fairness
-        volume_metadata: Metadata for the Modal Volume.
 
     Returns:
-        Dictionary with model, evaluation results, and risk assessment
+        model: The trained model
+        eval_results: Evaluation metrics and fairness analysis
+        risk_scores: Risk assessment results
     """
+    # Retrieve datasets if not provided
     if train_df is None or test_df is None:
         client = Client()
         train_df = client.get_artifact_version(name_id_or_prefix=TRAIN_DATASET_NAME)
         test_df = client.get_artifact_version(name_id_or_prefix=TEST_DATASET_NAME)
 
     # Train model with provided data
-    model_path = train_model(
+    model = train_model(
         train_df=train_df,
         test_df=test_df,
         target=target,
         hyperparameters=hyperparameters,
-        volume_metadata=volume_metadata,
     )
 
     # Evaluate model for performance and fairness
     eval_results = evaluate_model(
-        volume_metadata=volume_metadata,
         test_df=test_df,
         protected_attributes=protected_attributes,
         target=target,
-        model_path=model_path,
+        model=model,
     )
 
     # Perform risk assessment based on evaluation results
     risk_scores = risk_assessment(
         evaluation_results=eval_results,
-        volume_metadata=volume_metadata,
     )
 
     # Return artifacts to be used by deployment pipeline
-    return volume_metadata, eval_results, risk_scores
+    return model, eval_results, risk_scores
