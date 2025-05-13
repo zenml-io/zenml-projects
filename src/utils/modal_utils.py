@@ -62,7 +62,12 @@ def save_artifact_to_modal(
     # Handle different artifact types
     if isinstance(artifact, (dict, list)):
         with open(tmp_file, "w") as f:
-            json.dump(artifact, f, indent=2)
+            json.dump(
+                artifact,
+                f,
+                indent=2,
+                default=lambda o: str(o),  # Convert UUIDs to strings
+            )
     elif hasattr(artifact, "__module__") and "sklearn" in artifact.__module__:
         # Assume scikit-learn object or similar
         joblib.dump(artifact, tmp_file)

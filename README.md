@@ -1,70 +1,138 @@
-# Credit‑Scoring AI‑Act Demo
+# Credit‑Scoring EU AI Act Demo
 
 > Demo project to showcase EU AI Act compliance artifacts with ZenML.
+
+This project demonstrates a complete MLOps workflow for credit scoring that adheres to the upcoming EU AI Act regulations. It uses ZenML to create pipelines that handle data processing, model training, evaluation, and deployment while generating required compliance artifacts.
+
+## Project Overview
+
+The project implements three main pipelines:
+
+1. **Feature Engineering Pipeline**: Handles data governance and preprocessing (Articles 10, 12, 15)
+2. **Training Pipeline**: Implements model training, evaluation, and risk assessment (Articles 9, 11, 15)
+3. **Deployment Pipeline**: Manages human oversight, deployment, and monitoring (Articles 14, 17, 18)
+
+Each pipeline generates specific compliance artifacts as required by the EU AI Act, creating a comprehensive documentation trail.
+
+## Architecture
+
+![End-to-End Architecture](docs/e2e.png)
+
+The project is built with ZenML following best practices for pipeline organization and artifact management. It uses Modal for serverless deployment and implements a centralized configuration approach with standardized paths.
+
+Key features:
+- End-to-end pipeline from data loading to model deployment
+- Full EU AI Act compliance artifacts, including Annex IV documentation
+- Real-time fairness evaluation
+- Human-in-the-loop approval process for model deployment
+- Post-market monitoring with drift detection
+- Rich documentation and compliance records generation
 
 ## Project Structure
 
 ```bash
 credit_scoring_ai_act/
-├── data/
-│   ├── raw/ # public synthetic loan data (CSV)
-│   └── snapshots/ # auto‑versioned by data_versioning step
-├── pipelines/
-│   ├── credit_scoring.py # "happy path" train‑→‑deploy
-│   ├── monitor.py # scheduled drift checker
-│   └── retrain.py # triggered by incident label
-├── steps/
-│   ├── data_loader.py # load CSV → log SHA‑256, WhyLogs profile
-│   ├── data_preprocessor.py # basic feature eng, outputs train/test splits
-│   ├── data_splitter.py # split dataset into train/test
-│   ├── generate_compliance_metadata.py # generate compliance metadata
-│   ├── train.py # XGBoost / sklearn model
-│   ├── evaluate.py # std. metrics + Fairlearn/Aequitas scan
-│   ├── approve.py # human‑in‑loop gate (approve_deployment step)
-│   ├── post_market_monitoring.py # post‑market monitoring
-│   ├── post_run_annex.py # generate Annex IV documentation
-│   ├── risk_assessment.py # risk assessment
-│   └── deploy.py # push to Modal / local FastAPI
+├── app/ # Modal deployment app
+│   ├── modal_deployment.py # Modal deployment script
+│   └── schemas.py # Pydantic models
+├── src/
+│   ├── pipelines/
+│   │   ├── deployment.py # Deployment pipeline
+│   │   ├── feature_engineering.py # Feature engineering pipeline
+│   │   └── training.py # Model training pipeline
+│   ├── steps/
+│   │   ├── data_loader.py # Load CSV → log SHA‑256, WhyLogs profile
+│   │   ├── data_preprocessor.py # Basic feature engineering
+│   │   ├── data_splitter.py # Split dataset into train/test
+│   │   ├── generate_compliance_metadata.py # Generate compliance metadata
+│   │   ├── train.py # XGBoost / sklearn model
+│   │   ├── evaluate.py # Standard metrics + Fairlearn/Aequitas scan
+│   │   ├── approve.py # Human‑in‑loop gate (approve_deployment step)
+│   │   ├── post_market_monitoring.py # Post‑market monitoring
+│   │   ├── post_run_annex.py # Generate Annex IV documentation
+│   │   ├── risk_assessment.py # Risk assessment
+│   │   └── deploy.py # Push to Modal / local FastAPI
+│   ├── utils/ # Shared utilities
+│   ├── configs/ # Configuration files
+│   └── constants.py # Centralized configuration constants
 │
 ├── compliance/
 │   ├── templates/
-│   │   ├── annex_iv_template.j2 # annex iv template
-│   │   └── fria_template.md # rights‑impact narrative
-│   ├── records/ # automated compliance records
-│   ├── manual_fills/ # manual compliance inputs
-│   ├── monitoring/ # monitoring records
-│   ├── deployment_records/ # deployment history
-│   └── approval_records/ # approval history
+│   │   └── annex_iv_template.j2 # Annex IV template
+│   ├── manual_fills/ # Manual compliance inputs 
+│   └── reports/ # Auto‑generated annex iv reports after deployment
 │
-├── reports/ # auto‑generated Docs, PDFs, JSON logs
-│   ├── annex_iv_<run>.pdf
-│   ├── model_card_<run>.json
-│   └── incident_log.json
-├── utils/ # shared utilities
-├── configs/ # configuration files
+├── docs/ # Documentation and diagrams
+│   ├── deployment-pipeline.png
+│   ├── e2e.png
+│   ├── feature-engineering-pipeline.png
+│   ├── modal-deployment.png
+│   ├── training-pipeline.png
+│   └── detailed_pipeline_explanations.md
+│
+├── run.py # Entrypoint for running pipelines
 └── README.md
 ```
 
-### Pipeline graph
+## Pipeline Details
 
-1. `ingest -> preprocess -> train -> evaluate -> approve_deploy -> deploy`
+### Feature Engineering Pipeline
+
+![Feature Engineering Pipeline](docs/feature-engineering-pipeline.png)
+
+The Feature Engineering Pipeline prepares data for model training while ensuring compliance with EU AI Act requirements:
+
+- **Data Loading** (Article 10): Loads data with SHA-256 hash for provenance, creates WhyLogs profile
+- **Data Splitting**: Splits data into train/test sets with stratification
+- **Data Preprocessing** (Article 10): Handles missing values, standardization, and sensitive data removal
+- **Compliance Metadata** (Articles 10, 12, 15): Documents feature specifications and data quality metrics
+
+### Training Pipeline
+
+![Training Pipeline](docs/training-pipeline.png)
+
+The Training Pipeline handles model training and evaluation with comprehensive fairness checks:
+
+- **Model Training** (Article 11): Trains a GradientBoostingClassifier with recorded parameters
+- **Model Evaluation** (Articles 9, 15): Calculates performance metrics and performs fairness analysis
+- **Risk Assessment** (Article 9): Process evaluation results to calculate risk scores and update risk register
+
+### Deployment Pipeline
+
+![Deployment Pipeline](docs/deployment-pipeline.png)
+
+The Deployment Pipeline manages the model deployment process with human oversight:
+
+- **Approval Process** (Article 14): Requires explicit human approval for deployment
+- **Modal Deployment** (Articles 10, 17, 18): Launches Modal deployment for serverless hosting
+- **Post-Market Monitoring** (Article 17): Creates comprehensive monitoring plan
+- **Annex IV Documentation**: Generates complete EU AI Act compliance documentation
+
+### Pipeline Flow
+
+1. `data_loader -> data_splitter -> data_preprocessor -> generate_compliance_metadata -> train -> evaluate -> risk_assessment -> approve -> deploy -> post_market_monitoring -> post_run_annex`
+
 2. **Scheduled**: `monitor` (daily) → `report_incident` on drift.  
    Incident closed? → GitHub label **retrain** triggers `retrain` pipeline.
 
-### Where each compliance artifact is produced
+## EU AI Act Compliance Mapping
 
-| Step / Hook             | AI‑Act Article(s) | Output artefact                                |
+| Step / Hook             | AI‑Act Article(s) | Output artifact                                |
 | ----------------------- | ----------------- | ---------------------------------------------- |
-| **ingest**              | 10, 12            | `dataset_info` metadata, SHA‑256               |
-| **preprocess**          | 10, 12            | `preprocessing_info_*.json`, data quality logs |
-| **evaluate**            | 15                | `fairness_metrics`, `metrics.json`             |
-| **approve_deploy**      | 14                | `approval.log` (approver, rationale)           |
-| **post_run_annex.py**   | 11, 12            | `annex_iv_<run>.pdf`                           |
-| **monitor.py**          | 17                | drift scores in `reports/drift_<date>.json`    |
+| **data_loader**         | 10, 12            | `dataset_info` metadata, SHA‑256, WhyLogs profile |
+| **data_preprocessor**   | 10, 12            | Preprocessing info, data quality logs          |
+| **generate_compliance_metadata** | 10, 12, 15 | Comprehensive compliance metadata            |
+| **train**               | 11                | Model with recorded parameters                 |
+| **evaluate**            | 15                | Performance metrics, fairness report           |
+| **risk_assessment**     | 9                 | Risk scores, risk register updates             |
+| **approve**             | 14                | Approval record with rationale                 |
+| **deploy**              | 10, 17, 18        | Deployment record, model card                  |
+| **post_market_monitoring** | 17             | Monitoring plan with alert thresholds          |
+| **post_run_annex**      | Comprehensive     | Complete Annex IV documentation                |
+| **monitor.py**          | 17                | Drift scores in `reports/drift_<date>.json`    |
 | **incident_webhook.py** | 18                | `incident_log.json`, external ticket           |
-| **risk_assessment.py**  | 9                 | risk scores, risk register updates             |
 
-### Compliance Directory Structure
+## Compliance Directory Structure
 
 | Directory               | Purpose                                                 | Auto/Manual |
 | ----------------------- | ------------------------------------------------------- | ----------- |
@@ -75,23 +143,11 @@ credit_scoring_ai_act/
 | **approval_records/**   | Human approval records and rationales                   | Manual      |
 | **templates/**          | Jinja templates for documentation generation            | Manual      |
 
-### "Definition of Done"
+## Running Pipelines
 
-```bash
-zenml up && zenml run credit_scoring
-# -> reports/annex_iv_<run>.pdf exists
-# -> fairness_metrics logged
-# -> approval gate records reviewer
-# -> drift monitor cronjob scheduled
-# -> compliance/records/ contains run artifacts
-# -> compliance/manual_fills/ contains required inputs
-```
+The project provides several pipeline options through the `run.py` script:
 
-### Running Pipelines
-
-The project provides several pipeline options through the `run.py` script. Here are the available commands:
-
-#### Basic Pipeline Options
+### Basic Pipeline Options
 
 ```bash
 # Run feature engineering pipeline (Articles 10, 12)
@@ -102,10 +158,9 @@ python run.py --train
 
 # Run deployment pipeline (Articles 14, 17, 18)
 python run.py --deploy
-
 ```
 
-#### Additional Options
+### Additional Options
 
 ```bash
 # Specify custom config directory
@@ -118,7 +173,7 @@ python run.py --deploy --auto-approve
 python run.py --feature --no-cache
 ```
 
-#### Pipeline Dependencies
+### Pipeline Dependencies
 
 - The feature engineering pipeline prepares the data and generates preprocessing artifacts
 - The training pipeline can use outputs from feature engineering if run sequentially
@@ -126,12 +181,41 @@ python run.py --feature --no-cache
   - A model from a previous training run
   - A specific model ID provided via `--model-id`
 
-#### Configuration
+### Configuration
 
-Pipeline configurations are stored in the `configs/` directory:
+Pipeline configurations are stored in the `src/configs/` directory:
 
 - `feature_engineering.yaml`
 - `training.yaml`
 - `deployment.yaml`
 
 You can specify a custom config directory using the `--config-dir` option.
+
+## Modal Deployment
+
+![Modal Deployment](docs/modal-deployment.png)
+
+The project implements a serverless deployment using Modal with comprehensive monitoring and incident reporting capabilities:
+
+- FastAPI application with documented endpoints
+- Automated model and preprocessing pipeline loading
+- Drift detection and incident reporting
+- Standardized storage paths for compliance artifacts
+
+## "Definition of Done"
+
+```bash
+# Run pipelines sequentially
+python run.py --feature
+python run.py --train
+python run.py --deploy
+
+# Verification points:
+# -> compliance/reports/annex_iv_<timestamp>.md exists
+# -> Fairness metrics logged to ZenML
+# -> Approval gate records reviewer
+# -> Model deployed to Modal with endpoint
+# -> All compliance artifacts stored in standardized locations
+```
+
+For detailed explanations of each pipeline and step, refer to the [detailed pipeline documentation](docs/detailed_pipeline_explanations.md).
