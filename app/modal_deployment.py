@@ -293,7 +293,7 @@ def _create_fastapi_app() -> FastAPI:
         }
 
     @web_app.post("/incident", response_model=IncidentResponse)
-    async def report_incident_endpoint(incident_data: IncidentReport) -> Dict:
+    async def report_incident_endpoint(incident_data: IncidentReport) -> IncidentResponse:
         """Report an incident to the compliance system."""
         logger.info(
             f"Incident report received: {incident_data.severity} - {incident_data.description}"

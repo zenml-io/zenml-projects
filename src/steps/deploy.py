@@ -26,6 +26,7 @@ from src.constants import (
     APPROVED_NAME,
     DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
+    MODAL_COMPLIANCE_DIR,
     MODAL_ENVIRONMENT,
     MODAL_VOLUME_NAME,
     MODEL_NAME,
@@ -100,7 +101,6 @@ def modal_deployment(
     # Enhanced deployment info with Modal paths
     deployment_info = {
         "deployment_record": deployment_record,
-        "model_card": model_card,
         "artifact_paths": artifact_paths,
         "modal_volume": MODAL_VOLUME_NAME,
         "environment": MODAL_ENVIRONMENT,

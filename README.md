@@ -21,6 +21,7 @@ Each pipeline generates specific compliance artifacts as required by the EU AI A
 The project is built with ZenML following best practices for pipeline organization and artifact management. It uses Modal for serverless deployment and implements a centralized configuration approach with standardized paths.
 
 Key features:
+
 - End-to-end pipeline from data loading to model deployment
 - Full EU AI Act compliance artifacts, including Annex IV documentation
 - Real-time fairness evaluation
@@ -59,7 +60,7 @@ credit_scoring_ai_act/
 ├── compliance/
 │   ├── templates/
 │   │   └── annex_iv_template.j2 # Annex IV template
-│   ├── manual_fills/ # Manual compliance inputs 
+│   ├── manual_fills/ # Manual compliance inputs
 │   └── reports/ # Auto‑generated annex iv reports after deployment
 │
 ├── docs/ # Documentation and diagrams
@@ -117,20 +118,20 @@ The Deployment Pipeline manages the model deployment process with human oversigh
 
 ## EU AI Act Compliance Mapping
 
-| Step / Hook             | AI‑Act Article(s) | Output artifact                                |
-| ----------------------- | ----------------- | ---------------------------------------------- |
-| **data_loader**         | 10, 12            | `dataset_info` metadata, SHA‑256, WhyLogs profile |
-| **data_preprocessor**   | 10, 12            | Preprocessing info, data quality logs          |
-| **generate_compliance_metadata** | 10, 12, 15 | Comprehensive compliance metadata            |
-| **train**               | 11                | Model with recorded parameters                 |
-| **evaluate**            | 15                | Performance metrics, fairness report           |
-| **risk_assessment**     | 9                 | Risk scores, risk register updates             |
-| **approve**             | 14                | Approval record with rationale                 |
-| **deploy**              | 10, 17, 18        | Deployment record, model card                  |
-| **post_market_monitoring** | 17             | Monitoring plan with alert thresholds          |
-| **post_run_annex**      | Comprehensive     | Complete Annex IV documentation                |
-| **monitor.py**          | 17                | Drift scores in `reports/drift_<date>.json`    |
-| **incident_webhook.py** | 18                | `incident_log.json`, external ticket           |
+| Step / Hook                      | AI‑Act Article(s) | Output artifact                                   |
+| -------------------------------- | ----------------- | ------------------------------------------------- |
+| **data_loader**                  | 10, 12            | `dataset_info` metadata, SHA‑256, WhyLogs profile |
+| **data_preprocessor**            | 10, 12            | Preprocessing info, data quality logs             |
+| **generate_compliance_metadata** | 10, 12, 15        | Comprehensive compliance metadata                 |
+| **train**                        | 11                | Model with recorded parameters                    |
+| **evaluate**                     | 15                | Performance metrics, fairness report              |
+| **risk_assessment**              | 9                 | Risk scores, risk register updates                |
+| **approve**                      | 14                | Approval record with rationale                    |
+| **deploy**                       | 10, 17, 18        | Deployment record, model card                     |
+| **post_market_monitoring**       | 17                | Monitoring plan with alert thresholds             |
+| **post_run_annex**               | Comprehensive     | Complete Annex IV documentation                   |
+| **monitor.py**                   | 17                | Drift scores in `reports/drift_<date>.json`       |
+| **incident_webhook.py**          | 18                | `incident_log.json`, external ticket              |
 
 ## Compliance Directory Structure
 
@@ -202,20 +203,6 @@ The project implements a serverless deployment using Modal with comprehensive mo
 - Drift detection and incident reporting
 - Standardized storage paths for compliance artifacts
 
-## "Definition of Done"
-
-```bash
-# Run pipelines sequentially
-python run.py --feature
-python run.py --train
-python run.py --deploy
-
-# Verification points:
-# -> compliance/reports/annex_iv_<timestamp>.md exists
-# -> Fairness metrics logged to ZenML
-# -> Approval gate records reviewer
-# -> Model deployed to Modal with endpoint
-# -> All compliance artifacts stored in standardized locations
-```
+## Docs
 
 For detailed explanations of each pipeline and step, refer to the [detailed pipeline documentation](docs/detailed_pipeline_explanations.md).
