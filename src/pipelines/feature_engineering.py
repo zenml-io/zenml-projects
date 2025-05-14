@@ -24,10 +24,10 @@ from src.constants import (
     TARGET_COLUMN,
 )
 from src.steps import (
-    data_loader,
     data_preprocessor,
     data_splitter,
     generate_compliance_metadata,
+    ingest,
 )
 
 
@@ -39,6 +39,7 @@ def feature_engineering(
     drop_columns: Optional[List[str]] = None,
     target: str = TARGET_COLUMN,
     random_state: int = 42,
+    sample_fraction: Optional[float] = None,
 ):
     """End-to-end pipeline for credit scoring with EU AI Act compliance.
 
@@ -50,10 +51,10 @@ def feature_engineering(
     # Initialize volume metadata if not provided
 
     # Load the data
-    raw_data, data_profile = data_loader(
+    raw_data, data_profile = ingest(
         target=target,
-        sample_fraction=0.01,
         random_state=random_state,
+        sample_fraction=sample_fraction,
     )
 
     # Split the data into train and test sets
@@ -64,7 +65,7 @@ def feature_engineering(
     )
 
     # Preprocess the data
-    train_df, test_df, preprocess_pipeline, preprocessing_metadata = data_preprocessor(
+    train_df, test_df, pipeline, metadata = data_preprocessor(
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
         drop_na=drop_na,
@@ -78,12 +79,9 @@ def feature_engineering(
     compliance_info = generate_compliance_metadata(
         train_df=train_df,
         test_df=test_df,
-        original_train_df=dataset_trn,
-        original_test_df=dataset_tst,
-        preprocessing_metadata=preprocessing_metadata,
+        preprocessing_metadata=metadata,
         target=target,
-        random_state=random_state,
         data_profile=data_profile,
     )
 
-    return train_df, test_df, preprocess_pipeline, compliance_info
+    return train_df, test_df, pipeline, metadata, compliance_info
