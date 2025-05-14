@@ -1,21 +1,34 @@
 from zenml import step
 import pandas as pd
 import numpy as np
-from typing import Dict, Tuple, List
+from typing import Tuple
 from sklearn.preprocessing import StandardScaler
-
+from typing_extensions import Annotated
 
 @step
-def preprocess_data(data: dict) -> dict:
+def preprocess_data(sales_data: pd.DataFrame, calendar_data: pd.DataFrame) -> Tuple[
+    Annotated[pd.DataFrame, "train_data"],
+    Annotated[pd.DataFrame, "val_data"], 
+    Annotated[pd.DataFrame, "test_data"]
+]:
     """
     Preprocess data for retail forecasting, creating:
     - Time series features (day of week, month, etc.)
     - Lagged features and rolling statistics
     - Store and item embeddings
     - Train/validation/test splits based on time
+    
+    Args:
+        sales_data: Raw sales data with store/item/date/sales columns
+        calendar_data: Calendar data with date/event information
+        
+    Returns:
+        train_data: Processed training data
+        val_data: Processed validation data
+        test_data: Processed test data
     """
-    sales_df = data["sales"]
-    calendar_df = data["calendar"]
+    sales_df = sales_data
+    calendar_df = calendar_data
 
     # Ensure date columns are datetime
     sales_df["date"] = pd.to_datetime(sales_df["date"])
@@ -55,13 +68,13 @@ def preprocess_data(data: dict) -> dict:
         )
 
     # Prepare categorical features for PyTorch Forecasting
-    # First, we need to ensure all categorical features start from 0 and are continuous
+    # For PyTorch Forecasting, categorical variables must be strings
     categorical_feats = ["store", "item", "series_id", "day_of_week", "month"]
 
     for feat in categorical_feats:
         # Create mapping
-        mapping = {val: idx for idx, val in enumerate(df[feat].unique())}
-        df[f"{feat}_encoded"] = df[feat].map(mapping)
+        mapping = {val: f"cat_{idx}" for idx, val in enumerate(df[feat].unique())}
+        df[f"{feat}_encoded"] = df[feat].map(mapping).astype(str)
 
     # Fill any missing values in the engineered features
     numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -70,15 +83,19 @@ def preprocess_data(data: dict) -> dict:
             df[col] = df[col].fillna(df[col].median())
 
     # Split data into train, validation, test sets by time
-    # Last 28 days for test, previous 14 days for validation
+    # But ensure validation and test have some overlap with training
     max_date = df["date"].max()
-    test_cutoff = max_date - pd.Timedelta(days=28)
-    val_cutoff = test_cutoff - pd.Timedelta(days=14)
-
-    train_df = df[df["date"] <= val_cutoff].copy()
-    val_df = df[(df["date"] > val_cutoff) & (df["date"] <= test_cutoff)].copy()
-    test_df = df[df["date"] > test_cutoff].copy()
-
+    test_start = max_date - pd.Timedelta(days=28)
+    val_start = test_start - pd.Timedelta(days=14)
+    
+    # Overlap: Include the last 7 days of training in validation, and last 7 days of validation in test
+    train_end = val_start + pd.Timedelta(days=7)  # Overlap of 7 days
+    val_end = test_start + pd.Timedelta(days=7)   # Overlap of 7 days
+    
+    train_df = df[df["date"] <= train_end].copy()
+    val_df = df[(df["date"] >= val_start) & (df["date"] <= val_end)].copy()
+    test_df = df[df["date"] >= test_start].copy()
+    
     print(
         f"Train set: {len(train_df)} records, {train_df['date'].min()} to {train_df['date'].max()}"
     )
@@ -117,41 +134,20 @@ def preprocess_data(data: dict) -> dict:
             test_df[f"{feat}_scaled"] = scaler.transform(test_df[[feat]])
 
     # Prepare data for PyTorch Forecasting format
-    # Group by time-series and prepare for modeling
-    time_idx_mapping = {
-        date: idx for idx, date in enumerate(sorted(df["date"].unique()))
-    }
-
+    # Create a continuous time index across all datasets
+    # Sort all dates and create a single mapping
+    all_dates = sorted(df["date"].unique())
+    time_idx_mapping = {date: idx for idx, date in enumerate(all_dates)}
+    
+    # Apply the mapping to all datasets
     train_df["time_idx"] = train_df["date"].map(time_idx_mapping)
     val_df["time_idx"] = val_df["date"].map(time_idx_mapping)
     test_df["time_idx"] = test_df["date"].map(time_idx_mapping)
 
-    return {
-        "train": train_df,
-        "val": val_df,
-        "test": test_df,
-        "time_idx_mapping": time_idx_mapping,
-        "scaler": scaler,
-        "features": {
-            "categorical": [f"{feat}_encoded" for feat in categorical_feats],
-            "continuous": [
-                f"{feat}_scaled"
-                for feat in features_to_scale
-                if f"{feat}_scaled" in train_df.columns
-            ],
-            "time_varying": [
-                "day_of_week",
-                "day_of_month",
-                "month",
-                "is_weekend",
-                "is_holiday",
-                "is_promo",
-            ]
-            + [
-                f"{feat}_scaled"
-                for feat in features_to_scale
-                if f"{feat}_scaled" in train_df.columns
-            ],
-            "static": ["store_encoded", "item_encoded"],
-        },
-    }
+    # Convert time features to string categories as well
+    for df_split in [train_df, val_df, test_df]:
+        df_split["day_of_week"] = df_split["day_of_week"].astype(str)
+        df_split["month"] = df_split["month"].astype(str)
+
+    # Return just the dataframes directly
+    return train_df, val_df, test_df

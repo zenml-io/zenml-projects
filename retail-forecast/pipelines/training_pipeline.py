@@ -4,7 +4,8 @@ from steps.data_validator import validate_data
 from steps.data_preprocessor import preprocess_data
 from steps.model_trainer import train_model
 from steps.model_evaluator import evaluate_model
-from typing import Dict, Any, Tuple
+from typing import Tuple
+from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from typing_extensions import Annotated
 
 
@@ -16,12 +17,10 @@ def training_pipeline(
     learning_rate: float = 0.001,
     max_encoder_length: int = 30,
     batch_size: int = 64,
-    max_epochs: int = 10,  # Reduced for faster execution, increase for better results
+    max_epochs: int = 50,
 ) -> Tuple[
-    Annotated[float, "mae"],
-    Annotated[float, "rmse"],
-    Annotated[float, "smape"],
-    Annotated[float, "mape"]
+    Annotated[TemporalFusionTransformer, "trained_model"],
+    Annotated[TimeSeriesDataSet, "training_dataset"]
 ]:
     """
     Pipeline to train a retail demand forecasting model.
@@ -33,50 +32,53 @@ def training_pipeline(
     4. Train a Temporal Fusion Transformer model
     5. Evaluate model performance on test data
 
+    Args:
+        forecast_horizon: Number of days to forecast into the future
+        hidden_size: Hidden size for the TFT model
+        dropout: Dropout rate for the model
+        learning_rate: Learning rate for training
+        max_encoder_length: Look-back window (in days)
+        batch_size: Batch size for training
+        max_epochs: Maximum number of training epochs
+
     Returns:
-        Tuple containing key metrics:
-        - MAE: Mean Absolute Error
-        - RMSE: Root Mean Squared Error
-        - SMAPE: Symmetric Mean Absolute Percentage Error
-        - MAPE: Mean Absolute Percentage Error
+        trained_model: The trained TFT model
+        training_dataset: The dataset configuration for future use
     """
     # Load data
-    data = load_data()
+    sales_data, calendar_data = load_data()
 
     # Validate data
-    validated_data = validate_data(data=data)
+    sales_data_validated, calendar_data_validated = validate_data(
+        sales_data=sales_data, 
+        calendar_data=calendar_data
+    )
 
     # Preprocess data
-    processed_data = preprocess_data(data=validated_data)
+    train_data, val_data, test_data = preprocess_data(
+        sales_data=sales_data_validated, 
+        calendar_data=calendar_data_validated
+    )
 
     # Train model
-    model_artifacts = train_model(
-        processed_data=processed_data,
+    model, training_dataset = train_model(
+        train_data=train_data,
+        val_data=val_data,
         forecast_horizon=forecast_horizon,
         hidden_size=hidden_size,
         dropout=dropout,
         learning_rate=learning_rate,
         max_encoder_length=max_encoder_length,
         batch_size=batch_size,
-        max_epochs=max_epochs,
+        max_epochs=max_epochs
     )
 
-    # Evaluate model
-    (
-        mae, 
-        rmse, 
-        smape, 
-        mape, 
-        error_plot,
-        worst_series,
-        store_errors,
-        item_errors,
-        date_errors,
-        model,
-        evaluation_visualization
-    ) = evaluate_model(
-        model_artifacts=model_artifacts, processed_data=processed_data
+    # Evaluate model - metrics are logged via log_metadata
+    evaluate_model(
+        model=model,
+        training_dataset=training_dataset, 
+        test_data=test_data
     )
 
-    # Return just the key metrics
-    return mae, rmse, smape, mape
+    # Return trained model and dataset for future predictions
+    return model, training_dataset

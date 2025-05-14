@@ -4,20 +4,19 @@ from steps.data_validator import validate_data
 from steps.data_preprocessor import preprocess_data
 from steps.predictor import make_predictions
 from typing import Dict, Any, Optional, Tuple
+from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from typing_extensions import Annotated
 from zenml.types import HTMLString
 
 
 @pipeline(name="retail_forecasting_inference_pipeline")
 def inference_pipeline(
-    model_artifacts: Optional[Dict[str, Any]] = None,
+    model: Optional[TemporalFusionTransformer] = None,
+    training_dataset: Optional[TimeSeriesDataSet] = None,
     forecast_horizon: int = 14,
 ) -> Tuple[
     Annotated[Dict[str, Any], "forecast_data"],
     Annotated[bytes, "forecast_plot"],
-    Annotated[Dict[str, Any], "sample_forecast"],
-    Annotated[int, "forecast_horizon"],
-    Annotated[str, "method"],
     Annotated[HTMLString, "forecast_visualization"]
 ]:
     """
@@ -30,31 +29,37 @@ def inference_pipeline(
     4. Make forecasts using a trained model
     
     Args:
-        model_artifacts: Optional dictionary containing the trained model and required artifacts
-                        If None, a simple naive forecast model will be used
+        model: Optional trained model. If None, a simple naive forecast model will be used
+        training_dataset: Optional training dataset required for TFT model forecasting
         forecast_horizon: Number of days to forecast into the future
         
     Returns:
-        Tuple containing:
-            - forecast_data: Dictionary containing forecast data
-            - forecast_plot: Bytes of the forecast plot image
-            - sample_forecast: Dictionary with sample forecasts
-            - forecast_horizon: Number of days in the forecast
-            - method: Name of the forecasting method used
-            - forecast_visualization: HTML visualization of forecast results
+        forecast_data: Dictionary containing forecast data
+        forecast_plot: Bytes of the forecast plot image
+        forecast_visualization: HTML visualization of forecast results
     """
     # Load data
-    data = load_data()
+    sales_data, calendar_data = load_data()
     
     # Validate data
-    validated_data = validate_data(data=data)
+    sales_data_validated, calendar_data_validated = validate_data(
+        sales_data=sales_data, 
+        calendar_data=calendar_data
+    )
     
-    # Preprocess data (with train_test_split needed for forecasting)
-    processed_data = preprocess_data(data=validated_data)
+    # Preprocess data
+    train_data, val_data, test_data = preprocess_data(
+        sales_data=sales_data_validated, 
+        calendar_data=calendar_data_validated
+    )
     
-    # Make predictions with model (or naive forecast if no model provided)
-    return make_predictions(
-        model_artifacts=model_artifacts,
-        processed_data=processed_data,
+    # Make predictions
+    forecast_data, forecast_plot, _, _, _, viz = make_predictions(
+        model=model,
+        training_dataset=training_dataset,
+        test_data=test_data,
         forecast_horizon=forecast_horizon
     )
+    
+    # Return the forecast data and visualizations
+    return forecast_data, forecast_plot, viz

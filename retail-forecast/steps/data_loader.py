@@ -2,11 +2,11 @@ from zenml import step
 import pandas as pd
 import numpy as np
 import os
-from datetime import datetime
-
+from typing import Dict, Tuple
+from typing_extensions import Annotated
 
 @step
-def load_data() -> dict:
+def load_data() -> Tuple[Annotated[pd.DataFrame, "sales_data"], Annotated[pd.DataFrame, "calendar_data"]]:
     """Load the dataset. Looks for CSVs in ./data; falls back to synthetic demo data."""
     data_dir = os.path.join(os.getcwd(), "data")
     sales_path = os.path.join(data_dir, "sales.csv")
@@ -141,4 +141,4 @@ def load_data() -> dict:
         calendar_df.to_csv(os.path.join(data_dir, "calendar.csv"), index=False)
 
     # Return both dataframes as a dictionary
-    return {"sales": sales_df, "calendar": calendar_df}
+    return sales_df, calendar_df

@@ -1,10 +1,10 @@
 from zenml import step
 import pandas as pd
-import numpy as np
-
+from typing import Tuple
+from typing_extensions import Annotated
 
 @step
-def validate_data(data: dict) -> dict:
+def validate_data(sales_data: pd.DataFrame, calendar_data: pd.DataFrame) -> Tuple[Annotated[pd.DataFrame, "sales_data_validated"], Annotated[pd.DataFrame, "calendar_data_validated"]]:
     """
     Validate retail sales data, checking for common issues like:
     - Missing values
@@ -13,8 +13,8 @@ def validate_data(data: dict) -> dict:
     - Date continuity
     - Extreme outliers
     """
-    sales_df = data["sales"]
-    calendar_df = data["calendar"]
+    sales_df = sales_data
+    calendar_df = calendar_data
 
     # Check for missing values in critical fields
     for df_name, df in [("Sales", sales_df), ("Calendar", calendar_df)]:
@@ -98,4 +98,4 @@ def validate_data(data: dict) -> dict:
     ):
         print("Warning: Some sales dates don't exist in the calendar data.")
 
-    return {"sales": sales_df, "calendar": calendar_df}
+    return sales_df, calendar_df

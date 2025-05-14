@@ -3,6 +3,8 @@ from typing import Optional, Dict, Any, List, Tuple
 import click
 from pipelines.training_pipeline import training_pipeline
 from pipelines.inference_pipeline import inference_pipeline
+from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
+from zenml.client import Client
 
 
 @click.command(
@@ -27,7 +29,7 @@ Examples:
 
   \b
   # Run with custom parameters
-  python run.py --train --forecast-horizon 28 --epochs 20 --batch-size 128 --hidden-size 128
+  python run.py --train --forecast-horizon 28 --epochs 20
 """
 )
 @click.option(
@@ -67,6 +69,24 @@ Examples:
     help="Hidden size for TFT model",
 )
 @click.option(
+    "--learning-rate",
+    type=float,
+    default=0.001,
+    help="Learning rate for training",
+)
+@click.option(
+    "--dropout",
+    type=float,
+    default=0.1,
+    help="Dropout rate for the model",
+)
+@click.option(
+    "--encoder-length",
+    type=int,
+    default=30,
+    help="Look-back window in days",
+)
+@click.option(
     "--no-cache",
     is_flag=True,
     default=False,
@@ -79,6 +99,9 @@ def main(
     epochs: int = 10,
     batch_size: int = 64,
     hidden_size: int = 64,
+    learning_rate: float = 0.001,
+    dropout: float = 0.1,
+    encoder_length: int = 30,
     no_cache: bool = False,
 ):
     """Run retail forecasting pipelines with ZenML.
@@ -90,6 +113,9 @@ def main(
         epochs: Number of training epochs
         batch_size: Batch size for training
         hidden_size: Hidden size for TFT model
+        learning_rate: Learning rate for training
+        dropout: Dropout rate for the model
+        encoder_length: Look-back window in days
         no_cache: Disable caching for the pipeline run
     """
     # If neither pipeline is specified, run both
@@ -103,6 +129,9 @@ def main(
         "max_epochs": epochs,
         "batch_size": batch_size,
         "hidden_size": hidden_size,
+        "learning_rate": learning_rate,
+        "dropout": dropout,
+        "max_encoder_length": encoder_length,
     }
 
     # Pipeline execution options
@@ -110,45 +139,39 @@ def main(
     if no_cache:
         pipeline_options["enable_cache"] = False
 
-    model_artifacts = None
+    model = None
+    training_dataset = None
 
     if train:
         print("\n" + "=" * 80)
         print("Running training pipeline...")
         print("=" * 80 + "\n")
 
-        # Configure and run the training pipeline
-        configured_training_pipeline = training_pipeline.with_options(
-            **pipeline_options
-        )
-        training_results = configured_training_pipeline(**training_params)
+        # Run the training pipeline
+        training_results = training_pipeline(**training_params)
 
-        # Extract evaluation results
         try:
-            # Get model artifacts from evaluate_model step
-            evaluate_step = training_results.steps["evaluate_model"]
+            # Get model and training dataset from pipeline results
+            model, training_dataset = training_results
             
-            # Get model from the 10th output (index 9) of the evaluate_model step
-            model_output = evaluate_step.outputs['model']
-            model_artifacts = {
-                "model": model_output.read(),
-                "training_dataset": training_results.steps["train_model"].outputs['training_dataset'].read()
-            }
+            # Get metrics from metadata
+            client = Client()
+            runs = client.list_pipeline_runs(pipeline_name="retail_forecasting_training_pipeline")
+            latest_run = runs[0]  # Most recent run
             
-            # Get metrics which are now individual outputs
-            mae = evaluate_step.outputs['mae'].read()
-            rmse = evaluate_step.outputs['rmse'].read()
-            smape = evaluate_step.outputs['smape'].read()
-            mape = evaluate_step.outputs['mape'].read()
-            
-            print(f"\nTraining complete! Model accuracy:")
-            print(f"MAE: {mae:.4f}")
-            print(f"RMSE: {rmse:.4f}")
-            print(f"SMAPE: {smape:.4f}%")
-            print(f"MAPE: {mape:.4f}%")
-            print("Evaluation plot saved in ZenML artifacts")
+            # Extract metrics from run metadata
+            if "evaluation_metrics" in latest_run.run_metadata:
+                metrics = latest_run.run_metadata["evaluation_metrics"]
+                print(f"\nTraining complete! Model accuracy:")
+                print(f"MAE: {metrics.get('mae', 'N/A')}")
+                print(f"RMSE: {metrics.get('rmse', 'N/A')}")
+                print(f"SMAPE: {metrics.get('smape', 'N/A')}%")
+                print(f"MAPE: {metrics.get('mape', 'N/A')}%")
+            else:
+                print("\nTraining complete! Model trained successfully.")
+                
         except Exception as e:
-            print(f"Warning: Could not extract training metrics: {e}")
+            print(f"Warning: Could not extract training results: {e}")
             import traceback
             traceback.print_exc()
 
@@ -157,29 +180,24 @@ def main(
         print("Running inference pipeline...")
         print("=" * 80 + "\n")
 
-        # Configure and run the inference pipeline
-        configured_inference_pipeline = inference_pipeline.with_options(
-            **pipeline_options
-        )
-
+        # Configure inference parameters
         inference_params = {
             "forecast_horizon": forecast_horizon,
         }
 
-        # Only pass model_artifacts if we have them from training
-        if model_artifacts is not None:
-            inference_params["model_artifacts"] = model_artifacts
+        # Pass model and training_dataset if available
+        if model is not None and training_dataset is not None:
+            inference_params["model"] = model
+            inference_params["training_dataset"] = training_dataset
 
-        inference_results = configured_inference_pipeline(**inference_params)
+        # Run inference pipeline
+        inference_results = inference_pipeline(**inference_params)
 
-        # Extract forecast results
         try:
-            forecast_data = inference_results.steps["make_predictions"].outputs['forecast_data'].read()
-            method = inference_results.steps["make_predictions"].outputs['method'].read()
-            
-            print(f"\nForecasting complete using {method} method!")
+            # Get forecast results
+            forecast_data, _, _ = inference_results
+            print(f"\nForecasting complete!")
             print(f"Generated forecasts for {forecast_horizon} days ahead")
-            print("Forecast results and visualizations stored in ZenML artifacts")
         except Exception as e:
             print(f"Warning: Could not extract forecast results: {e}")
             import traceback
