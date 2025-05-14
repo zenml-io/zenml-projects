@@ -14,3 +14,4 @@ enable_artifact_metadata: True
 # Pipeline configuration
 parameters:
   test_size: 0.35
+  sample_fraction: null

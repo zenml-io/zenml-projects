@@ -21,8 +21,18 @@ from pathlib import Path
 # ======================================================================
 # Dataset Configuration
 # ======================================================================
-HF_DATASET_NAME = "spectrallabs/credit-scoring-training-dataset"
-TARGET_COLUMN = "target"
+
+CREDIT_SCORING_CSV_PATH = "data/credit_scoring.csv"
+TARGET_COLUMN = "TARGET"
+
+# List of potential sensitive attributes for fairness checks
+SENSITIVE_ATTRIBUTES = [
+    "CODE_GENDER",  # M or F
+    "DAYS_BIRTH",  # age proxy (e.g. -9461 = 26 years old)
+    "NAME_EDUCATION_TYPE",  # High school, Graduate, Academic degree
+    "NAME_FAMILY_STATUS",  # Married, Single, Civil marriage, Separated, Divorced, Widow
+    "NAME_HOUSING_TYPE",  # House / apartment, With parents, Rented apartment, Office apartment, Co-op apartment
+]
 
 # Ignore WhyLogs optional usage-telemetry API
 os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
@@ -54,6 +64,7 @@ RISK_REGISTER_NAME = "cs_risk_register"
 
 # Deployment artifacts
 APPROVED_NAME = "cs_approved"
+APPROVAL_RECORD_NAME = "cs_approval_record"
 DEPLOYMENT_INFO_NAME = "cs_deployment_info"
 MONITORING_PLAN_NAME = "cs_monitoring_plan"
 INCIDENT_REPORT_NAME = "cs_incident_report"
@@ -71,6 +82,9 @@ MODAL_APP_NAME = "credit-scoring-app"
 MODAL_SECRET_NAME = "credit-scoring-secrets"
 MODAL_ENVIRONMENT = "main"
 
+# Maximum number of model versions to keep in the Modal Volume
+MAX_MODEL_VERSIONS = 5
+
 # Modal volume paths (for deployment)
 MODAL_MODELS_DIR = "/models"
 MODAL_PIPELINES_DIR = "/pipelines"
@@ -82,11 +96,13 @@ MODAL_DEPLOYMENTS_DIR = f"{MODAL_COMPLIANCE_DIR}/deployments"
 MODAL_FAIRNESS_DIR = f"{MODAL_COMPLIANCE_DIR}/fairness"
 MODAL_REPORTS_DIR = f"{MODAL_COMPLIANCE_DIR}/reports"
 MODAL_MANUAL_FILLS_DIR = f"{MODAL_COMPLIANCE_DIR}/manual_fills"
+MODAL_RISK_DIR = f"{MODAL_COMPLIANCE_DIR}/risk"
 
 # Default Modal artifact paths
 MODAL_MODEL_PATH = f"{MODAL_MODELS_DIR}/model.pkl"
 MODAL_PREPROCESS_PIPELINE_PATH = f"{MODAL_PIPELINES_DIR}/preprocess_pipeline.pkl"
-MODAL_RISK_REGISTER_PATH = f"{MODAL_MANUAL_FILLS_DIR}/risk_register.xlsx"
+MODAL_RISK_REGISTER_PATH = f"{MODAL_RISK_DIR}/risk_register.xlsx"
+MODAL_INCIDENT_LOG_PATH = f"{MODAL_COMPLIANCE_DIR}/incident_log.json"
 
 # Standard keys for volume_metadata dictionary
 VOLUME_METADATA_KEYS = {
@@ -95,6 +111,7 @@ VOLUME_METADATA_KEYS = {
     "model_path": MODAL_MODEL_PATH,
     "preprocess_pipeline_path": MODAL_PREPROCESS_PIPELINE_PATH,
     "risk_register_path": MODAL_RISK_REGISTER_PATH,
+    "incident_log_path": MODAL_INCIDENT_LOG_PATH,
     "compliance_dir": MODAL_COMPLIANCE_DIR,
     "fairness_dir": MODAL_FAIRNESS_DIR,
     "reports_dir": MODAL_REPORTS_DIR,
@@ -118,20 +135,69 @@ TEMPLATES_DIR = COMPLIANCE_DIR / "templates"
 for dir_path in [REPORTS_DIR, MANUAL_FILLS_DIR, TEMPLATES_DIR]:
     dir_path.mkdir(parents=True, exist_ok=True)
 
+
 # ======================================================================
-# Potential Sensitive Attributes for Fairness Checks
+# Hazard Definitions
 # ======================================================================
 
-# List of potential sensitive attributes for crypto lending dataset (for fairness checks)
-SENSITIVE_ATTRIBUTES = [
-    "wallet_age",
-    "total_balance",
-    "incoming_tx_sum",
-    "outgoing_tx_sum",
-    "max_eth_ever",
-    "first_tx",
-    "last_tx",
-    "balance",
-    "net_incoming",
-    "risk_factor",
-]
+HAZARD_DEFINITIONS = {
+    "bias_protected_groups": {
+        "description": "Unfair bias against protected demographic groups",
+        "trigger": lambda results, scores: (
+            any(
+                abs(v.get("selection_rate_disparity", 0)) > 0.2
+                for v in results["fairness"].values()
+            )
+        ),
+        "severity": "high",
+        "mitigation": (
+            "Re-sample training data; add fairness constraints or post-processing techniques"
+        ),
+    },
+    "low_accuracy": {
+        "description": "Model accuracy below 0.75",
+        "trigger": lambda results, scores: results["metrics"]["accuracy"] < 0.75,
+        "severity": "medium",
+        "mitigation": "Collect more data; tune hyper-parameters",
+    },
+    "data_quality": {
+        "description": "Data-quality issues flagged during preprocessing",
+        "trigger": lambda results, scores: results.get("data_quality", {}).get(
+            "issues_detected", False
+        ),
+        "severity": "medium",
+        "mitigation": "Tighten preprocessing / validation rules",
+    },
+    "model_complexity": {
+        "description": "High model complexity reduces explainability",
+        "trigger": lambda results, scores: results.get("model_info", {}).get("complexity_score", 0)
+        > 0.7,
+        "severity": "low",
+        "mitigation": "Consider simpler model; add SHAP / LIME explanations",
+    },
+    "drift_vulnerability": {
+        "description": "ROC-AUC risk proxy > 0.3 indicates drift fragility",
+        "trigger": lambda results, scores: scores["risk_auc"] > 0.3,
+        "severity": "medium",
+        "mitigation": "Enable drift monitoring; schedule periodic retraining",
+    },
+}
+
+
+# ======================================================================
+# Model Approval Thresholds
+# ======================================================================
+
+APPROVAL_THRESHOLDS = {
+    "accuracy": 0.80,  # Minimum acceptable accuracy
+    "bias_disparity": 0.20,  # Maximum acceptable disparity
+    "risk_score": 0.40,  # Maximum acceptable overall risk
+}
+
+# ======================================================================
+# Incident Reporting Configuration
+# ======================================================================
+
+# Slack webhook URL for incident reporting
+SLACK_CHANNEL = "#credit-scoring-alerts"
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")

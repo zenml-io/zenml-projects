@@ -15,15 +15,15 @@
 # limitations under the License.
 #
 
-import json
 import os
 from datetime import datetime
-from pathlib import Path
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any, Dict, Tuple
 
 from zenml import log_metadata, step
 
 from src.constants import (
+    APPROVAL_RECORD_NAME,
+    APPROVAL_THRESHOLDS,
     APPROVED_NAME,
     EVALUATION_RESULTS_NAME,
     MODAL_APPROVALS_DIR,
@@ -36,7 +36,10 @@ from src.utils.modal_utils import save_artifact_to_modal
 def approve_deployment(
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     risk_scores: Annotated[Dict[str, Any], RISK_SCORES_NAME],
-) -> Annotated[bool, APPROVED_NAME]:
+) -> Tuple[
+    Annotated[bool, APPROVED_NAME],
+    Annotated[Dict[str, Any], APPROVAL_RECORD_NAME],
+]:
     """Human oversight approval gate with comprehensive documentation (Article 14).
 
     Blocks deployment until a human reviews the model and approves it.
@@ -92,6 +95,23 @@ def approve_deployment(
         for measure in risk_scores["mitigation_measures"]:
             print(f"    - {measure}")
 
+    # Create threshold checks
+    threshold_checks = {
+        "Accuracy": evaluation_results["metrics"].get("accuracy", 0)
+        >= APPROVAL_THRESHOLDS["accuracy"],
+        "Bias disparity": all(
+            metrics.get("selection_rate_disparity", 1) <= APPROVAL_THRESHOLDS["bias_disparity"]
+            for attr, metrics in evaluation_results.get("fairness_metrics", {}).items()
+        ),
+        "Risk score": risk_scores.get("overall", 1) <= APPROVAL_THRESHOLDS["risk_score"],
+    }
+
+    # Display threshold check results
+    print("\n🔍 THRESHOLD CHECKS:")
+    for check_name, passed in threshold_checks.items():
+        status = "✅ PASS" if passed else "⚠️ FAIL"
+        print(f"  • {check_name}: {status}")
+
     # Decision prompt
     print("\n📝 APPROVAL DECISION:")
 
@@ -120,6 +140,7 @@ def approve_deployment(
         "approver": approver,
         "rationale": rationale,
         "decision_mode": decision_mode,
+        "threshold_checks": {check: passed for check, passed in threshold_checks.items()},
         "evaluation_summary": {
             "accuracy": evaluation_results["metrics"].get("accuracy", None),
             "auc": evaluation_results["metrics"].get("auc", None),
@@ -132,15 +153,6 @@ def approve_deployment(
         },
     }
 
-    # Save approval record to file
-    save_artifact_to_modal(
-        artifact=approval_record,
-        artifact_path=f"{MODAL_APPROVALS_DIR}/approval_{timestamp.replace(':', '-')}.json",
-    )
-
-    # Log approval metadata for Annex IV documentation
-    log_metadata(metadata={"approval_record": approval_record})
-
     # Final decision message
     if approved:
         print("\n✅ DEPLOYMENT APPROVED")
@@ -148,4 +160,4 @@ def approve_deployment(
         print("\n❌ DEPLOYMENT REJECTED")
         raise RuntimeError(f"Deployment rejected by {approver}: {rationale}")
 
-    return approved
+    return approved, approval_record

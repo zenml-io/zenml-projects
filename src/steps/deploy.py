@@ -23,15 +23,17 @@ from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import (
+    APPROVAL_RECORD_NAME,
     APPROVED_NAME,
     DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
-    MODAL_COMPLIANCE_DIR,
+    MODAL_APPROVALS_DIR,
     MODAL_ENVIRONMENT,
     MODAL_VOLUME_NAME,
     MODEL_NAME,
     PREPROCESS_PIPELINE_NAME,
 )
+from src.utils.modal_utils import save_artifact_to_modal
 
 logger = get_logger(__name__)
 
@@ -53,6 +55,7 @@ def load_python_module(file_path: str) -> Any:
 @step(enable_cache=False)
 def modal_deployment(
     approved: Annotated[bool, APPROVED_NAME],
+    approval_record: Annotated[Dict[str, Any], APPROVAL_RECORD_NAME],
     model: Annotated[Any, MODEL_NAME],
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME],
@@ -68,6 +71,7 @@ def modal_deployment(
 
     Args:
         approved: Whether deployment was approved by human oversight
+        approval_record: The approval record for the deployment
         model: The trained model to deploy
         evaluation_results: Model evaluation metrics and fairness analysis
         preprocess_pipeline: The preprocessing pipeline used in training
@@ -87,12 +91,17 @@ def modal_deployment(
         preprocess_pipeline=preprocess_pipeline,
     )
 
-    # Save deployment record and model card to Modal
+    # Add deployment URL to approval record
+    deployment_url = deployment_record["endpoints"]["root"]
+    approval_record["deployment_url"] = deployment_url
+
+    # Save compliance artifacts to Modal
     from src.utils.modal_utils import save_compliance_artifacts_to_modal
 
     artifacts = {
         "deployment_record": deployment_record,
         "model_card": model_card,
+        "approval_record": approval_record,
     }
 
     # Save all artifacts to Modal volume
@@ -107,6 +116,11 @@ def modal_deployment(
     }
 
     # Log metadata for compliance documentation
-    log_metadata(metadata=deployment_info)
+    log_metadata(
+        metadata={
+            "deployment_info": deployment_info,
+            "approval_record": approval_record,
+        }
+    )
 
     return deployment_info

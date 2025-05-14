@@ -64,6 +64,8 @@ def create_modal_app(python_version: str = "3.12.9"):
         )
         .add_local_python_source("app")
         .add_local_file("src/constants.py", remote_path="/root/src/constants.py")
+        .add_local_file("src/utils/incidents.py", remote_path="/root/src/utils/incidents.py")
+        .add_local_file("src/utils/modal_utils.py", remote_path="/root/src/utils/modal_utils.py")
     )
 
     app_config = {
@@ -120,37 +122,13 @@ def _load_pipeline() -> Any:
 
 def _report_incident(incident_data: dict, model_checksum: str) -> dict:
     """Report incidents to compliance team and log them (Article 18)."""
-    from datetime import datetime
+    from src.utils.incidents import create_incident_report
 
-    import requests
+    # Add deployment context
+    incident_data["source"] = "modal_api"
 
-    # Format incident report
-    incident = {
-        "incident_id": f"incident_{datetime.now().isoformat().replace(':', '-')}",
-        "timestamp": datetime.now().isoformat(),
-        "model_version": model_checksum[:8],
-        "severity": incident_data.get("severity", "medium"),
-        "description": incident_data.get("description", "Unspecified incident"),
-        "data": incident_data,
-    }
-
-    # Save incident to log
-    try:
-        # Log to persistent storage
-        with open("/tmp/incident_log.json", "a") as f:
-            f.write(json.dumps(incident) + "\n")
-
-        # Optional: Send to webhook
-        webhook_url = incident_data.get("webhook_url")
-        if webhook_url:
-            requests.post(webhook_url, json=incident)
-
-        return {
-            "status": "reported",
-            "incident_id": incident["incident_id"],
-        }
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    # Create the incident report
+    return create_incident_report(incident_data, model_checksum[:8])
 
 
 def _monitor_data_drift() -> dict:

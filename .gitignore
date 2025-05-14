@@ -53,7 +53,7 @@ wandb/
 model_outputs/
 
 # Data
-*.csv
+# *.csv
 *.tsv
 !requirements.txt
 

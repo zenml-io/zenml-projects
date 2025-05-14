@@ -22,7 +22,7 @@ from typing import Annotated, Any, Dict, List
 import pandas as pd
 from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score, roc_auc_score
-from zenml import log_metadata, step
+from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
 
@@ -143,18 +143,24 @@ def evaluate_model(
         }
     )
 
-    # Optional alert
-    # if bias_flag:
-    #     try:
-    #         from slack_sdk import WebClient
+    # Alert on bias detection
+    if bias_flag:
+        try:
+            # Use the incident reporting API
+            incident_data = {
+                "severity": "high",
+                "description": "Bias detected in model evaluation",
+                "details": f"Disparity > 0.2 detected in protected attributes: {', '.join(protected_attributes)}",
+                "source": "evaluate_model",
+                "run_id": get_step_context().pipeline_run.id,
+            }
 
-    #         zenml_client = Client()
-    #         slack_client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-    #         slack_client.chat_postMessage(
-    #             channel=os.getenv("SLACK_CHANNEL", "#ai-alerts"),
-    #             text=f":warning: Bias detected in run - disparity > 0.2\nRun ID: {zenml_client.active_stack_model.id}",
-    #         )
-    #     except Exception:
-    #         pass
+            # Log from internal pipeline (doesn't go through API endpoint)
+            from src.utils.incidents import create_incident_report
+
+            create_incident_report(incident_data)
+
+        except Exception as e:
+            logger.warning(f"Failed to report bias incident: {e}")
 
     return {"metrics": metrics, "fairness": fairness_report}

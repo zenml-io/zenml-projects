@@ -16,7 +16,7 @@
 # 
 
 # feature engineering
-from .data_loader import data_loader
+from .ingest import ingest
 from .data_splitter import data_splitter
 from .data_preprocessor import data_preprocessor
 from .generate_compliance_metadata import generate_compliance_metadata

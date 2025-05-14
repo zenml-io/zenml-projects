@@ -14,12 +14,8 @@ enable_artifact_metadata: True
 # Pipeline parameters
 parameters:
   protected_attributes:
-    - "scale__wallet_age"
-    - "scale__total_balance_eth"
-    - "scale__incoming_tx_sum_eth"
-    - "scale__outgoing_tx_sum_eth"
-    - "scale__max_eth_ever"
-    - "scale__first_tx_timestamp"
-    - "scale__last_tx_timestamp"
-    - "scale__net_incoming_tx_count"
-    - "scale__risk_factor"
+    - "scale__CODE_GENDER"
+    - "scale__DAYS_BIRTH"
+    - "scale__NAME_EDUCATION_TYPE"
+    - "scale__NAME_FAMILY_STATUS"
+    - "scale__NAME_HOUSING_TYPE"

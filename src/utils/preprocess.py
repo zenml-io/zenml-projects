@@ -1,43 +1,59 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2025. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# src/utils/preprocessing_utils.py
+from datetime import datetime
+from typing import List
 
-
-import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
-def get_numeric_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Return only the numeric features from a dataframe.
+class DropIDColumn(BaseEstimator, TransformerMixin):
+    """Sklearn transformer to drop ID column."""
 
-    Args:
-        df: The input dataframe.
+    def __init__(self, column: str = "SK_ID_CURR"):
+        self.column = column
 
-    Returns:
-        A dataframe with only numeric features.
-    """
-    return df.select_dtypes(include=["number"])
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        return X.drop(columns=[self.column], errors="ignore")
 
 
-def to_native(obj):
-    """Convert numpy types to Python native types."""
-    if isinstance(obj, np.generic):
-        return obj.item()
-    if isinstance(obj, dict):
-        return {k: to_native(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [to_native(v) for v in obj]
-    return obj
+class SimpleScaler(BaseEstimator, TransformerMixin):
+    """Sklearn transformer to scale numeric columns."""
+
+    def __init__(self, exclude: List[str]):
+        from sklearn.preprocessing import StandardScaler
+
+        self.exclude = exclude
+        self.scaler = StandardScaler()
+
+    def fit(self, X, y=None):
+        to_scale = [
+            c for c in X.columns if c not in self.exclude and pd.api.types.is_numeric_dtype(X[c])
+        ]
+        self.scaler.fit(X[to_scale])
+        self._cols = to_scale
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        df = X.copy()
+        df[self._cols] = self.scaler.transform(df[self._cols])
+        return df
+
+
+class DeriveAgeFeatures(BaseEstimator, TransformerMixin):
+    """Create AGE_YEARS and EMPLOYMENT_YEARS from DAYS_BIRTH / DAYS_EMPLOYED."""
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        df = X.copy()
+        if "DAYS_BIRTH" in df:
+            df["AGE_YEARS"] = -df["DAYS_BIRTH"] / 365.25
+        if "DAYS_EMPLOYED" in df:
+            df["EMPLOYMENT_YEARS"] = df["DAYS_EMPLOYED"].apply(
+                lambda x: abs(x) / 365.25 if x < 0 else 0
+            )
+        return df

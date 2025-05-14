@@ -72,7 +72,7 @@ def deployment(
         )
 
     # Human oversight approval gate (Article 14)
-    approved = approve_deployment(
+    approved, approval_record = approve_deployment(
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
     )
@@ -80,6 +80,7 @@ def deployment(
     # Model deployment with integrated monitoring (Articles 10, 17, 18)
     deployment_info = modal_deployment(
         approved=approved,
+        approval_record=approval_record,
         model=model,
         evaluation_results=evaluation_results,
         preprocess_pipeline=preprocess_pipeline,
