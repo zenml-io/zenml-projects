@@ -50,6 +50,12 @@ preprocessor = "preprocessor"
 logits = "logits"
 analyse = "analyse"
 Labour = "Labour"
+# Forecasting and statistical terms
+MAPE = "MAPE"
+mape = "mape"
+yhat = "yhat"
+yhat_lower = "yhat_lower"
+yhat_upper = "yhat_upper"
 
 [default]
 locale = "en-us"
