@@ -93,9 +93,6 @@ def main(
             name="retail_forecast_model",
             description="A retail forecast model trained on the sales data",
         )
-        # Add training-specific parameters
-        pipeline_params["test_size"] = test_size
-        pipeline_params["weekly_seasonality"] = weekly_seasonality
 
         print("Running retail forecasting training pipeline...")
         training_pipeline.with_options(model=model, **pipeline_options)()
