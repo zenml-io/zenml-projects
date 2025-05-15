@@ -38,7 +38,7 @@ The system automatically handles:
 
 <div align="center">
   <br/>
-    <img alt="Data Visualization" src="assets/data_visualization.png" width="70%">
+    <img alt="Data Visualization" src="assets/data_visualization.gif" width="70%">
   <br/>
   <p><em>Interactive visualization of historical sales patterns</em></p>
 </div>
@@ -107,12 +107,6 @@ Prophet was selected for this solution because it excels at:
 - Providing intuitive parameters that business users can understand
 - Scaling to thousands of individual time series efficiently
 
-<div align="center">
-  <br/>
-    <img alt="Model Components" src="assets/model_components.png" width="70%">
-  <br/>
-  <p><em>Decomposition of sales data into trend, weekly seasonality, and yearly patterns</em></p>
-</div>
 
 ## 💻 Technical Implementation
 
