@@ -118,7 +118,7 @@ The project leverages ZenML's MLOps framework to provide:
 - **Artifact Tracking**: All data and models are properly versioned and stored
 - **Deployment Ready**: Models can be directly deployed to production environments
 
-A key innovation in this project is the custom ProphetMaterializer that enables:
+A key thing to note in this project is the custom `ProphetMaterializer` that enables:
 - Serialization/deserialization of Prophet models for ZenML artifact storage
 - Handling dictionaries of multiple Prophet models in a single artifact
 - Efficient model loading for batch inference at scale
