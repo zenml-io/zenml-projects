@@ -1,14 +1,17 @@
-from zenml import step, log_metadata
-import pandas as pd
-import numpy as np
-import torch
-import matplotlib.pyplot as plt
+import base64
+from datetime import timedelta
 from io import BytesIO
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import torch
+from prophet import Prophet
 from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
-from zenml.types import HTMLString
 from typing_extensions import Annotated
+from zenml import log_metadata, step
+from zenml.types import HTMLString
 
 
 @step
@@ -27,13 +30,13 @@ def make_predictions(
 ]:
     """
     Generate predictions for future periods using the trained model.
-    
+
     Args:
         model: Trained TFT model or None for naive forecast
         training_dataset: Training dataset used for the model or None for naive forecast
         test_data: Test dataframe with historical data
         forecast_horizon: Number of days to forecast into the future
-    
+
     Returns:
         forecast_data: Dictionary containing forecast data
         forecast_plot: Bytes of the forecast plot image
@@ -45,7 +48,7 @@ def make_predictions(
     # Handle case where no model or training dataset are passed (predict-only mode)
     if model is None or training_dataset is None:
         print("Using naive forecasting method (last value)")
-        
+
         # Create a naive model that predicts the last known value for each series
         forecast_df = naive_forecast(test_data, forecast_horizon)
 
@@ -58,8 +61,12 @@ def make_predictions(
         )
 
         for i, series_id in enumerate(sample_series):
-            historical = test_data[test_data["series_id"] == series_id].sort_values("date")
-            forecast = forecast_df[forecast_df["series_id"] == series_id].sort_values("date")
+            historical = test_data[
+                test_data["series_id"] == series_id
+            ].sort_values("date")
+            forecast = forecast_df[
+                forecast_df["series_id"] == series_id
+            ].sort_values("date")
 
             plt.subplot(3, 1, i + 1)
             plt.plot(
@@ -235,13 +242,19 @@ def make_predictions(
 
     for i, series_id in enumerate(sample_series):
         # Get historical data
-        historical = test_data[test_data["series_id"] == series_id].sort_values("date")
+        historical = test_data[
+            test_data["series_id"] == series_id
+        ].sort_values("date")
         # Get forecast data
-        forecast = forecast_df[forecast_df["series_id"] == series_id].sort_values("date")
+        forecast = forecast_df[
+            forecast_df["series_id"] == series_id
+        ].sort_values("date")
 
         plt.subplot(3, 1, i + 1)
         # Plot historical
-        plt.plot(historical["date"], historical["sales"], "b-", label="Historical")
+        plt.plot(
+            historical["date"], historical["sales"], "b-", label="Historical"
+        )
         # Plot forecast
         plt.plot(
             forecast["date"],
@@ -302,7 +315,7 @@ def get_sample_forecasts(forecast_df: pd.DataFrame) -> dict:
     series_ids_list = []
     dates = []
     predictions = []
-    
+
     # Group by series_id and get first record from each group
     for series_id in forecast_df["series_id"].unique():
         series_data = forecast_df[forecast_df["series_id"] == series_id]
@@ -310,11 +323,11 @@ def get_sample_forecasts(forecast_df: pd.DataFrame) -> dict:
         series_ids_list.append(series_id)
         dates.append(first_row["date"])
         predictions.append(first_row["sales_prediction"])
-    
+
     sample_records["series_id"] = series_ids_list
     sample_records["date"] = dates
     sample_records["sales_prediction"] = predictions
-    
+
     return sample_records
 
 
@@ -373,15 +386,17 @@ def create_forecast_visualization(
 ) -> HTMLString:
     """Create an HTML visualization of forecasting results."""
     # Create a simpler visualization with just the key information
-    method_name = "Temporal Fusion Transformer" if method == "tft" else "Naive Forecast"
-    
+    method_name = (
+        "Temporal Fusion Transformer" if method == "tft" else "Naive Forecast"
+    )
+
     # Get forecast start and end dates
     forecast_start = forecast_df["date"].min()
     forecast_end = forecast_df["date"].max()
 
     # Calculate total forecasted sales
     total_forecast = forecast_df["sales_prediction"].sum()
-    
+
     # Create HTML
     html = f"""
     <!DOCTYPE html>
@@ -417,3 +432,97 @@ def create_forecast_visualization(
     """
 
     return HTMLString(html)
+
+
+@step
+def generate_forecasts(
+    models: Dict[str, Prophet],
+    train_data_dict: Dict[str, pd.DataFrame],
+    series_ids: List[str],
+    forecast_periods: int = 30,
+) -> Dict[str, pd.DataFrame]:
+    """
+    Generate future forecasts using trained Prophet models.
+
+    Args:
+        models: Dictionary of trained Prophet models
+        train_data_dict: Dictionary of training data for each series
+        series_ids: List of series identifiers
+        forecast_periods: Number of periods to forecast into the future
+
+    Returns:
+        Dictionary of forecast dataframes for each series
+    """
+    forecasts = {}
+
+    # Create a plot to visualize all forecasts
+    plt.figure(figsize=(12, len(series_ids) * 4))
+
+    for i, series_id in enumerate(series_ids):
+        print(f"Generating forecast for {series_id}...")
+        model = models[series_id]
+
+        # Get last date from training data
+        last_date = train_data_dict[series_id]["ds"].max()
+
+        # Create future dataframe
+        future = model.make_future_dataframe(periods=forecast_periods)
+
+        # Generate forecast
+        forecast = model.predict(future)
+
+        # Store forecast
+        forecasts[series_id] = forecast
+
+        # Plot the forecast
+        plt.subplot(len(series_ids), 1, i + 1)
+
+        # Plot training data
+        train_data = train_data_dict[series_id]
+        plt.plot(train_data["ds"], train_data["y"], "b.", label="Historical")
+
+        # Plot forecast
+        plt.plot(forecast["ds"], forecast["yhat"], "r-", label="Forecast")
+        plt.fill_between(
+            forecast["ds"],
+            forecast["yhat_lower"],
+            forecast["yhat_upper"],
+            color="gray",
+            alpha=0.2,
+        )
+
+        # Add a vertical line at the forecast start
+        plt.axvline(x=last_date, color="k", linestyle="--")
+
+        plt.title(f"Forecast for {series_id}")
+        plt.legend()
+
+    # Save plot to buffer
+    buf = BytesIO()
+    plt.tight_layout()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plot_data = base64.b64encode(buf.read()).decode("utf-8")
+    plt.close()
+
+    # Create a combined forecast dataframe for all series
+    combined_forecast = []
+    for series_id, forecast in forecasts.items():
+        # Add series_id column
+        forecast_with_id = forecast.copy()
+        forecast_with_id["series_id"] = series_id
+
+        # Extract store and item from series_id
+        store, item = series_id.split("-")
+        forecast_with_id["store"] = store
+        forecast_with_id["item"] = item
+
+        combined_forecast.append(forecast_with_id)
+
+    combined_df = pd.concat(combined_forecast)
+
+    print(
+        f"Generated forecasts for {len(forecasts)} series, {forecast_periods} periods ahead"
+    )
+
+    return forecasts

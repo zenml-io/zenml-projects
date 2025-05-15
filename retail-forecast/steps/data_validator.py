@@ -1,10 +1,17 @@
-from zenml import step
-import pandas as pd
 from typing import Tuple
+
+import pandas as pd
 from typing_extensions import Annotated
+from zenml import step
+
 
 @step
-def validate_data(sales_data: pd.DataFrame, calendar_data: pd.DataFrame) -> Tuple[Annotated[pd.DataFrame, "sales_data_validated"], Annotated[pd.DataFrame, "calendar_data_validated"]]:
+def validate_data(
+    sales_data: pd.DataFrame, calendar_data: pd.DataFrame
+) -> Tuple[
+    Annotated[pd.DataFrame, "sales_data_validated"],
+    Annotated[pd.DataFrame, "calendar_data_validated"],
+]:
     """
     Validate retail sales data, checking for common issues like:
     - Missing values
