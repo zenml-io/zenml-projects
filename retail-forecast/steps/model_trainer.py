@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import pandas as pd
 from prophet import Prophet
+from typing_extensions import Annotated
 from zenml import step
 
 
@@ -13,7 +14,7 @@ def train_model(
     yearly_seasonality: bool = False,
     daily_seasonality: bool = False,
     seasonality_mode: str = "multiplicative",
-) -> Dict[str, Prophet]:
+) -> Annotated[Dict[str, Prophet], "trained_prophet_models"]:
     """
     Train a Prophet model for each store-item combination.
 

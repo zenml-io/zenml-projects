@@ -80,12 +80,6 @@ def main(
     print("Pipeline completed successfully!")
     print("=" * 80 + "\n")
 
-    # Print info about how to access results
-    print("To view the pipeline results:")
-    print("1. Use the ZenML Dashboard: 'zenml up' (if not already running)")
-    print("2. Visit the dashboard URL to see visualizations and metrics")
-    print("3. Or use the ZenML CLI: 'zenml pipeline runs list'")
-
 
 if __name__ == "__main__":
     main()

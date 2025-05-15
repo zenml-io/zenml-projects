@@ -1,12 +1,14 @@
 import base64
 from io import BytesIO
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from prophet import Prophet
+from typing_extensions import Annotated
 from zenml import log_metadata, step
+from zenml.types import HTMLString
 
 
 @step
@@ -15,7 +17,10 @@ def evaluate_models(
     test_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],
     forecast_horizon: int = 7,
-) -> Dict[str, float]:
+) -> Tuple[
+    Annotated[Dict[str, float], "performance_metrics"],
+    Annotated[HTMLString, "evaluation_report"],
+]:
     """
     Evaluate Prophet models on test data and log metrics.
 
@@ -26,7 +31,8 @@ def evaluate_models(
         forecast_horizon: Number of future time periods to forecast
 
     Returns:
-        Dictionary of average metrics across all series
+        performance_metrics: Dictionary of average metrics across all series
+        evaluation_report: HTML report with evaluation metrics and visualizations
     """
     # Initialize metrics storage
     all_metrics = {"mae": [], "rmse": [], "mape": []}
@@ -136,4 +142,108 @@ def evaluate_models(
         else "Average MAPE: N/A"
     )
 
-    return average_metrics
+    # Create HTML report
+    html_report = create_evaluation_report(
+        average_metrics, series_metrics, plot_data
+    )
+
+    return average_metrics, html_report
+
+
+def create_evaluation_report(average_metrics, series_metrics, plot_image_data):
+    """Create an HTML report for model evaluation."""
+    # Create a table for series-specific metrics
+    series_rows = ""
+    for series_id, metrics in series_metrics.items():
+        mape_value = (
+            f"{metrics['mape']:.2f}%"
+            if not np.isnan(metrics.get("mape", np.nan))
+            else "N/A"
+        )
+        series_rows += f"""
+        <tr class="border-b">
+            <td class="py-2 px-4">{series_id}</td>
+            <td class="py-2 px-4 text-right">{metrics["mae"]:.2f}</td>
+            <td class="py-2 px-4 text-right">{metrics["rmse"]:.2f}</td>
+            <td class="py-2 px-4 text-right">{mape_value}</td>
+        </tr>
+        """
+
+    # Create overall metrics section
+    avg_mape = (
+        f"{average_metrics['avg_mape']:.2f}%"
+        if not np.isnan(average_metrics.get("avg_mape", np.nan))
+        else "N/A"
+    )
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Prophet Model Evaluation</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }}
+            h1, h2 {{ color: #2c3e50; }}
+            .metrics-container {{ display: flex; gap: 20px; margin-bottom: 30px; }}
+            .metric-card {{ background: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; }}
+            .metric-value {{ font-size: 28px; font-weight: bold; color: #3498db; margin: 10px 0; }}
+            .metric-label {{ font-size: 14px; color: #7f8c8d; text-transform: uppercase; }}
+            table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+            th {{ background: #eef1f5; text-align: left; padding: 12px; }}
+            td {{ padding: 10px; }}
+            .series-table {{ max-height: 400px; overflow-y: auto; }}
+            .forecast-plot {{ margin-top: 30px; text-align: center; }}
+            .forecast-plot img {{ max-width: 100%; height: auto; border-radius: 4px; }}
+        </style>
+    </head>
+    <body>
+        <h1>Prophet Model Evaluation Results</h1>
+        
+        <div class="metrics-container">
+            <div class="metric-card">
+                <div class="metric-label">Average MAE</div>
+                <div class="metric-value">{average_metrics["avg_mae"]:.2f}</div>
+                <div>Mean Absolute Error</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Average RMSE</div>
+                <div class="metric-value">{average_metrics["avg_rmse"]:.2f}</div>
+                <div>Root Mean Square Error</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Average MAPE</div>
+                <div class="metric-value">{avg_mape}</div>
+                <div>Mean Absolute Percentage Error</div>
+            </div>
+        </div>
+        
+        <h2>Series-Specific Metrics</h2>
+        <div class="series-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Series ID</th>
+                        <th>MAE</th>
+                        <th>RMSE</th>
+                        <th>MAPE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {series_rows}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="forecast-plot">
+            <h2>Forecast Visualization</h2>
+            <img src="data:image/png;base64,{plot_image_data}" alt="Forecast Plot">
+        </div>
+    </body>
+    </html>
+    """
+
+    return HTMLString(html)

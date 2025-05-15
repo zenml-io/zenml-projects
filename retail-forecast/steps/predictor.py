@@ -6,18 +6,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import torch
 from prophet import Prophet
-from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
-from typing_extensions import Annotated
 from zenml import log_metadata, step
+from typing_extensions import Annotated
 from zenml.types import HTMLString
 
 
 @step
 def make_predictions(
-    model: Optional[TemporalFusionTransformer],
-    training_dataset: Optional[TimeSeriesDataSet],
+    model: Optional[Prophet],
+    training_dataset: Optional[pd.DataFrame],
     test_data: pd.DataFrame,
     forecast_horizon: int = 14,
 ) -> Tuple[
@@ -440,7 +438,11 @@ def generate_forecasts(
     train_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],
     forecast_periods: int = 30,
-) -> Dict[str, pd.DataFrame]:
+) -> Tuple[
+    Annotated[Dict[str, pd.DataFrame], "forecasts_by_series"],
+    Annotated[pd.DataFrame, "combined_forecast"],
+    Annotated[HTMLString, "forecast_dashboard"],
+]:
     """
     Generate future forecasts using trained Prophet models.
 
@@ -451,7 +453,9 @@ def generate_forecasts(
         forecast_periods: Number of periods to forecast into the future
 
     Returns:
-        Dictionary of forecast dataframes for each series
+        forecasts_by_series: Dictionary of forecast dataframes for each series
+        combined_forecast: Combined dataframe with all series forecasts
+        forecast_dashboard: HTML dashboard with forecast visualizations
     """
     forecasts = {}
 
@@ -521,8 +525,165 @@ def generate_forecasts(
 
     combined_df = pd.concat(combined_forecast)
 
+    # Log basic metadata (not the large plot)
+    log_metadata(
+        metadata={
+            "forecast_horizon": forecast_periods,
+            "num_series": len(series_ids),
+        }
+    )
+
+    # Create HTML dashboard
+    forecast_dashboard = create_forecast_dashboard(
+        forecasts, series_ids, train_data_dict, plot_data, forecast_periods
+    )
+
     print(
         f"Generated forecasts for {len(forecasts)} series, {forecast_periods} periods ahead"
     )
 
-    return forecasts
+    return forecasts, combined_df, forecast_dashboard
+
+
+def create_forecast_dashboard(
+    forecasts, series_ids, train_data_dict, plot_image_data, forecast_horizon
+):
+    """Create an HTML dashboard for forecast visualization."""
+
+    # Generate forecast metrics
+    series_stats = []
+    for series_id in series_ids:
+        forecast = forecasts[series_id]
+        future_period = forecast.iloc[-forecast_horizon:]
+
+        # Extract store and item
+        store, item = series_id.split("-")
+
+        # Get statistics
+        avg_forecast = future_period["yhat"].mean()
+        min_forecast = future_period["yhat"].min()
+        max_forecast = future_period["yhat"].max()
+
+        # Get growth rate compared to historical
+        historical = train_data_dict[series_id]["y"].mean()
+        growth = (
+            ((avg_forecast / historical) - 1) * 100 if historical > 0 else 0
+        )
+
+        series_stats.append(
+            {
+                "series_id": series_id,
+                "store": store,
+                "item": item,
+                "avg_forecast": avg_forecast,
+                "min_forecast": min_forecast,
+                "max_forecast": max_forecast,
+                "growth": growth,
+            }
+        )
+
+    # Create table rows for series statistics
+    series_rows = ""
+    for stat in series_stats:
+        growth_class = (
+            "text-green-600 font-bold"
+            if stat["growth"] >= 0
+            else "text-red-600 font-bold"
+        )
+        growth_sign = "+" if stat["growth"] >= 0 else ""
+
+        series_rows += f"""
+        <tr class="border-b hover:bg-gray-50">
+            <td class="py-3 px-4">{stat["series_id"]}</td>
+            <td class="py-3 px-4">{stat["store"]}</td>
+            <td class="py-3 px-4">{stat["item"]}</td>
+            <td class="py-3 px-4 text-right">{stat["avg_forecast"]:.1f}</td>
+            <td class="py-3 px-4 text-right">{stat["min_forecast"]:.1f}</td>
+            <td class="py-3 px-4 text-right">{stat["max_forecast"]:.1f}</td>
+            <td class="py-3 px-4 text-right {growth_class}">{growth_sign}{stat["growth"]:.1f}%</td>
+        </tr>
+        """
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Retail Sales Forecast Dashboard</title>
+        <style>
+            body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }}
+            h1, h2 {{ color: #2c3e50; }}
+            .header {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid #3498db; }}
+            .summary {{ display: flex; gap: 20px; margin-bottom: 30px; }}
+            .summary-card {{ background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; text-align: center; }}
+            .summary-value {{ font-size: 24px; font-weight: bold; color: #3498db; margin: 10px 0; }}
+            .table-container {{ margin: 30px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            th {{ background: #eef1f5; text-align: left; padding: 12px 15px; font-weight: 600; }}
+            td {{ padding: 10px 15px; }}
+            tr:nth-child(even) {{ background-color: #f8f9fa; }}
+            .forecast-viz {{ margin-top: 40px; text-align: center; }}
+            .forecast-viz img {{ max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
+            .text-green-600 {{ color: #0d9488; }}
+            .text-red-600 {{ color: #dc2626; }}
+            .font-bold {{ font-weight: bold; }}
+            .border-b {{ border-bottom: 1px solid #e5e7eb; }}
+            .hover\\:bg-gray-50:hover {{ background-color: #f9fafb; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Retail Sales Forecast Dashboard</h1>
+            <p>Forecast horizon: {forecast_horizon} periods | Total series: {len(series_ids)}</p>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Average Forecast</h3>
+                <div class="summary-value">{sum([s["avg_forecast"] for s in series_stats]) / len(series_stats):.1f}</div>
+                <p>Average predicted sales across all series</p>
+            </div>
+            
+            <div class="summary-card">
+                <h3>Total Growth</h3>
+                <div class="summary-value">{sum([s["growth"] for s in series_stats]) / len(series_stats):.1f}%</div>
+                <p>Average growth compared to historical</p>
+            </div>
+            
+            <div class="summary-card">
+                <h3>Top Performer</h3>
+                <div class="summary-value">{max(series_stats, key=lambda x: x["growth"])["series_id"]}</div>
+                <p>Series with highest growth rate</p>
+            </div>
+        </div>
+        
+        <h2>Forecast by Series</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Series ID</th>
+                        <th>Store</th>
+                        <th>Item</th>
+                        <th>Avg Forecast</th>
+                        <th>Min Forecast</th>
+                        <th>Max Forecast</th>
+                        <th>Growth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {series_rows}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="forecast-viz">
+            <h2>Forecast Visualization</h2>
+            <img src="data:image/png;base64,{plot_image_data}" alt="Forecast Visualization">
+        </div>
+    </body>
+    </html>
+    """
+
+    return HTMLString(html)

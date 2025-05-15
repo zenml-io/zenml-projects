@@ -1,9 +1,13 @@
+from typing import Dict, Tuple
+
 from steps.data_loader import load_data
 from steps.data_preprocessor import preprocess_data
 from steps.model_evaluator import evaluate_models
 from steps.model_trainer import train_model
 from steps.predictor import generate_forecasts
+from typing_extensions import Annotated
 from zenml import pipeline
+from zenml.types import HTMLString
 
 
 @pipeline(name="retail_forecast_pipeline")
@@ -11,7 +15,11 @@ def training_pipeline(
     test_size: float = 0.2,
     forecast_periods: int = 30,
     weekly_seasonality: bool = True,
-):
+) -> Tuple[
+    Annotated[Dict[str, float], "model_metrics"],
+    Annotated[HTMLString, "evaluation_report"],
+    Annotated[HTMLString, "forecast_dashboard"],
+]:
     """
     Simple retail forecasting pipeline using Prophet.
 
@@ -26,6 +34,11 @@ def training_pipeline(
         test_size: Proportion of data to use for testing
         forecast_periods: Number of days to forecast into the future
         weekly_seasonality: Whether to include weekly seasonality in the model
+
+    Returns:
+        model_metrics: Dictionary of performance metrics
+        evaluation_report: HTML report of model evaluation
+        forecast_dashboard: HTML dashboard of forecasts
     """
     # Load synthetic retail data
     sales_data = load_data()
@@ -43,14 +56,16 @@ def training_pipeline(
     )
 
     # Evaluate models
-    metrics = evaluate_models(
+    metrics, evaluation_report = evaluate_models(
         models=models, test_data_dict=test_data_dict, series_ids=series_ids
     )
 
     # Generate forecasts
-    forecasts = generate_forecasts(
+    _, _, forecast_dashboard = generate_forecasts(
         models=models,
         train_data_dict=train_data_dict,
         series_ids=series_ids,
         forecast_periods=forecast_periods,
     )
+
+    return metrics, evaluation_report, forecast_dashboard

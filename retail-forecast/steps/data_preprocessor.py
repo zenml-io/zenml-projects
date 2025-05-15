@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple
 
 import pandas as pd
+from typing_extensions import Annotated
 from zenml import step
 
 
@@ -8,7 +9,11 @@ from zenml import step
 def preprocess_data(
     sales_data: pd.DataFrame,
     test_size: float = 0.2,
-) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], List[str]]:
+) -> Tuple[
+    Annotated[Dict[str, pd.DataFrame], "training_data"],
+    Annotated[Dict[str, pd.DataFrame], "testing_data"],
+    Annotated[List[str], "series_identifiers"],
+]:
     """
     Prepare data for forecasting with Prophet.
 
