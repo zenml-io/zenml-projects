@@ -92,7 +92,7 @@ The inference pipeline enables fast forecasting with pre-trained models:
 
 ## 📈 Model Details
 
-The forecasting solution uses Facebook Prophet, chosen specifically for its combination of accuracy and simplicity in retail forecasting scenarios:
+The forecasting solution uses [Facebook Prophet](https://github.com/facebook/prophet), chosen specifically for its combination of accuracy and simplicity in retail forecasting scenarios:
 
 - **Multiple Models Approach**: Rather than a one-size-fits-all model, we generate individual Prophet models for each store-item combination, allowing forecasts that capture the unique patterns of each product in each location
 - **Components**: Prophet automatically decomposes time series into trend, seasonality, and holidays
