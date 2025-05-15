@@ -131,7 +131,7 @@ A key innovation in this project is the custom ProphetMaterializer that enables 
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.9+
 - ZenML installed and configured
 
 ### Installation
