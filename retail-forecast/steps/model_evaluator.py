@@ -1,6 +1,7 @@
 import base64
 from io import BytesIO
 from typing import Dict, List, Tuple
+import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,8 @@ from prophet import Prophet
 from typing_extensions import Annotated
 from zenml import log_metadata, step
 from zenml.types import HTMLString
+
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -42,20 +45,20 @@ def evaluate_models(
     plt.figure(figsize=(12, len(series_ids) * 4))
 
     for i, series_id in enumerate(series_ids):
-        print(f"Evaluating model for {series_id}...")
+        logger.info(f"Evaluating model for {series_id}...")
         model = models[series_id]
         test_data = test_data_dict[series_id]
 
         # Debug: Check that test data exists
-        print(f"Test data shape for {series_id}: {test_data.shape}")
-        print(
+        logger.info(f"Test data shape for {series_id}: {test_data.shape}")
+        logger.info(
             f"Test data date range: {test_data['ds'].min()} to {test_data['ds'].max()}"
         )
 
         # Create future dataframe starting from the FIRST test date, not from training data
         future_dates = test_data["ds"].unique()
         if len(future_dates) == 0:
-            print(
+            logger.info(
                 f"WARNING: No test data dates for {series_id}, skipping evaluation"
             )
             continue
@@ -64,8 +67,8 @@ def evaluate_models(
         forecast = model.predict(pd.DataFrame({"ds": future_dates}))
 
         # Print debug info
-        print(f"Forecast shape: {forecast.shape}")
-        print(
+        logger.info(f"Forecast shape: {forecast.shape}")
+        logger.info(
             f"Forecast date range: {forecast['ds'].min()} to {forecast['ds'].max()}"
         )
 
@@ -77,9 +80,9 @@ def evaluate_models(
             how="inner",  # Only keep matching dates
         )
 
-        print(f"Merged data shape: {merged_data.shape}")
+        logger.info(f"Merged data shape: {merged_data.shape}")
         if merged_data.empty:
-            print(
+            logger.info(
                 f"WARNING: No matching dates between test data and forecast for {series_id}"
             )
             continue
@@ -91,8 +94,8 @@ def evaluate_models(
             predictions = merged_data["yhat"].values
 
             # Debug metrics calculation
-            print(f"Actuals range: {actuals.min()} to {actuals.max()}")
-            print(
+            logger.info(f"Actuals range: {actuals.min()} to {actuals.max()}")
+            logger.info(
                 f"Predictions range: {predictions.min()} to {predictions.max()}"
             )
 
@@ -125,7 +128,7 @@ def evaluate_models(
             if not np.isnan(mape):
                 all_metrics["mape"].append(mape)
 
-            print(
+            logger.info(
                 f"Metrics for {series_id}: MAE={mae:.2f}, RMSE={rmse:.2f}, MAPE={mape:.2f}%"
             )
 
@@ -147,7 +150,7 @@ def evaluate_models(
 
     # Calculate average metrics across all series
     if not all_metrics["mae"]:
-        print("WARNING: No valid metrics calculated!")
+        logger.info("WARNING: No valid metrics calculated!")
         average_metrics = {
             "avg_mae": np.nan,
             "avg_rmse": np.nan,
@@ -185,9 +188,9 @@ def evaluate_models(
         }
     )
 
-    print(f"Final Average MAE: {average_metrics['avg_mae']:.2f}")
-    print(f"Final Average RMSE: {average_metrics['avg_rmse']:.2f}")
-    print(
+    logger.info(f"Final Average MAE: {average_metrics['avg_mae']:.2f}")
+    logger.info(f"Final Average RMSE: {average_metrics['avg_rmse']:.2f}")
+    logger.info(
         f"Final Average MAPE: {average_metrics['avg_mape']:.2f}%"
         if not np.isnan(average_metrics["avg_mape"])
         else "Final Average MAPE: N/A"

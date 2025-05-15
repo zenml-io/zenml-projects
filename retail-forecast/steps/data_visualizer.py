@@ -1,4 +1,5 @@
 from typing import Dict, List
+import logging
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,8 @@ from plotly.subplots import make_subplots
 from typing_extensions import Annotated
 from zenml import step
 from zenml.types import HTMLString
+
+logger = logging.getLogger(__name__)
 
 
 @step

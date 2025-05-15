@@ -1,8 +1,11 @@
 from typing import Dict, List, Tuple
+import logging
 
 import pandas as pd
 from typing_extensions import Annotated
 from zenml import step
+
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -25,7 +28,7 @@ def preprocess_data(
         test_data_dict: Dictionary of test dataframes for each series
         series_ids: List of unique series identifiers (store-item combinations)
     """
-    print(f"Preprocessing sales data with shape: {sales_data.shape}")
+    logger.info(f"Preprocessing sales data with shape: {sales_data.shape}")
 
     # Convert date to datetime
     sales_data["date"] = pd.to_datetime(sales_data["date"])
@@ -35,7 +38,7 @@ def preprocess_data(
 
     # Get list of unique series
     series_ids = sales_data["series_id"].unique().tolist()
-    print(f"Found {len(series_ids)} unique store-item combinations")
+    logger.info(f"Found {len(series_ids)} unique store-item combinations")
 
     # Create Prophet-formatted dataframes (ds, y) for each series
     train_data_dict = {}
@@ -59,7 +62,9 @@ def preprocess_data(
         prophet_data = prophet_data.dropna()
 
         if len(prophet_data) < 2:
-            print(f"WARNING: Not enough data for series {series_id}, skipping")
+            logger.info(
+                f"WARNING: Not enough data for series {series_id}, skipping"
+            )
             continue
 
         # Make sure we have at least one point in test set
@@ -77,14 +82,16 @@ def preprocess_data(
 
         # Ensure we have data in both splits
         if len(train_data) == 0 or len(test_data) == 0:
-            print(f"WARNING: Empty split for series {series_id}, skipping")
+            logger.info(
+                f"WARNING: Empty split for series {series_id}, skipping"
+            )
             continue
 
         # Store in dictionaries
         train_data_dict[series_id] = train_data
         test_data_dict[series_id] = test_data
 
-        print(
+        logger.info(
             f"Series {series_id}: {len(train_data)} train points, {len(test_data)} test points"
         )
 
@@ -96,13 +103,13 @@ def preprocess_data(
     sample_train = train_data_dict[sample_id]
     sample_test = test_data_dict[sample_id]
 
-    print(f"Sample series {sample_id}:")
-    print(f"  Train data shape: {sample_train.shape}")
-    print(
+    logger.info(f"Sample series {sample_id}:")
+    logger.info(f"  Train data shape: {sample_train.shape}")
+    logger.info(
         f"  Train date range: {sample_train['ds'].min()} to {sample_train['ds'].max()}"
     )
-    print(f"  Test data shape: {sample_test.shape}")
-    print(
+    logger.info(f"  Test data shape: {sample_test.shape}")
+    logger.info(
         f"  Test date range: {sample_test['ds'].min()} to {sample_test['ds'].max()}"
     )
 

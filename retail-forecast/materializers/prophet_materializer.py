@@ -35,7 +35,7 @@ class ProphetMaterializer(BaseMaterializer):
             # Load each model
             result = {}
             for key in keys:
-                model_dir = os.path.join(self.uri, f"models/{key}")
+                model_dir = os.path.join(self.uri, "models", key)
                 model_path = os.path.join(model_dir, "model.json")
 
                 # Load the model JSON
@@ -83,7 +83,7 @@ class ProphetMaterializer(BaseMaterializer):
             # Save each model
             for key, model in data.items():
                 # Create a directory for this model
-                model_dir = os.path.join(self.uri, f"models/{key}")
+                model_dir = os.path.join(self.uri, "models", key)
                 os.makedirs(os.path.dirname(model_dir), exist_ok=True)
 
                 # Serialize the model to JSON

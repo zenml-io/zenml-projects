@@ -1,10 +1,13 @@
 from typing import Dict, List
+import logging
 
 import pandas as pd
 from materializers.prophet_materializer import ProphetMaterializer
 from prophet import Prophet
 from typing_extensions import Annotated
 from zenml import step
+
+logger = logging.getLogger(__name__)
 
 
 @step(output_materializers=ProphetMaterializer)
@@ -32,7 +35,7 @@ def train_model(
     models = {}
 
     for series_id in series_ids:
-        print(f"Training model for {series_id}...")
+        logger.info(f"Training model for {series_id}...")
         train_data = train_data_dict[series_id]
 
         # Initialize Prophet model
@@ -49,6 +52,6 @@ def train_model(
         # Store trained model
         models[series_id] = model
 
-    print(f"Successfully trained {len(models)} Prophet models")
+    logger.info(f"Successfully trained {len(models)} Prophet models")
 
     return models

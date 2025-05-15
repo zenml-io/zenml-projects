@@ -2,6 +2,7 @@ import base64
 from datetime import timedelta
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
+import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +11,8 @@ from prophet import Prophet
 from typing_extensions import Annotated
 from zenml import log_metadata, step
 from zenml.types import HTMLString
+
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -44,7 +47,7 @@ def make_predictions(
     """
     # Handle case where no model or training dataset are passed (predict-only mode)
     if model is None or training_dataset is None:
-        print("Using naive forecasting method (last value)")
+        logger.info("Using naive forecasting method (last value)")
 
         # Create a naive model that predicts the last known value for each series
         forecast_df = naive_forecast(test_data, forecast_horizon)
@@ -88,7 +91,7 @@ def make_predictions(
         plt.close()
         forecast_plot_bytes = forecast_plot_buffer.getvalue()
 
-        print(
+        logger.info(
             f"Generated naive forecasts for {len(test_data['series_id'].unique())} series, {forecast_horizon} days ahead"
         )
 
@@ -271,7 +274,7 @@ def make_predictions(
     plt.close()
     forecast_plot_bytes = forecast_plot_buffer.getvalue()
 
-    print(
+    logger.info(
         f"Generated forecasts for {len(series_ids)} series, {forecast_horizon} days ahead"
     )
 
@@ -460,7 +463,7 @@ def generate_forecasts(
     plt.figure(figsize=(12, len(series_ids) * 4))
 
     for i, series_id in enumerate(series_ids):
-        print(f"Generating forecast for {series_id}...")
+        logger.info(f"Generating forecast for {series_id}...")
         model = models[series_id]
 
         # Get last date from training data
@@ -535,7 +538,7 @@ def generate_forecasts(
         forecasts, series_ids, train_data_dict, plot_data, forecast_periods
     )
 
-    print(
+    logger.info(
         f"Generated forecasts for {len(forecasts)} series, {forecast_periods} periods ahead"
     )
 

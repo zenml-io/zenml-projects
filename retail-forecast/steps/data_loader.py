@@ -1,8 +1,11 @@
 import os
+import logging
 
 import numpy as np
 import pandas as pd
 from zenml import step
+
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -14,9 +17,9 @@ def load_data() -> pd.DataFrame:
     if os.path.exists(sales_path):
         # Load real data if available
         sales_df = pd.read_csv(sales_path)
-        print(f"Loaded {len(sales_df)} sales records from file.")
+        logger.info(f"Loaded {len(sales_df)} sales records from file.")
     else:
-        print("Generating synthetic retail sales data...")
+        logger.info("Generating synthetic retail sales data...")
         # Create synthetic dataset with retail patterns
         np.random.seed(42)  # For reproducibility
 

@@ -1,8 +1,11 @@
 from typing import Tuple
+import logging
 
 import pandas as pd
 from typing_extensions import Annotated
 from zenml import step
+
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -26,7 +29,7 @@ def validate_data(
     for df_name, df in [("Sales", sales_df), ("Calendar", calendar_df)]:
         if df.isnull().any().any():
             missing_cols = df.columns[df.isnull().any()].tolist()
-            print(
+            logger.info(
                 f"Warning: {df_name} data contains missing values in columns: {missing_cols}"
             )
             # Fill missing values appropriately based on column type
@@ -45,7 +48,7 @@ def validate_data(
     # Check for and fix negative sales (a common data quality issue in retail)
     neg_sales = (sales_df["sales"] < 0).sum()
     if neg_sales > 0:
-        print(
+        logger.info(
             f"Warning: Found {neg_sales} records with negative sales. Setting to zero."
         )
         sales_df.loc[sales_df["sales"] < 0, "sales"] = 0
@@ -53,7 +56,7 @@ def validate_data(
     # Check for duplicate records
     duplicates = sales_df.duplicated(subset=["date", "store", "item"]).sum()
     if duplicates > 0:
-        print(
+        logger.info(
             f"Warning: Found {duplicates} duplicate store-item-date records. Keeping the last one."
         )
         sales_df = sales_df.drop_duplicates(
@@ -64,7 +67,7 @@ def validate_data(
     calendar_df["date"] = pd.to_datetime(calendar_df["date"])
     date_diff = calendar_df["date"].diff().dropna()
     if not (date_diff == pd.Timedelta(days=1)).all():
-        print(
+        logger.info(
             "Warning: Calendar dates are not continuous. Some days may be missing."
         )
 
@@ -94,7 +97,7 @@ def validate_data(
                 ] = cap_upper
 
     if outlier_count > 0:
-        print(
+        logger.info(
             f"Warning: Detected and capped {outlier_count} extreme sales outliers."
         )
 
@@ -102,6 +105,8 @@ def validate_data(
     if not set(sales_df["date"].dt.date).issubset(
         set(calendar_df["date"].dt.date)
     ):
-        print("Warning: Some sales dates don't exist in the calendar data.")
+        logger.info(
+            "Warning: Some sales dates don't exist in the calendar data."
+        )
 
     return sales_df, calendar_df
