@@ -2,11 +2,12 @@ from typing import Dict, List
 
 import pandas as pd
 from prophet import Prophet
-from typing_extensions import Annotated
 from zenml import step
+from typing_extensions import Annotated
+from materializers.prophet_materializer import ProphetMaterializer
 
 
-@step
+@step(output_materializers=ProphetMaterializer)
 def train_model(
     train_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],

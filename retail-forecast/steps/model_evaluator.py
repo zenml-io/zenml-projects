@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from typing_extensions import Annotated
 from zenml import log_metadata, step
+from typing_extensions import Annotated
 from zenml.types import HTMLString
 
 
@@ -47,72 +47,121 @@ def evaluate_models(
         model = models[series_id]
         test_data = test_data_dict[series_id]
 
-        # Create future dataframe for the test period
-        future = model.make_future_dataframe(periods=forecast_horizon)
+        # Debug: Check that test data exists
+        print(f"Test data shape for {series_id}: {test_data.shape}")
+        print(
+            f"Test data date range: {test_data['ds'].min()} to {test_data['ds'].max()}"
+        )
 
-        # Generate forecast
-        forecast = model.predict(future)
+        # Create future dataframe starting from the FIRST test date, not from training data
+        future_dates = test_data["ds"].unique()
+        if len(future_dates) == 0:
+            print(
+                f"WARNING: No test data dates for {series_id}, skipping evaluation"
+            )
+            continue
 
-        # Extract actual and predicted values for the test period
-        # Merge forecasts with actuals based on date
+        # Make predictions for test dates
+        forecast = model.predict(pd.DataFrame({"ds": future_dates}))
+
+        # Print debug info
+        print(f"Forecast shape: {forecast.shape}")
+        print(
+            f"Forecast date range: {forecast['ds'].min()} to {forecast['ds'].max()}"
+        )
+
+        # Merge forecasts with test data correctly
         merged_data = pd.merge(
             test_data,
             forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]],
             on="ds",
-            how="left",
+            how="inner",  # Only keep matching dates
         )
 
-        # Calculate metrics
-        actuals = merged_data["y"].values
-        predictions = merged_data["yhat"].values
-
-        mae = np.mean(np.abs(actuals - predictions))
-        rmse = np.sqrt(np.mean((actuals - predictions) ** 2))
-
-        # Handle zeros in actuals for MAPE calculation
-        mask = actuals != 0
-        if np.any(mask):
-            mape = (
-                np.mean(
-                    np.abs((actuals[mask] - predictions[mask]) / actuals[mask])
-                )
-                * 100
+        print(f"Merged data shape: {merged_data.shape}")
+        if merged_data.empty:
+            print(
+                f"WARNING: No matching dates between test data and forecast for {series_id}"
             )
-        else:
-            mape = np.nan
+            continue
 
-        # Store metrics
-        series_metrics[series_id] = {"mae": mae, "rmse": rmse, "mape": mape}
+        # Calculate metrics only if we have merged data
+        if len(merged_data) > 0:
+            # Calculate metrics
+            actuals = merged_data["y"].values
+            predictions = merged_data["yhat"].values
 
-        all_metrics["mae"].append(mae)
-        all_metrics["rmse"].append(rmse)
-        if not np.isnan(mape):
-            all_metrics["mape"].append(mape)
+            # Debug metrics calculation
+            print(f"Actuals range: {actuals.min()} to {actuals.max()}")
+            print(
+                f"Predictions range: {predictions.min()} to {predictions.max()}"
+            )
 
-        # Plot the forecast vs actual for this series
-        plt.subplot(len(series_ids), 1, i + 1)
-        plt.plot(merged_data["ds"], merged_data["y"], "b.", label="Actual")
-        plt.plot(
-            merged_data["ds"], merged_data["yhat"], "r-", label="Forecast"
-        )
-        plt.fill_between(
-            merged_data["ds"],
-            merged_data["yhat_lower"],
-            merged_data["yhat_upper"],
-            color="gray",
-            alpha=0.2,
-        )
-        plt.title(f"Forecast vs Actual for {series_id}")
-        plt.legend()
+            mae = np.mean(np.abs(actuals - predictions))
+            rmse = np.sqrt(np.mean((actuals - predictions) ** 2))
+
+            # Handle zeros in actuals for MAPE calculation
+            mask = actuals != 0
+            if np.any(mask):
+                mape = (
+                    np.mean(
+                        np.abs(
+                            (actuals[mask] - predictions[mask]) / actuals[mask]
+                        )
+                    )
+                    * 100
+                )
+            else:
+                mape = np.nan
+
+            # Store metrics
+            series_metrics[series_id] = {
+                "mae": mae,
+                "rmse": rmse,
+                "mape": mape,
+            }
+
+            all_metrics["mae"].append(mae)
+            all_metrics["rmse"].append(rmse)
+            if not np.isnan(mape):
+                all_metrics["mape"].append(mape)
+
+            print(
+                f"Metrics for {series_id}: MAE={mae:.2f}, RMSE={rmse:.2f}, MAPE={mape:.2f}%"
+            )
+
+            # Plot the forecast vs actual for this series
+            plt.subplot(len(series_ids), 1, i + 1)
+            plt.plot(merged_data["ds"], merged_data["y"], "b.", label="Actual")
+            plt.plot(
+                merged_data["ds"], merged_data["yhat"], "r-", label="Forecast"
+            )
+            plt.fill_between(
+                merged_data["ds"],
+                merged_data["yhat_lower"],
+                merged_data["yhat_upper"],
+                color="gray",
+                alpha=0.2,
+            )
+            plt.title(f"Forecast vs Actual for {series_id}")
+            plt.legend()
 
     # Calculate average metrics across all series
-    average_metrics = {
-        "avg_mae": np.mean(all_metrics["mae"]),
-        "avg_rmse": np.mean(all_metrics["rmse"]),
-        "avg_mape": np.mean(all_metrics["mape"])
-        if all_metrics["mape"]
-        else np.nan,
-    }
+    if not all_metrics["mae"]:
+        print("WARNING: No valid metrics calculated!")
+        average_metrics = {
+            "avg_mae": np.nan,
+            "avg_rmse": np.nan,
+            "avg_mape": np.nan,
+        }
+    else:
+        average_metrics = {
+            "avg_mae": np.mean(all_metrics["mae"]),
+            "avg_rmse": np.mean(all_metrics["rmse"]),
+            "avg_mape": np.mean(all_metrics["mape"])
+            if all_metrics["mape"]
+            else np.nan,
+        }
 
     # Save plot to buffer
     buf = BytesIO()
@@ -125,21 +174,24 @@ def evaluate_models(
     # Log metrics to ZenML
     log_metadata(
         metadata={
-            "avg_mae": average_metrics["avg_mae"],
-            "avg_rmse": average_metrics["avg_rmse"],
-            "avg_mape": average_metrics["avg_mape"]
+            "avg_mae": float(average_metrics["avg_mae"])
+            if not np.isnan(average_metrics["avg_mae"])
+            else 0.0,
+            "avg_rmse": float(average_metrics["avg_rmse"])
+            if not np.isnan(average_metrics["avg_rmse"])
+            else 0.0,
+            "avg_mape": float(average_metrics["avg_mape"])
             if not np.isnan(average_metrics["avg_mape"])
             else 0.0,
-            "forecast_plot": plot_data,
         }
     )
 
-    print(f"Average MAE: {average_metrics['avg_mae']:.2f}")
-    print(f"Average RMSE: {average_metrics['avg_rmse']:.2f}")
+    print(f"Final Average MAE: {average_metrics['avg_mae']:.2f}")
+    print(f"Final Average RMSE: {average_metrics['avg_rmse']:.2f}")
     print(
-        f"Average MAPE: {average_metrics['avg_mape']:.2f}%"
+        f"Final Average MAPE: {average_metrics['avg_mape']:.2f}%"
         if not np.isnan(average_metrics["avg_mape"])
-        else "Average MAPE: N/A"
+        else "Final Average MAPE: N/A"
     )
 
     # Create HTML report

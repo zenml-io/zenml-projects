@@ -1,5 +1,7 @@
 import click
 from pipelines.training_pipeline import training_pipeline
+from pipelines.inference_pipeline import inference_pipeline
+from zenml import Model
 
 
 @click.command(
@@ -11,12 +13,16 @@ Run a simplified retail demand forecasting pipeline using Facebook Prophet.
 Examples:
 
   \b
-  # Run the pipeline with default parameters
+  # Run the training pipeline with default parameters
   python run.py
 
   \b
   # Run with custom parameters
   python run.py --forecast-periods 60 --test-size 0.3
+  
+  \b
+  # Run the inference pipeline
+  python run.py --inference
 """
 )
 @click.option(
@@ -43,11 +49,18 @@ Examples:
     default=False,
     help="Disable caching for the pipeline run",
 )
+@click.option(
+    "--inference",
+    is_flag=True,
+    default=False,
+    help="Run the inference pipeline instead of the training pipeline",
+)
 def main(
     forecast_periods: int = 30,
     test_size: float = 0.2,
     weekly_seasonality: bool = True,
     no_cache: bool = False,
+    inference: bool = False,
 ):
     """Run a simplified retail forecasting pipeline with ZenML.
 
@@ -56,25 +69,37 @@ def main(
         test_size: Proportion of data to use for testing
         weekly_seasonality: Whether to include weekly seasonality in the model
         no_cache: Disable caching for the pipeline run
+        inference: Run the inference pipeline instead of the training pipeline
     """
-    # Set pipeline parameters
-    pipeline_params = {
-        "forecast_periods": forecast_periods,
-        "test_size": test_size,
-        "weekly_seasonality": weekly_seasonality,
-    }
-
-    # Pipeline execution options
     pipeline_options = {}
     if no_cache:
         pipeline_options["enable_cache"] = False
 
     print("\n" + "=" * 80)
-    print("Running retail forecasting pipeline...")
-    print("=" * 80 + "\n")
+    # Run the appropriate pipeline
+    if inference:
+        print("Running retail forecasting inference pipeline...")
 
-    # Run the pipeline
-    training_pipeline(**pipeline_params)
+        # Create a new version of the model
+        model = Model(
+            name="retail_forecast_model",
+            description="A retail forecast model trained on the sales data",
+            version="production",
+        )
+        inference_pipeline.with_options(model=model, **pipeline_options)()
+    else:
+        # Create a new version of the model
+        model = Model(
+            name="retail_forecast_model",
+            description="A retail forecast model trained on the sales data",
+        )
+        # Add training-specific parameters
+        pipeline_params["test_size"] = test_size
+        pipeline_params["weekly_seasonality"] = weekly_seasonality
+
+        print("Running retail forecasting training pipeline...")
+        training_pipeline.with_options(model=model, **pipeline_options)()
+    print("=" * 80 + "\n")
 
     print("\n" + "=" * 80)
     print("Pipeline completed successfully!")

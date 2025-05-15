@@ -45,24 +45,66 @@ def preprocess_data(
     for series_id in series_ids:
         # Filter data for this series
         series_data = sales_data[sales_data["series_id"] == series_id].copy()
-        series_data = series_data.sort_values("date")
+
+        # Sort by date and drop any duplicates
+        series_data = series_data.sort_values("date").drop_duplicates(
+            subset=["date"]
+        )
 
         # Rename columns for Prophet
         prophet_data = series_data[["date", "sales"]].rename(
             columns={"date": "ds", "sales": "y"}
         )
 
+        # Ensure no NaN values
+        prophet_data = prophet_data.dropna()
+
+        if len(prophet_data) < 2:
+            print(f"WARNING: Not enough data for series {series_id}, skipping")
+            continue
+
+        # Make sure we have at least one point in test set
+        min_test_size = max(1, int(len(prophet_data) * test_size))
+
+        if len(prophet_data) <= min_test_size:
+            # If we don't have enough data, use half for training and half for testing
+            cutoff_idx = len(prophet_data) // 2
+        else:
+            cutoff_idx = len(prophet_data) - min_test_size
+
         # Split into train and test
-        cutoff_idx = int(len(prophet_data) * (1 - test_size))
         train_data = prophet_data.iloc[:cutoff_idx].copy()
         test_data = prophet_data.iloc[cutoff_idx:].copy()
+
+        # Ensure we have data in both splits
+        if len(train_data) == 0 or len(test_data) == 0:
+            print(f"WARNING: Empty split for series {series_id}, skipping")
+            continue
 
         # Store in dictionaries
         train_data_dict[series_id] = train_data
         test_data_dict[series_id] = test_data
 
+        print(
+            f"Series {series_id}: {len(train_data)} train points, {len(test_data)} test points"
+        )
+
+    if not train_data_dict:
+        raise ValueError("No valid series data after preprocessing!")
+
+    # Get a sample series to print details
+    sample_id = next(iter(train_data_dict))
+    sample_train = train_data_dict[sample_id]
+    sample_test = test_data_dict[sample_id]
+
+    print(f"Sample series {sample_id}:")
+    print(f"  Train data shape: {sample_train.shape}")
     print(
-        f"Data preprocessing complete. Train periods: {len(train_data)}, Test periods: {len(test_data)}"
+        f"  Train date range: {sample_train['ds'].min()} to {sample_train['ds'].max()}"
+    )
+    print(f"  Test data shape: {sample_test.shape}")
+    print(
+        f"  Test date range: {sample_test['ds'].min()} to {sample_test['ds'].max()}"
     )
 
     return train_data_dict, test_data_dict, series_ids

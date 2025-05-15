@@ -11,11 +11,7 @@ from zenml.types import HTMLString
 
 
 @pipeline(name="retail_forecast_pipeline")
-def training_pipeline(
-    test_size: float = 0.2,
-    forecast_periods: int = 30,
-    weekly_seasonality: bool = True,
-) -> Tuple[
+def training_pipeline() -> Tuple[
     Annotated[Dict[str, float], "model_metrics"],
     Annotated[HTMLString, "evaluation_report"],
     Annotated[HTMLString, "forecast_dashboard"],
@@ -45,14 +41,13 @@ def training_pipeline(
 
     # Preprocess data for Prophet
     train_data_dict, test_data_dict, series_ids = preprocess_data(
-        sales_data=sales_data, test_size=test_size
+        sales_data=sales_data
     )
 
     # Train Prophet models for each series
     models = train_model(
         train_data_dict=train_data_dict,
         series_ids=series_ids,
-        weekly_seasonality=weekly_seasonality,
     )
 
     # Evaluate models
@@ -65,7 +60,6 @@ def training_pipeline(
         models=models,
         train_data_dict=train_data_dict,
         series_ids=series_ids,
-        forecast_periods=forecast_periods,
     )
 
     return metrics, evaluation_report, forecast_dashboard
