@@ -71,6 +71,7 @@ etc.
 | [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
 | [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🔄 ETL                     | airflow, bigquery, xgboost           |
+| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔮 Multi-Model | prophet, zenml, pandas                |
 
 # 💻 System Requirements
 
