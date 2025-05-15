@@ -273,4 +273,3 @@ The Inference pipeline is made up of the following steps:
 - Documentation on [Step Operators](https://docs.zenml.io/stack-components/step-operators)
 - More on [Step Operators](https://blog.zenml.io/step-operators-training/)
 - Documentation on how to create a GCP [service account](https://cloud.google.com/docs/authentication/getting-started#create-service-account-gcloud)
-- ZenML CLI [documentation](https://apidocs.zenml.io/latest/cli/)
