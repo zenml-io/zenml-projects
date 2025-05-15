@@ -30,24 +30,6 @@ Examples:
 """
 )
 @click.option(
-    "--forecast-periods",
-    type=int,
-    default=30,
-    help="Number of days to forecast into the future",
-)
-@click.option(
-    "--test-size",
-    type=float,
-    default=0.2,
-    help="Proportion of data to use for testing",
-)
-@click.option(
-    "--weekly-seasonality",
-    type=bool,
-    default=True,
-    help="Whether to include weekly seasonality in the model",
-)
-@click.option(
     "--no-cache",
     is_flag=True,
     default=False,
@@ -72,9 +54,6 @@ Examples:
     help="Enable debug logging",
 )
 def main(
-    forecast_periods: int = 30,
-    test_size: float = 0.2,
-    weekly_seasonality: bool = True,
     no_cache: bool = False,
     inference: bool = False,
     log_file: str = None,
@@ -83,9 +62,6 @@ def main(
     """Run a simplified retail forecasting pipeline with ZenML.
 
     Args:
-        forecast_periods: Number of days to forecast into the future
-        test_size: Proportion of data to use for testing
-        weekly_seasonality: Whether to include weekly seasonality in the model
         no_cache: Disable caching for the pipeline run
         inference: Run the inference pipeline instead of the training pipeline
         log_file: Path to log file
