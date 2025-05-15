@@ -1,10 +1,10 @@
 from typing import Dict, List
 
 import pandas as pd
-from prophet import Prophet
-from zenml import step
-from typing_extensions import Annotated
 from materializers.prophet_materializer import ProphetMaterializer
+from prophet import Prophet
+from typing_extensions import Annotated
+from zenml import step
 
 
 @step(output_materializers=ProphetMaterializer)
@@ -16,8 +16,7 @@ def train_model(
     daily_seasonality: bool = False,
     seasonality_mode: str = "multiplicative",
 ) -> Annotated[Dict[str, Prophet], "trained_prophet_models"]:
-    """
-    Train a Prophet model for each store-item combination.
+    """Train a Prophet model for each store-item combination.
 
     Args:
         train_data_dict: Dictionary with training data for each series

@@ -1,11 +1,9 @@
-import os
 import json
-from typing import Any, Dict, Type, List
+import os
+from typing import Any, Dict, Type
 
-import pandas as pd
 from prophet import Prophet
-from prophet.serialize import model_to_json, model_from_json
-
+from prophet.serialize import model_from_json, model_to_json
 from zenml.enums import ArtifactType
 from zenml.materializers.base_materializer import BaseMaterializer
 

@@ -1,21 +1,13 @@
-from typing import Dict, List, Tuple, Optional
-
-import pandas as pd
-from prophet import Prophet
 from steps.data_loader import load_data
 from steps.data_preprocessor import preprocess_data
 from steps.data_visualizer import visualize_sales_data
 from steps.predictor import generate_forecasts
-from typing_extensions import Annotated
-from zenml import pipeline
-from zenml.types import HTMLString
-from zenml import get_pipeline_context
+from zenml import get_pipeline_context, pipeline
 
 
 @pipeline(name="retail_forecast_inference_pipeline")
 def inference_pipeline():
-    """
-    Pipeline to make retail demand forecasts using trained Prophet models.
+    """Pipeline to make retail demand forecasts using trained Prophet models.
 
     This pipeline is for when you already have trained models and want to
     generate new forecasts without retraining.

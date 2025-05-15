@@ -12,8 +12,7 @@ def validate_data(
     Annotated[pd.DataFrame, "sales_data_validated"],
     Annotated[pd.DataFrame, "calendar_data_validated"],
 ]:
-    """
-    Validate retail sales data, checking for common issues like:
+    """Validate retail sales data, checking for common issues like:
     - Missing values
     - Negative sales
     - Duplicate records

@@ -14,8 +14,7 @@ def preprocess_data(
     Annotated[Dict[str, pd.DataFrame], "testing_data"],
     Annotated[List[str], "series_identifiers"],
 ]:
-    """
-    Prepare data for forecasting with Prophet.
+    """Prepare data for forecasting with Prophet.
 
     Args:
         sales_data: Raw sales data with date, store, item, and sales columns

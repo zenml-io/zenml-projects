@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from zenml import log_metadata, step
 from typing_extensions import Annotated
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 
@@ -26,8 +26,7 @@ def make_predictions(
     Annotated[str, "method"],
     Annotated[HTMLString, "forecast_visualization"],
 ]:
-    """
-    Generate predictions for future periods using the trained model.
+    """Generate predictions for future periods using the trained model.
 
     Args:
         model: Trained TFT model or None for naive forecast
@@ -332,8 +331,7 @@ def get_sample_forecasts(forecast_df: pd.DataFrame) -> dict:
 def naive_forecast(
     test_df: pd.DataFrame, forecast_horizon: int
 ) -> pd.DataFrame:
-    """
-    Generate a naive forecast that uses the last known value for each series.
+    """Generate a naive forecast that uses the last known value for each series.
     This is used as a fallback when no model is available.
     """
     forecasts = []
@@ -443,8 +441,7 @@ def generate_forecasts(
     Annotated[pd.DataFrame, "combined_forecast"],
     Annotated[HTMLString, "forecast_dashboard"],
 ]:
-    """
-    Generate future forecasts using trained Prophet models.
+    """Generate future forecasts using trained Prophet models.
 
     Args:
         models: Dictionary of trained Prophet models
@@ -549,7 +546,6 @@ def create_forecast_dashboard(
     forecasts, series_ids, train_data_dict, plot_image_data, forecast_horizon
 ):
     """Create an HTML dashboard for forecast visualization."""
-
     # Generate forecast metrics
     series_stats = []
     for series_id in series_ids:

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from zenml import log_metadata, step
 from typing_extensions import Annotated
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 
@@ -21,8 +21,7 @@ def evaluate_models(
     Annotated[Dict[str, float], "performance_metrics"],
     Annotated[HTMLString, "evaluation_report"],
 ]:
-    """
-    Evaluate Prophet models on test data and log metrics.
+    """Evaluate Prophet models on test data and log metrics.
 
     Args:
         models: Dictionary of trained Prophet models

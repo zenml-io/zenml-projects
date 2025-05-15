@@ -1,15 +1,12 @@
-import base64
-import io
 from typing import Dict, List
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from zenml import step
 from typing_extensions import Annotated
+from zenml import step
 from zenml.types import HTMLString
 
 
@@ -20,8 +17,7 @@ def visualize_sales_data(
     test_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],
 ) -> Annotated[HTMLString, "sales_visualization"]:
-    """
-    Create interactive visualizations of historical sales patterns.
+    """Create interactive visualizations of historical sales patterns.
 
     Args:
         sales_data: Raw sales data with date, store, item, and sales columns

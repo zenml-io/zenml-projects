@@ -18,8 +18,7 @@ def training_pipeline() -> Tuple[
     Annotated[HTMLString, "forecast_dashboard"],
     Annotated[HTMLString, "sales_visualization"],
 ]:
-    """
-    Simple retail forecasting pipeline using Prophet.
+    """Simple retail forecasting pipeline using Prophet.
 
     Steps:
     1. Load sales data
