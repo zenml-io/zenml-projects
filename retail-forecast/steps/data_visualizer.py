@@ -22,20 +22,20 @@ def visualize_sales_data(
 ) -> Annotated[HTMLString, "sales_visualization"]:
     """
     Create interactive visualizations of historical sales patterns.
-    
+
     Args:
         sales_data: Raw sales data with date, store, item, and sales columns
         train_data_dict: Dictionary of training dataframes for each series
         test_data_dict: Dictionary of test dataframes for each series
         series_ids: List of unique series identifiers
-        
+
     Returns:
         HTML visualization dashboard of historical sales patterns
     """
     # Ensure date column is in datetime format
     sales_data = sales_data.copy()
-    sales_data['date'] = pd.to_datetime(sales_data['date'])
-    
+    sales_data["date"] = pd.to_datetime(sales_data["date"])
+
     # Create HTML with multiple visualizations
     html_parts = []
     html_parts.append("""
@@ -81,16 +81,16 @@ def visualize_sales_data(
                 <p>Interactive visualization of sales patterns across stores and products.</p>
             </div>
     """)
-    
+
     # Create overview metrics
-    total_sales = sales_data['sales'].sum()
-    avg_daily_sales = sales_data.groupby('date')['sales'].sum().mean()
-    num_stores = sales_data['store'].nunique()
-    num_items = sales_data['item'].nunique()
-    min_date = sales_data['date'].min().strftime('%Y-%m-%d')
-    max_date = sales_data['date'].max().strftime('%Y-%m-%d')
+    total_sales = sales_data["sales"].sum()
+    avg_daily_sales = sales_data.groupby("date")["sales"].sum().mean()
+    num_stores = sales_data["store"].nunique()
+    num_items = sales_data["item"].nunique()
+    min_date = sales_data["date"].min().strftime("%Y-%m-%d")
+    max_date = sales_data["date"].max().strftime("%Y-%m-%d")
     date_range = f"{min_date} to {max_date}"
-    
+
     html_parts.append(f"""
             <div class="section">
                 <h2>Dataset Overview</h2>
@@ -114,23 +114,21 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # 1. Time Series - Overall Sales Trend
-    df_daily = sales_data.groupby('date')['sales'].sum().reset_index()
+    df_daily = sales_data.groupby("date")["sales"].sum().reset_index()
     fig_trend = px.line(
-        df_daily, 
-        x='date', 
-        y='sales',
-        title='Daily Total Sales Across All Stores and Products',
-        template='plotly_white'
+        df_daily,
+        x="date",
+        y="sales",
+        title="Daily Total Sales Across All Stores and Products",
+        template="plotly_white",
     )
     fig_trend.update_traces(line=dict(width=2))
     fig_trend.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Total Sales (units)',
-        height=500
+        xaxis_title="Date", yaxis_title="Total Sales (units)", height=500
     )
-    trend_html = fig_trend.to_html(full_html=False, include_plotlyjs='cdn')
+    trend_html = fig_trend.to_html(full_html=False, include_plotlyjs="cdn")
     html_parts.append(f"""
             <div class="section chart-container">
                 <h2>Overall Sales Trend</h2>
@@ -140,23 +138,23 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # 2. Store Comparison
-    store_sales = sales_data.groupby(['date', 'store'])['sales'].sum().reset_index()
+    store_sales = (
+        sales_data.groupby(["date", "store"])["sales"].sum().reset_index()
+    )
     fig_stores = px.line(
-        store_sales, 
-        x='date', 
-        y='sales', 
-        color='store',
-        title='Sales Comparison by Store',
-        template='plotly_white'
+        store_sales,
+        x="date",
+        y="sales",
+        color="store",
+        title="Sales Comparison by Store",
+        template="plotly_white",
     )
     fig_stores.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Total Sales (units)',
-        height=500
+        xaxis_title="Date", yaxis_title="Total Sales (units)", height=500
     )
-    stores_html = fig_stores.to_html(full_html=False, include_plotlyjs='cdn')
+    stores_html = fig_stores.to_html(full_html=False, include_plotlyjs="cdn")
     html_parts.append(f"""
             <div class="section chart-container">
                 <h2>Store Comparison</h2>
@@ -166,23 +164,23 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # 3. Product Performance
-    item_sales = sales_data.groupby(['date', 'item'])['sales'].sum().reset_index()
+    item_sales = (
+        sales_data.groupby(["date", "item"])["sales"].sum().reset_index()
+    )
     fig_items = px.line(
-        item_sales, 
-        x='date', 
-        y='sales', 
-        color='item',
-        title='Sales Comparison by Product',
-        template='plotly_white'
+        item_sales,
+        x="date",
+        y="sales",
+        color="item",
+        title="Sales Comparison by Product",
+        template="plotly_white",
     )
     fig_items.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Total Sales (units)',
-        height=500
+        xaxis_title="Date", yaxis_title="Total Sales (units)", height=500
     )
-    items_html = fig_items.to_html(full_html=False, include_plotlyjs='cdn')
+    items_html = fig_items.to_html(full_html=False, include_plotlyjs="cdn")
     html_parts.append(f"""
             <div class="section chart-container">
                 <h2>Product Performance</h2>
@@ -192,27 +190,38 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # 4. Weekly Patterns
-    sales_data['day_of_week'] = sales_data['date'].dt.day_name()
-    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    weekly_pattern = sales_data.groupby('day_of_week')['sales'].mean().reindex(day_order).reset_index()
-    
+    sales_data["day_of_week"] = sales_data["date"].dt.day_name()
+    day_order = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+    weekly_pattern = (
+        sales_data.groupby("day_of_week")["sales"]
+        .mean()
+        .reindex(day_order)
+        .reset_index()
+    )
+
     fig_weekly = px.bar(
-        weekly_pattern, 
-        x='day_of_week', 
-        y='sales',
-        title='Average Sales by Day of Week',
-        template='plotly_white',
-        color='sales',
-        color_continuous_scale='Blues'
+        weekly_pattern,
+        x="day_of_week",
+        y="sales",
+        title="Average Sales by Day of Week",
+        template="plotly_white",
+        color="sales",
+        color_continuous_scale="Blues",
     )
     fig_weekly.update_layout(
-        xaxis_title='',
-        yaxis_title='Average Sales (units)',
-        height=500
+        xaxis_title="", yaxis_title="Average Sales (units)", height=500
     )
-    weekly_html = fig_weekly.to_html(full_html=False, include_plotlyjs='cdn')
+    weekly_html = fig_weekly.to_html(full_html=False, include_plotlyjs="cdn")
     html_parts.append(f"""
             <div class="section chart-container">
                 <h2>Weekly Patterns</h2>
@@ -222,59 +231,63 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # 5. Sample Store-Item Combinations
     # Select 3 random series to display
-    sample_series = np.random.choice(series_ids, size=min(3, len(series_ids)), replace=False)
-    
+    sample_series = np.random.choice(
+        series_ids, size=min(3, len(series_ids)), replace=False
+    )
+
     # Create subplots for train/test visualization
     fig_samples = make_subplots(
-        rows=len(sample_series), 
+        rows=len(sample_series),
         cols=1,
         subplot_titles=[f"Series: {series_id}" for series_id in sample_series],
         shared_xaxes=True,
-        vertical_spacing=0.1
+        vertical_spacing=0.1,
     )
-    
+
     for i, series_id in enumerate(sample_series):
         train_data = train_data_dict[series_id]
         test_data = test_data_dict[series_id]
-        
+
         # Add train data
         fig_samples.add_trace(
             go.Scatter(
-                x=train_data['ds'], 
-                y=train_data['y'],
-                mode='lines+markers',
+                x=train_data["ds"],
+                y=train_data["y"],
+                mode="lines+markers",
                 name=f"{series_id} (Training)",
-                line=dict(color='blue'),
+                line=dict(color="blue"),
                 legendgroup=series_id,
-                showlegend=(i==0)
+                showlegend=(i == 0),
             ),
-            row=i+1, col=1
+            row=i + 1,
+            col=1,
         )
-        
+
         # Add test data
         fig_samples.add_trace(
             go.Scatter(
-                x=test_data['ds'], 
-                y=test_data['y'],
-                mode='lines+markers',
+                x=test_data["ds"],
+                y=test_data["y"],
+                mode="lines+markers",
                 name=f"{series_id} (Test)",
-                line=dict(color='green'),
+                line=dict(color="green"),
                 legendgroup=series_id,
-                showlegend=(i==0)
+                showlegend=(i == 0),
             ),
-            row=i+1, col=1
+            row=i + 1,
+            col=1,
         )
-    
+
     fig_samples.update_layout(
-        height=300*len(sample_series),
+        height=300 * len(sample_series),
         title_text="Train/Test Split for Sample Series",
-        template='plotly_white'
+        template="plotly_white",
     )
-    
-    samples_html = fig_samples.to_html(full_html=False, include_plotlyjs='cdn')
+
+    samples_html = fig_samples.to_html(full_html=False, include_plotlyjs="cdn")
     html_parts.append(f"""
             <div class="section chart-container">
                 <h2>Sample Series with Train/Test Split</h2>
@@ -284,16 +297,16 @@ def visualize_sales_data(
                 </div>
             </div>
     """)
-    
+
     # Close HTML document
     html_parts.append("""
         </div>
     </body>
     </html>
     """)
-    
+
     # Combine all HTML parts
-    complete_html = ''.join(html_parts)
-    
+    complete_html = "".join(html_parts)
+
     # Return as HTMLString
-    return HTMLString(complete_html) 
+    return HTMLString(complete_html)

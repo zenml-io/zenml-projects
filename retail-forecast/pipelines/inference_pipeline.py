@@ -38,20 +38,20 @@ def inference_pipeline():
         sales_data=sales_data,
         test_size=0.05,  # Just a small test set for visualization purposes
     )
-    
+
     # Create interactive visualizations of historical sales patterns
     sales_viz = visualize_sales_data(
         sales_data=sales_data,
         train_data_dict=train_data_dict,
         test_data_dict=test_data_dict,
-        series_ids=series_ids
+        series_ids=series_ids,
     )
 
     # Get the models from the Model Registry
     models = get_pipeline_context().model.get_artifact(
         "trained_prophet_models"
     )
-    
+
     # Generate forecasts
     _, combined_forecast, forecast_dashboard = generate_forecasts(
         models=models,

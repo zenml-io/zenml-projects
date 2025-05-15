@@ -47,13 +47,13 @@ def training_pipeline() -> Tuple[
     train_data_dict, test_data_dict, series_ids = preprocess_data(
         sales_data=sales_data
     )
-    
+
     # Create interactive visualizations of historical sales patterns
     sales_viz = visualize_sales_data(
         sales_data=sales_data,
         train_data_dict=train_data_dict,
         test_data_dict=test_data_dict,
-        series_ids=series_ids
+        series_ids=series_ids,
     )
 
     # Train Prophet models for each series
