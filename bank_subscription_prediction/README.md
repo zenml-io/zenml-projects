@@ -1,4 +1,4 @@
-# 🏦 Bank Subscription Prediction
+# 🏦 BankSubscription Predictor
 
 A production-ready MLOps pipeline for predicting bank term deposit subscriptions using XGBoost.
 
