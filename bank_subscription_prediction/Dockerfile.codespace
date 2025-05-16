@@ -22,7 +22,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     "pandas" \
     "xgboost" \
     "matplotlib" \
-    "seaborn" \
     "plotly" \
     "jupyter"
 

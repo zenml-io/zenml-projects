@@ -3,7 +3,6 @@ numpy
 scikit-learn
 xgboost
 matplotlib
-seaborn
 plotly
 zenml>=0.82.1
 click
