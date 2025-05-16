@@ -24,7 +24,7 @@ from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import (
-    COMPLIANCE_METADATA_NAME,
+    COMPLIANCE_RECORD_NAME,
     DATA_PROFILE_NAME,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
@@ -42,7 +42,7 @@ def generate_compliance_metadata(
     preprocessing_metadata: Dict[str, Any],
     target: str,
     data_profile: Annotated[DatasetProfileView, DATA_PROFILE_NAME],
-) -> Annotated[Dict[str, Any], COMPLIANCE_METADATA_NAME]:
+) -> Annotated[Dict[str, Any], COMPLIANCE_RECORD_NAME]:
     """Generate compliance documentation for EU AI Act requirements.
 
       Records:
@@ -104,10 +104,6 @@ def generate_compliance_metadata(
     }
 
     # 5. Log metadata for Annex IV
-    log_metadata(
-        metadata={
-            COMPLIANCE_METADATA_NAME: compliance_record,
-        }
-    )
+    log_metadata(metadata=compliance_record)
 
     return compliance_record

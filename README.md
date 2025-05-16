@@ -6,20 +6,22 @@
 
 The project implements three main pipelines:
 
-1. **Feature Engineering**: Handles data governance and preprocessing (Articles 10, 12, 15)
+1. **Feature Engineering Pipeline**: Handles data governance and preprocessing (Articles 10, 12, 15)
    – `ingest → data_splitter → data_preprocessor → generate_compliance_metadata`
 
 2. **Training Pipeline**: Implements model training, evaluation, and risk assessment (Articles 9, 11, 15)  
    – `train_model → evaluate_model → risk_assessment`
 
 3. **Deployment Pipeline**: Manages human oversight, deployment, and monitoring (Articles 14, 17, 18)
-   – `approve_deployment → modal_deployment → post_market_monitoring → post_run_annex`
+   – `approve_deployment → modal_deployment → generate_sbom → post_market_monitoring → generate_annex_iv_documentation`
 
-Each run automatically versions its inputs, logs hashes & metrics, and generates a complete Annex IV draft.
+Each run automatically versions its inputs, logs hashes & metrics, and generates a complete Annex IV draft with all required compliance artifacts.
 
 ## Architecture
 
-![End-to-End Architecture](docs/e2e.png)
+![End-to-End Architecture](assets/e2e.png)
+
+For detailed diagrams of each pipeline and their compliance mapping, see [Pipeline Diagrams](assets/diagrams.md).
 
 ## Project Structure
 
@@ -27,7 +29,7 @@ Each run automatically versions its inputs, logs hashes & metrics, and generates
 credit_scoring_ai_act/
 ├── app/ # Modal deployment app
 │   ├── modal_deployment.py # Modal deployment script
-│   └── schemas.py # Pydantic models
+│   └── schemas.py # Pydantic models for API
 ├── src/
 │   ├── pipelines/
 │   │   ├── feature_engineering.py # Feature engineering pipeline
@@ -41,16 +43,17 @@ credit_scoring_ai_act/
 │   │   ├── train.py # XGBoost / sklearn model
 │   │   ├── evaluate.py # Standard + Fairness metrics
 │   │   ├── approve.py # Human‑in‑loop gate (approve_deployment step)
+│   │   ├── deploy.py # Deployment to Modal
 │   │   ├── post_market_monitoring.py # Post‑market monitoring
-│   │   ├── generate_sbom.py # Generate SBOM
-│   │   ├── post_run_annex.py # Generate Annex IV documentation
-│   │   ├── risk_assessment.py # Risk assessment
-│   │   └── deploy.py # Push to Modal / local FastAPI
+│   │   ├── generate_sbom.py # Generate Software Bill of Materials
+│   │   ├── generate_annex_iv_documentation.py # Generate Annex IV documentation
+│   │   └── risk_assessment.py # Risk assessment
 │   ├── utils/ # Shared utilities
 │   │   ├── modal_utils.py # Modal Volume operations
 │   │   ├── preprocess.py # Custom sklearn transformers
 │   │   ├── eval.py # Evaluation utils
 │   │   ├── incidents.py # Incident reporting system
+│   │   ├── risk_dashboard.py # Risk visualization dashboard
 │   │   ├── visualizations.py # Visualization utils
 │   │   └── model_definition.py # ZenML model definition
 │   │
@@ -58,17 +61,18 @@ credit_scoring_ai_act/
 │   └── constants.py # Centralized configuration constants
 │
 ├── docs/
-│   ├── risk/ # Auto‑generated annex iv reports after deployment
-│   ├── releases/ # Manual compliance inputs organized by run ID
-│   │   ├── 07c7fb5f-34d7-48f8-af4f-2bd87e58a73a/  # Example run ID
-│   │   │   ├── annex_iv_cs_deployment.md  # Annex IV deployment documentation
-│   │   │   ├── evaluation_results.yaml    # Model evaluation metrics
-│   │   │   ├── git_info.md                # Git repository information
-│   │   │   ├── missing_fields.txt         # Fields missing from documentation
-│   │   │   ├── README.md                  # Release-specific information
-│   │   │   ├── risk_scores.yaml           # Risk assessment scores
-│   │   │   └── sbom.json                  # Software Bill of Materials
-│   │   └── e6e6d597-b9c2-48cb-804b-5a9aad99c146/  # Another run ID
+│   ├── risk/ # Risk assessment documentation
+│   │   ├── incident_log.json # Incident tracking
+│   │   └── risk_register.xlsx # Risk register
+│   ├── releases/ # Compliance artifacts organized by run ID
+│   │   └── <run_id>/
+│   │      ├── annex_iv_cs_deployment.md  # Annex IV deployment documentation
+│   │      ├── evaluation_results.yaml    # Model evaluation metrics
+│   │      ├── git_info.md                # Git repository information
+│   │      ├── missing_fields.txt         # Fields missing from documentation
+│   │      ├── README.md                  # Release-specific information
+│   │      ├── risk_scores.yaml           # Risk assessment scores
+│   │      └── sbom.json                  # Software Bill of Materials
 │   └── templates/
 │       ├── annex_iv_template.j2 # Annex IV template
 │       ├── sample_inputs.json # Sample inputs for Annex IV
@@ -83,8 +87,18 @@ credit_scoring_ai_act/
 │               ├── risk_mitigation_sop.md # Risk management process
 │               └── data_ingestion_sop.md # Data handling procedures
 │
-├── assets/ # Pipeline diagrams
+├── assets/ # Pipeline diagrams and documentation
+│   ├── deployment-pipeline.png # Deployment pipeline diagram
+│   ├── diagrams.md # Detailed pipeline diagrams with explanations
+│   ├── e2e.png # End-to-end architecture diagram
+│   ├── feature-engineering-pipeline.png # Feature engineering pipeline diagram
+│   ├── modal-deployment.png # Modal deployment diagram
+│   └── training-pipeline.png # Training pipeline diagram
+├── data/ # Dataset directory
+│   └── credit_scoring.csv # Credit scoring dataset
+├── visualizations/ # WhyLogs and other visualization outputs
 ├── run.py # CLI entrypoint
+├── COMPLIANCE.md # EU AI Act compliance mapping
 └── README.md
 ```
 
@@ -119,7 +133,7 @@ You can specify a custom config directory using the `--config-dir` option.
 
 ## Modal Deployment
 
-![Modal Deployment](docs/modal-deployment.png)
+![Modal Deployment](assets/modal-deployment.png)
 
 The project implements a serverless deployment using Modal with comprehensive monitoring and incident reporting capabilities:
 
@@ -127,33 +141,31 @@ The project implements a serverless deployment using Modal with comprehensive mo
 - Automated model and preprocessing pipeline loading
 - Drift detection and incident reporting
 - Standardized storage paths for compliance artifacts
+- Complete incident reporting system for Article 18 compliance
 
 ## 🔗 EU AI Act Compliance Mapping
 
-For a complete overview of the EU AI Act compliance mapping, refer to the [detailed pipeline steps to articles mapping and interdependencies for full compliance](COMPLIANCE.md).
+For a complete overview of the EU AI Act compliance mapping, refer to the [COMPLIANCE.md](COMPLIANCE.md) file.
 
 ## Compliance Directory Structure
 
-| Directory               | Purpose                                                 | Auto/Manual |
-| ----------------------- | ------------------------------------------------------- | ----------- |
-| **records/**            | Automated compliance records from pipeline runs         | Auto        |
-| **manual_fills/**       | Manual compliance inputs and preprocessing info         | Manual      |
-| **monitoring/**         | Post-market monitoring records and drift detection logs | Auto        |
-| **deployment_records/** | Model deployment history and model cards                | Auto        |
-| **approval_records/**   | Human approval records and rationales                   | Manual      |
-| **templates/**          | Jinja template for Annex IV document generation         | Manual      |
+The repository uses a structured approach to organizing compliance artifacts:
 
-## 📋 Quality Management System (Article  17)
+| Directory               | Purpose                                  | Auto/Manual |
+| ----------------------- | ---------------------------------------- | ----------- |
+| **releases/**           | Compliance artifacts organized by run ID | Auto        |
+| **risk/**               | Risk assessment and incident tracking    | Auto/Manual |
+| **templates/**          | Templates for document generation        | Manual      |
+| **templates/qms/**      | Quality Management System documentation  | Manual      |
+| **templates/qms/sops/** | Standard Operating Procedures            | Manual      |
 
-This repo delivers all _technical evidence_ (lineage, metadata, logs). For a complete QMS, you must also maintain formal QMS documentation.
+## 📋 Quality Management System (Article 17)
 
-See `compliance/qms/` for starter templates:
+This repo delivers all _technical evidence_ (lineage, metadata, logs) required by the EU AI Act. For a complete QMS, you must also maintain formal QMS documentation.
+
+See `docs/templates/qms/` for starter templates:
 
 - **Quality Policy** (`qms_template.md`)
 - **Roles & Responsibilities** (`roles_and_responsibilities.md`)
 - **Audit Plan** (`audit_plan.md`)
 - **SOPs** (`sops/` folder: data ingestion, model release, risk mitigation, etc.)
-
-## Docs
-
-For detailed explanations of each pipeline and step, refer to the [detailed pipeline documentation](docs/detailed_pipeline_explanations.md).

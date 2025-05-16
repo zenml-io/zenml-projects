@@ -1099,7 +1099,7 @@
     ],
     "source": {
       "type": "python-environment",
-      "generated_at": "2025-05-16T11:40:31.880197"
+      "generated_at": "2025-05-16T13:12:15.362415"
     },
     "metadata": {
       "description": "Simplified SBOM for AI Act compliance demo",
@@ -1108,12 +1108,12 @@
   },
   "source": {
     "type": "python-environment",
-    "generated_at": "2025-05-16T11:40:31.880241"
+    "generated_at": "2025-05-16T13:12:15.362488"
   },
   "metadata": {
     "description": "Simplified SBOM for AI Act compliance demo",
     "version": "1.0",
-    "generation_timestamp": "20250516_114031",
-    "pipeline_run_id": "1bfa5910-a05a-4df7-ad4f-d1c9bef5afcf"
+    "generation_timestamp": "20250516_131215",
+    "pipeline_run_id": "43007b7a-a972-4e27-915b-54cdb32be3d5"
   }
 }

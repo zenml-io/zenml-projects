@@ -24,9 +24,14 @@
 
 ### 1(b) System Interactions
 {% if stack and stack.components %}
+**ZenML Stack:** {{ stack.name }} (ID: {{ stack.id }})
+
 **Stack Components:**
-{% for component in stack.components %}
-- {{ component.name }} ({{ component.type }}): {{ component.version }}
+{% for comp_type, components in stack.components.items() %}
+**{{ comp_type | capitalize }}:**
+{% for component in components %}
+- {{ component.name }} ({{ component.flavor_name }}{% if component.integration %}, {{ component.integration }}{% endif %})
+{% endfor %}
 {% endfor %}
 {% else %}
 **Stack Components:** [REQUIRED: List the components of your ZenML stack]
@@ -101,22 +106,20 @@
 ## 2. Detailed Description of Elements and Development Process
 
 ### 2(a) Development Methods and Third-party Tools
+
 **Pipeline Steps:**
+
 {% for p in pipelines %}
-### {{ p.name }} (run {{ p.run_id }})
+#### {{ p.name }} (run {{ p.run_id }})
 
 | Step name | Status | Inputs | Outputs |
-|-----------|--------|--------|---------|
-{% for s in p.steps %}
-| {{ s.name }} | {{ s.status or "-" }} |
-{% if s.inputs %}```yaml
-{{ s.inputs | to_yaml }}```{% else %}-{% endif %}
-|
-{% if s.outputs %}```yaml
-{{ s.outputs | to_yaml }}```{% else %}-{% endif %}
-|
+|-------------|----------|---------|----------|
+{%- for s in p.steps %}
+| {{ s.name }} | {{ s.status | safe_str }} | {{ s.inputs | format_inputs }} | {{ s.outputs | format_outputs }} |
+{%- endfor %}
+
 {% endfor %}
-{% endfor %}
+
 
 {% if code_repo %}
 **Source Code Repository:** {{ code_repo.url }} (Commit: {{ code_repo.commit_sha }})
@@ -215,7 +218,7 @@ technical solutions adopted to ensure continuous compliance with the EU AI Act]"
 {% endif %}
 {% else %}
 [REQUIRED: Provide comprehensive fairness and bias assessment metrics, including analysis across protected attributes]
-{% endif %}****
+{% endif %}
 
 **Bias Mitigation Measures:**
 {{ manual_inputs.get("bias_mitigation", "[REQUIRED: Describe measures taken to identify and mitigate bias in the AI

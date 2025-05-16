@@ -71,8 +71,8 @@ def generate_annex_iv_documentation(
     logger.info(f"Generating Annex IV documentation for run: {run_id}")
 
     # Create immutable releases directory with run_id subdirectory
-    releases_dir = f"{RELEASES_DIR}/{run_id}"
-    os.makedirs(releases_dir, exist_ok=True)
+    releases_dir = Path(RELEASES_DIR) / run_id
+    releases_dir.mkdir(parents=True, exist_ok=True)
 
     # Step 1: Collect metadata from context
     metadata = collect_zenml_metadata(context)
@@ -174,15 +174,54 @@ def generate_annex_iv_documentation(
 
 def collect_zenml_metadata(context) -> Dict[str, Any]:
     """Collect all relevant metadata from ZenML for Annex IV documentation."""
-    # 1) local git provenance
+    # 1. local git provenance
     repo = Repo(search_parent_directories=True)
     commit = repo.head.commit
 
-    # 2) ZenML client & current run
+    # 2. ZenML client & current run
     client = Client()
     run = context.pipeline_run
 
-    # 3) Top‑level pipeline & run info
+    # 3. Get stack information
+    def _process_component(component):
+        """Process a component to the desired format."""
+        try:
+            return {
+                "id": str(component.id),
+                "name": component.name,
+                "type": str(component.type),
+                "flavor_name": component.flavor_name,
+                "integration": getattr(component, "integration", None),
+                "logo_url": getattr(component, "logo_url", None),
+            }
+        except Exception as e:
+            return {
+                "id": str(getattr(component, "id", "unknown")),
+                "name": getattr(component, "name", "Error processing component"),
+                "error": str(e),
+            }
+
+    stack_data = {}
+    try:
+        stack = client.active_stack_model
+        stack_data = {
+            "id": str(stack.id),
+            "name": stack.name,
+            "created": str(getattr(stack, "created", None)),
+            "updated": str(getattr(stack, "updated", None)),
+            "user_id": str(stack.user.id) if hasattr(stack, "user") and stack.user else None,
+            "description": getattr(stack, "description", None),
+            "components": {},
+        }
+        for comp_type, components in stack.components.items():
+            comp_type_str = str(comp_type)
+            stack_data["components"][comp_type_str] = [
+                _process_component(component) for component in components
+            ]
+    except Exception as e:
+        logger.warning(f"Failed to get stack information: {e}")
+
+    # 4. Top‑level pipeline & run info
     metadata: Dict[str, Any] = {
         "pipeline": {
             "name": run.pipeline.name,
@@ -200,6 +239,7 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
             "artifacts": {},
         },
         "pipelines": [],
+        "stack": stack_data,
         # environment info
         "environment": {
             "python_version": __import__("sys").version,
@@ -207,10 +247,7 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
         },
     }
 
-    # 4) this pipeline's step info
-    metadata["steps"] = extract_steps_info(run)
-
-    # 5) loop over your three pipelines and grab last_run & steps
+    # 4. loop over your three pipelines and grab last_run & steps
     for pipe_name in [
         FEATURE_ENGINEERING_PIPELINE_NAME,
         TRAINING_PIPELINE_NAME,
@@ -234,7 +271,7 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
                 f"Could not fetch last run for pipeline '{pipe_name}': {e}"
             )
 
-    # 6) collect artifacts for the current run (so you can link inputs/outputs by name)
+    # 5. collect artifacts for the current run (so you can link inputs/outputs by name)
     try:
         arts = client.list_artifacts(pipeline_name=run.pipeline.name, pipeline_run_id=run.id)
         for art in arts:
@@ -256,7 +293,61 @@ def render_annex_iv_template(
     loader = jinja2.FileSystemLoader(searchpath=template_dir)
     env = jinja2.Environment(loader=loader)
 
-    # Add custom filters if needed
+    # Format dictionary key-value pairs to a readable string
+    env.filters["join_kv"] = lambda d: ", ".join(f"{k}={v}" for k, v in d.items()) if d else "-"
+
+    # Format dictionaries with list values (ensuring all elements are strings)
+    env.filters["join_list_kv"] = (
+        lambda d: ", ".join(f"{k}=[{','.join(str(x) for x in v)}]" for k, v in d.items())
+        if d
+        else "-"
+    )
+
+    # Extract dictionary keys
+    env.filters["list_keys"] = lambda d: ", ".join(d.keys()) if isinstance(d, dict) and d else "-"
+
+    # Format inputs for pipeline steps with better error handling
+    def format_inputs(inputs):
+        if not inputs:
+            return "-"
+
+        result = []
+        for k, v in inputs.items():
+            try:
+                # Only take the first 8 characters of the string representation
+                value_str = str(v)[:8]
+                result.append(f"{k}={value_str}")
+            except Exception:
+                # Fallback in case of errors
+                result.append(f"{k}=...")
+
+        return ", ".join(result)
+
+    env.filters["format_inputs"] = format_inputs
+
+    # Format outputs for pipeline steps with better handling of list values
+    def format_outputs(outputs):
+        if not outputs:
+            return "-"
+
+        result = []
+        for k, v in outputs.items():
+            if isinstance(v, list) and v:
+                # Handle list of IDs
+                formatted_ids = ",".join(str(x)[:8] for x in v)
+                result.append(f"{k}=[{formatted_ids}]")
+            else:
+                # Handle single value or empty list
+                result.append(f"{k}={str(v)[:8] if v else '-'}")
+
+        return ", ".join(result)
+
+    env.filters["format_outputs"] = format_outputs
+
+    # Safe string converter for any type
+    env.filters["safe_str"] = lambda obj: str(obj) if obj is not None else "-"
+
+    # Dump to yaml with nice formatting
     env.filters["to_yaml"] = lambda obj: yaml.dump(obj, default_flow_style=False)
 
     template = env.get_template("annex_iv_template.j2")
