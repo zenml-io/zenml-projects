@@ -1,6 +1,10 @@
 import pandas as pd
 from zenml import step
 from typing import List
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -45,7 +49,7 @@ def preprocess_data_step(df: pd.DataFrame) -> pd.DataFrame:
             # Handle cases where 'y' might have values other than 'yes' or 'no'
             # For now, we'll let them be NaNs, which might need further handling or raise an error
             # Depending on requirements, one might want to fill NaNs or raise an error here.
-            print(
+            logger.info(
                 "Warning: 'y' column contains values other than 'yes' or 'no', resulting in NaNs after mapping."
             )
 

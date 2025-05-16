@@ -2,6 +2,10 @@ import pandas as pd
 from zenml import step
 from sklearn.model_selection import train_test_split
 from typing import Tuple, Annotated
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 @step
@@ -37,7 +41,7 @@ def split_data_step(
     if stratify_col and stratify_col in df.columns:
         stratify_data = df[stratify_col]
     elif stratify_col:
-        print(
+        logger.info(
             f"Warning: Stratification column '{stratify_col}' not found. Proceeding without stratification."
         )
 

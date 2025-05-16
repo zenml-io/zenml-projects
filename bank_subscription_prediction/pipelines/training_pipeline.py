@@ -5,6 +5,10 @@ from steps.data_preprocessor import preprocess_data_step
 from steps.data_splitter import split_data_step
 from steps.model_trainer import train_xgb_model_with_feature_selection
 from steps.model_evaluator import evaluate_model
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 @pipeline
@@ -28,4 +32,4 @@ def bank_subscription_training_pipeline():
         y_test=y_test,
     )
 
-    print("Bank subscription training pipeline completed.")
+    logger.info("Bank subscription training pipeline completed.")

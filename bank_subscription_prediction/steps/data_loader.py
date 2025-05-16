@@ -3,38 +3,41 @@ import os
 import requests
 from zenml import step
 
+# Download the zip file
+import zipfile
+from io import BytesIO
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
+
 
 @step
-def load_data(csv_file_path: str = "data/bank.csv") -> pd.DataFrame:
-    """Loads data from a CSV file or downloads it if not available.
+def load_data(
+    data_path: str = "https://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank-additional.zip",
+) -> pd.DataFrame:
+    """Loads data from a CSV file or downloads it if a URL is provided.
 
     Args:
-        csv_file_path: Path to the CSV file.
+        data_path: Path to the CSV file or URL to download from.
 
     Returns:
         Pandas DataFrame loaded from the CSV.
     """
-    # Check if file exists locally
-    if not os.path.exists(csv_file_path):
-        print(
-            f"File {csv_file_path} not found. Downloading from UCI ML Repository..."
-        )
-
-        # URL for the bank marketing dataset
-        url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank-additional.zip"
-
+    # Case 1: Input is a URL - download the data
+    if data_path.startswith(("http://", "https://")):
+        logger.info(f"Downloading data from URL: {data_path}")
         try:
-            # Download the zip file
-            import zipfile
-            from io import BytesIO
-
-            response = requests.get(url)
+            response = requests.get(data_path)
             response.raise_for_status()  # Raise an exception for HTTP errors
 
             # Extract the zip file
             with zipfile.ZipFile(BytesIO(response.content)) as z:
                 # Find the CSV file (there might be multiple CSVs, we want the one with all data)
                 csv_files = [f for f in z.namelist() if f.endswith(".csv")]
+                if not csv_files:
+                    raise Exception("No CSV files found in the zip archive")
+
                 bank_csv = next(
                     (f for f in csv_files if "full" in f), csv_files[0]
                 )
@@ -42,20 +45,25 @@ def load_data(csv_file_path: str = "data/bank.csv") -> pd.DataFrame:
                 # Extract the CSV file
                 with z.open(bank_csv) as f:
                     # Read the CSV directly from the zip
-                    data_raw_all = pd.read_csv(f, sep=";")
-
-                    # Save locally for future use
-                    data_raw_all.to_csv(csv_file_path, sep=";", index=False)
-
-                    print(f"Dataset downloaded and saved to {csv_file_path}")
-                    return data_raw_all
+                    data = pd.read_csv(f, sep=";")
+                    return data
 
         except Exception as e:
-            raise Exception(f"Failed to download dataset: {str(e)}")
+            raise Exception(
+                f"Failed to download dataset from {data_path}: {str(e)}"
+            )
 
-    try:
-        # If we reach here, the file exists locally
-        data_raw_all = pd.read_csv(csv_file_path, header=0, sep=";")
-        return data_raw_all
-    except Exception as e:
-        raise Exception(f"Error loading {csv_file_path}: {str(e)}")
+    # Case 2: Input is a local file that exists
+    elif os.path.exists(data_path):
+        logger.info(f"Loading data from local file: {data_path}")
+        try:
+            data = pd.read_csv(data_path, sep=";")
+            return data
+        except Exception as e:
+            raise Exception(f"Error loading {data_path}: {str(e)}")
+
+    # Case 3: Neither a valid URL nor an existing file
+    else:
+        raise FileNotFoundError(
+            f"{data_path} is not a valid URL or existing file path"
+        )

@@ -1,86 +1,88 @@
 import pandas as pd
+import numpy as np
+from zenml import step
+from typing import Tuple, Annotated
 import xgboost as xgb
 from sklearn.feature_selection import SelectFromModel
-from zenml import step
-from typing import Annotated, Tuple
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 @step
 def train_xgb_model_with_feature_selection(
     X_train: pd.DataFrame,
     y_train: pd.Series,
-    learning_rate: float = 0.1,
     n_estimators: int = 100,
     max_depth: int = 3,
-    min_child_weight: int = 1,
-    gamma: float = 0,
-    subsample: float = 0.8,
-    colsample_bytree: float = 0.8,
-    objective: str = "binary:logistic",
-    scale_pos_weight: float = 1,  # Default to 1, adjust based on imbalance
-    random_state: int = 42,
-    feature_selection_threshold: str = "median",  # Threshold for SelectFromModel
+    learning_rate: float = 0.1,
+    feature_selection_threshold: str = "median",  # Can also be specific value
 ) -> Tuple[
-    Annotated[xgb.XGBClassifier, "trained_model"],
+    Annotated[xgb.XGBClassifier, "model"],
     Annotated[SelectFromModel, "feature_selector"],
 ]:
-    """Trains an XGBoost classifier with feature selection.
+    """Trains an XGBoost classifier with built-in feature selection.
 
     Args:
         X_train: Training features.
         y_train: Training target.
-        learning_rate: Learning rate for XGBoost.
-        n_estimators: Number of boosting rounds.
-        max_depth: Maximum depth of a tree.
-        min_child_weight: Minimum sum of instance weight needed in a child.
-        gamma: Minimum loss reduction required to make a further partition.
-        subsample: Subsample ratio of the training instance.
-        colsample_bytree: Subsample ratio of columns when constructing each tree.
-        objective: Specify the learning task and the corresponding learning objective.
-        scale_pos_weight: Control the balance of positive and negative weights.
-        random_state: Random seed for reproducibility.
-        feature_selection_threshold: Threshold for SelectFromModel (e.g., "median", "mean", float).
+        n_estimators: Number of trees in the model.
+        max_depth: Maximum depth of each tree.
+        learning_rate: Learning rate for the model.
+        feature_selection_threshold: Threshold strategy or value for feature selection.
 
     Returns:
-        A tuple containing the trained XGBoost model and the feature selector.
+        Tuple containing the trained model and feature selector.
     """
+    # Check for class imbalance
+    class_counts = y_train.value_counts()
+    class_ratio = min(class_counts) / max(class_counts)
 
+    # Set scale_pos_weight for imbalanced dataset
+    scale_pos_weight = 1.0
+    if (
+        class_ratio < 0.3
+    ):  # If minority class is less than 30% of majority class
+        # XGBoost recommends using the ratio of negative to positive instances
+        scale_pos_weight = class_counts[0] / class_counts[1]
+
+    # Initialize and train XGBoost classifier
     model = xgb.XGBClassifier(
-        learning_rate=learning_rate,
         n_estimators=n_estimators,
         max_depth=max_depth,
-        min_child_weight=min_child_weight,
-        gamma=gamma,
-        subsample=subsample,
-        colsample_bytree=colsample_bytree,
-        objective=objective,
+        learning_rate=learning_rate,
         scale_pos_weight=scale_pos_weight,
-        random_state=random_state,
-        use_label_encoder=False,  # Suppress warning for newer XGBoost versions
+        use_label_encoder=False,  # Avoid future warning
+        eval_metric="logloss",  # Specify eval metric to avoid warning
+        random_state=42,
     )
 
-    # Feature Selection using SelectFromModel
-    # The notebook fits SelectFromModel on the training data before training the final model
-    # This is a common practice, though sometimes it's done within a CV loop.
-    # Here, we select features based on the initial model fit on X_train.
+    # Train the model on the original features
+    model.fit(X_train, y_train)
 
-    # Fit an initial model for feature selection
-    selection_model = xgb.XGBClassifier(
-        random_state=random_state, use_label_encoder=False
-    )
-    selection_model.fit(X_train, y_train)
-
-    fs_selector = SelectFromModel(
-        selection_model, threshold=feature_selection_threshold, prefit=True
+    # Use the model for feature selection
+    feature_selector = SelectFromModel(
+        model, threshold=feature_selection_threshold, prefit=True
     )
 
-    # Transform X_train to selected features
-    X_train_selected = fs_selector.transform(X_train)
+    # Transform the training data
+    X_train_selected = feature_selector.transform(X_train)
 
-    print(f"Original number of features: {X_train.shape[1]}")
-    print(f"Number of features selected: {X_train_selected.shape[1]}")
-
-    # Train the final model on the selected features
+    # Retrain the model on selected features
+    model = xgb.XGBClassifier(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        learning_rate=learning_rate,
+        scale_pos_weight=scale_pos_weight,
+        use_label_encoder=False,
+        eval_metric="logloss",
+        random_state=42,
+    )
     model.fit(X_train_selected, y_train)
 
-    return model, fs_selector
+    # Log feature selection info
+    logger.info(f"Original number of features: {X_train.shape[1]}")
+    logger.info(f"Number of features selected: {X_train_selected.shape[1]}")
+
+    return model, feature_selector
