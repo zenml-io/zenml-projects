@@ -41,6 +41,13 @@ The project implements a complete ML pipeline with the following steps:
 5. **Model Training**: Train an XGBoost classifier with selected features
 6. **Model Evaluation**: Evaluate model performance and visualize results with interactive HTML visualization
 
+<div align="center">
+  <br/>
+    <img alt="Evaluation visualization" src="assets/eval_vis.png" width="70%">
+  <br/>
+  <p><em>ZenML visualization of the evals</em></p>
+</div>
+
 ## 💡 Model Details
 
 This solution uses XGBoost, specifically designed to handle:
