@@ -6,10 +6,11 @@ from steps.data_splitter import split_data_step
 from steps.model_trainer import train_xgb_model_with_feature_selection
 from steps.model_evaluator import evaluate_model
 
+
 @pipeline
 def bank_subscription_training_pipeline():
     """Pipeline to train a bank subscription prediction model.
-    
+
     This pipeline doesn't take parameters directly. Instead, it uses
     step parameters from the YAML config file.
     """
@@ -18,14 +19,13 @@ def bank_subscription_training_pipeline():
     preprocessed_data = preprocess_data_step(df=cleaned_data)
     X_train, X_test, y_train, y_test = split_data_step(df=preprocessed_data)
     model, feature_selector = train_xgb_model_with_feature_selection(
-        X_train=X_train,
-        y_train=y_train
+        X_train=X_train, y_train=y_train
     )
     evaluate_model(
         model=model,
         feature_selector=feature_selector,
         X_test=X_test,
-        y_test=y_test
+        y_test=y_test,
     )
 
-    print("Bank subscription training pipeline completed.") 
+    print("Bank subscription training pipeline completed.")

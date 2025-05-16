@@ -74,7 +74,7 @@ def main(
 
     logger.info("\n" + "=" * 80)
     logger.info("Running bank subscription prediction pipeline...")
-    
+
     # Create a new version of the model
     model = Model(
         name="bank_subscription_classifier",
@@ -83,11 +83,10 @@ def main(
 
     # Run the pipeline with the specified config
     logger.info(f"Using configuration from: {config}")
-    
+
     run = bank_subscription_training_pipeline.with_options(
-            model=model, 
-            **pipeline_options
-        )()
+        model=model, **pipeline_options
+    )()
 
     logger.info("=" * 80 + "\n")
     logger.info("\n" + "=" * 80)
@@ -96,4 +95,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main() 
+    main()
