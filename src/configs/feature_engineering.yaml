@@ -8,7 +8,7 @@ settings:
       - pyarrow
 
 # Pipeline options
-enable_cache: True
+enable_cache: False
 enable_artifact_metadata: True
 
 # Pipeline configuration

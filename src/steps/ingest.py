@@ -21,27 +21,29 @@ from typing import Annotated, Optional, Tuple
 
 import pandas as pd
 import whylogs as why
-from datasets import load_dataset
 from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
+from zenml.types import HTMLString
 
 from src.constants import (
     CREDIT_SCORING_CSV_PATH,
     DATA_PROFILE_NAME,
     SENSITIVE_ATTRIBUTES,
     TARGET_COLUMN,
+    WHYLOGS_VISUALIZATION_NAME,
 )
+from src.utils import generate_whylogs_visualization
 
 
-@step
+@step(enable_cache=False)
 def ingest(
     random_state: int = 42,
     target: str = TARGET_COLUMN,
     sample_fraction: Optional[float] = None,
-    log_data_profile: bool = True,
 ) -> Tuple[
     Annotated[pd.DataFrame, "credit_scoring_df"],
-    Annotated[Optional[DatasetProfileView], DATA_PROFILE_NAME],
+    Annotated[DatasetProfileView, DATA_PROFILE_NAME],
+    Annotated[HTMLString, WHYLOGS_VISUALIZATION_NAME],
 ]:
     """Ingest local credit_scoring.csv and log compliance metadata.
 
@@ -66,10 +68,14 @@ def ingest(
     print(f"Ingesting data from {CREDIT_SCORING_CSV_PATH} at {start_time}")
 
     #  load the CSV
-    df = pd.read_csv(CREDIT_SCORING_CSV_PATH)
+    df = pd.read_csv(CREDIT_SCORING_CSV_PATH, low_memory=False)
 
     if target not in df.columns:
         raise ValueError(f"Target column '{target}' not found in {CREDIT_SCORING_CSV_PATH}")
+
+    # Clean data by removing rows with all or most values missing
+    if "SK_ID_CURR" in df.columns:
+        df = df.dropna(subset=["SK_ID_CURR"])
 
     # optional stratified sample
     if sample_fraction and 0 < sample_fraction < 1:
@@ -105,22 +111,23 @@ def ingest(
         "sensitive_attributes": sensitive_cols,
     }
 
-    # Get a timestamp string for the metadata key
-    timestamp = start_time.strftime("%Y%m%d_%H%M%S")
-
     # WhyLogs profile for data quality documentation
-    profile: DatasetProfileView | None = None
-    if log_data_profile:
-        profile = why.log(df).view()
+    data_profile: DatasetProfileView | None = None
+    data_profile = why.log(df).view()
+
+    # Generate WhyLogs visualization
+    whylogs_visualization = generate_whylogs_visualization(
+        data_profile=data_profile,
+        dataset_info=dataset_info,
+    )
 
     log_metadata(
         metadata={
-            "timestamp": timestamp,
+            "timestamp": start_time.strftime("%Y%m%d_%H%M%S"),
             "dataset_info": dataset_info,
-            "whylogs_profile": str(profile) if profile else None,
         }
     )
 
     print(f"Ingestion completed at {datetime.now()}, SHA-256: {file_hash}")
 
-    return df, profile if profile else None
+    return df, data_profile, whylogs_visualization

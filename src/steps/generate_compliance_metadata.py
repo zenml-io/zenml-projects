@@ -14,20 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from datetime import datetime
 from typing import Annotated, Any, Dict, Optional
 
 import pandas as pd
 from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
+from zenml.logger import get_logger
 
 from src.constants import (
     COMPLIANCE_METADATA_NAME,
     DATA_PROFILE_NAME,
-    SENSITIVE_ATTRIBUTES,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
+
+logger = get_logger(__name__)
+
+os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
 
 @step
@@ -36,14 +41,14 @@ def generate_compliance_metadata(
     test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     preprocessing_metadata: Dict[str, Any],
     target: str,
-    data_profile: Annotated[Optional[DatasetProfileView], DATA_PROFILE_NAME] = None,
+    data_profile: Annotated[DatasetProfileView, DATA_PROFILE_NAME],
 ) -> Annotated[Dict[str, Any], COMPLIANCE_METADATA_NAME]:
     """Generate compliance documentation for EU AI Act requirements.
 
       Records:
-      - Feature list & types (Article 10)
-      - Pre/post shapes & missing‐value counts (Articles 10 & 12)
-      - Data quality summary (Article 15)
+      - Feature list & types (Article 10)
+      - Pre/post shapes & missing value counts (Articles 10 & 12)
+      - Data quality summary (Article 15)
 
     Args:
         train_df: Preprocessed training dataframe
@@ -79,14 +84,13 @@ def generate_compliance_metadata(
         features.append(entry)
 
     # 3. Optional WhyLogs summary
-    profile_summary = None
-    if data_profile:
-        profile_summary = {
-            c: {
-                "non_null": data_profile.column_profile(c).counts.get("non_null", 0),
-                "unique": data_profile.column_profile(c).metrics.get("unique_count"),
-            }
-            for c in data_profile.columns
+    data_profile_df = data_profile.to_pandas()
+    profile_summary = {}
+    for col in data_profile_df.index:
+        row = data_profile_df.loc[col]
+        profile_summary[col] = {
+            "non_null": int(row.get("count/non_null", 0)),
+            "unique": int(row.get("distinct_count", row.get("unique_count", 0))),
         }
 
     # 4. Assemble compliance record
@@ -96,10 +100,8 @@ def generate_compliance_metadata(
         "stats": stats,
         "features": features,
         "target": target,
+        "data_profile_summary": profile_summary,
     }
-
-    if profile_summary:
-        compliance_record["data_profile_summary"] = profile_summary
 
     # 5. Log metadata for Annex IV
     log_metadata(

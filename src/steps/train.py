@@ -16,7 +16,7 @@
 #
 
 from datetime import datetime
-from typing import Annotated, Dict, Optional, Tuple
+from typing import Annotated, Dict, Optional
 
 import joblib
 import pandas as pd

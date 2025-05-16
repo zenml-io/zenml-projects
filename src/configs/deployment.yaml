@@ -4,9 +4,19 @@ settings:
     required_integrations:
       - sklearn
       - pandas
-    requirements:
-      - pyarrow
+      - s3
+      - aws
+      - slack
+    requirements: requirements.txt
+    python_package_installer: "uv"
 
 # Pipeline options
 enable_cache: False
 enable_artifact_metadata: True
+
+steps:
+  modal_deployment:
+    settings:
+      resources:
+        cpu_count: 6
+        memory: "14GB"

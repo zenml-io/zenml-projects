@@ -30,6 +30,7 @@ from .risk_assessment import risk_assessment
 from .approve import approve_deployment
 from .deploy import modal_deployment
 from .post_market_monitoring import post_market_monitoring
+from .generate_sbom import generate_sbom
 
 # annex
 from .post_run_annex import generate_annex_iv_documentation

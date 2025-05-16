@@ -20,13 +20,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Dict
 
-from zenml import log_metadata, step
+from zenml import get_step_context, log_metadata, step
+from zenml.logger import get_logger
 
 from src.constants import (
     DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
     MONITORING_PLAN_NAME,
+    RELEASES_DIR,
 )
+
+logger = get_logger(__name__)
 
 
 @step
@@ -79,15 +83,24 @@ def post_market_monitoring(
         },
     }
 
-    # Save monitoring plan to file
-    monitoring_dir = Path("compliance/monitoring")
-    monitoring_dir.mkdir(parents=True, exist_ok=True)
+    # Get the current run ID
+    context = get_step_context()
+    run_id = str(context.pipeline_run.id)
 
-    with open(monitoring_dir / f"{monitoring_plan['plan_id']}.json", "w") as f:
+    # Create the release directory for this run
+    release_dir = f"{RELEASES_DIR}/{run_id}"
+    Path(release_dir).mkdir(parents=True, exist_ok=True)
+
+    # Save monitoring plan to the run-specific release directory
+    monitoring_plan_path = Path(release_dir) / "monitoring_plan.json"
+
+    with open(monitoring_plan_path, "w") as f:
         json.dump(monitoring_plan, f, indent=2)
 
+    logger.info(f"Post-market monitoring plan saved to: {monitoring_plan_path}")
+
     # Log monitoring plan metadata for compliance documentation
-    log_metadata(metadata={f"monitoring_plan_{timestamp.replace(':', '-')}": monitoring_plan})
+    log_metadata(metadata={"monitoring_plan": monitoring_plan})
 
     print("✅ Post-market monitoring plan established (Article 17)")
     print("📈 Daily drift monitoring, weekly performance checks, monthly fairness audits")

@@ -19,8 +19,11 @@ from typing import Annotated, Any, Dict, Tuple
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline as SkPipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from zenml import log_metadata, step
+from zenml.logger import get_logger
 
 from src.constants import (
     MODAL_PREPROCESS_PIPELINE_PATH,
@@ -31,7 +34,14 @@ from src.constants import (
     TRAIN_DATASET_NAME,
 )
 from src.utils import save_artifact_to_modal
-from src.utils.preprocess import DeriveAgeFeatures, DropIDColumn, SimpleScaler
+from src.utils.preprocess import DeriveAgeFeatures, DropIDColumn
+
+logger = get_logger(__name__)
+
+
+def log_op(name, **extra):
+    """Log an operation with a timestamp and additional metadata."""
+    return {"op": name, "timestamp": datetime.now().isoformat(), **extra}
 
 
 @step
@@ -63,55 +73,110 @@ def data_preprocessor(
     log = []
     start = datetime.now().isoformat()
 
-    # 1. Drop the ID
+    # -- 1. Drop the ID -------------------------------------------------------
     dropper = DropIDColumn()
     dataset_trn = dropper.transform(dataset_trn)
     dataset_tst = dropper.transform(dataset_tst)
-    log.append({"op": "drop_id", "at": datetime.now().isoformat()})
+    log.append(log_op("drop_id"))
 
-    # 2. Derive age/employment
+    # -- 2. Derive age/employment ---------------------------------------------
     age_transformer = DeriveAgeFeatures()
     dataset_trn = age_transformer.transform(dataset_trn)
     dataset_tst = age_transformer.transform(dataset_tst)
-    log.append({"op": "derive_age", "at": datetime.now().isoformat()})
+    log.append(log_op("derive_age"))
 
-    # 3. Build scaling step if asked
+    # -- 3. Build preprocessing pipeline --------------------------------------
+    numeric_selector = make_column_selector(
+        dtype_include=["int64", "float64"],
+        pattern=f"^(?!{target}$).*",  # Don't process target
+    )
+    categorical_selector = make_column_selector(dtype_include=["object", "category"])
+
+    # Get column lists for logging
+    num_cols = numeric_selector(dataset_trn)
+    cat_cols = categorical_selector(dataset_trn)
+
+    # Add transformers
     transformers = []
+
+    # Numeric pipeline with imputation and optional scaling
+    num_pipeline_steps = [("impute", SimpleImputer(strategy="mean"))]
     if normalize:
+        num_pipeline_steps.append(("scale", StandardScaler()))
+        log.append(log_op("scale", columns=num_cols))
+
+    if num_cols:
+        transformers.append(("num", SkPipeline(num_pipeline_steps), numeric_selector))
+        log.append(log_op("impute_numeric", columns=num_cols))
+
+    # Categorical pipeline with imputation and encoding
+    if cat_cols:
         transformers.append(
             (
-                "scale",
-                SimpleScaler(exclude=[target]),
-                make_column_selector(dtype_include=["number"], pattern=f"^(?!{target}$).*"),
+                "cat",
+                SkPipeline(
+                    [
+                        ("impute", SimpleImputer(strategy="constant", fill_value="missing")),
+                        ("ohe", OneHotEncoder(sparse_output=False, handle_unknown="ignore")),
+                    ]
+                ),
+                categorical_selector,
             )
         )
-    log.append({"op": "scale", "at": datetime.now().isoformat()})
+        log.append(log_op("one_hot", columns=cat_cols))
 
-    ct = ColumnTransformer(transformers, remainder="passthrough", verbose_feature_names_out=True)
-    pipeline = SkPipeline([("column_transformer", ct)])
-    pipeline.fit(dataset_trn)
+    # Create column transformer
+    ct = ColumnTransformer(
+        transformers,
+        remainder="passthrough",
+        verbose_feature_names_out=True,
+    )
 
-    # 4. Transform & collect feature names
-    cols = ct.get_feature_names_out(dataset_trn.columns)
-    train_df = pd.DataFrame(pipeline.transform(dataset_trn), columns=cols)
-    test_df = pd.DataFrame(pipeline.transform(dataset_tst), columns=cols)
+    # -- 4. Fit & transform ---------------------------------------------------
+    sk_pipeline = SkPipeline([("preprocessor", ct)])
+    sk_pipeline.fit(dataset_trn)
 
-    #  5. Log metadata for Annex IV
-    metadata = {
+    # Transform data
+    train_transformed = sk_pipeline.transform(dataset_trn)
+    test_transformed = sk_pipeline.transform(dataset_tst)
+
+    # Get feature names
+    feature_names = sk_pipeline.named_steps["preprocessor"].get_feature_names_out(
+        dataset_trn.columns
+    )
+
+    # Create dataframes
+    train_df = pd.DataFrame(train_transformed, columns=feature_names)
+    test_df = pd.DataFrame(test_transformed, columns=feature_names)
+
+    # Log data types after transformation for verification
+    logger.info(f"Data types after transformation: {train_df.dtypes}")
+
+    # Verify no object/string columns remain
+    remaining_cat_cols = train_df.select_dtypes(include=["object"]).columns.tolist()
+    if remaining_cat_cols:
+        logger.warning(
+            f"Warning: These columns are still categorical after transformation: {remaining_cat_cols}"
+        )
+
+    # -- 5. Log metadata for Annex IV -----------------------------------------
+    preprocessing_metadata = {
         "preprocessing_start": start,
         "preprocessing_end": datetime.now().isoformat(),
         "steps": log,
-        "train_shape": train_df.shape,
-        "test_shape": test_df.shape,
-        "features": cols,
+        "train_shape": tuple(int(x) for x in train_df.shape),
+        "test_shape": tuple(int(x) for x in test_df.shape),
+        "features": feature_names.tolist(),
         "target": target,
+        "numeric_columns": num_cols,
+        "categorical_columns": cat_cols,
     }
-    log_metadata(metadata)
+    log_metadata(metadata=preprocessing_metadata)
 
-    # 6. Persist pipeline for deployment
+    # -- 6. Persist pipeline for deployment ------------------------------------
     save_artifact_to_modal(
-        artifact=pipeline,
+        artifact=sk_pipeline,
         artifact_path=MODAL_PREPROCESS_PIPELINE_PATH,
     )
 
-    return train_df, test_df, pipeline, metadata
+    return train_df, test_df, sk_pipeline, preprocessing_metadata

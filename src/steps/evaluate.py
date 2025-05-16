@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
-from datetime import datetime
+import json
+import uuid
 from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
 import pandas as pd
-from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score, roc_auc_score
 from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
@@ -28,15 +28,28 @@ from zenml.logger import get_logger
 
 from src.constants import (
     EVALUATION_RESULTS_NAME,
-    MODAL_FAIRNESS_DIR,
     MODEL_NAME,
+    RELEASES_DIR,
     TARGET_COLUMN,
     TEST_DATASET_NAME,
 )
-from src.utils.modal_utils import save_artifact_to_modal
+from src.utils import (
+    analyze_fairness,
+    report_bias_incident,
+    save_artifact_to_modal,
+)
 from src.utils.model_definition import model_definition
 
 logger = get_logger(__name__)
+
+
+class UUIDEncoder(json.JSONEncoder):
+    """Custom JSON encoder to handle UUIDs."""
+
+    def default(self, obj):
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        return super().default(obj)
 
 
 @step(model=model_definition)
@@ -46,86 +59,60 @@ def evaluate_model(
     target: str = TARGET_COLUMN,
     model: Annotated[Any, MODEL_NAME] = None,
 ) -> Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME]:
-    """Compute performance + fairness metrics, emit Slack alert if disparity > 0.2.
-
-    Articles 9 & 15 compliant.
+    """Compute performance + fairness metrics. Articles 9 & 15 compliant.
 
     Args:
-        protected_attributes: List of protected attributes.
-        test_df: Test dataset.
-        target: Target column name.
+        protected_attributes: List of protected attributes
+        test_df: Test dataset
+        target: Target column name
         model: The trained model
+
+    Returns:
+        Dictionary containing evaluation and fairness results
     """
-    # Use model if provided, otherwise fetch from ZenML
+    # Get model and identify target column
     if model is None:
-        # Fetch the model from ZenML artifact store
         client = Client()
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
 
-    # data preprocessor set may have added a suffix to the target column
     target_col = next(
         col for col in test_df.columns if col.endswith(f"__{target}") or col == target
     )
-
+    # Prepare test data
     X_test, y_test = test_df.drop(columns=[target_col]), test_df[target_col]
+
+    # Evaluate model performance
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
 
-    metrics = {
+    performance_metrics = {
         "accuracy": accuracy_score(y_test, y_pred),
         "auc": roc_auc_score(y_test, y_prob),
     }
 
-    # ---- Fairness per protected attr --------------------------------------
-    fairness_report = {}
-    bias_flag = False
+    # Analyze fairness across protected attributes
+    fairness_metrics, bias_flag = analyze_fairness(
+        y_test,
+        y_pred,
+        protected_attributes,
+        test_df,
+    )
 
-    for attr in protected_attributes:
-        if attr in test_df.columns:
-            sensitive_col = attr
-        else:
-            # Try to find a matching column
-            matching_cols = [col for col in test_df.columns if attr in col]
-            if not matching_cols:
-                logger.warning(
-                    f"Warning: Skipping protected attribute '{attr}' - not found in dataset"
-                )
-                continue
-            sensitive_col = matching_cols[0]
-            logger.info(f"Using '{sensitive_col}' for protected attribute '{attr}'")
-
-        # use the matched column
-        frame = MetricFrame(
-            metrics={
-                "selection_rate": selection_rate,
-                "accuracy": accuracy_score,
-            },
-            y_true=y_test,
-            y_pred=y_pred,
-            sensitive_features=test_df[sensitive_col],
-        )
-        disparity = frame.difference(method="between_groups")["selection_rate"]
-        fairness_report[sensitive_col] = {
-            "selection_rate_by_group": frame.by_group["selection_rate"].to_dict(),
-            "accuracy_by_group": frame.by_group["accuracy"].to_dict(),
-            "selection_rate_disparity": disparity,
-        }
-
-        if abs(disparity) > 0.2:  # configurable
-            bias_flag = True
-
-    # ---------- save full report to Modal Volume ----------------------------------
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    fairness_dir = Path(MODAL_FAIRNESS_DIR)
-    fairness_file_path = fairness_dir / f"fairness_report_{timestamp}.json"
+    # Create fairness report
     fairness_report = {
-        "metrics": metrics,
-        "fairness_metrics": fairness_report,
+        "metrics": performance_metrics,
+        "fairness_metrics": fairness_metrics,
         "bias_flag": bias_flag,
         "protected_attributes_checked": protected_attributes,
-        "timestamp": timestamp,
     }
+
+    # Get the run ID for artifacts
+    run_id = str(get_step_context().pipeline_run.id)
+
+    # Save report to Modal
+    release_dir = f"{RELEASES_DIR}/{run_id}"
+    Path(release_dir).mkdir(parents=True, exist_ok=True)
+    fairness_file_path = f"{release_dir}/fairness_report.json"
 
     save_artifact_to_modal(
         artifact=fairness_report,
@@ -134,33 +121,18 @@ def evaluate_model(
 
     logger.info(f"Fairness report saved to Modal Volume: {fairness_file_path}")
 
-    # ---- Log --------------------------------------------------------------
+    # Log metadata for the pipeline
     log_metadata(
         {
-            "metrics": metrics,
+            "metrics": performance_metrics,
             "bias_flag": bias_flag,
-            "fairness_file_path": str(fairness_file_path),
+            "fairness_file_path": fairness_file_path,
         }
     )
 
-    # Alert on bias detection
+    # Create incident report if bias detected
     if bias_flag:
-        try:
-            # Use the incident reporting API
-            incident_data = {
-                "severity": "high",
-                "description": "Bias detected in model evaluation",
-                "details": f"Disparity > 0.2 detected in protected attributes: {', '.join(protected_attributes)}",
-                "source": "evaluate_model",
-                "run_id": get_step_context().pipeline_run.id,
-            }
+        report_bias_incident(fairness_report, run_id)
 
-            # Log from internal pipeline (doesn't go through API endpoint)
-            from src.utils.incidents import create_incident_report
-
-            create_incident_report(incident_data)
-
-        except Exception as e:
-            logger.warning(f"Failed to report bias incident: {e}")
-
-    return {"metrics": metrics, "fairness": fairness_report}
+    # Return the evaluation results
+    return {"metrics": performance_metrics, "fairness": fairness_report}

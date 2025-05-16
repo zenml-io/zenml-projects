@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from zenml.pipelines import pipeline
 
@@ -34,9 +34,7 @@ from src.steps import (
 @pipeline(name=FEATURE_ENGINEERING_PIPELINE_NAME)
 def feature_engineering(
     test_size: float = 0.2,
-    drop_na: bool = True,
     normalize: bool = True,
-    drop_columns: Optional[List[str]] = None,
     target: str = TARGET_COLUMN,
     random_state: int = 42,
     sample_fraction: Optional[float] = None,
@@ -51,7 +49,7 @@ def feature_engineering(
     # Initialize volume metadata if not provided
 
     # Load the data
-    raw_data, data_profile = ingest(
+    raw_data, data_profile, whylogs_visualization = ingest(
         target=target,
         random_state=random_state,
         sample_fraction=sample_fraction,
@@ -65,23 +63,20 @@ def feature_engineering(
     )
 
     # Preprocess the data
-    train_df, test_df, pipeline, metadata = data_preprocessor(
+    train_df, test_df, sk_pipeline, preprocessing_metadata = data_preprocessor(
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
-        drop_na=drop_na,
-        normalize=normalize,
-        drop_columns=drop_columns,
         target=target,
-        random_state=random_state,
+        normalize=normalize,
     )
 
     # Generate compliance documentation
     compliance_info = generate_compliance_metadata(
         train_df=train_df,
         test_df=test_df,
-        preprocessing_metadata=metadata,
+        preprocessing_metadata=preprocessing_metadata,
         target=target,
         data_profile=data_profile,
     )
 
-    return train_df, test_df, pipeline, metadata, compliance_info
+    return train_df, test_df, sk_pipeline, compliance_info

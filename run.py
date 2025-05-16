@@ -21,7 +21,6 @@ from pathlib import Path
 import click
 from zenml.logger import get_logger
 
-from src.constants import TEST_DATASET_NAME, TRAIN_DATASET_NAME
 from src.pipelines import (
     deployment,
     feature_engineering,
@@ -140,14 +139,15 @@ def main(
 
         run_args = {}
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline(**run_args)
+        train_df, test_df, sk_pipeline, compliance_info, *_ = fe_pipeline(**run_args)
 
         logger.info("✅ Feature engineering pipeline finished successfully!")
 
         # Store for potential chaining
         outputs["train_df"] = train_df
         outputs["test_df"] = test_df
-        outputs["preprocess_pipeline"] = preprocess_pipeline
+        outputs["sk_pipeline"] = sk_pipeline
+        outputs["compliance_info"] = compliance_info
 
     # Run training pipeline
     if train:

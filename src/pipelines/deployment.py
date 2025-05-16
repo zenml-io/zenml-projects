@@ -30,6 +30,7 @@ from src.constants import (
 from src.steps import (
     approve_deployment,
     generate_annex_iv_documentation,
+    generate_sbom,
     modal_deployment,
     post_market_monitoring,
 )
@@ -46,6 +47,7 @@ def deployment(
 
     Implements:
     - Article 14: Human oversight through approval process
+    - Article 15: Accuracy & robustness via SBOM generation
     - Article 17: Post-market monitoring
     - Article 18: Incident reporting system
 
@@ -86,13 +88,21 @@ def deployment(
         preprocess_pipeline=preprocess_pipeline,
     )
 
+    # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
+    sbom_artifact = generate_sbom(
+        deployment_info=deployment_info,
+    )
+
     # Post-market monitoring plan (Article 17)
-    post_market_monitoring(
+    monitoring_plan = post_market_monitoring(
         deployment_info=deployment_info,
         evaluation_results=evaluation_results,
     )
 
-    generate_annex_iv_documentation(
+    # Generate comprehensive technical documentation (Article 11)
+    documentation_path = generate_annex_iv_documentation(
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
     )
+
+    return deployment_info, monitoring_plan, documentation_path

@@ -15,21 +15,24 @@
 # limitations under the License.
 #
 
-import tempfile
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Dict, List
 
-import pandas as pd
 from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
+from zenml.logger import get_logger
 
 from src.constants import (
+    APPROVAL_THRESHOLDS,
     HAZARD_DEFINITIONS,
-    MODAL_RISK_DIR,
-    MODAL_RISK_REGISTER_PATH,
+    RISK_REGISTER_PATH,
     RISK_SCORES_NAME,
 )
 from src.utils.modal_utils import save_artifact_to_modal
+
+logger = get_logger(__name__)
 
 # --------------------------------------------------------------------------- #
 RiskScores = Annotated[Dict[str, float], RISK_SCORES_NAME]
@@ -40,14 +43,11 @@ def identify_hazards(evaluation_results: Dict, scores: Dict) -> List[Dict]:
     """Identify applicable hazards based on evaluation results."""
     identified_hazards = []
 
-    # Add evaluation results to enriched context for hazard identification
-    context = evaluation_results.copy()
-    context.update({"scores": scores})
-
     # Evaluate each hazard trigger function
     for hazard_id, hazard_info in HAZARD_DEFINITIONS.items():
         try:
-            if hazard_info["trigger"](context):
+            trigger_func = hazard_info["trigger"]
+            if trigger_func(evaluation_results, scores):
                 identified_hazards.append(
                     {
                         "id": hazard_id,
@@ -57,26 +57,39 @@ def identify_hazards(evaluation_results: Dict, scores: Dict) -> List[Dict]:
                     }
                 )
         except (KeyError, TypeError) as e:
-            # Handle missing keys gracefully
-            print(f"Warning: Could not evaluate hazard {hazard_id}: {e}")
+            logger.warning(f"Could not evaluate hazard {hazard_id}: {e}")
 
     return identified_hazards
 
 
 def score_risk(evaluation: Dict) -> Dict[str, float]:
     """Return dict with per-factor risk ∈ [0,1] + overall."""
-    # Example heuristics (tune for real use‑case)
-    auc = evaluation["metrics"]["auc"]
-    bias_flag = evaluation["fairness"].get("bias_flag", False)
+    # Get metrics with default fallbacks
+    metrics = evaluation.get("metrics", {})
+    if not isinstance(metrics, dict):
+        metrics = {}
 
+    # Get AUC with default
+    auc = metrics.get("auc", 0.5)
+
+    # Get fairness info with defaults
+    fairness = evaluation.get("fairness", {})
+    if not isinstance(fairness, dict):
+        fairness = {}
+
+    bias_flag = fairness.get("bias_flag", False)
+
+    # Calculate max disparity across groups
     disparities = []
-    # The fairness metrics are in fairness_metrics inside the fairness report
-    for group_metrics in evaluation["fairness"].get("fairness_metrics", {}).values():
-        if isinstance(group_metrics, dict) and "selection_rate_disparity" in group_metrics:
-            disparities.append(abs(group_metrics["selection_rate_disparity"]))
+    fairness_metrics = fairness.get("fairness_metrics", {})
+    if isinstance(fairness_metrics, dict):
+        for group_metrics in fairness_metrics.values():
+            if isinstance(group_metrics, dict) and "selection_rate_disparity" in group_metrics:
+                disparities.append(abs(group_metrics["selection_rate_disparity"]))
 
     disparity = max(disparities) if disparities else 0.0
 
+    # Calculate risk scores
     risk_auc = 1 - auc  # low AUC → higher risk
     risk_bias = 0.8 if bias_flag else disparity  # flat score if flagged
     overall = round(min(1.0, 0.5 * risk_auc + 0.5 * risk_bias), 3)
@@ -86,6 +99,19 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
         "risk_bias": round(risk_bias, 3),
         "overall": overall,
     }
+
+
+def get_status(risk_score: float) -> str:
+    """Determine row status for the risk register.
+
+    Args:
+        risk_score: The overall risk score ∈ [0,1].
+
+    Returns:
+        "PENDING" if the score exceeds the configured threshold, otherwise "COMPLETED".
+    """
+    threshold = APPROVAL_THRESHOLDS["risk_score"]
+    return "PENDING" if risk_score > threshold else "COMPLETED"
 
 
 @step
@@ -105,80 +131,127 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
     scores = score_risk(evaluation_results)
     hazards = identify_hazards(evaluation_results, scores)
 
-    # Build or update the workbook in memory
-    wb_path = Path(tempfile.mkdtemp()) / "risk_register.xlsx"
-    if not wb_path.exists():
+    headers = [
+        "Run_ID",
+        "Timestamp",
+        "Risk_overall",
+        "Risk_auc",
+        "Risk_bias",
+        "Risk_category",
+        "Status",
+        "Risk_description",
+        "Mitigation",
+    ]
+
+    # Create a fresh workbook
+    wb_path = Path(RISK_REGISTER_PATH)
+    if wb_path.exists():
+        wb = load_workbook(wb_path)
+        ws = wb["Risks"]
+    else:
         wb = Workbook()
         ws = wb.active
         ws.title = "Risks"
-        ws.append(
-            ["Run_ID", "Risk_overall", "Risk_auc", "Risk_bias", "Status", "Hazards", "Mitigations"]
-        )
-    else:
-        wb = load_workbook(wb_path)
-        ws = wb["Risks"]
+        ws.append(headers)
 
-    # Get run_id from step context
+    # Get run_id
     run_id = get_step_context().pipeline_run.id
+    timestamp = datetime.now().isoformat()
 
-    # Check if this run already logged
-    run_ids = [cell.value for cell in ws["A"][1:]]  # skip header
-    if run_id in run_ids:
-        row_idx = run_ids.index(run_id) + 2
+    # Add record for this run
+    if hazards:
+        # Add to main Risks sheet
+        for hz in hazards:
+            ws.append(
+                [
+                    str(run_id),
+                    timestamp,
+                    scores["overall"],
+                    scores["risk_auc"],
+                    scores["risk_bias"],
+                    hz["severity"].upper(),
+                    get_status(scores["overall"]),
+                    hz["description"],
+                    hz["mitigation"],
+                ]
+            )
+
+        # Add to HazardDetails sheet
+        if "HazardDetails" not in wb.sheetnames:
+            hazard_sheet = wb.create_sheet("HazardDetails")
+            hazard_sheet.append(
+                [
+                    "Run_ID",
+                    "Timestamp",
+                    "Risk_Score",
+                    "Hazard_ID",
+                    "Description",
+                    "Severity",
+                    "Mitigation",
+                    "Details",
+                ]
+            )
+        else:
+            hazard_sheet = wb["HazardDetails"]
+
+        # Add records for each hazard
+        for hz in hazards:
+            # Get additional information for bias hazards
+            details = ""
+            if hz["id"] == "bias_protected_groups" and "fairness" in evaluation_results:
+                fairness = evaluation_results["fairness"]
+                if isinstance(fairness, dict) and "fairness_metrics" in fairness:
+                    for attr, metrics in fairness.get("fairness_metrics", {}).items():
+                        if isinstance(metrics, dict) and "selection_rate_disparity" in metrics:
+                            disparity = metrics["selection_rate_disparity"]
+                            if abs(disparity) > 0.2:
+                                details += f"{attr}: {abs(disparity):.3f} disparity\n"
+
+            hazard_sheet.append(
+                [
+                    str(run_id),
+                    timestamp,
+                    scores["overall"],
+                    hz["id"],
+                    hz["description"],
+                    hz["severity"].upper(),
+                    hz["mitigation"],
+                    details,
+                ]
+            )
     else:
-        row_idx = ws.max_row + 1
+        # If no hazards, add a single "all clear" record
+        ws.append(
+            [
+                str(run_id),
+                timestamp,
+                scores["overall"],
+                scores["risk_auc"],
+                scores["risk_bias"],
+                "LOW",
+                "COMPLETED",
+                "No hazards identified",
+                "N/A",
+            ]
+        )
 
-    hazard_descriptions = [h["description"] for h in hazards]
-    mitigation_descriptions = [h["mitigation"] for h in hazards]
-
-    ws.cell(row=row_idx, column=1).value = str(run_id)
-    ws.cell(row=row_idx, column=2).value = scores["overall"]
-    ws.cell(row=row_idx, column=3).value = scores["risk_auc"]
-    ws.cell(row=row_idx, column=4).value = scores["risk_bias"]
-    ws.cell(row=row_idx, column=5).value = (
-        "Mitigation needed" if scores["overall"] > 0.4 else "Acceptable"
-    )
-    ws.cell(row=row_idx, column=6).value = "; ".join(hazard_descriptions) if hazards else "None"
-    ws.cell(row=row_idx, column=7).value = "; ".join(mitigation_descriptions) if hazards else "N/A"
-    wb.save(wb_path)  # write into /tmp/risk_register.xlsx
+    # Save locally for Streamlit dashboard
+    wb.save(wb_path)
 
     # Save risk register to Modal Volume
     save_artifact_to_modal(
         artifact=wb,
-        artifact_path=MODAL_RISK_REGISTER_PATH,
+        artifact_path=RISK_REGISTER_PATH,
     )
 
-    if hazards:
-        # Create a hazard report with more detail
-        hazard_report = f"# Risk Assessment - Run {run_id}\n\n"
-        hazard_report += f"## Overall Risk Score: {scores['overall']:.2f}\n\n"
-        hazard_report += "## Identified Hazards\n\n"
-
-        for hazard in hazards:
-            hazard_report += f"### {hazard['description']} (Severity: {hazard['severity']})\n"
-            hazard_report += f"**Mitigation Strategy:** {hazard['mitigation']}\n\n"
-
-        save_artifact_to_modal(
-            artifact=hazard_report,
-            artifact_path=f"{MODAL_RISK_DIR}/hazard_report_{run_id}.md",
-        )
-
-    # 3) (Optional) snapshot as Markdown and upload
-    df = pd.read_excel(wb_path, sheet_name="Risks")
-    md = df.to_markdown(index=False)
-    save_artifact_to_modal(
-        artifact=md,
-        artifact_path=f"{MODAL_RISK_DIR}/risk_register.md",
-    )
+    print(f"✅ Risk register saved to: {RISK_REGISTER_PATH}")
 
     # Log metadata including hazards
-    log_metadata(
-        metadata={
-            "risk_scores": scores,
-            "identified_hazards": hazards,
-        }
-    )
+    result = {
+        **scores,
+        "hazards": hazards,
+        "risk_register_path": str(RISK_REGISTER_PATH),
+    }
 
-    # Include hazards in the return value
-    scores["hazards"] = hazards
-    return scores
+    log_metadata(metadata=result)
+    return result

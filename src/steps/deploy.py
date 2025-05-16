@@ -19,7 +19,7 @@ import importlib
 from pathlib import Path
 from typing import Annotated, Any, Dict
 
-from zenml import log_metadata, step
+from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import (
@@ -27,13 +27,11 @@ from src.constants import (
     APPROVED_NAME,
     DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
-    MODAL_APPROVALS_DIR,
     MODAL_ENVIRONMENT,
     MODAL_VOLUME_NAME,
     MODEL_NAME,
     PREPROCESS_PIPELINE_NAME,
 )
-from src.utils.modal_utils import save_artifact_to_modal
 
 logger = get_logger(__name__)
 
@@ -98,6 +96,7 @@ def modal_deployment(
     # Save compliance artifacts to Modal
     from src.utils.modal_utils import save_compliance_artifacts_to_modal
 
+    run_id = str(get_step_context().pipeline_run.id)
     artifacts = {
         "deployment_record": deployment_record,
         "model_card": model_card,
@@ -105,7 +104,7 @@ def modal_deployment(
     }
 
     # Save all artifacts to Modal volume
-    artifact_paths = save_compliance_artifacts_to_modal(artifacts)
+    artifact_paths = save_compliance_artifacts_to_modal(artifacts, run_id)
 
     # Enhanced deployment info with Modal paths
     deployment_info = {

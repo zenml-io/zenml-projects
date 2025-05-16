@@ -19,17 +19,15 @@ import os
 from datetime import datetime
 from typing import Annotated, Any, Dict, Tuple
 
-from zenml import log_metadata, step
+from zenml import step
 
 from src.constants import (
     APPROVAL_RECORD_NAME,
     APPROVAL_THRESHOLDS,
     APPROVED_NAME,
     EVALUATION_RESULTS_NAME,
-    MODAL_APPROVALS_DIR,
     RISK_SCORES_NAME,
 )
-from src.utils.modal_utils import save_artifact_to_modal
 
 
 @step(enable_cache=False)

@@ -22,7 +22,7 @@ from pathlib import Path
 # Dataset Configuration
 # ======================================================================
 
-CREDIT_SCORING_CSV_PATH = "data/credit_scoring.csv"
+CREDIT_SCORING_CSV_PATH = "src/data/credit_scoring.csv"
 TARGET_COLUMN = "TARGET"
 
 # List of potential sensitive attributes for fairness checks
@@ -33,9 +33,6 @@ SENSITIVE_ATTRIBUTES = [
     "NAME_FAMILY_STATUS",  # Married, Single, Civil marriage, Separated, Divorced, Widow
     "NAME_HOUSING_TYPE",  # House / apartment, With parents, Rented apartment, Office apartment, Co-op apartment
 ]
-
-# Ignore WhyLogs optional usage-telemetry API
-os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
 # ======================================================================
 # Pipeline Names
@@ -55,6 +52,7 @@ TEST_DATASET_NAME = "cs_test_df"
 PREPROCESS_PIPELINE_NAME = "cs_preprocess_pipeline"
 PREPROCESS_METADATA_NAME = "cs_preprocessing_metadata"
 DATA_PROFILE_NAME = "cs_data_profile"
+WHYLOGS_VISUALIZATION_NAME = "cs_whylogs_visualization"
 
 # Training artifacts
 EVALUATION_RESULTS_NAME = "cs_evaluation_results"
@@ -71,6 +69,27 @@ INCIDENT_REPORT_NAME = "cs_incident_report"
 COMPLIANCE_METADATA_NAME = "cs_compliance_metadata"
 COMPLIANCE_REPORT_NAME = "cs_compliance_report"
 MODEL_CARD_NAME = "cs_model_card"
+SBOM_ARTIFACT_NAME = "cs_sbom_artifact"
+ANNEX_IV_PATH_NAME = "cs_annex_iv_path"
+
+# ======================================================================
+# Required Local Directories (minimal) -- Same paths as Modal Volume
+# ======================================================================
+
+# Base path for Annex IV document generation
+DOCS_DIR = "docs"
+TEMPLATES_DIR = f"{DOCS_DIR}/templates"
+RISK_DIR = f"{DOCS_DIR}/risk"
+RELEASES_DIR = f"{DOCS_DIR}/releases"
+
+# Ensure minimal local directories exist
+for dir_path in [RISK_DIR, RELEASES_DIR]:
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+
+# Default artifact paths
+RISK_REGISTER_PATH = f"{RISK_DIR}/risk_register.xlsx"
+INCIDENT_LOG_PATH = f"{RISK_DIR}/incident_log.json"
+SAMPLE_INPUTS_PATH = f"{TEMPLATES_DIR}/sample_inputs.json"
 
 # ======================================================================
 # Modal Configuration
@@ -88,21 +107,11 @@ MAX_MODEL_VERSIONS = 5
 # Modal volume paths (for deployment)
 MODAL_MODELS_DIR = "/models"
 MODAL_PIPELINES_DIR = "/pipelines"
-MODAL_COMPLIANCE_DIR = "/compliance"
 MODAL_EVAL_RESULTS_DIR = "/evaluation"
-MODAL_APPROVALS_DIR = f"{MODAL_COMPLIANCE_DIR}/approvals"
-MODAL_MONITORING_DIR = f"{MODAL_COMPLIANCE_DIR}/monitoring"
-MODAL_DEPLOYMENTS_DIR = f"{MODAL_COMPLIANCE_DIR}/deployments"
-MODAL_FAIRNESS_DIR = f"{MODAL_COMPLIANCE_DIR}/fairness"
-MODAL_REPORTS_DIR = f"{MODAL_COMPLIANCE_DIR}/reports"
-MODAL_MANUAL_FILLS_DIR = f"{MODAL_COMPLIANCE_DIR}/manual_fills"
-MODAL_RISK_DIR = f"{MODAL_COMPLIANCE_DIR}/risk"
 
 # Default Modal artifact paths
 MODAL_MODEL_PATH = f"{MODAL_MODELS_DIR}/model.pkl"
 MODAL_PREPROCESS_PIPELINE_PATH = f"{MODAL_PIPELINES_DIR}/preprocess_pipeline.pkl"
-MODAL_RISK_REGISTER_PATH = f"{MODAL_RISK_DIR}/risk_register.xlsx"
-MODAL_INCIDENT_LOG_PATH = f"{MODAL_COMPLIANCE_DIR}/incident_log.json"
 
 # Standard keys for volume_metadata dictionary
 VOLUME_METADATA_KEYS = {
@@ -110,79 +119,13 @@ VOLUME_METADATA_KEYS = {
     "environment_name": MODAL_ENVIRONMENT,
     "model_path": MODAL_MODEL_PATH,
     "preprocess_pipeline_path": MODAL_PREPROCESS_PIPELINE_PATH,
-    "risk_register_path": MODAL_RISK_REGISTER_PATH,
-    "incident_log_path": MODAL_INCIDENT_LOG_PATH,
-    "compliance_dir": MODAL_COMPLIANCE_DIR,
-    "fairness_dir": MODAL_FAIRNESS_DIR,
-    "reports_dir": MODAL_REPORTS_DIR,
-    "deployments_records_dir": MODAL_DEPLOYMENTS_DIR,
-    "approvals_dir": MODAL_APPROVALS_DIR,
-    "monitoring_dir": MODAL_MONITORING_DIR,
-    "manual_fills_dir": MODAL_MANUAL_FILLS_DIR,
+    "docs_dir": DOCS_DIR,
+    "risk_register_path": RISK_REGISTER_PATH,
+    "incident_log_path": INCIDENT_LOG_PATH,
+    "releases_dir": RELEASES_DIR,
+    "templates_dir": TEMPLATES_DIR,
+    "risk_dir": RISK_DIR,
 }
-
-# ======================================================================
-# Required Local Directories (minimal)
-# ======================================================================
-
-# Base path for Annex IV document generation
-COMPLIANCE_DIR = Path(os.getcwd()) / "compliance"
-REPORTS_DIR = COMPLIANCE_DIR / "reports"
-MANUAL_FILLS_DIR = COMPLIANCE_DIR / "manual_fills"
-TEMPLATES_DIR = COMPLIANCE_DIR / "templates"
-
-# Ensure minimal local directories exist
-for dir_path in [REPORTS_DIR, MANUAL_FILLS_DIR, TEMPLATES_DIR]:
-    dir_path.mkdir(parents=True, exist_ok=True)
-
-
-# ======================================================================
-# Hazard Definitions
-# ======================================================================
-
-HAZARD_DEFINITIONS = {
-    "bias_protected_groups": {
-        "description": "Unfair bias against protected demographic groups",
-        "trigger": lambda results, scores: (
-            any(
-                abs(v.get("selection_rate_disparity", 0)) > 0.2
-                for v in results["fairness"].values()
-            )
-        ),
-        "severity": "high",
-        "mitigation": (
-            "Re-sample training data; add fairness constraints or post-processing techniques"
-        ),
-    },
-    "low_accuracy": {
-        "description": "Model accuracy below 0.75",
-        "trigger": lambda results, scores: results["metrics"]["accuracy"] < 0.75,
-        "severity": "medium",
-        "mitigation": "Collect more data; tune hyper-parameters",
-    },
-    "data_quality": {
-        "description": "Data-quality issues flagged during preprocessing",
-        "trigger": lambda results, scores: results.get("data_quality", {}).get(
-            "issues_detected", False
-        ),
-        "severity": "medium",
-        "mitigation": "Tighten preprocessing / validation rules",
-    },
-    "model_complexity": {
-        "description": "High model complexity reduces explainability",
-        "trigger": lambda results, scores: results.get("model_info", {}).get("complexity_score", 0)
-        > 0.7,
-        "severity": "low",
-        "mitigation": "Consider simpler model; add SHAP / LIME explanations",
-    },
-    "drift_vulnerability": {
-        "description": "ROC-AUC risk proxy > 0.3 indicates drift fragility",
-        "trigger": lambda results, scores: scores["risk_auc"] > 0.3,
-        "severity": "medium",
-        "mitigation": "Enable drift monitoring; schedule periodic retraining",
-    },
-}
-
 
 # ======================================================================
 # Model Approval Thresholds
@@ -201,3 +144,55 @@ APPROVAL_THRESHOLDS = {
 # Slack webhook URL for incident reporting
 SLACK_CHANNEL = "#credit-scoring-alerts"
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+
+
+# ======================================================================
+# Hazard Definitions
+# ======================================================================
+
+HAZARD_DEFINITIONS = {
+    "bias_protected_groups": {
+        "description": "Unfair bias against protected demographic groups",
+        "trigger": lambda results, scores: (
+            any(
+                abs(v.get("selection_rate_disparity", 0)) > 0.2
+                for v in results["fairness"].get("fairness_metrics", {}).values()
+                if isinstance(v, dict)
+            )
+        ),
+        "severity": "high",
+        "mitigation": (
+            "Re-sample training data; add fairness constraints or post-processing techniques"
+        ),
+    },
+    "low_accuracy": {
+        "description": "Model accuracy below 0.75",
+        "trigger": lambda results, scores: results["metrics"]["accuracy"] < 0.75,
+        "severity": "medium",
+        "mitigation": "Collect more data; tune hyper-parameters",
+    },
+    "data_quality": {
+        "description": "Data-quality issues flagged during preprocessing",
+        "trigger": lambda results, scores: (
+            isinstance(results.get("data_quality"), dict)
+            and results.get("data_quality", {}).get("issues_detected", False)
+        ),
+        "severity": "medium",
+        "mitigation": "Tighten preprocessing / validation rules",
+    },
+    "model_complexity": {
+        "description": "High model complexity reduces explainability",
+        "trigger": lambda results, scores: (
+            isinstance(results.get("model_info"), dict)
+            and results.get("model_info", {}).get("complexity_score", 0) > 0.7
+        ),
+        "severity": "low",
+        "mitigation": "Consider simpler model; add SHAP / LIME explanations",
+    },
+    "drift_vulnerability": {
+        "description": "ROC-AUC risk proxy > 0.3 indicates drift fragility",
+        "trigger": lambda results, scores: scores["risk_auc"] > 0.3,
+        "severity": "medium",
+        "mitigation": "Enable drift monitoring; schedule periodic retraining",
+    },
+}
