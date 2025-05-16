@@ -56,6 +56,7 @@ mape = "mape"
 yhat = "yhat"
 yhat_lower = "yhat_lower"
 yhat_upper = "yhat_upper"
+fpr = "fpr"
 
 [default]
 locale = "en-us"
