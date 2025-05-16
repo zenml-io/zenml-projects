@@ -1,0 +1,10 @@
+hazards:
+- description: Unfair bias against protected demographic groups
+  id: bias_protected_groups
+  mitigation: Re-sample training data; add fairness constraints or post-processing
+    techniques
+  severity: high
+overall: 0.525
+risk_auc: 0.25
+risk_bias: 0.8
+risk_register_path: compliance/risk/risk_register.xlsx

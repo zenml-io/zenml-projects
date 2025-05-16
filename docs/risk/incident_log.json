@@ -1,0 +1,92 @@
+[
+  {
+    "incident_id": "incident_2025-05-15T13-05-33.577801",
+    "timestamp": "2025-05-15T13:05:33.577831",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Disparity > 0.2 detected in protected attributes: CODE_GENDER, DAYS_BIRTH, NAME_EDUCATION_TYPE, NAME_FAMILY_STATUS, NAME_HOUSING_TYPE",
+      "source": "evaluate_model",
+      "run_id": "0ae6c563-72b2-48af-ba90-b7e44ecf3f58"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-15T13-15-26.478208",
+    "timestamp": "2025-05-15T13:15:26.478241",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Disparity > 0.2 detected in protected attributes: CODE_GENDER, DAYS_BIRTH, NAME_EDUCATION_TYPE, NAME_FAMILY_STATUS, NAME_HOUSING_TYPE",
+      "source": "evaluate_model",
+      "run_id": "dffa760a-22f9-4ceb-8ade-4cb9f9a9d232"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-16T07-17-42.089714",
+    "timestamp": "2025-05-16T07:17:42.089744",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__DAYS_BIRTH: 1.000 disparity (-2.104316830265608: 0.00 vs -0.6239588233317788: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "31f939a3-5a33-4f44-a553-29d8838242f8"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-16T07-32-13.182392",
+    "timestamp": "2025-05-16T07:32:13.182427",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "37f94793-eb33-4b87-af40-0bcef324eb69"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-16T07-42-29.554473",
+    "timestamp": "2025-05-16T07:42:29.554482",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "c5db13af-71a2-42fd-ba82-bfa034d7e847"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-16T07-45-55.734073",
+    "timestamp": "2025-05-16T07:45:55.734101",
+    "model_version": "unknown",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "14da633e-fc6f-49e3-99d2-91b1d21fd285"
+    }
+  }
+]

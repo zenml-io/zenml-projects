@@ -6,8 +6,9 @@
 
 ### 1(a) Intended Purpose and Version
 **System Name:** {{ pipeline.name }}<br>
-**Provider:** {{ environment_variables.get('ORGANIZATION_NAME', '[ORGANIZATION NAME REQUIRED]') }}<br>
-**Pipeline Version:** {{ pipeline.id }}
+**Provider:** {{ pipeline.provider }}<br>
+**Description:** {{ manual_inputs.description }}<br>
+**Pipeline Version:** {{ pipeline.id }}<br>
 **Pipeline Run Version:** {{ run.id }}
 
 {% if pipeline.previous_versions %}
@@ -19,7 +20,7 @@
 **Previous Versions:** [None or not applicable]
 {% endif %}
 
-**Intended Purpose:** {{ pipeline.description or '[REQUIRED: Describe the intended purpose of this AI system]' }}
+**Intended Purpose:** {{ manual_inputs.intended_purpose }}
 
 ### 1(b) System Interactions
 {% if stack and stack.components %}
@@ -31,8 +32,8 @@
 **Stack Components:** [REQUIRED: List the components of your ZenML stack]
 {% endif %}
 
-**Additional Interactions:** {{ manual_inputs.get('additional_interactions', '[REQUIRED: Describe any interactions with
-external systems (hardware, software, other AI systems)]') }}
+**Additional Interactions:** {{ manual_inputs.additional_interactions }}
+
 
 ### 1(c) Software Versions
 {% if run and run.code_reference and run.code_reference.commit_sha %}
@@ -67,8 +68,11 @@ external systems (hardware, software, other AI systems)]') }}
 
 ### 1(e) Hardware Requirements
 **Compute Resources:**
-{% if pipeline and pipeline.resources %}
-{{ pipeline.resources | to_yaml }}
+{% if run.resource_settings %}
+- CPUs: {{ run.resource_settings.cpu_count or run.resource_settings.cpu_limit }}
+- Memory: {{ run.resource_settings.memory }}
+{% elif manual_inputs.hardware_requirements %}
+{{ manual_inputs.hardware_requirements }}
 {% else %}
 [REQUIRED: Describe hardware requirements for this AI system]
 {% endif %}
@@ -97,14 +101,22 @@ external systems (hardware, software, other AI systems)]') }}
 ## 2. Detailed Description of Elements and Development Process
 
 ### 2(a) Development Methods and Third-party Tools
-{% if pipeline and pipeline.steps %}
 **Pipeline Steps:**
-{% for step in pipeline.steps %}
-- {{ step.name }} ({{ step.type }}): {{ step.description or '[No description]' }}
+{% for p in pipelines %}
+### {{ p.name }} (run {{ p.run_id }})
+
+| Step name | Status | Inputs | Outputs |
+|-----------|--------|--------|---------|
+{% for s in p.steps %}
+| {{ s.name }} | {{ s.status or "-" }} |
+{% if s.inputs %}```yaml
+{{ s.inputs | to_yaml }}```{% else %}-{% endif %}
+|
+{% if s.outputs %}```yaml
+{{ s.outputs | to_yaml }}```{% else %}-{% endif %}
+|
 {% endfor %}
-{% else %}
-**Pipeline Steps:** [REQUIRED: Describe the methods and steps performed for development]
-{% endif %}
+{% endfor %}
 
 {% if code_repo %}
 **Source Code Repository:** {{ code_repo.url }} (Commit: {{ code_repo.commit_sha }})

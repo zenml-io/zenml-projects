@@ -1,0 +1,28 @@
+{
+  "plan_id": "monitoring_plan_2025-05-16T11-40-37.063066",
+  "model_id": "unknown",
+  "created_at": "2025-05-16T11:40:37.063066",
+  "description": "Post-market monitoring plan for credit scoring model",
+  "monitoring_frequency": {
+    "data_drift": "daily",
+    "performance_evaluation": "weekly",
+    "fairness_audit": "monthly"
+  },
+  "alert_thresholds": {
+    "accuracy_drop": 0.8188571428571428,
+    "data_drift_score": 0.15,
+    "fairness_metrics": {
+      "disparate_impact_min": 0.8,
+      "disparate_impact_max": 1.25
+    }
+  },
+  "response_procedures": {
+    "minor_drift": "Log and monitor more frequently",
+    "significant_drift": "Alert data science team and investigate",
+    "critical_issue": "Trigger incident response and model reevaluation"
+  },
+  "responsible_parties": {
+    "monitoring_owner": "data_science_team@example.com",
+    "escalation_contact": "compliance_officer@example.com"
+  }
+}

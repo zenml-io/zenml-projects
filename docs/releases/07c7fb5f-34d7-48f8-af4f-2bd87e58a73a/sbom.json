@@ -1,0 +1,1104 @@
+{
+  "artifacts": [
+    {
+      "name": "brotli",
+      "version": "1.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "gitpython",
+      "version": "3.1.44",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pymysql",
+      "version": "1.1.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sqlalchemy-utils",
+      "version": "0.41.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "absl-py",
+      "version": "2.2.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aiobotocore",
+      "version": "2.22.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aiohappyeyeballs",
+      "version": "2.6.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.11.18",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aioitertools",
+      "version": "0.12.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aiosignal",
+      "version": "1.3.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "alembic",
+      "version": "1.15.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "altair",
+      "version": "5.5.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.7.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "antlr4-python3-runtime",
+      "version": "4.9.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "anyio",
+      "version": "4.9.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "argparse",
+      "version": "1.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "asttokens",
+      "version": "3.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "astunparse",
+      "version": "1.6.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "attrs",
+      "version": "23.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "aws-profile-manager",
+      "version": "0.7.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "backoff",
+      "version": "2.2.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "bcrypt",
+      "version": "4.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "blinker",
+      "version": "1.9.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "boto3",
+      "version": "1.37.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "botocore",
+      "version": "1.37.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "cachetools",
+      "version": "5.5.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "certifi",
+      "version": "2025.4.26",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "cffi",
+      "version": "1.17.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "click",
+      "version": "8.1.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "cloudpickle",
+      "version": "2.2.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "comm",
+      "version": "0.2.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "configparser",
+      "version": "7.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.3.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "cssselect2",
+      "version": "0.8.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "datasets",
+      "version": "3.6.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "decorator",
+      "version": "5.2.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "dill",
+      "version": "0.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "distro",
+      "version": "1.9.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "docker",
+      "version": "7.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "durationpy",
+      "version": "0.9",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "et-xmlfile",
+      "version": "2.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "executing",
+      "version": "2.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "fairlearn",
+      "version": "0.12.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "fastapi",
+      "version": "0.115.12",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "filelock",
+      "version": "3.18.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "flask",
+      "version": "3.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "flatbuffers",
+      "version": "25.2.10",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "fonttools",
+      "version": "4.57.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.6.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "fsspec",
+      "version": "2025.3.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "gast",
+      "version": "0.6.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "gitdb",
+      "version": "4.0.12",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "google-auth",
+      "version": "2.40.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "google-pasta",
+      "version": "0.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "grpcio",
+      "version": "1.71.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "grpclib",
+      "version": "0.4.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "h2",
+      "version": "4.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "h5py",
+      "version": "3.13.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "hpack",
+      "version": "4.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "0.31.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "hyperframe",
+      "version": "6.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "idna",
+      "version": "3.10",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "importlib-metadata",
+      "version": "6.11.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ipython",
+      "version": "9.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ipython-pygments-lexers",
+      "version": "1.1.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ipywidgets",
+      "version": "8.1.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "itsdangerous",
+      "version": "2.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jedi",
+      "version": "0.19.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jmespath",
+      "version": "1.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "joblib",
+      "version": "1.5.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jsonschema",
+      "version": "4.23.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jsonschema-specifications",
+      "version": "2025.4.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "jupyterlab-widgets",
+      "version": "3.0.15",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "keras",
+      "version": "3.9.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.4.8",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "kubernetes",
+      "version": "32.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "libclang",
+      "version": "18.1.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "mako",
+      "version": "1.3.10",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "markdown",
+      "version": "3.8",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "3.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.10.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "matplotlib-inline",
+      "version": "0.1.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ml-dtypes",
+      "version": "0.5.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "mock",
+      "version": "4.0.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "modal",
+      "version": "0.74.55",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "mpmath",
+      "version": "1.3.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "multidict",
+      "version": "6.4.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "multiprocess",
+      "version": "0.70.18",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "namex",
+      "version": "0.0.9",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "narwhals",
+      "version": "1.39.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "networkx",
+      "version": "3.4.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "numpy",
+      "version": "1.26.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "oauthlib",
+      "version": "3.2.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "omegaconf",
+      "version": "2.3.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "openpyxl",
+      "version": "3.1.5",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "opt-einsum",
+      "version": "3.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "optree",
+      "version": "0.15.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pandas",
+      "version": "2.2.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "parso",
+      "version": "0.8.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "passlib",
+      "version": "1.7.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pathos",
+      "version": "0.3.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pexpect",
+      "version": "4.9.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pillow",
+      "version": "11.2.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pip",
+      "version": "24.3.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.3.8",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "plotly",
+      "version": "6.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pox",
+      "version": "0.3.6",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ppft",
+      "version": "1.7.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "prompt-toolkit",
+      "version": "3.0.51",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "propcache",
+      "version": "0.3.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "protobuf",
+      "version": "5.29.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "psutil",
+      "version": "7.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ptyprocess",
+      "version": "0.7.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pure-eval",
+      "version": "0.2.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyarrow",
+      "version": "20.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyasn1",
+      "version": "0.6.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyasn1-modules",
+      "version": "0.4.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pycparser",
+      "version": "2.22",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.11.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.33.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pydantic-settings",
+      "version": "2.9.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pydeck",
+      "version": "0.9.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pydyf",
+      "version": "0.11.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pygments",
+      "version": "2.19.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.2.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pyphen",
+      "version": "0.17.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "pytz",
+      "version": "2025.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "referencing",
+      "version": "0.36.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "requests-oauthlib",
+      "version": "2.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "rich",
+      "version": "14.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "rpds-py",
+      "version": "0.25.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "rsa",
+      "version": "4.9.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "ruff",
+      "version": "0.11.8",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "s3fs",
+      "version": "2025.3.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "s3transfer",
+      "version": "0.11.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sagemaker",
+      "version": "2.244.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sagemaker-core",
+      "version": "1.0.34",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "schema",
+      "version": "0.7.7",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "scikit-learn",
+      "version": "1.6.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "scipy",
+      "version": "1.15.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "seaborn",
+      "version": "0.13.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "setuptools",
+      "version": "80.7.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sigtools",
+      "version": "4.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "slack-sdk",
+      "version": "3.35.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "smdebug-rulesconfig",
+      "version": "1.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "smmap",
+      "version": "5.0.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sniffio",
+      "version": "1.3.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sqlalchemy",
+      "version": "2.0.41",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sqlmodel",
+      "version": "0.0.18",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "stack-data",
+      "version": "0.6.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "starlette",
+      "version": "0.46.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "streamlit",
+      "version": "1.45.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "synchronicity",
+      "version": "0.9.11",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tabulate",
+      "version": "0.9.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tblib",
+      "version": "3.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tenacity",
+      "version": "9.1.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tensorboard",
+      "version": "2.19.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tensorboard-data-server",
+      "version": "0.7.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tensorflow",
+      "version": "2.19.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "termcolor",
+      "version": "3.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "threadpoolctl",
+      "version": "3.6.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tinycss2",
+      "version": "1.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tinyhtml5",
+      "version": "2.0.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "toml",
+      "version": "0.10.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "torch",
+      "version": "2.7.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tornado",
+      "version": "6.4.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "traitlets",
+      "version": "5.14.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "typer",
+      "version": "0.15.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "types-certifi",
+      "version": "2021.10.8.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "types-toml",
+      "version": "0.10.8.20240310",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.13.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "tzdata",
+      "version": "2025.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.4.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "uv",
+      "version": "0.7.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.34.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.0.5",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "wcwidth",
+      "version": "0.2.13",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "weasyprint",
+      "version": "65.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "webencodings",
+      "version": "0.5.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "websocket-client",
+      "version": "1.8.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "werkzeug",
+      "version": "3.1.3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "wheel",
+      "version": "0.45.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "whylabs-client",
+      "version": "0.6.16",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "whylogs",
+      "version": "1.6.4",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "whylogs-sketching",
+      "version": "3.4.1.dev3",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "widgetsnbextension",
+      "version": "4.0.14",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "wrapt",
+      "version": "1.17.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "xxhash",
+      "version": "3.5.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "yarl",
+      "version": "1.20.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "zenml",
+      "version": "0.82.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "zipp",
+      "version": "3.21.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "zopfli",
+      "version": "0.2.3.post1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+    },
+    {
+      "name": "autocommand",
+      "version": "2.2.2",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "backports.tarfile",
+      "version": "1.2.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "inflect",
+      "version": "7.3.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "jaraco.collections",
+      "version": "5.1.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "jaraco.context",
+      "version": "5.3.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "jaraco.functools",
+      "version": "4.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "jaraco.text",
+      "version": "3.12.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "more-itertools",
+      "version": "10.3.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "tomli",
+      "version": "2.0.1",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    },
+    {
+      "name": "typeguard",
+      "version": "4.3.0",
+      "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages/setuptools/_vendor"
+    }
+  ],
+  "source": {
+    "type": "python-environment",
+    "fallback": true,
+    "generated_at": "2025-05-16T08:35:31.028741"
+  }
+}
