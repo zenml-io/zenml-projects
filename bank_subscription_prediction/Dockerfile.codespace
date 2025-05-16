@@ -15,7 +15,7 @@ LABEL project_version="0.1.0"
 # Install dependencies with uv and cache optimization
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system \
-    "zenml[server]>=0.50.0" \
+    "zenml[server]>=0.80.0" \
     "notebook" \
     "scikit-learn" \
     "pyarrow" \
