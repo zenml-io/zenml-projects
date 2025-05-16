@@ -21,7 +21,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from src.constants import (
-    MODAL_INCIDENT_LOG_PATH,
+    INCIDENT_LOG_PATH,
+    MODEL_NAME,
     SLACK_BOT_TOKEN,
     SLACK_CHANNEL,
 )
@@ -38,7 +39,7 @@ def create_incident_report(
 
     Args:
         incident_data: Details about the incident
-        model_version: Optional model version (if known)
+        model_version: Version of the model
 
     Returns:
         Status information about the incident report
@@ -47,7 +48,8 @@ def create_incident_report(
     incident = {
         "incident_id": f"incident_{datetime.now().isoformat().replace(':', '-')}",
         "timestamp": datetime.now().isoformat(),
-        "model_version": model_version or "unknown",
+        "model_name": MODEL_NAME,
+        "model_version": model_version,
         "severity": incident_data.get("severity", "medium"),
         "description": incident_data.get("description", "Unspecified incident"),
         "source": incident_data.get("source", "unknown"),
@@ -56,7 +58,7 @@ def create_incident_report(
 
     try:
         # 1. Define persistent storage path
-        incident_path = MODAL_INCIDENT_LOG_PATH
+        incident_path = INCIDENT_LOG_PATH
 
         # 2. Save to local compliance directory first (for non-Modal contexts)
         existing_incidents = []

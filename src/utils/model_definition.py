@@ -3,7 +3,6 @@ from zenml import Model
 
 model_definition = Model(
     name="credit_scoring_model",
-    version="gb",
     license="Apache 2.0",
     description="A credit scoring model",
     tags=["credit_scoring", "classifier"],

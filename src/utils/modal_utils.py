@@ -19,6 +19,7 @@ import hashlib
 import json
 import pickle
 import tempfile
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -27,19 +28,15 @@ import joblib
 from modal import Volume
 
 from src.constants import (
+    DOCS_DIR,
     MAX_MODEL_VERSIONS,
-    MODAL_APPROVALS_DIR,
-    MODAL_COMPLIANCE_DIR,
-    MODAL_DEPLOYMENTS_DIR,
     MODAL_ENVIRONMENT,
     MODAL_EVAL_RESULTS_DIR,
-    MODAL_FAIRNESS_DIR,
     MODAL_MODELS_DIR,
-    MODAL_MONITORING_DIR,
     MODAL_PREPROCESS_PIPELINE_PATH,
-    MODAL_REPORTS_DIR,
-    MODAL_RISK_REGISTER_PATH,
     MODAL_VOLUME_NAME,
+    RELEASES_DIR,
+    RISK_REGISTER_PATH,
 )
 
 
@@ -178,40 +175,31 @@ def save_artifact_to_modal(
     return None
 
 
-def save_compliance_artifacts_to_modal(artifacts: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
+def save_compliance_artifacts_to_modal(
+    artifacts: Dict[str, Any], run_id: str
+) -> Dict[str, Dict[str, str]]:
     """Save compliance-related artifacts to the Modal Volume.
 
     Args:
         artifacts: Dictionary of artifacts to save with their corresponding paths.
+        run_id: Optional pipeline run ID. If not provided, a new UUID will be generated.
 
     Returns:
         Dictionary of artifact paths and their checksums.
     """
     results = {}
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    release_dir = f"{RELEASES_DIR}/{run_id}"
+    Path(release_dir).mkdir(parents=True, exist_ok=True)
 
     for artifact_name, artifact_data in artifacts.items():
         if artifact_name == "preprocess_pipeline":
             path = MODAL_PREPROCESS_PIPELINE_PATH
-        elif artifact_name == "evaluation_results":
-            path = f"{MODAL_EVAL_RESULTS_DIR}/evaluation_results_{timestamp}.json"
-        elif artifact_name == "compliance_report":
-            path = f"{MODAL_REPORTS_DIR}/compliance_report_{timestamp}.md"
-        elif artifact_name == "model_card":
-            path = f"{MODAL_COMPLIANCE_DIR}/model_cards/model_card_{timestamp}.json"
-        elif artifact_name == "deployment_record":
-            path = f"{MODAL_DEPLOYMENTS_DIR}/deployment_{timestamp}.json"
-        elif artifact_name == "approval_record":
-            path = f"{MODAL_APPROVALS_DIR}/approval_{timestamp}.json"
         elif artifact_name == "risk_register":
-            path = MODAL_RISK_REGISTER_PATH
-        elif artifact_name == "fairness_report":
-            path = f"{MODAL_FAIRNESS_DIR}/fairness_report_{timestamp}.json"
-        elif artifact_name == "monitoring_plan":
-            path = f"{MODAL_MONITORING_DIR}/monitoring_plan_{timestamp}.json"
+            path = RISK_REGISTER_PATH
         else:
-            # Custom path handling for other artifacts
-            path = f"{MODAL_COMPLIANCE_DIR}/artifacts/{artifact_name}_{timestamp}{get_extension_for_artifact(artifact_data)}"
+            extension = get_extension_for_artifact(artifact_data)
+            path = f"{release_dir}/{artifact_name}{extension}"
 
         checksum = save_artifact_to_modal(
             artifact=artifact_data,

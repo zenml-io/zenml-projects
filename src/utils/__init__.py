@@ -25,5 +25,10 @@ from .incidents import create_incident_report
 from .preprocess import (
     DropIDColumn,
     DeriveAgeFeatures,
-    SimpleScaler,
+)
+
+from .visualizations import generate_whylogs_visualization
+from .eval import (
+    analyze_fairness,
+    report_bias_incident,
 )
