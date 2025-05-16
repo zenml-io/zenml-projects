@@ -6,12 +6,13 @@ settings:
     required_integrations:
       - sklearn
       - pandas
+      - numpy
     requirements:
       - matplotlib
       - xgboost
-      - seaborn
       - plotly
-      - jupyter
+      - click
+      - pyarrow
 
 # configuration of the Model Control Plane
 model:
