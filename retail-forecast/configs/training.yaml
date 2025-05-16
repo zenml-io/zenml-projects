@@ -1,0 +1,44 @@
+# Training configuration for retail forecasting
+
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - pandas
+      - numpy
+    requirements:
+      - matplotlib>=3.5.0
+      - plotly
+      - prophet>=3.5.0
+      - pyarrow
+      - fastparquet
+      - typing_extensions>=4.0.0
+
+# configuration of the Model Control Plane
+model:
+  name: retail_forecast_model
+  version: 0.1.0
+  license: MIT
+  description: A retail forecast model with enhanced seasonality
+  tags: ["retail", "forecasting", "prophet", "seasonal"]
+
+# Step-specific parameters
+steps:
+  # Data loading parameters
+  load_data:
+    # No specific parameters needed for this step
+  
+  # Data preprocessing parameters
+  preprocess_data:
+    test_size: 0.15
+  
+  # Model training parameters
+  train_model:
+    weekly_seasonality: true
+    yearly_seasonality: true
+    daily_seasonality: true
+    seasonality_mode: "additive"
+  
+  # Forecasting parameters
+  generate_forecasts:
+    forecast_periods: 60 

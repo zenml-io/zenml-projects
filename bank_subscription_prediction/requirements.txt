@@ -1,0 +1,10 @@
+pandas
+numpy
+scikit-learn
+xgboost
+matplotlib
+plotly
+zenml>=0.82.1
+click
+requests 
+pyarrow

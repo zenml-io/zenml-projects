@@ -1,0 +1,49 @@
+# More trees experiment configuration
+
+# environment configuration
+settings:
+  docker:
+    required_integrations:
+      - sklearn
+      - pandas
+      - numpy
+    requirements:
+      - matplotlib
+      - xgboost
+      - plotly
+      - click
+      - pyarrow
+
+# configuration of the Model Control Plane
+model:
+  name: bank_subscription_classifier
+  version: 0.1.0
+  license: MIT
+  description: A bank term deposit subscription classifier
+  tags: ["bank_marketing", "classifier", "xgboost"]
+
+# Step-specific parameters
+steps:
+  # Data loading parameters
+  load_data:
+    csv_file_path: "bank.csv"
+  
+  # Data splitting parameters
+  split_data_step:
+    test_size: 0.2
+    random_state: 42
+    stratify_col: "y"
+  
+  # Model training parameters with more trees
+  train_xgb_model_with_feature_selection:
+    learning_rate: 0.1
+    n_estimators: 200  # More trees than baseline
+    max_depth: 3
+    min_child_weight: 1
+    gamma: 0
+    subsample: 0.8
+    colsample_bytree: 0.8
+    objective: "binary:logistic"
+    scale_pos_weight: 1
+    random_state: 42
+    feature_selection_threshold: "median" 

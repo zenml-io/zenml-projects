@@ -2,7 +2,6 @@ import click
 import logging
 from pipelines.inference_pipeline import inference_pipeline
 from pipelines.training_pipeline import training_pipeline
-from zenml import Model
 from logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -17,17 +16,23 @@ Run a simplified retail demand forecasting pipeline using Facebook Prophet.
 Examples:
 
   \b
-  # Run the training pipeline with default parameters
+  # Run the training pipeline with default training config
   python run.py
 
   \b
-  # Run with custom parameters
-  python run.py --forecast-periods 60 --test-size 0.3
+  # Run with a specific training configuration file
+  python run.py --config configs/training.yaml
   
   \b
-  # Run the inference pipeline
+  # Run the inference pipeline with default inference config
   python run.py --inference
 """
+)
+@click.option(
+    "--config",
+    type=str,
+    default=None,
+    help="Path to the configuration YAML file",
 )
 @click.option(
     "--no-cache",
@@ -54,6 +59,7 @@ Examples:
     help="Enable debug logging",
 )
 def main(
+    config: str = None,
     no_cache: bool = False,
     inference: bool = False,
     log_file: str = None,
@@ -62,6 +68,7 @@ def main(
     """Run a simplified retail forecasting pipeline with ZenML.
 
     Args:
+        config: Path to the configuration YAML file
         no_cache: Disable caching for the pipeline run
         inference: Run the inference pipeline instead of the training pipeline
         log_file: Path to log file
@@ -74,32 +81,29 @@ def main(
     pipeline_options = {}
     if no_cache:
         pipeline_options["enable_cache"] = False
-
+    
+    # Select default config based on pipeline type if not specified
+    if config is None:
+        config = "configs/inference.yaml" if inference else "configs/training.yaml"
+    
+    # Set config path
+    pipeline_options["config_path"] = config
+    
     logger.info("\n" + "=" * 80)
+    logger.info(f"Using configuration from: {config}")
+    
     # Run the appropriate pipeline
     if inference:
         logger.info("Running retail forecasting inference pipeline...")
-
-        # Create a new version of the model
-        model = Model(
-            name="retail_forecast_model",
-            description="A retail forecast model trained on the sales data",
-            version="production",
-        )
-        inference_pipeline.with_options(model=model, **pipeline_options)()
+        run = inference_pipeline.with_options(**pipeline_options)()
     else:
-        # Create a new version of the model
-        model = Model(
-            name="retail_forecast_model",
-            description="A retail forecast model trained on the sales data",
-        )
-
         logger.info("Running retail forecasting training pipeline...")
-        training_pipeline.with_options(model=model, **pipeline_options)()
+        run = training_pipeline.with_options(**pipeline_options)()
+    
     logger.info("=" * 80 + "\n")
 
     logger.info("\n" + "=" * 80)
-    logger.info("Pipeline completed successfully!")
+    logger.info(f"Pipeline completed successfully! Run ID: {run.id}")
     logger.info("=" * 80 + "\n")
 
 
