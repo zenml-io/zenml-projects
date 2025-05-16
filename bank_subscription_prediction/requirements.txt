@@ -5,7 +5,7 @@ xgboost
 matplotlib
 seaborn
 plotly
-zenml
+zenml>=0.82.1
 click
 requests 
 pyarrow
