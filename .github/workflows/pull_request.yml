@@ -1,4 +1,4 @@
-name: Spell Checking
+name: Pull Request Checks
 
 on:
   pull_request:
@@ -24,4 +24,8 @@ jobs:
 
   markdown-link-check:
     uses: ./.github/workflows/markdown-link-check.yml
+    if: github.event.pull_request.draft == false
+    
+  code-formatting-check:
+    uses: ./.github/workflows/code-formatting.yml
     if: github.event.pull_request.draft == false
