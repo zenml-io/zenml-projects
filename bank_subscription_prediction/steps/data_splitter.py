@@ -1,8 +1,9 @@
-import pandas as pd
-from zenml import step
-from sklearn.model_selection import train_test_split
-from typing import Tuple, Annotated
 import logging
+from typing import Annotated, Tuple
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from zenml import step
 
 # Set up logger
 logger = logging.getLogger(__name__)

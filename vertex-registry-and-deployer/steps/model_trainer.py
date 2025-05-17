@@ -25,7 +25,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from typing_extensions import Annotated
-
 from zenml import ArtifactConfig, step
 from zenml.enums import ArtifactType
 from zenml.logger import get_logger
@@ -91,17 +90,17 @@ def model_trainer(
     # Evaluate the model
     trn_acc = model.score(X_trn, y_trn)
     tst_acc = model.score(X_tst, y_tst)
-    logger.info(f"Train accuracy={trn_acc*100:.2f}%")
-    logger.info(f"Test accuracy={tst_acc*100:.2f}%")
+    logger.info(f"Train accuracy={trn_acc * 100:.2f}%")
+    logger.info(f"Test accuracy={tst_acc * 100:.2f}%")
 
     messages = []
     if trn_acc < min_train_accuracy:
         messages.append(
-            f"Train accuracy {trn_acc*100:.2f}% is below {min_train_accuracy*100:.2f}%!"
+            f"Train accuracy {trn_acc * 100:.2f}% is below {min_train_accuracy * 100:.2f}%!"
         )
     if tst_acc < min_test_accuracy:
         messages.append(
-            f"Test accuracy {tst_acc*100:.2f}% is below {min_test_accuracy*100:.2f}%!"
+            f"Test accuracy {tst_acc * 100:.2f}% is below {min_test_accuracy * 100:.2f}%!"
         )
     else:
         for message in messages:

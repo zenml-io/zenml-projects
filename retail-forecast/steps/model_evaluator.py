@@ -1,7 +1,7 @@
 import base64
+import logging
 from io import BytesIO
 from typing import Dict, List, Tuple
-import logging
 
 import matplotlib.pyplot as plt
 import numpy as np

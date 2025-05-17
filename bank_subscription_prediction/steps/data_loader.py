@@ -1,12 +1,13 @@
-import pandas as pd
+import logging
 import os
-import requests
-from zenml import step
 
 # Download the zip file
 import zipfile
 from io import BytesIO
-import logging
+
+import pandas as pd
+import requests
+from zenml import step
 
 # Set up logger
 logger = logging.getLogger(__name__)

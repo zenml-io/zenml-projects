@@ -58,8 +58,8 @@ to ZenML dashboard.
 
 Issues should be used to report problems with the library, request a new
 feature, or to discuss potential changes before
-a PR is created. When you create a new Issue, a template will be loaded that
-will guide you through collecting and
+a PR is created. When you create a new issue, please use one of the provided
+templates. These templates will guide you through collecting and
 providing the information we need to investigate.
 
 If you find an Issue that addresses your problem, please add your own
@@ -81,8 +81,9 @@ general, PRs should:
   suite already exists).
 - Address a single concern in the least number of changed lines as possible.
 - Include documentation in the repo or in your Pull Request.
-- Be accompanied by a filled-out Pull Request template (loaded automatically when
-  a PR is created).
+- Be accompanied by a filled-out pull request template (loaded automatically
+  when a PR is created). This helps reviewers understand the motivation and
+  context for your changes.
 
 For changes that address core functionality or would require breaking changes, it's best to open
 an Issue to discuss your proposal first. This is not required but can save time
@@ -99,9 +100,22 @@ the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
 4. Checkout the **main** branch <- `git checkout main`.
 5. Create a branch locally off the **main** branch with a succinct but descriptive name.
 6. Commit changes to the branch.
-7. Push changes to your fork.
-8. Open a PR in our repository to the `main` branch and
+7. Format your code by running `bash scripts/format.sh` before committing.
+8. Push changes to your fork.
+9. Open a PR in our repository to the `main` branch and
    follow the PR template so that we can efficiently review the changes.
+
+#### Code Formatting
+
+All code must pass our formatting checks before it can be merged. We use [ruff](https://github.com/astral-sh/ruff) for code formatting and linting.
+
+To format your code locally:
+```bash
+# Run from the project root
+bash scripts/format.sh
+```
+
+Our CI pipeline automatically checks if your code is properly formatted. If the check fails, you'll need to run the formatting script locally and commit the changes before your PR can be merged.
 
 ### 🚨 Reporting a Vulnerability
 
