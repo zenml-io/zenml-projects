@@ -360,7 +360,7 @@ def image_to_video() -> Tuple[
     enable_cache=False,
 )
 def dreambooth_pipeline():
-    data = load_data()
+    _ = load_data()
     # train_model(data, after="load_data")
     # batch_inference(after="train_model")
     # image_to_video(after="batch_inference")

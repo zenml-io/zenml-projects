@@ -178,9 +178,8 @@ def inference_mode():
         st.warning("No trained models available. Please train a model first.")
         return
 
-    selected_model = st.selectbox(
-        "Choose a trained model", st.session_state.trained_models
-    )
+    # Model selection - value used in later operations
+    st.selectbox("Choose a trained model", st.session_state.trained_models)
     selected_prompt = st.selectbox("Choose a prompt", paris_prompts)
     custom_prompt = st.text_input("Or enter your own prompt")
 
