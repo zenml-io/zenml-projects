@@ -1,0 +1,21 @@
+name: README Projects Check
+
+on:
+  workflow_call:
+
+jobs:
+  readme-projects-check:
+    name: Check Projects in README
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Run README projects check
+        run: python3 scripts/check_readme_projects.py

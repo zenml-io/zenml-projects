@@ -33,4 +33,4 @@ def generate_code_dataset(dataset_id: str):
     # Link all the steps together by calling them and passing the output
     # of one step as the input of the next step.
     mirror_directory = mirror_repositories()
-    repo_id = prepare_dataset(mirror_directory, dataset_id)
+    prepare_dataset(mirror_directory, dataset_id)

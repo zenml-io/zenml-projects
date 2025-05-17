@@ -54,7 +54,7 @@ def deploy_model_to_hf_hub(hf_endpoint_cfg: Optional[Dict] = None) -> None:
         hf_endpoint_cfg: The configuration for the Huggingface endpoint.
 
     """
-    endpoint_name = None
+    # Endpoint name is managed by the HuggingFace service
     hf_endpoint_cfg = HuggingFaceServiceConfig(**hf_endpoint_cfg)
 
     secret = Client().get_secret("huggingface_creds")
