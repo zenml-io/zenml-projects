@@ -1,8 +1,8 @@
 import base64
+import logging
 from datetime import timedelta
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
-import logging
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,5 +1,4 @@
 from typing_extensions import Annotated
-
 from zenml import ArtifactConfig, get_step_context, step
 from zenml.client import Client
 from zenml.integrations.gcp.flavors.vertex_base_config import (

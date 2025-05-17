@@ -1,26 +1,20 @@
+from typing import Dict, List, Tuple
+
+import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import xgboost as xgb
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (
     accuracy_score,
-    classification_report,
-    confusion_matrix,
-    roc_curve,
-    precision_recall_curve,
     auc,
-    roc_auc_score,
+    confusion_matrix,
+    precision_recall_curve,
+    roc_curve,
 )
-import matplotlib.pyplot as plt
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import numpy as np
-import json
-from typing import Dict, Any, List, Tuple
 from typing_extensions import Annotated
-
 from zenml import step
-from zenml.materializers.built_in_materializer import BuiltInMaterializer
 from zenml.types import HTMLString
 
 

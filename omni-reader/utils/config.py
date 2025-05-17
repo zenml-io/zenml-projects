@@ -25,7 +25,9 @@ import yaml
 def load_config(config_path: str) -> Dict[str, Any]:
     """Load configuration from YAML file."""
     if not os.path.isfile(config_path):
-        raise FileNotFoundError(f"Configuration file does not exist: {config_path}")
+        raise FileNotFoundError(
+            f"Configuration file does not exist: {config_path}"
+        )
 
     with open(config_path, "r") as f:
         try:
@@ -38,18 +40,26 @@ def load_config(config_path: str) -> Dict[str, Any]:
 def validate_batch_config(config: Dict[str, Any]) -> None:
     """Validate batch pipeline configuration."""
     if "steps" not in config:
-        raise ValueError("Missing required 'steps' section in batch configuration")
+        raise ValueError(
+            "Missing required 'steps' section in batch configuration"
+        )
 
     steps = config.get("steps", {})
 
     if "load_images" not in steps:
-        raise ValueError("Missing required 'load_images' step in batch pipeline configuration")
+        raise ValueError(
+            "Missing required 'load_images' step in batch pipeline configuration"
+        )
 
     if "run_ocr" not in steps:
-        raise ValueError("Missing required 'run_ocr' step in batch pipeline configuration")
+        raise ValueError(
+            "Missing required 'run_ocr' step in batch pipeline configuration"
+        )
 
     load_images_params = steps.get("load_images", {}).get("parameters", {})
-    if not load_images_params.get("image_folder") and not load_images_params.get("image_paths"):
+    if not load_images_params.get(
+        "image_folder"
+    ) and not load_images_params.get("image_paths"):
         raise ValueError(
             "Either image_folder or image_paths must be provided in load_images.parameters"
         )
@@ -60,16 +70,22 @@ def validate_batch_config(config: Dict[str, Any]) -> None:
 
     run_ocr_params = steps.get("run_ocr", {}).get("parameters", {})
     if "models" not in run_ocr_params or not run_ocr_params["models"]:
-        raise ValueError("At least one model must be specified in run_ocr.parameters.models")
+        raise ValueError(
+            "At least one model must be specified in run_ocr.parameters.models"
+        )
 
     if "models_registry" not in config or not config["models_registry"]:
-        raise ValueError("models_registry section is required with at least one model definition")
+        raise ValueError(
+            "models_registry section is required with at least one model definition"
+        )
 
 
 def validate_evaluation_config(config: Dict[str, Any]) -> None:
     """Validate evaluation pipeline configuration."""
     if "steps" not in config:
-        raise ValueError("Missing required 'steps' section in evaluation configuration")
+        raise ValueError(
+            "Missing required 'steps' section in evaluation configuration"
+        )
 
     steps = config.get("steps", {})
 
@@ -89,7 +105,9 @@ def validate_evaluation_config(config: Dict[str, Any]) -> None:
         raise ValueError(f"Ground truth folder does not exist: {gt_folder}")
 
 
-def override_batch_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> Dict[str, Any]:
+def override_batch_config(
+    config: Dict[str, Any], cli_args: Dict[str, Any]
+) -> Dict[str, Any]:
     """Override batch pipeline configuration with command-line arguments."""
     modified_config = {**config}
 
@@ -101,10 +119,14 @@ def override_batch_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> D
         steps["load_images"]["parameters"] = {}
 
     if cli_args.get("image_paths"):
-        steps["load_images"]["parameters"]["image_paths"] = cli_args["image_paths"]
+        steps["load_images"]["parameters"]["image_paths"] = cli_args[
+            "image_paths"
+        ]
 
     if cli_args.get("image_folder"):
-        steps["load_images"]["parameters"]["image_folder"] = cli_args["image_folder"]
+        steps["load_images"]["parameters"]["image_folder"] = cli_args[
+            "image_folder"
+        ]
 
     if "run_ocr" not in steps:
         steps["run_ocr"] = {"parameters": {}}
@@ -112,12 +134,16 @@ def override_batch_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> D
         steps["run_ocr"]["parameters"] = {}
 
     if cli_args.get("custom_prompt"):
-        steps["run_ocr"]["parameters"]["custom_prompt"] = cli_args["custom_prompt"]
+        steps["run_ocr"]["parameters"]["custom_prompt"] = cli_args[
+            "custom_prompt"
+        ]
 
     return modified_config
 
 
-def override_evaluation_config(config: Dict[str, Any], cli_args: Dict[str, Any]) -> Dict[str, Any]:
+def override_evaluation_config(
+    config: Dict[str, Any], cli_args: Dict[str, Any]
+) -> Dict[str, Any]:
     """Override evaluation pipeline configuration with command-line arguments."""
     modified_config = {**config}
 
@@ -129,9 +155,9 @@ def override_evaluation_config(config: Dict[str, Any], cli_args: Dict[str, Any])
         steps["load_ground_truth_texts"]["parameters"] = {}
 
     if cli_args.get("ground_truth_dir"):
-        steps["load_ground_truth_texts"]["parameters"]["ground_truth_folder"] = cli_args[
-            "ground_truth_dir"
-        ]
+        steps["load_ground_truth_texts"]["parameters"][
+            "ground_truth_folder"
+        ] = cli_args["ground_truth_dir"]
 
     return modified_config
 
@@ -180,7 +206,9 @@ def print_batch_config_summary(config: Dict[str, Any]) -> None:
     if models_registry:
         print(f"\nModels in registry: {len(models_registry)}")
         for model in models_registry:
-            print(f"  - {model.get('name')} (shorthand: {model.get('shorthand')})")
+            print(
+                f"  - {model.get('name')} (shorthand: {model.get('shorthand')})"
+            )
 
     print("=" * 40 + "\n")
 
@@ -198,10 +226,14 @@ def print_evaluation_config_summary(config: Dict[str, Any]) -> None:
     print(f"Step logs enabled: {config.get('enable_step_logs', False)}")
 
     # Print OCR results information
-    load_results_params = steps.get("load_ocr_results", {}).get("parameters", {})
+    load_results_params = steps.get("load_ocr_results", {}).get(
+        "parameters", {}
+    )
     artifact_name = load_results_params.get("artifact_name", "ocr_results")
     artifact_version = load_results_params.get("version", "latest")
-    print(f"Loading OCR results from: {artifact_name} (version: {artifact_version})")
+    print(
+        f"Loading OCR results from: {artifact_name} (version: {artifact_version})"
+    )
 
     # Print ground truth information
     gt_params = steps.get("load_ground_truth_texts", {}).get("parameters", {})
@@ -240,7 +272,9 @@ def get_image_paths(directory: str) -> List[str]:
     return sorted(image_paths)
 
 
-def list_available_ground_truth_files(directory: Optional[str] = "ground_truth_texts") -> List[str]:
+def list_available_ground_truth_files(
+    directory: Optional[str] = "ground_truth_texts",
+) -> List[str]:
     """List available ground truth text files in the given directory.
 
     Args:

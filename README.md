@@ -58,17 +58,17 @@ etc.
 | [Gamesense](gamesense)                                    | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training             | pytorch, peft, phi-2                 |
 | [Nightwatch AI](nightwatch-ai)                            | 🤖 LLMOps | 📝 Summarization, 📊 Reporting             | openai, supabase, slack              |
 | [ResearchRadar](research-radar)                           | 🤖 LLMOps | 📝 Classification, 📊 Comparison           | anthropic, huggingface, transformers |
-| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 CV     | 🔍 Detection, 🏷 Annotation, 🚀 Vertex | yolov8, fiftyone, vertex |
-| [Magic Photobooth](magic-photobooth)                      | 👁 CV     | 🎨 DreamBooth, 🖼 LoRA Avatars        | diffusers, flux, kubernetes |
-| [OmniReader](omni-reader)                                 | 👁 CV     | 📄 OCR, 🔬 Comparison, 📈 Metrics       | openai, streamlit, zenml |
-| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD               | docker, kubernetes, scikit-learn |
-| [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🤚 YOLOv5, 📊 MLflow, 🚀 Vertex         | yolov5, mlflow, vertex |
-| [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment               | mlflow, sagemaker, kubeflow |
-| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance   | databricks, evidently, shap |
+| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 CV     | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
+| [Magic Photobooth](magic-photobooth)                      | 👁 CV     | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface        |
+| [OmniReader](omni-reader)                                 | 👁 CV     | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama      |
+| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
+| [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
+| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
 | [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
-| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱ Time Series, 🛠 Airflow/Vertex      | airflow, xgboost, vertex |
-| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱ Forecasting, 📊 Dashboards          | prophet, streamlit, zenml |
-| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖ Imbalance       | xgboost, mlflow, zenml |
+| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🧹 ETL                     | airflow, bigquery, xgboost           |
+| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model | prophet, zenml, pandas             |
+| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml |
 
 # 💻 System Requirements
 

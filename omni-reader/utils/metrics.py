@@ -69,7 +69,9 @@ def analyze_errors(ground_truth: str, predicted: str) -> ErrorAnalysis:
             # Track character pairs for substitution analysis
             if i2 - i1 == j2 - j1:  # 1:1 substitution
                 for idx in range(i2 - i1):
-                    substitution_pairs.append((ground_truth[i1 + idx], predicted[j1 + idx]))
+                    substitution_pairs.append(
+                        (ground_truth[i1 + idx], predicted[j1 + idx])
+                    )
             # Track position in text (beginning, middle, end)
             if i1 < len(ground_truth) * 0.2:
                 error_positions["beginning"] += 1
@@ -167,7 +169,9 @@ def calculate_custom_metrics(
         if ground_truth_text:
             all_metrics[model1]["CER"] = cer(ground_truth_text, text1)
             all_metrics[model1]["WER"] = wer(ground_truth_text, text1)
-            all_metrics[model1]["GT Similarity"] = levenshtein_ratio(ground_truth_text, text1)
+            all_metrics[model1]["GT Similarity"] = levenshtein_ratio(
+                ground_truth_text, text1
+            )
         for j, model2 in enumerate(model_displays):
             if i < j:
                 model_pairs.append((model1, model2))
@@ -208,9 +212,15 @@ def compare_multi_model(
                 "Insertions": model_analysis.insertions,
                 "Deletions": model_analysis.deletions,
                 "Substitutions": model_analysis.substitutions,
-                "Insertion Rate": model_analysis.error_distribution.get("insertions", 0),
-                "Deletion Rate": model_analysis.error_distribution.get("deletions", 0),
-                "Substitution Rate": model_analysis.error_distribution.get("substitutions", 0),
+                "Insertion Rate": model_analysis.error_distribution.get(
+                    "insertions", 0
+                ),
+                "Deletion Rate": model_analysis.error_distribution.get(
+                    "deletions", 0
+                ),
+                "Substitution Rate": model_analysis.error_distribution.get(
+                    "substitutions", 0
+                ),
                 "Error Positions": model_analysis.error_positions,
                 "Common Substitutions": model_analysis.common_substitutions,
             }
@@ -277,11 +287,16 @@ def calculate_model_similarities(
                 text2 = model_texts[model2]
                 similarity = levenshtein_ratio(text1, text2)
                 pair_key = f"{model1}_{model2}"
-                similarity_sums[pair_key] = similarity_sums.get(pair_key, 0) + similarity
-                similarity_counts[pair_key] = similarity_counts.get(pair_key, 0) + 1
+                similarity_sums[pair_key] = (
+                    similarity_sums.get(pair_key, 0) + similarity
+                )
+                similarity_counts[pair_key] = (
+                    similarity_counts.get(pair_key, 0) + 1
+                )
 
     # Average the similarities for each pair
     similarities = {
-        pair: similarity_sums[pair] / similarity_counts[pair] for pair in similarity_sums
+        pair: similarity_sums[pair] / similarity_counts[pair]
+        for pair in similarity_sums
     }
     return similarities

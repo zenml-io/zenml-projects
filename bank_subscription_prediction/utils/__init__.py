@@ -1,1 +1,1 @@
-"""Utility functions for the Bank Subscription Prediction project.""" 
+"""Utility functions for the Bank Subscription Prediction project."""

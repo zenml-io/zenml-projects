@@ -1,8 +1,9 @@
-import click
 import logging
+
+import click
+from logging_config import configure_logging
 from pipelines.inference_pipeline import inference_pipeline
 from pipelines.training_pipeline import training_pipeline
-from logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -81,17 +82,19 @@ def main(
     pipeline_options = {}
     if no_cache:
         pipeline_options["enable_cache"] = False
-    
+
     # Select default config based on pipeline type if not specified
     if config is None:
-        config = "configs/inference.yaml" if inference else "configs/training.yaml"
-    
+        config = (
+            "configs/inference.yaml" if inference else "configs/training.yaml"
+        )
+
     # Set config path
     pipeline_options["config_path"] = config
-    
+
     logger.info("\n" + "=" * 80)
     logger.info(f"Using configuration from: {config}")
-    
+
     # Run the appropriate pipeline
     if inference:
         logger.info("Running retail forecasting inference pipeline...")
@@ -99,7 +102,7 @@ def main(
     else:
         logger.info("Running retail forecasting training pipeline...")
         run = training_pipeline.with_options(**pipeline_options)()
-    
+
     logger.info("=" * 80 + "\n")
 
     logger.info("\n" + "=" * 80)

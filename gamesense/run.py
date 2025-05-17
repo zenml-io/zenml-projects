@@ -78,17 +78,19 @@ def main(
 
     config_path = os.path.join(config_folder, config)
     pipeline_args["config_path"] = config_path
-    
+
     # Display a message if using CPU configuration
     if "cpu" in config:
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("RUNNING IN CPU-ONLY MODE")
         print("This will use a CPU-optimized configuration with:")
         print("- Smaller batch sizes")
         print("- Fewer training steps")
         print("- Disabled GPU-specific features (quantization, bf16, etc)")
-        print("Note: Training will be much slower but should require less memory")
-        print("="*80 + "\n")
+        print(
+            "Note: Training will be much slower but should require less memory"
+        )
+        print("=" * 80 + "\n")
 
     if accelerate:
         from pipelines.train_accelerated import llm_peft_full_finetune
