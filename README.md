@@ -13,11 +13,6 @@ integrations.</h3>
 
   <p align="center">
     Get everything you need to start a project...
-    <!-- <div align="center">
-      Join our <a href="https://zenml.io/slack" target="_blank">
-      <img width="25" src="https://img.shields.io/badge/JOIN US ON SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack"/>
-    <b>Slack Community</b> </a> and be part of the ZenML family.
-    </div> -->
     <br />
     <a href="https://zenml.io/features">Features</a>
     ·
@@ -63,15 +58,16 @@ etc.
 | [Gamesense](gamesense)                                    | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training             | pytorch, peft, phi-2                 |
 | [Nightwatch AI](nightwatch-ai)                            | 🤖 LLMOps | 📝 Summarization, 📊 Reporting             | openai, supabase, slack              |
 | [ResearchRadar](research-radar)                           | 🤖 LLMOps | 📝 Classification, 📊 Comparison           | anthropic, huggingface, transformers |
-| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 Computer Vision | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8 |
-| [Magic Photobooth](magic-photobooth)                      | 👁 Computer Vision | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface |
-| [OmniReader](omni-reader)                                 | 👁 Computer Vision | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama |
+| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 CV     | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
+| [Magic Photobooth](magic-photobooth)                      | 👁 CV     | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface        |
+| [OmniReader](omni-reader)                                 | 👁 CV     | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama      |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
 | [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
-| [Sign Language Detection](sign-language-detection-yolov5) | 👁 Computer Vision | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai |
 | [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
-| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🧹 ETL                     | airflow, bigquery, xgboost |
-| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model | prophet, zenml, pandas |
+| [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
+| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🧹 ETL                     | airflow, bigquery, xgboost           |
+| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model | prophet, zenml, pandas             |
 | [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml |
 
 # 💻 System Requirements
@@ -123,22 +119,20 @@ this repository. Any contribution made to this project will be licensed under
 the Apache License Version 2.0.
 
 # 📖 Learn More
-
-| ZenML Resources             | Description                                                             |
-|-----------------------------|-------------------------------------------------------------------------|
-| 🧘‍♀️ **[ZenML 101]**       | New to ZenML? Here's everything you need to know!                       |
-| ⚛️ **[Core Concepts]**      | Some key terms and concepts we use.                                     |
-| 🚀 **[Our latest release]** | New features, bug fixes.                                                |
-| 🗳 **[Vote for Features]**  | Pick what we work on next!                                              |
-| 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.               |
-| 📒 **[API Reference]**      | Detailed reference on ZenML's API.                                      |
-| ⚽️ **[Examples]**           | Learn best through examples where ZenML is used. We've got you covered. |
-| 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it.         |
-| 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.               |
-| 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack!                 |
-| 🗺 **[Roadmap]**            | See where ZenML is working to build new features.                       |
-| 🙋‍♀️ **[Contribute]**      | How to contribute to the ZenML project and code base.                   |
-
+| ZenML Resources             | Description                                        |
+|-----------------------------|----------------------------------------------------|
+| 🧘 **[ZenML 101]**          | New to ZenML? Here's everything you need to know! |
+| ⚛ **[Core Concepts]**       | Understand ZenML's building blocks.               |
+| 🚀 **[Our latest release]** | New features, bug fixes.                          |
+| 🗳 **[Vote for Features]**  | Pick what we work on next!                         |
+| 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines. |
+| 📒 **[API Reference]**      | Detailed reference on ZenML's API.                 |
+| ⚽ **[Examples]**           | Explore more sample projects.                      |
+| 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it. |
+| 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks. |
+| 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack! |
+| 🗺 **[Roadmap]**            | See where ZenML is working to build new features. |
+| 🙋 **[Contribute]**         | Got a PR or feature request? Start here.           |
 [ZenML 101]: https://docs.zenml.io/user-guides/starter-guide
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
 [Our latest release]: https://github.com/zenml-io/zenml/releases
