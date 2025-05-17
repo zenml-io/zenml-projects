@@ -1,0 +1,41 @@
+name: Code Formatting
+
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+
+jobs:
+  formatting-check:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    env:
+      ZENML_DEBUG: 1
+      ZENML_ANALYTICS_OPT_IN: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install latest ruff
+        run: pip install --upgrade ruff
+      
+      - name: Run formatting script
+        run: bash scripts/format.sh
+        
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+        
+      - name: Fail if changes were made
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          echo "::error::Formatting check failed. Please run 'scripts/format.sh' locally and commit the changes."
+          exit 1

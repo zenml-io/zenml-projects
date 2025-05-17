@@ -300,13 +300,11 @@ def generate_video_frames(
     settings={"step_operator.modal": modal_settings},
     enable_cache=False,
 )
-def image_to_video() -> (
-    Tuple[
-        Annotated[PILImage.Image, "generated_image"],
-        Annotated[bytes, "video_data"],
-        Annotated[HTMLString, "video_html"],
-    ]
-):
+def image_to_video() -> Tuple[
+    Annotated[PILImage.Image, "generated_image"],
+    Annotated[bytes, "video_data"],
+    Annotated[HTMLString, "video_html"],
+]:
     model_path = f"{TrainConfig().hf_username}/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(
@@ -362,7 +360,7 @@ def image_to_video() -> (
     enable_cache=False,
 )
 def dreambooth_pipeline():
-    data = load_data()
+    _ = load_data()
     # train_model(data, after="load_data")
     # batch_inference(after="train_model")
     # image_to_video(after="batch_inference")

@@ -21,9 +21,9 @@ from zenml.steps import step
 
 
 @step
-def model_loader() -> (
-    Tuple[Annotated[str, "model_path"], Annotated[torch.nn.Module, "model"]]
-):
+def model_loader() -> Tuple[
+    Annotated[str, "model_path"], Annotated[torch.nn.Module, "model"]
+]:
     """Loads the trained models from previous training pipeline runs."""
     training_pipeline = Client().get_pipeline(
         "sign_language_detection_train_pipeline"

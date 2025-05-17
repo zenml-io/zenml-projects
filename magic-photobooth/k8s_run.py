@@ -326,13 +326,11 @@ def generate_video_frames(
     settings={"orchestrator.kubernetes": kubernetes_settings},
     enable_cache=False,
 )
-def image_to_video() -> (
-    Tuple[
-        Annotated[PILImage.Image, "generated_image"],
-        Annotated[bytes, "video_data"],
-        Annotated[HTMLString, "video_html"],
-    ]
-):
+def image_to_video() -> Tuple[
+    Annotated[PILImage.Image, "generated_image"],
+    Annotated[bytes, "video_data"],
+    Annotated[HTMLString, "video_html"],
+]:
     model_path = f"{TrainConfig().hf_username}/{TrainConfig().hf_repo_suffix}"
 
     pipe = AutoPipelineForText2Image.from_pretrained(

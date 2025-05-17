@@ -88,6 +88,15 @@ installation details.
 We welcome contributions from anyone to showcase your project built using ZenML.
 See our [contributing guide](./CONTRIBUTING.md) to start.
 
+## Code Quality
+
+All code contributions must pass our automated code quality checks:
+- **Code Formatting**: We use [ruff](https://github.com/astral-sh/ruff) for code formatting and linting
+- **Spelling**: We check for typos and spelling errors
+- **Markdown Links**: We verify that all links in documentation work properly
+
+Our CI pipeline will automatically check your PR for these issues. Remember to run `bash scripts/format.sh` locally before submitting your PR to ensure it passes the formatting checks.
+
 # 🆘 Getting Help
 
 By far the easiest and fastest way to get help is to:

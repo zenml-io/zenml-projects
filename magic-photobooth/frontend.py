@@ -178,6 +178,7 @@ def inference_mode():
         st.warning("No trained models available. Please train a model first.")
         return
 
+    # Model selection - value used in later operations
     selected_model = st.selectbox(
         "Choose a trained model", st.session_state.trained_models
     )

@@ -47,7 +47,9 @@ def deploy_to_huggingface(
     save_model_to_deploy.entrypoint()
 
     logger.info("Model saved locally. Pushing to HuggingFace...")
-    assert secret, "No secret found with name 'huggingface_creds'. Please create one with your `token`."
+    assert secret, (
+        "No secret found with name 'huggingface_creds'. Please create one with your `token`."
+    )
 
     token = secret.secret_values["token"]
     api = HfApi(token=token)

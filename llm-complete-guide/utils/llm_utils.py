@@ -406,28 +406,6 @@ def get_topn_similar_docs_elasticsearch(
     """
     index_name = "zenml_docs"
 
-    if only_urls:
-        source = ["url"]
-    elif include_metadata:
-        source = ["content", "url", "parent_section"]
-    else:
-        source = ["content"]
-
-    query = {
-        "_source": source,
-        "query": {
-            "script_score": {
-                "query": {"match_all": {}},
-                "script": {
-                    "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
-                    "params": {"query_vector": query_embedding},
-                },
-            }
-        },
-        "size": n,
-    }
-
-    # response = es_client.search(index=index_name, body=query)
     response = es_client.search(
         index=index_name,
         knn={

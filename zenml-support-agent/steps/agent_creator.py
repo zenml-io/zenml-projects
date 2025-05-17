@@ -77,7 +77,8 @@ def agent_creator(
         human_message=SUFFIX,
     )
 
-    agent_executor = AgentExecutor.from_agent_and_tools(
+    # Create but don't store the agent executor - just return the agent and tools
+    AgentExecutor.from_agent_and_tools(
         agent=my_agent,
         tools=tools,
         verbose=True,
