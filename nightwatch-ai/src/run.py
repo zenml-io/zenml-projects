@@ -21,7 +21,7 @@ from steps.summarizers import gpt_4_summarizer
 from zenml.client import Client
 
 
-def main():
+def main() -> None:
     if Client().active_stack.alerter is None:
         # we use a print alerter
         alerter = print_alerter()

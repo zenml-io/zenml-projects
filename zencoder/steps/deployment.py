@@ -1,4 +1,4 @@
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, Tuple, cast
 
 from zenml import get_step_context, step
 from zenml.client import Client
@@ -14,7 +14,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-def parse_huggingface_url(url):
+def parse_huggingface_url(url: str) -> Tuple[str, str, str]:
     # Split the URL into parts
     parts = url.split("/")
 
