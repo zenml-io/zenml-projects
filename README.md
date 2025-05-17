@@ -61,8 +61,8 @@ etc.
 | [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 CV     | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
 | [Magic Photobooth](magic-photobooth)                      | 👁 CV     | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface        |
 | [OmniReader](omni-reader)                                 | 👁 CV     | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama      |
-| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
 | [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
+| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
 | [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
 | [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
