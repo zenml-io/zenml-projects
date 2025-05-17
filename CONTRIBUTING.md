@@ -58,8 +58,8 @@ to ZenML dashboard.
 
 Issues should be used to report problems with the library, request a new
 feature, or to discuss potential changes before
-a PR is created. When you create a new Issue, a template will be loaded that
-will guide you through collecting and
+a PR is created. When you create a new issue, please use one of the provided
+templates. These templates will guide you through collecting and
 providing the information we need to investigate.
 
 If you find an Issue that addresses your problem, please add your own
@@ -81,8 +81,9 @@ general, PRs should:
   suite already exists).
 - Address a single concern in the least number of changed lines as possible.
 - Include documentation in the repo or in your Pull Request.
-- Be accompanied by a filled-out Pull Request template (loaded automatically when
-  a PR is created).
+- Be accompanied by a filled-out pull request template (loaded automatically
+  when a PR is created). This helps reviewers understand the motivation and
+  context for your changes.
 
 For changes that address core functionality or would require breaking changes, it's best to open
 an Issue to discuss your proposal first. This is not required but can save time
