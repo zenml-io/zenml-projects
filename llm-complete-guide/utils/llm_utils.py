@@ -406,11 +406,6 @@ def get_topn_similar_docs_elasticsearch(
     """
     index_name = "zenml_docs"
 
-    # The source fields are determined for use in the results below
-    # based on what the caller requested
-    # but we don't need to store them in a variable since we're using direct knn search
-
-    # response = es_client.search(index=index_name, body=query)
     response = es_client.search(
         index=index_name,
         knn={
