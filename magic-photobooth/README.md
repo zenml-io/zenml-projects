@@ -49,7 +49,7 @@ Behind the scenes, Magic Photobooth employs Low-Rank Adaptation (LoRA) technolog
    git clone https://github.com/zenml-io/zenml-projects.git
    
    # Navigate to Magic Photobooth
-   cd zenml-projects/flux-dreambooth
+    cd zenml-projects/magic-photobooth
    
    # Install dependencies
    pip install -r requirements.txt
