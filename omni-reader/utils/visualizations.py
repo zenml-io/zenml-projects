@@ -69,10 +69,17 @@ def create_metrics_table(metrics: Dict[str, float]) -> str:
 
 
 def create_comparison_table(
-    models: List[str], metric_data: Dict[str, Dict[str, float]], metric_names: List[str]
+    models: List[str],
+    metric_data: Dict[str, Dict[str, float]],
+    metric_names: List[str],
 ) -> str:
     """Create an HTML table comparing metrics across models."""
-    headers = "".join([f'<th class="p-2 border text-center">{model}</th>' for model in models])
+    headers = "".join(
+        [
+            f'<th class="p-2 border text-center">{model}</th>'
+            for model in models
+        ]
+    )
     rows = ""
     for metric in metric_names:
         row_data = ""
@@ -114,14 +121,18 @@ def create_comparison_table(
     return table
 
 
-def create_model_card_with_logo(model_display: str, metrics: Dict[str, float]) -> str:
+def create_model_card_with_logo(
+    model_display: str, metrics: Dict[str, float]
+) -> str:
     """Create a card for a model with its logo and metrics."""
     logo_path = None
     for _, config in MODEL_CONFIGS.items():
         if config.display == model_display:
             logo_path = config.logo
             break
-    if not logo_path or not os.path.exists(os.path.join("./assets/logos", logo_path)):
+    if not logo_path or not os.path.exists(
+        os.path.join("./assets/logos", logo_path)
+    ):
         logo_path = "default.svg"
     logo_b64 = load_svg_logo(logo_path)
     logo_html = f'<img src="data:image/svg+xml;base64,{logo_b64}" width="30" class="mr-2" alt="{model_display} logo">'
@@ -167,7 +178,9 @@ def create_model_comparison_card(
     num_models = len(model_texts)
     cols_class = "grid-cols-1"
     if num_models <= 3:
-        cols_class = f"grid-cols-1 md:grid-cols-{num_models + 1}"  # +1 for ground truth
+        cols_class = (
+            f"grid-cols-1 md:grid-cols-{num_models + 1}"  # +1 for ground truth
+        )
     else:
         cols_per_row = min(3, (num_models + 1) // 2)
         cols_class = f"grid-cols-1 md:grid-cols-{cols_per_row}"
@@ -190,7 +203,9 @@ def create_model_comparison_card(
         </div>
         """
     metrics_table = create_comparison_table(
-        list(model_texts.keys()), model_metrics, ["CER", "WER", "GT Similarity"]
+        list(model_texts.keys()),
+        model_metrics,
+        ["CER", "WER", "GT Similarity"],
     )
     error_sections = ""
     error_cols = min(3, len(model_texts))
@@ -207,7 +222,9 @@ def create_model_comparison_card(
         """
 
     # Simple header for ground truth text files
-    ground_truth_header = '<h4 class="font-bold mb-2 text-gray-700">📄 Ground Truth</h4>'
+    ground_truth_header = (
+        '<h4 class="font-bold mb-2 text-gray-700">📄 Ground Truth</h4>'
+    )
 
     card = f"""
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
@@ -235,9 +252,16 @@ def create_model_comparison_card(
     return card
 
 
-def create_model_similarity_matrix(models: List[str], similarities: Dict[str, float]) -> str:
+def create_model_similarity_matrix(
+    models: List[str], similarities: Dict[str, float]
+) -> str:
     """Create a matrix showing similarity between model outputs."""
-    headers = "".join([f'<th class="p-2 border text-center">{model}</th>' for model in models])
+    headers = "".join(
+        [
+            f'<th class="p-2 border text-center">{model}</th>'
+            for model in models
+        ]
+    )
     rows = ""
     for i, model1 in enumerate(models):
         row_cells = ""
@@ -248,7 +272,9 @@ def create_model_similarity_matrix(models: List[str], similarities: Dict[str, fl
             key1 = f"{model1}_{model2}"
             key2 = f"{model2}_{model1}"
             similarity = similarities.get(key1, similarities.get(key2, 0))
-            row_cells += f'<td class="p-2 border text-center">{similarity:.4f}</td>'
+            row_cells += (
+                f'<td class="p-2 border text-center">{similarity:.4f}</td>'
+            )
         rows += f"""
         <tr>
             <td class="p-2 border font-medium">{model1}</td>
@@ -304,7 +330,9 @@ def create_summary_visualization(
 
     best_cer = find_best_model(model_metrics, "CER", lower_is_better=True)
     best_wer = find_best_model(model_metrics, "WER", lower_is_better=True)
-    best_similarity = find_best_model(model_metrics, "GT Similarity", lower_is_better=False)
+    best_similarity = find_best_model(
+        model_metrics, "GT Similarity", lower_is_better=False
+    )
 
     metrics_grid = f"""
     <div class="grid grid-cols-1 md:grid-cols-{cols_per_row} gap-6 mb-6">
@@ -328,10 +356,14 @@ def create_summary_visualization(
     """
 
     comparison_metrics = ["CER", "WER", "GT Similarity"]
-    comparison_table = create_comparison_table(models, model_metrics, comparison_metrics)
+    comparison_table = create_comparison_table(
+        models, model_metrics, comparison_metrics
+    )
     similarity_matrix = ""
     if similarities and len(models) > 1:
-        similarity_matrix = create_model_similarity_matrix(models, similarities)
+        similarity_matrix = create_model_similarity_matrix(
+            models, similarities
+        )
     metrics_section = f"""
     <div class="mb-8">
         <h2 class="text-2xl font-bold mb-4">📊 OCR Model Performance Metrics</h2>
@@ -403,8 +435,12 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
             raw_texts.append(str(txt))
     total_chars = sum(len(txt) for txt in raw_texts)
     avg_conf = df["confidence"].mean() if "confidence" in df.columns else 0
-    total_proc_time = df["processing_time"].sum() if "processing_time" in df.columns else 0
-    avg_proc_time = df["processing_time"].mean() if "processing_time" in df.columns else 0
+    total_proc_time = (
+        df["processing_time"].sum() if "processing_time" in df.columns else 0
+    )
+    avg_proc_time = (
+        df["processing_time"].mean() if "processing_time" in df.columns else 0
+    )
 
     # Calculate model-specific metrics
     model_metrics = {}
@@ -420,9 +456,19 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
                 else:
                     m_raw_texts.append(str(txt))
             m_chars = sum(len(txt) for txt in m_raw_texts)
-            m_conf = mdf["confidence"].mean() if "confidence" in mdf.columns else 0
-            m_total_time = mdf["processing_time"].sum() if "processing_time" in mdf.columns else 0
-            m_avg_time = mdf["processing_time"].mean() if "processing_time" in mdf.columns else 0
+            m_conf = (
+                mdf["confidence"].mean() if "confidence" in mdf.columns else 0
+            )
+            m_total_time = (
+                mdf["processing_time"].sum()
+                if "processing_time" in mdf.columns
+                else 0
+            )
+            m_avg_time = (
+                mdf["processing_time"].mean()
+                if "processing_time" in mdf.columns
+                else 0
+            )
 
             model_metrics[model] = {
                 "total_images": len(mdf),
@@ -430,7 +476,9 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
                 "avg_confidence": m_conf,
                 "total_time": m_total_time,
                 "avg_time": m_avg_time,
-                "char_per_second": m_chars / m_total_time if m_total_time > 0 else 0,
+                "char_per_second": m_chars / m_total_time
+                if m_total_time > 0
+                else 0,
             }
             model_displays.append(model)
 
@@ -449,7 +497,9 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
                     if config.display == model:
                         logo_path = config.logo
                         break
-                if logo_path and os.path.exists(os.path.join("./assets/logos", logo_path)):
+                if logo_path and os.path.exists(
+                    os.path.join("./assets/logos", logo_path)
+                ):
                     logo_b64 = load_svg_logo(logo_path)
                     logo_html = f'<img src="data:image/svg+xml;base64,{logo_b64}" width="30" class="mr-2" alt="{model} logo">'
             except Exception as e:
@@ -520,14 +570,18 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
     for i in range(sample_df.height):
         row = sample_df.row(i, named=True)
         model_col = (
-            f'<td class="p-2 border">{row["model_name"]}</td>' if "model_name" in df.columns else ""
+            f'<td class="p-2 border">{row["model_name"]}</td>'
+            if "model_name" in df.columns
+            else ""
         )
 
         # Ensure raw_text is a string and limit displayed text length
         raw_text = row["raw_text"]
         if isinstance(raw_text, list):
             raw_text = "\n".join(raw_text)
-        text_preview = str(raw_text)[:100] + ("..." if len(str(raw_text)) > 100 else "")
+        text_preview = str(raw_text)[:100] + (
+            "..." if len(str(raw_text)) > 100 else ""
+        )
         text_length = len(str(raw_text)) if raw_text is not None else 0
 
         table_rows += f"""
@@ -541,7 +595,11 @@ def create_ocr_batch_visualization(df: pl.DataFrame) -> HTMLString:
         </tr>
         """
 
-    model_header = '<th class="p-2 border">Model</th>' if "model_name" in df.columns else ""
+    model_header = (
+        '<th class="p-2 border">Model</th>'
+        if "model_name" in df.columns
+        else ""
+    )
 
     results_table = f"""
     <div class="bg-white shadow rounded-lg p-4 border border-gray-200 mb-6 overflow-x-auto">

@@ -15,15 +15,15 @@
 # limitations under the License.
 #
 
-from .model_register import (
-    model_register,
+from .model_deployer import (
+    model_deployer,
 )
 from .model_promoter import (
     model_promoter,
 )
+from .model_register import (
+    model_register,
+)
 from .model_trainer import (
     model_trainer,
-)
-from .model_deployer import (
-    model_deployer,
 )

@@ -1,7 +1,8 @@
 """Main module to run the Bank Subscription Prediction pipeline."""
 
-import click
 import logging
+
+import click
 from pipelines.training_pipeline import bank_subscription_training_pipeline
 
 logger = logging.getLogger(__name__)
