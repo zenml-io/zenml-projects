@@ -23,8 +23,8 @@ jobs:
         with:
           python-version: '3.9'
       
-      - name: Install ruff
-        run: pip install ruff
+      - name: Install latest ruff
+        run: pip install --upgrade ruff
       
       - name: Run formatting script
         run: bash scripts/format.sh

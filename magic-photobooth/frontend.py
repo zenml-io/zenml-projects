@@ -179,7 +179,9 @@ def inference_mode():
         return
 
     # Model selection - value used in later operations
-    selected_model = st.selectbox("Choose a trained model", st.session_state.trained_models)
+    selected_model = st.selectbox(
+        "Choose a trained model", st.session_state.trained_models
+    )
     selected_prompt = st.selectbox("Choose a prompt", paris_prompts)
     custom_prompt = st.text_input("Or enter your own prompt")
 
