@@ -74,7 +74,9 @@ class ModelRegistry:
     def _infer_missing_properties(self, model_config: ModelConfig) -> None:
         """Fill in missing properties based on model name patterns."""
         if not model_config.display:
-            model_config.display = self._generate_display_name(model_config.name)
+            model_config.display = self._generate_display_name(
+                model_config.name
+            )
 
         if not model_config.prefix:
             model_config.prefix = self._generate_prefix(model_config.display)

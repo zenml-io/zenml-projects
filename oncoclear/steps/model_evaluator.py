@@ -1,19 +1,19 @@
 # Apache Software License 2.0
-# 
+#
 # Copyright (c) ZenML GmbH 2025. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
+#
 
 from typing import Optional
 
@@ -28,12 +28,12 @@ logger = get_logger(__name__)
 
 @step
 def model_evaluator(
-        model: ClassifierMixin,
-        dataset_trn: pd.DataFrame,
-        dataset_tst: pd.DataFrame,
-        min_train_accuracy: float = 0.0,
-        min_test_accuracy: float = 0.0,
-        target: Optional[str] = "target",
+    model: ClassifierMixin,
+    dataset_trn: pd.DataFrame,
+    dataset_tst: pd.DataFrame,
+    min_train_accuracy: float = 0.0,
+    min_test_accuracy: float = 0.0,
+    target: Optional[str] = "target",
 ) -> float:
     """Evaluate a trained model.
 
@@ -101,9 +101,9 @@ def model_evaluator(
     log_metadata(
         metadata={
             "train_accuracy": float(trn_acc),
-            "test_accuracy": float(tst_acc)
+            "test_accuracy": float(tst_acc),
         },
-        artifact_version_id=latest_classifier.id
+        artifact_version_id=latest_classifier.id,
     )
 
     return float(tst_acc)

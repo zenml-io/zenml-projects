@@ -16,4 +16,7 @@
 """OCR pipelines"""
 
 from pipelines.batch_pipeline import batch_ocr_pipeline, run_batch_ocr_pipeline
-from pipelines.evaluation_pipeline import ocr_evaluation_pipeline, run_ocr_evaluation_pipeline
+from pipelines.evaluation_pipeline import (
+    ocr_evaluation_pipeline,
+    run_ocr_evaluation_pipeline,
+)

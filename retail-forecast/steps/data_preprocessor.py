@@ -1,5 +1,5 @@
-from typing import Dict, List, Tuple
 import logging
+from typing import Dict, List, Tuple
 
 import pandas as pd
 from typing_extensions import Annotated

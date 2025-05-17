@@ -63,16 +63,16 @@ etc.
 | [Gamesense](gamesense)                                    | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training             | pytorch, peft, phi-2                 |
 | [Nightwatch AI](nightwatch-ai)                            | 🤖 LLMOps | 📝 Summarization, 📊 Reporting             | openai, supabase, slack              |
 | [ResearchRadar](research-radar)                           | 🤖 LLMOps | 📝 Classification, 📊 Comparison           | anthropic, huggingface, transformers |
-| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁️ Vision | 🎯 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
-| [Magic Photobooth](magic-photobooth)                      | 👁️ Vision | 🖼️ Image Gen, 🎬 Video Gen                 | stable-diffusion, huggingface        |
-| [OmniReader](omni-reader)                                 | 👁️ Vision | 📝 OCR, 📊 Evaluation, 🔄 Batch Processing | polars, litellm, openai, ollama      |
+| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 Computer Vision | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8 |
+| [Magic Photobooth](magic-photobooth)                      | 👁 Computer Vision | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface |
+| [OmniReader](omni-reader)                                 | 👁 Computer Vision | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama |
 | [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
-| [Sign Language Detection](sign-language-detection-yolov5) | 👁️ Vision | 🎯 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
+| [Sign Language Detection](sign-language-detection-yolov5) | 👁 Computer Vision | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai |
 | [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
-| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🔄 ETL                     | airflow, bigquery, xgboost           |
-| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔮 Multi-Model | prophet, zenml, pandas                |
-| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖️ Imbalanced Data, 🎯 Feature Selection | xgboost, plotly, zenml |
+| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🧹 ETL                     | airflow, bigquery, xgboost |
+| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model | prophet, zenml, pandas |
+| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml |
 
 # 💻 System Requirements
 

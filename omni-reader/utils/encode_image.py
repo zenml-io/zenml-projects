@@ -68,7 +68,11 @@ def encode_image(image: Image.Image | str) -> tuple[str, str]:
         image_base64 = encode_image_from_path(image)
     else:
         img_format = image.format or "JPEG"
-        content_type = f"image/{img_format.lower()}" if img_format else "image/jpeg"
-        image_base64 = encode_pil_image(image, format=img_format if img_format else "JPEG")
+        content_type = (
+            f"image/{img_format.lower()}" if img_format else "image/jpeg"
+        )
+        image_base64 = encode_pil_image(
+            image, format=img_format if img_format else "JPEG"
+        )
 
     return content_type, image_base64

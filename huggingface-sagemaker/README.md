@@ -98,7 +98,7 @@ To run this project, you need to create a [ZenML Stack](https://docs.zenml.io/us
 ```shell
 make install-stack
 
-zenml stack hf-sagekamer-local
+zenml stack set hf-sagemaker-local
 ```
 
 Additionally, if you're using the local Docker orchestrator, you'll need to create a cache directory for the datasets and ensure it has the correct permissions:

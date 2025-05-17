@@ -15,14 +15,13 @@
 # limitations under the License.
 #
 
-from zenml import pipeline
-from zenml.logger import get_logger
-from zenml.client import Client
-
 from steps.deployment import (
     build_deployment_image,
     run_deployment_container,
 )
+from zenml import pipeline
+from zenml.client import Client
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -89,4 +88,4 @@ def local_deployment(
 
     logger.info(f"Model '{model_name}:{model_stage}' deployed successfully!")
     logger.info(f"Service URL: {service_url}")
-    logger.info(f"API Documentation: {service_url}/docs") 
+    logger.info(f"API Documentation: {service_url}/docs")

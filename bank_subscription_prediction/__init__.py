@@ -1,1 +1,1 @@
-"""Bank Subscription Prediction Project using ZenML.""" 
+"""Bank Subscription Prediction Project using ZenML."""
