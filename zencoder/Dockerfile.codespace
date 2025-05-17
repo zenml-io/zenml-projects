@@ -1,0 +1,61 @@
+# Sandbox base image
+FROM zenmldocker/zenml-sandbox:latest
+
+# Install uv from official distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set uv environment variables for optimization
+ENV UV_SYSTEM_PYTHON=1
+ENV UV_COMPILE_BYTECODE=1
+
+# Project metadata
+LABEL project_name="zencoder"
+LABEL project_version="0.1.0"
+
+# Install dependencies with uv and cache optimization
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    "zenml[server]>=0.73.0" \
+    "packaging" \
+    "notebook" \
+    "datasets" \
+    "nbformat" \
+    "pandas" \
+    "PyGithub" \
+    "ninja" \
+    "kfp>=2.6.0" \
+    "gcsfs" \
+    "google-cloud-secret-manager" \
+    "google-cloud-container>=2.21.0" \
+    "google-cloud-artifact-registry>=1.11.3" \
+    "google-cloud-storage>=2.9.0" \
+    "google-cloud-aiplatform>=1.34.0" \
+    "google-cloud-build>=3.11.0" \
+    "kubernetes" \
+    "git+https://github.com/huggingface/transformers" \
+    "git+https://github.com/huggingface/accelerate" \
+    "git+https://github.com/huggingface/peft" \
+    "trl" \
+    "huggingface-hub" \
+    "bitsandbytes" \
+    "evaluate" \
+    "einops" \
+    "wandb>=0.12.12" \
+    "tiktoken" \
+    "deepspeed" \
+    "tqdm==4.65.0" \
+    "safetensors"
+
+# Set workspace directory
+WORKDIR /workspace
+
+# Clone only the project directory and reorganize
+RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenml-projects && \
+    cp -r /tmp/zenml-projects/zencoder/* /workspace/ && \
+    rm -rf /tmp/zenml-projects
+
+# VSCode settings
+RUN mkdir -p /workspace/.vscode && \
+    printf '{\n  "workbench.colorTheme": "Default Dark Modern"\n}' > /workspace/.vscode/settings.json
+
+
