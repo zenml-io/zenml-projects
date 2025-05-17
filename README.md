@@ -65,10 +65,10 @@ etc.
 | [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🤚 YOLOv5, 📊 MLflow, 🚀 Vertex         | yolov5, mlflow, vertex |
 | [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment               | mlflow, sagemaker, kubeflow |
 | [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance   | databricks, evidently, shap |
+| [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
 | [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱ Time Series, 🛠 Airflow/Vertex      | airflow, xgboost, vertex |
 | [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱ Forecasting, 📊 Dashboards          | prophet, streamlit, zenml |
 | [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖ Imbalance       | xgboost, mlflow, zenml |
-| [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
 
 # 💻 System Requirements
 
