@@ -15,6 +15,22 @@ logger = get_logger(__name__)
 
 
 def parse_huggingface_url(url: str) -> Tuple[str, str, str]:
+    """
+    Parses a Hugging Face Hub URL to extract the namespace, repository, and revision.
+
+    Args:
+        url: The Hugging Face Hub URL to parse. Expected format:
+             "https://huggingface.co/{namespace}/{repository}/tree/{revision}".
+
+    Returns:
+        A tuple containing:
+        - namespace: The owner or organization of the repository.
+        - repository: The name of the repository.
+        - revision: The specific commit hash or branch name.
+
+    Raises:
+        ValueError: If the URL does not match the expected format.
+    """
     # Split the URL into parts
     parts = url.split("/")
 
