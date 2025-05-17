@@ -1,5 +1,5 @@
-from typing import Dict, List
 import logging
+from typing import Dict, List
 
 import pandas as pd
 from materializers.prophet_materializer import ProphetMaterializer

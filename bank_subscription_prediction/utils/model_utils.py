@@ -1,7 +1,7 @@
 """Utility functions for model operations."""
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def calculate_scale_pos_weight(y: pd.Series) -> float:

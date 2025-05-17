@@ -1,10 +1,10 @@
+import logging
+from typing import Annotated, Tuple
+
 import pandas as pd
-import numpy as np
-from zenml import step
-from typing import Tuple, Annotated
 import xgboost as xgb
 from sklearn.feature_selection import SelectFromModel
-import logging
+from zenml import step
 
 # Set up logger
 logger = logging.getLogger(__name__)

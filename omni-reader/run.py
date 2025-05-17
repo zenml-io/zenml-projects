@@ -27,7 +27,6 @@ from typing import Any, Dict, List, Optional, Union
 
 from dotenv import load_dotenv
 from PIL import Image
-
 from pipelines.batch_pipeline import run_batch_ocr_pipeline
 from pipelines.evaluation_pipeline import run_ocr_evaluation_pipeline
 from utils.config import (
@@ -137,7 +136,9 @@ def list_supported_models():
     print("-" * 70)
 
     for model_id, config in MODEL_CONFIGS.items():
-        print(f"{model_id:<25} {config.display:<30} {config.ocr_processor:<15}")
+        print(
+            f"{model_id:<25} {config.display:<30} {config.ocr_processor:<15}"
+        )
         if config.provider:
             print(f"{'Provider':<25} {config.provider:<30}")
 
@@ -194,18 +195,24 @@ def run_ui_mode(args, parser):
 
     if args.models == "all":
         # Run all models in parallel
-        print(f"Processing image with all {len(MODEL_CONFIGS)} models in parallel...")
+        print(
+            f"Processing image with all {len(MODEL_CONFIGS)} models in parallel..."
+        )
         results = run_models_in_parallel(
             image_path,
             list(MODEL_CONFIGS.keys()),
             args.custom_prompt,
         )
 
-        successful_models = sum(1 for result in results.values() if "error" not in result)
+        successful_models = sum(
+            1 for result in results.values() if "error" not in result
+        )
         failed_models = len(results) - successful_models
 
         print("\n" + "=" * 50)
-        print(f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)")
+        print(
+            f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)"
+        )
         print("=" * 50)
 
         # individual model results
@@ -219,24 +226,34 @@ def run_ui_mode(args, parser):
         # Run specific models in parallel
         model_ids = [model_id.strip() for model_id in args.models.split(",")]
 
-        invalid_models = [model_id for model_id in model_ids if model_id not in MODEL_CONFIGS]
+        invalid_models = [
+            model_id for model_id in model_ids if model_id not in MODEL_CONFIGS
+        ]
         if invalid_models:
-            print(f"Error: The following models are not supported: {', '.join(invalid_models)}")
+            print(
+                f"Error: The following models are not supported: {', '.join(invalid_models)}"
+            )
             print("Use --list-models to see all supported models.")
             return
 
-        print(f"Processing image with {len(model_ids)} selected models in parallel...")
+        print(
+            f"Processing image with {len(model_ids)} selected models in parallel..."
+        )
         results = run_models_in_parallel(
             image_path,
             model_ids,
             args.custom_prompt,
         )
 
-        successful_models = sum(1 for result in results.values() if "error" not in result)
+        successful_models = sum(
+            1 for result in results.values() if "error" not in result
+        )
         failed_models = len(results) - successful_models
 
         print("\n" + "=" * 50)
-        print(f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)")
+        print(
+            f"OCR COMPARISON RESULTS ({successful_models} successful, {failed_models} failed)"
+        )
         print("=" * 50)
 
         # individual model results
@@ -272,7 +289,9 @@ def run_pipeline_mode(args, parser):
     """Run the application in full pipeline mode with ZenML tracking."""
     # List available ground truth files if requested
     if args.list_ground_truth_files:
-        gt_files = list_available_ground_truth_files(directory=args.ground_truth_dir)
+        gt_files = list_available_ground_truth_files(
+            directory=args.ground_truth_dir
+        )
         if gt_files:
             print("Available ground truth files:")
             for i, file in enumerate(gt_files):
@@ -361,7 +380,9 @@ def main():
     )
 
     # Ground truth utilities (pipeline mode)
-    gt_group = parser.add_argument_group("Ground truth utilities (pipeline mode)")
+    gt_group = parser.add_argument_group(
+        "Ground truth utilities (pipeline mode)"
+    )
     gt_group.add_argument(
         "--list-ground-truth-files",
         action="store_true",

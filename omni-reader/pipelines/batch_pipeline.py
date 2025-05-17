@@ -19,14 +19,13 @@ import os
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
-from zenml import pipeline
-from zenml.config import DockerSettings
-from zenml.logger import get_logger
-
 from steps import (
     load_images,
     run_ocr,
 )
+from zenml import pipeline
+from zenml.config import DockerSettings
+from zenml.logger import get_logger
 
 load_dotenv()
 
@@ -82,13 +81,17 @@ def run_batch_ocr_pipeline(config: Dict[str, Any]) -> None:
         enable_cache=config.get("enable_cache", False),
     )
 
-    load_images_params = config.get("steps", {}).get("load_images", {}).get("parameters", {})
+    load_images_params = (
+        config.get("steps", {}).get("load_images", {}).get("parameters", {})
+    )
     image_folder = load_images_params.get("image_folder")
     image_paths = load_images_params.get("image_paths", [])
     if not image_folder and len(image_paths) == 0:
         raise ValueError("Either image_folder or image_paths must be provided")
 
-    run_ocr_params = config.get("steps", {}).get("run_ocr", {}).get("parameters", {})
+    run_ocr_params = (
+        config.get("steps", {}).get("run_ocr", {}).get("parameters", {})
+    )
     custom_prompt = run_ocr_params.get("custom_prompt")
     selected_models = run_ocr_params.get("models", [])
     if not selected_models or len(selected_models) == 0:

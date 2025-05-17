@@ -46,7 +46,7 @@ def llm_peft_full_finetune(
     - finetune: finetune the model
     - evaluate_model: evaluate the base and finetuned model
     - promote: promote the model to the target stage, if evaluation was successful
-    
+
     Args:
         system_prompt: The system prompt to use.
         base_model_id: The base model id to use.

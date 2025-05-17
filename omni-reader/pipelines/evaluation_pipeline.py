@@ -19,15 +19,14 @@ import os
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
-from zenml import pipeline
-from zenml.config import DockerSettings
-from zenml.logger import get_logger
-
 from steps import (
     evaluate_models,
     load_ground_truth_texts,
     load_ocr_results,
 )
+from zenml import pipeline
+from zenml.config import DockerSettings
+from zenml.logger import get_logger
 
 load_dotenv()
 
@@ -79,20 +78,30 @@ def run_ocr_evaluation_pipeline(config: Dict[str, Any]) -> None:
     """
     mode = config.get("parameters", {}).get("mode", "evaluation")
     if mode != "evaluation":
-        logger.warning(f"Expected mode 'evaluation', but got '{mode}'. Proceeding anyway.")
+        logger.warning(
+            f"Expected mode 'evaluation', but got '{mode}'. Proceeding anyway."
+        )
 
     pipeline_instance = ocr_evaluation_pipeline.with_options(
         enable_artifact_metadata=config.get("enable_artifact_metadata", True),
-        enable_artifact_visualization=config.get("enable_artifact_visualization", True),
+        enable_artifact_visualization=config.get(
+            "enable_artifact_visualization", True
+        ),
         enable_cache=config.get("enable_cache", False),
         enable_step_logs=config.get("enable_step_logs", True),
     )
 
     load_ground_truth_texts_params = (
-        config.get("steps", {}).get("load_ground_truth_texts", {}).get("parameters", {})
+        config.get("steps", {})
+        .get("load_ground_truth_texts", {})
+        .get("parameters", {})
     )
 
     pipeline_instance(
-        ground_truth_folder=load_ground_truth_texts_params.get("ground_truth_folder"),
-        ground_truth_files=load_ground_truth_texts_params.get("ground_truth_files", []),
+        ground_truth_folder=load_ground_truth_texts_params.get(
+            "ground_truth_folder"
+        ),
+        ground_truth_files=load_ground_truth_texts_params.get(
+            "ground_truth_files", []
+        ),
     )

@@ -1,7 +1,8 @@
+import logging
+from typing import List
+
 import pandas as pd
 from zenml import step
-from typing import List
-import logging
 
 # Set up logger
 logger = logging.getLogger(__name__)
