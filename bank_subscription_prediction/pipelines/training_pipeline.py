@@ -1,11 +1,12 @@
-from zenml import pipeline
-from steps.data_loader import load_data
+import logging
+
 from steps.data_cleaner import clean_data_step
+from steps.data_loader import load_data
 from steps.data_preprocessor import preprocess_data_step
 from steps.data_splitter import split_data_step
-from steps.model_trainer import train_xgb_model_with_feature_selection
 from steps.model_evaluator import evaluate_model
-import logging
+from steps.model_trainer import train_xgb_model_with_feature_selection
+from zenml import pipeline
 
 # Set up logger
 logger = logging.getLogger(__name__)

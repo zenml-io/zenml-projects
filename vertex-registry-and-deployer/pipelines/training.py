@@ -18,7 +18,6 @@
 from typing import Optional
 
 from steps import model_deployer, model_promoter, model_register, model_trainer
-
 from zenml import pipeline
 from zenml.logger import get_logger
 

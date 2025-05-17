@@ -25,7 +25,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from typing_extensions import Annotated
-
 from zenml import ArtifactConfig, step
 from zenml.enums import ArtifactType
 from zenml.logger import get_logger
