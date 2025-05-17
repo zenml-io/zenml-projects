@@ -12,14 +12,12 @@ from zenml.types import HTMLString
 
 
 @pipeline(name="retail_forecast_pipeline")
-def training_pipeline() -> (
-    Tuple[
-        Annotated[Dict[str, float], "model_metrics"],
-        Annotated[HTMLString, "evaluation_report"],
-        Annotated[HTMLString, "forecast_dashboard"],
-        Annotated[HTMLString, "sales_visualization"],
-    ]
-):
+def training_pipeline() -> Tuple[
+    Annotated[Dict[str, float], "model_metrics"],
+    Annotated[HTMLString, "evaluation_report"],
+    Annotated[HTMLString, "forecast_dashboard"],
+    Annotated[HTMLString, "sales_visualization"],
+]:
     """Simple retail forecasting pipeline using Prophet.
 
     Steps:
