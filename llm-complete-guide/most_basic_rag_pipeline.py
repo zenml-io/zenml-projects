@@ -17,23 +17,26 @@
 
 import re
 import string
+from typing import List
 
 from openai import OpenAI
 from utils.openai_utils import get_openai_api_key
 
 
-def preprocess_text(text):
+def preprocess_text(text: str) -> str:
     text = text.lower()
     text = text.translate(str.maketrans("", "", string.punctuation))
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
-def tokenize(text):
+def tokenize(text: str) -> List[str]:
     return preprocess_text(text).split()
 
 
-def retrieve_relevant_chunks(query, corpus, top_n=2):
+def retrieve_relevant_chunks(
+    query: str, corpus: List[str], top_n: int = 2
+) -> List[str]:
     query_tokens = set(tokenize(query))
     similarities = []
     for chunk in corpus:
@@ -46,7 +49,7 @@ def retrieve_relevant_chunks(query, corpus, top_n=2):
     return [chunk for chunk, _ in similarities[:top_n]]
 
 
-def answer_question(query, corpus, top_n=2):
+def answer_question(query: str, corpus: List[str], top_n: int = 2) -> str:
     relevant_chunks = retrieve_relevant_chunks(query, corpus, top_n)
     if not relevant_chunks:
         return "I don't have enough information to answer the question."

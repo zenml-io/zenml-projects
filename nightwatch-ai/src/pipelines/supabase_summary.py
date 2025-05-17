@@ -13,13 +13,19 @@
 #  permissions and limitations under the License.
 
 
+from typing import Any, Callable
+
 from zenml.pipelines import pipeline
 
 pipeline_name = "daily_supabase_summary"
 
 
 @pipeline(name=pipeline_name)
-def daily_supabase_summary(get_latest_data, generate_summary, report_summary):
+def daily_supabase_summary(
+    get_latest_data: Callable[[], Any],
+    generate_summary: Callable[[Any], Any],
+    report_summary: Callable[[Any], Any],
+) -> None:
     """Generates a summary of the latest data.
 
     Args:
