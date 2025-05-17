@@ -30,4 +30,4 @@ def trainer(df: pd.DataFrame) -> Any:
 @pipeline
 def sklearn_pipeline():
     df = importer()
-    model = trainer(df)
+    trainer(df)
