@@ -99,9 +99,22 @@ the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
 4. Checkout the **main** branch <- `git checkout main`.
 5. Create a branch locally off the **main** branch with a succinct but descriptive name.
 6. Commit changes to the branch.
-7. Push changes to your fork.
-8. Open a PR in our repository to the `main` branch and
+7. Format your code by running `bash scripts/format.sh` before committing.
+8. Push changes to your fork.
+9. Open a PR in our repository to the `main` branch and
    follow the PR template so that we can efficiently review the changes.
+
+#### Code Formatting
+
+All code must pass our formatting checks before it can be merged. We use [ruff](https://github.com/astral-sh/ruff) for code formatting and linting.
+
+To format your code locally:
+```bash
+# Run from the project root
+bash scripts/format.sh
+```
+
+Our CI pipeline automatically checks if your code is properly formatted. If the check fails, you'll need to run the formatting script locally and commit the changes before your PR can be merged.
 
 ### 🚨 Reporting a Vulnerability
 
