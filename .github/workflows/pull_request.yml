@@ -29,3 +29,7 @@ jobs:
   code-formatting-check:
     uses: ./.github/workflows/code-formatting.yml
     if: github.event.pull_request.draft == false
+    
+  readme-projects-check:
+    uses: ./.github/workflows/readme-projects-check.yml
+    if: github.event.pull_request.draft == false
