@@ -1,6 +1,7 @@
 name: Code Formatting
 
 on:
+  workflow_call:
   pull_request:
     types: [opened, synchronize]
   push:
