@@ -31,8 +31,8 @@ from utils.split_data import generate_yaml, split_dataset, unzip_dataset
 logger = get_logger(__name__)
 
 
-def load_images_from_folder(folder):
-    images = []
+def load_images_from_folder(folder: str) -> List[Image.Image]:
+    images: List[Image.Image] = []
     for filename in os.listdir(folder):
         if (
             filename.endswith(".png")
@@ -45,7 +45,9 @@ def load_images_from_folder(folder):
     return images
 
 
-def load_images_from_source(data_source, download_dir, filenames):
+def load_images_from_source(
+    data_source: str, download_dir: str, filenames: List[str]
+) -> None:
     total_images = len(filenames)
     for index, filename in enumerate(filenames):
         src_path = f"{data_source}/{filename}.png"

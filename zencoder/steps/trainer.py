@@ -8,7 +8,7 @@ All credit to them for their amazing work!
 import functools
 import os
 import random
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -66,16 +66,16 @@ def get_fim_token_ids(tokenizer):
 
 ## Adapted from https://github.com/bigcode-project/Megatron-LM/blob/6c4bf908df8fd86b4977f54bf5b8bd4b521003d1/megatron/data/gpt_dataset.py
 def permute(
-    sample,
-    np_rng,
-    suffix_tok_id,
-    prefix_tok_id,
-    middle_tok_id,
-    pad_tok_id,
-    fim_rate=0.5,
-    fim_spm_rate=0.5,
-    truncate_or_pad=False,
-):
+    sample: List[int],
+    np_rng: np.random.RandomState,
+    suffix_tok_id: Optional[int],
+    prefix_tok_id: Optional[int],
+    middle_tok_id: Optional[int],
+    pad_tok_id: Optional[int],
+    fim_rate: float = 0.5,
+    fim_spm_rate: float = 0.5,
+    truncate_or_pad: bool = False,
+) -> Tuple[List[int], np.random.RandomState]:
     """
     Take in a sample (list of tokens) and perform a FIM transformation on it with a probability of fim_rate, using two FIM modes:
     PSM and SPM (with a probability of fim_spm_rate).
