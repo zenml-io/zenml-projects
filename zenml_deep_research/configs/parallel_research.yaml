@@ -3,7 +3,7 @@ enable_cache: true
 
 # Pipeline parameters
 parameters:
-  query: "What is Kubeflow?"
+  query: "How are people balancing MLOps and Agents/LLMOps?"
   max_sub_questions: 10
 
 # Step parameters

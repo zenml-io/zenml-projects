@@ -47,18 +47,27 @@ def clean_markdown_tags(text: str) -> str:
     return cleaned
 
 
-def safe_json_loads(json_str: str) -> Dict[str, Any]:
+def safe_json_loads(json_str: str | None) -> Dict[str, Any]:
     """Safely parse JSON string.
 
     Args:
-        json_str: JSON string to parse
+        json_str: JSON string to parse, can be None.
 
     Returns:
-        Parsed JSON as dictionary or empty dict if parsing fails
+        Parsed JSON as dictionary or empty dict if parsing fails or input is None.
     """
+    if json_str is None:
+        # Optionally, log a warning here if None input is unexpected for certain call sites
+        # logger.warning("safe_json_loads received None input.")
+        return {}
     try:
         return json.loads(json_str)
-    except JSONDecodeError:
+    except (
+        JSONDecodeError,
+        TypeError,
+    ):  # Catch TypeError if json_str is not a valid type for json.loads
+        # Optionally, log the error and the problematic string (or its beginning)
+        # logger.warning(f"Failed to decode JSON string: '{str(json_str)[:200]}...'", exc_info=True)
         return {}
 
 

@@ -166,6 +166,9 @@ def _synthesize_information(
     Returns:
         Dictionary with synthesized information
     """
+    sub_question_for_log = synthesis_input.get(
+        "sub_question", "unknown question"
+    )
     try:
         response = openai_client.chat.completions.create(
             model=model,
@@ -175,32 +178,55 @@ def _synthesize_information(
             ],
         )
 
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
+        # Defensive access to content
+        llm_content_str = None
+        if response and response.choices and len(response.choices) > 0:
+            choice = response.choices[0]
+            if choice and choice.message:
+                llm_content_str = choice.message.content
 
-        result = safe_json_loads(content)
-
-        if not result or "synthesized_answer" not in result:
-            # Fallback if parsing fails
+        if llm_content_str is None:
+            logger.warning(
+                f"LLM response content is missing or empty for '{sub_question_for_log}'."
+            )
             return {
-                "synthesized_answer": f"Synthesis for '{synthesis_input.get('sub_question', 'unknown question')}' failed.",
-                "key_sources": synthesis_input.get("sources", [])[
-                    :1
-                ],  # Include at least one source if available
+                "synthesized_answer": f"Synthesis failed due to missing LLM content for '{sub_question_for_log}'.",
+                "key_sources": synthesis_input.get("sources", [])[:1],
                 "confidence_level": "low",
-                "information_gaps": "Synthesis process encountered technical difficulties.",
+                "information_gaps": "LLM did not provide content for synthesis.",
+            }
+
+        processed_content = remove_reasoning_from_output(llm_content_str)
+        processed_content = clean_json_tags(processed_content)
+
+        result = safe_json_loads(processed_content)
+
+        if (
+            not result
+            or not isinstance(result, dict)
+            or "synthesized_answer" not in result
+        ):
+            logger.warning(
+                f"Failed to parse LLM response or 'synthesized_answer' missing for '{sub_question_for_log}'. "
+                f"Content after cleaning (first 200 chars): '{processed_content[:200]}...'"
+            )
+            return {
+                "synthesized_answer": f"Synthesis for '{sub_question_for_log}' failed due to parsing error or missing field.",
+                "key_sources": synthesis_input.get("sources", [])[:1],
+                "confidence_level": "low",
+                "information_gaps": "LLM response parsing failed or critical fields were missing.",
             }
 
         return result
 
     except Exception as e:
-        logger.error(f"Error synthesizing information: {e}")
+        logger.error(
+            f"Error synthesizing information for '{sub_question_for_log}': {e}",
+            exc_info=True,
+        )
         return {
-            "synthesized_answer": f"Synthesis failed due to error: {str(e)}",
-            "key_sources": synthesis_input.get("sources", [])[
-                :1
-            ],  # Include at least one source if available
+            "synthesized_answer": f"Synthesis failed due to an unexpected error for '{sub_question_for_log}': {str(e)}",
+            "key_sources": synthesis_input.get("sources", [])[:1],
             "confidence_level": "low",
-            "information_gaps": "Technical error during synthesis process.",
+            "information_gaps": "An unexpected technical error occurred during synthesis.",
         }
