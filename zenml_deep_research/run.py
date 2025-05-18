@@ -37,22 +37,10 @@ Examples:
 """
 )
 @click.option(
-    "--query",
-    type=str,
-    required=True,
-    help="The research query or topic to investigate",
-)
-@click.option(
     "--config",
     type=str,
     default="configs/pipeline_config.yaml",
     help="Path to the pipeline configuration YAML file",
-)
-@click.option(
-    "--num-reflections",
-    type=int,
-    default=2,
-    help="Number of reflection cycles to perform for each paragraph",
 )
 @click.option(
     "--no-cache",
@@ -73,9 +61,7 @@ Examples:
     help="Enable debug logging",
 )
 def main(
-    query: str,
     config: str = "configs/pipeline_config.yaml",
-    num_reflections: int = 2,
     no_cache: bool = False,
     log_file: str = None,
     debug: bool = False,
@@ -120,9 +106,7 @@ def main(
         pipeline_options["enable_cache"] = False
 
     logger.info("\n" + "=" * 80)
-    logger.info(f"Starting Deep Research on query: {query}")
-    logger.info(f"Number of reflection cycles: {num_reflections}")
-    logger.info(f"Using pipeline configuration from: {config}")
+    logger.info("Starting Deep Research")
     logger.info("=" * 80 + "\n")
 
     # Run the pipeline
