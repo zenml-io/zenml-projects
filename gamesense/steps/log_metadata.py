@@ -33,9 +33,9 @@ def log_metadata_from_step_artifact(
     """
 
     context = get_step_context()
-    metadata_dict: Dict[str, Any] = (
-        context.pipeline_run.steps[step_name].outputs[artifact_name]
-    )
+    metadata_dict: Dict[str, Any] = context.pipeline_run.steps[
+        step_name
+    ].outputs[artifact_name]
 
     log_metadata(
         artifact_name=artifact_name,

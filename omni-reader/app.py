@@ -44,7 +44,9 @@ def load_model_logos():
                 provider = model_config.shorthand
                 if os.path.exists(os.path.join(logos_dir, f"{provider}.svg")):
                     logo_mapping[model_config.display] = base64.b64encode(
-                        open(os.path.join(logos_dir, f"{provider}.svg"), "rb").read()
+                        open(
+                            os.path.join(logos_dir, f"{provider}.svg"), "rb"
+                        ).read()
                     ).decode()
 
     return logo_mapping
@@ -53,7 +55,9 @@ def load_model_logos():
 def render_header(model_logos=None):
     """Render the page header based on selected models."""
     if st.session_state.get("comparison_mode", False):
-        selected_models = st.session_state.get("comparison_models", [DEFAULT_MODEL.name])
+        selected_models = st.session_state.get(
+            "comparison_models", [DEFAULT_MODEL.name]
+        )
 
         if len(selected_models) > 1:
             st.title(f"OCR Model Comparison ({len(selected_models)} Models)")
@@ -61,7 +65,9 @@ def render_header(model_logos=None):
             model_display = MODEL_CONFIGS[selected_models[0]].display
             st.title(f"{model_display} OCR")
     else:
-        selected_model_id = st.session_state.get("selected_model_id", DEFAULT_MODEL.name)
+        selected_model_id = st.session_state.get(
+            "selected_model_id", DEFAULT_MODEL.name
+        )
         selected_model_display = MODEL_CONFIGS[selected_model_id].display
 
         if model_logos and selected_model_display in model_logos:
@@ -91,7 +97,8 @@ def render_sidebar():
 
         if comparison_mode == "Single Model":
             model_options = [
-                model_config.display for model_id, model_config in unique_models.items()
+                model_config.display
+                for model_id, model_config in unique_models.items()
             ]
 
             # Find default model index
@@ -121,10 +128,13 @@ def render_sidebar():
             # Multiselect for model comparison
             st.subheader("Models to Compare")
             model_display_to_id = {
-                model_config.display: model_id for model_id, model_config in unique_models.items()
+                model_config.display: model_id
+                for model_id, model_config in unique_models.items()
             }
             default_models = [DEFAULT_MODEL.display]
-            previously_selected = st.session_state.get("selected_model_displays", default_models)
+            previously_selected = st.session_state.get(
+                "selected_model_displays", default_models
+            )
             multiselect_key = f"model_multiselect_{len(previously_selected)}"
 
             selected_model_displays = st.multiselect(
@@ -135,15 +145,20 @@ def render_sidebar():
             )
 
             if not selected_model_displays:
-                st.warning("At least one model must be selected. Using default model.")
+                st.warning(
+                    "At least one model must be selected. Using default model."
+                )
                 selected_model_displays = default_models
 
             if selected_model_displays != previously_selected:
-                st.session_state["selected_model_displays"] = selected_model_displays
+                st.session_state["selected_model_displays"] = (
+                    selected_model_displays
+                )
                 st.rerun()
 
             comparison_models = [
-                model_display_to_id[display] for display in selected_model_displays
+                model_display_to_id[display]
+                for display in selected_model_displays
             ]
 
             st.session_state["comparison_mode"] = True
@@ -187,8 +202,14 @@ def display_provider_info():
         if model_id == model_config.name:  # Skip shorthand duplicates
             providers.add(model_config.ocr_processor)
 
-    provider_names = {"ollama": "Ollama", "openai": "OpenAI", "mistral": "MistralAI"}
-    provider_text = " + ".join([provider_names.get(p, p.capitalize()) for p in providers])
+    provider_names = {
+        "ollama": "Ollama",
+        "openai": "OpenAI",
+        "mistral": "MistralAI",
+    }
+    provider_text = " + ".join(
+        [provider_names.get(p, p.capitalize()) for p in providers]
+    )
     st.caption(f"Powered by {provider_text}")
 
 
@@ -242,7 +263,9 @@ def check_for_error(result):
     if not isinstance(raw_text, str):
         raw_text = str(raw_text)
 
-    return raw_text.startswith("Error:") or ("success" in result and result["success"] is False)
+    return raw_text.startswith("Error:") or (
+        "success" in result and result["success"] is False
+    )
 
 
 def has_no_text(result):
@@ -303,7 +326,13 @@ def run_single_model(image, model_id, custom_prompt):
             st.session_state[f"{model_id}_result"] = result
 
             # Display results
-            display_result(selected_model_display, result, proc_time, model_id, model_logos)
+            display_result(
+                selected_model_display,
+                result,
+                proc_time,
+                model_id,
+                model_logos,
+            )
 
             # Show additional stats
             st.subheader("Processing Stats")
@@ -313,7 +342,9 @@ def run_single_model(image, model_id, custom_prompt):
             if "confidence" in result and result["confidence"] is not None:
                 st.text(f"Confidence: {result['confidence']:.2%}")
 
-            st.text(f"Provider: {MODEL_CONFIGS[model_id].ocr_processor.capitalize()}")
+            st.text(
+                f"Provider: {MODEL_CONFIGS[model_id].ocr_processor.capitalize()}"
+            )
 
             return result, proc_time
 
@@ -322,7 +353,9 @@ def run_single_model(image, model_id, custom_prompt):
             return None, 0
 
 
-def display_comparison_stats(model_ids, model_results, model_times, model_errors):
+def display_comparison_stats(
+    model_ids, model_results, model_times, model_errors
+):
     """Display comparison statistics for multiple models."""
     st.markdown("### Comparison Stats")
 
@@ -330,7 +363,9 @@ def display_comparison_stats(model_ids, model_results, model_times, model_errors
     valid_times = []
     for model_id in model_ids:
         if not model_errors[model_id]:
-            valid_times.append((MODEL_CONFIGS[model_id].display, model_times[model_id]))
+            valid_times.append(
+                (MODEL_CONFIGS[model_id].display, model_times[model_id])
+            )
 
     if valid_times:
         fastest = min(valid_times, key=lambda x: x[1])
@@ -348,7 +383,9 @@ def display_comparison_stats(model_ids, model_results, model_times, model_errors
     # Compare text lengths
     text_lengths = []
     for model_id in model_ids:
-        if not model_errors[model_id] and not has_no_text(model_results[model_id]):
+        if not model_errors[model_id] and not has_no_text(
+            model_results[model_id]
+        ):
             text_lengths.append(
                 f"{MODEL_CONFIGS[model_id].display}: {len(model_results[model_id]['raw_text'])} chars"
             )
@@ -458,7 +495,9 @@ def run_multiple_models(image, model_ids, custom_prompt):
             # When all models are done, show comparison stats
             if processed_count == len(model_ids) and len(model_ids) > 1:
                 with stats_container:
-                    display_comparison_stats(model_ids, model_results, model_times, model_errors)
+                    display_comparison_stats(
+                        model_ids, model_results, model_times, model_errors
+                    )
 
         # Process each model in a separate thread
         from concurrent.futures import ThreadPoolExecutor
@@ -497,11 +536,16 @@ def run_multiple_models(image, model_ids, custom_prompt):
             # Update all spinners to "Processing..." before submitting tasks
             for model_id in model_ids:
                 with placeholders[model_id]["spinner"]:
-                    st.info(f"Processing with {MODEL_CONFIGS[model_id].display}...")
+                    st.info(
+                        f"Processing with {MODEL_CONFIGS[model_id].display}..."
+                    )
                 processing_models[model_id] = True
 
             # Submit tasks
-            futures = {executor.submit(process_model, model_id): model_id for model_id in model_ids}
+            futures = {
+                executor.submit(process_model, model_id): model_id
+                for model_id in model_ids
+            }
 
             # Process results as they complete
             import concurrent.futures
@@ -538,20 +582,34 @@ def main():
         processed_image = process_uploaded_image(image)
     elif "processed_image" in st.session_state:
         processed_image = st.session_state["processed_image"]
-        st.image(processed_image, caption="Uploaded Image", use_container_width=False)
+        st.image(
+            processed_image,
+            caption="Uploaded Image",
+            use_container_width=False,
+        )
 
     if processed_image is not None:
         if st.button("Extract Text 🔍", type="primary"):
             comparison_mode = st.session_state.get("comparison_mode", False)
 
             if comparison_mode:
-                comparison_models = st.session_state.get("comparison_models", [DEFAULT_MODEL.name])
-                run_multiple_models(processed_image, comparison_models, custom_prompt)
+                comparison_models = st.session_state.get(
+                    "comparison_models", [DEFAULT_MODEL.name]
+                )
+                run_multiple_models(
+                    processed_image, comparison_models, custom_prompt
+                )
             else:
-                selected_model_id = st.session_state.get("selected_model_id", DEFAULT_MODEL.name)
-                run_single_model(processed_image, selected_model_id, custom_prompt)
+                selected_model_id = st.session_state.get(
+                    "selected_model_id", DEFAULT_MODEL.name
+                )
+                run_single_model(
+                    processed_image, selected_model_id, custom_prompt
+                )
     else:
-        st.info("Upload an image and click 'Extract Text' to see the results here.")
+        st.info(
+            "Upload an image and click 'Extract Text' to see the results here."
+        )
 
     # Footer
     st.markdown("---")

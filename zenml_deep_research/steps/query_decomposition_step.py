@@ -51,6 +51,7 @@ def initial_query_decomposition_step(
     sambanova_base_url: str = "https://api.sambanova.ai/v1",
     llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = QUERY_DECOMPOSITION_PROMPT,
+    max_sub_questions: int = 8,
 ) -> Annotated[ResearchState, "updated_state"]:
     """Break down a complex research query into specific sub-questions.
 
@@ -59,6 +60,7 @@ def initial_query_decomposition_step(
         sambanova_base_url: SambaNova API base URL
         llm_model: The reasoning model to use
         system_prompt: System prompt for the LLM
+        max_sub_questions: Maximum number of sub-questions to generate
 
     Returns:
         Updated research state with sub-questions
@@ -78,11 +80,17 @@ def initial_query_decomposition_step(
 
     try:
         # Call OpenAI API to decompose the query
-        logger.info(f"Calling {llm_model} to decompose query")
+        updated_system_prompt = (
+            system_prompt
+            + f"\nPlease generate at most {max_sub_questions} sub-questions."
+        )
+        logger.info(
+            f"Calling {llm_model} to decompose query into max {max_sub_questions} sub-questions"
+        )
         response = openai_client.chat.completions.create(
             model=llm_model,
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": updated_system_prompt},
                 {"role": "user", "content": state.main_query},
             ],
         )
@@ -121,6 +129,9 @@ def initial_query_decomposition_step(
             if "sub_question" in item
         ]
 
+        # Limit to max_sub_questions
+        sub_questions = sub_questions[:max_sub_questions]
+
         logger.info(f"Generated {len(sub_questions)} sub-questions")
 
         # Update the state with the new sub-questions
@@ -136,5 +147,6 @@ def initial_query_decomposition_step(
             f"What are the key aspects of {state.main_query}?",
             f"What are the implications of {state.main_query}?",
         ]
+        fallback_questions = fallback_questions[:max_sub_questions]
         state.update_sub_questions(fallback_questions)
         return state

@@ -37,8 +37,8 @@ class ResearchStateMaterializer(BaseMaterializer):
         with self.artifact_store.open(state_path, "w") as f:
             json.dump(state_dict, f, indent=2)
 
-        # Save visualizations
-        self._save_visualizations(data)
+        # Save visualizations are now handled by save_visualizations method
+        # No need to call self._save_visualizations(data) here as ZenML will call save_visualizations
 
     def load(self, data_type: Type[Any]) -> ResearchState:
         """Load the ResearchState data from storage.
@@ -58,6 +58,30 @@ class ResearchStateMaterializer(BaseMaterializer):
 
         # Reconstruct the ResearchState object
         return self._convert_from_dict(state_dict)
+
+    def save_visualizations(
+        self, data: ResearchState
+    ) -> Dict[str, VisualizationType]:
+        """Create and save visualizations for the ResearchState.
+
+        Args:
+            data: The ResearchState to visualize
+
+        Returns:
+            Dictionary mapping file paths to visualization types
+        """
+        # Generate an HTML visualization
+        visualization_path = os.path.join(self.uri, "research_state.html")
+
+        # Create HTML content based on current stage
+        html_content = self._generate_visualization_html(data)
+
+        # Write the HTML content to a file
+        with fileio.open(visualization_path, "w") as f:
+            f.write(html_content)
+
+        # Return the visualization path and type
+        return {visualization_path: VisualizationType.HTML}
 
     def _convert_to_dict(self, state: ResearchState) -> Dict[str, Any]:
         """Convert a ResearchState object to a dictionary.
@@ -222,30 +246,6 @@ class ResearchStateMaterializer(BaseMaterializer):
             )
 
         return state
-
-    def _save_visualizations(
-        self, data: ResearchState
-    ) -> Dict[str, VisualizationType]:
-        """Create and save visualizations for the ResearchState.
-
-        Args:
-            data: The ResearchState to visualize
-
-        Returns:
-            Dictionary mapping file paths to visualization types
-        """
-        # Generate an HTML visualization
-        visualization_path = os.path.join(self.uri, "research_state.html")
-
-        # Create HTML content based on current stage
-        html_content = self._generate_visualization_html(data)
-
-        # Write the HTML content to a file
-        with fileio.open(visualization_path, "w") as f:
-            f.write(html_content)
-
-        # Return the visualization path and type
-        return {visualization_path: VisualizationType.HTML}
 
     def _generate_visualization_html(self, state: ResearchState) -> str:
         """Generate HTML visualization for the research state.

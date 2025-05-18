@@ -101,15 +101,23 @@ def evaluate_models(
         model_df = model_results.filter(pl.col("model_name") == model_name)
         disp, pref = model_info[model_name]
         time_key = f"avg_{pref}_time"
-        all_model_times[time_key] = model_df.select("processing_time").to_series().mean()
+        all_model_times[time_key] = (
+            model_df.select("processing_time").to_series().mean()
+        )
         all_model_times[f"{pref}_display"] = disp
 
     fastest_model_time, fastest_key = min(
-        [(time, key) for key, time in all_model_times.items() if not key.endswith("_display")],
+        [
+            (time, key)
+            for key, time in all_model_times.items()
+            if not key.endswith("_display")
+        ],
         key=lambda x: x[0],
     )
     fastest_prefix = fastest_key.replace("avg_", "").replace("_time", "")
-    fastest_display = all_model_times.get(f"{fastest_prefix}_display", fastest_prefix)
+    fastest_display = all_model_times.get(
+        f"{fastest_prefix}_display", fastest_prefix
+    )
 
     # --- 7. Per-image evaluation: compute metrics, error analysis, and build per-image cards ---
     evaluation_metrics = []
@@ -117,7 +125,10 @@ def evaluate_models(
     gt_text_col = "ground_truth_text"
 
     # Check if we have ground truth data in our joined dataset
-    if gt_text_col not in merged_results.columns and "raw_text_gt" in merged_results.columns:
+    if (
+        gt_text_col not in merged_results.columns
+        and "raw_text_gt" in merged_results.columns
+    ):
         gt_text_col = "raw_text_gt"
 
     for row in merged_results.iter_rows(named=True):
@@ -131,7 +142,9 @@ def evaluate_models(
             col = "raw_text_right" if i == 1 else f"raw_text_{pref}"
             if col in row:
                 model_texts[disp] = row[col]
-        row_metrics = calculate_custom_metrics(ground_truth, model_texts, list(model_texts.keys()))
+        row_metrics = calculate_custom_metrics(
+            ground_truth, model_texts, list(model_texts.keys())
+        )
         error_analysis = compare_multi_model(ground_truth, model_texts)
         result_metrics = {"id": row["id"], "image_name": row["image_name"]}
         for disp in model_texts.keys():
@@ -148,7 +161,9 @@ def evaluate_models(
             if disp in row_metrics and "GT Similarity" in row_metrics[disp]:
                 if disp not in error_analysis:
                     error_analysis[disp] = {}
-                error_analysis[disp]["GT Similarity"] = row_metrics[disp]["GT Similarity"]
+                error_analysis[disp]["GT Similarity"] = row_metrics[disp][
+                    "GT Similarity"
+                ]
 
         comparison_card = create_model_comparison_card(
             image_name=row["image_name"],
@@ -171,7 +186,9 @@ def evaluate_models(
             if wer_col in df_eval.columns:
                 model_metric_averages[disp]["WER"] = df_eval[wer_col].mean()
             if sim_col in df_eval.columns:
-                model_metric_averages[disp]["GT Similarity"] = df_eval[sim_col].mean()
+                model_metric_averages[disp]["GT Similarity"] = df_eval[
+                    sim_col
+                ].mean()
     for disp in model_displays:
         pref = model_prefixes[disp]
         tkey = f"avg_{pref}_time"
@@ -193,7 +210,9 @@ def evaluate_models(
         similarities = calculate_model_similarities(
             results=[
                 {
-                    f"raw_text_{disp.lower().replace(' ', '_')}": texts_map[disp]
+                    f"raw_text_{disp.lower().replace(' ', '_')}": texts_map[
+                        disp
+                    ]
                     for disp in model_displays
                 }
                 for texts_map in sim_results
@@ -212,7 +231,9 @@ def evaluate_models(
         d2, p2 = model_info[model_keys[1]]
         tk1, tk2 = f"avg_{p1}_time", f"avg_{p2}_time"
         if tk1 in all_model_times and tk2 in all_model_times:
-            time_comparison["time_difference"] = abs(all_model_times[tk1] - all_model_times[tk2])
+            time_comparison["time_difference"] = abs(
+                all_model_times[tk1] - all_model_times[tk2]
+            )
 
     # Log metadata (customize the metadata_dict as needed)
     log_metadata(

@@ -60,7 +60,9 @@ def load_images(
             matching_files = glob.glob(full_pattern)
             if matching_files:
                 all_images.extend(matching_files)
-                logger.info(f"Found {len(matching_files)} images matching pattern {pattern}")
+                logger.info(
+                    f"Found {len(matching_files)} images matching pattern {pattern}"
+                )
 
     # Validate image paths
     valid_images = []
@@ -72,7 +74,9 @@ def load_images(
 
     # Log metadata about the loaded images
     image_names = [os.path.basename(path) for path in valid_images]
-    image_extensions = [os.path.splitext(path)[1].lower() for path in valid_images]
+    image_extensions = [
+        os.path.splitext(path)[1].lower() for path in valid_images
+    ]
 
     extension_counts = {}
     for ext in image_extensions:
@@ -104,7 +108,9 @@ def load_ground_truth_texts(
 ) -> Annotated[pl.DataFrame, "ground_truth"]:
     """Load ground truth texts using image names found in model results."""
     if not ground_truth_folder and not ground_truth_files:
-        raise ValueError("Either ground_truth_folder or ground_truth_files must be provided")
+        raise ValueError(
+            "Either ground_truth_folder or ground_truth_files must be provided"
+        )
 
     image_names = model_results["image_name"].unique().to_list()
 
@@ -179,11 +185,15 @@ def load_ocr_results(
     try:
         client = Client()
 
-        artifact = client.get_artifact_version(name_id_or_prefix=artifact_name, version=version)
+        artifact = client.get_artifact_version(
+            name_id_or_prefix=artifact_name, version=version
+        )
 
         ocr_results = load_artifact(artifact.id)
 
-        logger.info(f"Successfully loaded OCR results for {len(ocr_results)} models")
+        logger.info(
+            f"Successfully loaded OCR results for {len(ocr_results)} models"
+        )
 
         return ocr_results
     except Exception as e:

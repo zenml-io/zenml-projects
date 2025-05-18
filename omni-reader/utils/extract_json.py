@@ -55,7 +55,10 @@ def try_extract_json_from_response(response: Any) -> Dict:
         response_text = response
     elif hasattr(response, "raw_text"):
         raw_text = response.raw_text
-        result = {"raw_text": raw_text, "confidence": getattr(response, "confidence", None)}
+        result = {
+            "raw_text": raw_text,
+            "confidence": getattr(response, "confidence", None),
+        }
         return _ensure_string_raw_text(result)
 
     response_text = response_text.strip()

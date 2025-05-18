@@ -89,4 +89,4 @@ def local_deployment(
 
     logger.info(f"Model '{model_name}:{model_stage}' deployed successfully!")
     logger.info(f"Service URL: {service_url}")
-    logger.info(f"API Documentation: {service_url}/docs") 
+    logger.info(f"API Documentation: {service_url}/docs")

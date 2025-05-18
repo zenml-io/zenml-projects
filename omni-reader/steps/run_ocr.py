@@ -55,9 +55,13 @@ def run_ocr(
     for model in models:
         if model not in MODEL_CONFIGS:
             supported = ", ".join(MODEL_CONFIGS.keys())
-            raise ValueError(f"Unsupported model: {model}. Supported models: {supported}")
+            raise ValueError(
+                f"Unsupported model: {model}. Supported models: {supported}"
+            )
 
-    logger.info(f"Running OCR with {len(models)} models on {len(images)} images.")
+    logger.info(
+        f"Running OCR with {len(models)} models on {len(images)} images."
+    )
 
     model_dfs = {}
     performance_metrics = {}
@@ -80,7 +84,9 @@ def run_ocr(
                     results = future.result()
                     results = results.with_columns(
                         pl.lit(model).alias("model_name"),
-                        pl.lit(MODEL_CONFIGS[model].display).alias("model_display_name"),
+                        pl.lit(MODEL_CONFIGS[model].display).alias(
+                            "model_display_name"
+                        ),
                     )
                     model_dfs[model] = results
 
@@ -93,13 +99,18 @@ def run_ocr(
                     error_df = pl.DataFrame(
                         {
                             "id": list(range(len(images))),
-                            "image_name": [os.path.basename(img) for img in images],
+                            "image_name": [
+                                os.path.basename(img) for img in images
+                            ],
                             "raw_text": [f"Error: {e}"] * len(images),
                             "processing_time": [0.0] * len(images),
                             "confidence": [0.0] * len(images),
                             "error": [str(e)] * len(images),
                             "model_name": [model] * len(images),
-                            "model_display_name": [MODEL_CONFIGS[model].display] * len(images),
+                            "model_display_name": [
+                                MODEL_CONFIGS[model].display
+                            ]
+                            * len(images),
                         }
                     )
                     model_dfs[model] = error_df

@@ -1,19 +1,19 @@
 # Apache Software License 2.0
-# 
+#
 # Copyright (c) ZenML GmbH 2025. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
+#
 
 import os
 from typing import Optional
@@ -227,7 +227,9 @@ def main(
         feature_engineering.with_options(**pipeline_args)(**run_args_feature)
         logger.info("Feature Engineering pipeline finished successfully!\n")
 
-        train_dataset_artifact = client.get_artifact_version(train_dataset_name)
+        train_dataset_artifact = client.get_artifact_version(
+            train_dataset_name
+        )
         test_dataset_artifact = client.get_artifact_version(test_dataset_name)
         logger.info(
             "The latest feature engineering pipeline produced the following "
@@ -255,14 +257,20 @@ def main(
                 test_dataset_name, test_dataset_version_name
             )
             # Use versioned artifacts
-            run_args_train["train_dataset_id"] = train_dataset_artifact_version.id
-            run_args_train["test_dataset_id"] = test_dataset_artifact_version.id
+            run_args_train["train_dataset_id"] = (
+                train_dataset_artifact_version.id
+            )
+            run_args_train["test_dataset_id"] = (
+                test_dataset_artifact_version.id
+            )
 
         # Run the SGD pipeline
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False
-        pipeline_args["config_path"] = os.path.join(config_folder, "training_sgd.yaml")
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, "training_sgd.yaml"
+        )
         training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline with SGD finished successfully!\n\n")
 
@@ -270,14 +278,18 @@ def main(
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False
-        pipeline_args["config_path"] = os.path.join(config_folder, "training_rf.yaml")
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, "training_rf.yaml"
+        )
         training.with_options(**pipeline_args)(**run_args_train)
         logger.info("Training pipeline with RF finished successfully!\n\n")
 
     if inference_pipeline:
         run_args_inference = {}
         pipeline_args = {"enable_cache": False}
-        pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
+        pipeline_args["config_path"] = os.path.join(
+            config_folder, "inference.yaml"
+        )
 
         # Configure the pipeline
         inference_configured = inference.with_options(**pipeline_args)
@@ -288,11 +300,15 @@ def main(
         zenml_model = client.get_model_version(
             config["model"]["name"], config["model"]["version"]
         )
-        preprocess_pipeline_artifact = zenml_model.get_artifact("preprocess_pipeline")
+        preprocess_pipeline_artifact = zenml_model.get_artifact(
+            "preprocess_pipeline"
+        )
 
         # Use the metadata of feature engineering pipeline artifact
         #  to get the random state and target column
-        random_state = preprocess_pipeline_artifact.run_metadata["random_state"]
+        random_state = preprocess_pipeline_artifact.run_metadata[
+            "random_state"
+        ]
         target = preprocess_pipeline_artifact.run_metadata["target"]
         run_args_inference["random_state"] = random_state
         run_args_inference["target"] = target
@@ -308,15 +324,15 @@ def main(
                 "Model name must be provided for local deployment. "
                 "Use --deployment-model-name to specify the model name."
             )
-        
+
         pipeline_args = {}
         if no_cache:
             pipeline_args["enable_cache"] = False
-            
+
         # ZenML requires a config, but we don't need a specific one for deployment
         # So we'll just use a default config path, or later you can create a deployment.yaml
         # pipeline_args["config_path"] = os.path.join(config_folder, "deployment.yaml")
-        
+
         run_args_deployment = {
             "model_name": deployment_model_name,
             "model_stage": deployment_model_stage,
@@ -326,10 +342,10 @@ def main(
             "zenml_server_url": deployment_zenml_server,
             "zenml_api_key": deployment_zenml_api_key,
         }
-        
+
         # Run the deployment pipeline
         local_deployment.with_options(**pipeline_args)(**run_args_deployment)
-        
+
         logger.info(
             f"Local deployment pipeline for model '{deployment_model_name}:{deployment_model_stage}' "
             f"finished successfully!\n\n"

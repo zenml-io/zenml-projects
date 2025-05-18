@@ -54,15 +54,19 @@ def load_base_model(
     from accelerate import Accelerator
     from transformers import BitsAndBytesConfig
     import logging
+
     logger = logging.getLogger(__name__)
 
     # Explicitly disable MPS when in CPU-only mode
     if cpu_only:
         import os
+
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
         # Force PyTorch to not use MPS
-        torch._C._set_mps_enabled(False) if hasattr(torch._C, "_set_mps_enabled") else None
+        torch._C._set_mps_enabled(False) if hasattr(
+            torch._C, "_set_mps_enabled"
+        ) else None
         # Set default device to CPU explicitly
         torch.set_default_device("cpu")
         logger.warning("Disabled MPS device for CPU-only mode.")
@@ -83,7 +87,11 @@ def load_base_model(
 
     # Only use BitsAndBytes config if CUDA is available and quantization is requested
     # and we're not in CPU-only mode
-    if (load_in_8bit or load_in_4bit) and torch.cuda.is_available() and not cpu_only:
+    if (
+        (load_in_8bit or load_in_4bit)
+        and torch.cuda.is_available()
+        and not cpu_only
+    ):
         bnb_config = BitsAndBytesConfig(
             load_in_8bit=load_in_8bit,
             load_in_4bit=load_in_4bit,
@@ -96,17 +104,19 @@ def load_base_model(
         # Reset these flags if CUDA is not available or in CPU-only mode
         load_in_8bit = False
         load_in_4bit = False
-        
+
     # Print device information for debugging
     if should_print:
         print(f"Loading model on device: {device_map}")
 
     # Use half precision for CPU to reduce memory usage if not in training
-    torch_dtype = torch.float16 if device_map[""] == "cpu" and not is_training else None
-    
+    torch_dtype = (
+        torch.float16 if device_map[""] == "cpu" and not is_training else None
+    )
+
     # Check if it's a Phi model
     is_phi_model = "phi" in base_model_id.lower()
-    
+
     model_kwargs = {
         "quantization_config": bnb_config,
         "device_map": device_map,
@@ -115,19 +125,18 @@ def load_base_model(
         # Use low_cpu_mem_usage for CPU training to minimize memory usage
         "low_cpu_mem_usage": device_map[""] == "cpu",
     }
-    
+
     # Add special config for Phi models on CPU to avoid cache issues
     if is_phi_model and (cpu_only or device_map[""] == "cpu"):
         if should_print:
-            print("Loading Phi model on CPU with special configuration to avoid caching issues")
+            print(
+                "Loading Phi model on CPU with special configuration to avoid caching issues"
+            )
         model_kwargs["use_flash_attention_2"] = False
         # Set attn_implementation to eager for Phi models on CPU
         model_kwargs["attn_implementation"] = "eager"
 
-    model = AutoModelForCausalLM.from_pretrained(
-        base_model_id,
-        **model_kwargs
-    )
+    model = AutoModelForCausalLM.from_pretrained(base_model_id, **model_kwargs)
 
     # For Phi models on CPU, disable kv cache feature to avoid errors
     if is_phi_model and (cpu_only or device_map[""] == "cpu"):
@@ -138,7 +147,7 @@ def load_base_model(
 
     if is_training:
         model.gradient_checkpointing_enable()
-        
+
         # For CPU-only mode, skip prepare_model_for_kbit_training if not using quantization
         if not (cpu_only and not (load_in_8bit or load_in_4bit)):
             model = prepare_model_for_kbit_training(model)
@@ -189,15 +198,19 @@ def load_pretrained_model(
     """
     from transformers import BitsAndBytesConfig
     import logging
+
     logger = logging.getLogger(__name__)
 
     # Explicitly disable MPS when in CPU-only mode
     if cpu_only:
         import os
+
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
         # Force PyTorch to not use MPS
-        torch._C._set_mps_enabled(False) if hasattr(torch._C, "_set_mps_enabled") else None
+        torch._C._set_mps_enabled(False) if hasattr(
+            torch._C, "_set_mps_enabled"
+        ) else None
         # Set default device to CPU explicitly
         torch.set_default_device("cpu")
         logger.warning("Disabled MPS device for CPU-only mode.")
@@ -209,7 +222,11 @@ def load_pretrained_model(
         device_map = "auto"
 
     # Only use BitsAndBytes config if quantization is requested and we're not in CPU-only mode
-    if (load_in_8bit or load_in_4bit) and not cpu_only and torch.cuda.is_available():
+    if (
+        (load_in_8bit or load_in_4bit)
+        and not cpu_only
+        and torch.cuda.is_available()
+    ):
         bnb_config = BitsAndBytesConfig(
             load_in_8bit=load_in_8bit,
             load_in_4bit=load_in_4bit,
@@ -219,14 +236,14 @@ def load_pretrained_model(
         )
     else:
         bnb_config = None
-        
+
     # Use half precision for CPU to reduce memory usage
     torch_dtype = torch.float16 if device_map == "cpu" else None
-    
+
     # Special config for Phi models on CPU to avoid cache issues
     # Check if it's a Phi model
     is_phi_model = "phi" in str(ft_model_dir).lower()
-        
+
     model_kwargs = {
         "quantization_config": bnb_config,
         "device_map": device_map,
@@ -235,23 +252,24 @@ def load_pretrained_model(
         # Use low_cpu_mem_usage for CPU to minimize memory usage
         "low_cpu_mem_usage": device_map == "cpu",
     }
-    
+
     # Add special config for Phi models on CPU to avoid cache issues
     if is_phi_model and (cpu_only or device_map == "cpu"):
-        logger.warning("Loading Phi model on CPU with special configuration to avoid caching issues")
+        logger.warning(
+            "Loading Phi model on CPU with special configuration to avoid caching issues"
+        )
         model_kwargs["use_flash_attention_2"] = False
         # Set attn_implementation to eager for Phi models on CPU
         model_kwargs["attn_implementation"] = "eager"
-    
-    model = AutoModelForCausalLM.from_pretrained(
-        ft_model_dir,
-        **model_kwargs
-    )
-    
+
+    model = AutoModelForCausalLM.from_pretrained(ft_model_dir, **model_kwargs)
+
     # For Phi models on CPU, disable kv cache feature to avoid errors
     if is_phi_model and (cpu_only or device_map == "cpu"):
         if hasattr(model.config, "use_cache"):
             model.config.use_cache = False
-            logger.warning("Disabled KV cache for Phi model on CPU to avoid errors")
-    
+            logger.warning(
+                "Disabled KV cache for Phi model on CPU to avoid errors"
+            )
+
     return model

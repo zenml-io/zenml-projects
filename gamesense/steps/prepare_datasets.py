@@ -57,7 +57,9 @@ def prepare_data(
     cleanup_gpu_memory(force=True)
 
     # Set default values if None (to prevent validation errors)
-    max_train_samples = max_train_samples if max_train_samples is not None else 0
+    max_train_samples = (
+        max_train_samples if max_train_samples is not None else 0
+    )
     max_val_samples = max_val_samples if max_val_samples is not None else 0
     max_test_samples = max_test_samples if max_test_samples is not None else 0
 
@@ -66,7 +68,7 @@ def prepare_data(
             "system_prompt": system_prompt,
             "base_model_id": base_model_id,
             "max_train_samples": max_train_samples,
-            "max_val_samples": max_val_samples, 
+            "max_val_samples": max_val_samples,
             "max_test_samples": max_test_samples,
         }
     )
@@ -85,11 +87,13 @@ def prepare_data(
         trust_remote_code=True,
     )
     if max_train_samples > 0 and max_train_samples < len(train_dataset):
-        logger.info(f"Limiting training dataset to {max_train_samples} samples (from {len(train_dataset)})")
+        logger.info(
+            f"Limiting training dataset to {max_train_samples} samples (from {len(train_dataset)})"
+        )
         train_dataset = train_dataset.select(range(max_train_samples))
-    
+
     tokenized_train_dataset = train_dataset.map(gen_and_tokenize)
-    
+
     # Load and potentially limit the validation dataset
     eval_dataset = load_dataset(
         dataset_name,
@@ -97,11 +101,13 @@ def prepare_data(
         trust_remote_code=True,
     )
     if max_val_samples > 0 and max_val_samples < len(eval_dataset):
-        logger.info(f"Limiting validation dataset to {max_val_samples} samples (from {len(eval_dataset)})")
+        logger.info(
+            f"Limiting validation dataset to {max_val_samples} samples (from {len(eval_dataset)})"
+        )
         eval_dataset = eval_dataset.select(range(max_val_samples))
-        
+
     tokenized_val_dataset = eval_dataset.map(gen_and_tokenize)
-    
+
     # Load and potentially limit the test dataset
     test_dataset = load_dataset(
         dataset_name,
@@ -109,7 +115,9 @@ def prepare_data(
         trust_remote_code=True,
     )
     if max_test_samples > 0 and max_test_samples < len(test_dataset):
-        logger.info(f"Limiting test dataset to {max_test_samples} samples (from {len(test_dataset)})")
+        logger.info(
+            f"Limiting test dataset to {max_test_samples} samples (from {len(test_dataset)})"
+        )
         test_dataset = test_dataset.select(range(max_test_samples))
 
     datasets_path = Path("datasets")

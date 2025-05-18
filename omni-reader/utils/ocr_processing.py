@@ -93,7 +93,9 @@ def log_summary_metadata(
     avg_time = statistics.mean(processing_times) if processing_times else 0
     max_time = max(processing_times) if processing_times else 0
     min_time = min(processing_times) if processing_times else 0
-    avg_confidence = statistics.mean(confidence_scores) if confidence_scores else 0
+    avg_confidence = (
+        statistics.mean(confidence_scores) if confidence_scores else 0
+    )
 
     log_metadata(
         metadata={
@@ -115,9 +117,13 @@ def log_summary_metadata(
 # ============================================================================
 
 
-def process_ollama_based(model_name: str, prompt: str, image_base64: str) -> Dict[str, Any]:
+def process_ollama_based(
+    model_name: str, prompt: str, image_base64: str
+) -> Dict[str, Any]:
     """Process an image with an Ollama model."""
-    BASE_URL = os.getenv("OLLAMA_HOST") or "http://localhost:11434/api/generate"
+    BASE_URL = (
+        os.getenv("OLLAMA_HOST") or "http://localhost:11434/api/generate"
+    )
 
     payload = {
         "model": model_name,
@@ -138,11 +144,15 @@ def process_ollama_based(model_name: str, prompt: str, image_base64: str) -> Dic
 
         return result_json
     except Exception as e:
-        logger.error(f"Error processing with Ollama model {model_name}: {str(e)}")
+        logger.error(
+            f"Error processing with Ollama model {model_name}: {str(e)}"
+        )
         return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
 
 
-def process_openai_based(model_name: str, prompt: str, image_url: str) -> Dict[str, Any]:
+def process_openai_based(
+    model_name: str, prompt: str, image_url: str
+) -> Dict[str, Any]:
     """Process an image with an API-based model (OpenAI)."""
     import instructor
     from openai import OpenAI
@@ -178,7 +188,9 @@ def process_openai_based(model_name: str, prompt: str, image_url: str) -> Dict[s
         return {"raw_text": f"Error: {str(e)}", "confidence": 0.0}
 
 
-def process_litellm_based(model_config: ModelConfig, prompt: str, image_url: str) -> Dict[str, Any]:
+def process_litellm_based(
+    model_config: ModelConfig, prompt: str, image_url: str
+) -> Dict[str, Any]:
     """Process an image with a Litellm model."""
     from litellm import completion
 
@@ -222,21 +234,30 @@ def process_litellm_based(model_config: ModelConfig, prompt: str, image_url: str
 
 
 def process_image(
-    model_config: ModelConfig, prompt: str, image_base64: str, content_type: str = "image/jpeg"
+    model_config: ModelConfig,
+    prompt: str,
+    image_base64: str,
+    content_type: str = "image/jpeg",
 ) -> Dict[str, Any]:
     """Process an image with the specified model."""
     model_name = model_config.name
     image_url = f"data:{content_type};base64,{image_base64}"
 
     processors = {
-        "litellm": lambda: process_litellm_based(model_config, prompt, image_url),
-        "ollama": lambda: process_ollama_based(model_name, prompt, image_base64),
+        "litellm": lambda: process_litellm_based(
+            model_config, prompt, image_url
+        ),
+        "ollama": lambda: process_ollama_based(
+            model_name, prompt, image_base64
+        ),
         "openai": lambda: process_openai_based(model_name, prompt, image_url),
     }
 
     processor = processors.get(model_config.ocr_processor)
     if not processor:
-        raise ValueError(f"Unsupported ocr_processor: {model_config.ocr_processor}")
+        raise ValueError(
+            f"Unsupported ocr_processor: {model_config.ocr_processor}"
+        )
 
     return processor()
 
@@ -267,7 +288,9 @@ def process_single_image(
         content_type, image_base64 = encode_image(image)
         prompt = custom_prompt if custom_prompt else get_prompt()
 
-        result_json = process_image(model_config, prompt, image_base64, content_type)
+        result_json = process_image(
+            model_config, prompt, image_base64, content_type
+        )
 
         processing_time = time.time() - start_time
         if "processing_time" not in result_json:
@@ -324,7 +347,9 @@ def process_result_and_track_metrics(
         "image_name": image_name,
         "raw_text": result.get("raw_text", "No text found"),
         "processing_time": processing_time,
-        "confidence": result.get("confidence", model_config.default_confidence),
+        "confidence": result.get(
+            "confidence", model_config.default_confidence
+        ),
     }
 
     if "error" in result:
@@ -400,12 +425,16 @@ def process_models_parallel(
     if is_single_image:
         # For a single image, create tasks for each model
         for model_id in model_ids:
-            tasks.append((model_id, image_input, custom_prompt, track_metadata, None))
+            tasks.append(
+                (model_id, image_input, custom_prompt, track_metadata, None)
+            )
     else:
         # For multiple images, create tasks for each image/model combination
         for index, image in enumerate(image_input):
             for model_id in model_ids:
-                tasks.append((model_id, image, custom_prompt, track_metadata, index))
+                tasks.append(
+                    (model_id, image, custom_prompt, track_metadata, index)
+                )
 
     with ThreadPoolExecutor(max_workers=effective_workers) as executor:
         futures = list(executor.map(process_single_model_task, tasks))
@@ -424,7 +453,9 @@ def process_models_parallel(
     # For multiple images with multiple models, sort results by index
     if not is_single_image:
         for model_id in results:
-            results[model_id] = [r for _, r in sorted(results[model_id], key=lambda x: x[0])]
+            results[model_id] = [
+                r for _, r in sorted(results[model_id], key=lambda x: x[0])
+            ]
 
     return results
 
@@ -453,7 +484,9 @@ def process_images_with_model(
     display = model_config.display
 
     logger.info(f"Running {display} OCR with model: {model_name}")
-    logger.info(f"Processing {len(images)} images with batch size: {batch_size}")
+    logger.info(
+        f"Processing {len(images)} images with batch size: {batch_size}"
+    )
 
     # Track processing metrics
     results_list = []
