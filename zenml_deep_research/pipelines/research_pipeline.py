@@ -7,7 +7,7 @@ from steps.report_formatting_step import report_formatting_step
 
 
 @pipeline(name="deep_research_pipeline")
-def deep_research_pipeline(query: str) -> HTMLString:
+def deep_research_pipeline() -> HTMLString:
     """ZenML pipeline for deep research on a given query.
 
     Args:
@@ -17,7 +17,7 @@ def deep_research_pipeline(query: str) -> HTMLString:
         Formatted research report as HTML
     """
     # Step 1: Generate report structure
-    initial_state = report_structure_step(query=query)
+    initial_state = report_structure_step()
 
     # Step 2: Research each paragraph
     researched_state = paragraph_research_step(current_state=initial_state)

@@ -45,7 +45,7 @@ Only return the json object, no explanation or additional text.
 
 @step(output_materializers=StateMaterializer)
 def report_structure_step(
-    query: str,
+    query: str = "What is ZenML?",
     sambanova_base_url: str = "https://api.sambanova.ai/v1",
     llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = REPORT_STRUCTURE_PROMPT,

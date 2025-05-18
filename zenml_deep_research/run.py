@@ -127,7 +127,7 @@ def main(
 
     # Run the pipeline
     # Step parameters are passed directly, while pipeline config is loaded from the YAML
-    run = deep_research_pipeline.with_options(**pipeline_options)(query=query)
+    run = deep_research_pipeline.with_options(**pipeline_options)()
 
     logger.info("\n" + "=" * 80)
     logger.info(f"Pipeline completed successfully! Run ID: {run.id}")
