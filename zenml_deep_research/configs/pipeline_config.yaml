@@ -1,6 +1,11 @@
 # Deep Research Pipeline Configuration
 enable_cache: true
 
+# Research parameters
+parameters:
+  query: "Default research query"  # The research query/topic to investigate
+  num_reflections: 2  # Number of reflection cycles to perform per paragraph
+
 # Environment settings
 settings:
   docker:

@@ -20,20 +20,12 @@ Run a deep research pipeline that:
 Examples:
 
   \b
-  # Run with a simple query
-  python run.py --query "Explain the impact of quantum computing on cryptography"
+  # Run with default configuration
+  python run.py
 
   \b
-  # Run with more reflection cycles
-  python run.py --query "History of artificial intelligence" --num-reflections 3
-  
-  \b
   # Run with a custom pipeline configuration file
-  python run.py --query "Climate change adaptation strategies" --config configs/custom_pipeline.yaml
-  
-  \b
-  # Save the report to a file
-  python run.py --query "Climate change adaptation strategies" --output report.html
+  python run.py --config configs/custom_pipeline.yaml
 """
 )
 @click.option(
@@ -69,10 +61,7 @@ def main(
     """Run the deep research pipeline.
 
     Args:
-        query: The research query or topic to investigate
         config: Path to the pipeline configuration YAML file
-        output: Path to save the output HTML report
-        num_reflections: Number of reflection cycles to perform
         no_cache: Disable caching for the pipeline run
         log_file: Path to log file
         debug: Enable debug logging

@@ -71,32 +71,28 @@ zenml init
 #### Basic Usage
 
 ```bash
-python run.py --query "Explain the impact of quantum computing on cryptography"
+python run.py
 ```
+
+The default configuration and research query are defined in `configs/pipeline_config.yaml`.
 
 #### Using Different Configurations
 
 ```bash
-python run.py --query "History of artificial intelligence" --config configs/custom_config.yaml
-```
-
-#### Saving the Report to a File
-
-```bash
-python run.py --query "Climate change adaptation strategies" --output report.html
+python run.py --config configs/custom_config.yaml
 ```
 
 ### Advanced Options
 
 ```bash
 # Enable debug logging
-python run.py --query "Your query" --debug
+python run.py --debug
 
 # Disable caching for a fresh run
-python run.py --query "Your query" --no-cache
+python run.py --no-cache
 
 # Specify a log file
-python run.py --query "Your query" --log-file research.log
+python run.py --log-file research.log
 ```
 
 ## 📊 Visualizing Research Process
@@ -197,12 +193,15 @@ For pipeline-level settings, modify the configuration file:
 # configs/pipeline_config.yaml
 
 # Pipeline settings
-pipeline:
-  name: "deep_research_pipeline"
-  enable_cache: true
+enable_cache: true
+
+# Research parameters
+parameters:
+  query: "Default research query"  # The research query/topic to investigate
+  num_reflections: 2  # Number of reflection cycles to perform per paragraph
   
 # Environment settings
-environment:
+settings:
   docker:
     requirements:
       - openai>=1.0.0
@@ -221,7 +220,7 @@ timeout: 7200  # Increase for more complex research
 To use a custom configuration file:
 
 ```bash
-python run.py --query "Your query" --config configs/custom_pipeline.yaml
+python run.py --config configs/custom_pipeline.yaml
 ```
 
 ## 📈 Example Use Cases
