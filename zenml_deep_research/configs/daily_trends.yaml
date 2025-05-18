@@ -1,0 +1,20 @@
+# Deep Research Pipeline Configuration - Daily Trends Research
+enable_cache: false  # Disable cache to always get fresh results for daily trends
+
+# Research parameters for daily trending topics
+steps:
+  report_structure_step:
+    parameters:
+      query: "Latest developments in artificial intelligence"
+      num_reflections: 2  # Standard reflection cycles
+      # search_recency_days: 1  # Only search for content from the last 24 hours
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0

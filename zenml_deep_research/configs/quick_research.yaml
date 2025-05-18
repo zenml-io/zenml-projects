@@ -1,0 +1,21 @@
+# Deep Research Pipeline Configuration - Quick Research
+enable_cache: true
+
+# Research parameters for quick research
+steps:
+  report_structure_step:
+    parameters:
+      query: "Default research query"
+      num_reflections: 1  # Minimal reflection for faster results
+      # max_paragraphs: 5  # Limit the number of paragraphs to research
+  
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0
