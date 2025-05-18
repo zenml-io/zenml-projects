@@ -2,7 +2,7 @@ import json
 import os
 import yaml
 from json.decoder import JSONDecodeError
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any
 
 
 def remove_reasoning_from_output(output: str) -> str:
