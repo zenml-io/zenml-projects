@@ -6,6 +6,9 @@ steps:
   report_structure_step:
     parameters:
       query: "Default research query"  # The research query/topic to investigate
+      
+  paragraph_research_step:
+    parameters:
       num_reflections: 2  # Number of reflection cycles to perform per paragraph
 
 # Environment settings

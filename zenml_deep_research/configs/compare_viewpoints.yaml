@@ -6,7 +6,9 @@ steps:
   report_structure_step:
     parameters:
       query: "Climate change policy debates"
-      num_reflections: 3  # Good amount of reflection
+  paragraph_research_step:
+    parameters:
+      num_reflections: 2  # Number of reflection cycles to perform per paragraph
       # compare_viewpoints: true  # Enable viewpoint comparison
       # viewpoint_categories: ["scientific", "political", "economic", "social"]  # Types of viewpoints to compare
   

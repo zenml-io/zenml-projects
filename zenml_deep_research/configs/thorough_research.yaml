@@ -6,8 +6,10 @@ steps:
   report_structure_step:
     parameters:
       query: "Quantum computing applications in cryptography"
-      num_reflections: 4  # More reflection cycles for deeper analysis
-  
+    paragraph_research_step:
+      parameters:
+        num_reflections: 2  # Number of reflection cycles to perform per paragraph
+      
 # Environment settings
 settings:
   docker:

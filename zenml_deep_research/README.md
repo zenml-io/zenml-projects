@@ -30,16 +30,20 @@ The Deep Research Agent produces comprehensive, well-structured reports on any t
 
 ## 🚀 Pipeline Architecture
 
-The pipeline implements a complete research workflow with the following steps:
+The pipeline breaks down the research process into granular steps for maximum modularity and control:
 
-1. **Configuration Loading**: Load settings from YAML and environment variables
-2. **Report Structure Generation**: Create a structured outline for the research
-3. **Paragraph Research**: For each paragraph in the outline:
-   - Generate optimal search queries
-   - Retrieve and analyze web content
-   - Synthesize findings into coherent paragraphs
-   - Iteratively refine through multiple reflection cycles
-4. **Report Formatting**: Compile researched content into a polished, formatted report
+1. **Query Decomposition**: Break down the main query into specific sub-questions
+2. **Parallel Information Gathering**: Fetch data for each sub-question using optimized search queries
+3. **Information Validation & Synthesis**: Validate sources, remove redundancies, and synthesize findings
+4. **Cross-Viewpoint Analysis**: Analyze discrepancies and agreements between different perspectives
+5. **Iterative Reflection**: Self-critique research output to identify gaps and trigger additional searches
+6. **Final Report Generation**: Compile all synthesized information into a coherent report
+
+This granular approach enables:
+- Better reproducibility and caching of intermediate results
+- Easier debugging and monitoring of specific research stages
+- More flexible reconfiguration of individual components
+- Enhanced transparency into how the research is conducted
 
 ## 💡 Under the Hood
 
@@ -81,15 +85,23 @@ zenml init
 #### Basic Usage
 
 ```bash
+# Run with default configuration
 python run.py
 ```
 
-The default configuration and research query are defined in `configs/pipeline_config.yaml`.
+The default configuration and research query are defined in `configs/enhanced_research.yaml`.
 
 #### Using Different Configurations
 
 ```bash
-python run.py --config configs/custom_config.yaml
+# Run with a custom configuration file
+python run.py --config configs/custom_enhanced_config.yaml
+
+# Override the research query from command line
+python run.py --query "My research topic"
+
+# Combine custom config and query
+python run.py --config configs/custom_enhanced_config.yaml --query "My research topic"
 ```
 
 ### Advanced Options
@@ -206,9 +218,13 @@ For pipeline-level settings, modify the configuration file:
 enable_cache: true
 
 # Research parameters
-parameters:
-  query: "Default research query"  # The research query/topic to investigate
-  num_reflections: 2  # Number of reflection cycles to perform per paragraph
+step:
+  report_structure_step:
+    parameters:
+      query: "Default research query"  # The research query/topic to investigate
+  paragraph_research_step:
+    parameters:
+      num_reflections: 2  # Number of reflection cycles to perform per paragraph
   
 # Environment settings
 settings:
@@ -232,11 +248,11 @@ python run.py --config configs/custom_pipeline.yaml
 
 | Config File | Description | Key Parameters |
 |-------------|-------------|----------------|
-| `pipeline_config.yaml` | Default research settings | Default query, 2 reflection cycles |
-| `thorough_research.yaml` | In-depth analysis | 4 reflection cycles, increased resources |
-| `quick_research.yaml` | Faster results | 1 reflection cycle, 5 max paragraphs |
+| `enhanced_research.yaml` | Default research configuration | Climate change query, 2 additional searches |
+| `thorough_research.yaml` | In-depth analysis | More comprehensive search, 4 additional searches |
+| `quick_research.yaml` | Faster results | 1 additional search, fewer results per search |
 | `daily_trends.yaml` | Research on recent topics | 24-hour search recency, disable cache |
-| `compare_viewpoints.yaml` | Compare different perspectives | Viewpoint comparison, 3 reflection cycles |
+| `viewpoint_analysis.yaml` | Focus on comparing perspectives | Extended viewpoint categories, 3 additional searches |
 
 You can create additional configuration files by copying and modifying the base configuration files above.
 

@@ -6,8 +6,10 @@ steps:
   report_structure_step:
     parameters:
       query: "Latest developments in artificial intelligence"
-      num_reflections: 2  # Standard reflection cycles
-      # search_recency_days: 1  # Only search for content from the last 24 hours
+  paragraph_research_step:
+    parameters:
+      num_reflections: 2  # Number of reflection cycles to perform per paragraph
+        # search_recency_days: 1  # Only search for content from the last 24 hours
 # Environment settings
 settings:
   docker:

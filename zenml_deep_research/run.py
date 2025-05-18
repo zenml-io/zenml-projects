@@ -1,7 +1,7 @@
 import os
 import click
 import logging
-from pipelines.research_pipeline import deep_research_pipeline
+from pipelines.research_pipeline import enhanced_deep_research_pipeline
 from logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -26,12 +26,16 @@ Examples:
   \b
   # Run with a custom pipeline configuration file
   python run.py --config configs/custom_pipeline.yaml
+  
+  \b
+  # Override the research query
+  python run.py --query "My research topic"
 """
 )
 @click.option(
     "--config",
     type=str,
-    default="configs/pipeline_config.yaml",
+    default="configs/enhanced_research.yaml",
     help="Path to the pipeline configuration YAML file",
 )
 @click.option(
@@ -52,11 +56,18 @@ Examples:
     default=False,
     help="Enable debug logging",
 )
+@click.option(
+    "--query",
+    type=str,
+    default=None,
+    help="Research query (overrides the query in the config file)",
+)
 def main(
-    config: str = "configs/pipeline_config.yaml",
+    config: str = "configs/enhanced_research.yaml",
     no_cache: bool = False,
     log_file: str = None,
     debug: bool = False,
+    query: str = None,
 ):
     """Run the deep research pipeline.
 
@@ -65,6 +76,7 @@ def main(
         no_cache: Disable caching for the pipeline run
         log_file: Path to log file
         debug: Enable debug logging
+        query: Research query (overrides the query in the config file)
     """
     # Configure logging
     log_level = logging.DEBUG if debug else logging.INFO
@@ -96,11 +108,19 @@ def main(
 
     logger.info("\n" + "=" * 80)
     logger.info("Starting Deep Research")
-    logger.info("=" * 80 + "\n")
 
-    # Run the pipeline
-    # Step parameters are passed directly, while pipeline config is loaded from the YAML
-    run = deep_research_pipeline.with_options(**pipeline_options)()
+    # Set up the pipeline
+    pipeline = enhanced_deep_research_pipeline.with_options(**pipeline_options)
+
+    # Execute the pipeline
+    if query:
+        logger.info(f"Using query: {query}")
+        run = pipeline(query=query)
+    else:
+        logger.info("Using query from config file")
+        run = pipeline()
+
+    logger.info("=" * 80 + "\n")
 
     logger.info("\n" + "=" * 80)
     logger.info(f"Pipeline completed successfully! Run ID: {run.id}")

@@ -6,6 +6,8 @@ steps:
   report_structure_step:
     parameters:
       query: "Default research query"
+  paragraph_research_step:
+    parameters:
       num_reflections: 1  # Minimal reflection for faster results
       # max_paragraphs: 5  # Limit the number of paragraphs to research
   
