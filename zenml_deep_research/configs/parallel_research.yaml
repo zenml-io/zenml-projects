@@ -3,7 +3,7 @@ enable_cache: true
 
 # Pipeline parameters
 parameters:
-  query: "What is Metaflow?"
+  query: "What is Kubeflow?"
   max_sub_questions: 10
 
 # Step parameters
