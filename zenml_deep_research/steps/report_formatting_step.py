@@ -2,10 +2,9 @@ import json
 import logging
 import os
 import openai
-from typing import Dict, Any, List
 from zenml import step
 from zenml.types import HTMLString
-
+from typing import Annotated
 from utils.data_models import State
 from utils.helper_functions import (
     remove_reasoning_from_output,
@@ -44,7 +43,7 @@ def report_formatting_step(
     sambanova_base_url: str = "https://api.sambanova.ai/v1",
     llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = REPORT_FORMATTING_PROMPT,
-) -> HTMLString:
+) -> Annotated[HTMLString, "final_report"]:
     """Format the final report from the researched paragraphs.
 
     Args:

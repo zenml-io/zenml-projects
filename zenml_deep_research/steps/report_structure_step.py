@@ -2,8 +2,11 @@ import json
 import logging
 import os
 import openai
-from typing import Dict, Any
+from typing import Annotated
 from zenml import step
+from materializers.state_visualizer import (
+    StateMaterializer,
+)
 
 from utils.data_models import State, Paragraph
 from utils.helper_functions import (
@@ -40,13 +43,13 @@ Only return the json object, no explanation or additional text.
 """
 
 
-@step
+@step(output_materializers=StateMaterializer)
 def report_structure_step(
     query: str,
     sambanova_base_url: str = "https://api.sambanova.ai/v1",
     llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = REPORT_STRUCTURE_PROMPT,
-) -> State:
+) -> Annotated[State, "report_structure_step"]:
     """Generate the initial structure for a research report based on the query.
 
     Args:
@@ -109,8 +112,11 @@ def report_structure_step(
                 },
             ]
 
+        # Create a descriptive report title from the query
+        report_title = f"Research Report: {query}"
+
         # Create state with paragraphs
-        state = State(query=query, paragraphs=[])
+        state = State(report_title=report_title, query=query, paragraphs=[])
 
         for paragraph in report_structure:
             state.paragraphs.append(
@@ -130,6 +136,7 @@ def report_structure_step(
         logger.error(f"Error generating report structure: {e}")
         # Return a minimal state with basic structure as fallback
         return State(
+            report_title=f"Research Report: {query}",
             query=query,
             paragraphs=[
                 Paragraph(

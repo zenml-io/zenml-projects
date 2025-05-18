@@ -2,8 +2,11 @@ import json
 import logging
 import os
 import openai
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Annotated
 from zenml import step
+from materializers.state_visualizer import (
+    StateMaterializer,
+)
 
 from utils.data_models import State, Search
 from utils.helper_functions import (
@@ -377,7 +380,7 @@ def _update_paragraph_with_reflection(
         return paragraph_latest_state  # Return unchanged if error occurs
 
 
-@step
+@step(output_materializers=StateMaterializer)
 def paragraph_research_step(
     current_state: State,
     sambanova_base_url: str = "https://api.sambanova.ai/v1",
@@ -389,7 +392,7 @@ def paragraph_research_step(
     first_summary_prompt: str = FIRST_SUMMARY_PROMPT,
     reflection_prompt: str = REFLECTION_PROMPT,
     reflection_summary_prompt: str = REFLECTION_SUMMARY_PROMPT,
-) -> State:
+) -> Annotated[State, "paragraph_research_step"]:
     """Research each paragraph in the report.
 
     Args:

@@ -14,6 +14,7 @@ The ZenML Deep Research Agent is a scalable, modular pipeline that automates in-
 - Researches each section through targeted web searches and LLM analysis
 - Iteratively refines content through reflection cycles
 - Produces a comprehensive, well-formatted research report
+- Visualizes the research process and report structure in the ZenML dashboard
 
 This project transforms exploratory notebook-based research into a production-grade, reproducible, and transparent process using the ZenML MLOps framework.
 
@@ -36,6 +37,7 @@ The pipeline implements a complete research workflow with the following steps:
 - **Web Research**: Utilizes Tavily API for targeted internet searches
 - **ZenML Orchestration**: Manages pipeline flow, artifacts, and caching
 - **Reproducibility**: Track every step, parameter, and output via ZenML
+- **Visualizations**: Interactive visualizations of the research structure and progress
 
 ## 🛠️ Getting Started
 
@@ -97,6 +99,50 @@ python run.py --query "Your query" --no-cache
 python run.py --query "Your query" --log-file research.log
 ```
 
+## 📊 Visualizing Research Process
+
+The pipeline includes built-in visualizations to help you understand and monitor the research process:
+
+### Viewing Visualizations
+
+After running the pipeline, you can view the visualizations in the ZenML dashboard:
+
+1. Start the ZenML dashboard:
+   ```bash
+   zenml up
+   ```
+
+2. Navigate to the "Runs" tab in the dashboard
+3. Select your pipeline run
+4. Explore visualizations for each step:
+   - **report_structure_step**: View the initial report structure and outline
+   - **paragraph_research_step**: See the research progress for each paragraph
+   - **report_formatting_step**: View the final formatted report
+
+### Visualization Features
+
+The visualizations provide:
+- An overview of the report structure
+- Details of each paragraph's research status
+- Search history and source information
+- Progress through reflection iterations
+
+### Sample Visualization
+
+Here's what the report structure visualization looks like:
+
+```
+Report Structure:
+├── Introduction
+│   └── Initial understanding of the topic
+├── Historical Background
+│   └── Evolution and key developments
+├── Current State
+│   └── Latest advancements and implementations
+└── Conclusion
+    └── Summary and future implications
+```
+
 ## 📁 Project Structure
 
 ```
@@ -116,7 +162,8 @@ zenml_deep_research/
 ├── utils/               # Utility functions and helpers
 │   ├── __init__.py
 │   ├── data_models.py
-│   └── helper_functions.py
+│   ├── helper_functions.py
+│   └── state_visualizer.py  # Custom visualizer for the State class
 ├── __init__.py
 ├── requirements.txt     # Project dependencies
 ├── logging_config.py    # Logging configuration
