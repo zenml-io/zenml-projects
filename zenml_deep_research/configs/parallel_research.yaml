@@ -36,6 +36,7 @@ steps:
     parameters:
       max_additional_searches: 2
       num_results_per_search: 3
+      cap_search_length: 20000
       sambanova_base_url: "https://api.sambanova.ai/v1"
       llm_model: "DeepSeek-R1-Distill-Llama-70B"
   

@@ -1,3 +1,3 @@
-from .state_visualizer import StateMaterializer
+from .research_state_materializer import ResearchStateMaterializer
 
-__all__ = ["StateMaterializer"] 
+__all__ = ["ResearchStateMaterializer"] 
