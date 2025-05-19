@@ -15,7 +15,7 @@ The project implements three main pipelines:
 3. **Deployment Pipeline**: Manages human oversight, deployment, and monitoring (Articles 14, 17, 18)
    – `approve_deployment → modal_deployment → generate_sbom → post_market_monitoring → generate_annex_iv_documentation`
 
-Each run automatically versions its inputs, logs hashes & metrics, and generates a complete Annex IV draft with all required compliance artifacts.
+Each run automatically versions its inputs, logs hashes & metrics, and generates a complete Annex IV draft with all required compliance artifacts. These artifacts include an SBOM (Software Bill of Materials), monitoring plan, data profiling reports, risk assessments, and technical documentation.
 
 ## Architecture
 
@@ -36,18 +36,21 @@ credit_scoring_ai_act/
 │   │   ├── training.py # Model training pipeline
 │   │   └── deployment.py # Deployment pipeline
 │   ├── steps/
-│   │   ├── ingest.py # Load CSV → log SHA‑256, WhyLogs profile
-│   │   ├── data_preprocessor.py # Basic feature engineering
-│   │   ├── data_splitter.py # Split dataset into train/test
-│   │   ├── generate_compliance_metadata.py # Generate compliance metadata
-│   │   ├── train.py # XGBoost / sklearn model
-│   │   ├── evaluate.py # Standard + Fairness metrics
-│   │   ├── approve.py # Human‑in‑loop gate (approve_deployment step)
-│   │   ├── deploy.py # Deployment to Modal
-│   │   ├── post_market_monitoring.py # Post‑market monitoring
-│   │   ├── generate_sbom.py # Generate Software Bill of Materials
-│   │   ├── generate_annex_iv_documentation.py # Generate Annex IV documentation
-│   │   └── risk_assessment.py # Risk assessment
+│   │   ├── feature_engineering/ # Feature engineering steps
+│   │   │   ├── ingest.py # Load CSV → log SHA‑256, WhyLogs profile
+│   │   │   ├── data_preprocessor.py # Basic feature engineering
+│   │   │   ├── data_splitter.py # Split dataset into train/test
+│   │   │   └── generate_compliance_metadata.py # Generate compliance metadata
+│   │   ├── training/ # Training steps
+│   │   │   ├── train.py # XGBoost / sklearn model
+│   │   │   ├── evaluate.py # Standard + Fairness metrics
+│   │   │   └── risk_assessment.py # Risk assessment
+│   │   └── deployment/ # Deployment steps
+│   │       ├── approve.py # Human‑in‑loop gate (approve_deployment step)
+│   │       ├── deploy.py # Deployment to Modal
+│   │       ├── post_market_monitoring.py # Post‑market monitoring
+│   │       ├── generate_sbom.py # Generate Software Bill of Materials
+│   │       └── post_run_annex.py # Generate Annex IV documentation
 │   ├── utils/ # Shared utilities
 │   │   ├── modal_utils.py # Modal Volume operations
 │   │   ├── preprocess.py # Custom sklearn transformers
@@ -66,13 +69,14 @@ credit_scoring_ai_act/
 │   │   └── risk_register.xlsx # Risk register
 │   ├── releases/ # Compliance artifacts organized by run ID
 │   │   └── <run_id>/
-│   │      ├── annex_iv_cs_deployment.md  # Annex IV deployment documentation
-│   │      ├── evaluation_results.yaml    # Model evaluation metrics
-│   │      ├── git_info.md                # Git repository information
-│   │      ├── missing_fields.txt         # Fields missing from documentation
+│   │      ├── annex_iv_cs_deployment.md  # Annex IV technical documentation
+│   │      ├── evaluation_results.yaml    # Model performance metrics and evaluations
+│   │      ├── git_info.md                # Git commit and repository information
+│   │      ├── monitoring_plan.json       # Model monitoring configuration
 │   │      ├── README.md                  # Release-specific information
-│   │      ├── risk_scores.yaml           # Risk assessment scores
-│   │      └── sbom.json                  # Software Bill of Materials
+│   │      ├── risk_scores.yaml           # Risk assessment scores and analysis
+│   │      ├── sbom.json                  # Software Bill of Materials
+│   │      └── whylogs_profile.html       # Data profiling report
 │   └── templates/
 │       ├── annex_iv_template.j2 # Annex IV template
 │       ├── sample_inputs.json # Sample inputs for Annex IV
@@ -158,6 +162,16 @@ The repository uses a structured approach to organizing compliance artifacts:
 | **templates/**          | Templates for document generation        | Manual      |
 | **templates/qms/**      | Quality Management System documentation  | Manual      |
 | **templates/qms/sops/** | Standard Operating Procedures            | Manual      |
+
+The **releases/** directory contains automatically generated artifacts for each pipeline run, including:
+
+- Annex IV technical documentation (annex_iv_cs_deployment.md)
+- Software Bill of Materials (sbom.json)
+- Model performance metrics (evaluation_results.yaml)
+- Risk assessment scores (risk_scores.yaml)
+- Data profiling report (whylogs_profile.html)
+- Monitoring configuration (monitoring_plan.json)
+- Git repository information (git_info.md)
 
 ## 📋 Quality Management System (Article 17)
 
