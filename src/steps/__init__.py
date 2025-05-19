@@ -16,21 +16,21 @@
 # 
 
 # feature engineering
-from .ingest import ingest
-from .data_splitter import data_splitter
-from .data_preprocessor import data_preprocessor
-from .generate_compliance_metadata import generate_compliance_metadata
+from .feature_engineering.ingest import ingest
+from .feature_engineering.data_splitter import data_splitter
+from .feature_engineering.data_preprocessor import data_preprocessor
+from .feature_engineering.generate_compliance_metadata import generate_compliance_metadata
 
 # training
-from .train import train_model
-from .evaluate import evaluate_model
-from .risk_assessment import risk_assessment
+from .training.train import train_model
+from .training.evaluate import evaluate_model
+from .training.risk_assessment import risk_assessment
 
 # deployment
-from .approve import approve_deployment
-from .deploy import modal_deployment
-from .post_market_monitoring import post_market_monitoring
-from .generate_sbom import generate_sbom
+from .deployment.approve import approve_deployment
+from .deployment.deploy import modal_deployment
+from .deployment.post_market_monitoring import post_market_monitoring
+from .deployment.generate_sbom import generate_sbom
 
 # annex
-from .post_run_annex import generate_annex_iv_documentation
+from .deployment.post_run_annex import generate_annex_iv_documentation

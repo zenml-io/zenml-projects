@@ -35,7 +35,7 @@ from src.constants import (
 
 logger = get_logger(__name__)
 
-DEPLOYMENT_SCRIPT_PATH = Path(__file__).parent.parent.parent / "app" / "modal_deployment.py"
+DEPLOYMENT_SCRIPT_PATH = Path(__file__).parent.parent.parent.parent / "app" / "modal_deployment.py"
 
 
 def load_python_module(file_path: str) -> Any:

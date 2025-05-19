@@ -27,12 +27,14 @@ def _format_num(val: Any, precision: int = 6) -> str:
 def generate_whylogs_visualization(
     dataset_info: Dict[str, Any],
     data_profile: DatasetProfileView,
+    run_id: str,
 ) -> HTMLString:
     """Generate HTML visualization for WhyLogs profile data.
 
     Args:
         dataset_info: Dataset information
         data_profile: WhyLogs profile view
+        run_id: String ID of the run, used for file path organization
 
     Returns:
         HTMLString containing the visualization
@@ -162,11 +164,11 @@ def generate_whylogs_visualization(
     </html>
     """
 
-    # Save HTML file
-    output_dir = os.path.join(os.getcwd(), "visualizations")
+    # Save to docs/releases/<run-id> directory
+    output_dir = os.path.join(os.getcwd(), "docs", "releases", run_id)
+    filename = "whylogs_profile.html"
+
     os.makedirs(output_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"whylogs_profile_{timestamp}.html"
     file_path = os.path.join(output_dir, filename)
 
     with open(file_path, "w") as f:

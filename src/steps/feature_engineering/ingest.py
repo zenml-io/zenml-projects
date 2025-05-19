@@ -22,7 +22,7 @@ from typing import Annotated, Optional, Tuple
 import pandas as pd
 import whylogs as why
 from whylogs.core import DatasetProfileView
-from zenml import log_metadata, step
+from zenml import get_step_context, log_metadata, step
 from zenml.types import HTMLString
 
 from src.constants import (
@@ -63,6 +63,7 @@ def ingest(
         dataset: The loaded dataset
         profile_view: WhyLogs profile for data quality documentation
     """
+    run_id = str(get_step_context().get_run_id())
     # Record start time for logging
     start_time = datetime.now()
     print(f"Ingesting data from {CREDIT_SCORING_CSV_PATH} at {start_time}")
@@ -119,6 +120,7 @@ def ingest(
     whylogs_visualization = generate_whylogs_visualization(
         data_profile=data_profile,
         dataset_info=dataset_info,
+        run_id=run_id,
     )
 
     log_metadata(
