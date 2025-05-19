@@ -18,9 +18,30 @@
   "metric_appropriateness": "We selected AUC, precision, and recall as primary metrics based on the business need to balance risk with opportunity. Fairness metrics include demographic parity and equal opportunity difference to ensure equitable outcomes across protected groups.",
   "standards_list": "ISO/IEC 27001:2022 for information security, IEEE 7010-2020 for algorithmic impact assessment, and CEN Workshop Agreement 17145-1 for validation methodologies.",
   "post_market_plan": "We monitor model performance daily with automated alerting for drift detection. User feedback is collected through a structured feedback API and quarterly audits are conducted to assess overall system impact.",
-  "product_image_url": "https://example.com/images/credit-scoring-system.png",
-  "ui_screenshot_url": "https://example.com/images/dashboard-screenshot.png",
-  "user_doc_link": "https://docs.example.com/credit-scoring-system",
-  "arch_diagram_url": "https://example.com/images/system-architecture.png",
-  "declaration_file": "https://compliance.example.com/eu-declaration-of-conformity.pdf"
+  "product_image_url": "../../../assets/e2e.png",
+  "ui_screenshot_url": "../../../assets/streamlit-app.png",
+  "user_doc_link": "../../../README.md",
+  "api_doc_link": "api_guide.md",
+  "arch_diagram_url": "../../../assets/e2e.png",
+  "declaration_file": "COMPLIANCE.md",
+  "declaration_of_conformity": "EU Declaration of Conformity for Credit Scoring AI System\n\nProvider: ZenML GmbH\nAddress: Example Street 123, 80331 Munich, Germany\nContact: compliance@zenml.io\n\nWe, ZenML GmbH, declare under our sole responsibility that the Credit Scoring AI System, version 1.2.1, complies with the relevant requirements set out in Section 2 of the EU AI Act.\n\nThe system has undergone conformity assessment in accordance with Article 43 and meets all requirements related to:\n- Risk management (Article 9)\n- Data governance (Article 10)\n- Technical documentation (Article 11)\n- Record keeping (Article 12)\n- Transparency (Article 13)\n- Human oversight (Article 14)\n- Accuracy, robustness and cybersecurity (Article 15)\n\nThis declaration is kept at the disposal of national competent authorities for 10 years after the system has been placed on the market or put into service, in compliance with Article 47.\n\nSigned for and on behalf of ZenML GmbH\n\nMunich, May 15, 2025\n\nJohn Doe\nChief Compliance Officer",
+  "model_architecture": "Gradient Boosting Decision Tree (XGBoost)",
+  "optimization_objective": "Maximize balanced accuracy while minimizing fairness disparities across protected groups",
+  "performance_metrics": {
+    "accuracy": 0.87,
+    "precision": 0.82,
+    "recall": 0.79,
+    "f1_score": 0.8,
+    "auc": 0.89,
+    "fairness_score": 0.92
+  },
+  "fairness_assessment": {
+    "demographic_parity": 0.92,
+    "equal_opportunity": 0.89,
+    "equalized_odds": 0.85,
+    "disparate_impact_age": 0.95,
+    "disparate_impact_gender": 0.97
+  },
+  "risk_management_system": "The risk management system follows a structured approach in accordance with Article 9 of the EU AI Act, consisting of:\n\n1) Risk identification through cross-functional workshops and automated analysis\n2) Risk assessment using a standardized scoring matrix for likelihood and impact\n3) Risk mitigation with documented controls and responsible parties\n4) Ongoing monitoring with automated drift detection\n5) Regular reviews on a quarterly basis\n\nThe system prioritizes risks related to data quality, model fairness, security vulnerabilities, and performance degradation.",
+  "lifecycle_changes_log": "v1.0.0 (2025-03-15): Initial production model\n\nv1.1.0 (2025-04-10): Updated preprocessing pipeline to improve handling of missing values\n\nv1.2.0 (2025-05-01): Enhanced fairness constraints based on feedback from first month of operation\n\nv1.2.1 (2025-05-15): Bug fix for edge case in feature normalization"
 }
