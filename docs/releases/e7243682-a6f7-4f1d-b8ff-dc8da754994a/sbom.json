@@ -32,6 +32,11 @@
         "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
       },
       {
+        "name": "xlsxwriter",
+        "version": "3.2.3",
+        "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+      },
+      {
         "name": "absl-py",
         "version": "2.2.2",
         "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
@@ -549,6 +554,11 @@
       {
         "name": "pathos",
         "version": "0.3.4",
+        "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
+      },
+      {
+        "name": "pdfkit",
+        "version": "1.0.0",
         "location": "/Users/mzaarab/.pyenv/versions/3.12.9/envs/ai-act/lib/python3.12/site-packages"
       },
       {
@@ -1099,7 +1109,7 @@
     ],
     "source": {
       "type": "python-environment",
-      "generated_at": "2025-05-16T13:12:15.362415"
+      "generated_at": "2025-05-18T22:05:42.297135"
     },
     "metadata": {
       "description": "Simplified SBOM for AI Act compliance demo",
@@ -1108,12 +1118,12 @@
   },
   "source": {
     "type": "python-environment",
-    "generated_at": "2025-05-16T13:12:15.362488"
+    "generated_at": "2025-05-18T22:05:42.297173"
   },
   "metadata": {
     "description": "Simplified SBOM for AI Act compliance demo",
     "version": "1.0",
-    "generation_timestamp": "20250516_131215",
-    "pipeline_run_id": "43007b7a-a972-4e27-915b-54cdb32be3d5"
+    "generation_timestamp": "20250518_220542",
+    "pipeline_run_id": "e7243682-a6f7-4f1d-b8ff-dc8da754994a"
   }
 }

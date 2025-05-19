@@ -164,16 +164,4 @@ def generate_whylogs_visualization(
     </html>
     """
 
-    # Save to docs/releases/<run-id> directory
-    output_dir = os.path.join(os.getcwd(), "docs", "releases", run_id)
-    filename = "whylogs_profile.html"
-
-    os.makedirs(output_dir, exist_ok=True)
-    file_path = os.path.join(output_dir, filename)
-
-    with open(file_path, "w") as f:
-        f.write(html_content)
-
-    logger.info(f"WhyLogs visualization saved to: {os.path.abspath(file_path)}")
-
     return HTMLString(html_content)

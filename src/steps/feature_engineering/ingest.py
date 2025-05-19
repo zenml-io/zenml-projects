@@ -63,7 +63,7 @@ def ingest(
         dataset: The loaded dataset
         profile_view: WhyLogs profile for data quality documentation
     """
-    run_id = str(get_step_context().get_run_id())
+    run_id = str(get_step_context().pipeline_run.id)
     # Record start time for logging
     start_time = datetime.now()
     print(f"Ingesting data from {CREDIT_SCORING_CSV_PATH} at {start_time}")

@@ -401,6 +401,9 @@ def generate_readme(
         f.write(
             "| [git_info.md](git_info.md) | Git commit and repository information | Art. 12 (Record-keeping) |\n"
         )
+        f.write(
+            "| [sbom.json](sbom.json) | Software Bill of Materials | Art. 11 (Technical Docs), Art. 12 (Record-keeping) |\n"
+        )
 
         # Evaluation and Risk Assessment
         f.write("\n### Evaluation and Risk Assessment\n\n")
@@ -425,6 +428,18 @@ def generate_readme(
                 "| ~~risk_scores.yaml~~ | *Not generated for this run* | Art. 9 (Risk Management) |\n"
             )
 
+        f.write(
+            "| [whylogs_profile.html](whylogs_profile.html) | Data profiling report | Art. 10 (Data Governance), Art. 15 (Accuracy) |\n"
+        )
+
+        # Monitoring and Post-Deployment
+        f.write("\n### Monitoring and Post-Deployment\n\n")
+        f.write("| File | Description | EU AI Act Articles |\n")
+        f.write("| ---- | ----------- | ------------------ |\n")
+        f.write(
+            "| [monitoring_plan.json](monitoring_plan.json) | Model monitoring configuration | Art. 15 (Accuracy), Art. 16 (Post-market monitoring) |\n"
+        )
+
         # Additional files (dynamically generate based on what's in the directory)
         excluded_files = {
             "README.md",
@@ -432,6 +447,9 @@ def generate_readme(
             "git_info.md",
             "evaluation_results.yaml",
             "risk_scores.yaml",
+            "sbom.json",
+            "monitoring_plan.json",
+            "whylogs_profile.html",
         }
         other_files = [f for f in releases_dir.glob("*") if f.name not in excluded_files]
 
@@ -452,7 +470,8 @@ def generate_readme(
         f.write("- **Article 9**: Risk Management System\n")
         f.write("- **Article 10**: Data Governance\n")
         f.write("- **Article 13**: Transparency and Information Provision\n")
-        f.write("- **Article 15**: Accuracy, Robustness and Cybersecurity\n\n")
+        f.write("- **Article 15**: Accuracy, Robustness and Cybersecurity\n")
+        f.write("- **Article 16**: Post-market monitoring\n\n")
 
         f.write(
             "For a complete mapping of pipeline steps to EU AI Act articles, see the project's [COMPLIANCE.md](../../../COMPLIANCE.md) file.\n"

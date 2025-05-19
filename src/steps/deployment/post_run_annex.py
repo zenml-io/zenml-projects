@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Annotated, Any, Dict, Optional
 
 from zenml import get_step_context, log_metadata, step
+from zenml.client import Client
 from zenml.logger import get_logger
 
 from src.constants import (
@@ -28,6 +29,7 @@ from src.constants import (
     SAMPLE_INPUTS_PATH,
     TEMPLATES_DIR,
     VOLUME_METADATA_KEYS,
+    WHYLOGS_VISUALIZATION_NAME,
 )
 from src.utils.annex_iv import (
     collect_zenml_metadata,
@@ -126,5 +128,16 @@ def generate_annex_iv_documentation(
 
     except Exception as e:
         logger.error(f"Failed to save compliance artifacts to Modal volume: {e}")
+
+    # Get whylogs visualization and save to releases directory
+    client = Client()
+    whylogs_html = client.get_artifact_version(name_id_or_prefix=WHYLOGS_VISUALIZATION_NAME)
+
+    whylogs_html_path = releases_dir / "whylogs_visualization.html"
+    materialized_artifact = whylogs_html.load()
+
+    whylogs_html_path.write_text(materialized_artifact)
+
+    logger.info(f"WhyLogs visualization saved to: {whylogs_html_path}")
 
     return str(md_path)
