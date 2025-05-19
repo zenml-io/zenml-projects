@@ -1,0 +1,271 @@
+{# Annex IV Technical Documentation Generator - Hybrid Approach #}
+
+# Annex IV: Technical Documentation for {{ pipeline.name }}
+
+## 1. General Description of the AI System
+
+### 1(a) Intended Purpose and Version
+**System Name:** {{ pipeline.name }}<br>
+**Provider:** {{ environment_variables.get('ORGANIZATION_NAME', '[ORGANIZATION NAME REQUIRED]') }}<br>
+**Version:** {{ pipeline.version or run.id }}
+{% if pipeline and pipeline.previous_versions is defined and pipeline.previous_versions %}<br>
+**Previous Versions:** {% for prev_version in pipeline.previous_versions %}{{ prev_version }}{% if not loop.last %}, {%
+endif %}{% endfor %}
+{% else %}
+**Previous Versions:** [None or not applicable]
+{% endif %}
+**Intended Purpose:** {{ pipeline.description or '[REQUIRED: Describe the intended purpose of this AI system]' }}
+
+### 1(b) System Interactions
+{% if stack and stack.components %}
+**Stack Components:**
+{% for component in stack.components %}
+- {{ component.name }} ({{ component.type }}): {{ component.version }}
+{% endfor %}
+{% else %}
+**Stack Components:** [REQUIRED: List the components of your ZenML stack]
+{% endif %}
+
+**Additional Interactions:** {{ manual_inputs.get('additional_interactions', '[REQUIRED: Describe any interactions with
+external systems (hardware, software, other AI systems)]') }}
+
+### 1(c) Software Versions
+{% if run and run.code_reference and run.code_reference.commit_sha %}
+- Pipeline code commit: `{{ run.code_reference.commit_sha }}`
+{% else %}
+- Pipeline code commit: [Not available]
+{% endif %}
+{% if run and run.metadata and run.metadata.get("deps_hash") %}
+- Dependencies lock‑file hash: `{{ run.metadata["deps_hash"] }}`
+{% else %}
+- Dependencies lock-file hash: [Not available]
+{% endif %}
+
+**Framework Versions:**
+{% if environment and environment.frameworks %}
+{% for framework, version in environment.frameworks.items() %}
+- {{ framework }}: {{ version }}
+{% endfor %}
+{% else %}
+[REQUIRED: List key frameworks and their versions]
+{% endif %}
+
+### 1(d) Deployment Forms
+**Deployment Types:**
+{% if pipeline and pipeline.deployments %}
+{% for deployment in pipeline.deployments %}
+- {{ deployment.type }} ({{ deployment.created_at }})
+{% endfor %}
+{% else %}
+- [REQUIRED: Describe the forms in which this AI system is deployed (e.g., Docker image, REST API, Python SDK)]
+{% endif %}
+
+### 1(e) Hardware Requirements
+**Compute Resources:**
+{% if pipeline and pipeline.resources %}
+{{ pipeline.resources | to_yaml }}
+{% else %}
+[REQUIRED: Describe hardware requirements for this AI system]
+{% endif %}
+
+### 1(f) Product Appearance
+{% if manual_inputs and manual_inputs.product_image_url %}
+![Product]({{ manual_inputs.product_image_url }})
+{% else %}
+[OPTIONAL: Attach photographs or illustrations showing external features of the product]
+{% endif %}
+
+### 1(g) User Interface for Deployer
+{% if manual_inputs and manual_inputs.ui_screenshot_url %}
+![Deployer UI]({{ manual_inputs.ui_screenshot_url }})
+{% else %}
+[REQUIRED: Provide a basic description of the user interface available to the deployer]
+{% endif %}
+
+### 1(h) Instructions for Use
+{% if manual_inputs and manual_inputs.user_doc_link %}
+**Documentation:** [User Guide]({{ manual_inputs.user_doc_link }})
+{% else %}
+[REQUIRED: Provide instructions for use or link to documentation]
+{% endif %}
+
+## 2. Detailed Description of Elements and Development Process
+
+### 2(a) Development Methods and Third-party Tools
+{% if pipeline and pipeline.steps %}
+**Pipeline Steps:**
+{% for step in pipeline.steps %}
+- {{ step.name }} ({{ step.type }}): {{ step.description or '[No description]' }}
+{% endfor %}
+{% else %}
+**Pipeline Steps:** [REQUIRED: Describe the methods and steps performed for development]
+{% endif %}
+
+{% if code_repo %}
+**Source Code Repository:** {{ code_repo.url }} (Commit: {{ code_repo.commit_sha }})
+{% else %}
+**Source Code Repository:** [REQUIRED: Provide repository information]
+{% endif %}
+
+{% if stack %}
+**Integrations:** {{ stack }}
+{% else %}
+**Integrations:** [REQUIRED: List third-party tools and integrations]
+{% endif %}
+
+### 2(b) Design Specifications
+**Model Architecture:** {{ run.metadata.get("model_type", "[REQUIRED: Specify model architecture]") if run and
+run.metadata else "[REQUIRED: Specify model architecture]" }}<br>
+**Optimization Objective:** {{ run.metadata.get("optim_target", "[REQUIRED: Specify what the system is designed to
+optimize for]") if run and run.metadata else "[REQUIRED: Specify what the system is designed to optimize for]" }}
+
+**Key Design Rationale and Assumptions:**
+{{ manual_inputs.get("design_assumptions", "[REQUIRED: Describe key design choices, including rationale and
+assumptions]") | indent(2, True) }}
+
+**Trade-offs Made for Compliance:**
+{{ manual_inputs.get("compliance_tradeoffs", "[REQUIRED: Describe any trade-offs made to comply with Chapter III,
+Section 2 of the EU AI Act]") | indent(2, True) }}
+
+### 2(c) System Architecture
+{% if manual_inputs and manual_inputs.arch_diagram_url %}
+![Architecture Diagram]({{ manual_inputs.arch_diagram_url }})
+{% else %}
+[REQUIRED: Provide a description of the system architecture]
+{% endif %}
+
+**Computational Resources:**
+{{ manual_inputs.get("computational_resources", "[REQUIRED: Describe computational resources used to develop, train,
+test and validate]") }}
+
+### 2(d) Data Requirements and Provenance
+{% if run and run.metadata and run.metadata.get("dataset_info") %}
+| Dataset | Rows | Source | SHA‑256 | Labeling Procedure | Data Cleaning Method |
+|---------|------|---------|---------|-------------------|----------------------|
+{% for d in run.metadata["dataset_info"] %}
+| {{ d.name }} | {{ d.rows }} | {{ d.source }} | {{ d.sha }} | {{ d.get("labeling", "[REQUIRED]") }} | {{
+d.get("cleaning", "[REQUIRED]") }} |
+{% endfor %}
+{% elif pipeline and pipeline.artifacts and (pipeline.artifacts | selectattr('type', 'equalto', 'dataset') | list |
+length > 0) %}
+**Datasets:**
+{% for dataset in pipeline.artifacts | selectattr('type', 'equalto', 'dataset') %}
+- **{{ dataset.name }}**
+- Source: {{ dataset.metadata.get('source') or '[REQUIRED]' }}
+- Size: {{ dataset.metadata.get('size') or '[REQUIRED]' }}
+- Creation Date: {{ dataset.created_at }}
+- Description: {{ dataset.description or '[REQUIRED]' }}
+- Labeling Procedure: [REQUIRED: Describe data labeling methodology]
+- Data Cleaning Method: [REQUIRED: Describe data cleaning methodology]
+{% endfor %}
+{% else %}
+[REQUIRED: Provide information about datasets used, including their provenance, scope, and characteristics]
+{% endif %}
+
+**Data Processing Methodology:**
+{{ manual_inputs.get("data_methodology", "[REQUIRED: Describe data selection, labeling, and cleaning methodologies in
+accordance with Article 10 of the EU AI Act]") }}
+
+### 2(e) Human Oversight Assessment
+{{ manual_inputs.get("oversight_assessment", "[REQUIRED: Provide an assessment of human oversight measures needed in
+accordance with Article 14 of the EU AI Act, including technical measures to facilitate interpretation of outputs]") }}
+
+### 2(f) Predetermined Changes and Continuous Compliance
+{{ manual_inputs.get("continuous_compliance_plan", "[REQUIRED: Describe any predetermined changes to the system and
+technical solutions adopted to ensure continuous compliance with the EU AI Act]") }}
+
+### 2(g) Validation and Testing Procedures
+**Performance Metrics:**
+{% if pipeline and pipeline.metrics %}
+{% for metric_name, metric_value in pipeline.metrics.items() %}
+- {{ metric_name }}: {{ metric_value }}
+{% endfor %}
+{% elif run and run.metrics %}
+- Accuracy: {{ run.metrics.get("accuracy", "[Not available]") }}
+- AUC: {{ run.metrics.get("auc", "[Not available]") }}
+{% else %}
+[REQUIRED: List performance metrics used, including accuracy, robustness, and compliance metrics]
+{% endif %}
+
+**Fairness Assessment:**
+{% if run and run.metrics and run.metrics.get("fairness_metrics") %}
+- Bias disparity: {{ run.metrics.get("fairness_metrics").get("disparity", "[Not available]") }}
+{% if run.metrics.get("fairness_metrics").get("demographic_parity") %}
+- Demographic parity: {{ run.metrics.get("fairness_metrics").get("demographic_parity") }}
+{% endif %}
+{% if run.metrics.get("fairness_metrics").get("equal_opportunity") %}
+- Equal opportunity: {{ run.metrics.get("fairness_metrics").get("equal_opportunity") }}
+{% endif %}
+{% else %}
+[REQUIRED: Provide comprehensive fairness and bias assessment metrics, including analysis across protected attributes]
+{% endif %}****
+
+**Bias Mitigation Measures:**
+{{ manual_inputs.get("bias_mitigation", "[REQUIRED: Describe measures taken to identify and mitigate bias in the AI
+system]") }}
+
+**Testing Documentation:**
+{% if run and run.artifacts and run.artifacts.get("test_log") %}
+**Test Logs:** [Link to test logs]({{ run.artifacts["test_log"] }})
+{% else %}
+**Test Logs:** [REQUIRED: Provide access to test logs and reports, dated and signed by responsible persons]
+{% endif %}
+
+### 2(h) Cybersecurity Measures
+{{ manual_inputs.get("cybersec_measures", "[REQUIRED: Describe cybersecurity measures implemented to protect the AI
+system]") }}
+
+## 3. Monitoring, Functioning and Control
+
+**System Capabilities and Limitations:**
+{% if run and run.metrics and run.metrics.get("accuracy") %}
+- Overall expected accuracy: {{ run.metrics["accuracy"] }}
+{% else %}
+- Expected accuracy: [REQUIRED: Specify the expected level of accuracy]
+{% endif %}
+- System limitations: {{ manual_inputs.get("limitations", "[REQUIRED: Describe system limitations, especially with
+respect to specific persons or groups]") }}
+
+**Foreseeable Unintended Outcomes:**
+{{ manual_inputs.get("unintended_outcomes", "[REQUIRED: Describe foreseeable unintended outcomes and sources of risks to
+health, safety, fundamental rights, and discrimination in view of the intended purpose]") }}
+
+**Human Oversight Measures:**
+[See section 2(e) for detailed human oversight assessment]
+
+**Input Data Specifications:**
+{{ manual_inputs.get("input_specifications", "[REQUIRED: Specify requirements and characteristics for input data]") }}
+
+## 4. Appropriateness of Performance Metrics
+{{ manual_inputs.get("metric_appropriateness", "[REQUIRED: Provide a description of why the chosen performance metrics
+are appropriate for this specific AI system]") }}
+
+## 5. Risk Management System
+{% if run and run.metadata and run.metadata.get("risk_register_markdown") %}
+{{ run.metadata["risk_register_markdown"] }}
+{% else %}
+[REQUIRED: Provide a detailed description of the risk management system in accordance with Article 9 of the EU AI Act]
+{% endif %}
+
+## 6. Lifecycle Changes Log
+{% if run and run.metadata and run.metadata.get("change_log") %}
+{{ run.metadata["change_log"] }}
+{% else %}
+[REQUIRED: Describe relevant changes made to the system through its lifecycle]
+{% endif %}
+
+## 7. Standards and Specifications Applied
+{{ manual_inputs.get("standards_list", "[REQUIRED: List harmonized standards applied in full or in part, or detailed
+description of solutions adopted to meet requirements in Chapter III, Section 2]") }}
+
+## 8. EU Declaration of Conformity
+{% if manual_inputs and manual_inputs.declaration_file %}
+[EU Declaration of Conformity]({{ manual_inputs.declaration_file }})
+{% else %}
+[REQUIRED: Attach a copy of the EU declaration of conformity referred to in Article 47]
+{% endif %}
+
+## 9. Post-Market Monitoring Plan
+{{ manual_inputs.get("post_market_plan", "[REQUIRED: Provide a detailed description of the system in place to evaluate
+AI system performance in the post-market phase in accordance with Article 72, including the post-market monitoring
+plan]") }}
