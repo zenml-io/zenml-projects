@@ -1,20 +1,18 @@
-import os
 import json
-from typing import Dict, Any, Type
-
-from zenml.enums import VisualizationType, ArtifactType
-from zenml.io import fileio
-from zenml.materializers.base_materializer import BaseMaterializer
+import os
+from typing import Any, Dict, Type
 
 from utils.data_models import (
+    ReflectionMetadata,
     ResearchState,
     SearchResult,
     SynthesizedInfo,
     ViewpointAnalysis,
     ViewpointTension,
-    ReflectionMetadata,
-    CritiqueItem,
 )
+from zenml.enums import ArtifactType, VisualizationType
+from zenml.io import fileio
+from zenml.materializers.base_materializer import BaseMaterializer
 
 
 class ResearchStateMaterializer(BaseMaterializer):

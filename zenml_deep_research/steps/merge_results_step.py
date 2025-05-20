@@ -1,11 +1,11 @@
-import logging
 import copy
+import logging
 from typing import Annotated
-from zenml import step, get_step_context
-from zenml.client import Client
 
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState
+from zenml import get_step_context, step
+from zenml.client import Client
 
 logger = logging.getLogger(__name__)
 

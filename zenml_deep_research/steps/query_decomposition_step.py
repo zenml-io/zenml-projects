@@ -1,16 +1,16 @@
 import logging
 import os
-import openai
 from typing import Annotated
-from zenml import step
 
+import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState
 from utils.helper_functions import (
-    remove_reasoning_from_output,
     clean_json_tags,
+    remove_reasoning_from_output,
     safe_json_loads,
 )
+from zenml import step
 
 logger = logging.getLogger(__name__)
 

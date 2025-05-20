@@ -1,13 +1,12 @@
+from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
+from steps.final_report_step import final_report_generation_step
+from steps.iterative_reflection_step import iterative_reflection_step
+from steps.merge_results_step import merge_sub_question_results_step
+from steps.process_sub_question_step import process_sub_question_step
+from steps.query_decomposition_step import initial_query_decomposition_step
+from utils.data_models import ResearchState
 from zenml import pipeline
 from zenml.types import HTMLString
-
-from utils.data_models import ResearchState
-from steps.query_decomposition_step import initial_query_decomposition_step
-from steps.process_sub_question_step import process_sub_question_step
-from steps.merge_results_step import merge_sub_question_results_step
-from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
-from steps.iterative_reflection_step import iterative_reflection_step
-from steps.final_report_step import final_report_generation_step
 
 
 @pipeline(name="parallelized_deep_research_pipeline")

@@ -1,11 +1,12 @@
-import os
-import click
 import logging
-from pipelines.research_pipeline import enhanced_deep_research_pipeline
+import os
+
+import click
+from logging_config import configure_logging
 from pipelines.parallel_research_pipeline import (
     parallelized_deep_research_pipeline,
 )
-from logging_config import configure_logging
+from pipelines.research_pipeline import enhanced_deep_research_pipeline
 
 logger = logging.getLogger(__name__)
 

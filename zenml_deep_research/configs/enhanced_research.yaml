@@ -10,16 +10,6 @@ steps:
     parameters:
       llm_model: "DeepSeek-R1-Distill-Llama-70B"
   
-  parallel_information_gathering_step:
-    parameters:
-      llm_model: "Meta-Llama-3.3-70B-Instruct"
-      num_results_per_search: 3
-      cap_search_length: 20000
-  
-  information_validation_synthesis_step:
-    parameters:
-      llm_model: "DeepSeek-R1-Distill-Llama-70B"
-  
   cross_viewpoint_analysis_step:
     parameters:
       llm_model: "DeepSeek-R1-Distill-Llama-70B"

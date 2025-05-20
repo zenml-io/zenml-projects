@@ -1,19 +1,17 @@
-import logging
 import copy
+import logging
+import os
 from typing import Annotated
-from zenml import step
 
+import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
+from steps.information_gathering_step import _generate_search_query
+from steps.information_synthesis_step import _synthesize_information
 from utils.data_models import ResearchState, SearchResult, SynthesizedInfo
 from utils.helper_functions import (
     tavily_search,
 )
-from steps.information_gathering_step import _generate_search_query
-from steps.information_synthesis_step import _synthesize_information
-
-import openai
-import os
-import json
+from zenml import step
 
 logger = logging.getLogger(__name__)
 

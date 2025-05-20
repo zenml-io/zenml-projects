@@ -1,15 +1,11 @@
-import logging
-import os
-import openai
 import json
-from typing import Annotated, Dict, Any
-from zenml import step
+import logging
+from typing import Any, Dict
 
-from materializers.research_state_materializer import ResearchStateMaterializer
-from utils.data_models import ResearchState, SynthesizedInfo
+import openai
 from utils.helper_functions import (
-    remove_reasoning_from_output,
     clean_json_tags,
+    remove_reasoning_from_output,
     safe_json_loads,
 )
 
@@ -47,106 +43,6 @@ Format the output in json with the following json schema definition:
 Make sure that the output is a json object with an output json schema defined above.
 Only return the json object, no explanation or additional text.
 """
-
-
-@step(output_materializers=ResearchStateMaterializer)
-def information_validation_synthesis_step(
-    state: ResearchState,
-    sambanova_base_url: str = "https://api.sambanova.ai/v1",
-    llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
-    system_prompt: str = SYNTHESIS_PROMPT,
-) -> Annotated[ResearchState, "updated_state"]:
-    """Validate and synthesize information from search results for each sub-question.
-
-    Args:
-        state: The current research state
-        sambanova_base_url: SambaNova API base URL
-        llm_model: The model to use for synthesis
-        system_prompt: System prompt for the LLM
-
-    Returns:
-        Updated research state with synthesized information
-    """
-    logger.info(
-        f"Synthesizing information for {len(state.sub_questions)} sub-questions"
-    )
-
-    # Get API key from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
-
-    # Dictionary to store synthesized results
-    synthesized_info = {}
-
-    # Process each sub-question
-    for i, sub_question in enumerate(state.sub_questions):
-        logger.info(
-            f"Synthesizing information for sub-question {i + 1}/{len(state.sub_questions)}: {sub_question}"
-        )
-
-        # Get search results for this sub-question
-        question_search_results = state.search_results.get(sub_question, [])
-
-        if not question_search_results:
-            logger.warning(
-                f"No search results found for sub-question: {sub_question}"
-            )
-            synthesized_info[sub_question] = SynthesizedInfo(
-                synthesized_answer=f"No information found for: {sub_question}",
-                key_sources=[],
-                confidence_level="low",
-                information_gaps="No search results were available for synthesis.",
-            )
-            continue
-
-        # Extract raw contents and URLs
-        raw_contents = []
-        sources = []
-        for result in question_search_results:
-            raw_contents.append(result.content)
-            sources.append(result.url)
-
-        # Prepare input for synthesis
-        synthesis_input = {
-            "sub_question": sub_question,
-            "search_results": raw_contents,
-            "sources": sources,
-        }
-
-        # Synthesize information
-        synthesis_result = _synthesize_information(
-            synthesis_input=synthesis_input,
-            openai_client=openai_client,
-            model=llm_model,
-            system_prompt=system_prompt,
-        )
-
-        # Create SynthesizedInfo object
-        synthesized_info[sub_question] = SynthesizedInfo(
-            synthesized_answer=synthesis_result.get(
-                "synthesized_answer", f"Synthesis for '{sub_question}' failed."
-            ),
-            key_sources=synthesis_result.get("key_sources", sources[:1]),
-            confidence_level=synthesis_result.get("confidence_level", "low"),
-            information_gaps=synthesis_result.get(
-                "information_gaps",
-                "Synthesis process encountered technical difficulties.",
-            ),
-        )
-
-    logger.info(f"Completed information synthesis for all sub-questions")
-
-    # Update the state with synthesized information
-    state.update_synthesized_info(synthesized_info)
-
-    return state
 
 
 def _synthesize_information(

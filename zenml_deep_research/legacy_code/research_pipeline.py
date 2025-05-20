@@ -1,17 +1,16 @@
-from zenml import pipeline
-from zenml.types import HTMLString
-
-from utils.data_models import ResearchState
-from steps.query_decomposition_step import initial_query_decomposition_step
+from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
+from steps.final_report_step import final_report_generation_step
 from steps.information_gathering_step import (
     parallel_information_gathering_step,
 )
 from steps.information_synthesis_step import (
     information_validation_synthesis_step,
 )
-from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
 from steps.iterative_reflection_step import iterative_reflection_step
-from steps.final_report_step import final_report_generation_step
+from steps.query_decomposition_step import initial_query_decomposition_step
+from utils.data_models import ResearchState
+from zenml import pipeline
+from zenml.types import HTMLString
 
 
 @pipeline(name="enhanced_deep_research_pipeline")

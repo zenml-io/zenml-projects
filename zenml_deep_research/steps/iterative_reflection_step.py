@@ -1,22 +1,22 @@
+import json
 import logging
 import os
-import openai
-import json
-from typing import Annotated, Dict, List, Any, Tuple
-from zenml import step
-from materializers.research_state_materializer import ResearchStateMaterializer
+from typing import Annotated, Any, Dict, List
 
+import openai
+from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import (
+    ReflectionMetadata,
     ResearchState,
     SynthesizedInfo,
-    ReflectionMetadata,
 )
 from utils.helper_functions import (
-    remove_reasoning_from_output,
     clean_json_tags,
+    remove_reasoning_from_output,
     safe_json_loads,
     tavily_search,
 )
+from zenml import step
 
 logger = logging.getLogger(__name__)
 

@@ -1,17 +1,15 @@
+import json
 import logging
 import os
-import openai
-import json
 from typing import Annotated
-from zenml import step
-from zenml.types import HTMLString
 
+import openai
 from utils.data_models import ResearchState
 from utils.helper_functions import (
     remove_reasoning_from_output,
-    clean_json_tags,
-    safe_json_loads,
 )
+from zenml import step
+from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
 

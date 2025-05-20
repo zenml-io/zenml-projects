@@ -1,8 +1,9 @@
 import json
 import os
-import yaml
 from json.decoder import JSONDecodeError
-from typing import Dict, Any
+from typing import Any, Dict
+
+import yaml
 
 
 def remove_reasoning_from_output(output: str) -> str:
@@ -93,7 +94,7 @@ def load_pipeline_config(config_path: str) -> Dict[str, Any]:
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
         return config
-    except Exception as e:
+    except Exception:
         # Return a minimal default configuration in case of loading error
         return {
             "pipeline": {
