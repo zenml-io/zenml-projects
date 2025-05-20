@@ -256,37 +256,772 @@ Use semantic HTML (h1, h2, h3, p, blockquote, etc.) to create a structured docum
 Include a table of contents at the beginning with anchor links to each section.
 For citations, use a consistent format and collect them in a references section at the end.
 
-The HTML structure should follow this pattern:
-<div class="research-report">
-  <h1>[Report Title]</h1>
-  
-  <div class="toc">
-    <h2>Table of Contents</h2>
-    [Table of Contents Items]
-  </div>
-  
-  <div class="executive-summary">
-    <h2>Executive Summary</h2>
-    [Summary Content]
-  </div>
-  
-  <div class="introduction">
-    <h2>Introduction</h2>
-    [Introduction Content]
-  </div>
-  
-  [Content Sections]
-  
-  <div class="conclusion">
-    <h2>Conclusion</h2>
-    [Conclusion Content]
-  </div>
-  
-  <div class="references">
-    <h2>References</h2>
-    [References List]
-  </div>
-</div>
+Include this exact CSS stylesheet in your HTML to ensure consistent styling (do not modify it):
 
-Return only the HTML code for the report, with no explanations or additional text.
+```css
+<style>
+/* Global Styles */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.research-report {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+/* Typography */
+h1 {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+h2 {
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-top: 30px;
+}
+
+h3 {
+    color: #3498db;
+    margin-top: 20px;
+}
+
+p {
+    margin: 15px 0;
+}
+
+/* Sections */
+.section {
+    margin: 30px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #3498db;
+    border-radius: 4px;
+}
+
+.content {
+    margin-top: 15px;
+}
+
+/* Notice/Alert Styles */
+.notice {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.info {
+    background-color: #e8f4f8;
+    border-left: 4px solid #3498db;
+    color: #0c5460;
+}
+
+.warning {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    color: #856404;
+}
+
+/* Confidence Level Indicators */
+.confidence-level {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.confidence-high {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.confidence-medium {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+}
+
+.confidence-low {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+/* Lists */
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin: 8px 0;
+}
+
+/* References Section */
+.references {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.references ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.references li {
+    padding: 8px 0;
+    border-bottom: 1px dotted #ddd;
+}
+
+/* Table of Contents */
+.toc {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.toc ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.toc li {
+    margin: 5px 0;
+}
+
+.toc a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.toc a:hover {
+    text-decoration: underline;
+}
+
+/* Executive Summary */
+.executive-summary {
+    background-color: #e8f4f8;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+    border-left: 4px solid #3498db;
+}
+
+/* Key Findings Box */
+.key-findings {
+    background-color: #f0f7fb;
+    border: 1px solid #d0e3f0;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.key-findings h3 {
+    margin-top: 0;
+    color: #3498db;
+}
+
+/* Viewpoint Analysis */
+.viewpoint-analysis {
+    margin: 30px 0;
+}
+
+.viewpoint-agreement {
+    background-color: #d4edda;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.viewpoint-tension {
+    background-color: #f8d7da;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+/* Blockquote styling */
+blockquote {
+    border-left: 3px solid #3498db;
+    background-color: #f8f9fa;
+    padding: 10px 20px;
+    margin: 15px 0;
+    font-style: italic;
+}
+
+/* Code/Pre styling */
+code, pre {
+    background-color: #f7f7f7;
+    border: 1px solid #e1e1e8;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+}
+
+pre {
+    padding: 10px;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .research-report {
+        padding: 15px;
+    }
+    
+    .section {
+        padding: 15px;
+    }
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e6f7ff;
+}
+</style>
+```
+
+The HTML structure should follow this pattern:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    [CSS STYLESHEET GOES HERE]
+</head>
+<body>
+    <div class="research-report">
+        <h1>Research Report: [Main Query]</h1>
+        
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#executive-summary">Executive Summary</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                [SUB-QUESTIONS LINKS]
+                [ADDITIONAL SECTIONS LINKS]
+                <li><a href="#conclusion">Conclusion</a></li>
+                <li><a href="#references">References</a></li>
+            </ul>
+        </div>
+        
+        <!-- Executive Summary -->
+        <div id="executive-summary" class="executive-summary">
+            <h2>Executive Summary</h2>
+            [CONCISE SUMMARY OF KEY FINDINGS]
+        </div>
+        
+        <!-- Introduction -->
+        <div id="introduction" class="section">
+            <h2>Introduction</h2>
+            <p>[INTRODUCTION TO THE RESEARCH QUERY]</p>
+            <p>[OVERVIEW OF THE APPROACH AND SUB-QUESTIONS]</p>
+        </div>
+        
+        <!-- Sub-Question Sections -->
+        [FOR EACH SUB-QUESTION]:
+        <div id="question-[INDEX]" class="section">
+            <h2>[INDEX]. [SUB-QUESTION TEXT]</h2>
+            <p class="confidence-level confidence-[LEVEL]">Confidence Level: [LEVEL]</p>
+            
+            <!-- Add key findings box if appropriate -->
+            <div class="key-findings">
+                <h3>Key Findings</h3>
+                <ul>
+                    <li>[KEY FINDING 1]</li>
+                    <li>[KEY FINDING 2]</li>
+                    [...]
+                </ul>
+            </div>
+            
+            <div class="content">
+                [DETAILED ANSWER]
+            </div>
+            
+            <!-- Information Gaps -->
+            <div class="information-gaps">
+                <h3>Information Gaps</h3>
+                <p>[GAPS TEXT]</p>
+            </div>
+            
+            <!-- Key Sources -->
+            <div class="key-sources">
+                <h3>Key Sources</h3>
+                <ul>
+                    <li>[SOURCE 1]</li>
+                    <li>[SOURCE 2]</li>
+                    [...]
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Viewpoint Analysis Section (if available) -->
+        <div id="viewpoint-analysis" class="section viewpoint-analysis">
+            <h2>Viewpoint Analysis</h2>
+            
+            <h3>Points of Agreement</h3>
+            <div class="viewpoint-agreement">
+                <ul>
+                    <li>[AGREEMENT 1]</li>
+                    <li>[AGREEMENT 2]</li>
+                    [...]
+                </ul>
+            </div>
+            
+            <h3>Areas of Tension</h3>
+            [FOR EACH TENSION]:
+            <div class="viewpoint-tension">
+                <h4>[TENSION TOPIC]</h4>
+                <dl>
+                    <dt>[VIEWPOINT 1 TITLE]</dt>
+                    <dd>[VIEWPOINT 1 CONTENT]</dd>
+                    <dt>[VIEWPOINT 2 TITLE]</dt>
+                    <dd>[VIEWPOINT 2 CONTENT]</dd>
+                    [...]
+                </dl>
+            </div>
+            
+            <h3>Perspective Gaps</h3>
+            <p>[PERSPECTIVE GAPS CONTENT]</p>
+            
+            <h3>Integrative Insights</h3>
+            <p>[INTEGRATIVE INSIGHTS CONTENT]</p>
+        </div>
+        
+        <!-- Conclusion -->
+        <div id="conclusion" class="section">
+            <h2>Conclusion</h2>
+            <p>[CONCLUSION TEXT]</p>
+        </div>
+        
+        <!-- References -->
+        <div id="references" class="references">
+            <h2>References</h2>
+            <ul>
+                <li>[REFERENCE 1]</li>
+                <li>[REFERENCE 2]</li>
+                [...]
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+Special instructions:
+1. For each sub-question, display the confidence level with appropriate styling (confidence-high, confidence-medium, or confidence-low)
+2. Extract 2-3 key findings from each answer to create the key-findings box
+3. Format all sources consistently in the references section
+4. Use tables, lists, and blockquotes where appropriate to improve readability
+5. Use the notice classes (info, warning) to highlight important information or limitations
+6. Ensure all sections have proper ID attributes for the table of contents links
+
+Return only the complete HTML code for the report, with no explanations or additional text.
+"""
+
+# Static HTML template for direct report generation without LLM
+STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Report: {main_query}</title>
+    <style>
+        /* Global Styles */
+        body {{
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }}
+        
+        .research-report {{
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }}
+        
+        /* Typography */
+        h1 {{
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }}
+        
+        h2 {{
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }}
+        
+        h3 {{
+            color: #3498db;
+            margin-top: 20px;
+        }}
+        
+        p {{
+            margin: 15px 0;
+        }}
+        
+        /* Sections */
+        .section {{
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }}
+        
+        .content {{
+            margin-top: 15px;
+        }}
+        
+        /* Notice/Alert Styles */
+        .notice {{
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        
+        .info {{
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            color: #0c5460;
+        }}
+        
+        .warning {{
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }}
+        
+        /* Confidence Level Indicators */
+        .confidence-level {{
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 0;
+        }}
+        
+        .confidence-high {{
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }}
+        
+        .confidence-medium {{
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }}
+        
+        .confidence-low {{
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }}
+        
+        /* Lists */
+        ul {{
+            padding-left: 20px;
+        }}
+        
+        li {{
+            margin: 8px 0;
+        }}
+        
+        /* References Section */
+        .references {{
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }}
+        
+        .references ul {{
+            list-style-type: none;
+            padding-left: 0;
+        }}
+        
+        .references li {{
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+        }}
+        
+        /* Table of Contents */
+        .toc {{
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }}
+        
+        .toc ul {{
+            list-style-type: none;
+            padding-left: 10px;
+        }}
+        
+        .toc li {{
+            margin: 5px 0;
+        }}
+        
+        .toc a {{
+            color: #3498db;
+            text-decoration: none;
+        }}
+        
+        .toc a:hover {{
+            text-decoration: underline;
+        }}
+        
+        /* Executive Summary */
+        .executive-summary {{
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }}
+        
+        /* Key Findings Box */
+        .key-findings {{
+            background-color: #f0f7fb;
+            border: 1px solid #d0e3f0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }}
+        
+        .key-findings h3 {{
+            margin-top: 0;
+            color: #3498db;
+        }}
+        
+        /* Viewpoint Analysis */
+        .viewpoint-analysis {{
+            margin: 30px 0;
+        }}
+        
+        .viewpoint-agreement {{
+            background-color: #d4edda;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }}
+        
+        .viewpoint-tension {{
+            background-color: #f8d7da;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }}
+        
+        /* Blockquote styling */
+        blockquote {{
+            border-left: 3px solid #3498db;
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            margin: 15px 0;
+            font-style: italic;
+        }}
+        
+        /* Code/Pre styling */
+        code, pre {{
+            background-color: #f7f7f7;
+            border: 1px solid #e1e1e8;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }}
+        
+        pre {{
+            padding: 10px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }}
+        
+        /* Responsive design */
+        @media (max-width: 768px) {{
+            body {{
+                padding: 10px;
+            }}
+            
+            .research-report {{
+                padding: 15px;
+            }}
+            
+            .section {{
+                padding: 15px;
+            }}
+        }}
+        
+        /* Table styling */
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }}
+        
+        th {{
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }}
+        
+        td {{
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }}
+        
+        tr:nth-child(even) {{
+            background-color: #f2f2f2;
+        }}
+        
+        tr:hover {{
+            background-color: #e6f7ff;
+        }}
+    </style>
+</head>
+<body>
+    <div class="research-report">
+        <h1>Research Report: {main_query}</h1>
+        
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#executive-summary">Executive Summary</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                {sub_questions_toc}
+                {additional_sections_toc}
+                <li><a href="#conclusion">Conclusion</a></li>
+                <li><a href="#references">References</a></li>
+            </ul>
+        </div>
+        
+        <!-- Executive Summary -->
+        <div id="executive-summary" class="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>{executive_summary}</p>
+        </div>
+        
+        <!-- Introduction -->
+        <div id="introduction" class="section">
+            <h2>Introduction</h2>
+            <p>This report addresses the research query: <strong>{main_query}</strong></p>
+            <p>The research was conducted by breaking down the main query into {num_sub_questions} sub-questions to explore different aspects of the topic in depth. Each sub-question was researched independently, with findings synthesized from various sources.</p>
+        </div>
+        
+        <!-- Sub-Question Sections -->
+        {sub_questions_html}
+        
+        <!-- Viewpoint Analysis Section (if available) -->
+        {viewpoint_analysis_html}
+        
+        <!-- Conclusion -->
+        <div id="conclusion" class="section">
+            <h2>Conclusion</h2>
+            <p>This report has explored {main_query} through a structured research approach, examining multiple sub-questions and synthesizing information from diverse sources. The findings provide a comprehensive understanding of the topic, highlighting key aspects, perspectives, and current knowledge.</p>
+            <p>While some information gaps remain, as noted in the respective sections, this research provides a solid foundation for understanding the topic and its implications.</p>
+        </div>
+        
+        <!-- References -->
+        <div id="references" class="references">
+            <h2>References</h2>
+            {references_html}
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# Template for sub-question section in the static HTML report
+SUB_QUESTION_TEMPLATE = """
+<div id="question-{index}" class="section">
+    <h2>{index}. {question}</h2>
+    <p class="confidence-level confidence-{confidence}">Confidence Level: {confidence_upper}</p>
+    
+    <div class="content">
+        <p>{answer}</p>
+    </div>
+    
+    {info_gaps_html}
+    
+    {key_sources_html}
+</div>
+"""
+
+# Template for viewpoint analysis section in the static HTML report
+VIEWPOINT_ANALYSIS_TEMPLATE = """
+<div id="viewpoint-analysis" class="section viewpoint-analysis">
+    <h2>Viewpoint Analysis</h2>
+    
+    <h3>Points of Agreement</h3>
+    <div class="viewpoint-agreement">
+        <ul>
+            {agreements_html}
+        </ul>
+    </div>
+    
+    <h3>Areas of Tension</h3>
+    {tensions_html}
+    
+    <h3>Perspective Gaps</h3>
+    <p>{perspective_gaps}</p>
+    
+    <h3>Integrative Insights</h3>
+    <p>{integrative_insights}</p>
+</div>
 """
