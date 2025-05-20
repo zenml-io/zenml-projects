@@ -4,7 +4,7 @@ _Version 0.1 • Owner: **AI Compliance Officer**_
 
 | Section     | Detail                                                                                     |
 | ----------- | ------------------------------------------------------------------------------------------ |
-| **Purpose** | Fulfil EU-AI-Act Art 9: identify, score and mitigate risks before each deployment.         |
+| **Purpose** | Fulfill EU-AI-Act Art 9: identify, score and mitigate risks before each deployment.        |
 | **Scope**   | All credit-scoring models produced by `training_pipeline`.                                 |
 | **Roles**   | ML Engineer (runs pipeline) · Data Gov. Manager (advisor) · Compliance Officer (approver). |
 | **Inputs**  | `evaluation_results` dict from `evaluate_model` step.                                      |

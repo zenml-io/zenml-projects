@@ -193,13 +193,13 @@ The repository uses a structured approach to organizing compliance artifacts:
 
 The **releases/** directory contains automatically generated artifacts for each pipeline run, including:
 
-- [Annex IV technical documentation](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/annex_iv_cs_deployment.md)
-- [Software Bill of Materials](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/sbom.json)
-- [Model performance metrics](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/evaluation_results.yaml)
-- [Risk assessment scores](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/risk_scores.yaml)
-- [Data profiling report](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/whylogs_profile.html)
-- [Monitoring configuration](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/monitoring_plan.json)
-- [Git repository information](docs/releases/e7243682-a6f7-4f1d-b8ff-dc8da754994a/git_info.md)
+- [Annex IV technical documentation](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/annex_iv_cs_deployment.md)
+- [Software Bill of Materials](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/sbom.json)
+- [Model performance metrics](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/evaluation_results.yaml)
+- [Risk assessment scores](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/risk_scores.yaml)
+- [Data profiling report](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/whylogs_profile.html)
+- [Monitoring configuration](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/monitoring_plan.json)
+- [Git repository information](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/git_info.md)
 
 ## 📄 Annex IV Documentation
 

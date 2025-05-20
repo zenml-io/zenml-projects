@@ -252,8 +252,7 @@ articles:
         <<: *file_check
         description: "API documentation completeness"
         paths:
-          - "{releases_dir}/{release_id}/api_guide.md"
-          - "docs/templates/api_guide.md"
+          - "modal_app/api_guide.md"
         patterns:
           - "Input"
           - "Output"
@@ -324,7 +323,7 @@ articles:
           - "Decision"
           - "Intervention"
           - "Documentation"
-        threshold: 0.5  # Reduced from 0.8 to match available content
+        threshold: 0.5 # Reduced from 0.8 to match available content
         threshold_type: percentage
         weight: 0.2
         enabled: true

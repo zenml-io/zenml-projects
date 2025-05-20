@@ -137,20 +137,20 @@ The system processes applicant data through a standardized input format and prov
 
   **API Endpoints:**
 
-| Endpoint | URL                                                            |
-| -------- | -------------------------------------------------------------- |
-|          |                                                                |
-| root     | https://marwan-ext-main--credit-scoring-app.modal.run          |
-|          |                                                                |
-| predict  | https://marwan-ext-main--credit-scoring-app.modal.run/predict  |
-|          |                                                                |
-| monitor  | https://marwan-ext-main--credit-scoring-app.modal.run/monitor  |
-|          |                                                                |
-| incident | https://marwan-ext-main--credit-scoring-app.modal.run/incident |
-|          |                                                                |
-| health   | https://marwan-ext-main--credit-scoring-app.modal.run/health   |
-|          |                                                                |
-|          |                                                                |
+| Endpoint | URL                                                              |
+| -------- | ---------------------------------------------------------------- |
+|          |                                                                  |
+| root     | `https://marwan-ext-main--credit-scoring-app.modal.run`          |
+|          |                                                                  |
+| predict  | `https://marwan-ext-main--credit-scoring-app.modal.run/predict`  |
+|          |                                                                  |
+| monitor  | `https://marwan-ext-main--credit-scoring-app.modal.run/monitor`  |
+|          |                                                                  |
+| incident | `https://marwan-ext-main--credit-scoring-app.modal.run/incident` |
+|          |                                                                  |
+| health   | `https://marwan-ext-main--credit-scoring-app.modal.run/health`   |
+|          |                                                                  |
+|          |                                                                  |
 
 ### 1(e) Hardware Requirements
 
@@ -173,7 +173,7 @@ _Figure 2: Deployment Interface_
 **Documentation Resources:**
 
 - [User Guide](../../../README.md)
-- [API Documentation](api_guide.md)
+- [API Documentation](../../../modal_app/api_guide.md)
 
 ---
 
