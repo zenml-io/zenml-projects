@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-import openai
 from utils.data_models import SearchResult
 from utils.llm_utils import get_structured_llm_output
 from utils.prompts import DEFAULT_SEARCH_QUERY_PROMPT
@@ -105,9 +104,6 @@ def extract_search_results(
 
 def generate_search_query(
     sub_question: str,
-    openai_client: Optional[
-        openai.OpenAI
-    ] = None,  # Made optional for backward compatibility
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -117,7 +113,6 @@ def generate_search_query(
 
     Args:
         sub_question: The sub-question to generate a search query for
-        openai_client: OpenAI client (optional, kept for backward compatibility)
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM, defaults to DEFAULT_SEARCH_QUERY_PROMPT
 
@@ -132,7 +127,6 @@ def generate_search_query(
     return get_structured_llm_output(
         prompt=sub_question,
         system_prompt=system_prompt,
-        client=openai_client,
         model=model,
         fallback_response=fallback_response,
     )

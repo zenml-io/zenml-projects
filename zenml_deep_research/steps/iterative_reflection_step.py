@@ -10,7 +10,6 @@ from utils.data_models import (
 )
 from utils.llm_utils import (
     find_most_relevant_string,
-    get_sambanova_client,
     get_structured_llm_output,
     is_text_relevant,
 )
@@ -27,8 +26,7 @@ def iterative_reflection_step(
     max_additional_searches: int = 2,
     num_results_per_search: int = 3,
     cap_search_length: int = 20000,
-    sambanova_base_url: str = "https://api.sambanova.ai/v1",
-    llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     reflection_prompt: str = REFLECTION_PROMPT,
     additional_synthesis_prompt: str = ADDITIONAL_SYNTHESIS_PROMPT,
 ) -> Annotated[ResearchState, "updated_state"]:
@@ -39,7 +37,6 @@ def iterative_reflection_step(
         max_additional_searches: Maximum number of additional searches to perform
         num_results_per_search: Number of results to fetch per search
         cap_search_length: Maximum length of content to process from search results
-        sambanova_base_url: SambaNova API base URL
         llm_model: The model to use for reflection
         reflection_prompt: System prompt for the reflection
         additional_synthesis_prompt: System prompt for incorporating additional information
@@ -48,9 +45,6 @@ def iterative_reflection_step(
         Updated research state with enhanced information and reflection metadata
     """
     logger.info("Starting iterative reflection on research")
-
-    # Initialize OpenAI client using the utility function
-    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     # Prepare input for reflection
     synthesized_info_dict = {
@@ -103,7 +97,6 @@ def iterative_reflection_step(
         reflection_result = get_structured_llm_output(
             prompt=json.dumps(reflection_input),
             system_prompt=reflection_prompt,
-            client=openai_client,
             model=llm_model,
             fallback_response=fallback_reflection,
         )
@@ -144,7 +137,7 @@ def iterative_reflection_step(
 
                 # Find the most relevant sub-question for this query
                 most_relevant_question = find_most_relevant_string(
-                    query, state.sub_questions, openai_client, llm_model
+                    query, state.sub_questions, llm_model
                 )
 
                 if (
@@ -170,7 +163,6 @@ def iterative_reflection_step(
                     enhanced_synthesis = get_structured_llm_output(
                         prompt=json.dumps(enhancement_input),
                         system_prompt=additional_synthesis_prompt,
-                        client=openai_client,
                         model=llm_model,
                         fallback_response={
                             "enhanced_synthesis": enhanced_info[

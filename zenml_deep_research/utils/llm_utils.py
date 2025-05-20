@@ -1,9 +1,7 @@
 import json
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
-import openai
 from litellm import completion
 from utils.helper_functions import (
     clean_json_tags,
@@ -14,38 +12,14 @@ from utils.prompts import SYNTHESIS_PROMPT
 
 logger = logging.getLogger(__name__)
 
-
-def get_sambanova_client(
-    base_url: str = "https://api.sambanova.ai/v1",
-) -> openai.OpenAI:
-    """Get an OpenAI client configured for SambaNova.
-
-    This function still returns an OpenAI client for backward compatibility,
-    but new code should use the litellm functions directly.
-
-    Args:
-        base_url: SambaNova API base URL
-
-    Returns:
-        Configured OpenAI client for SambaNova
-
-    Raises:
-        ValueError: If SAMBANOVA_API_KEY environment variable is not set
-    """
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    return openai.OpenAI(api_key=sambanova_api_key, base_url=base_url)
+# This module uses litellm for all LLM interactions
+# Models are specified with a provider prefix (e.g., "sambanova/DeepSeek-R1-Distill-Llama-70B")
+# ALL model names require a provider prefix (e.g., "sambanova/", "openai/", "anthropic/")
 
 
 def run_llm_completion(
     prompt: str,
     system_prompt: str,
-    client: Optional[
-        openai.OpenAI
-    ] = None,  # Made optional for backward compatibility
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     clean_output: bool = True,
     max_tokens: int = 1000,
@@ -59,7 +33,6 @@ def run_llm_completion(
     Args:
         prompt: User prompt for the LLM
         system_prompt: System prompt for the LLM
-        client: OpenAI client instance (optional, kept for backward compatibility)
         model: Model to use for completion (with provider prefix)
         clean_output: Whether to clean reasoning and JSON tags from output. When True,
             this removes any reasoning sections marked with </think> tags and strips JSON
@@ -84,8 +57,10 @@ def run_llm_completion(
                 "aws",
             ]
         ):
-            # Add sambanova prefix if not specified (assuming default provider)
-            model = f"sambanova/{model}"
+            # Raise an error if no provider prefix is specified
+            error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'sambanova/{model}')"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
 
         response = completion(
             model=model,
@@ -122,9 +97,6 @@ def run_llm_completion(
 def get_structured_llm_output(
     prompt: str,
     system_prompt: str,
-    client: Optional[
-        openai.OpenAI
-    ] = None,  # Made optional for backward compatibility
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     fallback_response: Optional[Dict[str, Any]] = None,
     max_tokens: int = 1000,
@@ -138,7 +110,6 @@ def get_structured_llm_output(
     Args:
         prompt: User prompt for the LLM
         system_prompt: System prompt for the LLM
-        client: OpenAI client instance (optional, kept for backward compatibility)
         model: Model to use for completion (with provider prefix)
         fallback_response: Fallback response if parsing fails
         max_tokens: Maximum tokens to generate
@@ -152,7 +123,6 @@ def get_structured_llm_output(
         content = run_llm_completion(
             prompt=prompt,
             system_prompt=system_prompt,
-            client=client,
             model=model,
             clean_output=True,
             max_tokens=max_tokens,
@@ -209,7 +179,6 @@ def is_text_relevant(text1: str, text2: str, min_word_length: int = 4) -> bool:
 def find_most_relevant_string(
     target: str,
     options: List[str],
-    client: Optional[openai.OpenAI] = None,  # Kept for backward compatibility
     model: Optional[str] = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
 ) -> Optional[str]:
     """Find the most relevant string from a list of options using simple text matching.
@@ -219,7 +188,6 @@ def find_most_relevant_string(
     Args:
         target: The target string to find relevance for
         options: List of string options to check against
-        client: Optional OpenAI client (kept for backward compatibility)
         model: Model to use for matching (with provider prefix)
 
     Returns:
@@ -246,8 +214,10 @@ def find_most_relevant_string(
                     "aws",
                 ]
             ):
-                # Add sambanova prefix if not specified (assuming default provider)
-                model = f"sambanova/{model}"
+                # Raise an error if no provider prefix is specified
+                error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'sambanova/{model}')"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
 
             system_prompt = "You are a research assistant."
             prompt = f"""Given the text: "{target}"
@@ -296,9 +266,6 @@ Respond with only the exact text of the most relevant option."""
 
 def synthesize_information(
     synthesis_input: Dict[str, Any],
-    openai_client: Optional[
-        openai.OpenAI
-    ] = None,  # Made optional for backward compatibility
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -308,7 +275,6 @@ def synthesize_information(
 
     Args:
         synthesis_input: Dictionary with sub-question, search results, and sources
-        openai_client: OpenAI client (optional, kept for backward compatibility)
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM
 
@@ -334,7 +300,6 @@ def synthesize_information(
     result = get_structured_llm_output(
         prompt=json.dumps(synthesis_input),
         system_prompt=system_prompt,
-        client=openai_client,
         model=model,
         fallback_response=fallback_response,
         max_tokens=2000,  # Increased for synthesis

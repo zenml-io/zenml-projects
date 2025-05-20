@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def cross_viewpoint_analysis_step(
     state: ResearchState,
-    sambanova_base_url: str = "https://api.sambanova.ai/v1",
-    llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     viewpoint_categories: List[str] = [
         "scientific",
         "political",
@@ -37,7 +36,6 @@ def cross_viewpoint_analysis_step(
 
     Args:
         state: The current research state
-        sambanova_base_url: SambaNova API base URL
         llm_model: The model to use for viewpoint analysis
         viewpoint_categories: Categories of viewpoints to analyze
         system_prompt: System prompt for the LLM
@@ -48,8 +46,6 @@ def cross_viewpoint_analysis_step(
     logger.info(
         f"Performing cross-viewpoint analysis on {len(state.synthesized_info)} sub-questions"
     )
-
-    # No need to initialize OpenAI client since we're using direct litellm functions
 
     # Prepare input for viewpoint analysis
     analysis_input = {

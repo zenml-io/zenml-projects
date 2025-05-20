@@ -2,13 +2,28 @@
 enable_cache: true
 
 # Research parameters for more thorough research
+parameters:
+  query: "Quantum computing applications in cryptography"
+  
 steps:
-  report_structure_step:
+  initial_query_decomposition_step:
     parameters:
-      query: "Quantum computing applications in cryptography"
-    paragraph_research_step:
-      parameters:
-        num_reflections: 2  # Number of reflection cycles to perform per paragraph
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      max_sub_questions: 12  # More sub-questions for thorough analysis
+  
+  process_sub_question_step:
+    parameters:
+      llm_model_search: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      num_results_per_search: 5  # More search results for deep research
+  
+  iterative_reflection_step:
+    parameters:
+      max_additional_searches: 3  # More reflection cycles
+      
+  final_report_generation_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       
 # Environment settings
 settings:

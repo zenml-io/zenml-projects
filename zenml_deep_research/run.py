@@ -135,7 +135,7 @@ def main(
         pipeline_def = parallelized_deep_research_pipeline
     else:
         logger.info("Using standard sequential pipeline")
-        pipeline_def = enhanced_deep_research_pipeline
+        pipeline_def = parallelized_deep_research_pipeline
 
     # Set up the pipeline
     pipeline = pipeline_def.with_options(**pipeline_options)

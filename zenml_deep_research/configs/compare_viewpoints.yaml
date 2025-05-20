@@ -3,14 +3,14 @@ enable_cache: true
 
 # Research parameters for comparing different viewpoints
 steps:
-  report_structure_step:
+  initial_query_decomposition_step:
     parameters:
-      query: "Climate change policy debates"
-  paragraph_research_step:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  cross_viewpoint_analysis_step:
     parameters:
-      num_reflections: 2  # Number of reflection cycles to perform per paragraph
-      # compare_viewpoints: true  # Enable viewpoint comparison
-      # viewpoint_categories: ["scientific", "political", "economic", "social"]  # Types of viewpoints to compare
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      viewpoint_categories: ["scientific", "political", "economic", "social", "ethical", "historical"]
   
 # Environment settings
 settings:

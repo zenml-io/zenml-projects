@@ -2,14 +2,19 @@
 enable_cache: false  # Disable cache to always get fresh results for daily trends
 
 # Research parameters for daily trending topics
+parameters:
+  query: "Latest developments in artificial intelligence"
+
 steps:
-  report_structure_step:
+  initial_query_decomposition_step:
     parameters:
-      query: "Latest developments in artificial intelligence"
-  paragraph_research_step:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  process_sub_question_step:
     parameters:
-      num_reflections: 2  # Number of reflection cycles to perform per paragraph
-        # search_recency_days: 1  # Only search for content from the last 24 hours
+      llm_model_search: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      num_results_per_search: 3
 # Environment settings
 settings:
   docker:

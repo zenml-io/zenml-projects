@@ -3,7 +3,7 @@ from typing import Annotated
 
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState
-from utils.llm_utils import get_sambanova_client, get_structured_llm_output
+from utils.llm_utils import get_structured_llm_output
 from utils.prompts import QUERY_DECOMPOSITION_PROMPT
 from zenml import step
 
@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def initial_query_decomposition_step(
     state: ResearchState,
-    sambanova_base_url: str = "https://api.sambanova.ai/v1",
-    llm_model: str = "DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = QUERY_DECOMPOSITION_PROMPT,
     max_sub_questions: int = 8,
 ) -> Annotated[ResearchState, "updated_state"]:
@@ -22,8 +21,7 @@ def initial_query_decomposition_step(
 
     Args:
         state: The current research state
-        sambanova_base_url: SambaNova API base URL
-        llm_model: The reasoning model to use
+        llm_model: The reasoning model to use with provider prefix
         system_prompt: System prompt for the LLM
         max_sub_questions: Maximum number of sub-questions to generate
 
@@ -31,9 +29,6 @@ def initial_query_decomposition_step(
         Updated research state with sub-questions
     """
     logger.info(f"Decomposing research query: {state.main_query}")
-
-    # Initialize OpenAI client using the utility function
-    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     try:
         # Call OpenAI API to decompose the query
@@ -65,7 +60,6 @@ def initial_query_decomposition_step(
         decomposed_questions = get_structured_llm_output(
             prompt=state.main_query,
             system_prompt=updated_system_prompt,
-            client=openai_client,
             model=llm_model,
             fallback_response=fallback_questions,
         )
