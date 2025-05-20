@@ -50,25 +50,26 @@ you can adapt for your application. We maintain a growing list of projects
 from various ML domains including time-series, tabular data, computer vision,
 etc.
 
-| Project                                                   | Domain    | Key Features                               | Core Technologies                    |
-| --------------------------------------------------------- | --------- | ------------------------------------------ | ------------------------------------ |
-| [ZenML Support Agent](zenml-support-agent)                | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational    | langchain, llama_index, openai       |
-| [ZenCoder](zencoder)                                      | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning       | huggingface, pytorch, wandb          |
-| [Complete Guide to LLMs](llm-complete-guide)              | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation      | openai, huggingface, anthropic       |
-| [Gamesense](gamesense)                                    | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training             | pytorch, peft, phi-2                 |
-| [Nightwatch AI](nightwatch-ai)                            | 🤖 LLMOps | 📝 Summarization, 📊 Reporting             | openai, supabase, slack              |
-| [ResearchRadar](research-radar)                           | 🤖 LLMOps | 📝 Classification, 📊 Comparison           | anthropic, huggingface, transformers |
-| [End-to-end Computer Vision](end-to-end-computer-vision)  | 👁 CV     | 🔎 Object Detection, 🏷️ Labeling           | pytorch, label_studio, yolov8        |
-| [Magic Photobooth](magic-photobooth)                      | 👁 CV     | 📷 Image Gen, 🎞️ Video Gen                 | stable-diffusion, huggingface        |
-| [OmniReader](omni-reader)                                 | 👁 CV     | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing | polars, litellm, openai, ollama      |
-| [Sign Language Detection](sign-language-detection-yolov5) | 👁 CV     | 🔎 Object Detection, ⚡ Real-time          | mlflow, bentoml, vertex-ai           |
-| [Oncoclear](oncoclear)                                    | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                    | docker, kubernetes, scikit-learn     |
-| [Huggingface to Sagemaker](huggingface-sagemaker)         | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                    | mlflow, sagemaker, kubeflow          |
-| [Databricks Production QA](databricks-production-qa-demo) | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance        | databricks, evidently, shap          |
-| [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps | 📦 Model Registry, 🚀 Deployment       | vertex, gcp, zenml |
-| [Eurorate Predictor](eurorate-predictor)                  | 📊 Data   | ⏱️ Time Series, 🧹 ETL                     | airflow, bigquery, xgboost           |
-| [RetailForecast](retail-forecast)                         | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model | prophet, zenml, pandas             |
-| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml |
+| Project                                                      | Domain    | Key Features                                                | Core Technologies                    |
+| ------------------------------------------------------------ | --------- | ----------------------------------------------------------- | ------------------------------------ |
+| [ZenML Support Agent](zenml-support-agent)                   | 🤖 LLMOps | 🔍 RAG, 📊 Vector DB, 💬 Conversational                     | langchain, llama_index, openai       |
+| [ZenCoder](zencoder)                                         | 🤖 LLMOps | 🧠 Fine-tuning, 📈 Transfer Learning                        | huggingface, pytorch, wandb          |
+| [Complete Guide to LLMs](llm-complete-guide)                 | 🤖 LLMOps | 🔍 RAG, 🧠 Fine-tuning, 📊 Evaluation                       | openai, huggingface, anthropic       |
+| [Gamesense](gamesense)                                       | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training                              | pytorch, peft, phi-2                 |
+| [Nightwatch AI](nightwatch-ai)                               | 🤖 LLMOps | 📝 Summarization, 📊 Reporting                              | openai, supabase, slack              |
+| [ResearchRadar](research-radar)                              | 🤖 LLMOps | 📝 Classification, 📊 Comparison                            | anthropic, huggingface, transformers |
+| [End-to-end Computer Vision](end-to-end-computer-vision)     | 👁 CV      | 🔎 Object Detection, 🏷️ Labeling                            | pytorch, label_studio, yolov8        |
+| [Magic Photobooth](magic-photobooth)                         | 👁 CV      | 📷 Image Gen, 🎞️ Video Gen                                  | stable-diffusion, huggingface        |
+| [OmniReader](omni-reader)                                    | 👁 CV      | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing                  | polars, litellm, openai, ollama      |
+| [Sign Language Detection](sign-language-detection-yolov5)    | 👁 CV      | 🔎 Object Detection, ⚡ Real-time                           | mlflow, bentoml, vertex-ai           |
+| [Oncoclear](oncoclear)                                       | 🚀 MLOps  | 📦 Deployment, 🔄 CI/CD                                     | docker, kubernetes, scikit-learn     |
+| [Huggingface to Sagemaker](huggingface-sagemaker)            | 🚀 MLOps  | 🔄 CI/CD, 📦 Deployment                                     | mlflow, sagemaker, kubeflow          |
+| [Databricks Production QA](databricks-production-qa-demo)    | 🚀 MLOps  | 📊 Monitoring, 🔍 Quality Assurance                         | databricks, evidently, shap          |
+| [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps  | 📦 Model Registry, 🚀 Deployment                            | vertex, gcp, zenml                   |
+| [Eurorate Predictor](eurorate-predictor)                     | 📊 Data   | ⏱️ Time Series, 🧹 ETL                                      | airflow, bigquery, xgboost           |
+| [RetailForecast](retail-forecast)                            | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model              | prophet, zenml, pandas               |
+| [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data   | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml               |
+| [Credit Scorer](credit-scorer)                               | 📊 Data   | 💰 Credit Risk, 📊 Explainability, 🇪🇺 EU AI Act             | scikit-learn, fairlearn, zenml       |
 
 # 💻 System Requirements
 
@@ -87,6 +88,7 @@ See our [contributing guide](./CONTRIBUTING.md) to start.
 ## Code Quality
 
 All code contributions must pass our automated code quality checks:
+
 - **Code Formatting**: We use [ruff](https://github.com/astral-sh/ruff) for code formatting and linting
 - **Spelling**: We check for typos and spelling errors
 - **Markdown Links**: We verify that all links in documentation work properly
@@ -97,8 +99,8 @@ Our CI pipeline will automatically check your PR for these issues. Remember to r
 
 By far the easiest and fastest way to get help is to:
 
-* Ask your questions in [our Slack group](https://zenml.io/slack/).
-* [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose)
+- Ask your questions in [our Slack group](https://zenml.io/slack/).
+- [Open an issue](https://github.com/zenml-io/zenml-dashboard/issues/new/choose)
   on our GitHub repo.
 
 # 🔥 About ZenML
@@ -128,20 +130,22 @@ this repository. Any contribution made to this project will be licensed under
 the Apache License Version 2.0.
 
 # 📖 Learn More
-| ZenML Resources             | Description                                        |
-|-----------------------------|----------------------------------------------------|
-| 🧘 **[ZenML 101]**          | New to ZenML? Here's everything you need to know! |
-| ⚛ **[Core Concepts]**       | Understand ZenML's building blocks.               |
-| 🚀 **[Our latest release]** | New features, bug fixes.                          |
-| 🗳 **[Vote for Features]**  | Pick what we work on next!                         |
-| 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines. |
-| 📒 **[API Reference]**      | Detailed reference on ZenML's API.                 |
-| ⚽ **[Examples]**           | Explore more sample projects.                      |
+
+| ZenML Resources             | Description                                                     |
+| --------------------------- | --------------------------------------------------------------- |
+| 🧘 **[ZenML 101]**          | New to ZenML? Here's everything you need to know!               |
+| ⚛ **[Core Concepts]**       | Understand ZenML's building blocks.                             |
+| 🚀 **[Our latest release]** | New features, bug fixes.                                        |
+| 🗳 **[Vote for Features]**   | Pick what we work on next!                                      |
+| 📓 **[Docs]**               | Full documentation for creating your own ZenML pipelines.       |
+| 📒 **[API Reference]**      | Detailed reference on ZenML's API.                              |
+| ⚽ **[Examples]**           | Explore more sample projects.                                   |
 | 📬 **[Blog]**               | Use cases of ZenML and technical deep dives on how we built it. |
-| 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks. |
-| 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack! |
-| 🗺 **[Roadmap]**            | See where ZenML is working to build new features. |
-| 🙋 **[Contribute]**         | Got a PR or feature request? Start here.           |
+| 🔈 **[Podcast]**            | Conversations with leaders in ML, released every 2 weeks.       |
+| 💬 **[Join Slack]**         | Need help with your specific use case? Say hi on Slack!         |
+| 🗺 **[Roadmap]**             | See where ZenML is working to build new features.               |
+| 🙋 **[Contribute]**         | Got a PR or feature request? Start here.                        |
+
 [ZenML 101]: https://docs.zenml.io/user-guides/starter-guide
 [Core Concepts]: https://docs.zenml.io/getting-started/core-concepts
 [Our latest release]: https://github.com/zenml-io/zenml/releases
