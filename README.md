@@ -2,6 +2,8 @@
 
 > A ZenML‑powered end‑to‑end credit‑scoring workflow that automatically generates the technical evidence required by the [EU AI Act](https://www.zenml.io/blog/understanding-the-ai-act-february-2025-updates-and-implications). This project demonstrates how to build AI systems that meet regulatory requirements while maintaining development efficiency. The EU AI Act, which came into effect in 2024, introduces mandatory compliance requirements for high-risk AI systems, making automated compliance crucial for organizations deploying AI in regulated environments.
 
+![Streamlit Compliance Dashboard](assets/streamlit-app.png)
+
 ## 🚀 Project Overview
 
 The project implements three main pipelines:
@@ -144,6 +146,23 @@ Pipeline configurations are stored in the `src/configs/` directory:
 - [`deployment.yaml`](src/configs/deployment.yaml)
 
 You can specify a custom config directory using the `--config-dir` option.
+
+## Compliance Dashboard
+
+The project includes a Streamlit-based compliance dashboard that provides:
+
+- Real-time visibility into EU AI Act compliance status
+- Executive summary of current risk levels and compliance metrics
+- Detailed risk assessment visualizations and tracking
+- Access to all compliance artifacts from a single interface
+- Generated Annex IV documentation with export options
+
+To run the dashboard:
+
+```bash
+# Launch the Streamlit compliance dashboard
+python run_dashboard.py
+```
 
 ## Modal Deployment
 

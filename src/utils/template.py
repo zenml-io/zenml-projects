@@ -18,7 +18,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import jinja2
 import yaml
@@ -33,7 +33,7 @@ def setup_jinja_environment(template_dir: Path) -> jinja2.Environment:
     Returns:
         Configured Jinja2 environment
     """
-    loader = jinja2.FileSystemLoader(searchpath=template_dir)
+    loader = jinja2.FileSystemLoader(searchpath=str(template_dir))
     env = jinja2.Environment(loader=loader)
 
     # Add custom filters
@@ -59,9 +59,9 @@ def load_sample_inputs(template_dir: Path) -> Dict[str, Any]:
     Returns:
         Dictionary with sample input data
     """
-    sample_inputs_path = template_dir / "sample_inputs.json"
+    sample_inputs_path: Path = template_dir / "sample_inputs.json"
     if sample_inputs_path.exists():
-        with open(sample_inputs_path, "r") as f:
+        with open(sample_inputs_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
@@ -84,15 +84,15 @@ def render_annex_iv_template(
     if template_dir is None:
         template_dir = Path(__file__).parent.parent.parent / "docs" / "templates"
     
-    env = setup_jinja_environment(template_dir)
-    template = env.get_template("annex_iv_template.j2")
+    env: jinja2.Environment = setup_jinja_environment(template_dir)
+    template: jinja2.Template = env.get_template("annex_iv_template.j2")
 
     # Load sample inputs if manual_inputs is not provided
     if manual_inputs is None:
         manual_inputs = load_sample_inputs(template_dir)
     
     # Set up the template variables
-    template_data = {
+    template_data: Dict[str, Any] = {
         **metadata,
         "manual_inputs": manual_inputs,
         "generation_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -102,31 +102,31 @@ def render_annex_iv_template(
 
 
 # Custom filter functions
-def _filter_join_kv(d: Dict) -> str:
+def _filter_join_kv(d: Dict[str, Any]) -> str:
     """Format dictionary key-value pairs to a readable string."""
     return ", ".join(f"{k}={v}" for k, v in d.items()) if d else "-"
 
 
-def _filter_join_list_kv(d: Dict) -> str:
+def _filter_join_list_kv(d: Dict[str, List[Any]]) -> str:
     """Format dictionaries with list values (ensuring all elements are strings)."""
     return ", ".join(f"{k}=[{','.join(str(x) for x in v)}]" for k, v in d.items()) if d else "-"
 
 
-def _filter_list_keys(d: Dict) -> str:
+def _filter_list_keys(d: Dict[str, Any]) -> str:
     """Extract dictionary keys."""
     return ", ".join(d.keys()) if isinstance(d, dict) and d else "-"
 
 
-def _filter_format_inputs(inputs: Dict) -> str:
+def _filter_format_inputs(inputs: Dict[str, Any]) -> str:
     """Format inputs for pipeline steps with better error handling."""
     if not inputs:
         return "-"
 
-    result = []
+    result: List[str] = []
     for k, v in inputs.items():
         try:
             # Only take the first 8 characters of the string representation
-            value_str = str(v)[:8]
+            value_str: str = str(v)[:8]
             result.append(f"{k}=`{value_str}`")
         except Exception:
             # Fallback in case of errors
@@ -135,16 +135,16 @@ def _filter_format_inputs(inputs: Dict) -> str:
     return ", ".join(result)
 
 
-def _filter_format_outputs(outputs: Dict) -> str:
+def _filter_format_outputs(outputs: Dict[str, Union[Any, List[Any]]]) -> str:
     """Format outputs for pipeline steps with better handling of list values."""
     if not outputs:
         return "-"
 
-    result = []
+    result: List[str] = []
     for k, v in outputs.items():
         if isinstance(v, list) and v:
             # Handle list of IDs
-            formatted_ids = ",".join(f"`{str(x)[:8]}`" for x in v)
+            formatted_ids: str = ",".join(f"`{str(x)[:8]}`" for x in v)
             result.append(f"{k}=[{formatted_ids}]")
         else:
             # Handle single value or empty list
@@ -163,11 +163,11 @@ def _filter_to_yaml(obj: Any) -> str:
     return yaml.dump(obj, default_flow_style=False)
 
 
-def _filter_nl2br(text: str) -> str:
+def _filter_nl2br(text: Optional[str]) -> str:
     """Handle newlines in Jinja templates by converting to HTML breaks."""
     return text.replace("\n", "<br>") if text else ""
 
 
-def _filter_preserve_newlines(text: str) -> str:
+def _filter_preserve_newlines(text: Optional[str]) -> str:
     """Preserve newlines for markdown."""
     return text if text else ""
