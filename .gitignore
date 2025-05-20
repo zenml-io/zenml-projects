@@ -167,3 +167,7 @@ finetuned-snowflake-arctic-embed-m-v1.5/
 
 # ollama ignores
 nohup.out
+
+# LLM stuff
+.claude
+
