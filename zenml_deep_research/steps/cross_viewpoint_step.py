@@ -1,9 +1,7 @@
 import json
 import logging
-import os
 from typing import Annotated, List
 
-import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import (
     ResearchState,
@@ -11,10 +9,9 @@ from utils.data_models import (
     ViewpointTension,
 )
 from utils.helper_functions import (
-    clean_json_tags,
-    remove_reasoning_from_output,
     safe_json_loads,
 )
+from utils.llm_utils import run_llm_completion
 from utils.prompts import VIEWPOINT_ANALYSIS_PROMPT
 from zenml import step
 
@@ -52,16 +49,7 @@ def cross_viewpoint_analysis_step(
         f"Performing cross-viewpoint analysis on {len(state.synthesized_info)} sub-questions"
     )
 
-    # Get API key from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
+    # No need to initialize OpenAI client since we're using direct litellm functions
 
     # Prepare input for viewpoint analysis
     analysis_input = {
@@ -82,17 +70,13 @@ def cross_viewpoint_analysis_step(
     # Perform viewpoint analysis
     try:
         logger.info(f"Calling {llm_model} for viewpoint analysis")
-        response = openai_client.chat.completions.create(
-            model=llm_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(analysis_input)},
-            ],
+        # Use the run_llm_completion function from llm_utils
+        content = run_llm_completion(
+            prompt=json.dumps(analysis_input),
+            system_prompt=system_prompt,
+            model=llm_model,  # Model name will be prefixed in the function
+            max_tokens=2000,  # Increased for this complex task
         )
-
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
 
         result = safe_json_loads(content)
 

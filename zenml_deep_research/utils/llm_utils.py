@@ -4,6 +4,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import openai
+from litellm import completion
 from utils.helper_functions import (
     clean_json_tags,
     remove_reasoning_from_output,
@@ -18,6 +19,9 @@ def get_sambanova_client(
     base_url: str = "https://api.sambanova.ai/v1",
 ) -> openai.OpenAI:
     """Get an OpenAI client configured for SambaNova.
+
+    This function still returns an OpenAI client for backward compatibility,
+    but new code should use the litellm functions directly.
 
     Args:
         base_url: SambaNova API base URL
@@ -39,29 +43,57 @@ def get_sambanova_client(
 def run_llm_completion(
     prompt: str,
     system_prompt: str,
-    client: openai.OpenAI,
-    model: str,
+    client: Optional[
+        openai.OpenAI
+    ] = None,  # Made optional for backward compatibility
+    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     clean_output: bool = True,
+    max_tokens: int = 1000,
+    temperature: float = 0.2,
+    top_p: float = 0.9,
 ) -> str:
     """Run an LLM completion with standard error handling and output cleaning.
+
+    Uses litellm for model inference.
 
     Args:
         prompt: User prompt for the LLM
         system_prompt: System prompt for the LLM
-        client: OpenAI client instance
-        model: Model to use for completion
+        client: OpenAI client instance (optional, kept for backward compatibility)
+        model: Model to use for completion (with provider prefix)
         clean_output: Whether to clean reasoning and JSON tags from output
+        max_tokens: Maximum tokens to generate
+        temperature: Sampling temperature
+        top_p: Top-p sampling value
 
     Returns:
         Processed LLM output
     """
     try:
-        response = client.chat.completions.create(
+        # Ensure model name has provider prefix
+        if not any(
+            model.startswith(prefix + "/")
+            for prefix in [
+                "sambanova",
+                "openai",
+                "anthropic",
+                "meta",
+                "google",
+                "aws",
+            ]
+        ):
+            # Add sambanova prefix if not specified (assuming default provider)
+            model = f"sambanova/{model}"
+
+        response = completion(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
         )
 
         # Defensive access to content
@@ -88,18 +120,28 @@ def run_llm_completion(
 def get_structured_llm_output(
     prompt: str,
     system_prompt: str,
-    client: openai.OpenAI,
-    model: str,
+    client: Optional[
+        openai.OpenAI
+    ] = None,  # Made optional for backward compatibility
+    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     fallback_response: Optional[Dict[str, Any]] = None,
+    max_tokens: int = 1000,
+    temperature: float = 0.2,
+    top_p: float = 0.9,
 ) -> Dict[str, Any]:
     """Get structured JSON output from an LLM with error handling.
+
+    Uses litellm for model inference.
 
     Args:
         prompt: User prompt for the LLM
         system_prompt: System prompt for the LLM
-        client: OpenAI client instance
-        model: Model to use for completion
+        client: OpenAI client instance (optional, kept for backward compatibility)
+        model: Model to use for completion (with provider prefix)
         fallback_response: Fallback response if parsing fails
+        max_tokens: Maximum tokens to generate
+        temperature: Sampling temperature
+        top_p: Top-p sampling value
 
     Returns:
         Parsed JSON response or fallback
@@ -111,6 +153,9 @@ def get_structured_llm_output(
             client=client,
             model=model,
             clean_output=True,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
         )
 
         if not content:
@@ -156,18 +201,18 @@ def is_text_relevant(text1: str, text2: str, min_word_length: int = 4) -> bool:
 def find_most_relevant_string(
     target: str,
     options: List[str],
-    client: Optional[openai.OpenAI] = None,
-    model: Optional[str] = None,
+    client: Optional[openai.OpenAI] = None,  # Kept for backward compatibility
+    model: Optional[str] = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
 ) -> Optional[str]:
     """Find the most relevant string from a list of options using simple text matching.
 
-    If client and model are provided, uses LLM to determine relevance.
+    If model is provided, uses litellm to determine relevance.
 
     Args:
         target: The target string to find relevance for
         options: List of string options to check against
-        client: Optional OpenAI client for more accurate relevance
-        model: Model to use if client is provided
+        client: Optional OpenAI client (kept for backward compatibility)
+        model: Model to use for matching (with provider prefix)
 
     Returns:
         The most relevant string, or None if no relevant options
@@ -178,9 +223,24 @@ def find_most_relevant_string(
     if len(options) == 1:
         return options[0]
 
-    # If LLM client is provided, use it for more accurate matching
-    if client and model:
+    # If model is provided, use litellm for more accurate matching
+    if model:
         try:
+            # Ensure model name has provider prefix
+            if not any(
+                model.startswith(prefix + "/")
+                for prefix in [
+                    "sambanova",
+                    "openai",
+                    "anthropic",
+                    "meta",
+                    "google",
+                    "aws",
+                ]
+            ):
+                # Add sambanova prefix if not specified (assuming default provider)
+                model = f"sambanova/{model}"
+
             system_prompt = "You are a research assistant."
             prompt = f"""Given the text: "{target}"
 Which of the following options is most relevant to this text?
@@ -188,12 +248,14 @@ Which of the following options is most relevant to this text?
 
 Respond with only the exact text of the most relevant option."""
 
-            response = client.chat.completions.create(
+            response = completion(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
+                max_tokens=100,
+                temperature=0.2,
             )
 
             answer = response.choices[0].message.content.strip()
@@ -226,16 +288,20 @@ Respond with only the exact text of the most relevant option."""
 
 def synthesize_information(
     synthesis_input: Dict[str, Any],
-    openai_client: openai.OpenAI,
-    model: str,
+    openai_client: Optional[
+        openai.OpenAI
+    ] = None,  # Made optional for backward compatibility
+    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Synthesize information from search results for a sub-question.
 
+    Uses litellm for model inference.
+
     Args:
         synthesis_input: Dictionary with sub-question, search results, and sources
-        openai_client: OpenAI client
-        model: Model to use
+        openai_client: OpenAI client (optional, kept for backward compatibility)
+        model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM
 
     Returns:
@@ -263,6 +329,7 @@ def synthesize_information(
         client=openai_client,
         model=model,
         fallback_response=fallback_response,
+        max_tokens=2000,  # Increased for synthesis
     )
 
     return result

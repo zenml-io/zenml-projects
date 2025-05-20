@@ -87,16 +87,20 @@ def extract_search_results(
 
 def generate_search_query(
     sub_question: str,
-    openai_client: openai.OpenAI,
-    model: str,
+    openai_client: Optional[
+        openai.OpenAI
+    ] = None,  # Made optional for backward compatibility
+    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate an optimized search query for a sub-question.
 
+    Uses litellm for model inference via get_structured_llm_output.
+
     Args:
         sub_question: The sub-question to generate a search query for
-        openai_client: OpenAI client
-        model: Model to use
+        openai_client: OpenAI client (optional, kept for backward compatibility)
+        model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM, defaults to DEFAULT_SEARCH_QUERY_PROMPT
 
     Returns:
