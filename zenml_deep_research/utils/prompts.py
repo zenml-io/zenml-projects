@@ -867,6 +867,28 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 10px 0;
         }}
         
+        .viewpoint-content {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }}
+        
+        .viewpoint-item {{
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            padding: 10px;
+            flex: 1 1 200px;
+            border-left: 3px solid #721c24;
+        }}
+        
+        .viewpoint-item h5 {{
+            margin-top: 0;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+            padding-bottom: 5px;
+        }}
+        
         /* Blockquote styling */
         blockquote {{
             border-left: 3px solid #3498db;
@@ -1016,7 +1038,9 @@ VIEWPOINT_ANALYSIS_TEMPLATE = """
     </div>
     
     <h3>Areas of Tension</h3>
-    {tensions_html}
+    <div class="viewpoint-tensions">
+        {tensions_html}
+    </div>
     
     <h3>Perspective Gaps</h3>
     <p>{perspective_gaps}</p>

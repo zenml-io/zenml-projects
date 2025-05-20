@@ -31,7 +31,7 @@ def tavily_search(
                 "results": List[Dict],  # List of search result objects
                 "error": str,  # Error message (if an error occurred, otherwise omitted)
             }
-            
+
             Each result in "results" has the following structure:
             {
                 "url": str,  # URL of the search result

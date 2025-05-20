@@ -183,7 +183,9 @@ def generate_report_from_template(state: ResearchState) -> str:
             all_sources.update(info.key_sources)
             sources_list = "\n".join(
                 [
-                    f"<li>{html.escape(source)}</li>"
+                    f'<li><a href="{html.escape(source)}" target="_blank">{html.escape(source)}</a></li>'
+                    if source.startswith(("http://", "https://"))
+                    else f"<li>{html.escape(source)}</li>"
                     for source in info.key_sources
                 ]
             )
@@ -233,16 +235,18 @@ def generate_report_from_template(state: ResearchState) -> str:
             viewpoints_html = ""
             for title, content in tension.viewpoints.items():
                 viewpoints_html += f"""
-                <dt>{html.escape(title)}</dt>
-                <dd>{html.escape(content)}</dd>
+                <div class="viewpoint-item">
+                    <h5>{html.escape(title)}</h5>
+                    <p>{html.escape(content)}</p>
+                </div>
                 """
 
             tensions_html += f"""
             <div class="viewpoint-tension">
                 <h4>{html.escape(tension.topic)}</h4>
-                <dl>
+                <div class="viewpoint-content">
                     {viewpoints_html}
-                </dl>
+                </div>
             </div>
             """
 
@@ -262,7 +266,10 @@ def generate_report_from_template(state: ResearchState) -> str:
     references_html = "<ul>"
     if all_sources:
         for source in sorted(all_sources):
-            references_html += f"<li>{html.escape(source)}</li>\n"
+            if source.startswith(("http://", "https://")):
+                references_html += f'<li><a href="{html.escape(source)}" target="_blank">{html.escape(source)}</a></li>\n'
+            else:
+                references_html += f"<li>{html.escape(source)}</li>\n"
     else:
         references_html += (
             "<li>No external sources were referenced in this research.</li>"

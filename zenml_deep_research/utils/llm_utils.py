@@ -61,8 +61,8 @@ def run_llm_completion(
         system_prompt: System prompt for the LLM
         client: OpenAI client instance (optional, kept for backward compatibility)
         model: Model to use for completion (with provider prefix)
-        clean_output: Whether to clean reasoning and JSON tags from output. When True, 
-            this removes any reasoning sections marked with </think> tags and strips JSON 
+        clean_output: Whether to clean reasoning and JSON tags from output. When True,
+            this removes any reasoning sections marked with </think> tags and strips JSON
             code block markers.
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
