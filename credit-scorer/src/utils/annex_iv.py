@@ -35,7 +35,9 @@ from src.constants import (
 logger = get_logger(__name__)
 
 
-def parse_requirements_txt(requirements_path: str = "requirements.txt") -> Dict[str, str]:
+def parse_requirements_txt(
+    requirements_path: str = "requirements.txt",
+) -> Dict[str, str]:
     """Parse requirements.txt and extract package versions.
 
     Args:
@@ -68,10 +70,14 @@ def parse_requirements_txt(requirements_path: str = "requirements.txt") -> Dict[
                 frameworks[package.strip()] = f"~={version.strip()}"
             else:
                 # Handle cases like "package" without version
-                package = line.split()[0]  # Get first word, ignore any comments
+                package = line.split()[
+                    0
+                ]  # Get first word, ignore any comments
                 frameworks[package.strip()] = "latest"
 
-        logger.info(f"Parsed {len(frameworks)} frameworks from {requirements_path}")
+        logger.info(
+            f"Parsed {len(frameworks)} frameworks from {requirements_path}"
+        )
 
     except FileNotFoundError:
         logger.warning(f"requirements.txt not found at {requirements_path}")
@@ -83,7 +89,9 @@ def parse_requirements_txt(requirements_path: str = "requirements.txt") -> Dict[
     return frameworks
 
 
-def process_manual_inputs_newlines(manual_inputs: Dict[str, Any]) -> Dict[str, Any]:
+def process_manual_inputs_newlines(
+    manual_inputs: Dict[str, Any],
+) -> Dict[str, Any]:
     """Process manual inputs to handle newlines properly for template rendering.
 
     Args:
@@ -104,7 +112,8 @@ def process_manual_inputs_newlines(manual_inputs: Dict[str, Any]) -> Dict[str, A
         elif isinstance(value, list):
             # Process lists that might contain strings
             processed[key] = [
-                item.replace("\\n", "\n") if isinstance(item, str) else item for item in value
+                item.replace("\\n", "\n") if isinstance(item, str) else item
+                for item in value
             ]
         else:
             # Keep other types as-is
@@ -128,7 +137,9 @@ def load_and_process_manual_inputs(sample_inputs_path: str) -> Dict[str, Any]:
             manual_inputs = json.load(f)
         logger.info(f"Loaded manual inputs from {sample_inputs_path}")
     except Exception as e:
-        logger.error(f"Failed to load sample inputs from {sample_inputs_path}: {e}")
+        logger.error(
+            f"Failed to load sample inputs from {sample_inputs_path}: {e}"
+        )
         manual_inputs = {}  # Create empty dict as fallback
 
     # Process newlines in manual inputs
@@ -145,7 +156,9 @@ def load_and_process_manual_inputs(sample_inputs_path: str) -> Dict[str, Any]:
         else:
             # Fallback to empty dict if requirements.txt parsing failed
             manual_inputs["frameworks"] = {}
-            logger.warning("No frameworks found in requirements.txt, using empty frameworks dict")
+            logger.warning(
+                "No frameworks found in requirements.txt, using empty frameworks dict"
+            )
 
     return manual_inputs
 
@@ -193,7 +206,9 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
         },
     }
 
-    metadata["run"]["resource_settings"] = run.config.settings.get("docker", {})
+    metadata["run"]["resource_settings"] = run.config.settings.get(
+        "docker", {}
+    )
 
     # 6. Loop over your three pipelines and grab last_run & steps
     pipeline_names = [
@@ -214,11 +229,15 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
                 }
             )
         except Exception as e:
-            logger.warning(f"Could not fetch last run for pipeline '{pipe_name}': {e}")
+            logger.warning(
+                f"Could not fetch last run for pipeline '{pipe_name}': {e}"
+            )
 
     # 7. Collect artifacts for the current run
     try:
-        arts = client.list_artifacts(pipeline_name=run.pipeline.name, pipeline_run_id=run.id)
+        arts = client.list_artifacts(
+            pipeline_name=run.pipeline.name, pipeline_run_id=run.id
+        )
         for art in arts:
             metadata["run"]["artifacts"][art.name] = art.uri
     except Exception:
@@ -255,7 +274,9 @@ def _collect_stack_information(client: Client) -> Dict[str, Any]:
             "name": stack.name,
             "created": str(getattr(stack, "created", None)),
             "updated": str(getattr(stack, "updated", None)),
-            "user_id": str(stack.user.id) if hasattr(stack, "user") and stack.user else None,
+            "user_id": str(stack.user.id)
+            if hasattr(stack, "user") and stack.user
+            else None,
             "description": getattr(stack, "description", None),
             "components": {},
         }
@@ -276,23 +297,30 @@ def _collect_previous_versions(client: Client) -> List[Dict[str, Any]]:
     try:
         deployment_pipeline = client.get_pipeline(DEPLOYMENT_PIPELINE_NAME)
         # Get all runs for the deployment pipeline, ordered by creation time (newest first)
-        deployment_runs = list(client.list_pipeline_runs(pipeline_id=deployment_pipeline.id))
+        deployment_runs = list(
+            client.list_pipeline_runs(pipeline_id=deployment_pipeline.id)
+        )
 
         # Sort by creation time to get chronological order
         deployment_runs.sort(key=lambda x: x.created, reverse=True)
 
         # Skip the most recent run (current) and get previous runs
-        for pipeline_run in deployment_runs[1:11]:  # Get up to 10 previous versions
+        for pipeline_run in deployment_runs[
+            1:11
+        ]:  # Get up to 10 previous versions
             previous_versions.append(
                 {
                     "run_id": str(pipeline_run.id),
-                    "created": pipeline_run.created.strftime("%Y-%m-%d %H:%M:%S")
+                    "created": pipeline_run.created.strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
                     if pipeline_run.created
                     else "Unknown",
                     "status": str(pipeline_run.status)
                     if hasattr(pipeline_run, "status")
                     else "Unknown",
-                    "version": pipeline_run.name or f"Run {str(pipeline_run.id)[:8]}",
+                    "version": pipeline_run.name
+                    or f"Run {str(pipeline_run.id)[:8]}",
                 }
             )
 
@@ -300,7 +328,9 @@ def _collect_previous_versions(client: Client) -> List[Dict[str, Any]]:
             f"Found {len(previous_versions)} previous versions for {DEPLOYMENT_PIPELINE_NAME}"
         )
     except Exception as e:
-        logger.warning(f"Failed to get previous versions for {DEPLOYMENT_PIPELINE_NAME}: {e}")
+        logger.warning(
+            f"Failed to get previous versions for {DEPLOYMENT_PIPELINE_NAME}: {e}"
+        )
 
     return previous_versions
 
@@ -352,9 +382,7 @@ def write_git_information(run_release_dir: Path) -> None:
         git_md = "# Git Information\n\n"
         git_md += f"**Commit SHA:** {repo.head.commit.hexsha}\n\n"
         git_md += f"**Commit Date:** {datetime.fromtimestamp(repo.head.commit.committed_date).isoformat()}\n\n"
-        git_md += (
-            f"**Author:** {repo.head.commit.author.name} <{repo.head.commit.author.email}>\n\n"
-        )
+        git_md += f"**Author:** {repo.head.commit.author.name} <{repo.head.commit.author.email}>\n\n"
         git_md += f"**Message:**\n```\n{repo.head.commit.message}\n```\n"
         (run_release_dir / "git_info.md").write_text(git_md)
     except Exception:
@@ -370,60 +398,81 @@ def save_evaluation_artifacts(
     if evaluation_results:
         # Create summarized version of evaluation results for local storage
         summarized_results = _summarize_evaluation_results(evaluation_results)
-        (run_release_dir / "evaluation_results.yaml").write_text(yaml.dump(summarized_results))
+        (run_release_dir / "evaluation_results.yaml").write_text(
+            yaml.dump(summarized_results)
+        )
     if risk_scores:
-        (run_release_dir / "risk_scores.yaml").write_text(yaml.dump(risk_scores))
+        (run_release_dir / "risk_scores.yaml").write_text(
+            yaml.dump(risk_scores)
+        )
 
 
-def _summarize_evaluation_results(evaluation_results: Dict[str, Any]) -> Dict[str, Any]:
+def _summarize_evaluation_results(
+    evaluation_results: Dict[str, Any],
+) -> Dict[str, Any]:
     """Summarize evaluation results to reduce file size while preserving key information."""
     summarized = evaluation_results.copy()
-    
+
     # Summarize fairness metrics if present
-    if "fairness" in summarized and "fairness_metrics" in summarized["fairness"]:
+    if (
+        "fairness" in summarized
+        and "fairness_metrics" in summarized["fairness"]
+    ):
         fairness_metrics = summarized["fairness"]["fairness_metrics"]
         summarized_fairness = {}
-        
+
         for attribute, metrics in fairness_metrics.items():
             if not isinstance(metrics, dict):
                 summarized_fairness[attribute] = metrics
                 continue
-                
+
             attr_summary = {}
-            
+
             # Copy non-group metrics directly
             for key, value in metrics.items():
                 if key not in ["accuracy_by_group", "selection_rate_by_group"]:
                     attr_summary[key] = value
-            
+
             # Helper function to check if groups are numeric
             def is_numeric_groups(groups_dict):
                 return all(
-                    isinstance(k, (int, float, str)) and 
-                    str(k).replace('.', '').replace('-', '').replace('_', '').isdigit()
+                    isinstance(k, (int, float, str))
+                    and str(k)
+                    .replace(".", "")
+                    .replace("-", "")
+                    .replace("_", "")
+                    .isdigit()
                     for k in groups_dict.keys()
                 )
-            
+
             # Summarize accuracy_by_group if present
-            if "accuracy_by_group" in metrics and isinstance(metrics["accuracy_by_group"], dict):
+            if "accuracy_by_group" in metrics and isinstance(
+                metrics["accuracy_by_group"], dict
+            ):
                 accuracy_groups = metrics["accuracy_by_group"]
                 accuracies = list(accuracy_groups.values())
-                
-                if accuracies and is_numeric_groups(accuracy_groups) and len(accuracy_groups) > 10:
+
+                if (
+                    accuracies
+                    and is_numeric_groups(accuracy_groups)
+                    and len(accuracy_groups) > 10
+                ):
                     # For large numeric groups, provide summary statistics
                     attr_summary["accuracy_by_group_summary"] = {
                         "num_groups": len(accuracies),
                         "min_accuracy": round(min(accuracies), 4),
                         "max_accuracy": round(max(accuracies), 4),
-                        "mean_accuracy": round(sum(accuracies) / len(accuracies), 4),
-                        "accuracy_range": f"{min(accuracies):.4f} - {max(accuracies):.4f}"
+                        "mean_accuracy": round(
+                            sum(accuracies) / len(accuracies), 4
+                        ),
+                        "accuracy_range": f"{min(accuracies):.4f} - {max(accuracies):.4f}",
                     }
-            
+
             summarized_fairness[attribute] = attr_summary
-        
+
         # Replace the original fairness_metrics with summarized version
         summarized["fairness"]["fairness_metrics"] = summarized_fairness
-    
+
     return summarized
 
 
@@ -445,7 +494,9 @@ def generate_readme(
         f.write(
             f"This directory contains compliance documentation and artifacts generated for pipeline run `{run_id}`.\n"
         )
-        f.write(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(
+            f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        )
 
         # Core documentation
         f.write("### Core Documentation\n\n")
@@ -507,7 +558,9 @@ def generate_readme(
             "monitoring_plan.json",
             "whylogs_profile.html",
         }
-        other_files = [f for f in releases_dir.glob("*") if f.name not in excluded_files]
+        other_files = [
+            f for f in releases_dir.glob("*") if f.name not in excluded_files
+        ]
 
         if other_files:
             f.write("\n### Additional Files\n\n")
@@ -521,7 +574,9 @@ def generate_readme(
 
         # EU AI Act compliance section
         f.write("\n## EU AI Act Compliance\n\n")
-        f.write("This documentation supports compliance with the EU AI Act, particularly:\n\n")
+        f.write(
+            "This documentation supports compliance with the EU AI Act, particularly:\n\n"
+        )
         f.write("- **Article 11**: Technical Documentation requirements\n")
         f.write("- **Article 9**: Risk Management System\n")
         f.write("- **Article 10**: Data Governance\n")

@@ -1,6 +1,5 @@
 """Header component for the dashboard."""
 
-from datetime import datetime
 import sys
 from pathlib import Path
 
@@ -12,23 +11,24 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.utils.compliance import calculate_compliance
-from streamlit_app.config import PRIMARY_COLOR
+
 from streamlit_app.data.loader import load_latest_release_info
 
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_compliance_score():
     """Calculate the current compliance score using the same method as the test script.
-    
+
     The result is cached for 1 hour to avoid recalculation on every page refresh.
     """
     try:
         results = calculate_compliance()
-        overall_score = results['overall']['overall_compliance_score']
+        overall_score = results["overall"]["overall_compliance_score"]
         return round(overall_score)  # Round to nearest integer
     except Exception as e:
         # Log the error but don't display it in the UI
         import logging
+
         logging.error(f"Error calculating compliance score: {e}")
         return 75  # Fallback value if calculation fails
 
@@ -45,7 +45,8 @@ def display_dashboard_header():
             unsafe_allow_html=True,
         )
         st.markdown(
-            '<div class="eu-compliance-badge">EU AI Act Compliant</div>', unsafe_allow_html=True
+            '<div class="eu-compliance-badge">EU AI Act Compliant</div>',
+            unsafe_allow_html=True,
         )
 
     with col2:
@@ -58,7 +59,9 @@ def display_dashboard_header():
             )
 
         # Add a "Compliance Score" badge with dynamically calculated score
-        compliance_score = get_compliance_score()  # Calculate dynamically (cached)
+        compliance_score = (
+            get_compliance_score()
+        )  # Calculate dynamically (cached)
         score_letter = (
             "A"
             if compliance_score >= 90

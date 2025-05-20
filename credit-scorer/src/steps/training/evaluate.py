@@ -77,7 +77,9 @@ def evaluate_model(
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
 
     target_col = next(
-        col for col in test_df.columns if col.endswith(f"__{target}") or col == target
+        col
+        for col in test_df.columns
+        if col.endswith(f"__{target}") or col == target
     )
     # Prepare test data
     X_test, y_test = test_df.drop(columns=[target_col]), test_df[target_col]

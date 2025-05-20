@@ -66,7 +66,11 @@ class BaseComplianceCalculator(ABC):
         Returns:
             Dictionary with standardized finding format
         """
-        return {"type": finding_type, "message": message, "recommendation": recommendation}
+        return {
+            "type": finding_type,
+            "message": message,
+            "recommendation": recommendation,
+        }
 
     def _calculate_weighted_score(
         self, metrics: Dict[str, float], weights: Dict[str, float]
@@ -108,7 +112,10 @@ class BaseComplianceCalculator(ABC):
         return f"{value * 100:.1f}%"
 
     def _add_overall_finding(
-        self, findings: List[Dict[str, str]], compliance_score: float, article_name: str
+        self,
+        findings: List[Dict[str, str]],
+        compliance_score: float,
+        article_name: str,
     ) -> None:
         """Add an overall finding based on the compliance score.
 

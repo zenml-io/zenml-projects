@@ -57,8 +57,14 @@ def display_incident_tracking(incident_df):
 
     with col3:
         if "resolved" in incident_df.columns:
-            resolved = incident_df["resolved"].sum() if "resolved" in incident_df.columns else 0
-            resolution_rate = (resolved / total_incidents) if total_incidents > 0 else 0
+            resolved = (
+                incident_df["resolved"].sum()
+                if "resolved" in incident_df.columns
+                else 0
+            )
+            resolution_rate = (
+                (resolved / total_incidents) if total_incidents > 0 else 0
+            )
             st.markdown(
                 '<div class="metric-card">'
                 f'<div class="metric-value">{resolution_rate:.0%}</div>'
@@ -97,7 +103,13 @@ def display_incident_tracking(incident_df):
             )
             fig.update_layout(
                 margin=dict(t=0, b=0, l=0, r=0),
-                legend=dict(orientation="h", yanchor="bottom", y=0, xanchor="center", x=0.5),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=0,
+                    xanchor="center",
+                    x=0.5,
+                ),
                 height=300,
             )
             fig.update_traces(textinfo="percent+label")
@@ -115,7 +127,11 @@ def display_incident_tracking(incident_df):
                 x=source_counts.index,
                 y=source_counts.values,
                 color=source_counts.index,
-                color_discrete_sequence=[PRIMARY_COLOR, SECONDARY_COLOR, "#999999"],
+                color_discrete_sequence=[
+                    PRIMARY_COLOR,
+                    SECONDARY_COLOR,
+                    "#999999",
+                ],
             )
             fig.update_layout(
                 margin=dict(t=0, b=0, l=0, r=0),
@@ -160,7 +176,9 @@ def display_incident_tracking(incident_df):
         with filter_cols[2]:
             if "timestamp" in incident_df.columns:
                 # Convert timestamp strings to datetime objects
-                incident_df["timestamp"] = pd.to_datetime(incident_df["timestamp"], errors="coerce")
+                incident_df["timestamp"] = pd.to_datetime(
+                    incident_df["timestamp"], errors="coerce"
+                )
 
                 min_date = (
                     incident_df["timestamp"].min().date()
@@ -186,12 +204,18 @@ def display_incident_tracking(incident_df):
     filtered_df = incident_df.copy()
 
     if severity_filter and "severity" in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df["severity"].isin(severity_filter)]
+        filtered_df = filtered_df[
+            filtered_df["severity"].isin(severity_filter)
+        ]
 
     if source_filter and "source" in filtered_df.columns:
         filtered_df = filtered_df[filtered_df["source"].isin(source_filter)]
 
-    if date_range and len(date_range) == 2 and "timestamp" in filtered_df.columns:
+    if (
+        date_range
+        and len(date_range) == 2
+        and "timestamp" in filtered_df.columns
+    ):
         start_date, end_date = date_range
         filtered_df = filtered_df[
             (filtered_df["timestamp"].dt.date >= start_date)
@@ -221,7 +245,9 @@ def display_incident_tracking(incident_df):
 
         # Format timestamp if present
         if "timestamp" in display_df.columns:
-            display_df["timestamp"] = display_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M")
+            display_df["timestamp"] = display_df["timestamp"].dt.strftime(
+                "%Y-%m-%d %H:%M"
+            )
 
         st.dataframe(
             display_df,

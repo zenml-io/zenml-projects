@@ -37,7 +37,9 @@ from src.constants import (
 logger = get_logger(__name__)
 
 DEPLOYMENT_SCRIPT_PATH = (
-    Path(__file__).parent.parent.parent.parent / "modal_app" / "modal_deployment.py"
+    Path(__file__).parent.parent.parent.parent
+    / "modal_app"
+    / "modal_deployment.py"
 )
 
 
@@ -83,7 +85,10 @@ def modal_deployment(
         Dictionary with deployment information
     """
     if not approved:
-        return {"status": "rejected", "reason": "Not approved by human oversight"}
+        return {
+            "status": "rejected",
+            "reason": "Not approved by human oversight",
+        }
 
     # Call Modal deployment script
     module = load_python_module(str(DEPLOYMENT_SCRIPT_PATH))
@@ -97,7 +102,6 @@ def modal_deployment(
     # Add deployment URL to approval record
     deployment_url = deployment_record["endpoints"]["root"]
     approval_record["deployment_url"] = deployment_url
-
 
     # Save compliance artifacts to Modal
     from src.utils.modal_utils import save_compliance_artifacts_to_modal
@@ -118,11 +122,12 @@ def modal_deployment(
     try:
         with open(release_dir / "approval_record.json", "w") as f:
             json.dump(approval_record, f, indent=2, default=str)
-        logger.info(f"Approval record saved to: {release_dir / 'approval_record.json'}")
+        logger.info(
+            f"Approval record saved to: {release_dir / 'approval_record.json'}"
+        )
     except (TypeError, ValueError) as e:
         logger.error(f"Failed to serialize approval record: {e}")
 
-            
     # Enhanced deployment info with Modal paths
     deployment_info = {
         "deployment_record": deployment_record,

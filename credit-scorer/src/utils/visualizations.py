@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from typing import Any, Dict
 
 import pandas as pd
@@ -100,22 +99,36 @@ def generate_whylogs_visualization(
 
             # Find the right metric names based on what's available
             metrics = row.index
-            count_metric = next((m for m in metrics if m in ("counts/n", "distribution/n")), None)
-            null_metric = next((m for m in metrics if m in ("counts/null", "counts/nan")), None)
-            unique_metric = next((m for m in metrics if m.startswith("cardinality/")), None)
+            count_metric = next(
+                (m for m in metrics if m in ("counts/n", "distribution/n")),
+                None,
+            )
+            null_metric = next(
+                (m for m in metrics if m in ("counts/null", "counts/nan")),
+                None,
+            )
+            unique_metric = next(
+                (m for m in metrics if m.startswith("cardinality/")), None
+            )
             min_metric = next((m for m in metrics if m.endswith("/min")), None)
             max_metric = next((m for m in metrics if m.endswith("/max")), None)
-            mean_metric = next((m for m in metrics if m.endswith("/mean")), None)
+            mean_metric = next(
+                (m for m in metrics if m.endswith("/mean")), None
+            )
 
             # Get values with error handling
             count_val = row[count_metric] if count_metric else "N/A"
             null_val = row[null_metric] if null_metric else "N/A"
 
             # Format the values below
-            unique_val = _format_num(row[unique_metric], 0) if unique_metric else "N/A"
+            unique_val = (
+                _format_num(row[unique_metric], 0) if unique_metric else "N/A"
+            )
             min_val = _format_num(row[min_metric]) if min_metric else "N/A"
             max_val = _format_num(row[max_metric]) if max_metric else "N/A"
-            mean_val = _format_num(row[mean_metric], 4) if mean_metric else "N/A"
+            mean_val = (
+                _format_num(row[mean_metric], 4) if mean_metric else "N/A"
+            )
 
             html_content += f"""
                 <tr>
@@ -142,7 +155,10 @@ def generate_whylogs_visualization(
     """
 
     # Add section about sensitive attributes if they exist
-    if "sensitive_attributes" in dataset_info and dataset_info["sensitive_attributes"]:
+    if (
+        "sensitive_attributes" in dataset_info
+        and dataset_info["sensitive_attributes"]
+    ):
         html_content += """
             <div class="alert">
                 <h3>Sensitive Attributes Detected</h3>

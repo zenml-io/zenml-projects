@@ -1,9 +1,8 @@
 """Data processing and calculation utilities for the dashboard."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Optional
 
-import pandas as pd
 import streamlit as st
 
 from streamlit_app.config import EXPECTED_ARTICLES
@@ -13,7 +12,11 @@ from streamlit_app.data.compliance_utils import get_compliance_results
 logger = logging.getLogger(__name__)
 
 
-def compute_article_compliance(risk_df, use_compliance_calculator: bool = True, release_id: Optional[str] = None):
+def compute_article_compliance(
+    risk_df,
+    use_compliance_calculator: bool = True,
+    release_id: Optional[str] = None,
+):
     """Compute article compliance percentages from risk data and compliance calculator.
 
     Args:
@@ -28,35 +31,50 @@ def compute_article_compliance(risk_df, use_compliance_calculator: bool = True, 
     if use_compliance_calculator:
         try:
             compliance_results = get_compliance_results(release_id=release_id)
-            
-            if "articles" in compliance_results and "overall" in compliance_results:
+
+            if (
+                "articles" in compliance_results
+                and "overall" in compliance_results
+            ):
                 # Extract scores from the compliance results
                 formatted_article_stats = {}
-                
+
                 # Add overall compliance score
-                formatted_article_stats["Overall Compliance"] = compliance_results["overall"]["overall_compliance_score"]
-                
+                formatted_article_stats["Overall Compliance"] = (
+                    compliance_results["overall"]["overall_compliance_score"]
+                )
+
                 # Add individual article scores
-                for article_id, article_data in compliance_results["articles"].items():
+                for article_id, article_data in compliance_results[
+                    "articles"
+                ].items():
                     # Format article name for display
                     if "display_name" in article_data:
                         article_name = article_data["display_name"]
                     elif article_id.startswith("article_"):
                         article_num = article_id.split("_")[1]
                         desc = EXPECTED_ARTICLES.get(article_num, "")
-                        article_name = f"Art. {article_num} ({desc})" if desc else f"Art. {article_num}"
+                        article_name = (
+                            f"Art. {article_num} ({desc})"
+                            if desc
+                            else f"Art. {article_num}"
+                        )
                     else:
                         article_name = article_id
-                    
+
                     # Add the compliance score
-                    formatted_article_stats[article_name] = article_data.get("compliance_score", 0)
-                
+                    formatted_article_stats[article_name] = article_data.get(
+                        "compliance_score", 0
+                    )
+
                 return formatted_article_stats
         except Exception as e:
             # Log the error but don't break the dashboard - fall back to the risk-based calculation
             logger.error(f"Error using compliance calculator: {e}")
-            st.warning("Error using compliance calculator - falling back to risk-based calculations.")
-    
+            st.warning(
+                "Error using compliance calculator - falling back to risk-based calculations."
+            )
+
     # Create a default dict with expected articles (fallback when compliance calculator fails)
     default_stats = {
         f"Art. {article} ({desc})": 95
@@ -78,17 +96,22 @@ def compute_article_compliance(risk_df, use_compliance_calculator: bool = True, 
         # Check if we can derive article from another column like 'category'
         if "category" in risk_df.columns:
             # Try to extract article numbers from the category field
-            risk_df["article"] = risk_df["category"].astype(str).str.extract(r"(\d+)").fillna("")
+            risk_df["article"] = (
+                risk_df["category"]
+                .astype(str)
+                .str.extract(r"(\d+)")
+                .fillna("")
+            )
         else:
             # Return default stats if we can't add the article column
             return default_stats
 
     # Drop rows with empty article values
     valid_df = risk_df.dropna(subset=["article"]).copy()
-    
+
     # Also filter out empty strings
     valid_df = valid_df[valid_df["article"].astype(str).str.strip() != ""]
-    
+
     if valid_df.empty:
         return default_stats
 
@@ -108,10 +131,12 @@ def compute_article_compliance(risk_df, use_compliance_calculator: bool = True, 
         # Skip any empty articles that might have made it through
         if not article or article.strip() == "":
             continue
-            
+
         # Use EXPECTED_ARTICLES for descriptions
         if article in EXPECTED_ARTICLES:
-            formatted_article = f"Art. {article} ({EXPECTED_ARTICLES[article]})"
+            formatted_article = (
+                f"Art. {article} ({EXPECTED_ARTICLES[article]})"
+            )
         else:
             formatted_article = f"Art. {article}"
 
@@ -121,11 +146,15 @@ def compute_article_compliance(risk_df, use_compliance_calculator: bool = True, 
     for article, desc in EXPECTED_ARTICLES.items():
         formatted_article = f"Art. {article} ({desc})"
         if formatted_article not in formatted_article_stats:
-            formatted_article_stats[formatted_article] = default_stats[formatted_article]
-    
+            formatted_article_stats[formatted_article] = default_stats[
+                formatted_article
+            ]
+
     # Add overall score (average of all article scores)
     if formatted_article_stats:
-        formatted_article_stats["Overall Compliance"] = sum(formatted_article_stats.values()) / len(formatted_article_stats)
+        formatted_article_stats["Overall Compliance"] = sum(
+            formatted_article_stats.values()
+        ) / len(formatted_article_stats)
 
     return formatted_article_stats
 
@@ -138,7 +167,9 @@ def render_markdown_with_newlines(content):
         processed = content.replace("\\n", "\n")
         return processed
     elif isinstance(content, dict):
-        return {k: render_markdown_with_newlines(v) for k, v in content.items()}
+        return {
+            k: render_markdown_with_newlines(v) for k, v in content.items()
+        }
     elif isinstance(content, list):
         return [render_markdown_with_newlines(item) for item in content]
     else:

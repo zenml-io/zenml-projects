@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-from typing import Any, Dict, List, Optional, Tuple
 
 # EU AI Act Articles relevant to high-risk AI systems (like credit scoring)
 EU_AI_ACT_ARTICLES = [
@@ -326,4 +325,6 @@ DEFAULT_COMPLIANCE_PATHS = {
 }
 
 # Default compliance threshold for overall compliance
-DEFAULT_OVERALL_COMPLIANCE_THRESHOLD = 0.5  # 50% compliance required overall for demo (was 0.8)
+DEFAULT_OVERALL_COMPLIANCE_THRESHOLD = (
+    0.5  # 50% compliance required overall for demo (was 0.8)
+)

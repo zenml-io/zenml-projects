@@ -16,10 +16,11 @@
 #
 
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Dict
-import os
+
 import pkg_resources
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
@@ -52,7 +53,9 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
             name=dep["name"],
             version=dep["version"],
             type=ComponentType.LIBRARY,
-            purl=PackageURL(type="pypi", name=dep["name"], version=dep["version"]),
+            purl=PackageURL(
+                type="pypi", name=dep["name"], version=dep["version"]
+            ),
         )
         bom.components.add(component)
 
@@ -68,7 +71,9 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
         json.dump(sbom_json, f, indent=2)
 
     modal_sbom_path = f"{release_dir}/{sbom_filename}"
-    checksum = save_artifact_to_modal(artifact=sbom_json, artifact_path=modal_sbom_path)
+    checksum = save_artifact_to_modal(
+        artifact=sbom_json, artifact_path=modal_sbom_path
+    )
 
     sbom_artifact = {
         "sbom_data": sbom_json,
@@ -78,7 +83,9 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
     }
 
     log_metadata(metadata={SBOM_ARTIFACT_NAME: sbom_artifact})
-    logger.info(f"SBOM generation complete. Saved to Modal at {modal_sbom_path}")
+    logger.info(
+        f"SBOM generation complete. Saved to Modal at {modal_sbom_path}"
+    )
 
     return sbom_artifact
 
@@ -96,7 +103,9 @@ def get_direct_dependencies():
         for line in f:
             line = line.strip()
             if line and not line.startswith("#"):
-                pkg_name = line.split(">=")[0].split("==")[0].split("<")[0].strip()
+                pkg_name = (
+                    line.split(">=")[0].split("==")[0].split("<")[0].strip()
+                )
                 pkg_name = pkg_name.lower().replace("_", "-")
 
                 if pkg_name in installed_packages:

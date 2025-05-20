@@ -67,7 +67,9 @@ def ingest(
     df = pd.read_csv(dataset_path, low_memory=False)
 
     if target not in df.columns:
-        raise ValueError(f"Target column '{target}' not found in {dataset_path}")
+        raise ValueError(
+            f"Target column '{target}' not found in {dataset_path}"
+        )
 
     # Clean data by removing rows with all or most values missing
     if "SK_ID_CURR" in df.columns:
@@ -77,7 +79,11 @@ def ingest(
     if sample_fraction and 0 < sample_fraction < 1:
         df = (
             df.groupby(target, group_keys=False)
-            .apply(lambda g: g.sample(frac=sample_fraction, random_state=random_state))
+            .apply(
+                lambda g: g.sample(
+                    frac=sample_fraction, random_state=random_state
+                )
+            )
             .reset_index(drop=True)
         )
         print(f"→ Stratified sample: {len(df)} rows")
@@ -94,7 +100,12 @@ def ingest(
     }
 
     # identify sensitive columns by substring (for fairness checks)
-    sensitive_cols = [col for col in df.columns for term in sensitive_attributes if term in col]
+    sensitive_cols = [
+        col
+        for col in df.columns
+        for term in sensitive_attributes
+        if term in col
+    ]
 
     # dataset info for compliance documentation
     dataset_info = {

@@ -5,17 +5,16 @@ from datetime import datetime
 import plotly.graph_objects as go
 import streamlit as st
 from streamlit.components.v1 import html
-import pandas as pd
 
 from streamlit_app.config import PRIMARY_COLOR, RISK_COLORS
-from streamlit_app.data.processor import compute_article_compliance
 from streamlit_app.data.compliance_utils import (
-    get_compliance_results, 
+    format_compliance_findings,
     get_compliance_data_sources,
-    format_compliance_findings, 
+    get_compliance_results,
+    get_compliance_summary,
     get_last_update_timestamps,
-    get_compliance_summary
 )
+from streamlit_app.data.processor import compute_article_compliance
 
 
 def format_activities(activities):
@@ -72,7 +71,12 @@ def display_exec_summary(risk_df, incident_df):
     # Extract risk metrics
     if risk_df is not None:
         severity_column = next(
-            (col for col in ["risk_category", "risk_level"] if col in risk_df.columns), None
+            (
+                col
+                for col in ["risk_category", "risk_level"]
+                if col in risk_df.columns
+            ),
+            None,
         )
 
         if severity_column:
@@ -98,14 +102,18 @@ def display_exec_summary(risk_df, incident_df):
     # Calculate compliance metrics
     critical_findings = compliance_summary.get("critical_count", 0)
     warning_findings = compliance_summary.get("warning_count", 0)
-    strongest_article = compliance_summary.get("strongest_article", {"name": "None", "score": 0})
-    weakest_article = compliance_summary.get("weakest_article", {"name": "None", "score": 0})
-    
+    strongest_article = compliance_summary.get(
+        "strongest_article", {"name": "None", "score": 0}
+    )
+    weakest_article = compliance_summary.get(
+        "weakest_article", {"name": "None", "score": 0}
+    )
+
     # Format article names for display
     strongest_name = strongest_article["name"]
     if "Art." in strongest_name and "(" in strongest_name:
         strongest_name = strongest_name.split("(")[0].strip()
-        
+
     weakest_name = weakest_article["name"]
     if "Art." in weakest_name and "(" in weakest_name:
         weakest_name = weakest_name.split("(")[0].strip()
@@ -146,10 +154,10 @@ def display_exec_summary(risk_df, incident_df):
             "</div>",
             unsafe_allow_html=True,
         )
-        
+
     # Second row of metrics
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.markdown(
             '<div class="metric-card">'
@@ -158,7 +166,7 @@ def display_exec_summary(risk_df, incident_df):
             "</div>",
             unsafe_allow_html=True,
         )
-    
+
     with col2:
         st.markdown(
             '<div class="metric-card">'
@@ -167,7 +175,7 @@ def display_exec_summary(risk_df, incident_df):
             "</div>",
             unsafe_allow_html=True,
         )
-        
+
     with col3:
         # Show strongest article
         st.markdown(
@@ -177,7 +185,7 @@ def display_exec_summary(risk_df, incident_df):
             "</div>",
             unsafe_allow_html=True,
         )
-    
+
     with col4:
         # Show weakest article
         st.markdown(
@@ -193,9 +201,11 @@ def display_exec_summary(risk_df, incident_df):
 
     # Get detailed compliance information
     compliance_results = get_compliance_results()
-    article_compliance = compute_article_compliance(risk_df, use_compliance_calculator=True)
+    article_compliance = compute_article_compliance(
+        risk_df, use_compliance_calculator=True
+    )
     data_sources = get_compliance_data_sources(compliance_results)
-    findings = compliance_results.get("findings", []) 
+    findings = compliance_results.get("findings", [])
     grouped_findings = format_compliance_findings(findings)
     update_timestamps = get_last_update_timestamps(compliance_results)
 
@@ -208,29 +218,35 @@ def display_exec_summary(risk_df, incident_df):
             f"<div style='font-size:32px; font-weight:bold; color:#1F4E79;'>{overall_score:.1f}%</div>"
             f"<div style='font-size:12px; color:#666;'>Last updated: {update_timestamps.get('Model Evaluation', 'N/A')}</div>"
             f"</div>",
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-    
+
     # Create a two-column layout
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         # Create a gauge chart for each article (excluding Overall Compliance)
         gauge_cols = st.columns(3)
-        article_items = [(k, v) for k, v in article_compliance.items() if k != "Overall Compliance"]
-        
+        article_items = [
+            (k, v)
+            for k, v in article_compliance.items()
+            if k != "Overall Compliance"
+        ]
+
         for i, (article, score) in enumerate(article_items):
             with gauge_cols[i % 3]:
                 # Extract article ID for looking up data sources
                 article_id = None
                 if article.startswith("Art."):
-                    article_num = article.split("(")[0].strip().replace("Art. ", "")
+                    article_num = (
+                        article.split("(")[0].strip().replace("Art. ", "")
+                    )
                     article_id = f"article_{article_num}"
-                
+
                 # Get data sources for this article
                 sources = data_sources.get(article_id, [])
                 sources_text = ", ".join(sources) if sources else "N/A"
-                
+
                 fig = go.Figure(
                     go.Indicator(
                         mode="gauge+number",
@@ -254,56 +270,67 @@ def display_exec_summary(risk_df, incident_df):
                         number={"suffix": "%", "font": {"size": 20}},
                     )
                 )
-                fig.update_layout(height=180, margin=dict(l=30, r=30, t=50, b=30))
+                fig.update_layout(
+                    height=180, margin=dict(l=30, r=30, t=50, b=30)
+                )
                 st.plotly_chart(fig, use_container_width=True)
-                
+
                 # Show data sources under each gauge
                 st.markdown(
                     f"<div style='text-align:center; font-size:11px; color:#666; margin-top:-15px;'>"
                     f"<strong>Sources:</strong> {sources_text}</div>",
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
-    
+
     with col2:
         # Show compliance findings
         st.markdown("<h4>Key Compliance Findings</h4>", unsafe_allow_html=True)
-        
+
         # Critical issues first
         if grouped_findings["critical"]:
-            st.markdown("<span style='color:#D64045; font-weight:bold;'>Critical Issues:</span>", unsafe_allow_html=True)
+            st.markdown(
+                "<span style='color:#D64045; font-weight:bold;'>Critical Issues:</span>",
+                unsafe_allow_html=True,
+            )
             for finding in grouped_findings["critical"][:3]:  # Show top 3
                 st.markdown(
                     f"<div style='padding:8px; margin-bottom:5px; background-color:#ffecec; border-left:3px solid #D64045; border-radius:3px;'>"
                     f"<div style='font-weight:bold;'>{finding.get('title', 'Issue')}</div>"
                     f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
                     f"</div>",
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
-        
+
         # Warnings next
         if grouped_findings["warning"]:
-            st.markdown("<span style='color:#FFB30F; font-weight:bold;'>Warnings:</span>", unsafe_allow_html=True)
+            st.markdown(
+                "<span style='color:#FFB30F; font-weight:bold;'>Warnings:</span>",
+                unsafe_allow_html=True,
+            )
             for finding in grouped_findings["warning"][:3]:  # Show top 3
                 st.markdown(
                     f"<div style='padding:8px; margin-bottom:5px; background-color:#fff9ec; border-left:3px solid #FFB30F; border-radius:3px;'>"
                     f"<div style='font-weight:bold;'>{finding.get('title', 'Warning')}</div>"
                     f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
                     f"</div>",
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
-        
+
         # Positive findings
         if grouped_findings["positive"]:
-            st.markdown("<span style='color:#478C5C; font-weight:bold;'>Positive Findings:</span>", unsafe_allow_html=True)
+            st.markdown(
+                "<span style='color:#478C5C; font-weight:bold;'>Positive Findings:</span>",
+                unsafe_allow_html=True,
+            )
             for finding in grouped_findings["positive"][:3]:  # Show top 3
                 st.markdown(
                     f"<div style='padding:8px; margin-bottom:5px; background-color:#f0f7f0; border-left:3px solid #478C5C; border-radius:3px;'>"
                     f"<div style='font-weight:bold;'>{finding.get('title', 'Positive')}</div>"
                     f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
                     f"</div>",
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
-        
+
         # If no findings, show a message
         if not any(grouped_findings.values()):
             st.info("No compliance findings available for this release.")
@@ -314,18 +341,24 @@ def display_exec_summary(risk_df, incident_df):
     # Show compliance status bar
     compliance_percentage = compliance_summary.get("overall_score", 0)
     last_release_id = compliance_summary.get("release_id", "Unknown")
-    
+
     # Determine color based on compliance score
-    bar_color = "#D64045" if compliance_percentage < 60 else "#FFB30F" if compliance_percentage < 80 else "#478C5C"
-    
+    bar_color = (
+        "#D64045"
+        if compliance_percentage < 60
+        else "#FFB30F"
+        if compliance_percentage < 80
+        else "#478C5C"
+    )
+
     # Determine status text
     if compliance_percentage >= 80:
         status_text = "High Compliance"
     elif compliance_percentage >= 60:
         status_text = "Moderate Compliance"
     else:
-        status_text = "Low Compliance" 
-    
+        status_text = "Low Compliance"
+
     # Create status bar
     st.markdown(
         f"""
@@ -344,7 +377,7 @@ def display_exec_summary(risk_df, incident_df):
             </div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     # Combine risk and incident activities
@@ -369,26 +402,30 @@ def display_exec_summary(risk_df, incident_df):
     # Add compliance findings as activities
     findings = compliance_results.get("findings", [])
     grouped_findings = format_compliance_findings(findings)
-    
+
     # Add critical findings first
     for finding in grouped_findings["critical"][:2]:
-        activities.append({
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "type": "Compliance",
-            "severity": "HIGH",
-            "description": f"{finding.get('title', 'Issue')}: {finding.get('description', '')}",
-            "icon": "⚠️"  # Warning icon for compliance findings
-        })
-    
+        activities.append(
+            {
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "type": "Compliance",
+                "severity": "HIGH",
+                "description": f"{finding.get('title', 'Issue')}: {finding.get('description', '')}",
+                "icon": "⚠️",  # Warning icon for compliance findings
+            }
+        )
+
     # Add warning findings
     for finding in grouped_findings["warning"][:1]:
-        activities.append({
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "type": "Compliance",
-            "severity": "MEDIUM",
-            "description": f"{finding.get('title', 'Warning')}: {finding.get('description', '')}",
-            "icon": "⚠️"  # Warning icon for compliance findings
-        })
+        activities.append(
+            {
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "type": "Compliance",
+                "severity": "MEDIUM",
+                "description": f"{finding.get('title', 'Warning')}: {finding.get('description', '')}",
+                "icon": "⚠️",  # Warning icon for compliance findings
+            }
+        )
 
     # Add sample risk mitigations
     sample_mitigations = [
@@ -414,10 +451,10 @@ def display_exec_summary(risk_df, incident_df):
             "icon": "📄",  # Document icon for documentation updates
         },
     ]
-    
+
     # Only add sample mitigations if we don't have enough activities
     if len(activities) < 5:
-        activities.extend(sample_mitigations[:5-len(activities)])
+        activities.extend(sample_mitigations[: 5 - len(activities)])
 
     # Sort activities by date
     activities = sorted(activities, key=lambda x: x["date"], reverse=True)[:5]
@@ -487,7 +524,11 @@ def display_exec_summary(risk_df, incident_df):
     # Activity rows with hover effect
     for activity in activities:
         sev = activity["severity"].lower()
-        cls = f"status-{sev}" if sev in ("high", "medium", "low") else "status-medium"
+        cls = (
+            f"status-{sev}"
+            if sev in ("high", "medium", "low")
+            else "status-medium"
+        )
         border = RISK_COLORS.get(activity["severity"], "#999999")
 
         activity_html += f"""

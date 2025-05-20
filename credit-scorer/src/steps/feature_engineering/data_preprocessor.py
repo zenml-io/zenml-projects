@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 from datetime import datetime
-from typing import Annotated, Any, Dict, Tuple
+from typing import Annotated, Tuple
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer, make_column_selector
@@ -87,7 +87,9 @@ def data_preprocessor(
         dtype_include=["int64", "float64"],
         pattern=f"^(?!{target}$).*",  # Don't process target
     )
-    categorical_selector = make_column_selector(dtype_include=["object", "category"])
+    categorical_selector = make_column_selector(
+        dtype_include=["object", "category"]
+    )
 
     # Get column lists for logging
     num_cols = numeric_selector(dataset_trn)
@@ -103,7 +105,9 @@ def data_preprocessor(
         log.append(log_op("scale", columns=num_cols))
 
     if num_cols:
-        transformers.append(("num", SkPipeline(num_pipeline_steps), numeric_selector))
+        transformers.append(
+            ("num", SkPipeline(num_pipeline_steps), numeric_selector)
+        )
         log.append(log_op("impute_numeric", columns=num_cols))
 
     # Categorical pipeline with imputation and encoding
@@ -113,8 +117,18 @@ def data_preprocessor(
                 "cat",
                 SkPipeline(
                     [
-                        ("impute", SimpleImputer(strategy="constant", fill_value="missing")),
-                        ("ohe", OneHotEncoder(sparse_output=False, handle_unknown="ignore")),
+                        (
+                            "impute",
+                            SimpleImputer(
+                                strategy="constant", fill_value="missing"
+                            ),
+                        ),
+                        (
+                            "ohe",
+                            OneHotEncoder(
+                                sparse_output=False, handle_unknown="ignore"
+                            ),
+                        ),
                     ]
                 ),
                 categorical_selector,
@@ -138,9 +152,9 @@ def data_preprocessor(
     test_transformed = sk_pipeline.transform(dataset_tst)
 
     # Get feature names
-    feature_names = sk_pipeline.named_steps["preprocessor"].get_feature_names_out(
-        dataset_trn.columns
-    )
+    feature_names = sk_pipeline.named_steps[
+        "preprocessor"
+    ].get_feature_names_out(dataset_trn.columns)
 
     # Create dataframes
     train_df = pd.DataFrame(train_transformed, columns=feature_names)
@@ -150,7 +164,9 @@ def data_preprocessor(
     logger.info(f"Data types after transformation: {train_df.dtypes}")
 
     # Verify no object/string columns remain
-    remaining_cat_cols = train_df.select_dtypes(include=["object"]).columns.tolist()
+    remaining_cat_cols = train_df.select_dtypes(
+        include=["object"]
+    ).columns.tolist()
     if remaining_cat_cols:
         logger.warning(
             f"Warning: These columns are still categorical after transformation: {remaining_cat_cols}"
@@ -167,7 +183,7 @@ def data_preprocessor(
         "target": target,
         "numeric_columns": num_cols,
         "categorical_columns": cat_cols,
-         "missing": {
+        "missing": {
             "train": int(train_df.isna().sum().sum()),
             "test": int(test_df.isna().sum().sum()),
         },

@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
+from .deployment import deployment
 from .feature_engineering import feature_engineering
 from .training import training
-from .deployment import deployment

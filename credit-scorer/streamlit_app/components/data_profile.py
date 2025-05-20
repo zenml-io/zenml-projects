@@ -2,7 +2,10 @@
 
 import streamlit as st
 
-from streamlit_app.data.loader import load_latest_release_info, load_latest_whylogs_profile
+from streamlit_app.data.loader import (
+    load_latest_release_info,
+    load_latest_whylogs_profile,
+)
 
 
 def display_data_profile():

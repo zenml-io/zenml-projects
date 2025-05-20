@@ -15,17 +15,23 @@
 # limitations under the License.
 #
 
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
-from .orchestrator import ComplianceOrchestrator
 from .data_loader import ComplianceDataLoader
-from .exceptions import ComplianceError, ComplianceDataError, ComplianceCalculationError
-from .schemas import ComplianceThresholds, EUArticle, RiskStatus, RiskCategory
+from .exceptions import (
+    ComplianceCalculationError,
+    ComplianceDataError,
+    ComplianceError,
+)
+from .orchestrator import ComplianceOrchestrator
+from .schemas import ComplianceThresholds, EUArticle, RiskCategory, RiskStatus
+
+
 # Main public interface
 def calculate_compliance(
     release_id: Optional[str] = None,
     risk_register_path: Optional[str] = None,
-    articles: Optional[List[str]] = None
+    articles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Calculate full EU AI Act compliance for the specified system.
 
@@ -54,11 +60,11 @@ def calculate_compliance(
     Example:
         ```python
         from src.utils.compliance import calculate_compliance
-        
+
         # Calculate compliance for all articles using latest release
         results = calculate_compliance()
         print(f"Overall compliance: {results['overall']['overall_compliance_score']:.1f}%")
-        
+
         # Calculate compliance for specific articles and release
         results = calculate_compliance(
             release_id="a819ed29-5a68-4bbb-94a3-5aad9f67a773",
@@ -67,19 +73,21 @@ def calculate_compliance(
         ```
     """
     orchestrator = ComplianceOrchestrator()
-    return orchestrator.calculate_full_compliance(release_id, risk_register_path, articles)
+    return orchestrator.calculate_full_compliance(
+        release_id, risk_register_path, articles
+    )
 
 
 # Expose individual classes for advanced use
 __all__ = [
-    'calculate_compliance',
-    'ComplianceOrchestrator',
-    'ComplianceDataLoader',
-    'ComplianceError',
-    'ComplianceDataError',
-    'ComplianceCalculationError',
-    'ComplianceThresholds',
-    'EUArticle',
-    'RiskStatus',
-    'RiskCategory'
+    "calculate_compliance",
+    "ComplianceOrchestrator",
+    "ComplianceDataLoader",
+    "ComplianceError",
+    "ComplianceDataError",
+    "ComplianceCalculationError",
+    "ComplianceThresholds",
+    "EUArticle",
+    "RiskStatus",
+    "RiskCategory",
 ]

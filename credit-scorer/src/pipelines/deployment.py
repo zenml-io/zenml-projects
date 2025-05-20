@@ -68,9 +68,13 @@ def deployment(
     if model is None:
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
     if evaluation_results is None:
-        evaluation_results = client.get_artifact_version(name_id_or_prefix=EVALUATION_RESULTS_NAME)
+        evaluation_results = client.get_artifact_version(
+            name_id_or_prefix=EVALUATION_RESULTS_NAME
+        )
     if risk_scores is None:
-        risk_scores = client.get_artifact_version(name_id_or_prefix=RISK_SCORES_NAME)
+        risk_scores = client.get_artifact_version(
+            name_id_or_prefix=RISK_SCORES_NAME
+        )
     if preprocess_pipeline is None:
         preprocess_pipeline = client.get_artifact_version(
             name_id_or_prefix=PREPROCESS_PIPELINE_NAME

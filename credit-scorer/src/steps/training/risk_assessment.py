@@ -81,8 +81,13 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
     fairness_metrics = fairness.get("fairness_metrics", {})
     if isinstance(fairness_metrics, dict):
         for group_metrics in fairness_metrics.values():
-            if isinstance(group_metrics, dict) and "selection_rate_disparity" in group_metrics:
-                disparities.append(abs(group_metrics["selection_rate_disparity"]))
+            if (
+                isinstance(group_metrics, dict)
+                and "selection_rate_disparity" in group_metrics
+            ):
+                disparities.append(
+                    abs(group_metrics["selection_rate_disparity"])
+                )
 
     disparity = max(disparities) if disparities else 0.0
 
@@ -98,7 +103,9 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
     }
 
 
-def get_status(risk_score: float, approval_thresholds: Dict[str, float]) -> str:
+def get_status(
+    risk_score: float, approval_thresholds: Dict[str, float]
+) -> str:
     """Determine row status for the risk register.
 
     Args:
@@ -124,7 +131,9 @@ def get_article_for_hazard(hazard_id: str) -> str:
         "human_oversight_failure": "article_14",  # Human Oversight
         "documentation_gaps": "article_11",  # Technical Documentation
     }
-    return article_mapping.get(hazard_id, "article_9")  # Default to Risk Management
+    return article_mapping.get(
+        hazard_id, "article_9"
+    )  # Default to Risk Management
 
 
 @step
@@ -214,14 +223,27 @@ def risk_assessment(
 
         for hz in hazards:
             details = ""
-            if hz["id"] == "bias_protected_groups" and "fairness" in evaluation_results:
+            if (
+                hz["id"] == "bias_protected_groups"
+                and "fairness" in evaluation_results
+            ):
                 fairness = evaluation_results["fairness"]
-                if isinstance(fairness, dict) and "fairness_metrics" in fairness:
-                    for attr, metrics in fairness.get("fairness_metrics", {}).items():
-                        if isinstance(metrics, dict) and "selection_rate_disparity" in metrics:
+                if (
+                    isinstance(fairness, dict)
+                    and "fairness_metrics" in fairness
+                ):
+                    for attr, metrics in fairness.get(
+                        "fairness_metrics", {}
+                    ).items():
+                        if (
+                            isinstance(metrics, dict)
+                            and "selection_rate_disparity" in metrics
+                        ):
                             disparity = metrics["selection_rate_disparity"]
                             if abs(disparity) > 0.2:
-                                details += f"{attr}: {abs(disparity):.3f} disparity\n"
+                                details += (
+                                    f"{attr}: {abs(disparity):.3f} disparity\n"
+                                )
 
             article = get_article_for_hazard(hz["id"])
             hazard_sheet.append(
@@ -260,6 +282,10 @@ def risk_assessment(
     wb.save(wb_path)
     save_artifact_to_modal(artifact=wb, artifact_path=risk_register_path)
 
-    result = {**scores, "hazards": hazards, "risk_register_path": str(risk_register_path)}
+    result = {
+        **scores,
+        "hazards": hazards,
+        "risk_register_path": str(risk_register_path),
+    }
     log_metadata(metadata=result)
     return result

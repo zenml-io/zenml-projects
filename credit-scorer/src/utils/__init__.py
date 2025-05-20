@@ -15,20 +15,18 @@
 # limitations under the License.
 #
 
-from .modal_utils import (
-    save_artifact_to_modal,
-    save_compliance_artifacts_to_modal,
-    get_extension_for_artifact,
-)
-
-from .incidents import create_incident_report
-from .preprocess import (
-    DropIDColumn,
-    DeriveAgeFeatures,
-)
-
-from .visualizations import generate_whylogs_visualization
 from .eval import (
     analyze_fairness,
     report_bias_incident,
 )
+from .incidents import create_incident_report
+from .modal_utils import (
+    get_extension_for_artifact,
+    save_artifact_to_modal,
+    save_compliance_artifacts_to_modal,
+)
+from .preprocess import (
+    DeriveAgeFeatures,
+    DropIDColumn,
+)
+from .visualizations import generate_whylogs_visualization

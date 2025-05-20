@@ -26,6 +26,7 @@ from src.steps import (
     ingest,
 )
 
+
 @pipeline(name=FEATURE_ENGINEERING_PIPELINE_NAME)
 def feature_engineering(
     dataset_path: str = "src/data/credit_scoring.csv",

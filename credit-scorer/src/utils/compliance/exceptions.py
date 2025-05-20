@@ -15,21 +15,26 @@
 # limitations under the License.
 #
 
+
 class ComplianceError(Exception):
     """Base exception for compliance-related errors."""
+
     pass
 
 
 class ComplianceDataError(ComplianceError):
     """Exception for data loading/validation errors."""
+
     pass
 
 
 class ComplianceCalculationError(ComplianceError):
     """Exception for calculation errors."""
+
     pass
 
 
 class ComplianceConfigError(ComplianceError):
     """Exception for configuration errors."""
+
     pass

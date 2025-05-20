@@ -69,10 +69,15 @@ def train_model(
 
     # data preprocessor set may have added a suffix to the target column
     target_col = next(
-        col for col in train_df.columns if col.endswith(f"__{target}") or col == target
+        col
+        for col in train_df.columns
+        if col.endswith(f"__{target}") or col == target
     )
 
-    X_train, y_train = train_df.drop(columns=[target_col]), train_df[target_col]
+    X_train, y_train = (
+        train_df.drop(columns=[target_col]),
+        train_df[target_col],
+    )
     X_val, y_val = test_df.drop(columns=[target_col]), test_df[target_col]
 
     start_time = datetime.now()
@@ -96,7 +101,9 @@ def train_model(
             "training_params": params,
             "val_accuracy": model.score(X_val, y_val),
             "training_start_time": start_time.isoformat(),
-            "training_duration_seconds": (end_time - start_time).total_seconds(),
+            "training_duration_seconds": (
+                end_time - start_time
+            ).total_seconds(),
         }
     )
 

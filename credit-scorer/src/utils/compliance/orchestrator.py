@@ -23,7 +23,9 @@ class ComplianceOrchestrator:
 
         if config_path is None:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            self.config_path = os.path.join(base_dir, DEFAULT_COMPLIANCE_PATHS["config_file"])
+            self.config_path = os.path.join(
+                base_dir, DEFAULT_COMPLIANCE_PATHS["config_file"]
+            )
         else:
             self.config_path = config_path
 
@@ -54,7 +56,9 @@ class ComplianceOrchestrator:
             article_results = {}
             for article_id in articles_to_process:
                 try:
-                    calculator = ConfigDrivenCalculator(self.config_path, article_id)
+                    calculator = ConfigDrivenCalculator(
+                        self.config_path, article_id
+                    )
                     article_results[article_id] = calculator.calculate(**data)
                 except Exception as e:
                     logger.error(f"Failed to calculate {article_id}: {e}")
@@ -71,7 +75,9 @@ class ComplianceOrchestrator:
                     }
 
             # Calculate overall compliance
-            overall_result = self._calculate_overall_compliance(article_results)
+            overall_result = self._calculate_overall_compliance(
+                article_results
+            )
 
             return {
                 "overall": overall_result,
@@ -91,7 +97,9 @@ class ComplianceOrchestrator:
         warnings = []
 
         # Load risk register
-        risk_df, risk_warnings = self.data_loader.load_risk_register(risk_register_path)
+        risk_df, risk_warnings = self.data_loader.load_risk_register(
+            risk_register_path
+        )
         warnings.extend(risk_warnings)
 
         # Get release ID
@@ -104,7 +112,9 @@ class ComplianceOrchestrator:
         eval_results = {}
         if release_id:
             try:
-                eval_results, eval_warnings = self.data_loader.load_evaluation_results(release_id)
+                eval_results, eval_warnings = (
+                    self.data_loader.load_evaluation_results(release_id)
+                )
                 warnings.extend(eval_warnings)
             except Exception as e:
                 logger.warning(f"Could not load evaluation results: {e}")
@@ -114,7 +124,9 @@ class ComplianceOrchestrator:
         risk_scores = {}
         if release_id:
             risk_scores_path = os.path.join(
-                DEFAULT_COMPLIANCE_PATHS["releases_dir"], release_id, "risk_scores.yaml"
+                DEFAULT_COMPLIANCE_PATHS["releases_dir"],
+                release_id,
+                "risk_scores.yaml",
             )
             if os.path.exists(risk_scores_path):
                 try:
@@ -130,14 +142,18 @@ class ComplianceOrchestrator:
         # Load incident log
         incident_log = []
         try:
-            incident_log, incident_warnings = self.data_loader.load_incident_log()
+            incident_log, incident_warnings = (
+                self.data_loader.load_incident_log()
+            )
             warnings.extend(incident_warnings)
         except Exception as e:
             logger.warning(f"Could not load incident log: {e}")
             warnings.append(f"Could not load incident log: {e}")
 
         # Preprocess risk data
-        preprocessed_data = self.data_loader.preprocess_compliance_data(risk_df)
+        preprocessed_data = self.data_loader.preprocess_compliance_data(
+            risk_df
+        )
 
         return {
             "risk_register": risk_df,
@@ -193,7 +209,11 @@ class ComplianceOrchestrator:
                 article_id: result.get("compliance_score", 0)
                 for article_id, result in article_results.items()
             },
-            "critical_findings_count": sum(1 for f in all_findings if f.get("type") == "critical"),
-            "warning_findings_count": sum(1 for f in all_findings if f.get("type") == "warning"),
+            "critical_findings_count": sum(
+                1 for f in all_findings if f.get("type") == "critical"
+            ),
+            "warning_findings_count": sum(
+                1 for f in all_findings if f.get("type") == "warning"
+            ),
             "key_findings": sorted_findings[:10],
         }

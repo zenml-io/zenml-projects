@@ -51,7 +51,9 @@ def create_incident_report(
         "model_name": MODEL_NAME,
         "model_version": model_version,
         "severity": incident_data.get("severity", "medium"),
-        "description": incident_data.get("description", "Unspecified incident"),
+        "description": incident_data.get(
+            "description", "Unspecified incident"
+        ),
         "source": incident_data.get("source", "unknown"),
         "data": incident_data,
     }
@@ -82,14 +84,19 @@ def create_incident_report(
             # May not be running in a Modal context
             persisted_to_modal = False
 
-        if SLACK_BOT_TOKEN and incident_data.get("severity", "") in ["high", "critical"]:
+        if SLACK_BOT_TOKEN and incident_data.get("severity", "") in [
+            "high",
+            "critical",
+        ]:
             try:
                 from slack_sdk import WebClient
 
                 slack_client = WebClient(token=SLACK_BOT_TOKEN)
 
                 # Create a well-formatted Slack message
-                emoji = {"high": "🔴", "critical": "🚨"}.get(incident_data.get("severity"), "⚠️")
+                emoji = {"high": "🔴", "critical": "🚨"}.get(
+                    incident_data.get("severity"), "⚠️"
+                )
 
                 message = (
                     f"{emoji} *Incident Report: {incident['description']}*\n"

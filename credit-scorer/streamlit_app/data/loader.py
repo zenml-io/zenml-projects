@@ -25,17 +25,24 @@ def load_risk_register():
 
         # Process each sheet - normalize column names to lowercase
         for sheet_name, df in excel_data.items():
-            excel_data[sheet_name].columns = [col.lower() for col in df.columns]
+            excel_data[sheet_name].columns = [
+                col.lower() for col in df.columns
+            ]
 
             # Add article column if needed for compliance tracking
-            if sheet_name == "Risks" and "article" not in excel_data[sheet_name].columns:
+            if (
+                sheet_name == "Risks"
+                and "article" not in excel_data[sheet_name].columns
+            ):
                 # Try to derive article from category if available
                 if "category" in excel_data[sheet_name].columns:
                     # Extract article numbers (e.g., "Art 9 requirement" -> "9")
                     excel_data[sheet_name]["article"] = (
                         excel_data[sheet_name]["category"]
                         .astype(str)
-                        .str.extract(r"(?:art(?:icle)?\s*)?(\d+)", flags=re.IGNORECASE)
+                        .str.extract(
+                            r"(?:art(?:icle)?\s*)?(\d+)", flags=re.IGNORECASE
+                        )
                         .fillna("")
                     )
                 # If no category column, try description
@@ -44,7 +51,9 @@ def load_risk_register():
                     excel_data[sheet_name]["article"] = (
                         excel_data[sheet_name]["risk_description"]
                         .astype(str)
-                        .str.extract(r"(?:art(?:icle)?\s*)?(\d+)", flags=re.IGNORECASE)
+                        .str.extract(
+                            r"(?:art(?:icle)?\s*)?(\d+)", flags=re.IGNORECASE
+                        )
                         .fillna("")
                     )
 
@@ -84,10 +93,10 @@ def load_latest_release_info():
             return None
 
         latest_release = release_dirs[0]
-        
+
         # Get all files in the release directory
         files = list(latest_release.glob("*"))
-        
+
         # Check for required compliance files
         required_files = {
             "evaluation_results.yaml": False,
@@ -96,23 +105,25 @@ def load_latest_release_info():
             "sbom.json": False,
             "annex_iv_cs_deployment.md": False,
         }
-        
+
         for file_path in files:
             if file_path.name in required_files:
                 required_files[file_path.name] = True
-        
-        missing_files = [name for name, found in required_files.items() if not found]
-        
+
+        missing_files = [
+            name for name, found in required_files.items() if not found
+        ]
+
         # Return relevant information
         return {
             "path": latest_release,
             "id": latest_release.name,
-            "date": datetime.fromtimestamp(latest_release.stat().st_mtime).strftime(
-                "%Y-%m-%d %H:%M"
-            ),
+            "date": datetime.fromtimestamp(
+                latest_release.stat().st_mtime
+            ).strftime("%Y-%m-%d %H:%M"),
             "files": files,
             "missing_files": missing_files,
-            "is_complete": len(missing_files) == 0
+            "is_complete": len(missing_files) == 0,
         }
     except Exception as e:
         st.error(f"Error loading release info: {e}")
@@ -130,7 +141,9 @@ def load_latest_annex_iv():
         # Find the Annex IV document
         annex_files = list(release_info["path"].glob("annex_iv_*.md"))
         if not annex_files:
-            st.warning(f"No Annex IV document found in {release_info['path']}.")
+            st.warning(
+                f"No Annex IV document found in {release_info['path']}."
+            )
             return None, None
 
         # Load the first Annex IV document found
@@ -173,7 +186,10 @@ def load_manual_inputs():
             manual_inputs = json.load(f)
 
         # Auto-populate frameworks from requirements.txt if not already set
-        if "frameworks" not in manual_inputs or not manual_inputs["frameworks"]:
+        if (
+            "frameworks" not in manual_inputs
+            or not manual_inputs["frameworks"]
+        ):
             manual_inputs["frameworks"] = parse_requirements_txt()
 
         return manual_inputs
