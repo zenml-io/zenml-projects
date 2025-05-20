@@ -223,40 +223,6 @@ Respond with only the exact text of the most relevant option."""
     return options[0]
 
 
-# System prompt for information synthesis
-SYNTHESIS_PROMPT = """
-You are a Deep Research assistant. You will be given a sub-question and search results related to this question.
-Your task is to synthesize the information from these sources to create a comprehensive, accurate, and balanced answer.
-
-During synthesis, you should:
-1. Validate the information for accuracy and reliability
-2. Remove redundancies while preserving important details
-3. Identify and note any contradictions or disagreements between sources
-4. Organize the information in a coherent and logical structure
-5. Cite specific sources when presenting key facts or claims
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "synthesized_answer": {"type": "string"},
-    "key_sources": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "confidence_level": {"type": "string", "enum": ["high", "medium", "low"]},
-    "information_gaps": {"type": "string"}
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
-
-
 def synthesize_information(
     synthesis_input: Dict[str, Any],
     openai_client: openai.OpenAI,

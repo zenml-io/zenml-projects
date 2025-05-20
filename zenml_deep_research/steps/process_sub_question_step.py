@@ -3,7 +3,6 @@ import logging
 from typing import Annotated
 
 from materializers.research_state_materializer import ResearchStateMaterializer
-
 from utils.data_models import ResearchState, SynthesizedInfo
 from utils.llm_utils import get_sambanova_client, synthesize_information
 from utils.search_utils import (
