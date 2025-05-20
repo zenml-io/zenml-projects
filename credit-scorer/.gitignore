@@ -53,7 +53,7 @@ wandb/
 model_outputs/
 
 # Data
-*.csv
+# *.csv
 *.tsv
 !requirements.txt
 
@@ -101,3 +101,5 @@ ruff.toml
 models/
 cache/
 _pocs/
+TODO.md
+visualizations/

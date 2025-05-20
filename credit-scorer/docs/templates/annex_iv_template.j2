@@ -1,0 +1,434 @@
+{# Annex IV Technical Documentation Generator - Enhanced Formatting #}
+
+# Annex IV: Technical Documentation for {{ pipeline.name }}
+
+*Generated on {{ generation_date }}*
+
+---
+
+## 1. General Description of the AI System
+
+### 1(a) Intended Purpose and Version
+
+| **Field** | **Value** |
+|-----------|-----------|
+| **System Name** | {{ pipeline.name }} |
+| **Provider** | {{ manual_inputs.provider if manual_inputs and manual_inputs.provider else "*[REQUIRED: Provider
+name]*" }} |
+| **Description** | {{ manual_inputs.description if manual_inputs and manual_inputs.description else "*[REQUIRED: System
+description]*" }} |
+| **Pipeline Version** | `{{ pipeline.id }}` |
+| **Pipeline Run Version** | `{{ run.id }}` |
+
+{% if pipeline.previous_versions and pipeline.previous_versions|length > 0 %} **Previous Versions:**
+
+|Version|Run ID|Created|Status|
+|---|---|---|---|
+|{%- for version in pipeline.previous_versions %}||||
+|{{ version.version }}|`{{ version.run_id[:8] }}`|{{ version.created }}|{{ version.status }}|
+|{%- endfor %}||||
+|{% else %}||||
+|**Previous Versions:** _No previous versions available_||||
+|{% endif %}||||
+
+**Intended Purpose:**
+{{ manual_inputs.intended_purpose if manual_inputs and manual_inputs.intended_purpose else "*[REQUIRED: Describe the
+intended purpose of the AI system]*" }}
+
+### 1(b) System Interactions
+
+{% if stack and stack.components %}
+**ZenML Stack Configuration:**
+- **Stack Name:** {{ stack.name }}
+- **Stack ID:** `{{ stack.id }}`
+
+**Stack Components:**
+{% for comp_type, components in stack.components.items() %}
+**{{ comp_type | capitalize }}:**
+{% for component in components %}
+- **{{ component.name }}** ({{ component.flavor_name }}{% if component.integration %}, {{ component.integration }}{%
+endif %})
+{% endfor %}
+
+{% endfor %}
+{% else %}
+**ZenML Stack Configuration:** *Stack information not available*
+{% endif %}
+
+{% if stack and stack.components %}
+**ZenML Stack Configuration:**
+
+- **Stack Name:** {{ stack.name }}
+- **Stack ID:** `{{ stack.id }}` {% if stack.created %}
+- **Created:** {{ stack.created }} {% endif %} {% if stack.updated %}
+- **Updated:** {{ stack.updated }} {% endif %} {% if stack.description %}
+- **Description:** {{ stack.description }} {% endif %}
+
+**Stack Components:**
+
+{% for comp_type, components in stack.components.items() %}
+
+#### {{ comp_type | capitalize }} Components
+
+|Name|Flavor|Integration|Component ID|
+|---|---|---|---|
+|{%- for component in components %}||||
+|{{ component.name }}|{{ component.flavor_name }}|{{ component.integration if component.integration else "N/A" }}|`{{
+component.id[:8] if component.id else "N/A" }}`|
+|{%- endfor %}||||
+
+{% endfor %}
+{% else %}
+**ZenML Stack Configuration:** _Stack information not available_
+{% endif %}
+
+**Additional System Interactions:**
+{{ manual_inputs.additional_interactions if manual_inputs and manual_inputs.additional_interactions else "*[REQUIRED:
+Describe interactions with other systems]*" }}
+
+### 1(c) Software Versions
+
+{% if run and run.code_reference and run.code_reference.commit_sha %}
+**Code Version Control:**
+- **Pipeline Commit:** `{{ run.code_reference.commit_sha }}`
+{% if run.code_reference.repo_url %}
+- **Repository:** {{ run.code_reference.repo_url }}
+{% endif %}
+{% else %}
+**Code Version Control:** *Version control information not available*
+{% endif %}
+
+{% if run and run.metadata and run.metadata.get("deps_hash") %}
+- **Dependencies Hash:** `{{ run.metadata["deps_hash"] }}`
+{% endif %}
+
+**Framework Versions:**
+{% if manual_inputs and manual_inputs.frameworks %}
+| Framework | Version |
+|-----------|---------|
+{%- for framework, version in manual_inputs.frameworks.items() %}
+| {{ framework }} | {{ version }} |
+{%- endfor %}
+{% else %}
+*No framework information available*
+{% endif %}
+
+### 1(d) Deployment Forms
+
+**Deployment Configuration:**
+
+- **Type:** {{ manual_inputs.get("deployment_type", "Modal + FastAPI (Serverless API deployment)") }}
+- **Environment:** Production
+- **Scaling:** Automatic {% if manual_inputs.get("deployment_id") %}
+- **Deployment ID:** `{{ manual_inputs.deployment_id }}` {% endif %} {% if manual_inputs.get("deployment_timestamp") %}
+- **Deployed at:** {{ manual_inputs.deployment_timestamp }} {% endif %} {% if manual_inputs.get("model_checksum") %}
+- **Model Checksum:** `{{ manual_inputs.model_checksum }}` {% endif %}
+
+{% if manual_inputs.get("deployment_endpoints") %} **API Endpoints:**
+
+|Endpoint|URL|
+|---|---|
+|{%- for endpoint_name, url in manual_inputs.deployment_endpoints.items() %}||
+|{{ endpoint_name }}|{{ url }}|
+|{%- endfor %}||
+|{% endif %}||
+
+### 1(e) Hardware Requirements
+
+**Compute Resources:**
+{% if run and run.metadata and run.metadata.get("resource_settings") %}
+{{ run.metadata.resource_settings }}
+{% elif manual_inputs and manual_inputs.hardware_requirements %}
+{{ manual_inputs.hardware_requirements }}
+{% else %}
+- **Development:** 2 vCPU, 1 GB RAM
+- **Training:** 2 vCPU, 1 GB RAM
+- **Inference:** 2 vCPU, 1 GB RAM
+{% endif %}
+
+### 1(f) Product Appearance
+
+{% if manual_inputs and manual_inputs.product_image_url %}
+![Product Overview]({{ manual_inputs.product_image_url }})
+*Figure 1: System Architecture Overview*
+{% else %}
+*[OPTIONAL: Product appearance documentation would be included here]*
+{% endif %}
+
+### 1(g) User Interface for Deployer
+
+{% if manual_inputs and manual_inputs.ui_screenshot_url %}
+![Deployer Interface]({{ manual_inputs.ui_screenshot_url }})
+*Figure 2: Deployment Interface*
+{% else %}
+*[REQUIRED: User interface documentation for deployers]*
+{% endif %}
+
+### 1(h) Instructions for Use
+
+{% if manual_inputs and manual_inputs.user_doc_link %}
+**Documentation Resources:**
+- [User Guide]({{ manual_inputs.user_doc_link }})
+- [API Documentation]({{ manual_inputs.api_doc_link }})
+{% else %}
+*[REQUIRED: Links to user documentation and instructions]*
+{% endif %}
+
+---
+
+## 2. Detailed Description of Elements and Development Process
+
+### 2(a) Development Methods and Third-party Tools
+
+**Pipeline Execution History:**
+
+{% for p in pipelines %}
+#### {{ p.name }}
+*Run ID: `{{ p.run_id }}`*
+
+| Step Name | Status | Inputs | Outputs |
+|-----------|--------|---------|---------|
+{%- for s in p.steps %}
+| **{{ s.name }}** | {% if s.status == "completed" %}✅ {{ s.status }}{% elif s.status == "running" %}🔄 {{ s.status }}{%
+elif s.status == "failed" %}❌ {{ s.status }}{% else %}⚪ {{ s.status }}{% endif %} | {{ s.inputs | format_inputs }} | {{
+s.outputs | format_outputs }} |
+{%- endfor %}
+
+{% endfor %}
+
+**Development Environment:**
+- **Source Code Repository:** {{ run.code_reference.repo_url if run and run.code_reference and
+run.code_reference.repo_url else "*[REQUIRED: Repository information]*" }}
+- **Version Control System:** Git
+- **CI/CD Platform:** ZenML Pipelines
+
+### 2(b) Design Specifications
+
+| **Specification** | **Details** |
+|-------------------|-------------|
+| **Model Architecture** | {{ manual_inputs.model_architecture if manual_inputs and manual_inputs.model_architecture
+else "*[REQUIRED: Specify model architecture]*" }} |
+| **Optimization Objective** | {{ manual_inputs.optimization_objective if manual_inputs and
+manual_inputs.optimization_objective else "*[REQUIRED: Specify optimization objective]*" }} |
+
+**Design Rationale and Assumptions:**
+{% if manual_inputs and manual_inputs.get("design_assumptions") %}
+{{ manual_inputs.design_assumptions | preserve_newlines }}
+{% else %}
+*[REQUIRED: Document key design choices, rationale, and assumptions]*
+{% endif %}
+
+**Compliance Trade-offs:**
+{% if manual_inputs and manual_inputs.get("compliance_tradeoffs") %}
+{{ manual_inputs.compliance_tradeoffs | preserve_newlines }}
+{% else %}
+*[REQUIRED: Describe trade-offs made for EU AI Act compliance]*
+{% endif %}
+
+### 2(c) System Architecture
+
+{% if manual_inputs and manual_inputs.arch_diagram_url %}
+![System Architecture]({{ manual_inputs.arch_diagram_url }})
+*Figure 3: Detailed System Architecture*
+{% else %}
+*[REQUIRED: System architecture diagram and description]*
+{% endif %}
+
+**Computational Resources:**
+{% if manual_inputs and manual_inputs.get("computational_resources") %}
+{{ manual_inputs.computational_resources | preserve_newlines }}
+{% else %}
+*[REQUIRED: Detail computational resources for development, training, testing, and validation]*
+{% endif %}
+
+### 2(d) Data Requirements and Provenance
+
+{% if run and run.metadata and run.metadata.get("dataset_info") %}
+**Dataset Information:**
+
+| Dataset | Rows | Source | SHA-256 | Labeling | Cleaning |
+|---------|------|---------|---------|----------|----------|
+{% for d in run.metadata["dataset_info"] %}
+| {{ d.name }} | {{ d.rows }} | {{ d.source }} | `{{ d.sha[:8] }}...` | {{ d.get("labeling", "*Required*") }} | {{
+d.get("cleaning", "*Required*") }} |
+{% endfor %}
+{% else %}
+**Dataset Overview:**
+- **Name:** Credit Scoring Dataset
+- **Source:** Historical loan application data (5-year span)
+- **Size:** ~10,000 records
+- **Features:** Age, income, employment, credit history, debt, payment history
+- **Target:** Binary credit risk classification
+{% endif %}
+
+**Data Processing Methodology:**
+{% if manual_inputs and manual_inputs.get("data_methodology") %}
+{{ manual_inputs.data_methodology | preserve_newlines }}
+{% else %}
+*[REQUIRED: Describe data selection, labeling, and cleaning methodologies per Article 10]*
+{% endif %}
+
+### 2(e) Human Oversight Assessment
+
+{% if manual_inputs and manual_inputs.get("oversight_assessment") %}
+{{ manual_inputs.oversight_assessment | preserve_newlines }}
+{% else %}
+*[REQUIRED: Assessment of human oversight measures per Article 14, including technical measures for output
+interpretation]*
+{% endif %}
+
+### 2(f) Predetermined Changes and Continuous Compliance
+
+{% if manual_inputs and manual_inputs.get("continuous_compliance_plan") %}
+{{ manual_inputs.continuous_compliance_plan | preserve_newlines }}
+{% else %}
+*[REQUIRED: Describe predetermined changes and technical solutions for continuous EU AI Act compliance]*
+{% endif %}
+
+### 2(g) Validation and Testing Procedures
+
+**Performance Metrics:**
+{% if manual_inputs and manual_inputs.performance_metrics %}
+| Metric | Value |
+|--------|-------|
+{%- for metric_name, metric_value in manual_inputs.performance_metrics.items() %}
+| {{ metric_name | title }} | {{ metric_value | round(3) if metric_value is number else metric_value }} |
+{%- endfor %}
+{% else %}
+*[REQUIRED: Document performance metrics including accuracy, robustness, and compliance measures]*
+{% endif %}
+
+**Fairness Assessment:**
+{% if manual_inputs and manual_inputs.fairness_assessment %}
+| Fairness Metric | Score |
+|-----------------|-------|
+{%- for metric_name, metric_value in manual_inputs.fairness_assessment.items() %}
+| {{ metric_name | replace("_", " ") | title }} | {{ metric_value | round(3) if metric_value is number else metric_value
+}} |
+{%- endfor %}
+{% else %}
+*[REQUIRED: Comprehensive fairness and bias assessment across protected attributes]*
+{% endif %}
+
+**Bias Mitigation Measures:**
+{% if manual_inputs and manual_inputs.get("bias_mitigation") %}
+{{ manual_inputs.bias_mitigation | preserve_newlines }}
+{% else %}
+*[REQUIRED: Document measures to identify and mitigate bias]*
+{% endif %}
+
+### 2(h) Cybersecurity Measures
+
+{% if manual_inputs and manual_inputs.get("cybersec_measures") %}
+{{ manual_inputs.cybersec_measures | preserve_newlines }}
+{% else %}
+*[REQUIRED: Describe cybersecurity measures for AI system protection]*
+{% endif %}
+
+---
+
+## 3. Monitoring, Functioning and Control
+
+**System Capabilities and Limitations:**
+
+{% if manual_inputs and manual_inputs.performance_metrics and manual_inputs.performance_metrics.get("accuracy") %}
+- **Expected Accuracy:** {{ (manual_inputs.performance_metrics.accuracy * 100) | round(1) }}%
+{% else %}
+- **Expected Accuracy:** *[REQUIRED: Specify expected accuracy level]*
+{% endif %}
+
+**System Limitations:**
+{% if manual_inputs and manual_inputs.get("limitations") %}
+{{ manual_inputs.limitations | preserve_newlines }}
+{% else %}
+*[REQUIRED: Document system limitations, especially regarding specific persons or groups]*
+{% endif %}
+
+**Foreseeable Unintended Outcomes:**
+{% if manual_inputs and manual_inputs.get("unintended_outcomes") %}
+{{ manual_inputs.unintended_outcomes | preserve_newlines }}
+{% else %}
+*[REQUIRED: Describe foreseeable unintended outcomes and risk sources for health, safety, and fundamental rights]*
+{% endif %}
+
+**Input Data Specifications:**
+{% if manual_inputs and manual_inputs.get("input_specifications") %}
+{{ manual_inputs.input_specifications | preserve_newlines }}
+{% else %}
+*[REQUIRED: Specify requirements and characteristics for input data]*
+{% endif %}
+
+---
+
+## 4. Appropriateness of Performance Metrics
+
+{% if manual_inputs and manual_inputs.get("metric_appropriateness") %}
+{{ manual_inputs.metric_appropriateness | preserve_newlines }}
+{% else %}
+*[REQUIRED: Explain why chosen performance metrics are appropriate for this AI system]*
+{% endif %}
+
+---
+
+## 5. Risk Management System
+
+{% if manual_inputs and manual_inputs.get("risk_management_system") %}
+{{ manual_inputs.risk_management_system | preserve_newlines }}
+{% else %}
+*[REQUIRED: Detailed description of risk management system per Article 9]*
+{% endif %}
+
+---
+
+## 6. Lifecycle Changes Log
+
+{% if manual_inputs and manual_inputs.get("lifecycle_changes_log") %}
+```
+{{ manual_inputs.lifecycle_changes_log | preserve_newlines }}
+```
+{% else %}
+*[REQUIRED: Document relevant changes throughout system lifecycle]*
+{% endif %}
+
+---
+
+## 7. Standards and Specifications Applied
+
+{% if manual_inputs and manual_inputs.get("standards_list") %}
+{{ manual_inputs.standards_list | preserve_newlines }}
+{% else %}
+*[REQUIRED: List harmonized standards applied or detailed description of solutions for Chapter III, Section 2
+requirements]*
+{% endif %}
+
+---
+
+## 8. EU Declaration of Conformity
+
+{% if manual_inputs and manual_inputs.get("declaration_of_conformity") %}
+```
+{{ manual_inputs.declaration_of_conformity | preserve_newlines }}
+```
+{% else %}
+*[REQUIRED: Attach copy of EU declaration of conformity per Article 47]*
+{% endif %}
+
+---
+
+## 9. Post-Market Monitoring Plan
+
+{% if manual_inputs and manual_inputs.get("post_market_plan") %}
+{{ manual_inputs.post_market_plan | preserve_newlines }}
+{% else %}
+*[REQUIRED: Detailed description of post-market monitoring system per Article 72]*
+{% endif %}
+
+---
+
+*End of Annex IV Documentation*
+
+**Document Version:** {{ run.id }}
+
+**Generated:** {{ generation_date }}
+
+**Compliance Standard:** EU AI Act (Regulation 2024/1689)

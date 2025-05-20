@@ -1,0 +1,45 @@
+settings:
+  docker:
+    required_integrations:
+      - s3
+      - aws
+      - slack
+    requirements: requirements.txt
+    python_package_installer: "uv"
+  resources:
+    cpu_count: 2
+    memory: "1GB"
+
+enable_cache: False
+enable_artifact_metadata: True
+
+model:
+  name: "credit-scoring-model"
+  license: "Apache 2.0"
+  description: "A credit scoring model"
+  tags: ["credit-scoring", "eu-ai-act", "risk-assessment"]
+  audience: "ZenML users"
+  use_cases: "EU AI Act compliance, risk assessment, credit score prediction"
+
+parameters:
+  target: "TARGET"
+  model_path: "models/model.pkl"
+  risk_register_path: "docs/risk/risk_register.xlsx"
+  protected_attributes:
+    - "CODE_GENDER"
+    - "DAYS_BIRTH"
+    - "AGE_YEARS" # derived from DAYS_BIRTH in data_preprocessor
+    - "NAME_EDUCATION_TYPE"
+    - "NAME_FAMILY_STATUS"
+    - "NAME_HOUSING_TYPE"
+  approval_thresholds:
+    accuracy: 0.80
+    bias_disparity: 0.20
+    risk_score: 0.40
+
+compliance:
+  evaluation_metrics:
+    data_quality_threshold: 0.8
+    robustness_threshold: 0.7
+    fairness_threshold: 0.2  # Maximum allowed disparity
+    risk_score_threshold: 0.4  # Maximum acceptable risk score

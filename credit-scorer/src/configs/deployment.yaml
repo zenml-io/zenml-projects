@@ -1,0 +1,40 @@
+settings:
+  docker:
+    required_integrations:
+      - s3
+      - aws
+      - slack
+    requirements: requirements.txt
+    python_package_installer: "uv"
+  resources:
+    cpu_count: 2
+    memory: "1GB"
+
+enable_cache: False
+enable_artifact_metadata: True
+
+compliance:
+  risk_register_path: "docs/risk/risk_register.xlsx"
+  incident_log_path: "docs/risk/incident_log.json"
+  releases_dir: "docs/releases"
+  templates_dir: "docs/templates"
+  sample_inputs_path: "docs/templates/sample_inputs.json"
+  compliance_threshold: 0.8  # 80% compliance required overall
+  article_weights:
+    article_9: 0.15    # Risk Management
+    article_10: 0.15   # Data Governance
+    article_11: 0.15   # Technical Documentation
+    article_12: 0.1    # Record Keeping
+    article_13: 0.1    # Transparency
+    article_14: 0.1    # Human Oversight
+    article_15: 0.15   # Accuracy & Robustness
+    article_16: 0.05   # Quality Management
+    article_17: 0.05   # Post-market Monitoring
+
+steps:
+  approve_deployment:
+    parameters:
+      approval_thresholds:
+        accuracy: 0.80
+        bias_disparity: 0.20
+        risk_score: 0.40

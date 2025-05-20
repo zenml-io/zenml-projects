@@ -1,0 +1,296 @@
+
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1, h2, h3 { color: #2c3e50; }
+            .profile-summary { margin-bottom: 30px; }
+            table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .data-summary { background-color: #f0f8ff; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .alert { background-color: #fff3cd; padding: 15px; border-left: 6px solid #ffc107; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <h1>Credit Scoring Dataset Profile</h1>
+        
+        <div class="data-summary">
+            <h2>Dataset Summary</h2>
+            <ul>
+                <li><strong>Rows:</strong> 19999</li>
+                <li><strong>Columns:</strong> 24</li>
+                <li><strong>Missing Values:</strong> 21618</li>
+                <li><strong>Data Source:</strong> credit_scoring.csv</li>
+            </ul>
+        </div>
+    
+        <div class="profile-summary">
+            <h2>Column Statistics</h2>
+            <table>
+                <tr>
+                    <th>Column</th>
+                    <th>Count</th>
+                    <th>Null Count</th>
+                    <th>Unique Count</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Mean</th>
+                </tr>
+    
+                <tr>
+                    <td>AMT_ANNUITY</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>6098</td>
+                    <td>2052</td>
+                    <td>258025.5</td>
+                    <td>27113.4345</td>
+                </tr>
+            
+                <tr>
+                    <td>AMT_CREDIT</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>248</td>
+                    <td>45000</td>
+                    <td>4050000</td>
+                    <td>599509.0722</td>
+                </tr>
+            
+                <tr>
+                    <td>AMT_GOODS_PRICE</td>
+                    <td>19999</td>
+                    <td>15</td>
+                    <td>411</td>
+                    <td>45000</td>
+                    <td>4050000</td>
+                    <td>538815.4763</td>
+                </tr>
+            
+                <tr>
+                    <td>AMT_INCOME_TOTAL</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>465</td>
+                    <td>25650</td>
+                    <td>117000000</td>
+                    <td>173986.2061</td>
+                </tr>
+            
+                <tr>
+                    <td>CNT_CHILDREN</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>9</td>
+                    <td>0</td>
+                    <td>8</td>
+                    <td>0.4173</td>
+                </tr>
+            
+                <tr>
+                    <td>CNT_FAM_MEMBERS</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>10</td>
+                    <td>2.1599</td>
+                </tr>
+            
+                <tr>
+                    <td>CODE_GENDER</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>DAYS_BIRTH</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>11537</td>
+                    <td>-25161</td>
+                    <td>-7680</td>
+                    <td>-16001.3117</td>
+                </tr>
+            
+                <tr>
+                    <td>DAYS_EMPLOYED</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>5901</td>
+                    <td>-16365</td>
+                    <td>365243</td>
+                    <td>63287.5687</td>
+                </tr>
+            
+                <tr>
+                    <td>EXT_SOURCE_1</td>
+                    <td>19999</td>
+                    <td>11246</td>
+                    <td>8715</td>
+                    <td>0.023601</td>
+                    <td>0.933105</td>
+                    <td>0.504</td>
+                </tr>
+            
+                <tr>
+                    <td>EXT_SOURCE_2</td>
+                    <td>19999</td>
+                    <td>50</td>
+                    <td>17365</td>
+                    <td>0.000044</td>
+                    <td>0.855</td>
+                    <td>0.5149</td>
+                </tr>
+            
+                <tr>
+                    <td>EXT_SOURCE_3</td>
+                    <td>19999</td>
+                    <td>3976</td>
+                    <td>672</td>
+                    <td>0.000527</td>
+                    <td>0.885488</td>
+                    <td>0.5122</td>
+                </tr>
+            
+                <tr>
+                    <td>FLAG_OWN_CAR</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>FLAG_OWN_REALTY</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_CONTRACT_TYPE</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_EDUCATION_TYPE</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>5</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_FAMILY_STATUS</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>5</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_HOUSING_TYPE</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>6</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_INCOME_TYPE</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>6</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>NAME_TYPE_SUITE</td>
+                    <td>19999</td>
+                    <td>83</td>
+                    <td>7</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>OCCUPATION_TYPE</td>
+                    <td>19999</td>
+                    <td>6248</td>
+                    <td>18</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>REGION_RATING_CLIENT</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>3</td>
+                    <td>1</td>
+                    <td>3</td>
+                    <td>2.0485</td>
+                </tr>
+            
+                <tr>
+                    <td>SK_ID_CURR</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>20213</td>
+                    <td>100002</td>
+                    <td>123324</td>
+                    <td>111660.4388</td>
+                </tr>
+            
+                <tr>
+                    <td>TARGET</td>
+                    <td>19999</td>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>0.0789</td>
+                </tr>
+            
+            </table>
+        </div>
+    
+            <div class="alert">
+                <h3>Sensitive Attributes Detected</h3>
+                <p>The following columns contain potentially sensitive information:</p>
+                <ul>
+        <li>CODE_GENDER</li><li>NAME_EDUCATION_TYPE</li><li>NAME_FAMILY_STATUS</li><li>NAME_HOUSING_TYPE</li><li>DAYS_BIRTH</li>
+                </ul>
+                <p>These attributes should be handled with care in compliance with the EU AI Act.</p>
+            </div>
+        
+    </body>
+    </html>
+    

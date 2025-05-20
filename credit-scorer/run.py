@@ -21,12 +21,11 @@ from pathlib import Path
 import click
 from zenml.logger import get_logger
 
-from pipelines import (
+from src.pipelines import (
     deployment,
     feature_engineering,
     training,
 )
-from steps.post_run_annex import generate_annex_iv_documentation
 
 logger = get_logger(__name__)
 
@@ -50,10 +49,6 @@ Examples:
   \b
   # Run the deployment pipeline with human approval
     python run.py --deploy
-
-  \b
-  # Run complete end-to-end workflow with documentation
-    python run.py --all --generate-docs
 """
 )
 @click.option(
@@ -82,26 +77,14 @@ Examples:
 )
 @click.option(
     "--config-dir",
-    default="configs",
+    default="src/configs",
     type=click.STRING,
     help="Directory containing configuration files.",
 )
 @click.option(
-    "--model-id",
-    default=None,
-    type=click.STRING,
-    help="ID of model to use for deployment (required for deployment).",
-)
-@click.option(
-    "--generate-docs",
-    is_flag=True,
-    default=True,
-    help="Generate EU AI Act Annex IV documentation.",
-)
-@click.option(
     "--auto-approve",
     is_flag=True,
-    default=False,
+    default=True,
     help="Auto-approve deployment (for CI/CD pipelines).",
 )
 @click.option(
@@ -115,10 +98,8 @@ def main(
     train: bool = False,
     deploy: bool = False,
     all: bool = False,
-    config_dir: str = "configs",
-    model_id: str = None,
-    generate_docs: bool = False,
-    auto_approve: bool = False,
+    config_dir: str = "src/configs",
+    auto_approve: bool = True,
     no_cache: bool = False,
 ):
     """Main entry point for EU AI Act compliance pipelines.
@@ -130,8 +111,6 @@ def main(
     config_dir = Path(config_dir)
     if not config_dir.is_absolute():
         config_dir = Path(os.path.dirname(os.path.realpath(__file__))) / config_dir
-
-    # Ensure config directory exists
     if not config_dir.exists():
         raise ValueError(f"Configuration directory {config_dir} not found")
 
@@ -152,65 +131,25 @@ def main(
     # Ignore WhyLogs optional usage-telemetry API
     os.environ["WHYLOGS_NO_ANALYTICS"] = "True"
 
-    # Run complete workflow if requested
-    if all:
-        logger.info("Starting complete EU AI Act compliant workflow...")
-
-        # Run feature engineering pipeline
-        config_path = config_dir / "feature_engineering.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline()
-        logger.info("✅ Feature engineering pipeline completed")
-
-        # Run training pipeline
-        config_path = config_dir / "training.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        training_pipeline = training.with_options(**pipeline_args)
-        training_results = training_pipeline(
-            train_df=train_df,
-            test_df=test_df,
-        )
-        logger.info("✅ Training pipeline completed")
-
-        # Run deployment pipeline
-        config_path = config_dir / "deployment.yaml"
-        if config_path.exists():
-            pipeline_args["config_path"] = str(config_path)
-
-        deployment_pipeline = deployment.with_options(**pipeline_args)
-        deployment_pipeline(
-            model_path=training_results["model_path"],
-            evaluation_results=training_results["evaluation"],
-            risk_info=training_results["risk"],
-            preprocess_pipeline=preprocess_pipeline,
-        )
-        logger.info("✅ Deployment pipeline completed")
-
-        logger.info("🎉 Complete EU AI Act compliant workflow finished successfully!")
-        return
-
-    # Run feature engineering pipeline if requested
+    # Run feature engineering pipeline
     if feature:
         config_path = config_dir / "feature_engineering.yaml"
         if config_path.exists():
             pipeline_args["config_path"] = str(config_path)
 
+        run_args = {}
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, preprocess_pipeline, *_ = fe_pipeline()
+        train_df, test_df, sk_pipeline, compliance_record, *_ = fe_pipeline(**run_args)
+
+        logger.info("✅ Feature engineering pipeline finished successfully!")
 
         # Store for potential chaining
         outputs["train_df"] = train_df
         outputs["test_df"] = test_df
-        outputs["preprocess_pipeline"] = preprocess_pipeline
+        outputs["sk_pipeline"] = sk_pipeline
+        outputs["compliance_record"] = compliance_record
 
-        logger.info("✅ Feature engineering pipeline completed")
-
-    # Run training pipeline if requested
+    # Run training pipeline
     if train:
         config_path = config_dir / "training.yaml"
         if config_path.exists():
@@ -224,16 +163,16 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        training_results = training_pipeline(**train_args)
+        model, eval_results, risk_scores, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
-        outputs["model_path"] = training_results["model_path"]
-        outputs["evaluation"] = training_results["evaluation"]
-        outputs["risk"] = training_results["risk"]
+        outputs["model"] = model
+        outputs["evaluation_results"] = eval_results
+        outputs["risk_scores"] = risk_scores
 
         logger.info("✅ Training pipeline completed")
 
-    # Run deployment pipeline if requested
+    # Run deployment pipeline
     if deploy:
         config_path = config_dir / "deployment.yaml"
         if config_path.exists():
@@ -241,30 +180,16 @@ def main(
 
         deploy_args = {}
 
-        # Use model from training pipeline or specified model_id
-        if "model_path" in outputs:
-            deploy_args["model_path"] = outputs["model_path"]
-        elif model_id:
-            # Load model by ID
-            deploy_args["model_path"] = model_id
-        else:
-            raise ValueError(
-                "Model ID must be provided for deployment when not chaining pipelines. "
-                "Use --model-id to specify."
-            )
-
-        # Add evaluation and risk info if available
-        if "evaluation" in outputs:
-            deploy_args["evaluation_results"] = outputs["evaluation"]
-
-        if "risk" in outputs:
-            deploy_args["risk_info"] = outputs["risk"]
-
+        if "model" in outputs:
+            deploy_args["model"] = outputs["model"]
+        if "evaluation_results" in outputs:
+            deploy_args["evaluation_results"] = outputs["evaluation_results"]
+        if "risk_scores" in outputs:
+            deploy_args["risk_scores"] = outputs["risk_scores"]
         if "preprocess_pipeline" in outputs:
             deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]
 
-        deployment_pipeline = deployment.with_options(**pipeline_args)
-        deployment_pipeline(**deploy_args)
+        deployment.with_options(**pipeline_args)(**deploy_args)
 
         logger.info("✅ Deployment pipeline completed")
 
