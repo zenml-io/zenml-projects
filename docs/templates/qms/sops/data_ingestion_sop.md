@@ -49,12 +49,11 @@ Protected attributes must be:
 
 ## 5. Evidence Trail
 
-| Artifact                | Location       | Step                           | Artifact/Metadata name   |
-| ----------------------- | -------------- | ------------------------------ | ------------------------ |
-| WhyLogs profile         | ZenML artifact | `ingest`                       | `cs_data_profile`        |
-| SHA-256 hash & meta     | ZenML metadata | `ingest`                       | `data_snapshot`          |
-| Compliance metadata     | ZenML metadata | `generate_compliance_metadata` | `cs_compliance_metadata` |
-| Pre-processing pipeline | ZenML artifact | `data_preprocessor`            | `cs_preprocess_pipeline` |
+| Artifact                | Location       | Step                | Artifact/Metadata name   |
+| ----------------------- | -------------- | ------------------- | ------------------------ |
+| WhyLogs profile         | ZenML artifact | `ingest`            | `cs_data_profile`        |
+| SHA-256 hash & meta     | ZenML metadata | `ingest`            | `data_snapshot`          |
+| Pre-processing pipeline | ZenML artifact | `data_preprocessor` | `cs_preprocess_pipeline` |
 
 ## 6. Signs of Problematic Data
 

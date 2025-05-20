@@ -19,25 +19,22 @@ from typing import List, Optional
 
 from zenml.pipelines import pipeline
 
-from src.constants import (
-    FEATURE_ENGINEERING_PIPELINE_NAME,
-    TARGET_COLUMN,
-)
+from src.constants import FEATURE_ENGINEERING_PIPELINE_NAME
 from src.steps import (
     data_preprocessor,
     data_splitter,
-    generate_compliance_metadata,
     ingest,
 )
 
-
 @pipeline(name=FEATURE_ENGINEERING_PIPELINE_NAME)
 def feature_engineering(
+    dataset_path: str = "src/data/credit_scoring.csv",
     test_size: float = 0.2,
     normalize: bool = True,
-    target: str = TARGET_COLUMN,
+    target: str = "TARGET",
     random_state: int = 42,
     sample_fraction: Optional[float] = None,
+    sensitive_attributes: List[str] = None,
 ):
     """End-to-end pipeline for credit scoring with EU AI Act compliance.
 
@@ -49,10 +46,12 @@ def feature_engineering(
     # Initialize volume metadata if not provided
 
     # Load the data
-    raw_data, data_profile, whylogs_visualization = ingest(
+    raw_data, whylogs_visualization = ingest(
+        dataset_path=dataset_path,
         target=target,
         random_state=random_state,
         sample_fraction=sample_fraction,
+        sensitive_attributes=sensitive_attributes,
     )
 
     # Split the data into train and test sets
@@ -63,20 +62,11 @@ def feature_engineering(
     )
 
     # Preprocess the data
-    train_df, test_df, sk_pipeline, preprocessing_metadata = data_preprocessor(
+    train_df, test_df, sk_pipeline = data_preprocessor(
         dataset_trn=dataset_trn,
         dataset_tst=dataset_tst,
         target=target,
         normalize=normalize,
     )
 
-    # Generate compliance documentation
-    compliance_info = generate_compliance_metadata(
-        train_df=train_df,
-        test_df=test_df,
-        preprocessing_metadata=preprocessing_metadata,
-        target=target,
-        data_profile=data_profile,
-    )
-
-    return train_df, test_df, sk_pipeline, compliance_info
+    return train_df, test_df, sk_pipeline

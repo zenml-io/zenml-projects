@@ -139,7 +139,7 @@ def main(
 
         run_args = {}
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, sk_pipeline, compliance_info, *_ = fe_pipeline(**run_args)
+        train_df, test_df, sk_pipeline, compliance_record, *_ = fe_pipeline(**run_args)
 
         logger.info("✅ Feature engineering pipeline finished successfully!")
 
@@ -147,7 +147,7 @@ def main(
         outputs["train_df"] = train_df
         outputs["test_df"] = test_df
         outputs["sk_pipeline"] = sk_pipeline
-        outputs["compliance_info"] = compliance_info
+        outputs["compliance_record"] = compliance_record
 
     # Run training pipeline
     if train:

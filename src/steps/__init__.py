@@ -19,7 +19,6 @@
 from .feature_engineering.ingest import ingest
 from .feature_engineering.data_splitter import data_splitter
 from .feature_engineering.data_preprocessor import data_preprocessor
-from .feature_engineering.generate_compliance_metadata import generate_compliance_metadata
 
 # training
 from .training.train import train_model

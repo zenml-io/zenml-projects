@@ -18,107 +18,94 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Dict, Optional
-
+from typing import Annotated, Any, Dict
+import os
 import pkg_resources
+from cyclonedx.model.bom import Bom
+from cyclonedx.model.component import Component, ComponentType
+from cyclonedx.output.json import JsonV1Dot5
+from packageurl import PackageURL
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    RELEASES_DIR,
-    SBOM_ARTIFACT_NAME,
-)
+from src.constants import RELEASES_DIR, SBOM_ARTIFACT_NAME
 from src.utils.modal_utils import save_artifact_to_modal
 
 logger = get_logger(__name__)
 
 
 @step(enable_cache=False)
-def generate_sbom(
-    deployment_info: Optional[Dict[str, Any]] = None,
-) -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
-    """Generate a simplified Software Bill of Materials (SBOM) for Article 15 compliance.
-
-    For this demo, we create a minimal SBOM directly from the Python environment.
-
-    Args:
-        deployment_info: Information about the deployed model (optional)
-
-    Returns:
-        Dictionary containing SBOM artifact information
-    """
-    # Get run id as string to avoid JSON serialization issues
+def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
+    """Generate SBOM using CycloneDX programmatically."""
     run_id = str(get_step_context().pipeline_run.id)
-
-    # Create timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    release_dir = Path(RELEASES_DIR) / run_id
+    os.makedirs(release_dir, exist_ok=True)
 
-    # Get release directory for this run
-    release_dir = f"{RELEASES_DIR}/{run_id}"
+    # Create CycloneDX BOM
+    bom = Bom()
 
-    # Generate SBOM data
-    sbom_data = {
-        "artifacts": get_packages_info(),
-        "source": {
-            "type": "python-environment",
-            "generated_at": datetime.now().isoformat(),
-        },
-        "metadata": {
-            "description": "Simplified SBOM for AI Act compliance demo",
-            "version": "1.0",
-            "generation_timestamp": timestamp,
-            "pipeline_run_id": run_id,
-        },
-    }
+    # Add only direct dependencies
+    direct_deps = get_direct_dependencies()
+    for dep in direct_deps:
+        component = Component(
+            name=dep["name"],
+            version=dep["version"],
+            type=ComponentType.LIBRARY,
+            purl=PackageURL(type="pypi", name=dep["name"], version=dep["version"]),
+        )
+        bom.components.add(component)
 
-    # Define file names and paths
+    # Convert to JSON
+    json_output = JsonV1Dot5(bom)
+    sbom_json = json.loads(json_output.output_as_string())
+
+    # Save and upload
     sbom_filename = "sbom.json"
     local_sbom_path = Path(release_dir) / sbom_filename
 
     with open(local_sbom_path, "w") as f:
-        json.dump(sbom_data, f, indent=2)
+        json.dump(sbom_json, f, indent=2)
 
-    # Add deployment info if available
-    if deployment_info:
-        sbom_data["deployment_info"] = deployment_info
-
-    # Save SBOM directly to Modal volume in the release directory
     modal_sbom_path = f"{release_dir}/{sbom_filename}"
-    checksum = save_artifact_to_modal(artifact=sbom_data, artifact_path=modal_sbom_path)
+    checksum = save_artifact_to_modal(artifact=sbom_json, artifact_path=modal_sbom_path)
 
-    # Create the artifact object to return
     sbom_artifact = {
-        "sbom_data": sbom_data,
+        "sbom_data": sbom_json,
         "sbom_path": modal_sbom_path,
         "checksum": checksum,
         "generation_time": timestamp,
     }
 
-    # Log metadata for compliance documentation
     log_metadata(metadata={SBOM_ARTIFACT_NAME: sbom_artifact})
-
     logger.info(f"SBOM generation complete. Saved to Modal at {modal_sbom_path}")
 
     return sbom_artifact
 
 
-def get_packages_info():
-    """Get package information from the current Python environment."""
-    packages = []
-    for pkg in pkg_resources.working_set:
-        packages.append(
-            {
-                "name": pkg.key,
-                "version": pkg.version,
-                "location": pkg.location,
-            }
-        )
+def get_direct_dependencies():
+    """Extract direct dependencies from requirements.txt."""
+    req_file = Path("requirements.txt")
+    if not req_file.exists():
+        return []
 
-    return {
-        "artifacts": packages,
-        "source": {
-            "type": "python-environment",
-            "generated_at": datetime.now().isoformat(),
-        },
-        "metadata": {"description": "Simplified SBOM for AI Act compliance demo", "version": "1.0"},
-    }
+    packages = []
+    installed_packages = {pkg.key: pkg for pkg in pkg_resources.working_set}
+
+    with open(req_file) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                pkg_name = line.split(">=")[0].split("==")[0].split("<")[0].strip()
+                pkg_name = pkg_name.lower().replace("_", "-")
+
+                if pkg_name in installed_packages:
+                    pkg = installed_packages[pkg_name]
+                    packages.append(
+                        {
+                            "name": pkg.key,
+                            "version": pkg.version,
+                        }
+                    )
+
+    return packages

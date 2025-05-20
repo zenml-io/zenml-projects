@@ -17,11 +17,13 @@
 
 import json
 import uuid
-from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
 import pandas as pd
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    roc_auc_score,
+)
 from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -29,8 +31,6 @@ from zenml.logger import get_logger
 from src.constants import (
     EVALUATION_RESULTS_NAME,
     MODEL_NAME,
-    RELEASES_DIR,
-    TARGET_COLUMN,
     TEST_DATASET_NAME,
 )
 from src.utils import (
@@ -38,7 +38,6 @@ from src.utils import (
     report_bias_incident,
     save_artifact_to_modal,
 )
-from src.utils.model_definition import model_definition
 
 logger = get_logger(__name__)
 
@@ -52,12 +51,13 @@ class UUIDEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-@step(model=model_definition)
+@step()
 def evaluate_model(
     protected_attributes: List[str],
     test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
-    target: str = TARGET_COLUMN,
+    target: str = "TARGET",
     model: Annotated[Any, MODEL_NAME] = None,
+    approval_thresholds: Dict[str, float] = None,
 ) -> Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME]:
     """Compute performance + fairness metrics. Articles 9 & 15 compliant.
 
@@ -66,6 +66,7 @@ def evaluate_model(
         test_df: Test dataset
         target: Target column name
         model: The trained model
+        approval_thresholds: Approval thresholds for fairness metrics
 
     Returns:
         Dictionary containing evaluation and fairness results
@@ -96,6 +97,7 @@ def evaluate_model(
         y_pred,
         protected_attributes,
         test_df,
+        approval_thresholds,
     )
 
     # Create fairness report
@@ -110,8 +112,7 @@ def evaluate_model(
     run_id = str(get_step_context().pipeline_run.id)
 
     # Save report to Modal
-    release_dir = f"{RELEASES_DIR}/{run_id}"
-    Path(release_dir).mkdir(parents=True, exist_ok=True)
+    release_dir = f"docs/releases/{run_id}"
     fairness_file_path = f"{release_dir}/fairness_report.json"
 
     save_artifact_to_modal(

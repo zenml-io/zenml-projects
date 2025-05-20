@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from src.constants import (
-    INCIDENT_LOG_PATH,
     MODEL_NAME,
     SLACK_BOT_TOKEN,
     SLACK_CHANNEL,
@@ -32,6 +31,7 @@ from src.utils.modal_utils import save_artifact_to_modal
 def create_incident_report(
     incident_data: Dict[str, Any],
     model_version: Optional[str] = None,
+    incident_log_path: str = "docs/risk/incident_log.json",
 ) -> Dict[str, Any]:
     """Create an incident report and save it to the compliance system.
 
@@ -57,28 +57,25 @@ def create_incident_report(
     }
 
     try:
-        # 1. Define persistent storage path
-        incident_path = INCIDENT_LOG_PATH
-
-        # 2. Save to local compliance directory first (for non-Modal contexts)
+        # 1. Save to local compliance directory first (for non-Modal contexts)
         existing_incidents = []
-        if Path(incident_path).exists():
+        if Path(incident_log_path).exists():
             try:
-                with open(incident_path, "r") as f:
+                with open(incident_log_path, "r") as f:
                     existing_incidents = json.load(f)
             except json.JSONDecodeError:
                 existing_incidents = []
 
         existing_incidents.append(incident)
 
-        with open(incident_path, "w") as f:
+        with open(incident_log_path, "w") as f:
             json.dump(existing_incidents, f, indent=2)
 
         # 3. Try to save to Modal volume if available
         try:
             save_artifact_to_modal(
                 artifact=existing_incidents,
-                artifact_path=incident_path,
+                artifact_path=incident_log_path,
             )
             persisted_to_modal = True
         except Exception:

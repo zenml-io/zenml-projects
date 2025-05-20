@@ -19,8 +19,6 @@ import hashlib
 import json
 import pickle
 import tempfile
-import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -28,96 +26,17 @@ import joblib
 from modal import Volume
 
 from src.constants import (
-    DOCS_DIR,
-    MAX_MODEL_VERSIONS,
     MODAL_ENVIRONMENT,
-    MODAL_EVAL_RESULTS_DIR,
-    MODAL_MODELS_DIR,
-    MODAL_PREPROCESS_PIPELINE_PATH,
     MODAL_VOLUME_NAME,
     RELEASES_DIR,
-    RISK_REGISTER_PATH,
 )
-
-
-def save_model_with_retention(model: Any) -> Dict[str, Any]:
-    """Save model with version control for compliance.
-
-    Args:
-        model: The model to save.
-        base_dir: The base directory to save the model.
-        max_versions: The maximum number of model versions to keep.
-        overwrite: Whether to overwrite the model if it already exists.
-    """
-    # Write new model
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    fname = f"model_{ts}.pkl"
-    remote_path = f"{MODAL_MODELS_DIR}/{fname}"
-
-    # Dump locally
-    tmp = Path("/tmp") / fname
-    joblib.dump(model, tmp)
-
-    save_artifact_to_modal(
-        artifact=model,
-        artifact_path=remote_path,
-        overwrite=False,
-    )
-
-    checksum = hashlib.sha256(tmp.read_bytes()).hexdigest()
-
-    vol = Volume.from_name(
-        MODAL_VOLUME_NAME,
-        create_if_missing=True,
-        environment_name=MODAL_ENVIRONMENT,
-    )
-
-    # Enforce retention
-    try:
-        entries = vol.listdir(MODAL_MODELS_DIR)
-    except AttributeError:
-        entries = [p.name for p in vol.walk(MODAL_MODELS_DIR)]
-
-    # Filter and sort
-    mods = sorted(f for f in entries if f.startswith("model_") and f.endswith(".pkl"))
-    pruned = []
-    if len(mods) > MAX_MODEL_VERSIONS:
-        for old in mods[:-MAX_MODEL_VERSIONS]:
-            old_path = f"{MODAL_MODELS_DIR}/{old}"
-            try:
-                # Download old model
-                temp_file = Path(tempfile.mkdtemp()) / old
-                vol.download(old_path, str(temp_file))
-
-                # Extract key metadata
-                old_model = joblib.load(temp_file)
-                metadata = {
-                    "pruned_at": datetime.now().isoformat(),
-                    "model_file": old,
-                    "hyperparameters": getattr(old_model, "get_params", lambda: {})(),
-                    "feature_importance": getattr(old_model, "feature_importances_", None),
-                }
-
-                # Save metadata to archive
-                archive_path = f"{MODAL_MODELS_DIR}/archive/{old.replace('.pkl', '_metadata.json')}"
-                save_artifact_to_modal(
-                    artifact=metadata,
-                    artifact_path=archive_path,
-                )
-
-                # Now remove the original model
-                vol.remove_file(old_path)
-                pruned.append({"path": old_path, "archived_metadata": archive_path})
-            except Exception as e:
-                print(f"Error pruning model {old}: {e}")
-
-    return {"path": remote_path, "checksum": checksum, "pruned": pruned}
 
 
 def save_artifact_to_modal(
     artifact: Any,
     artifact_path: str,
     overwrite: bool = True,
+    environment: str = MODAL_ENVIRONMENT,
 ) -> Optional[str]:
     """Save any artifact to a Modal Volume.
 
@@ -125,6 +44,7 @@ def save_artifact_to_modal(
         artifact: The artifact to save.
         artifact_path: Path within the Modal Volume to save the artifact.
         overwrite: Whether to overwrite the artifact if it already exists.
+        environment: The environment to save the artifact to.
 
     Returns:
         The checksum of the artifact if applicable.
@@ -155,7 +75,7 @@ def save_artifact_to_modal(
     vol = Volume.from_name(
         MODAL_VOLUME_NAME,
         create_if_missing=True,
-        environment_name=MODAL_ENVIRONMENT,
+        environment_name=environment,
     )
 
     # Check for existing file
@@ -176,7 +96,8 @@ def save_artifact_to_modal(
 
 
 def save_compliance_artifacts_to_modal(
-    artifacts: Dict[str, Any], run_id: str
+    artifacts: Dict[str, Any],
+    run_id: str,
 ) -> Dict[str, Dict[str, str]]:
     """Save compliance-related artifacts to the Modal Volume.
 
@@ -189,17 +110,12 @@ def save_compliance_artifacts_to_modal(
     """
     results = {}
 
-    release_dir = f"{RELEASES_DIR}/{run_id}"
+    release_dir = Path(RELEASES_DIR) / run_id
     Path(release_dir).mkdir(parents=True, exist_ok=True)
 
     for artifact_name, artifact_data in artifacts.items():
-        if artifact_name == "preprocess_pipeline":
-            path = MODAL_PREPROCESS_PIPELINE_PATH
-        elif artifact_name == "risk_register":
-            path = RISK_REGISTER_PATH
-        else:
-            extension = get_extension_for_artifact(artifact_data)
-            path = f"{release_dir}/{artifact_name}{extension}"
+        extension = get_extension_for_artifact(artifact_data)
+        path = f"{release_dir}/{artifact_name}{extension}"
 
         checksum = save_artifact_to_modal(
             artifact=artifact_data,

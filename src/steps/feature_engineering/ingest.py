@@ -17,7 +17,7 @@
 
 import hashlib
 from datetime import datetime
-from typing import Annotated, Optional, Tuple
+from typing import Annotated, List, Optional, Tuple
 
 import pandas as pd
 import whylogs as why
@@ -25,24 +25,19 @@ from whylogs.core import DatasetProfileView
 from zenml import get_step_context, log_metadata, step
 from zenml.types import HTMLString
 
-from src.constants import (
-    CREDIT_SCORING_CSV_PATH,
-    DATA_PROFILE_NAME,
-    SENSITIVE_ATTRIBUTES,
-    TARGET_COLUMN,
-    WHYLOGS_VISUALIZATION_NAME,
-)
+from src.constants import WHYLOGS_VISUALIZATION_NAME
 from src.utils import generate_whylogs_visualization
 
 
 @step(enable_cache=False)
 def ingest(
+    dataset_path: str,
     random_state: int = 42,
-    target: str = TARGET_COLUMN,
+    target: str = "TARGET",
     sample_fraction: Optional[float] = None,
+    sensitive_attributes: List[str] = None,
 ) -> Tuple[
     Annotated[pd.DataFrame, "credit_scoring_df"],
-    Annotated[DatasetProfileView, DATA_PROFILE_NAME],
     Annotated[HTMLString, WHYLOGS_VISUALIZATION_NAME],
 ]:
     """Ingest local credit_scoring.csv and log compliance metadata.
@@ -66,13 +61,13 @@ def ingest(
     run_id = str(get_step_context().pipeline_run.id)
     # Record start time for logging
     start_time = datetime.now()
-    print(f"Ingesting data from {CREDIT_SCORING_CSV_PATH} at {start_time}")
+    print(f"Ingesting data from {dataset_path} at {start_time}")
 
     #  load the CSV
-    df = pd.read_csv(CREDIT_SCORING_CSV_PATH, low_memory=False)
+    df = pd.read_csv(dataset_path, low_memory=False)
 
     if target not in df.columns:
-        raise ValueError(f"Target column '{target}' not found in {CREDIT_SCORING_CSV_PATH}")
+        raise ValueError(f"Target column '{target}' not found in {dataset_path}")
 
     # Clean data by removing rows with all or most values missing
     if "SK_ID_CURR" in df.columns:
@@ -88,7 +83,7 @@ def ingest(
         print(f"→ Stratified sample: {len(df)} rows")
 
     # provenance hash of file bytes (not object hash for scale)
-    with open(CREDIT_SCORING_CSV_PATH, "rb") as f:
+    with open(dataset_path, "rb") as f:
         file_hash = hashlib.sha256(f.read()).hexdigest()
 
     dataset_stats = {
@@ -99,12 +94,12 @@ def ingest(
     }
 
     # identify sensitive columns by substring (for fairness checks)
-    sensitive_cols = [col for col in df.columns for term in SENSITIVE_ATTRIBUTES if term in col]
+    sensitive_cols = [col for col in df.columns for term in sensitive_attributes if term in col]
 
     # dataset info for compliance documentation
     dataset_info = {
-        "name": CREDIT_SCORING_CSV_PATH,
-        "source": CREDIT_SCORING_CSV_PATH,
+        "name": dataset_path,
+        "source": dataset_path,
         "ingestion_time": start_time.isoformat(),
         "sha256": file_hash,
         **dataset_stats,
@@ -132,4 +127,4 @@ def ingest(
 
     print(f"Ingestion completed at {datetime.now()}, SHA-256: {file_hash}")
 
-    return df, data_profile, whylogs_visualization
+    return df, whylogs_visualization

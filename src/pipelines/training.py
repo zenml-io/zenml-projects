@@ -21,7 +21,6 @@ from zenml import pipeline
 from zenml.client import Client
 
 from src.constants import (
-    TARGET_COLUMN,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
     TRAINING_PIPELINE_NAME,
@@ -31,16 +30,18 @@ from src.steps import (
     risk_assessment,
     train_model,
 )
-from src.utils.model_definition import model_definition
 
 
-@pipeline(name=TRAINING_PIPELINE_NAME, model=model_definition)
+@pipeline(name=TRAINING_PIPELINE_NAME)
 def training(
     train_df: Any = None,
     test_df: Any = None,
-    target: str = TARGET_COLUMN,
+    target: str = "TARGET",
     hyperparameters: Optional[Dict[str, Any]] = None,
     protected_attributes: Optional[List[str]] = None,
+    approval_thresholds: Optional[Dict[str, float]] = None,
+    risk_register_path: str = "docs/risk/risk_register.xlsx",
+    model_path: str = "models/model.pkl",
 ):
     """Training pipeline for credit scoring with EU AI Act compliance.
 
@@ -55,6 +56,9 @@ def training(
         target: Name of the target column
         hyperparameters: Optional model hyperparameters
         protected_attributes: List of columns to check for fairness
+        approval_thresholds: Dictionary containing approval thresholds
+        risk_register_path: Path to the risk register
+        model_path: Path to save the trained model
 
     Returns:
         model: The trained model
@@ -73,6 +77,7 @@ def training(
         test_df=test_df,
         target=target,
         hyperparameters=hyperparameters,
+        model_path=model_path,
     )
 
     # Evaluate model for performance and fairness
@@ -81,11 +86,14 @@ def training(
         protected_attributes=protected_attributes,
         target=target,
         model=model,
+        approval_thresholds=approval_thresholds,
     )
 
     # Perform risk assessment based on evaluation results
     risk_scores = risk_assessment(
         evaluation_results=eval_results,
+        risk_register_path=risk_register_path,
+        approval_thresholds=approval_thresholds,
     )
 
     # Return artifacts to be used by deployment pipeline

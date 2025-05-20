@@ -1,17 +1,33 @@
-# environment configuration
 settings:
   docker:
     required_integrations:
+      - s3
+      - aws
       - sklearn
-      - pandas
-    requirements:
-      - pyarrow
+    requirements: requirements.txt
+    python_package_installer: "uv"
+  resources:
+    cpu_count: 2
+    memory: "1GB"
 
-# Pipeline options
-enable_cache: False
+enable_cache: True
 enable_artifact_metadata: True
 
-# Pipeline configuration
 parameters:
   test_size: 0.35
   sample_fraction: null
+  dataset_path: "src/data/credit_scoring.csv"
+  target: "TARGET"
+  sensitive_attributes:
+    - "CODE_GENDER"
+    - "DAYS_BIRTH"
+    - "AGE_YEARS" # derived from DAYS_BIRTH in data_preprocessor
+    - "NAME_EDUCATION_TYPE"
+    - "NAME_FAMILY_STATUS"
+    - "NAME_HOUSING_TYPE"
+
+compliance:
+  data_governance:
+    data_quality_profile: True  # Enable WhyLogs profiling
+    data_schema_validation: True  # Enable schema validation
+    minimum_feature_coverage: 0.95  # Minimum required feature coverage

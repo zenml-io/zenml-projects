@@ -88,7 +88,7 @@ def post_market_monitoring(
     run_id = str(context.pipeline_run.id)
 
     # Create the release directory for this run
-    release_dir = f"{RELEASES_DIR}/{run_id}"
+    release_dir = Path(RELEASES_DIR) / run_id
     Path(release_dir).mkdir(parents=True, exist_ok=True)
 
     # Save monitoring plan to the run-specific release directory

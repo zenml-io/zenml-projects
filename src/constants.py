@@ -19,22 +19,6 @@ import os
 from pathlib import Path
 
 # ======================================================================
-# Dataset Configuration
-# ======================================================================
-
-CREDIT_SCORING_CSV_PATH = "src/data/credit_scoring.csv"
-TARGET_COLUMN = "TARGET"
-
-# List of potential sensitive attributes for fairness checks
-SENSITIVE_ATTRIBUTES = [
-    "CODE_GENDER",  # M or F
-    "DAYS_BIRTH",  # age proxy (e.g. -9461 = 26 years old)
-    "NAME_EDUCATION_TYPE",  # High school, Graduate, Academic degree
-    "NAME_FAMILY_STATUS",  # Married, Single, Civil marriage, Separated, Divorced, Widow
-    "NAME_HOUSING_TYPE",  # House / apartment, With parents, Rented apartment, Office apartment, Co-op apartment
-]
-
-# ======================================================================
 # Pipeline Names
 # ======================================================================
 FEATURE_ENGINEERING_PIPELINE_NAME = "cs_feature_engineering"
@@ -50,8 +34,7 @@ MODEL_NAME = "credit_scoring_model"
 TRAIN_DATASET_NAME = "cs_train_df"
 TEST_DATASET_NAME = "cs_test_df"
 PREPROCESS_PIPELINE_NAME = "cs_preprocess_pipeline"
-PREPROCESS_METADATA_NAME = "cs_preprocessing_metadata"
-DATA_PROFILE_NAME = "cs_data_profile"
+PREPROCESSING_METADATA_NAME = "cs_preprocessing_metadata"
 WHYLOGS_VISUALIZATION_NAME = "cs_whylogs_visualization"
 
 # Training artifacts
@@ -67,8 +50,6 @@ DEPLOYMENT_INFO_NAME = "cs_deployment_info"
 MONITORING_PLAN_NAME = "cs_monitoring_plan"
 INCIDENT_REPORT_NAME = "cs_incident_report"
 COMPLIANCE_RECORD_NAME = "cs_compliance_record"
-COMPLIANCE_REPORT_NAME = "cs_compliance_report"
-MODEL_CARD_NAME = "cs_model_card"
 SBOM_ARTIFACT_NAME = "cs_sbom_artifact"
 ANNEX_IV_PATH_NAME = "cs_annex_iv_path"
 
@@ -77,65 +58,38 @@ ANNEX_IV_PATH_NAME = "cs_annex_iv_path"
 # ======================================================================
 
 # Base path for Annex IV document generation
-DOCS_DIR = "docs"
-TEMPLATES_DIR = f"{DOCS_DIR}/templates"
-RISK_DIR = f"{DOCS_DIR}/risk"
-RELEASES_DIR = f"{DOCS_DIR}/releases"
+RISK_DIR = "docs/risk"
+RELEASES_DIR = "docs/releases"
+TEMPLATES_DIR = "docs/templates"
+SAMPLE_INPUTS_PATH = f"{TEMPLATES_DIR}/sample_inputs.json"
 
 # Ensure minimal local directories exist
 for dir_path in [RISK_DIR, RELEASES_DIR]:
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
-# Default artifact paths
-RISK_REGISTER_PATH = f"{RISK_DIR}/risk_register.xlsx"
-INCIDENT_LOG_PATH = f"{RISK_DIR}/incident_log.json"
-SAMPLE_INPUTS_PATH = f"{TEMPLATES_DIR}/sample_inputs.json"
-
 # ======================================================================
 # Modal Configuration
 # ======================================================================
 
-# Modal deployment settings
 MODAL_VOLUME_NAME = "credit-scoring"
-MODAL_APP_NAME = "credit-scoring-app"
-MODAL_SECRET_NAME = "credit-scoring-secrets"
 MODAL_ENVIRONMENT = "main"
 
-# Maximum number of model versions to keep in the Modal Volume
-MAX_MODEL_VERSIONS = 5
-
-# Modal volume paths (for deployment)
-MODAL_MODELS_DIR = "/models"
-MODAL_PIPELINES_DIR = "/pipelines"
-MODAL_EVAL_RESULTS_DIR = "/evaluation"
-
-# Default Modal artifact paths
-MODAL_MODEL_PATH = f"{MODAL_MODELS_DIR}/model.pkl"
-MODAL_PREPROCESS_PIPELINE_PATH = f"{MODAL_PIPELINES_DIR}/preprocess_pipeline.pkl"
-
-# Standard keys for volume_metadata dictionary
-VOLUME_METADATA_KEYS = {
+# Modal volume metadata and paths
+VOLUME_METADATA = {
     "volume_name": MODAL_VOLUME_NAME,
+    "secret_name": "credit-scoring-secrets",
+    "app_name": "credit-scoring-app",
     "environment_name": MODAL_ENVIRONMENT,
-    "model_path": MODAL_MODEL_PATH,
-    "preprocess_pipeline_path": MODAL_PREPROCESS_PIPELINE_PATH,
-    "docs_dir": DOCS_DIR,
-    "risk_register_path": RISK_REGISTER_PATH,
-    "incident_log_path": INCIDENT_LOG_PATH,
-    "releases_dir": RELEASES_DIR,
-    "templates_dir": TEMPLATES_DIR,
-    "risk_dir": RISK_DIR,
+    "model_path": "models/model.pkl",
+    "preprocess_pipeline_path": "pipelines/preprocess_pipeline.pkl",
+    "docs_dir": "docs",
+    "risk_register_path": "docs/risk/risk_register.xlsx",
+    "incident_log_path": "docs/risk/incident_log.json",
+    "releases_dir": "docs/releases",
+    "templates_dir": "docs/templates",
+    "risk_dir": "docs/risk",
 }
 
-# ======================================================================
-# Model Approval Thresholds
-# ======================================================================
-
-APPROVAL_THRESHOLDS = {
-    "accuracy": 0.80,  # Minimum acceptable accuracy
-    "bias_disparity": 0.20,  # Maximum acceptable disparity
-    "risk_score": 0.40,  # Maximum acceptable overall risk
-}
 
 # ======================================================================
 # Incident Reporting Configuration

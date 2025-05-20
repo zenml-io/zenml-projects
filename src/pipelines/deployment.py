@@ -23,6 +23,7 @@ from zenml.pipelines import pipeline
 from src.constants import (
     DEPLOYMENT_PIPELINE_NAME,
     EVALUATION_RESULTS_NAME,
+    MODAL_ENVIRONMENT,
     MODEL_NAME,
     PREPROCESS_PIPELINE_NAME,
     RISK_SCORES_NAME,
@@ -42,6 +43,7 @@ def deployment(
     preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME] = None,
     evaluation_results: Annotated[Any, EVALUATION_RESULTS_NAME] = None,
     risk_scores: Annotated[Any, RISK_SCORES_NAME] = None,
+    environment: str = MODAL_ENVIRONMENT,
 ):
     """EU AI Act compliant deployment pipeline.
 
@@ -56,6 +58,7 @@ def deployment(
         preprocess_pipeline: Preprocessing pipeline used in training
         evaluation_results: Model evaluation metrics and fairness analysis
         risk_scores: Risk assessment information
+        environment: The environment to save the artifact to.
 
     Returns:
         Dictionary with deployment and monitoring information
@@ -86,12 +89,11 @@ def deployment(
         model=model,
         evaluation_results=evaluation_results,
         preprocess_pipeline=preprocess_pipeline,
+        environment=environment,
     )
 
     # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
-    sbom_artifact = generate_sbom(
-        deployment_info=deployment_info,
-    )
+    sbom_artifact = generate_sbom()
 
     # Post-market monitoring plan (Article 17)
     monitoring_plan = post_market_monitoring(
@@ -103,6 +105,7 @@ def deployment(
     documentation_path = generate_annex_iv_documentation(
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
+        deployment_info=deployment_info,
     )
 
     return deployment_info, monitoring_plan, documentation_path

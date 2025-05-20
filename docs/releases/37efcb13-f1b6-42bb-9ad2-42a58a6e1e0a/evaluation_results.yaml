@@ -1,0 +1,32 @@
+fairness:
+  bias_flag: true
+  fairness_metrics:
+    CODE_GENDER:
+      selection_rate_disparity: 0.003410403439719844
+    NAME_EDUCATION_TYPE:
+      selection_rate_disparity: 0.021739130434782608
+    NAME_FAMILY_STATUS:
+      selection_rate_disparity: 0.004484129179807816
+    NAME_HOUSING_TYPE:
+      selection_rate_disparity: 0.017543859649122806
+    num__AGE_YEARS:
+      accuracy_by_group_summary:
+        accuracy_range: 0.0000 - 1.0000
+        max_accuracy: 1.0
+        mean_accuracy: 0.9215
+        min_accuracy: 0.0
+        num_groups: 5683
+      selection_rate_disparity: 1.0
+  metrics:
+    accuracy: 0.9188571428571428
+    auc: 0.750025145422016
+  protected_attributes_checked:
+    - CODE_GENDER
+    - DAYS_BIRTH
+    - AGE_YEARS
+    - NAME_EDUCATION_TYPE
+    - NAME_FAMILY_STATUS
+    - NAME_HOUSING_TYPE
+metrics:
+  accuracy: 0.9188571428571428
+  auc: 0.750025145422016

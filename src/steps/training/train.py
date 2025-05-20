@@ -26,23 +26,22 @@ from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
 from src.constants import (
-    MODAL_MODEL_PATH,
     MODEL_NAME,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
 from src.utils import save_artifact_to_modal
-from src.utils.model_definition import model_definition
 
 logger = get_logger(__name__)
 
 
-@step(model=model_definition)
+@step()
 def train_model(
     train_df: Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
     test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
     target: str = "target",
     hyperparameters: Optional[Dict] = None,
+    model_path: str = "models/model.pkl",
 ) -> Annotated[
     GradientBoostingClassifier,
     ArtifactConfig(name=MODEL_NAME, artifact_type=ArtifactType.MODEL),
@@ -81,19 +80,18 @@ def train_model(
     end_time = datetime.now()
 
     # Save model locally
-    model_path = "models/model.pkl"
     joblib.dump(model, model_path)
 
     # Save model to Modal Volume
     model_checksum = save_artifact_to_modal(
         artifact=model,
-        artifact_path=MODAL_MODEL_PATH,
+        artifact_path=model_path,
     )
 
     # Log metadata
     log_metadata(
         metadata={
-            "model_path": MODAL_MODEL_PATH,
+            "model_path": model_path,
             "model_checksum": model_checksum,
             "training_params": params,
             "val_accuracy": model.score(X_val, y_val),

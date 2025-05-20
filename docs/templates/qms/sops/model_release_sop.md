@@ -2,13 +2,13 @@
 
 _Version 0.1 • Owner: **AI Compliance Officer**_
 
-| Section     | Detail                                                                                                                     |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Purpose** | Ensure each new model version satisfies technical KPIs and EU-AI-Act obligations before it is deployed.                    |
-| **Scope**   | All models produced by `train_model` step in the credit-scoring workflow.                                                  |
-| **Roles**   | **Submitter:** ML Engineer • **Tester:** QA Lead • **Approver:** AI Compliance Officer                                     |
-| **Inputs**  | Pipeline **run-ID**, evaluation & fairness metrics, risk scores, Annex IV PDF                                              |
-| **Records** | Approval JSON in Modal Volume `compliance/approvals/` • Entry in `model_release_log.md` • `deployment_url` in run metadata |
+| Section     | Detail                                                                                                                                 |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Purpose** | Ensure each new model version satisfies technical KPIs and EU-AI-Act obligations before it is deployed.                                |
+| **Scope**   | All models produced by `train_model` step in the credit-scoring workflow.                                                              |
+| **Roles**   | **Submitter:** ML Engineer • **Tester:** QA Lead • **Approver:** AI Compliance Officer                                                 |
+| **Inputs**  | Pipeline **run-ID**, evaluation & fairness metrics, risk scores, Annex IV PDF                                                          |
+| **Records** | Approval JSON in Modal Volume `docs/releases/<run-id>/approvals/` • Entry in `approval_record.json` • `deployment_url` in run metadata |
 
 ---
 
@@ -61,7 +61,6 @@ Saved automatically by `approve_deployment` to Modal Volume `compliance/approval
   "evaluation_summary": {
     "accuracy": 0.82,
     "auc": 0.91,
-    "f1": 0.79,
     "fairness_flags": []
   },
   "risk_summary": {

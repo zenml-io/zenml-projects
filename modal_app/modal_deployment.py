@@ -1,9 +1,7 @@
-# app/modal_deployment.py
 #!/usr/bin/env python3
 """EU AI Act compliant credit scoring model deployment with Modal."""
 
 import hashlib
-import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -15,7 +13,7 @@ os.environ["MODAL_AUTOMOUNT"] = "false"
 import modal
 from fastapi import FastAPI, HTTPException
 
-from app.schemas import (
+from modal_app.schemas import (
     ApiInfo,
     CreditScoringFeatures,
     IncidentReport,
@@ -23,27 +21,22 @@ from app.schemas import (
     MonitorResponse,
     PredictionResponse,
 )
-from src.constants import (
-    MODAL_APP_NAME,
-    MODAL_ENVIRONMENT,
-    MODAL_MODEL_PATH,
-    MODAL_PREPROCESS_PIPELINE_PATH,
-    MODAL_SECRET_NAME,
-    MODAL_VOLUME_NAME,
-)
+from src.constants import VOLUME_METADATA
 
 # -- Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("credit-scoring-deployer")
 
 # -- Configuration ─────────────────────────────────────────────────────────────
-APP_NAME = os.getenv("APP_NAME", MODAL_APP_NAME)
-VOLUME_NAME = os.getenv("VOLUME_NAME", MODAL_VOLUME_NAME)
-SECRET_NAME = os.getenv("SECRET_NAME", MODAL_SECRET_NAME)
-ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", MODAL_ENVIRONMENT)
+APP_NAME = os.getenv("APP_NAME", VOLUME_METADATA["app_name"])
+VOLUME_NAME = os.getenv("VOLUME_NAME", VOLUME_METADATA["volume_name"])
+SECRET_NAME = os.getenv("SECRET_NAME", VOLUME_METADATA["secret_name"])
+ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", VOLUME_METADATA["environment_name"])
 # Paths within the container (prefixed with /mnt)
-MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt{MODAL_MODEL_PATH}")
-PREPROCESS_PATH = os.getenv("PREPROCESS_PATH", f"/mnt{MODAL_PREPROCESS_PIPELINE_PATH}")
+MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt/{VOLUME_METADATA['model_path']}")
+PREPROCESS_PATH = os.getenv(
+    "PREPROCESS_PATH", f"/mnt/{VOLUME_METADATA['preprocess_pipeline_path']}"
+)
 
 
 # -- App & Image ─────────────────────────────────────────────────────────────
@@ -62,7 +55,7 @@ def create_modal_app(python_version: str = "3.12.9"):
             "fastapi[standard]",
             "uvicorn",
         )
-        .add_local_python_source("app")
+        .add_local_python_source("modal_app")
         .add_local_file("src/constants.py", remote_path="/root/src/constants.py")
         .add_local_file("src/utils/incidents.py", remote_path="/root/src/utils/incidents.py")
         .add_local_file("src/utils/modal_utils.py", remote_path="/root/src/utils/modal_utils.py")
@@ -375,7 +368,7 @@ def main(
         deploy_result = deploy_app(
             app,
             name=APP_NAME,
-            environment_name=MODAL_ENVIRONMENT,
+            environment_name=ENVIRONMENT,
         )
 
     # Get the URL of the deployed app
@@ -388,10 +381,10 @@ def main(
     except Exception as e:
         logger.warning(f"Could not get URL from fastapi_app directly: {e}")
 
-        # Method 2: Construct URL from workspace name and label
-        workspace_name = getattr(deploy_result, "workspace_name", "marwan-ext")
-        fastapi_url = f"https://{workspace_name}-{MODAL_ENVIRONMENT}--{APP_NAME}.modal.run"
-        logger.info(f"Constructed URL with stage: {fastapi_url}")
+    # Method 2: Construct URL from workspace name and label
+    workspace_name = getattr(deploy_result, "workspace_name", "marwan-ext")
+    fastapi_url = f"https://{workspace_name}-{ENVIRONMENT}--{APP_NAME}.modal.run"
+    logger.info(f"Constructed URL with stage: {fastapi_url}")
 
     logger.info(f"Serving Credit Scoring Model on {APP_NAME}")
     logger.info(f"Deploy App Result: {deploy_result}")
@@ -444,7 +437,6 @@ def main(
         model_card["performance_metrics"] = {
             "accuracy": evaluation_results.get("metrics", {}).get("accuracy"),
             "auc": evaluation_results.get("metrics", {}).get("auc"),
-            "f1": evaluation_results.get("metrics", {}).get("f1"),
         }
 
     # Add fairness metrics if available

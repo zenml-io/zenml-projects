@@ -26,10 +26,7 @@ from zenml import log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import (
-    MODAL_PREPROCESS_PIPELINE_PATH,
-    PREPROCESS_METADATA_NAME,
     PREPROCESS_PIPELINE_NAME,
-    TARGET_COLUMN,
     TEST_DATASET_NAME,
     TRAIN_DATASET_NAME,
 )
@@ -48,13 +45,13 @@ def log_op(name, **extra):
 def data_preprocessor(
     dataset_trn: pd.DataFrame,
     dataset_tst: pd.DataFrame,
-    target: str = TARGET_COLUMN,
+    target: str = "TARGET",
     normalize: bool = True,
+    preprocess_pipeline_path: str = "pipelines/preprocess_pipeline.pkl",
 ) -> Tuple[
     Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
     Annotated[pd.DataFrame, TEST_DATASET_NAME],
     Annotated[SkPipeline, PREPROCESS_PIPELINE_NAME],
-    Annotated[Dict[str, Any], PREPROCESS_METADATA_NAME],
 ]:
     """Data preprocessor step that focuses purely on data transformation.
 
@@ -170,13 +167,17 @@ def data_preprocessor(
         "target": target,
         "numeric_columns": num_cols,
         "categorical_columns": cat_cols,
+         "missing": {
+            "train": int(train_df.isna().sum().sum()),
+            "test": int(test_df.isna().sum().sum()),
+        },
     }
     log_metadata(metadata=preprocessing_metadata)
 
     # -- 6. Persist pipeline for deployment ------------------------------------
     save_artifact_to_modal(
         artifact=sk_pipeline,
-        artifact_path=MODAL_PREPROCESS_PIPELINE_PATH,
+        artifact_path=preprocess_pipeline_path,
     )
 
-    return train_df, test_df, sk_pipeline, preprocessing_metadata
+    return train_df, test_df, sk_pipeline

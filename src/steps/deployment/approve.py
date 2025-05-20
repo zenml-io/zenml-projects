@@ -23,7 +23,6 @@ from zenml import step
 
 from src.constants import (
     APPROVAL_RECORD_NAME,
-    APPROVAL_THRESHOLDS,
     APPROVED_NAME,
     EVALUATION_RESULTS_NAME,
     RISK_SCORES_NAME,
@@ -34,6 +33,7 @@ from src.constants import (
 def approve_deployment(
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     risk_scores: Annotated[Dict[str, Any], RISK_SCORES_NAME],
+    approval_thresholds: Dict[str, float],
 ) -> Tuple[
     Annotated[bool, APPROVED_NAME],
     Annotated[Dict[str, Any], APPROVAL_RECORD_NAME],
@@ -46,6 +46,7 @@ def approve_deployment(
     Args:
         evaluation_results: Dictionary containing evaluation metrics and fairness analysis
         risk_scores: Dictionary containing risk assessment information
+        approval_thresholds: Dictionary containing approval thresholds for accuracy, bias disparity, and risk score
 
     Returns:
         Boolean indicating whether deployment is approved
@@ -62,12 +63,7 @@ def approve_deployment(
     print("\n📊 PERFORMANCE METRICS:")
     print(f"  • Accuracy: {evaluation_results['metrics'].get('accuracy', 'N/A'):.4f}")
     print(f"  • AUC: {evaluation_results['metrics'].get('auc', 'N/A'):.4f}")
-    f1_score = evaluation_results.get("metrics", {}).get("f1")
-    if f1_score is not None:
-        print(f"  • F1 Score: {f1_score:.4f}")
-    else:
-        print("  • F1 Score: N/A")
-
+   
     # Fairness summary
     if "fairness_metrics" in evaluation_results:
         print("\n⚖️ FAIRNESS ASSESSMENT:")
@@ -96,12 +92,12 @@ def approve_deployment(
     # Create threshold checks
     threshold_checks = {
         "Accuracy": evaluation_results["metrics"].get("accuracy", 0)
-        >= APPROVAL_THRESHOLDS["accuracy"],
+        >= approval_thresholds["accuracy"],
         "Bias disparity": all(
-            metrics.get("selection_rate_disparity", 1) <= APPROVAL_THRESHOLDS["bias_disparity"]
+            metrics.get("selection_rate_disparity", 1) <= approval_thresholds["bias_disparity"]
             for attr, metrics in evaluation_results.get("fairness_metrics", {}).items()
         ),
-        "Risk score": risk_scores.get("overall", 1) <= APPROVAL_THRESHOLDS["risk_score"],
+        "Risk score": risk_scores.get("overall", 1) <= approval_thresholds["risk_score"],
     }
 
     # Display threshold check results
@@ -142,7 +138,6 @@ def approve_deployment(
         "evaluation_summary": {
             "accuracy": evaluation_results["metrics"].get("accuracy", None),
             "auc": evaluation_results["metrics"].get("auc", None),
-            "f1": evaluation_results["metrics"].get("f1", None),
             "fairness_flags": evaluation_results.get("fairness_flags", []),
         },
         "risk_summary": {

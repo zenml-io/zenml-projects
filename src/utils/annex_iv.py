@@ -193,6 +193,8 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
         },
     }
 
+    metadata["run"]["resource_settings"] = run.config.settings.get("docker", {})
+
     # 6. Loop over your three pipelines and grab last_run & steps
     pipeline_names = [
         FEATURE_ENGINEERING_PIPELINE_NAME,
@@ -343,7 +345,7 @@ def extract_steps_info(run: PipelineRunResponseBody) -> List[Dict[str, Any]]:
     return steps_info
 
 
-def write_git_information(releases_dir: Path) -> None:
+def write_git_information(run_release_dir: Path) -> None:
     """Write git information to the releases directory."""
     try:
         repo = Repo(search_parent_directories=True)
@@ -354,21 +356,75 @@ def write_git_information(releases_dir: Path) -> None:
             f"**Author:** {repo.head.commit.author.name} <{repo.head.commit.author.email}>\n\n"
         )
         git_md += f"**Message:**\n```\n{repo.head.commit.message}\n```\n"
-        (releases_dir / "git_info.md").write_text(git_md)
+        (run_release_dir / "git_info.md").write_text(git_md)
     except Exception:
         logger.warning("Failed to write git info")
 
 
 def save_evaluation_artifacts(
-    releases_dir: Path,
+    run_release_dir: Path,
     evaluation_results: Dict[str, Any] = None,
     risk_scores: Dict[str, Any] = None,
 ) -> None:
     """Save evaluation and risk assessment artifacts as YAML files."""
     if evaluation_results:
-        (releases_dir / "evaluation_results.yaml").write_text(yaml.dump(evaluation_results))
+        # Create summarized version of evaluation results for local storage
+        summarized_results = _summarize_evaluation_results(evaluation_results)
+        (run_release_dir / "evaluation_results.yaml").write_text(yaml.dump(summarized_results))
     if risk_scores:
-        (releases_dir / "risk_scores.yaml").write_text(yaml.dump(risk_scores))
+        (run_release_dir / "risk_scores.yaml").write_text(yaml.dump(risk_scores))
+
+
+def _summarize_evaluation_results(evaluation_results: Dict[str, Any]) -> Dict[str, Any]:
+    """Summarize evaluation results to reduce file size while preserving key information."""
+    summarized = evaluation_results.copy()
+    
+    # Summarize fairness metrics if present
+    if "fairness" in summarized and "fairness_metrics" in summarized["fairness"]:
+        fairness_metrics = summarized["fairness"]["fairness_metrics"]
+        summarized_fairness = {}
+        
+        for attribute, metrics in fairness_metrics.items():
+            if not isinstance(metrics, dict):
+                summarized_fairness[attribute] = metrics
+                continue
+                
+            attr_summary = {}
+            
+            # Copy non-group metrics directly
+            for key, value in metrics.items():
+                if key not in ["accuracy_by_group", "selection_rate_by_group"]:
+                    attr_summary[key] = value
+            
+            # Helper function to check if groups are numeric
+            def is_numeric_groups(groups_dict):
+                return all(
+                    isinstance(k, (int, float, str)) and 
+                    str(k).replace('.', '').replace('-', '').replace('_', '').isdigit()
+                    for k in groups_dict.keys()
+                )
+            
+            # Summarize accuracy_by_group if present
+            if "accuracy_by_group" in metrics and isinstance(metrics["accuracy_by_group"], dict):
+                accuracy_groups = metrics["accuracy_by_group"]
+                accuracies = list(accuracy_groups.values())
+                
+                if accuracies and is_numeric_groups(accuracy_groups) and len(accuracy_groups) > 10:
+                    # For large numeric groups, provide summary statistics
+                    attr_summary["accuracy_by_group_summary"] = {
+                        "num_groups": len(accuracies),
+                        "min_accuracy": round(min(accuracies), 4),
+                        "max_accuracy": round(max(accuracies), 4),
+                        "mean_accuracy": round(sum(accuracies) / len(accuracies), 4),
+                        "accuracy_range": f"{min(accuracies):.4f} - {max(accuracies):.4f}"
+                    }
+            
+            summarized_fairness[attribute] = attr_summary
+        
+        # Replace the original fairness_metrics with summarized version
+        summarized["fairness"]["fairness_metrics"] = summarized_fairness
+    
+    return summarized
 
 
 def generate_readme(
@@ -474,7 +530,7 @@ def generate_readme(
         f.write("- **Article 16**: Post-market monitoring\n\n")
 
         f.write(
-            "For a complete mapping of pipeline steps to EU AI Act articles, see the project's [COMPLIANCE.md](../../../COMPLIANCE.md) file.\n"
+            "For a complete mapping of pipeline steps to EU AI Act articles, see the project's [compliance_matrix.md](../../compliance_matrix.md) file.\n"
         )
 
 

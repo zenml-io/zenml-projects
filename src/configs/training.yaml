@@ -1,38 +1,30 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2023. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
-# environment configuration
 settings:
   docker:
     required_integrations:
-      - sklearn
-      - pandas
       - s3
       - aws
       - slack
     requirements: requirements.txt
     python_package_installer: "uv"
+  resources:
+    cpu_count: 2
+    memory: "1GB"
 
-# Pipeline options
 enable_cache: False
 enable_artifact_metadata: True
 
-# Pipeline parameters
+model:
+  name: "credit-scoring-model"
+  license: "Apache 2.0"
+  description: "A credit scoring model"
+  tags: ["credit-scoring", "eu-ai-act", "risk-assessment"]
+  audience: "ZenML users"
+  use_cases: "EU AI Act compliance, risk assessment, credit score prediction"
+
 parameters:
+  target: "TARGET"
+  model_path: "models/model.pkl"
+  risk_register_path: "docs/risk/risk_register.xlsx"
   protected_attributes:
     - "CODE_GENDER"
     - "DAYS_BIRTH"
@@ -40,10 +32,14 @@ parameters:
     - "NAME_EDUCATION_TYPE"
     - "NAME_FAMILY_STATUS"
     - "NAME_HOUSING_TYPE"
+  approval_thresholds:
+    accuracy: 0.80
+    bias_disparity: 0.20
+    risk_score: 0.40
 
-steps:
-  train_model:
-    settings:
-      resources:
-        cpu_count: 6
-        memory: "14GB"
+compliance:
+  evaluation_metrics:
+    data_quality_threshold: 0.8
+    robustness_threshold: 0.7
+    fairness_threshold: 0.2  # Maximum allowed disparity
+    risk_score_threshold: 0.4  # Maximum acceptable risk score

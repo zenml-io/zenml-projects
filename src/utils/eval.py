@@ -23,7 +23,6 @@ from sklearn.metrics import accuracy_score
 from zenml.logger import get_logger
 
 from src.constants import (
-    APPROVAL_THRESHOLDS,
     MODEL_NAME,
 )
 from src.utils.incidents import create_incident_report
@@ -118,6 +117,7 @@ def analyze_fairness(
     y_pred: pd.Series,
     protected_attributes: List[str],
     test_df: pd.DataFrame,
+    approval_thresholds: Dict[str, float],
 ) -> Tuple[Dict[str, Dict], bool]:
     """Analyze fairness across protected attributes.
 
@@ -145,7 +145,7 @@ def analyze_fairness(
 
         # Check if bias threshold is exceeded
         disparity = metrics["selection_rate_disparity"]
-        if abs(disparity) > APPROVAL_THRESHOLDS["bias_disparity"]:
+        if abs(disparity) > approval_thresholds["bias_disparity"]:
             bias_flag = True
 
     return fairness_report, bias_flag
@@ -187,7 +187,7 @@ def report_bias_incident(fairness_report: Dict[str, Any], run_id: str) -> None:
         from zenml.client import Client
 
         model = Client().get_model_version(model_name_or_id=MODEL_NAME).model
-        model_version = model.latest_version_number
+        model_version = model.latest_version_name
 
         create_incident_report(
             model_version=model_version,

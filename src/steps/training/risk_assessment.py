@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Dict, List
@@ -25,9 +24,7 @@ from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import (
-    APPROVAL_THRESHOLDS,
     HAZARD_DEFINITIONS,
-    RISK_REGISTER_PATH,
     RISK_SCORES_NAME,
 )
 from src.utils.modal_utils import save_artifact_to_modal
@@ -101,33 +98,42 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
     }
 
 
-def get_status(risk_score: float) -> str:
+def get_status(risk_score: float, approval_thresholds: Dict[str, float]) -> str:
     """Determine row status for the risk register.
 
     Args:
         risk_score: The overall risk score ∈ [0,1].
+        approval_thresholds: Dictionary containing approval thresholds.
 
     Returns:
         "PENDING" if the score exceeds the configured threshold, otherwise "COMPLETED".
     """
-    threshold = APPROVAL_THRESHOLDS["risk_score"]
+    threshold = approval_thresholds["risk_score"]
     return "PENDING" if risk_score > threshold else "COMPLETED"
 
 
+def get_article_for_hazard(hazard_id: str) -> str:
+    """Map hazards to specific EU AI Act articles."""
+    article_mapping = {
+        "bias_protected_groups": "article_10",  # Data and Data Governance
+        "poor_performance": "article_15",  # Accuracy, Robustness and Cybersecurity
+        "data_quality_issues": "article_10",  # Data and Data Governance
+        "model_drift": "article_17",  # Post-market Monitoring
+        "security_vulnerability": "article_15",  # Accuracy, Robustness and Cybersecurity
+        "transparency_issues": "article_13",  # Transparency and Provision of Information
+        "human_oversight_failure": "article_14",  # Human Oversight
+        "documentation_gaps": "article_11",  # Technical Documentation
+    }
+    return article_mapping.get(hazard_id, "article_9")  # Default to Risk Management
+
+
 @step
-def risk_assessment(evaluation_results: Dict) -> RiskScores:
-    """Compute risk scores & update register. Article 9 compliant.
-
-    Converts evaluation metrics + bias flag → quantitative risk score
-    Updates risk_register.xlsx (one row / model version)
-    Logs summary via `log_metadata`
-
-    Args:
-        evaluation_results: Dictionary containing evaluation results.
-
-    Returns:
-        Dictionary containing risk scores.
-    """
+def risk_assessment(
+    evaluation_results: Dict,
+    approval_thresholds: Dict[str, float],
+    risk_register_path: str = "docs/risk/risk_register.xlsx",
+) -> RiskScores:
+    """Compute risk scores & update register. Article 9 compliant."""
     scores = score_risk(evaluation_results)
     hazards = identify_hazards(evaluation_results, scores)
 
@@ -141,27 +147,35 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
         "Status",
         "Risk_description",
         "Mitigation",
+        "Article",
+        "Mitigation_status",
+        "Review_date",
     ]
 
-    # Create a fresh workbook
-    wb_path = Path(RISK_REGISTER_PATH)
+    # Load or create workbook
+    wb_path = Path(risk_register_path)
     if wb_path.exists():
         wb = load_workbook(wb_path)
-        ws = wb["Risks"]
+        if "Risks" in wb.sheetnames:
+            ws = wb["Risks"]
+        else:
+            ws = wb.create_sheet("Risks")
+            ws.append(headers)
     else:
         wb = Workbook()
         ws = wb.active
         ws.title = "Risks"
         ws.append(headers)
 
-    # Get run_id
     run_id = get_step_context().pipeline_run.id
     timestamp = datetime.now().isoformat()
 
-    # Add record for this run
+    # Process hazards
     if hazards:
-        # Add to main Risks sheet
         for hz in hazards:
+            status = get_status(scores["overall"], approval_thresholds)
+            article = get_article_for_hazard(hz["id"])
+
             ws.append(
                 [
                     str(run_id),
@@ -170,13 +184,16 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
                     scores["risk_auc"],
                     scores["risk_bias"],
                     hz["severity"].upper(),
-                    get_status(scores["overall"]),
+                    status,
                     hz["description"],
                     hz["mitigation"],
+                    article,
+                    status,
+                    timestamp,
                 ]
             )
 
-        # Add to HazardDetails sheet
+        # HazardDetails sheet
         if "HazardDetails" not in wb.sheetnames:
             hazard_sheet = wb.create_sheet("HazardDetails")
             hazard_sheet.append(
@@ -189,14 +206,13 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
                     "Severity",
                     "Mitigation",
                     "Details",
+                    "Article",
                 ]
             )
         else:
             hazard_sheet = wb["HazardDetails"]
 
-        # Add records for each hazard
         for hz in hazards:
-            # Get additional information for bias hazards
             details = ""
             if hz["id"] == "bias_protected_groups" and "fairness" in evaluation_results:
                 fairness = evaluation_results["fairness"]
@@ -207,6 +223,7 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
                             if abs(disparity) > 0.2:
                                 details += f"{attr}: {abs(disparity):.3f} disparity\n"
 
+            article = get_article_for_hazard(hz["id"])
             hazard_sheet.append(
                 [
                     str(run_id),
@@ -217,10 +234,12 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
                     hz["severity"].upper(),
                     hz["mitigation"],
                     details,
+                    article,
                 ]
             )
     else:
-        # If no hazards, add a single "all clear" record
+        # No hazards case
+        status = get_status(scores["overall"], approval_thresholds)
         ws.append(
             [
                 str(run_id),
@@ -229,29 +248,18 @@ def risk_assessment(evaluation_results: Dict) -> RiskScores:
                 scores["risk_auc"],
                 scores["risk_bias"],
                 "LOW",
-                "COMPLETED",
+                status,
                 "No hazards identified",
                 "N/A",
+                "article_9",
+                status,
+                timestamp,
             ]
         )
 
-    # Save locally for Streamlit dashboard
     wb.save(wb_path)
+    save_artifact_to_modal(artifact=wb, artifact_path=risk_register_path)
 
-    # Save risk register to Modal Volume
-    save_artifact_to_modal(
-        artifact=wb,
-        artifact_path=RISK_REGISTER_PATH,
-    )
-
-    print(f"✅ Risk register saved to: {RISK_REGISTER_PATH}")
-
-    # Log metadata including hazards
-    result = {
-        **scores,
-        "hazards": hazards,
-        "risk_register_path": str(RISK_REGISTER_PATH),
-    }
-
+    result = {**scores, "hazards": hazards, "risk_register_path": str(risk_register_path)}
     log_metadata(metadata=result)
     return result

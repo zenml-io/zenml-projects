@@ -20,14 +20,16 @@ description]*" }} |
 | **Pipeline Version** | `{{ pipeline.id }}` |
 | **Pipeline Run Version** | `{{ run.id }}` |
 
-{% if pipeline.previous_versions and pipeline.previous_versions|length > 0 %}
-**Previous Versions:**
-{% for version in pipeline.previous_versions %}
-- **{{ version.version }}** (`{{ version.run_id[:8] }}`) - {{ version.created }} *[{{ version.status }}]*
-{% endfor %}
-{% else %}
-**Previous Versions:** *No previous versions available*
-{% endif %}
+{% if pipeline.previous_versions and pipeline.previous_versions|length > 0 %} **Previous Versions:**
+
+|Version|Run ID|Created|Status|
+|---|---|---|---|
+|{%- for version in pipeline.previous_versions %}||||
+|{{ version.version }}|`{{ version.run_id[:8] }}`|{{ version.created }}|{{ version.status }}|
+|{%- endfor %}||||
+|{% else %}||||
+|**Previous Versions:** _No previous versions available_||||
+|{% endif %}||||
 
 **Intended Purpose:**
 {{ manual_inputs.intended_purpose if manual_inputs and manual_inputs.intended_purpose else "*[REQUIRED: Describe the
@@ -51,6 +53,33 @@ endif %})
 {% endfor %}
 {% else %}
 **ZenML Stack Configuration:** *Stack information not available*
+{% endif %}
+
+{% if stack and stack.components %}
+**ZenML Stack Configuration:**
+
+- **Stack Name:** {{ stack.name }}
+- **Stack ID:** `{{ stack.id }}` {% if stack.created %}
+- **Created:** {{ stack.created }} {% endif %} {% if stack.updated %}
+- **Updated:** {{ stack.updated }} {% endif %} {% if stack.description %}
+- **Description:** {{ stack.description }} {% endif %}
+
+**Stack Components:**
+
+{% for comp_type, components in stack.components.items() %}
+
+#### {{ comp_type | capitalize }} Components
+
+|Name|Flavor|Integration|Component ID|
+|---|---|---|---|
+|{%- for component in components %}||||
+|{{ component.name }}|{{ component.flavor_name }}|{{ component.integration if component.integration else "N/A" }}|`{{
+component.id[:8] if component.id else "N/A" }}`|
+|{%- endfor %}||||
+
+{% endfor %}
+{% else %}
+**ZenML Stack Configuration:** _Stack information not available_
 {% endif %}
 
 **Additional System Interactions:**
@@ -87,19 +116,34 @@ Describe interactions with other systems]*" }}
 ### 1(d) Deployment Forms
 
 **Deployment Configuration:**
+
 - **Type:** {{ manual_inputs.get("deployment_type", "Modal + FastAPI (Serverless API deployment)") }}
 - **Environment:** Production
-- **Scaling:** Automatic
+- **Scaling:** Automatic {% if manual_inputs.get("deployment_id") %}
+- **Deployment ID:** `{{ manual_inputs.deployment_id }}` {% endif %} {% if manual_inputs.get("deployment_timestamp") %}
+- **Deployed at:** {{ manual_inputs.deployment_timestamp }} {% endif %} {% if manual_inputs.get("model_checksum") %}
+- **Model Checksum:** `{{ manual_inputs.model_checksum }}` {% endif %}
+
+{% if manual_inputs.get("deployment_endpoints") %} **API Endpoints:**
+
+|Endpoint|URL|
+|---|---|
+|{%- for endpoint_name, url in manual_inputs.deployment_endpoints.items() %}||
+|{{ endpoint_name }}|{{ url }}|
+|{%- endfor %}||
+|{% endif %}||
 
 ### 1(e) Hardware Requirements
 
 **Compute Resources:**
-{% if manual_inputs and manual_inputs.hardware_requirements %}
+{% if run and run.metadata and run.metadata.get("resource_settings") %}
+{{ run.metadata.resource_settings }}
+{% elif manual_inputs and manual_inputs.hardware_requirements %}
 {{ manual_inputs.hardware_requirements }}
 {% else %}
-- **Development:** 2 vCPU, 8 GB RAM, 10 GB disk
-- **Training:** 8 vCPU, 32 GB RAM, GPU acceleration
-- **Inference:** 2 vCPU, 8 GB RAM, standard instances
+- **Development:** 2 vCPU, 1 GB RAM
+- **Training:** 2 vCPU, 1 GB RAM
+- **Inference:** 2 vCPU, 1 GB RAM
 {% endif %}
 
 ### 1(f) Product Appearance
@@ -383,6 +427,8 @@ requirements]*
 
 *End of Annex IV Documentation*
 
-**Document Version:** {{ run.id }}<br>
-**Generated:** {{ generation_date }}<br>
+**Document Version:** {{ run.id }}
+
+**Generated:** {{ generation_date }}
+
 **Compliance Standard:** EU AI Act (Regulation 2024/1689)

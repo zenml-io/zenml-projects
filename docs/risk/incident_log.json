@@ -1,53 +1,9 @@
 [
   {
-    "incident_id": "incident_2025-05-15T13-05-33.577801",
-    "timestamp": "2025-05-15T13:05:33.577831",
-    "model_version": "unknown",
-    "severity": "high",
-    "description": "Bias detected in model evaluation",
-    "source": "evaluate_model",
-    "data": {
-      "severity": "high",
-      "description": "Bias detected in model evaluation",
-      "details": "Disparity > 0.2 detected in protected attributes: CODE_GENDER, DAYS_BIRTH, NAME_EDUCATION_TYPE, NAME_FAMILY_STATUS, NAME_HOUSING_TYPE",
-      "source": "evaluate_model",
-      "run_id": "0ae6c563-72b2-48af-ba90-b7e44ecf3f58"
-    }
-  },
-  {
-    "incident_id": "incident_2025-05-15T13-15-26.478208",
-    "timestamp": "2025-05-15T13:15:26.478241",
-    "model_version": "unknown",
-    "severity": "high",
-    "description": "Bias detected in model evaluation",
-    "source": "evaluate_model",
-    "data": {
-      "severity": "high",
-      "description": "Bias detected in model evaluation",
-      "details": "Disparity > 0.2 detected in protected attributes: CODE_GENDER, DAYS_BIRTH, NAME_EDUCATION_TYPE, NAME_FAMILY_STATUS, NAME_HOUSING_TYPE",
-      "source": "evaluate_model",
-      "run_id": "dffa760a-22f9-4ceb-8ade-4cb9f9a9d232"
-    }
-  },
-  {
-    "incident_id": "incident_2025-05-16T07-17-42.089714",
-    "timestamp": "2025-05-16T07:17:42.089744",
-    "model_version": "unknown",
-    "severity": "high",
-    "description": "Bias detected in model evaluation",
-    "source": "evaluate_model",
-    "data": {
-      "severity": "high",
-      "description": "Bias detected in model evaluation",
-      "details": "Selection rate disparities detected:\nnum__DAYS_BIRTH: 1.000 disparity (-2.104316830265608: 0.00 vs -0.6239588233317788: 1.00)",
-      "source": "evaluate_model",
-      "run_id": "31f939a3-5a33-4f44-a553-29d8838242f8"
-    }
-  },
-  {
-    "incident_id": "incident_2025-05-16T07-32-13.182392",
-    "timestamp": "2025-05-16T07:32:13.182427",
-    "model_version": "unknown",
+    "incident_id": "incident_2025-05-19T10-30-34.066371",
+    "timestamp": "2025-05-19T10:30:34.066384",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
     "severity": "high",
     "description": "Bias detected in model evaluation",
     "source": "evaluate_model",
@@ -56,13 +12,14 @@
       "description": "Bias detected in model evaluation",
       "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
       "source": "evaluate_model",
-      "run_id": "37f94793-eb33-4b87-af40-0bcef324eb69"
+      "run_id": "d34770bf-1bc0-447f-8505-221ed00e08bc"
     }
   },
   {
-    "incident_id": "incident_2025-05-16T07-42-29.554473",
-    "timestamp": "2025-05-16T07:42:29.554482",
-    "model_version": "unknown",
+    "incident_id": "incident_2025-05-19T12-30-25.715743",
+    "timestamp": "2025-05-19T12:30:25.715773",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
     "severity": "high",
     "description": "Bias detected in model evaluation",
     "source": "evaluate_model",
@@ -71,13 +28,14 @@
       "description": "Bias detected in model evaluation",
       "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
       "source": "evaluate_model",
-      "run_id": "c5db13af-71a2-42fd-ba82-bfa034d7e847"
+      "run_id": "545ef4d9-b368-411d-ad35-85266d6220bf"
     }
   },
   {
-    "incident_id": "incident_2025-05-16T07-45-55.734073",
-    "timestamp": "2025-05-16T07:45:55.734101",
-    "model_version": "unknown",
+    "incident_id": "incident_2025-05-19T16-53-05.297169",
+    "timestamp": "2025-05-19T16:53:05.297185",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
     "severity": "high",
     "description": "Bias detected in model evaluation",
     "source": "evaluate_model",
@@ -86,7 +44,39 @@
       "description": "Bias detected in model evaluation",
       "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
       "source": "evaluate_model",
-      "run_id": "14da633e-fc6f-49e3-99d2-91b1d21fd285"
+      "run_id": "508880ff-6bc7-428b-8cb2-59f027aade02"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-19T18-51-16.601939",
+    "timestamp": "2025-05-19T18:51:16.601949",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "b7e56599-91a7-42da-b203-8de383b351a0"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-19T18-57-04.218625",
+    "timestamp": "2025-05-19T18:57:04.218634",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9207088617897712: 0.00 vs -1.8062149418635163: 1.00)",
+      "source": "evaluate_model",
+      "run_id": "ec007ea6-d722-4914-92e0-426f61a87f6c"
     }
   }
 ]

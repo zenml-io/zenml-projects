@@ -15,9 +15,10 @@
 # limitations under the License.
 #
 
+import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import jinja2
 import yaml
@@ -49,24 +50,47 @@ def setup_jinja_environment(template_dir: Path) -> jinja2.Environment:
     return env
 
 
+def load_sample_inputs(template_dir: Path) -> Dict[str, Any]:
+    """Load sample inputs from the sample_inputs.json file.
+
+    Args:
+        template_dir: Directory containing the template and sample inputs file
+
+    Returns:
+        Dictionary with sample input data
+    """
+    sample_inputs_path = template_dir / "sample_inputs.json"
+    if sample_inputs_path.exists():
+        with open(sample_inputs_path, "r") as f:
+            return json.load(f)
+    return {}
+
+
 def render_annex_iv_template(
     metadata: Dict[str, Any],
-    manual_inputs: Dict[str, Any],
-    template_dir: Path,
+    manual_inputs: Optional[Dict[str, Any]] = None,
+    template_dir: Optional[Path] = None,
 ) -> str:
     """Render the Annex IV Jinja template with collected metadata.
 
     Args:
         metadata: ZenML metadata dictionary
-        manual_inputs: Manual inputs dictionary
-        template_dir: Directory containing the template
+        manual_inputs: Manual inputs dictionary (optional)
+        template_dir: Directory containing the template (optional)
 
     Returns:
         Rendered template content
     """
+    if template_dir is None:
+        template_dir = Path(__file__).parent.parent.parent / "docs" / "templates"
+    
     env = setup_jinja_environment(template_dir)
     template = env.get_template("annex_iv_template.j2")
 
+    # Load sample inputs if manual_inputs is not provided
+    if manual_inputs is None:
+        manual_inputs = load_sample_inputs(template_dir)
+    
     # Set up the template variables
     template_data = {
         **metadata,
@@ -103,7 +127,7 @@ def _filter_format_inputs(inputs: Dict) -> str:
         try:
             # Only take the first 8 characters of the string representation
             value_str = str(v)[:8]
-            result.append(f"{k}={value_str}")
+            result.append(f"{k}=`{value_str}`")
         except Exception:
             # Fallback in case of errors
             result.append(f"{k}=...")
@@ -120,11 +144,11 @@ def _filter_format_outputs(outputs: Dict) -> str:
     for k, v in outputs.items():
         if isinstance(v, list) and v:
             # Handle list of IDs
-            formatted_ids = ",".join(str(x)[:8] for x in v)
+            formatted_ids = ",".join(f"`{str(x)[:8]}`" for x in v)
             result.append(f"{k}=[{formatted_ids}]")
         else:
             # Handle single value or empty list
-            result.append(f"{k}={str(v)[:8] if v else '-'}")
+            result.append(f"{k}=`{str(v)[:8]}`" if v else f"{k}=-")
 
     return ", ".join(result)
 
