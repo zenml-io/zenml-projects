@@ -107,7 +107,6 @@ credit_scoring_ai_act/
 │
 ├── assets/ # Pipeline diagrams and documentation
 │   ├── deployment-pipeline.png # Deployment pipeline diagram
-│   ├── diagrams.md # Detailed pipeline diagrams with explanations
 │   ├── e2e.png # End-to-end architecture diagram
 │   ├── feature-engineering-pipeline.png # Feature engineering pipeline diagram
 │   ├── modal-deployment.png # Modal deployment diagram
