@@ -25,7 +25,20 @@ def tavily_search(
         cap_content_length: Maximum length of content to return
 
     Returns:
-        Search results from Tavily
+        Dict[str, Any]: Search results from Tavily in the following format:
+            {
+                "query": str,  # The original query
+                "results": List[Dict],  # List of search result objects
+                "error": str,  # Error message (if an error occurred, otherwise omitted)
+            }
+            
+            Each result in "results" has the following structure:
+            {
+                "url": str,  # URL of the search result
+                "raw_content": str,  # Raw content of the page (if include_raw_content=True)
+                "title": str,  # Title of the page
+                "snippet": str,  # Snippet of the page content
+            }
     """
     try:
         from tavily import TavilyClient
@@ -68,7 +81,12 @@ def extract_search_results(
         tavily_results: Results from tavily_search function
 
     Returns:
-        List of SearchResult objects
+        List[SearchResult]: List of converted SearchResult objects with standardized fields.
+          SearchResult is a Pydantic model defined in data_models.py that includes:
+          - url: The URL of the search result
+          - content: The raw content of the page
+          - title: The title of the page
+          - snippet: A brief snippet of the page content
     """
     results_list = []
     if "results" in tavily_results:

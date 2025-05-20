@@ -61,13 +61,15 @@ def run_llm_completion(
         system_prompt: System prompt for the LLM
         client: OpenAI client instance (optional, kept for backward compatibility)
         model: Model to use for completion (with provider prefix)
-        clean_output: Whether to clean reasoning and JSON tags from output
+        clean_output: Whether to clean reasoning and JSON tags from output. When True, 
+            this removes any reasoning sections marked with </think> tags and strips JSON 
+            code block markers.
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling value
 
     Returns:
-        Processed LLM output
+        str: Processed LLM output with optional cleaning applied
     """
     try:
         # Ensure model name has provider prefix
@@ -176,13 +178,19 @@ def get_structured_llm_output(
 def is_text_relevant(text1: str, text2: str, min_word_length: int = 4) -> bool:
     """Determine if two pieces of text are relevant to each other.
 
+    Relevance is determined by checking if one text is contained within the other,
+    or if they share significant words (words longer than min_word_length).
+    This is a simple heuristic approach that checks for:
+    1. Complete containment (one text string inside the other)
+    2. Shared significant words (words longer than min_word_length)
+
     Args:
-        text1: First text
-        text2: Second text
-        min_word_length: Minimum length of words to check for overlap
+        text1: First text to compare
+        text2: Second text to compare
+        min_word_length: Minimum length of words to check for shared content
 
     Returns:
-        True if the texts are relevant to each other
+        bool: True if the texts are deemed relevant to each other based on the criteria
     """
     if not text1 or not text2:
         return False

@@ -27,7 +27,13 @@ def merge_sub_question_results_step(
         output_name: The name of the output artifact from the processing steps
 
     Returns:
-        A merged ResearchState with combined results from all sub-questions
+        Annotated[ResearchState, "merged_state"]: A merged ResearchState with combined 
+            results from all sub-questions
+            
+    Note:
+        This step is typically configured with the 'after' parameter in the pipeline
+        definition to ensure it runs after all parallel sub-question processing steps
+        have completed.
     """
     # Start with the original state that has all sub-questions
     merged_state = copy.deepcopy(original_state)

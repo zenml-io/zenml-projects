@@ -136,11 +136,19 @@ def final_report_generation_step(
 def _generate_fallback_report(state: ResearchState) -> str:
     """Generate a minimal fallback report when the main report generation fails.
 
+    This function creates a simplified HTML report with a consistent structure when
+    the main report generation process encounters an error. The HTML includes:
+    - A header section with the main research query
+    - An error notice
+    - Introduction section
+    - Individual sections for each sub-question with available answers
+    - A references section if sources are available
+
     Args:
-        state: The current research state
+        state: The current research state containing query and answer information
 
     Returns:
-        A basic HTML report
+        str: A basic HTML report with a standard research report structure
     """
     # Create a simple HTML structure
     html = f"""

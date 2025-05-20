@@ -6,6 +6,7 @@ research pipeline to ensure consistency and make prompt management easier.
 """
 
 # Search query generation prompt
+# Used to generate effective search queries from sub-questions
 DEFAULT_SEARCH_QUERY_PROMPT = """
 You are a Deep Research assistant. Given a specific research sub-question, your task is to formulate an effective search 
 query that will help find relevant information to answer the question.
@@ -34,6 +35,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Query decomposition prompt
+# Used to break down complex research queries into specific sub-questions
 QUERY_DECOMPOSITION_PROMPT = """
 You are a Deep Research assistant. Given a complex research query, your task is to break it down into specific sub-questions that 
 would help create a comprehensive understanding of the topic.
@@ -64,6 +66,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Synthesis prompt for individual sub-questions
+# Used to synthesize search results into comprehensive answers for sub-questions
 SYNTHESIS_PROMPT = """
 You are a Deep Research assistant. Given a sub-question and search results, your task is to synthesize the information 
 into a comprehensive, accurate answer.
@@ -97,6 +100,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Viewpoint analysis prompt for cross-perspective examination
+# Used to analyze synthesized answers across different perspectives and viewpoints
 VIEWPOINT_ANALYSIS_PROMPT = """
 You are a Deep Research assistant specializing in analyzing multiple perspectives. You will be given a set of synthesized answers 
 to sub-questions related to a main research query.
@@ -145,6 +149,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Reflection prompt for self-critique and improvement
+# Used to evaluate the research and identify gaps, biases, and areas for improvement
 REFLECTION_PROMPT = """
 You are a Deep Research assistant with the ability to critique and improve your own research. You will be given:
 1. The main research query
@@ -194,6 +199,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Additional synthesis prompt for incorporating new information
+# Used to enhance original synthesis with new information and address critique points
 ADDITIONAL_SYNTHESIS_PROMPT = """
 You are a Deep Research assistant. You will be given:
 1. The original synthesized information on a research topic
@@ -228,6 +234,7 @@ Only return the json object, no explanation or additional text.
 """
 
 # Final report generation prompt
+# Used to compile a comprehensive HTML research report from all synthesized information
 REPORT_GENERATION_PROMPT = """
 You are a Deep Research assistant responsible for compiling a comprehensive research report. You will be given:
 1. The original research query

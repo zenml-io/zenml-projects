@@ -112,7 +112,7 @@ def safe_json_loads(json_str: Optional[str]) -> Dict[str, Any]:
         json_str: JSON string to parse, can be None.
 
     Returns:
-        Parsed JSON as dictionary or empty dict if parsing fails or input is None.
+        Dict[str, Any]: Parsed JSON as dictionary or empty dict if parsing fails or input is None.
     """
     if json_str is None:
         # Optionally, log a warning here if None input is unexpected for certain call sites
