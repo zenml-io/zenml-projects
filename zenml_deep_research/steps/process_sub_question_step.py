@@ -4,10 +4,8 @@ from typing import Annotated
 
 from materializers.research_state_materializer import ResearchStateMaterializer
 
-# Import functions from other steps still used in this file
-from steps.information_synthesis_step import _synthesize_information
 from utils.data_models import ResearchState, SynthesizedInfo
-from utils.llm_utils import get_sambanova_client
+from utils.llm_utils import get_sambanova_client, synthesize_information
 from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
@@ -114,7 +112,7 @@ def process_sub_question_step(
     }
 
     # Synthesize information
-    synthesis_result = _synthesize_information(
+    synthesis_result = synthesize_information(
         synthesis_input=synthesis_input,
         openai_client=openai_client,
         model=llm_model_synthesis,
