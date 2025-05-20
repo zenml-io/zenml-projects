@@ -4,39 +4,10 @@ from typing import Annotated
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState
 from utils.llm_utils import get_sambanova_client, get_structured_llm_output
+from utils.prompts import QUERY_DECOMPOSITION_PROMPT
 from zenml import step
 
 logger = logging.getLogger(__name__)
-
-# System prompt for the query decomposition
-QUERY_DECOMPOSITION_PROMPT = """
-You are a Deep Research assistant. Given a complex research query, your task is to break it down into specific sub-questions that 
-would help create a comprehensive understanding of the topic.
-
-A good set of sub-questions should:
-1. Cover different aspects or dimensions of the main query
-2. Include both factual and analytical questions
-3. Build towards a complete understanding of the topic
-4. Be specific enough to guide targeted research
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "sub_question": {"type": "string"},
-      "reasoning": {"type": "string"}
-    }
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
 
 
 @step(output_materializers=ResearchStateMaterializer)

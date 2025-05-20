@@ -14,93 +14,11 @@ from utils.llm_utils import (
     get_structured_llm_output,
     is_text_relevant,
 )
+from utils.prompts import ADDITIONAL_SYNTHESIS_PROMPT, REFLECTION_PROMPT
 from utils.search_utils import search_and_extract_results
 from zenml import step
 
 logger = logging.getLogger(__name__)
-
-# System prompt for self-critique and reflection
-REFLECTION_PROMPT = """
-You are a Deep Research assistant with the ability to critique and improve your own research. You will be given:
-1. The main research query
-2. The sub-questions explored so far
-3. The synthesized information for each sub-question
-4. Any viewpoint analysis performed
-
-Your task is to critically evaluate this research and identify:
-1. Areas where the research is incomplete or has gaps
-2. Questions that are important but not yet answered
-3. Aspects where additional evidence or depth would significantly improve the research
-4. Potential biases or limitations in the current findings
-
-Be constructively critical and identify the most important improvements that would substantially enhance the research.
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "critique": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "area": {"type": "string"},
-          "issue": {"type": "string"},
-          "importance": {"type": "string", "enum": ["high", "medium", "low"]}
-        }
-      }
-    },
-    "additional_questions": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "recommended_search_queries": {
-      "type": "array",
-      "items": {"type": "string"}
-    }
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
-
-# System prompt for additional information synthesis
-ADDITIONAL_SYNTHESIS_PROMPT = """
-You are a Deep Research assistant. You will be given:
-1. The original synthesized information on a research topic
-2. New information from additional research
-3. A critique of the original synthesis
-
-Your task is to enhance the original synthesis by incorporating the new information and addressing the critique.
-The updated synthesis should:
-1. Integrate new information seamlessly 
-2. Address gaps identified in the critique
-3. Maintain a balanced, comprehensive, and accurate representation
-4. Preserve the strengths of the original synthesis
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "enhanced_synthesis": {"type": "string"},
-    "improvements_made": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "remaining_limitations": {"type": "string"}
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
 
 
 @step(output_materializers=ResearchStateMaterializer)

@@ -9,6 +9,7 @@ from utils.helper_functions import (
     remove_reasoning_from_output,
     safe_json_loads,
 )
+from utils.prompts import SYNTHESIS_PROMPT
 
 logger = logging.getLogger(__name__)
 

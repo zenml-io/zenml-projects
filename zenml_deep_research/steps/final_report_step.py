@@ -8,67 +8,11 @@ from utils.helper_functions import (
     remove_reasoning_from_output,
 )
 from utils.llm_utils import get_sambanova_client, run_llm_completion
+from utils.prompts import REPORT_GENERATION_PROMPT
 from zenml import step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
-
-# System prompt for final report generation
-REPORT_GENERATION_PROMPT = """
-You are a Deep Research assistant responsible for compiling a comprehensive research report. You will be given:
-1. The original research query
-2. The sub-questions that were explored
-3. Synthesized information for each sub-question
-4. Viewpoint analysis comparing different perspectives (if available)
-5. Reflection metadata highlighting improvements and limitations
-
-Your task is to create a well-structured, coherent research report that:
-1. Presents information in a logical flow
-2. Integrates all the synthesized information seamlessly
-3. Highlights key findings, agreements, and disagreements
-4. Properly cites sources for important claims
-5. Acknowledges limitations of the research
-6. Includes a balanced executive summary
-
-The report should be formatted in HTML with appropriate headings, paragraphs, citations, and formatting.
-Use semantic HTML (h1, h2, h3, p, blockquote, etc.) to create a structured document.
-Include a table of contents at the beginning with anchor links to each section.
-For citations, use a consistent format and collect them in a references section at the end.
-
-The HTML structure should follow this pattern:
-<div class="research-report">
-  <h1>[Report Title]</h1>
-  
-  <div class="toc">
-    <h2>Table of Contents</h2>
-    [Table of Contents Items]
-  </div>
-  
-  <div class="executive-summary">
-    <h2>Executive Summary</h2>
-    [Summary Content]
-  </div>
-  
-  <div class="introduction">
-    <h2>Introduction</h2>
-    [Introduction Content]
-  </div>
-  
-  [Content Sections]
-  
-  <div class="conclusion">
-    <h2>Conclusion</h2>
-    [Conclusion Content]
-  </div>
-  
-  <div class="references">
-    <h2>References</h2>
-    [References List]
-  </div>
-</div>
-
-Return only the HTML code for the report, with no explanations or additional text.
-"""
 
 
 @step

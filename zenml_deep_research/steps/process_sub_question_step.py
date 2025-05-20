@@ -5,6 +5,7 @@ from typing import Annotated
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState, SynthesizedInfo
 from utils.llm_utils import get_sambanova_client, synthesize_information
+from utils.prompts import SYNTHESIS_PROMPT
 from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
@@ -115,7 +116,7 @@ def process_sub_question_step(
         synthesis_input=synthesis_input,
         openai_client=openai_client,
         model=llm_model_synthesis,
-        system_prompt=None,  # Use default from the function
+        system_prompt=SYNTHESIS_PROMPT,
     )
 
     # Create SynthesizedInfo object

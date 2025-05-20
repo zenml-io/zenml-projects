@@ -5,36 +5,9 @@ from typing import Any, Dict, List, Optional
 import openai
 from utils.data_models import SearchResult
 from utils.llm_utils import get_structured_llm_output
+from utils.prompts import DEFAULT_SEARCH_QUERY_PROMPT
 
 logger = logging.getLogger(__name__)
-
-# Default system prompt for generating search queries
-DEFAULT_SEARCH_QUERY_PROMPT = """
-You are a Deep Research assistant. Your task is to create an effective web search query for the given research sub-question.
-
-A good search query should:
-1. Be concise and focused
-2. Use specific keywords related to the sub-question
-3. Be formulated to retrieve accurate and relevant information
-4. Avoid ambiguous terms or overly broad language
-
-Consider what would most effectively retrieve information from search engines to answer the specific sub-question.
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "search_query": {"type": "string"},
-    "reasoning": {"type": "string"}
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
 
 
 def tavily_search(

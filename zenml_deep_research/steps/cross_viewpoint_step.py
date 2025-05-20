@@ -15,57 +15,10 @@ from utils.helper_functions import (
     remove_reasoning_from_output,
     safe_json_loads,
 )
+from utils.prompts import VIEWPOINT_ANALYSIS_PROMPT
 from zenml import step
 
 logger = logging.getLogger(__name__)
-
-# System prompt for cross-viewpoint analysis
-VIEWPOINT_ANALYSIS_PROMPT = """
-You are a Deep Research assistant specializing in analyzing multiple perspectives. You will be given a set of synthesized answers 
-to sub-questions related to a main research query.
-
-Your task is to analyze these answers across different viewpoints. Consider how different perspectives might interpret the same 
-information differently. Identify where there are:
-1. Clear agreements across perspectives
-2. Notable disagreements or tensions between viewpoints
-3. Blind spots where certain perspectives might be missing
-4. Nuances that might be interpreted differently based on viewpoint
-
-For this analysis, consider the following viewpoint categories: scientific, political, economic, social, ethical, and historical.
-Not all categories may be relevant to every topic - use those that apply.
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "main_points_of_agreement": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "areas_of_tension": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "topic": {"type": "string"},
-          "viewpoints": {
-            "type": "object",
-            "additionalProperties": {"type": "string"}
-          }
-        }
-      }
-    },
-    "perspective_gaps": {"type": "string"},
-    "integrative_insights": {"type": "string"}
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
 
 
 @step(output_materializers=ResearchStateMaterializer)
