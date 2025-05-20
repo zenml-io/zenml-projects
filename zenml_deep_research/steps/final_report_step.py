@@ -1,13 +1,13 @@
 import json
 import logging
-import os
 from typing import Annotated
 
-import openai
 from utils.data_models import ResearchState
 from utils.helper_functions import (
+    extract_html_from_content,
     remove_reasoning_from_output,
 )
+from utils.llm_utils import get_sambanova_client, run_llm_completion
 from zenml import step
 from zenml.types import HTMLString
 
@@ -91,16 +91,8 @@ def final_report_generation_step(
     """
     logger.info("Generating final research report")
 
-    # Get API key from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
+    # Initialize OpenAI client using the utility function
+    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     # Prepare input for report generation
     # Convert state objects to JSON-serializable dictionaries
@@ -159,15 +151,15 @@ def final_report_generation_step(
     # Generate the report
     try:
         logger.info(f"Calling {llm_model} to generate final report")
-        response = openai_client.chat.completions.create(
-            model=llm_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(report_input)},
-            ],
-        )
 
-        html_content = response.choices[0].message.content
+        # Use the utility function to run LLM completion
+        html_content = run_llm_completion(
+            prompt=json.dumps(report_input),
+            system_prompt=system_prompt,
+            client=openai_client,
+            model=llm_model,
+            clean_output=False,  # Don't clean in case of breaking HTML formatting
+        )
 
         # Clean up any JSON wrapper or other artifacts
         html_content = remove_reasoning_from_output(html_content)
@@ -178,7 +170,7 @@ def final_report_generation_step(
                 "Generated content does not appear to be valid HTML"
             )
             # Try to extract HTML if it might be wrapped in code blocks or JSON
-            html_content = _extract_html_from_content(html_content)
+            html_content = extract_html_from_content(html_content)
 
         # Update the state with the final report HTML
         state.set_final_report(html_content)
@@ -195,48 +187,6 @@ def final_report_generation_step(
         state.set_final_report(fallback_html)
 
         return HTMLString(fallback_html)
-
-
-def _extract_html_from_content(content: str) -> str:
-    """Attempt to extract HTML content from a response that might be wrapped in other formats.
-
-    Args:
-        content: The content to extract HTML from
-
-    Returns:
-        The extracted HTML, or a basic fallback if extraction fails
-    """
-    # Try to find HTML between tags
-    if "<html" in content and "</html>" in content:
-        start = content.find("<html")
-        end = content.find("</html>") + 7  # Include the closing tag
-        return content[start:end]
-
-    # Try to find div class="research-report"
-    if '<div class="research-report"' in content and "</div>" in content:
-        start = content.find('<div class="research-report"')
-        # Find the last closing div
-        last_div = content.rfind("</div>")
-        if last_div > start:
-            return content[start : last_div + 6]  # Include the closing tag
-
-    # Look for code blocks
-    if "```html" in content and "```" in content:
-        start = content.find("```html") + 7
-        end = content.find("```", start)
-        if end > start:
-            return content[start:end].strip()
-
-    # Look for JSON with an "html" field
-    try:
-        parsed = json.loads(content)
-        if isinstance(parsed, dict) and "html" in parsed:
-            return parsed["html"]
-    except:
-        pass
-
-    # If all extraction attempts fail, return the original content
-    return content
 
 
 def _generate_fallback_report(state: ResearchState) -> str:

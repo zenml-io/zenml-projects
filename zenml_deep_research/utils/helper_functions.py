@@ -1,9 +1,12 @@
 import json
+import logging
 import os
 from json.decoder import JSONDecodeError
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def remove_reasoning_from_output(output: str) -> str:
@@ -15,6 +18,9 @@ def remove_reasoning_from_output(output: str) -> str:
     Returns:
         Cleaned output without the reasoning section
     """
+    if not output:
+        return ""
+
     if "</think>" in output:
         return output.split("</think>")[-1].strip()
     return output.strip()
@@ -29,6 +35,9 @@ def clean_json_tags(text: str) -> str:
     Returns:
         Cleaned text without JSON markdown tags
     """
+    if not text:
+        return ""
+
     cleaned = text.replace("```json\n", "").replace("\n```", "")
     cleaned = cleaned.replace("```json", "").replace("```", "")
     return cleaned
@@ -43,12 +52,60 @@ def clean_markdown_tags(text: str) -> str:
     Returns:
         Cleaned text without markdown tags
     """
+    if not text:
+        return ""
+
     cleaned = text.replace("```markdown\n", "").replace("\n```", "")
     cleaned = cleaned.replace("```markdown", "").replace("```", "")
     return cleaned
 
 
-def safe_json_loads(json_str: str | None) -> Dict[str, Any]:
+def extract_html_from_content(content: str) -> str:
+    """Attempt to extract HTML content from a response that might be wrapped in other formats.
+
+    Args:
+        content: The content to extract HTML from
+
+    Returns:
+        The extracted HTML, or a basic fallback if extraction fails
+    """
+    if not content:
+        return ""
+
+    # Try to find HTML between tags
+    if "<html" in content and "</html>" in content:
+        start = content.find("<html")
+        end = content.find("</html>") + 7  # Include the closing tag
+        return content[start:end]
+
+    # Try to find div class="research-report"
+    if '<div class="research-report"' in content and "</div>" in content:
+        start = content.find('<div class="research-report"')
+        # Find the last closing div
+        last_div = content.rfind("</div>")
+        if last_div > start:
+            return content[start : last_div + 6]  # Include the closing tag
+
+    # Look for code blocks
+    if "```html" in content and "```" in content:
+        start = content.find("```html") + 7
+        end = content.find("```", start)
+        if end > start:
+            return content[start:end].strip()
+
+    # Look for JSON with an "html" field
+    try:
+        parsed = json.loads(content)
+        if isinstance(parsed, dict) and "html" in parsed:
+            return parsed["html"]
+    except:
+        pass
+
+    # If all extraction attempts fail, return the original content
+    return content
+
+
+def safe_json_loads(json_str: Optional[str]) -> Dict[str, Any]:
     """Safely parse JSON string.
 
     Args:
@@ -94,7 +151,8 @@ def load_pipeline_config(config_path: str) -> Dict[str, Any]:
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
         return config
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error loading pipeline configuration: {e}")
         # Return a minimal default configuration in case of loading error
         return {
             "pipeline": {
@@ -118,48 +176,17 @@ def load_pipeline_config(config_path: str) -> Dict[str, Any]:
         }
 
 
-def tavily_search(
-    query: str,
-    include_raw_content: bool = True,
-    max_results: int = 3,
-    cap_content_length: int = 20000,
-) -> Dict[str, Any]:
-    """Perform a search using the Tavily API.
+def check_required_env_vars(env_vars: list[str]) -> list[str]:
+    """Check if required environment variables are set.
 
     Args:
-        query: Search query
-        include_raw_content: Whether to include raw content in results
-        max_results: Maximum number of results to return
-        cap_content_length: Maximum length of content to return
+        env_vars: List of environment variable names to check
 
     Returns:
-        Search results from Tavily
+        List of missing environment variables
     """
-    try:
-        from tavily import TavilyClient
-
-        # Get API key directly from environment variables
-        api_key = os.environ.get("TAVILY_API_KEY", "")
-        if not api_key:
-            raise ValueError("TAVILY_API_KEY environment variable not set")
-
-        tavily_client = TavilyClient(api_key=api_key)
-
-        results = tavily_client.search(
-            query=query,
-            include_raw_content=include_raw_content,
-            max_results=max_results,
-        )
-
-        # Cap content length if specified
-        if cap_content_length > 0 and "results" in results:
-            for result in results["results"]:
-                if "raw_content" in result and result["raw_content"]:
-                    result["raw_content"] = result["raw_content"][
-                        :cap_content_length
-                    ]
-
-        return results
-    except Exception as e:
-        # Return an error structure that's compatible with our expected format
-        return {"query": query, "results": [], "error": str(e)}
+    missing_vars = []
+    for var in env_vars:
+        if not os.environ.get(var):
+            missing_vars.append(var)
+    return missing_vars

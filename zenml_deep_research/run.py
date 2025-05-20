@@ -1,12 +1,11 @@
 import logging
-import os
 
 import click
 from logging_config import configure_logging
 from pipelines.parallel_research_pipeline import (
     parallelized_deep_research_pipeline,
 )
-from pipelines.research_pipeline import enhanced_deep_research_pipeline
+from utils.helper_functions import check_required_env_vars
 
 logger = logging.getLogger(__name__)
 
@@ -106,14 +105,9 @@ def main(
     log_level = logging.DEBUG if debug else logging.INFO
     configure_logging(level=log_level, log_file=log_file)
 
-    # Check that required environment variables are present
-    missing_vars = []
-
-    if not os.environ.get("SAMBANOVA_API_KEY"):
-        missing_vars.append("SAMBANOVA_API_KEY")
-
-    if not os.environ.get("TAVILY_API_KEY"):
-        missing_vars.append("TAVILY_API_KEY")
+    # Check that required environment variables are present using the helper function
+    required_vars = ["SAMBANOVA_API_KEY", "TAVILY_API_KEY"]
+    missing_vars = check_required_env_vars(required_vars)
 
     if missing_vars:
         logger.error(

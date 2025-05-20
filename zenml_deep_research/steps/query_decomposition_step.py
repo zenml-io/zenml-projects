@@ -1,15 +1,9 @@
 import logging
-import os
 from typing import Annotated
 
-import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import ResearchState
-from utils.helper_functions import (
-    clean_json_tags,
-    remove_reasoning_from_output,
-    safe_json_loads,
-)
+from utils.llm_utils import get_sambanova_client, get_structured_llm_output
 from zenml import step
 
 logger = logging.getLogger(__name__)
@@ -67,16 +61,8 @@ def initial_query_decomposition_step(
     """
     logger.info(f"Decomposing research query: {state.main_query}")
 
-    # Get API key directly from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
+    # Initialize OpenAI client using the utility function
+    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     try:
         # Call OpenAI API to decompose the query
@@ -87,40 +73,31 @@ def initial_query_decomposition_step(
         logger.info(
             f"Calling {llm_model} to decompose query into max {max_sub_questions} sub-questions"
         )
-        response = openai_client.chat.completions.create(
+
+        # Define fallback questions
+        fallback_questions = [
+            {
+                "sub_question": f"What is {state.main_query}?",
+                "reasoning": "Basic understanding of the topic",
+            },
+            {
+                "sub_question": f"What are the key aspects of {state.main_query}?",
+                "reasoning": "Exploring important dimensions",
+            },
+            {
+                "sub_question": f"What are the implications of {state.main_query}?",
+                "reasoning": "Understanding broader impact",
+            },
+        ]
+
+        # Use utility function to get structured output
+        decomposed_questions = get_structured_llm_output(
+            prompt=state.main_query,
+            system_prompt=updated_system_prompt,
+            client=openai_client,
             model=llm_model,
-            messages=[
-                {"role": "system", "content": updated_system_prompt},
-                {"role": "user", "content": state.main_query},
-            ],
+            fallback_response=fallback_questions,
         )
-
-        # Process the response
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
-
-        # Parse the JSON
-        decomposed_questions = safe_json_loads(content)
-
-        if not decomposed_questions:
-            logger.warning(
-                "Failed to parse query decomposition, using fallback questions"
-            )
-            decomposed_questions = [
-                {
-                    "sub_question": f"What is {state.main_query}?",
-                    "reasoning": "Basic understanding of the topic",
-                },
-                {
-                    "sub_question": f"What are the key aspects of {state.main_query}?",
-                    "reasoning": "Exploring important dimensions",
-                },
-                {
-                    "sub_question": f"What are the implications of {state.main_query}?",
-                    "reasoning": "Understanding broader impact",
-                },
-            ]
 
         # Extract just the sub-questions
         sub_questions = [

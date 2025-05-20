@@ -1,15 +1,16 @@
 import copy
 import logging
-import os
 from typing import Annotated
 
-import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
-from steps.information_gathering_step import _generate_search_query
+
+# Import functions from other steps still used in this file
 from steps.information_synthesis_step import _synthesize_information
-from utils.data_models import ResearchState, SearchResult, SynthesizedInfo
-from utils.helper_functions import (
-    tavily_search,
+from utils.data_models import ResearchState, SynthesizedInfo
+from utils.llm_utils import get_sambanova_client
+from utils.search_utils import (
+    generate_search_query,
+    search_and_extract_results,
 )
 from zenml import step
 
@@ -70,25 +71,16 @@ def process_sub_question_step(
     # Store only this sub-question in the sub-state
     sub_state.sub_questions = [sub_question]
 
-    # Get API key directly from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
+    # Initialize OpenAI client using the utility function
+    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     # === INFORMATION GATHERING ===
 
     # Generate search query
-    search_query_data = _generate_search_query(
+    search_query_data = generate_search_query(
         sub_question=sub_question,
         openai_client=openai_client,
         model=llm_model_search,
-        system_prompt=None,  # Use default from the function
     )
     search_query = search_query_data.get(
         "search_query", f"research about {sub_question}"
@@ -96,25 +88,11 @@ def process_sub_question_step(
 
     # Perform search
     logger.info(f"Performing search with query: {search_query}")
-    tavily_results = tavily_search(
+    results_list = search_and_extract_results(
         query=search_query,
         max_results=num_results_per_search,
         cap_content_length=cap_search_length,
     )
-
-    # Store search results
-    results_list = []
-    if "results" in tavily_results:
-        for result in tavily_results["results"]:
-            if "url" in result and "raw_content" in result:
-                results_list.append(
-                    SearchResult(
-                        url=result["url"],
-                        content=result["raw_content"],
-                        title=result.get("title", ""),
-                        snippet=result.get("snippet", ""),
-                    )
-                )
 
     search_results = {sub_question: results_list}
     sub_state.update_search_results(search_results)

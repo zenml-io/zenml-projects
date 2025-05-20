@@ -1,21 +1,20 @@
 import json
 import logging
-import os
-from typing import Annotated, Any, Dict, List
+from typing import Annotated
 
-import openai
 from materializers.research_state_materializer import ResearchStateMaterializer
 from utils.data_models import (
     ReflectionMetadata,
     ResearchState,
     SynthesizedInfo,
 )
-from utils.helper_functions import (
-    clean_json_tags,
-    remove_reasoning_from_output,
-    safe_json_loads,
-    tavily_search,
+from utils.llm_utils import (
+    find_most_relevant_string,
+    get_sambanova_client,
+    get_structured_llm_output,
+    is_text_relevant,
 )
+from utils.search_utils import search_and_extract_results
 from zenml import step
 
 logger = logging.getLogger(__name__)
@@ -132,16 +131,8 @@ def iterative_reflection_step(
     """
     logger.info("Starting iterative reflection on research")
 
-    # Get API key from environment variables
-    sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY", "")
-    if not sambanova_api_key:
-        logger.error("SAMBANOVA_API_KEY environment variable not set")
-        raise ValueError("SAMBANOVA_API_KEY environment variable not set")
-
-    # Initialize OpenAI client
-    openai_client = openai.OpenAI(
-        api_key=sambanova_api_key, base_url=sambanova_base_url
-    )
+    # Initialize OpenAI client using the utility function
+    openai_client = get_sambanova_client(base_url=sambanova_base_url)
 
     # Prepare input for reflection
     synthesized_info_dict = {
@@ -182,27 +173,22 @@ def iterative_reflection_step(
     # Get reflection critique
     try:
         logger.info(f"Generating self-critique via {llm_model}")
-        response = openai_client.chat.completions.create(
+
+        # Define fallback for reflection result
+        fallback_reflection = {
+            "critique": [],
+            "additional_questions": [],
+            "recommended_search_queries": [],
+        }
+
+        # Use utility function to get structured output
+        reflection_result = get_structured_llm_output(
+            prompt=json.dumps(reflection_input),
+            system_prompt=reflection_prompt,
+            client=openai_client,
             model=llm_model,
-            messages=[
-                {"role": "system", "content": reflection_prompt},
-                {"role": "user", "content": json.dumps(reflection_input)},
-            ],
+            fallback_response=fallback_reflection,
         )
-
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
-
-        reflection_result = safe_json_loads(content)
-
-        if not reflection_result:
-            logger.warning("Failed to parse reflection result")
-            reflection_result = {
-                "critique": [],
-                "additional_questions": [],
-                "recommended_search_queries": [],
-            }
 
         # Make a deep copy of the synthesized info to create enhanced_info
         enhanced_info = {
@@ -228,26 +214,19 @@ def iterative_reflection_step(
 
             for query in search_queries:
                 logger.info(f"Performing additional search: {query}")
-                # Execute the search
-                search_results = tavily_search(
+                # Execute the search using the utility function
+                search_results = search_and_extract_results(
                     query=query,
                     max_results=num_results_per_search,
                     cap_content_length=cap_search_length,
                 )
 
                 # Extract raw contents
-                raw_contents = [
-                    result.get("raw_content", "")
-                    for result in search_results.get("results", [])
-                    if result.get("raw_content")
-                ]
+                raw_contents = [result.content for result in search_results]
 
                 # Find the most relevant sub-question for this query
-                most_relevant_question = _find_most_relevant_subquestion(
-                    query=query,
-                    sub_questions=state.sub_questions,
-                    openai_client=openai_client,
-                    model=llm_model,
+                most_relevant_question = find_most_relevant_string(
+                    query, state.sub_questions, openai_client, llm_model
                 )
 
                 if (
@@ -263,17 +242,27 @@ def iterative_reflection_step(
                         "critique": [
                             item
                             for item in reflection_result.get("critique", [])
-                            if _is_relevant_to_subquestion(
+                            if is_text_relevant(
                                 item.get("issue", ""), most_relevant_question
                             )
                         ],
                     }
 
-                    enhanced_synthesis = _enhance_synthesis(
-                        enhancement_input=enhancement_input,
-                        openai_client=openai_client,
-                        model=llm_model,
+                    # Use the utility function for enhancement
+                    enhanced_synthesis = get_structured_llm_output(
+                        prompt=json.dumps(enhancement_input),
                         system_prompt=additional_synthesis_prompt,
+                        client=openai_client,
+                        model=llm_model,
+                        fallback_response={
+                            "enhanced_synthesis": enhanced_info[
+                                most_relevant_question
+                            ].synthesized_answer,
+                            "improvements_made": [
+                                "Failed to enhance synthesis"
+                            ],
+                            "remaining_limitations": "Enhancement process failed.",
+                        },
                     )
 
                     if (
@@ -345,136 +334,3 @@ def iterative_reflection_step(
         state.update_after_reflection(state.synthesized_info, error_metadata)
 
         return state
-
-
-def _find_most_relevant_subquestion(
-    query: str,
-    sub_questions: List[str],
-    openai_client: openai.OpenAI,
-    model: str,
-) -> str:
-    """Find the most relevant sub-question for a search query.
-
-    Args:
-        query: The search query
-        sub_questions: List of sub-questions
-        openai_client: OpenAI client
-        model: Model to use
-
-    Returns:
-        The most relevant sub-question, or None if relevance cannot be determined
-    """
-    if not sub_questions:
-        return None
-
-    # For a single sub-question, it's obviously the most relevant
-    if len(sub_questions) == 1:
-        return sub_questions[0]
-
-    try:
-        # Simple prompt to determine relevance
-        prompt = f"""Given the search query: "{query}"
-Which of the following research sub-questions is most relevant to this query?
-{json.dumps(sub_questions)}
-
-Respond with only the exact text of the most relevant sub-question."""
-
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are a research assistant."},
-                {"role": "user", "content": prompt},
-            ],
-        )
-
-        answer = response.choices[0].message.content.strip()
-
-        # Check if the answer is one of the sub-questions
-        if answer in sub_questions:
-            return answer
-
-        # If not an exact match, find the closest one
-        for question in sub_questions:
-            if question in answer or answer in question:
-                return question
-
-        # If still no match, return the first sub-question
-        return sub_questions[0]
-
-    except Exception as e:
-        logger.error(f"Error finding relevant sub-question: {e}")
-        return sub_questions[0]  # Default to the first one in case of error
-
-
-def _is_relevant_to_subquestion(issue: str, sub_question: str) -> bool:
-    """Determine if a critique issue is relevant to a specific sub-question.
-
-    Args:
-        issue: The critique issue text
-        sub_question: The sub-question text
-
-    Returns:
-        True if the issue is relevant to the sub-question, False otherwise
-    """
-    # Simple relevance check based on text overlap
-    # A more sophisticated approach would use semantic similarity
-    return sub_question.lower() in issue.lower() or any(
-        word
-        for word in sub_question.lower().split()
-        if len(word) > 4 and word in issue.lower()
-    )
-
-
-def _enhance_synthesis(
-    enhancement_input: Dict[str, Any],
-    openai_client: openai.OpenAI,
-    model: str,
-    system_prompt: str,
-) -> Dict[str, Any]:
-    """Enhance a synthesis with new information and address critique.
-
-    Args:
-        enhancement_input: Dictionary with original synthesis, new information, and critique
-        openai_client: OpenAI client
-        model: Model to use
-        system_prompt: System prompt for enhancement
-
-    Returns:
-        Dictionary with enhanced synthesis and metadata
-    """
-    try:
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(enhancement_input)},
-            ],
-        )
-
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
-
-        result = safe_json_loads(content)
-
-        if not result or "enhanced_synthesis" not in result:
-            # Fallback if parsing fails
-            return {
-                "enhanced_synthesis": enhancement_input.get(
-                    "original_synthesis", ""
-                ),
-                "improvements_made": ["Failed to enhance synthesis"],
-                "remaining_limitations": "Enhancement process failed.",
-            }
-
-        return result
-
-    except Exception as e:
-        logger.error(f"Error enhancing synthesis: {e}")
-        return {
-            "enhanced_synthesis": enhancement_input.get(
-                "original_synthesis", ""
-            ),
-            "improvements_made": [f"Error during enhancement: {str(e)}"],
-            "remaining_limitations": "Technical error during enhancement process.",
-        }

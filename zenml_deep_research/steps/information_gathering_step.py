@@ -1,51 +1,23 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import openai
-from utils.helper_functions import (
-    clean_json_tags,
-    remove_reasoning_from_output,
-    safe_json_loads,
-)
+from utils.search_utils import generate_search_query
 
 logger = logging.getLogger(__name__)
 
-# System prompt for generating search queries
-SEARCH_QUERY_PROMPT = """
-You are a Deep Research assistant. Your task is to create an effective web search query for the given research sub-question.
 
-A good search query should:
-1. Be concise and focused
-2. Use specific keywords related to the sub-question
-3. Be formulated to retrieve accurate and relevant information
-4. Avoid ambiguous terms or overly broad language
-
-Consider what would most effectively retrieve information from search engines to answer the specific sub-question.
-
-Format the output in json with the following json schema definition:
-
-<OUTPUT JSON SCHEMA>
-{
-  "type": "object",
-  "properties": {
-    "search_query": {"type": "string"},
-    "reasoning": {"type": "string"}
-  }
-}
-</OUTPUT JSON SCHEMA>
-
-Make sure that the output is a json object with an output json schema defined above.
-Only return the json object, no explanation or additional text.
-"""
-
-
+# The function is kept for backward compatibility but delegates to the utility function
 def _generate_search_query(
     sub_question: str,
     openai_client: openai.OpenAI,
     model: str,
-    system_prompt: str,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate an optimized search query for a sub-question.
+
+    This function is maintained for backward compatibility. It delegates to the
+    utility function in search_utils.py.
 
     Args:
         sub_question: The sub-question to generate a search query for
@@ -56,27 +28,9 @@ def _generate_search_query(
     Returns:
         Dictionary with search query and reasoning
     """
-    try:
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": sub_question},
-            ],
-        )
-
-        content = response.choices[0].message.content
-        content = remove_reasoning_from_output(content)
-        content = clean_json_tags(content)
-
-        result = safe_json_loads(content)
-
-        if not result or "search_query" not in result:
-            # Fallback if parsing fails
-            return {"search_query": sub_question, "reasoning": ""}
-
-        return result
-
-    except Exception as e:
-        logger.error(f"Error generating search query: {e}")
-        return {"search_query": sub_question, "reasoning": ""}
+    return generate_search_query(
+        sub_question=sub_question,
+        openai_client=openai_client,
+        model=model,
+        system_prompt=system_prompt,
+    )

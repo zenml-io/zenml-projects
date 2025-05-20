@@ -1,13 +1,9 @@
 import json
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import openai
-from utils.helper_functions import (
-    clean_json_tags,
-    remove_reasoning_from_output,
-    safe_json_loads,
-)
+from utils.llm_utils import get_structured_llm_output
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +45,7 @@ def _synthesize_information(
     synthesis_input: Dict[str, Any],
     openai_client: openai.OpenAI,
     model: str,
-    system_prompt: str,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Synthesize information from search results for a sub-question.
 
@@ -62,67 +58,28 @@ def _synthesize_information(
     Returns:
         Dictionary with synthesized information
     """
+    if system_prompt is None:
+        system_prompt = SYNTHESIS_PROMPT
+
     sub_question_for_log = synthesis_input.get(
         "sub_question", "unknown question"
     )
-    try:
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(synthesis_input)},
-            ],
-        )
 
-        # Defensive access to content
-        llm_content_str = None
-        if response and response.choices and len(response.choices) > 0:
-            choice = response.choices[0]
-            if choice and choice.message:
-                llm_content_str = choice.message.content
+    # Define the fallback response
+    fallback_response = {
+        "synthesized_answer": f"Synthesis failed for '{sub_question_for_log}'.",
+        "key_sources": synthesis_input.get("sources", [])[:1],
+        "confidence_level": "low",
+        "information_gaps": "An error occurred during the synthesis process.",
+    }
 
-        if llm_content_str is None:
-            logger.warning(
-                f"LLM response content is missing or empty for '{sub_question_for_log}'."
-            )
-            return {
-                "synthesized_answer": f"Synthesis failed due to missing LLM content for '{sub_question_for_log}'.",
-                "key_sources": synthesis_input.get("sources", [])[:1],
-                "confidence_level": "low",
-                "information_gaps": "LLM did not provide content for synthesis.",
-            }
+    # Use the utility function to get structured output
+    result = get_structured_llm_output(
+        prompt=json.dumps(synthesis_input),
+        system_prompt=system_prompt,
+        client=openai_client,
+        model=model,
+        fallback_response=fallback_response,
+    )
 
-        processed_content = remove_reasoning_from_output(llm_content_str)
-        processed_content = clean_json_tags(processed_content)
-
-        result = safe_json_loads(processed_content)
-
-        if (
-            not result
-            or not isinstance(result, dict)
-            or "synthesized_answer" not in result
-        ):
-            logger.warning(
-                f"Failed to parse LLM response or 'synthesized_answer' missing for '{sub_question_for_log}'. "
-                f"Content after cleaning (first 200 chars): '{processed_content[:200]}...'"
-            )
-            return {
-                "synthesized_answer": f"Synthesis for '{sub_question_for_log}' failed due to parsing error or missing field.",
-                "key_sources": synthesis_input.get("sources", [])[:1],
-                "confidence_level": "low",
-                "information_gaps": "LLM response parsing failed or critical fields were missing.",
-            }
-
-        return result
-
-    except Exception as e:
-        logger.error(
-            f"Error synthesizing information for '{sub_question_for_log}': {e}",
-            exc_info=True,
-        )
-        return {
-            "synthesized_answer": f"Synthesis failed due to an unexpected error for '{sub_question_for_log}': {str(e)}",
-            "key_sources": synthesis_input.get("sources", [])[:1],
-            "confidence_level": "low",
-            "information_gaps": "An unexpected technical error occurred during synthesis.",
-        }
+    return result
