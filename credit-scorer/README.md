@@ -23,8 +23,6 @@ Each run automatically versions its inputs, logs hashes & metrics, and generates
 
 ![End-to-End Architecture](assets/e2e.png)
 
-For detailed diagrams of each pipeline and their compliance mapping, see [Pipeline Diagrams](assets/diagrams.md).
-
 ## Project Structure
 
 ```bash
