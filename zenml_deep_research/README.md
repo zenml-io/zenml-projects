@@ -47,11 +47,12 @@ This granular approach enables:
 
 ## 💡 Under the Hood
 
-- **LLM Integration**: Uses SambaNova API with reasoning and instruction-tuned models
+- **LLM Integration**: Uses litellm for flexible access to various LLM providers
 - **Web Research**: Utilizes Tavily API for targeted internet searches
 - **ZenML Orchestration**: Manages pipeline flow, artifacts, and caching
 - **Reproducibility**: Track every step, parameter, and output via ZenML
 - **Visualizations**: Interactive visualizations of the research structure and progress
+- **Report Generation**: Uses static HTML templates for consistent, high-quality reports
 
 ## 🛠️ Getting Started
 
@@ -59,7 +60,7 @@ This granular approach enables:
 
 - Python 3.9+
 - ZenML installed and configured
-- SambaNova API key
+- API key for your preferred LLM provider (configured with litellm)
 - Tavily API key
 
 ### Installation
@@ -73,7 +74,7 @@ cd zenml_deep_research
 pip install -r requirements.txt
 
 # Set up API keys
-export SAMBANOVA_API_KEY=your_sambanova_key
+export OPENAI_API_KEY=your_openai_key  # Or another LLM provider key
 export TAVILY_API_KEY=your_tavily_key
 
 # Initialize ZenML (if needed)
@@ -144,6 +145,7 @@ The visualizations provide:
 - Details of each paragraph's research status
 - Search history and source information
 - Progress through reflection iterations
+- Professionally formatted HTML reports with static templates
 
 ### Sample Visualization
 
@@ -181,6 +183,7 @@ zenml_deep_research/
 │   ├── __init__.py
 │   ├── data_models.py
 │   ├── helper_functions.py
+│   ├── prompts.py        # Contains static HTML templates for report generation
 │   └── state_visualizer.py  # Custom visualizer for the State class
 ├── __init__.py
 ├── requirements.txt     # Project dependencies
@@ -230,7 +233,7 @@ step:
 settings:
   docker:
     requirements:
-      - openai>=1.0.0
+      - litellm>=1.0.0
       - tavily-python>=0.2.8
       - PyYAML>=6.0
       - click>=8.0.0
