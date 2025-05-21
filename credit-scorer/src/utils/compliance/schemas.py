@@ -63,11 +63,15 @@ class ComplianceThresholds:
     mitigation_coverage: float = 0.5  # Reduced from 0.7 for demo
     mitigation_completion: float = 0.3  # Reduced from 0.5 for demo
     risk_review_recency: int = 90  # Increased from 30 for demo
-    overall_risk_score: float = 0.8  # Increased from 0.7 for demo (higher is tolerated)
+    overall_risk_score: float = (
+        0.8  # Increased from 0.7 for demo (higher is tolerated)
+    )
 
     # Article 10 (Data Governance)
     data_quality_score: float = 0.6  # Reduced from 0.8 for demo
-    fairness_threshold: float = 0.3  # Increased from 0.2 for demo (higher is tolerated)
+    fairness_threshold: float = (
+        0.3  # Increased from 0.2 for demo (higher is tolerated)
+    )
     protected_attributes_coverage: float = 0.6  # Reduced from 0.8 for demo
     feature_importance_coverage: float = 0.6  # Reduced from 0.8 for demo
 

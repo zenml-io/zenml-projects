@@ -6,11 +6,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
-
 from src.utils.compliance import ComplianceError
 from src.utils.compliance.compliance_calculator import calculate_compliance
 from src.utils.compliance.compliance_constants import ARTICLE_DESCRIPTIONS
 from src.utils.compliance.data_loader import ComplianceDataLoader
+
 from streamlit_app.config import (
     EXPECTED_ARTICLES,
     RELEASES_DIR,
@@ -151,14 +151,18 @@ def get_compliance_results(
             # Extract release_id from run_release_dir path if it's a path like "docs/releases/12345"
             if isinstance(run_release_dir, str) and "/" in run_release_dir:
                 path_parts = run_release_dir.rstrip("/").split("/")
-                release_id = path_parts[-1]  # Get the last part of the path as release_id
+                release_id = path_parts[
+                    -1
+                ]  # Get the last part of the path as release_id
                 logging.info(
                     f"Extracted release ID '{release_id}' from run_release_dir: {run_release_dir}"
                 )
             else:
                 # If run_release_dir is not a path but the release_id itself
                 release_id = run_release_dir
-                logging.info(f"Using run_release_dir as release ID: {release_id}")
+                logging.info(
+                    f"Using run_release_dir as release ID: {release_id}"
+                )
         # Use the latest release if not specified
         elif not release_id:
             release_id = get_latest_release_id()
@@ -170,12 +174,18 @@ def get_compliance_results(
                     "errors": ["No releases found"],
                 }
 
-        logging.info(f"Using release ID for compliance calculation: {release_id}")
+        logging.info(
+            f"Using release ID for compliance calculation: {release_id}"
+        )
 
         # Validate the release directory, passing both release_id and run_release_dir
-        valid, missing_files = validate_artifacts_directory(release_id, run_release_dir)
+        valid, missing_files = validate_artifacts_directory(
+            release_id, run_release_dir
+        )
         if not valid:
-            logging.warning(f"Release directory missing required files: {', '.join(missing_files)}")
+            logging.warning(
+                f"Release directory missing required files: {', '.join(missing_files)}"
+            )
             # Don't stop execution, we'll use what we have
 
         # Use default risk register path if not provided
@@ -183,12 +193,16 @@ def get_compliance_results(
             risk_register_path = RISK_REGISTER_PATH
 
         # Calculate compliance
-        results = calculate_compliance(release_id, risk_register_path, articles)
+        results = calculate_compliance(
+            release_id, risk_register_path, articles
+        )
 
         # Add formatted article names for display
         if "articles" in results:
             for article_id, article_data in results["articles"].items():
-                article_data["display_name"] = get_article_display_name(article_id)
+                article_data["display_name"] = get_article_display_name(
+                    article_id
+                )
 
         # Extract and consolidate findings from both overall and article-specific results
         consolidated_findings = []
@@ -205,15 +219,21 @@ def get_compliance_results(
                     for finding in article_data["findings"]:
                         finding_with_article = finding.copy()
                         finding_with_article["article"] = article_id
-                        finding_with_article["title"] = finding.get("message", "Finding")
-                        finding_with_article["description"] = finding.get("recommendation", "")
+                        finding_with_article["title"] = finding.get(
+                            "message", "Finding"
+                        )
+                        finding_with_article["description"] = finding.get(
+                            "recommendation", ""
+                        )
                         consolidated_findings.append(finding_with_article)
 
         # Add findings to the results
         results["findings"] = consolidated_findings
         results["release_id"] = release_id
 
-        logging.info(f"Successfully calculated compliance for release ID: {release_id}")
+        logging.info(
+            f"Successfully calculated compliance for release ID: {release_id}"
+        )
         return results
 
     except ComplianceError as e:
@@ -304,8 +324,12 @@ def format_compliance_findings(
             # Format finding for display
             formatted_finding = {
                 "type": finding.get("type", "warning").lower(),
-                "title": finding.get("title", finding.get("message", "Finding")),
-                "description": finding.get("description", finding.get("recommendation", "")),
+                "title": finding.get(
+                    "title", finding.get("message", "Finding")
+                ),
+                "description": finding.get(
+                    "description", finding.get("recommendation", "")
+                ),
                 "article": finding.get("article", ""),
                 "message": finding.get("message", ""),
                 "recommendation": finding.get("recommendation", ""),
@@ -400,15 +424,17 @@ def get_last_update_timestamps(results: Dict[str, Any]) -> Dict[str, str]:
             file_path = release_dir / filename
             if file_path.exists():
                 timestamp = file_path.stat().st_mtime
-                timestamps[display_name] = pd.Timestamp(timestamp, unit="s").strftime(
-                    "%Y-%m-%d %H:%M"
-                )
+                timestamps[display_name] = pd.Timestamp(
+                    timestamp, unit="s"
+                ).strftime("%Y-%m-%d %H:%M")
 
     # Add risk register timestamp
     risk_register_path = Path(RISK_REGISTER_PATH)
     if risk_register_path.exists():
         timestamp = risk_register_path.stat().st_mtime
-        timestamps["Risk Register"] = pd.Timestamp(timestamp, unit="s").strftime("%Y-%m-%d %H:%M")
+        timestamps["Risk Register"] = pd.Timestamp(
+            timestamp, unit="s"
+        ).strftime("%Y-%m-%d %H:%M")
 
     return timestamps
 
@@ -434,12 +460,21 @@ def get_compliance_summary(results: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     # Get overall score
-    if "overall" in results and "overall_compliance_score" in results["overall"]:
-        summary["overall_score"] = results["overall"]["overall_compliance_score"]
+    if (
+        "overall" in results
+        and "overall_compliance_score" in results["overall"]
+    ):
+        summary["overall_score"] = results["overall"][
+            "overall_compliance_score"
+        ]
 
         # Get counts for critical and warning findings
-        summary["critical_count"] = results["overall"].get("critical_findings_count", 0)
-        summary["warning_count"] = results["overall"].get("warning_findings_count", 0)
+        summary["critical_count"] = results["overall"].get(
+            "critical_findings_count", 0
+        )
+        summary["warning_count"] = results["overall"].get(
+            "warning_findings_count", 0
+        )
 
     # Get article statistics
     if "articles" in results:

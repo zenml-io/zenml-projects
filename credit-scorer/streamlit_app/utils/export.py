@@ -75,7 +75,9 @@ def export_annex_iv_to_pdf(markdown_content, output_path=None):
 
         # Generate PDF using weasyprint
         if output_path is None:
-            output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf").name
+            output_path = tempfile.NamedTemporaryFile(
+                delete=False, suffix=".pdf"
+            ).name
 
         try:
             html_doc = weasyprint.HTML(string=styled_html)
@@ -83,7 +85,9 @@ def export_annex_iv_to_pdf(markdown_content, output_path=None):
             st.info("PDF generated using weasyprint.")
             return output_path
         except ImportError:
-            st.error("weasyprint not installed. Install with: pip install weasyprint")
+            st.error(
+                "weasyprint not installed. Install with: pip install weasyprint"
+            )
             raise
         except Exception as weasyprint_error:
             st.warning(f"weasyprint failed: {weasyprint_error}")
@@ -92,7 +96,9 @@ def export_annex_iv_to_pdf(markdown_content, output_path=None):
             html_output_path = output_path.replace(".pdf", ".html")
             with open(html_output_path, "w", encoding="utf-8") as f:
                 f.write(styled_html)
-            st.warning(f"Could not generate PDF. Saved as HTML instead: {html_output_path}")
+            st.warning(
+                f"Could not generate PDF. Saved as HTML instead: {html_output_path}"
+            )
             return html_output_path
 
     except Exception as e:

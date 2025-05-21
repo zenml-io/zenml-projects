@@ -8,12 +8,11 @@ from typing import Dict, Optional
 import pandas as pd
 import requests
 import streamlit as st
-from zenml.client import Client
-
 from src.constants import (
     MODEL_NAME,
     TRAINING_PIPELINE_NAME,
 )
+from zenml.client import Client
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,9 @@ def get_modal_app_url() -> Optional[str]:
 
         # Find all release directories
         release_folders = [
-            f for f in os.listdir(releases_dir) if os.path.isdir(os.path.join(releases_dir, f))
+            f
+            for f in os.listdir(releases_dir)
+            if os.path.isdir(os.path.join(releases_dir, f))
         ]
 
         if not release_folders:
@@ -77,7 +78,9 @@ def get_modal_app_url() -> Optional[str]:
         latest_timestamp = None
 
         for folder in release_folders:
-            approval_path = os.path.join(releases_dir, folder, "approval_record.json")
+            approval_path = os.path.join(
+                releases_dir, folder, "approval_record.json"
+            )
             if os.path.exists(approval_path):
                 with open(approval_path, "r") as f:
                     try:
@@ -85,7 +88,10 @@ def get_modal_app_url() -> Optional[str]:
                         timestamp = record.get("timestamp")
 
                         # If we found a timestamp and it's newer than our latest
-                        if timestamp and (latest_timestamp is None or timestamp > latest_timestamp):
+                        if timestamp and (
+                            latest_timestamp is None
+                            or timestamp > latest_timestamp
+                        ):
                             latest_timestamp = timestamp
                             latest_approval = record
                     except json.JSONDecodeError:
@@ -321,7 +327,9 @@ def trigger_deployment() -> Dict:
 
         # Get latest model and pipeline runs
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
-        training_pipeline = client.get_pipeline_by_name(pipeline_name=TRAINING_PIPELINE_NAME)
+        training_pipeline = client.get_pipeline_by_name(
+            pipeline_name=TRAINING_PIPELINE_NAME
+        )
 
         if not model or not training_pipeline or not training_pipeline.runs:
             return {
@@ -345,7 +353,10 @@ def trigger_deployment() -> Dict:
             },
         }
     except Exception as e:
-        return {"status": "error", "message": f"Error triggering deployment: {str(e)}"}
+        return {
+            "status": "error",
+            "message": f"Error triggering deployment: {str(e)}",
+        }
 
 
 def display_api_dashboard():
@@ -363,9 +374,12 @@ def display_api_dashboard():
 
     # If no URL was found, allow the user to enter it manually
     if not modal_url:
-        st.warning("Could not find the deployed Modal app URL from ZenML artifacts.")
+        st.warning(
+            "Could not find the deployed Modal app URL from ZenML artifacts."
+        )
         modal_url = st.text_input(
-            "Enter Modal App URL", value="https://marwan-ext-main--credit-scoring-app.modal.run"
+            "Enter Modal App URL",
+            value="https://marwan-ext-main--credit-scoring-app.modal.run",
         )
 
     # Health check and API info
@@ -385,7 +399,9 @@ def display_api_dashboard():
             # Display basic API info
             info = api_info["data"]
             st.markdown(f"**Model:** {info.get('model', 'Unknown')}")
-            st.markdown(f"**Last updated:** {info.get('timestamp', 'Unknown')}")
+            st.markdown(
+                f"**Last updated:** {info.get('timestamp', 'Unknown')}"
+            )
 
             # Display available endpoints
             if "endpoints" in info:
@@ -401,7 +417,9 @@ def display_api_dashboard():
         deploy_col1, deploy_col2 = st.columns([3, 1])
 
         with deploy_col1:
-            st.markdown("Deploy a new version of the API with the latest model")
+            st.markdown(
+                "Deploy a new version of the API with the latest model"
+            )
 
         with deploy_col2:
             if st.button("Deploy", type="primary"):
@@ -423,7 +441,9 @@ def display_api_dashboard():
     # Prediction Tab
     with tabs[0]:
         st.markdown("### Make Predictions")
-        st.markdown("Use this endpoint to get credit risk predictions for loan applicants.")
+        st.markdown(
+            "Use this endpoint to get credit risk predictions for loan applicants."
+        )
 
         # Input for prediction request
         col1, col2 = st.columns([1, 1])
@@ -442,7 +462,9 @@ def display_api_dashboard():
                 with st.spinner("Processing prediction..."):
                     try:
                         # Parse the JSON input
-                        prediction_data = json.loads(clean_json_string(prediction_json))
+                        prediction_data = json.loads(
+                            clean_json_string(prediction_json)
+                        )
 
                         # Make the prediction
                         result = make_prediction(modal_url, prediction_data)
@@ -479,7 +501,9 @@ def display_api_dashboard():
                         # Show risk assessment with nice formatting
                         if "risk_assessment" in prediction_data:
                             risk = prediction_data["risk_assessment"]
-                            risk_level = risk.get("risk_level", "unknown").lower()
+                            risk_level = risk.get(
+                                "risk_level", "unknown"
+                            ).lower()
                             risk_score = risk.get("risk_score", 0)
 
                             # Choose color based on risk level
@@ -507,11 +531,16 @@ def display_api_dashboard():
 
                         # Show other prediction details
                         st.markdown("#### Prediction Details")
-                        st.markdown('<div class="api-endpoint-card">', unsafe_allow_html=True)
+                        st.markdown(
+                            '<div class="api-endpoint-card">',
+                            unsafe_allow_html=True,
+                        )
                         st.json(prediction_data)
                         st.markdown("</div>", unsafe_allow_html=True)
                 else:
-                    st.error(f"Prediction failed: {result.get('message', 'Unknown error')}")
+                    st.error(
+                        f"Prediction failed: {result.get('message', 'Unknown error')}"
+                    )
             else:
                 st.info("Make a prediction to see results here")
 
@@ -521,16 +550,23 @@ def display_api_dashboard():
                     "probabilities": [0.75],
                     "model_version": "a1b2c3d4",
                     "timestamp": "2024-03-20T10:00:00Z",
-                    "risk_assessment": {"risk_score": 0.75, "risk_level": "high"},
+                    "risk_assessment": {
+                        "risk_score": 0.75,
+                        "risk_level": "high",
+                    },
                 }
-                st.markdown('<div class="api-endpoint-card">', unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="api-endpoint-card">', unsafe_allow_html=True
+                )
                 st.json(example_response)
                 st.markdown("</div>", unsafe_allow_html=True)
 
     # Incident Reporting Tab
     with tabs[1]:
         st.markdown("### Report Incidents")
-        st.markdown("Use this endpoint to report incidents or issues with the system.")
+        st.markdown(
+            "Use this endpoint to report incidents or issues with the system."
+        )
 
         # Input for incident request
         col1, col2 = st.columns([1, 1])
@@ -540,14 +576,18 @@ def display_api_dashboard():
 
             # Create a text area for JSON input with the sample data
             default_json = json.dumps(SAMPLE_INCIDENT_REQUEST, indent=2)
-            incident_json = st.text_area("Incident Report (JSON)", value=default_json, height=300)
+            incident_json = st.text_area(
+                "Incident Report (JSON)", value=default_json, height=300
+            )
 
             # Button to report incident
             if st.button("Report Incident"):
                 with st.spinner("Reporting incident..."):
                     try:
                         # Parse the JSON input
-                        incident_data = json.loads(clean_json_string(incident_json))
+                        incident_data = json.loads(
+                            clean_json_string(incident_json)
+                        )
 
                         # Report the incident
                         result = report_incident(modal_url, incident_data)
@@ -583,11 +623,16 @@ def display_api_dashboard():
 
                         # Display incident details
                         st.markdown("#### Incident Report Details")
-                        st.markdown('<div class="api-endpoint-card">', unsafe_allow_html=True)
+                        st.markdown(
+                            '<div class="api-endpoint-card">',
+                            unsafe_allow_html=True,
+                        )
                         st.json(incident_data)
                         st.markdown("</div>", unsafe_allow_html=True)
                 else:
-                    st.error(f"Incident reporting failed: {result.get('message', 'Unknown error')}")
+                    st.error(
+                        f"Incident reporting failed: {result.get('message', 'Unknown error')}"
+                    )
             else:
                 st.info("Report an incident to see results here")
 
@@ -599,7 +644,9 @@ def display_api_dashboard():
                     "message": "Incident report received and logged",
                     "timestamp": "2024-03-20T10:00:00Z",
                 }
-                st.markdown('<div class="api-endpoint-card">', unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="api-endpoint-card">', unsafe_allow_html=True
+                )
                 st.json(example_response)
                 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -624,11 +671,16 @@ def display_api_dashboard():
 
                     # Display the monitoring data
                     st.markdown("#### Monitoring Details")
-                    st.markdown('<div class="api-endpoint-card">', unsafe_allow_html=True)
+                    st.markdown(
+                        '<div class="api-endpoint-card">',
+                        unsafe_allow_html=True,
+                    )
                     st.json(monitor_data)
                     st.markdown("</div>", unsafe_allow_html=True)
                 else:
-                    st.error(f"Monitoring check failed: {result.get('message', 'Unknown error')}")
+                    st.error(
+                        f"Monitoring check failed: {result.get('message', 'Unknown error')}"
+                    )
 
         # Display monitoring information
         st.markdown("### About Monitoring")
@@ -659,9 +711,33 @@ def display_api_dashboard():
             st.markdown("#### Performance Over Time")
             performance_data = pd.DataFrame(
                 {
-                    "date": pd.date_range(start="2025-01-01", periods=10, freq="W"),
-                    "accuracy": [0.92, 0.91, 0.915, 0.905, 0.91, 0.90, 0.895, 0.89, 0.885, 0.88],
-                    "auc": [0.95, 0.94, 0.945, 0.94, 0.935, 0.93, 0.925, 0.92, 0.915, 0.91],
+                    "date": pd.date_range(
+                        start="2025-01-01", periods=10, freq="W"
+                    ),
+                    "accuracy": [
+                        0.92,
+                        0.91,
+                        0.915,
+                        0.905,
+                        0.91,
+                        0.90,
+                        0.895,
+                        0.89,
+                        0.885,
+                        0.88,
+                    ],
+                    "auc": [
+                        0.95,
+                        0.94,
+                        0.945,
+                        0.94,
+                        0.935,
+                        0.93,
+                        0.925,
+                        0.92,
+                        0.915,
+                        0.91,
+                    ],
                 }
             )
             performance_data.set_index("date", inplace=True)

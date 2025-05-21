@@ -82,7 +82,9 @@ def render_annex_iv_template(
         Rendered template content
     """
     if template_dir is None:
-        template_dir = Path(__file__).parent.parent.parent / "docs" / "templates"
+        template_dir = (
+            Path(__file__).parent.parent.parent / "docs" / "templates"
+        )
 
     env: jinja2.Environment = setup_jinja_environment(template_dir)
     template: jinja2.Template = env.get_template("annex_iv_template.j2")
@@ -109,7 +111,11 @@ def _filter_join_kv(d: Dict[str, Any]) -> str:
 
 def _filter_join_list_kv(d: Dict[str, List[Any]]) -> str:
     """Format dictionaries with list values (ensuring all elements are strings)."""
-    return ", ".join(f"{k}=[{','.join(str(x) for x in v)}]" for k, v in d.items()) if d else "-"
+    return (
+        ", ".join(f"{k}=[{','.join(str(x) for x in v)}]" for k, v in d.items())
+        if d
+        else "-"
+    )
 
 
 def _filter_list_keys(d: Dict[str, Any]) -> str:

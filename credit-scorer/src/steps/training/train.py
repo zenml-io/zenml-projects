@@ -57,7 +57,9 @@ def train_model(
     """Train LightGBM with balanced objective, early stopping, and threshold tuning."""
     # Identify target column
     target_col = next(
-        col for col in train_df.columns if col.endswith(f"__{target}") or col == target
+        col
+        for col in train_df.columns
+        if col.endswith(f"__{target}") or col == target
     )
 
     # Create copies and clean feature names for LightGBM
@@ -134,7 +136,9 @@ def train_model(
     best_idx = int(np.argmax(f1s))
     best_t = float(thresholds[best_idx])
     best_f1 = float(f1s[best_idx])
-    logger.info(f"Optimal threshold on validation: {best_t:.2f} → F1 = {best_f1:.4f}")
+    logger.info(
+        f"Optimal threshold on validation: {best_t:.2f} → F1 = {best_f1:.4f}"
+    )
 
     # Compute validation metrics at optimal threshold
     y_pred = (probs >= best_t).astype(int)
@@ -151,14 +155,20 @@ def train_model(
     # Log top‑10 feature importances (safely with original names)
     importance = pd.Series(model.feature_importances_, index=cleaned_columns)
     # Map back to original feature names for logging
-    importance.index = [feature_name_map.get(feat, feat) for feat in importance.index]
-    top_features = list(importance.sort_values(ascending=False).head(10).items())
+    importance.index = [
+        feature_name_map.get(feat, feat) for feat in importance.index
+    ]
+    top_features = list(
+        importance.sort_values(ascending=False).head(10).items()
+    )
     logger.info(f"Top 10 features: {top_features}")
 
     # Save feature name mapping with the model
     model_metadata = {
         "feature_name_map": feature_name_map,
-        "original_column_order": list(train_df.drop(columns=[target_col]).columns),
+        "original_column_order": list(
+            train_df.drop(columns=[target_col]).columns
+        ),
         "cleaned_column_order": cleaned_columns,
     }
 
@@ -181,7 +191,9 @@ def train_model(
             else None,
             "feature_importance": top_features,
             "training_start_time": start_time.isoformat(),
-            "training_duration_seconds": (end_time - start_time).total_seconds(),
+            "training_duration_seconds": (
+                end_time - start_time
+            ).total_seconds(),
             "feature_name_mapping": feature_name_map,  # Include mapping for reference
         }
     )

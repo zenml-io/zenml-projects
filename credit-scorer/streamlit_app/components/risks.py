@@ -26,7 +26,11 @@ def display_risks_dashboard(risk_df):
         st.markdown("<h3>Risk Level Distribution</h3>", unsafe_allow_html=True)
         # Use risk_category (previously called risk_level in the dashboard but may be called 'risk_category' in db)
         severity_column = next(
-            (col for col in ["risk_category", "risk_level"] if col in risk_df.columns),
+            (
+                col
+                for col in ["risk_category", "risk_level"]
+                if col in risk_df.columns
+            ),
             None,
         )
 
@@ -62,15 +66,24 @@ def display_risks_dashboard(risk_df):
             st.info("No risk levels found in the risk register.")
 
     with col2:
-        st.markdown("<h3>Risk Distribution by Category</h3>", unsafe_allow_html=True)
+        st.markdown(
+            "<h3>Risk Distribution by Category</h3>", unsafe_allow_html=True
+        )
 
         if "category" in risk_df.columns and severity_column:
             # Create a risk heatmap by category and risk level
-            category_severity = pd.crosstab(risk_df["category"], risk_df[severity_column])
+            category_severity = pd.crosstab(
+                risk_df["category"], risk_df[severity_column]
+            )
 
             # Set correct order for risk levels
-            if all(level in category_severity.columns for level in ["HIGH", "MEDIUM", "LOW"]):
-                category_severity = category_severity[["HIGH", "MEDIUM", "LOW"]]
+            if all(
+                level in category_severity.columns
+                for level in ["HIGH", "MEDIUM", "LOW"]
+            ):
+                category_severity = category_severity[
+                    ["HIGH", "MEDIUM", "LOW"]
+                ]
 
             # Create heatmap
             fig = px.imshow(
@@ -91,7 +104,9 @@ def display_risks_dashboard(risk_df):
             # Fallback to risk level by run if category not available
             if "run_id" in risk_df.columns and severity_column:
                 run_risk_counts = (
-                    risk_df.groupby(["run_id", severity_column]).size().reset_index(name="count")
+                    risk_df.groupby(["run_id", severity_column])
+                    .size()
+                    .reset_index(name="count")
                 )
                 fig = px.bar(
                     run_risk_counts,
@@ -165,13 +180,19 @@ def display_risks_dashboard(risk_df):
     filtered_df = risk_df.copy()
 
     if risk_level_filter and severity_column:
-        filtered_df = filtered_df[filtered_df[severity_column].isin(risk_level_filter)]
+        filtered_df = filtered_df[
+            filtered_df[severity_column].isin(risk_level_filter)
+        ]
 
     if category_filter:
         if "category" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["category"].isin(category_filter)]
+            filtered_df = filtered_df[
+                filtered_df["category"].isin(category_filter)
+            ]
         elif "run_id" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["run_id"].isin(category_filter)]
+            filtered_df = filtered_df[
+                filtered_df["run_id"].isin(category_filter)
+            ]
 
     if status_filter and "status" in filtered_df.columns:
         filtered_df = filtered_df[filtered_df["status"].isin(status_filter)]
@@ -231,7 +252,10 @@ def display_risks_dashboard(risk_df):
     # Mitigation progress tracking
     st.markdown("<h3>Mitigation Progress</h3>", unsafe_allow_html=True)
 
-    if all(col in risk_df.columns for col in ["risk_description", "mitigation", "status"]):
+    if all(
+        col in risk_df.columns
+        for col in ["risk_description", "mitigation", "status"]
+    ):
         # Calculate mitigation progress
         completed = (risk_df["status"] == "COMPLETED").sum()
         total = len(risk_df)
@@ -251,7 +275,9 @@ def display_risks_dashboard(risk_df):
 
         # Display mitigation status by severity
         if severity_column and "status" in risk_df.columns:
-            mitigation_status = pd.crosstab(risk_df[severity_column], risk_df["status"])
+            mitigation_status = pd.crosstab(
+                risk_df[severity_column], risk_df["status"]
+            )
 
             fig = px.bar(
                 mitigation_status,
@@ -295,7 +321,9 @@ def display_risks_dashboard(risk_df):
             if export_format == "Excel (.xlsx)":
                 buffer = io.BytesIO()
                 with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-                    filtered_df.to_excel(writer, index=False, sheet_name="Sheet1")
+                    filtered_df.to_excel(
+                        writer, index=False, sheet_name="Sheet1"
+                    )
                 buffer.seek(0)
                 download_data = buffer
                 file_name = "risk_register_export.xlsx"

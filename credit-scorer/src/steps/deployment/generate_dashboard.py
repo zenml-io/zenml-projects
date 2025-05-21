@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Annotated
 
 import pandas as pd
+from streamlit_app.data.compliance_utils import get_compliance_results
 from zenml import step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
@@ -27,8 +28,9 @@ from src.constants import (
     COMPLIANCE_DASHBOARD_HTML_NAME,
     RISK_REGISTER_PATH,
 )
-from src.utils.visualizations.compliance_dashboard import create_compliance_dashboard_artifact
-from streamlit_app.data.compliance_utils import get_compliance_results
+from src.utils.visualizations.compliance_dashboard import (
+    create_compliance_dashboard_artifact,
+)
 
 logger = get_logger(__name__)
 
@@ -49,7 +51,9 @@ def generate_compliance_dashboard(
     logger.info("Generating compliance dashboard HTML artifact")
 
     # Get compliance results using current run ID
-    compliance_results = get_compliance_results(run_release_dir=run_release_dir)
+    compliance_results = get_compliance_results(
+        run_release_dir=run_release_dir
+    )
 
     # Load risk data if available
     risk_df = None

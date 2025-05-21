@@ -114,7 +114,9 @@ HAZARD_DEFINITIONS = {
         "trigger": lambda results, scores: (
             any(
                 abs(v.get("selection_rate_disparity", 0)) > 0.2
-                for v in results["fairness"].get("fairness_metrics", {}).values()
+                for v in results["fairness"]
+                .get("fairness_metrics", {})
+                .values()
                 if isinstance(v, dict)
             )
         ),
@@ -125,7 +127,8 @@ HAZARD_DEFINITIONS = {
     },
     "low_accuracy": {
         "description": "Model accuracy below 0.75",
-        "trigger": lambda results, scores: results["metrics"]["accuracy"] < 0.75,
+        "trigger": lambda results, scores: results["metrics"]["accuracy"]
+        < 0.75,
         "severity": "medium",
         "mitigation": "Collect more data; tune hyper-parameters",
     },

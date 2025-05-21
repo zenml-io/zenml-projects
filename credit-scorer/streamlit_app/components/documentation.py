@@ -42,7 +42,9 @@ def display_annex_iv_documentation():
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Tabs for viewing and editing
-    tab1, tab2, tab3 = st.tabs(["📄 Documentation", "✏️ Edit Fields", "🔧 Framework Versions"])
+    tab1, tab2, tab3 = st.tabs(
+        ["📄 Documentation", "✏️ Edit Fields", "🔧 Framework Versions"]
+    )
 
     with tab1:
         # Display release info
@@ -60,7 +62,9 @@ def display_annex_iv_documentation():
             unsafe_allow_html=True,
         )
 
-        content_without_images = re.sub(r"!\[.*?\]\(.*?assets/.*?\)\n*", "", processed_content)
+        content_without_images = re.sub(
+            r"!\[.*?\]\(.*?assets/.*?\)\n*", "", processed_content
+        )
 
         st.markdown(content_without_images)
 
@@ -103,7 +107,9 @@ def display_annex_iv_documentation():
 
         # Group inputs into logical sections with better styling
         with st.expander("General Information", expanded=True):
-            manual_inputs["provider"] = st.text_input("Provider", manual_inputs.get("provider", ""))
+            manual_inputs["provider"] = st.text_input(
+                "Provider", manual_inputs.get("provider", "")
+            )
             manual_inputs["description"] = st.text_area(
                 "Description", manual_inputs.get("description", "")
             )
@@ -139,21 +145,31 @@ def display_annex_iv_documentation():
 
             # Performance metrics as a JSON editor
             st.subheader("Performance Metrics")
-            perf_metrics_json = json.dumps(manual_inputs.get("performance_metrics", {}), indent=2)
+            perf_metrics_json = json.dumps(
+                manual_inputs.get("performance_metrics", {}), indent=2
+            )
             perf_metrics_edited = st.text_area(
                 "Performance Metrics (JSON)", perf_metrics_json, height=200
             )
             try:
-                manual_inputs["performance_metrics"] = json.loads(perf_metrics_edited)
+                manual_inputs["performance_metrics"] = json.loads(
+                    perf_metrics_edited
+                )
             except json.JSONDecodeError:
                 st.error("Invalid JSON format for performance metrics")
 
             # Fairness assessment as a JSON editor
             st.subheader("Fairness Assessment")
-            fairness_json = json.dumps(manual_inputs.get("fairness_assessment", {}), indent=2)
-            fairness_edited = st.text_area("Fairness Assessment (JSON)", fairness_json, height=200)
+            fairness_json = json.dumps(
+                manual_inputs.get("fairness_assessment", {}), indent=2
+            )
+            fairness_edited = st.text_area(
+                "Fairness Assessment (JSON)", fairness_json, height=200
+            )
             try:
-                manual_inputs["fairness_assessment"] = json.loads(fairness_edited)
+                manual_inputs["fairness_assessment"] = json.loads(
+                    fairness_edited
+                )
             except json.JSONDecodeError:
                 st.error("Invalid JSON format for fairness assessment")
 
@@ -197,7 +213,9 @@ def display_annex_iv_documentation():
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("<h4>From requirements.txt</h4>", unsafe_allow_html=True)
+            st.markdown(
+                "<h4>From requirements.txt</h4>", unsafe_allow_html=True
+            )
             if current_frameworks:
                 framework_text = ""
                 for package, version in current_frameworks.items():
@@ -212,7 +230,9 @@ def display_annex_iv_documentation():
                 st.warning("No frameworks found in requirements.txt")
 
         with col2:
-            st.markdown("<h4>Custom Framework Overrides</h4>", unsafe_allow_html=True)
+            st.markdown(
+                "<h4>Custom Framework Overrides</h4>", unsafe_allow_html=True
+            )
             user_frameworks = manual_inputs.get("frameworks", {})
 
             # Use JSON editor for custom framework versions

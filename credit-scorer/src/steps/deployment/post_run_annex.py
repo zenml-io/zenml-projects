@@ -95,7 +95,9 @@ def generate_annex_iv_documentation(
     manual_inputs = load_and_process_manual_inputs(SAMPLE_INPUTS_PATH)
 
     # Step 3: Render the Jinja template with metadata and enriched manual inputs
-    content = render_annex_iv_template(metadata, manual_inputs, Path(TEMPLATES_DIR))
+    content = render_annex_iv_template(
+        metadata, manual_inputs, Path(TEMPLATES_DIR)
+    )
 
     # Step 4: Save documentation and artifacts
     md_name = f"annex_iv_{pipeline.name}.md"
@@ -122,8 +124,12 @@ def generate_annex_iv_documentation(
             "manual_inputs": manual_inputs,
         }
 
-        artifact_paths = save_compliance_artifacts_to_modal(compliance_artifacts, run_id)
-        logger.info(f"Compliance artifacts saved to Modal volume: {artifact_paths}")
+        artifact_paths = save_compliance_artifacts_to_modal(
+            compliance_artifacts, run_id
+        )
+        logger.info(
+            f"Compliance artifacts saved to Modal volume: {artifact_paths}"
+        )
 
         # Log the artifact paths to ZenML metadata
         log_metadata(
@@ -136,7 +142,9 @@ def generate_annex_iv_documentation(
         )
 
     except Exception as e:
-        logger.error(f"Failed to save compliance artifacts to Modal volume: {e}")
+        logger.error(
+            f"Failed to save compliance artifacts to Modal volume: {e}"
+        )
 
     # Step 7: Record log locations for Article 12 compliance
     log_info = record_log_locations(run_release_dir, pipeline.name, run_id)
@@ -144,7 +152,9 @@ def generate_annex_iv_documentation(
         log_metadata(
             metadata={
                 "pipeline_logs_uri": log_info["log_uri"],
-                "log_metadata_path": str(run_release_dir / "log_metadata.json"),
+                "log_metadata_path": str(
+                    run_release_dir / "log_metadata.json"
+                ),
             }
         )
 

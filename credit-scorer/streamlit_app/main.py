@@ -76,7 +76,11 @@ def main():
 
     # Display the selected page
     if selected == "Executive Summary":
-        risk_df = risk_data.get("Risks", pd.DataFrame()) if risk_data else pd.DataFrame()
+        risk_df = (
+            risk_data.get("Risks", pd.DataFrame())
+            if risk_data
+            else pd.DataFrame()
+        )
         display_exec_summary(risk_df, incident_data)
 
     elif selected == "Risk Management":

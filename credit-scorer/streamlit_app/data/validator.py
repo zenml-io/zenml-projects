@@ -128,7 +128,9 @@ def validate_risk_register(
 
         # Normalize column names to lowercase for case-insensitive comparison
         risk_columns = [col.lower() for col in risk_df.columns]
-        missing_columns = [col for col in required_columns if col.lower() not in risk_columns]
+        missing_columns = [
+            col for col in required_columns if col.lower() not in risk_columns
+        ]
 
         if missing_columns:
             errors.append(
@@ -218,7 +220,9 @@ def show_validation_summary(
     invalid_files = [
         name
         for name, result in validation_results.items()
-        if name != "directory" and result.get("exists", False) and not result.get("valid", False)
+        if name != "directory"
+        and result.get("exists", False)
+        and not result.get("valid", False)
     ]
 
     # Show summary

@@ -79,7 +79,9 @@ def approve_deployment(
     # Fairness summary
     if "fairness_metrics" in evaluation_results:
         print("\n⚖️ FAIRNESS ASSESSMENT:")
-        for attribute, metrics in evaluation_results["fairness_metrics"].items():
+        for attribute, metrics in evaluation_results[
+            "fairness_metrics"
+        ].items():
             print(
                 f"  • {attribute.capitalize()} disparate impact: {metrics.get('disparate_impact', 'N/A'):.2f}"
             )
@@ -96,7 +98,10 @@ def approve_deployment(
         for factor in risk_scores["high_risk_factors"]:
             print(f"    - {factor}")
 
-    if "mitigation_measures" in risk_scores and risk_scores["mitigation_measures"]:
+    if (
+        "mitigation_measures" in risk_scores
+        and risk_scores["mitigation_measures"]
+    ):
         print("  • Mitigation measures:")
         for measure in risk_scores["mitigation_measures"]:
             print(f"    - {measure}")
@@ -106,10 +111,14 @@ def approve_deployment(
         "Accuracy": evaluation_results["metrics"].get("accuracy", 0)
         >= approval_thresholds["accuracy"],
         "Bias disparity": all(
-            metrics.get("selection_rate_disparity", 1) <= approval_thresholds["bias_disparity"]
-            for attr, metrics in evaluation_results.get("fairness_metrics", {}).items()
+            metrics.get("selection_rate_disparity", 1)
+            <= approval_thresholds["bias_disparity"]
+            for attr, metrics in evaluation_results.get(
+                "fairness_metrics", {}
+            ).items()
         ),
-        "Risk score": risk_scores.get("overall", 1) <= approval_thresholds["risk_score"],
+        "Risk score": risk_scores.get("overall", 1)
+        <= approval_thresholds["risk_score"],
     }
 
     # Display threshold check results
@@ -133,7 +142,9 @@ def approve_deployment(
     else:
         # Automated mode
         approver = os.getenv("APPROVER", "automated")
-        rationale = os.getenv("APPROVAL_RATIONALE", "Automated approval via environment variable")
+        rationale = os.getenv(
+            "APPROVAL_RATIONALE", "Automated approval via environment variable"
+        )
         decision_mode = "automated"
 
     approved = decision == "y"
@@ -146,7 +157,9 @@ def approve_deployment(
         "approver": approver,
         "rationale": rationale,
         "decision_mode": decision_mode,
-        "threshold_checks": {check: passed for check, passed in threshold_checks.items()},
+        "threshold_checks": {
+            check: passed for check, passed in threshold_checks.items()
+        },
         "evaluation_summary": {
             "accuracy": evaluation_results["metrics"].get("accuracy", None),
             "auc": evaluation_results["metrics"].get("auc", None),

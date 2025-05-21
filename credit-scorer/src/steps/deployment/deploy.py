@@ -36,7 +36,9 @@ from src.constants import (
 logger = get_logger(__name__)
 
 DEPLOYMENT_SCRIPT_PATH = (
-    Path(__file__).parent.parent.parent.parent / "modal_app" / "modal_deployment.py"
+    Path(__file__).parent.parent.parent.parent
+    / "modal_app"
+    / "modal_deployment.py"
 )
 
 
@@ -119,7 +121,9 @@ def modal_deployment(
     try:
         with open(release_dir / "approval_record.json", "w") as f:
             json.dump(approval_record, f, indent=2, default=str)
-        logger.info(f"Approval record saved to: {release_dir / 'approval_record.json'}")
+        logger.info(
+            f"Approval record saved to: {release_dir / 'approval_record.json'}"
+        )
     except (TypeError, ValueError) as e:
         logger.error(f"Failed to serialize approval record: {e}")
 

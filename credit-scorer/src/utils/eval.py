@@ -30,7 +30,9 @@ from src.utils.incidents import create_incident_report
 logger = get_logger(__name__)
 
 
-def get_sensitive_feature(test_df: pd.DataFrame, attr: str) -> Tuple[pd.Series, str, bool]:
+def get_sensitive_feature(
+    test_df: pd.DataFrame, attr: str
+) -> Tuple[pd.Series, str, bool]:
     """Get the sensitive feature for fairness analysis.
 
     Args:
@@ -57,7 +59,9 @@ def get_sensitive_feature(test_df: pd.DataFrame, attr: str) -> Tuple[pd.Series, 
         return test_df[col_name], col_name, False
 
     # Case 3: Categorical - reconstruct from one-hot encoding
-    categorical_cols = [col for col in test_df.columns if col.startswith(f"cat__{attr}_")]
+    categorical_cols = [
+        col for col in test_df.columns if col.startswith(f"cat__{attr}_")
+    ]
     if categorical_cols:
         logger.info(f"Reconstructing {attr} from one-hot encoded columns")
 
@@ -77,7 +81,9 @@ def get_sensitive_feature(test_df: pd.DataFrame, attr: str) -> Tuple[pd.Series, 
         return sensitive_features, attr, False
 
     # Case 4: Not found
-    logger.warning(f"Protected attribute '{attr}' not found in transformed dataset")
+    logger.warning(
+        f"Protected attribute '{attr}' not found in transformed dataset"
+    )
     return None, attr, True
 
 
@@ -137,12 +143,16 @@ def analyze_fairness(
 
     for attr in protected_attributes:
         # Get the sensitive feature
-        sensitive_features, feature_name, skip = get_sensitive_feature(test_df, attr)
+        sensitive_features, feature_name, skip = get_sensitive_feature(
+            test_df, attr
+        )
         if skip:
             continue
 
         # Calculate fairness metrics
-        metrics = calculate_fairness_metrics(y_test, y_pred, sensitive_features)
+        metrics = calculate_fairness_metrics(
+            y_test, y_pred, sensitive_features
+        )
         fairness_report[feature_name] = metrics
 
         # Check if bias threshold is exceeded
@@ -169,15 +179,23 @@ def report_bias_incident(fairness_report: Dict[str, Any], run_id: str) -> None:
             if isinstance(attr_metrics, dict):
                 disparity = attr_metrics.get("selection_rate_disparity")
                 if disparity and abs(disparity) > 0.2:
-                    group_rates = attr_metrics.get("selection_rate_by_group", {})
+                    group_rates = attr_metrics.get(
+                        "selection_rate_by_group", {}
+                    )
                     if group_rates:
-                        max_group = max(group_rates.items(), key=lambda x: x[1])
-                        min_group = min(group_rates.items(), key=lambda x: x[1])
+                        max_group = max(
+                            group_rates.items(), key=lambda x: x[1]
+                        )
+                        min_group = min(
+                            group_rates.items(), key=lambda x: x[1]
+                        )
                         bias_details.append(
                             f"{attr}: {abs(disparity):.3f} disparity ({min_group[0]}: {min_group[1]:.2f} vs {max_group[0]}: {max_group[1]:.2f})"
                         )
                     else:
-                        bias_details.append(f"{attr}: {abs(disparity):.3f} disparity")
+                        bias_details.append(
+                            f"{attr}: {abs(disparity):.3f} disparity"
+                        )
 
         # Create the incident report
         details_text = (

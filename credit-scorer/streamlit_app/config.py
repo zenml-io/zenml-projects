@@ -27,7 +27,9 @@ EXPECTED_ARTICLES = {
 }
 
 # Theme settings and styling
-PRIMARY_COLOR = "#1F4E79"  # Dark blue - professional look for financial industry
+PRIMARY_COLOR = (
+    "#1F4E79"  # Dark blue - professional look for financial industry
+)
 SECONDARY_COLOR = "#4F81BD"  # Medium blue
 ACCENT_COLOR = "#D9E1F2"  # Light blue background
 TEXT_COLOR = "#333333"  # Dark gray for text

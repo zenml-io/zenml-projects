@@ -89,7 +89,9 @@ def evaluate_model(
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
 
     target_col = next(
-        col for col in test_df.columns if col.endswith(f"__{target}") or col == target
+        col
+        for col in test_df.columns
+        if col.endswith(f"__{target}") or col == target
     )
 
     # Prepare test data
@@ -131,10 +133,14 @@ def evaluate_model(
 
     # ===== 2. Add metrics suited for imbalanced data =====
     # Average precision summarizes precision-recall curve
-    performance_metrics["average_precision"] = average_precision_score(y_test, y_prob)
+    performance_metrics["average_precision"] = average_precision_score(
+        y_test, y_prob
+    )
 
     # Balanced accuracy is mean of sensitivity and specificity
-    performance_metrics["balanced_accuracy"] = balanced_accuracy_score(y_test, y_pred)
+    performance_metrics["balanced_accuracy"] = balanced_accuracy_score(
+        y_test, y_pred
+    )
 
     # ===== 3. Financial impact metric =====
     # Calculate expected cost using the cost matrix
@@ -162,7 +168,9 @@ def evaluate_model(
         tn_t, fp_t, fn_t, tp_t = cm_t.ravel()
 
         # Calculate cost at this threshold
-        threshold_cost = (fp_t * cost_matrix["fp_cost"]) + (fn_t * cost_matrix["fn_cost"])
+        threshold_cost = (fp_t * cost_matrix["fp_cost"]) + (
+            fn_t * cost_matrix["fn_cost"]
+        )
         normalized_threshold_cost = threshold_cost / len(y_test)
 
         threshold_metrics[threshold] = {
@@ -187,7 +195,9 @@ def evaluate_model(
             best_threshold = threshold
 
     # Find optimal threshold for minimizing cost
-    cost_values = [metrics["normalized_cost"] for metrics in threshold_metrics.values()]
+    cost_values = [
+        metrics["normalized_cost"] for metrics in threshold_metrics.values()
+    ]
     min_cost_idx = np.argmin(cost_values)
     min_cost_threshold = list(threshold_metrics.keys())[min_cost_idx]
 
@@ -196,17 +206,29 @@ def evaluate_model(
     performance_metrics["optimal_f1_threshold"] = best_threshold
     performance_metrics["optimal_f1_score"] = best_f1
     performance_metrics["optimal_cost_threshold"] = min_cost_threshold
-    performance_metrics["optimal_cost"] = threshold_metrics[min_cost_threshold]["normalized_cost"]
+    performance_metrics["optimal_cost"] = threshold_metrics[
+        min_cost_threshold
+    ]["normalized_cost"]
 
     # ===== 6. Calculate final metrics using cost-optimal threshold =====
     optimal_y_pred = (y_prob >= min_cost_threshold).astype(int)
-    performance_metrics["optimal_precision"] = precision_score(y_test, optimal_y_pred)
-    performance_metrics["optimal_recall"] = recall_score(y_test, optimal_y_pred)
+    performance_metrics["optimal_precision"] = precision_score(
+        y_test, optimal_y_pred
+    )
+    performance_metrics["optimal_recall"] = recall_score(
+        y_test, optimal_y_pred
+    )
     performance_metrics["optimal_f1"] = f1_score(y_test, optimal_y_pred)
-    performance_metrics["optimal_accuracy"] = accuracy_score(y_test, optimal_y_pred)
+    performance_metrics["optimal_accuracy"] = accuracy_score(
+        y_test, optimal_y_pred
+    )
 
-    logger.info(f"Performance metrics at default threshold (0.5): {performance_metrics}")
-    logger.info(f"Optimal threshold for F1: {best_threshold}, F1: {best_f1:.4f}")
+    logger.info(
+        f"Performance metrics at default threshold (0.5): {performance_metrics}"
+    )
+    logger.info(
+        f"Optimal threshold for F1: {best_threshold}, F1: {best_f1:.4f}"
+    )
     logger.info(
         f"Optimal threshold for cost: {min_cost_threshold}, "
         f"Cost: {threshold_metrics[min_cost_threshold]['normalized_cost']:.4f}"

@@ -4,11 +4,11 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit.components.v1 import html
-
 from src.utils.visualizations.compliance_dashboard import (
     format_activities,
 )
+from streamlit.components.v1 import html
+
 from streamlit_app.config import PRIMARY_COLOR, RISK_COLORS
 from streamlit_app.data.compliance_utils import (
     format_compliance_findings,
@@ -43,7 +43,11 @@ def display_exec_summary(risk_df, incident_df):
     # Extract risk metrics
     if risk_df is not None:
         severity_column = next(
-            (col for col in ["risk_category", "risk_level"] if col in risk_df.columns),
+            (
+                col
+                for col in ["risk_category", "risk_level"]
+                if col in risk_df.columns
+            ),
             None,
         )
 
@@ -70,8 +74,12 @@ def display_exec_summary(risk_df, incident_df):
     # Calculate compliance metrics
     critical_findings = compliance_summary.get("critical_count", 0)
     warning_findings = compliance_summary.get("warning_count", 0)
-    strongest_article = compliance_summary.get("strongest_article", {"name": "None", "score": 0})
-    weakest_article = compliance_summary.get("weakest_article", {"name": "None", "score": 0})
+    strongest_article = compliance_summary.get(
+        "strongest_article", {"name": "None", "score": 0}
+    )
+    weakest_article = compliance_summary.get(
+        "weakest_article", {"name": "None", "score": 0}
+    )
 
     # Format article names for display
     strongest_name = strongest_article["name"]
@@ -165,7 +173,9 @@ def display_exec_summary(risk_df, incident_df):
 
     # Get detailed compliance information
     compliance_results = get_compliance_results()
-    article_compliance = compute_article_compliance(risk_df, use_compliance_calculator=True)
+    article_compliance = compute_article_compliance(
+        risk_df, use_compliance_calculator=True
+    )
     data_sources = get_compliance_data_sources(compliance_results)
     findings = compliance_results.get("findings", [])
     grouped_findings = format_compliance_findings(findings)
@@ -189,14 +199,20 @@ def display_exec_summary(risk_df, incident_df):
     with col1:
         # Create a gauge chart for each article (excluding Overall Compliance)
         gauge_cols = st.columns(3)
-        article_items = [(k, v) for k, v in article_compliance.items() if k != "Overall Compliance"]
+        article_items = [
+            (k, v)
+            for k, v in article_compliance.items()
+            if k != "Overall Compliance"
+        ]
 
         for i, (article, score) in enumerate(article_items):
             with gauge_cols[i % 3]:
                 # Extract article ID for looking up data sources
                 article_id = None
                 if article.startswith("Art."):
-                    article_num = article.split("(")[0].strip().replace("Art. ", "")
+                    article_num = (
+                        article.split("(")[0].strip().replace("Art. ", "")
+                    )
                     article_id = f"article_{article_num}"
 
                 # Get data sources for this article
@@ -227,7 +243,9 @@ def display_exec_summary(risk_df, incident_df):
                         number={"suffix": "%", "font": {"size": 20}},
                     )
                 )
-                fig.update_layout(height=180, margin=dict(l=30, r=30, t=50, b=30))
+                fig.update_layout(
+                    height=180, margin=dict(l=30, r=30, t=50, b=30)
+                )
                 st.plotly_chart(fig, use_container_width=True)
 
                 # Show data sources under each gauge
@@ -479,7 +497,11 @@ def display_exec_summary(risk_df, incident_df):
     # Activity rows with hover effect
     for activity in activities:
         sev = activity["severity"].lower()
-        cls = f"status-{sev}" if sev in ("high", "medium", "low") else "status-medium"
+        cls = (
+            f"status-{sev}"
+            if sev in ("high", "medium", "low")
+            else "status-medium"
+        )
         border = RISK_COLORS.get(activity["severity"], "#999999")
 
         activity_html += f"""
