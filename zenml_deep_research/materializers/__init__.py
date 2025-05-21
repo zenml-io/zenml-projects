@@ -7,5 +7,7 @@ the ResearchState object that tracks the state of the research process.
 """
 
 from .research_state_materializer import ResearchStateMaterializer
+from .pydantic_materializer import ResearchStateMaterializer as PydanticResearchStateMaterializer
+from .search_result_materializer import SearchResultMaterializer
 
-__all__ = ["ResearchStateMaterializer"]
+__all__ = ["ResearchStateMaterializer", "PydanticResearchStateMaterializer", "SearchResultMaterializer"]

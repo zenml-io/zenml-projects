@@ -2,8 +2,8 @@ import json
 import logging
 from typing import Annotated
 
-from materializers.research_state_materializer import ResearchStateMaterializer
-from utils.data_models import (
+from materializers.pydantic_materializer import ResearchStateMaterializer
+from utils.pydantic_models import (
     ReflectionMetadata,
     ResearchState,
     SynthesizedInfo,

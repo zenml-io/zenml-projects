@@ -2,8 +2,8 @@ import copy
 import logging
 from typing import Annotated
 
-from materializers.research_state_materializer import ResearchStateMaterializer
-from utils.data_models import ResearchState
+from materializers.pydantic_materializer import ResearchStateMaterializer
+from utils.pydantic_models import ResearchState
 from zenml import get_step_context, step
 from zenml.client import Client
 

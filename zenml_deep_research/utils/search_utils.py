@@ -2,7 +2,8 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-from utils.data_models import SearchResult
+# Import Pydantic model instead of dataclass
+from utils.pydantic_models import SearchResult
 from utils.llm_utils import get_structured_llm_output
 from utils.prompts import DEFAULT_SEARCH_QUERY_PROMPT
 

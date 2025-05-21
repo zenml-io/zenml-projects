@@ -1,10 +1,10 @@
 from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
-from steps.final_report_step import final_report_generation_step
+from steps.pydantic_final_report_step import pydantic_final_report_step
 from steps.iterative_reflection_step import iterative_reflection_step
 from steps.merge_results_step import merge_sub_question_results_step
 from steps.process_sub_question_step import process_sub_question_step
 from steps.query_decomposition_step import initial_query_decomposition_step
-from utils.data_models import ResearchState
+from utils.pydantic_models import ResearchState
 from zenml import pipeline
 from zenml.types import HTMLString
 
@@ -58,6 +58,9 @@ def parallelized_deep_research_pipeline(
     # Continue with subsequent steps
     analyzed_state = cross_viewpoint_analysis_step(state=merged_state)
     reflected_state = iterative_reflection_step(state=analyzed_state)
-    final_report = final_report_generation_step(state=reflected_state)
+    
+    # Use our new Pydantic-based final report step
+    # This returns a tuple (state, html_report)
+    _, final_report = pydantic_final_report_step(state=reflected_state)
 
     return final_report

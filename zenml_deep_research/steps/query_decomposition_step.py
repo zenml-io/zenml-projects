@@ -1,8 +1,8 @@
 import logging
 from typing import Annotated
 
-from materializers.research_state_materializer import ResearchStateMaterializer
-from utils.data_models import ResearchState
+from materializers.pydantic_materializer import ResearchStateMaterializer
+from utils.pydantic_models import ResearchState
 from utils.llm_utils import get_structured_llm_output
 from utils.prompts import QUERY_DECOMPOSITION_PROMPT
 from zenml import step

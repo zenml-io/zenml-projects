@@ -2,8 +2,9 @@ import copy
 import logging
 from typing import Annotated
 
-from materializers.research_state_materializer import ResearchStateMaterializer
-from utils.data_models import ResearchState, SynthesizedInfo
+from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.search_result_materializer import SearchResultMaterializer
+from utils.pydantic_models import ResearchState, SynthesizedInfo, SearchResult
 from utils.llm_utils import synthesize_information
 from utils.prompts import SYNTHESIS_PROMPT
 from utils.search_utils import (
