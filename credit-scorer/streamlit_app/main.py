@@ -3,6 +3,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+from streamlit_app.components.api_dashboard import display_api_dashboard
 from streamlit_app.components.data_profile import display_data_profile
 from streamlit_app.components.documentation import (
     display_annex_iv_documentation,
@@ -36,6 +37,7 @@ def main():
             "Executive Summary",
             "Risk Management",
             "Incident Tracking",
+            "API Dashboard",
             "Data Profile",
             "Annex IV Documentation",
         ],
@@ -43,6 +45,7 @@ def main():
             "clipboard-data",
             "shield-exclamation",
             "exclamation-triangle",
+            "cloud",
             "bar-chart",
             "file-earmark-text",
         ],
@@ -73,11 +76,7 @@ def main():
 
     # Display the selected page
     if selected == "Executive Summary":
-        risk_df = (
-            risk_data.get("Risks", pd.DataFrame())
-            if risk_data
-            else pd.DataFrame()
-        )
+        risk_df = risk_data.get("Risks", pd.DataFrame()) if risk_data else pd.DataFrame()
         display_exec_summary(risk_df, incident_data)
 
     elif selected == "Risk Management":
@@ -88,6 +87,9 @@ def main():
 
     elif selected == "Incident Tracking":
         display_incident_tracking(incident_data)
+
+    elif selected == "API Dashboard":
+        display_api_dashboard()
 
     elif selected == "Data Profile":
         display_data_profile()

@@ -1,11 +1,13 @@
 """Data processing and calculation utilities for the dashboard."""
 
 import logging
+import os
+import re
 from typing import Optional
 
 import streamlit as st
 
-from streamlit_app.config import EXPECTED_ARTICLES
+from streamlit_app.config import BASE_DIR, EXPECTED_ARTICLES
 from streamlit_app.data.compliance_utils import get_compliance_results
 
 # Set up logging
@@ -32,22 +34,17 @@ def compute_article_compliance(
         try:
             compliance_results = get_compliance_results(release_id=release_id)
 
-            if (
-                "articles" in compliance_results
-                and "overall" in compliance_results
-            ):
+            if "articles" in compliance_results and "overall" in compliance_results:
                 # Extract scores from the compliance results
                 formatted_article_stats = {}
 
                 # Add overall compliance score
-                formatted_article_stats["Overall Compliance"] = (
-                    compliance_results["overall"]["overall_compliance_score"]
-                )
+                formatted_article_stats["Overall Compliance"] = compliance_results["overall"][
+                    "overall_compliance_score"
+                ]
 
                 # Add individual article scores
-                for article_id, article_data in compliance_results[
-                    "articles"
-                ].items():
+                for article_id, article_data in compliance_results["articles"].items():
                     # Format article name for display
                     if "display_name" in article_data:
                         article_name = article_data["display_name"]
@@ -55,17 +52,13 @@ def compute_article_compliance(
                         article_num = article_id.split("_")[1]
                         desc = EXPECTED_ARTICLES.get(article_num, "")
                         article_name = (
-                            f"Art. {article_num} ({desc})"
-                            if desc
-                            else f"Art. {article_num}"
+                            f"Art. {article_num} ({desc})" if desc else f"Art. {article_num}"
                         )
                     else:
                         article_name = article_id
 
                     # Add the compliance score
-                    formatted_article_stats[article_name] = article_data.get(
-                        "compliance_score", 0
-                    )
+                    formatted_article_stats[article_name] = article_data.get("compliance_score", 0)
 
                 return formatted_article_stats
         except Exception as e:
@@ -96,12 +89,7 @@ def compute_article_compliance(
         # Check if we can derive article from another column like 'category'
         if "category" in risk_df.columns:
             # Try to extract article numbers from the category field
-            risk_df["article"] = (
-                risk_df["category"]
-                .astype(str)
-                .str.extract(r"(\d+)")
-                .fillna("")
-            )
+            risk_df["article"] = risk_df["category"].astype(str).str.extract(r"(\d+)").fillna("")
         else:
             # Return default stats if we can't add the article column
             return default_stats
@@ -134,9 +122,7 @@ def compute_article_compliance(
 
         # Use EXPECTED_ARTICLES for descriptions
         if article in EXPECTED_ARTICLES:
-            formatted_article = (
-                f"Art. {article} ({EXPECTED_ARTICLES[article]})"
-            )
+            formatted_article = f"Art. {article} ({EXPECTED_ARTICLES[article]})"
         else:
             formatted_article = f"Art. {article}"
 
@@ -146,30 +132,67 @@ def compute_article_compliance(
     for article, desc in EXPECTED_ARTICLES.items():
         formatted_article = f"Art. {article} ({desc})"
         if formatted_article not in formatted_article_stats:
-            formatted_article_stats[formatted_article] = default_stats[
-                formatted_article
-            ]
+            formatted_article_stats[formatted_article] = default_stats[formatted_article]
 
     # Add overall score (average of all article scores)
     if formatted_article_stats:
-        formatted_article_stats["Overall Compliance"] = sum(
-            formatted_article_stats.values()
-        ) / len(formatted_article_stats)
+        formatted_article_stats["Overall Compliance"] = sum(formatted_article_stats.values()) / len(
+            formatted_article_stats
+        )
 
     return formatted_article_stats
 
 
 def render_markdown_with_newlines(content):
-    """Convert JSON content with \n to proper markdown with line breaks."""
-    # Replace \n with actual newlines for proper markdown rendering
+    """Convert JSON content with \n to proper markdown with line breaks and fix image paths."""
     if isinstance(content, str):
-        # Simply replace \n with actual newlines for proper markdown rendering
+        # Replace \n with actual newlines for proper markdown rendering
         processed = content.replace("\\n", "\n")
+
+        # Fix image paths - replace relative paths with base64-encoded images
+        base_dir = str(BASE_DIR)
+
+        def replace_image_path(match):
+            alt_text = match.group(1)
+            path = match.group(2)
+
+            # Check if it's a relative path to assets
+            if "../../../assets/" in path:
+                # Extract the image filename
+                img_filename = path.split("/")[-1]
+                # Create absolute path to the asset
+                abs_path = f"{base_dir}/assets/{img_filename}"
+
+                # Check if file exists
+                if os.path.exists(abs_path):
+                    # Read and encode image
+                    with open(abs_path, "rb") as img_file:
+                        import base64
+
+                        encoded = base64.b64encode(img_file.read()).decode("utf-8")
+
+                        # Determine mime type based on file extension
+                        if img_filename.lower().endswith(".png"):
+                            mime = "image/png"
+                        elif img_filename.lower().endswith((".jpg", ".jpeg")):
+                            mime = "image/jpeg"
+                        else:
+                            mime = "image/png"  # Default to PNG
+
+                        # Create data URL
+                        return f"![{alt_text}](data:{mime};base64,{encoded})"
+                else:
+                    # File doesn't exist, return a placeholder with warning
+                    return f"![{alt_text} (file not found: {img_filename})]()"
+
+            return match.group(0)  # Return unchanged if not matching our pattern
+
+        # Apply the regex replacement
+        processed = re.sub(r"!\[(.*?)\]\((.*?)\)", replace_image_path, processed)
+
         return processed
     elif isinstance(content, dict):
-        return {
-            k: render_markdown_with_newlines(v) for k, v in content.items()
-        }
+        return {k: render_markdown_with_newlines(v) for k, v in content.items()}
     elif isinstance(content, list):
         return [render_markdown_with_newlines(item) for item in content]
     else:

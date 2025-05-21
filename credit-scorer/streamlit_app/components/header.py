@@ -5,14 +5,13 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.utils.compliance.compliance_calculator import calculate_compliance
+from streamlit_app.data.loader import load_latest_release_info
+
 # Add project root to path so we can import from src
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-
-from src.utils.compliance import calculate_compliance
-
-from streamlit_app.data.loader import load_latest_release_info
 
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
@@ -59,9 +58,7 @@ def display_dashboard_header():
             )
 
         # Add a "Compliance Score" badge with dynamically calculated score
-        compliance_score = (
-            get_compliance_score()
-        )  # Calculate dynamically (cached)
+        compliance_score = get_compliance_score()  # Calculate dynamically (cached)
         score_letter = (
             "A"
             if compliance_score >= 90

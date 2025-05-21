@@ -6,13 +6,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
-from src.utils.compliance import (
-    ComplianceDataLoader,
-    ComplianceError,
-    calculate_compliance,
-)
-from src.utils.compliance.compliance_constants import ARTICLE_DESCRIPTIONS
 
+from src.utils.compliance import ComplianceError
+from src.utils.compliance.compliance_calculator import calculate_compliance
+from src.utils.compliance.compliance_constants import ARTICLE_DESCRIPTIONS
+from src.utils.compliance.data_loader import ComplianceDataLoader
 from streamlit_app.config import (
     EXPECTED_ARTICLES,
     RELEASES_DIR,
@@ -77,11 +75,14 @@ def get_latest_release_id() -> Optional[str]:
         return None
 
 
-def validate_artifacts_directory(release_id: str) -> Tuple[bool, List[str]]:
+def validate_artifacts_directory(
+    release_id: str, run_release_dir: Optional[str] = None
+) -> Tuple[bool, List[str]]:
     """Check that a release directory exists and contains required files.
 
     Args:
         release_id: ID of the release to validate
+        run_release_dir: Optional direct path to the release directory
 
     Returns:
         Tuple containing (success status, list of missing files)
@@ -94,18 +95,34 @@ def validate_artifacts_directory(release_id: str) -> Tuple[bool, List[str]]:
         "annex_iv_cs_deployment.md",
     ]
 
-    release_dir = Path(RELEASES_DIR) / release_id
+    # Determine the release directory path
+    if run_release_dir:
+        # If a direct path is provided, use it
+        if isinstance(run_release_dir, str):
+            if Path(run_release_dir).is_absolute():
+                release_dir = Path(run_release_dir)
+            else:
+                # Handle relative paths by joining with the current working directory
+                release_dir = Path(run_release_dir)
+    else:
+        # Default behavior using the release_id
+        release_dir = Path(RELEASES_DIR) / release_id
+
+    logging.info(f"Validating artifacts in directory: {release_dir}")
     missing_files = []
 
     # Check directory exists
-    if not release_dir.exists() or not release_dir.is_dir():
-        return False, ["Release directory not found"]
+    if not release_dir.exists():
+        # Create the directory if it doesn't exist
+        release_dir.mkdir(exist_ok=True, parents=True)
+        logging.info(f"Created release directory: {release_dir}")
 
     # Check required files
     for file in required_files:
         file_path = release_dir / file
         if not file_path.exists():
             missing_files.append(file)
+            logging.warning(f"Required file not found: {file_path}")
 
     return len(missing_files) == 0, missing_files
 
@@ -115,6 +132,7 @@ def get_compliance_results(
     release_id: Optional[str] = None,
     risk_register_path: Optional[str] = None,
     articles: Optional[List[str]] = None,
+    run_release_dir: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Get and cache compliance calculation results.
 
@@ -127,8 +145,21 @@ def get_compliance_results(
         Dictionary with compliance results
     """
     try:
+        # Handle the case when run_release_dir is provided directly
+        if run_release_dir:
+            # Extract release_id from run_release_dir path if it's a path like "docs/releases/12345"
+            if isinstance(run_release_dir, str) and "/" in run_release_dir:
+                path_parts = run_release_dir.rstrip("/").split("/")
+                release_id = path_parts[-1]  # Get the last part of the path as release_id
+                logging.info(
+                    f"Extracted release ID '{release_id}' from run_release_dir: {run_release_dir}"
+                )
+            else:
+                # If run_release_dir is not a path but the release_id itself
+                release_id = run_release_dir
+                logging.info(f"Using run_release_dir as release ID: {release_id}")
         # Use the latest release if not specified
-        if not release_id:
+        elif not release_id:
             release_id = get_latest_release_id()
             if not release_id:
                 return {
@@ -138,28 +169,25 @@ def get_compliance_results(
                     "errors": ["No releases found"],
                 }
 
-        # Validate the release directory
-        valid, missing_files = validate_artifacts_directory(release_id)
+        logging.info(f"Using release ID for compliance calculation: {release_id}")
+
+        # Validate the release directory, passing both release_id and run_release_dir
+        valid, missing_files = validate_artifacts_directory(release_id, run_release_dir)
         if not valid:
-            st.warning(
-                f"Release directory missing required files: {', '.join(missing_files)}"
-            )
+            logging.warning(f"Release directory missing required files: {', '.join(missing_files)}")
+            # Don't stop execution, we'll use what we have
 
         # Use default risk register path if not provided
         if not risk_register_path:
             risk_register_path = RISK_REGISTER_PATH
 
         # Calculate compliance
-        results = calculate_compliance(
-            release_id, risk_register_path, articles
-        )
+        results = calculate_compliance(release_id, risk_register_path, articles)
 
         # Add formatted article names for display
         if "articles" in results:
             for article_id, article_data in results["articles"].items():
-                article_data["display_name"] = get_article_display_name(
-                    article_id
-                )
+                article_data["display_name"] = get_article_display_name(article_id)
 
         # Extract and consolidate findings from both overall and article-specific results
         consolidated_findings = []
@@ -176,18 +204,15 @@ def get_compliance_results(
                     for finding in article_data["findings"]:
                         finding_with_article = finding.copy()
                         finding_with_article["article"] = article_id
-                        finding_with_article["title"] = finding.get(
-                            "message", "Finding"
-                        )
-                        finding_with_article["description"] = finding.get(
-                            "recommendation", ""
-                        )
+                        finding_with_article["title"] = finding.get("message", "Finding")
+                        finding_with_article["description"] = finding.get("recommendation", "")
                         consolidated_findings.append(finding_with_article)
 
         # Add findings to the results
         results["findings"] = consolidated_findings
         results["release_id"] = release_id
 
+        logging.info(f"Successfully calculated compliance for release ID: {release_id}")
         return results
 
     except ComplianceError as e:
@@ -278,12 +303,8 @@ def format_compliance_findings(
             # Format finding for display
             formatted_finding = {
                 "type": finding.get("type", "warning").lower(),
-                "title": finding.get(
-                    "title", finding.get("message", "Finding")
-                ),
-                "description": finding.get(
-                    "description", finding.get("recommendation", "")
-                ),
+                "title": finding.get("title", finding.get("message", "Finding")),
+                "description": finding.get("description", finding.get("recommendation", "")),
                 "article": finding.get("article", ""),
                 "message": finding.get("message", ""),
                 "recommendation": finding.get("recommendation", ""),
@@ -378,17 +399,15 @@ def get_last_update_timestamps(results: Dict[str, Any]) -> Dict[str, str]:
             file_path = release_dir / filename
             if file_path.exists():
                 timestamp = file_path.stat().st_mtime
-                timestamps[display_name] = pd.Timestamp(
-                    timestamp, unit="s"
-                ).strftime("%Y-%m-%d %H:%M")
+                timestamps[display_name] = pd.Timestamp(timestamp, unit="s").strftime(
+                    "%Y-%m-%d %H:%M"
+                )
 
     # Add risk register timestamp
     risk_register_path = Path(RISK_REGISTER_PATH)
     if risk_register_path.exists():
         timestamp = risk_register_path.stat().st_mtime
-        timestamps["Risk Register"] = pd.Timestamp(
-            timestamp, unit="s"
-        ).strftime("%Y-%m-%d %H:%M")
+        timestamps["Risk Register"] = pd.Timestamp(timestamp, unit="s").strftime("%Y-%m-%d %H:%M")
 
     return timestamps
 
@@ -414,21 +433,12 @@ def get_compliance_summary(results: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     # Get overall score
-    if (
-        "overall" in results
-        and "overall_compliance_score" in results["overall"]
-    ):
-        summary["overall_score"] = results["overall"][
-            "overall_compliance_score"
-        ]
+    if "overall" in results and "overall_compliance_score" in results["overall"]:
+        summary["overall_score"] = results["overall"]["overall_compliance_score"]
 
         # Get counts for critical and warning findings
-        summary["critical_count"] = results["overall"].get(
-            "critical_findings_count", 0
-        )
-        summary["warning_count"] = results["overall"].get(
-            "warning_findings_count", 0
-        )
+        summary["critical_count"] = results["overall"].get("critical_findings_count", 0)
+        summary["warning_count"] = results["overall"].get("warning_findings_count", 0)
 
     # Get article statistics
     if "articles" in results:

@@ -83,16 +83,24 @@ def apply_custom_css():
 
         /* Tab styling */
         .stTabs [data-baseweb="tab-list"] {{
-            gap: 2px;
+            gap: 8px;
         }}
 
         .stTabs [data-baseweb="tab"] {{
             background-color: #f0f2f6;
+            padding: 10px 24px !important;
+            border-radius: 5px;
         }}
 
         .stTabs [aria-selected="true"] {{
             background-color: var(--primary-color);
             color: white;
+        }}
+        
+        /* Navigation tabs styling for better padding */
+        div[role="tablist"] button[role="tab"] {{
+            padding: 10px 20px;
+            margin: 0 5px;
         }}
 
         /* Logo and branding */
@@ -265,6 +273,40 @@ def apply_custom_css():
         .activity-row:hover {{
             box-shadow: 0 3px 6px rgba(0,0,0,0.1);
             transform: translateY(-2px);
+        }}
+        
+        /* API Dashboard styling */
+        .api-endpoint-card {{
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }}
+        
+        .api-endpoint-title {{
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }}
+        
+        /* Add padding to the streamlit tab buttons used in the API Dashboard */
+        button[data-baseweb="tab"] {{
+            padding: 10px 20px !important;
+        }}
+        
+        /* JSON response styling */
+        pre.json-response {{
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow: auto;
+            font-size: 0.9rem;
+            border: 1px solid #eee;
         }}
         </style>
         """,

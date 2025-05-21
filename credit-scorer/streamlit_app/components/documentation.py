@@ -1,11 +1,11 @@
 """Annex IV Documentation component for the dashboard."""
 
 import json
-import os
+import re
 
 import streamlit as st
 
-from streamlit_app.config import BASE_DIR, PRIMARY_COLOR
+from streamlit_app.config import PRIMARY_COLOR
 from streamlit_app.data.loader import (
     load_latest_annex_iv,
     load_latest_release_info,
@@ -38,10 +38,11 @@ def display_annex_iv_documentation():
     # Process the content to handle newlines properly and fix image paths
     processed_content = render_markdown_with_newlines(annex_content)
 
+    # Add some spacing before tabs
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # Tabs for viewing and editing
-    tab1, tab2, tab3 = st.tabs(
-        ["📄 Documentation", "✏️ Edit Fields", "🔧 Framework Versions"]
-    )
+    tab1, tab2, tab3 = st.tabs(["📄 Documentation", "✏️ Edit Fields", "🔧 Framework Versions"])
 
     with tab1:
         # Display release info
@@ -59,40 +60,9 @@ def display_annex_iv_documentation():
             unsafe_allow_html=True,
         )
 
-        # Display the Annex IV document with proper newline handling
-        st.markdown(processed_content)
+        content_without_images = re.sub(r"!\[.*?\]\(.*?assets/.*?\)\n*", "", processed_content)
 
-        # Image sections that are known to have images in the document
-        st.subheader("Document Images")
-        st.info("These images are referenced in the document above")
-
-        # Create columns for image display
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("**Figure 1: System Architecture Overview**")
-            e2e_path = os.path.join(BASE_DIR, "assets", "e2e.png")
-            if os.path.exists(e2e_path):
-                st.image(e2e_path, use_container_width=True)
-            else:
-                st.warning(f"Image not found: {e2e_path}")
-
-        with col2:
-            st.markdown("**Figure 2: Deployment Interface**")
-            streamlit_path = os.path.join(
-                BASE_DIR, "assets", "streamlit-app.png"
-            )
-            if os.path.exists(streamlit_path):
-                st.image(streamlit_path, use_container_width=True)
-            else:
-                st.warning(f"Image not found: {streamlit_path}")
-
-        st.markdown("**Figure 3: Detailed System Architecture**")
-        modal_path = os.path.join(BASE_DIR, "assets", "modal-deployment.png")
-        if os.path.exists(modal_path):
-            st.image(modal_path, use_container_width=True)
-        else:
-            st.warning(f"Image not found: {modal_path}")
+        st.markdown(content_without_images)
 
         # Export options
         with st.expander("Export Options", expanded=False):
@@ -133,9 +103,7 @@ def display_annex_iv_documentation():
 
         # Group inputs into logical sections with better styling
         with st.expander("General Information", expanded=True):
-            manual_inputs["provider"] = st.text_input(
-                "Provider", manual_inputs.get("provider", "")
-            )
+            manual_inputs["provider"] = st.text_input("Provider", manual_inputs.get("provider", ""))
             manual_inputs["description"] = st.text_area(
                 "Description", manual_inputs.get("description", "")
             )
@@ -171,31 +139,21 @@ def display_annex_iv_documentation():
 
             # Performance metrics as a JSON editor
             st.subheader("Performance Metrics")
-            perf_metrics_json = json.dumps(
-                manual_inputs.get("performance_metrics", {}), indent=2
-            )
+            perf_metrics_json = json.dumps(manual_inputs.get("performance_metrics", {}), indent=2)
             perf_metrics_edited = st.text_area(
                 "Performance Metrics (JSON)", perf_metrics_json, height=200
             )
             try:
-                manual_inputs["performance_metrics"] = json.loads(
-                    perf_metrics_edited
-                )
+                manual_inputs["performance_metrics"] = json.loads(perf_metrics_edited)
             except json.JSONDecodeError:
                 st.error("Invalid JSON format for performance metrics")
 
             # Fairness assessment as a JSON editor
             st.subheader("Fairness Assessment")
-            fairness_json = json.dumps(
-                manual_inputs.get("fairness_assessment", {}), indent=2
-            )
-            fairness_edited = st.text_area(
-                "Fairness Assessment (JSON)", fairness_json, height=200
-            )
+            fairness_json = json.dumps(manual_inputs.get("fairness_assessment", {}), indent=2)
+            fairness_edited = st.text_area("Fairness Assessment (JSON)", fairness_json, height=200)
             try:
-                manual_inputs["fairness_assessment"] = json.loads(
-                    fairness_edited
-                )
+                manual_inputs["fairness_assessment"] = json.loads(fairness_edited)
             except json.JSONDecodeError:
                 st.error("Invalid JSON format for fairness assessment")
 
@@ -239,9 +197,7 @@ def display_annex_iv_documentation():
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown(
-                "<h4>From requirements.txt</h4>", unsafe_allow_html=True
-            )
+            st.markdown("<h4>From requirements.txt</h4>", unsafe_allow_html=True)
             if current_frameworks:
                 framework_text = ""
                 for package, version in current_frameworks.items():
@@ -256,9 +212,7 @@ def display_annex_iv_documentation():
                 st.warning("No frameworks found in requirements.txt")
 
         with col2:
-            st.markdown(
-                "<h4>Custom Framework Overrides</h4>", unsafe_allow_html=True
-            )
+            st.markdown("<h4>Custom Framework Overrides</h4>", unsafe_allow_html=True)
             user_frameworks = manual_inputs.get("frameworks", {})
 
             # Use JSON editor for custom framework versions

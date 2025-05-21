@@ -27,23 +27,8 @@ EXPECTED_ARTICLES = {
 }
 
 # Theme settings and styling
-PRIMARY_COLOR = (
-    "#1F4E79"  # Dark blue - professional look for financial industry
-)
+PRIMARY_COLOR = "#1F4E79"  # Dark blue - professional look for financial industry
 SECONDARY_COLOR = "#4F81BD"  # Medium blue
 ACCENT_COLOR = "#D9E1F2"  # Light blue background
 TEXT_COLOR = "#333333"  # Dark gray for text
 RISK_COLORS = {"HIGH": "#D64045", "MEDIUM": "#FFB30F", "LOW": "#478C5C"}
-
-
-# Runtime storage for asset rendering
-class AssetRegistry:
-    def __init__(self):
-        self.images = []  # List to store image info
-
-    def reset(self):
-        self.images = []
-
-
-# Global registry for assets to render
-ASSETS_TO_RENDER = AssetRegistry()
