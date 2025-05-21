@@ -19,6 +19,7 @@ import hashlib
 import json
 import pickle
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -30,6 +31,15 @@ from src.constants import (
     MODAL_VOLUME_NAME,
     RELEASES_DIR,
 )
+
+
+class UUIDEncoder(json.JSONEncoder):
+    """Custom JSON encoder to handle UUIDs."""
+
+    def default(self, obj):
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        return super().default(obj)
 
 
 def save_artifact_to_modal(

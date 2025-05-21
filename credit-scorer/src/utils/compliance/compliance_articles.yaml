@@ -86,7 +86,7 @@ articles:
       - name: feature_importance
         description: "Model interpretability via AUC"
         source: evaluation_results
-        path: "metrics.auc"
+        path: "metrics.auc_roc"
         threshold: 0.7
         threshold_type: percentage
         weight: 0.2
@@ -349,7 +349,7 @@ articles:
       - name: robustness
         description: "Model robustness"
         source: evaluation_results
-        path: "metrics.auc" # Using AUC as a proxy for robustness
+        path: "metrics.auc_roc" # Using AUC as a proxy for robustness
         threshold: 0.7
         threshold_type: percentage
         weight: 0.4

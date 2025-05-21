@@ -323,8 +323,3 @@ DEFAULT_COMPLIANCE_PATHS = {
     "model_card": "model_card.md",
     "config_file": "compliance_articles.yaml",
 }
-
-# Default compliance threshold for overall compliance
-DEFAULT_OVERALL_COMPLIANCE_THRESHOLD = (
-    0.5  # 50% compliance required overall for demo (was 0.8)
-)

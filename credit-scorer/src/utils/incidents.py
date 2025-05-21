@@ -25,7 +25,7 @@ from src.constants import (
     SLACK_BOT_TOKEN,
     SLACK_CHANNEL,
 )
-from src.utils.modal_utils import save_artifact_to_modal
+from src.utils.storage import save_artifact_to_modal
 
 
 def create_incident_report(
@@ -40,6 +40,7 @@ def create_incident_report(
     Args:
         incident_data: Details about the incident
         model_version: Version of the model
+        incident_log_path: Path to the incident log file
 
     Returns:
         Status information about the incident report
@@ -51,9 +52,7 @@ def create_incident_report(
         "model_name": MODEL_NAME,
         "model_version": model_version,
         "severity": incident_data.get("severity", "medium"),
-        "description": incident_data.get(
-            "description", "Unspecified incident"
-        ),
+        "description": incident_data.get("description", "Unspecified incident"),
         "source": incident_data.get("source", "unknown"),
         "data": incident_data,
     }
@@ -94,9 +93,7 @@ def create_incident_report(
                 slack_client = WebClient(token=SLACK_BOT_TOKEN)
 
                 # Create a well-formatted Slack message
-                emoji = {"high": "🔴", "critical": "🚨"}.get(
-                    incident_data.get("severity"), "⚠️"
-                )
+                emoji = {"high": "🔴", "critical": "🚨"}.get(incident_data.get("severity"), "⚠️")
 
                 message = (
                     f"{emoji} *Incident Report: {incident['description']}*\n"

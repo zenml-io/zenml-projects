@@ -1,28 +1,22 @@
-# src/utils/compliance/calculators/config_driven.py
 import json
 import os
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import yaml
 from zenml.logger import get_logger
 
-from ..exceptions import ComplianceCalculationError
-from .base_calculator import BaseComplianceCalculator
+from .exceptions import ComplianceCalculationError
 
 logger = get_logger(__name__)
 
 
-class ConfigDrivenCalculator(BaseComplianceCalculator):
+class ComplianceCalculator:
     """Simplified config-driven compliance calculator."""
 
-    def __init__(
-        self, config_path: str, article_id: str, data_sources=None, **kwargs
-    ):
-        # Extract data_sources before calling super() since BaseComplianceCalculator doesn't accept it
+    def __init__(self, config_path: str, article_id: str, data_sources=None, **kwargs):
         self.data_sources = data_sources or {}
-        super().__init__(**kwargs)
         self.article_id = article_id
         self.config = self._load_config(config_path)
         self.article_config = self._get_article_config()
@@ -61,22 +55,14 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         for article in self.config.get("articles", []):
             if article.get("id") == self.article_id:
                 return article
-        raise ComplianceCalculationError(
-            f"Article '{self.article_id}' not found"
-        )
+        raise ComplianceCalculationError(f"Article '{self.article_id}' not found")
 
     def calculate(self, **data) -> Dict[str, Any]:
         """Calculate compliance based on config."""
-        checks = [
-            c
-            for c in self.article_config.get("checks", [])
-            if c.get("enabled", True)
-        ]
+        checks = [c for c in self.article_config.get("checks", []) if c.get("enabled", True)]
 
         if not checks:
-            raise ComplianceCalculationError(
-                f"No enabled checks for {self.article_id}"
-            )
+            raise ComplianceCalculationError(f"No enabled checks for {self.article_id}")
 
         results = {}
         weights = {}
@@ -93,9 +79,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                     result = self._handle_derived_check(check, results, data)
                 else:
                     # Get handler and process check
-                    handler = self.handlers.get(
-                        check["source"], self._handle_generic
-                    )
+                    handler = self.handlers.get(check["source"], self._handle_generic)
                     result = handler(check, data)
 
                 # Store results with standardized format
@@ -107,9 +91,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
             except Exception as e:
                 error_msg = f"Failed to process check '{name}': {e}"
-                logger.error(
-                    f"Error in article {self.article_id}: {error_msg}"
-                )
+                logger.error(f"Error in article {self.article_id}: {error_msg}")
                 findings.append(
                     {
                         "type": "critical",
@@ -123,9 +105,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         # Calculate weighted overall score
         score_keys = [k for k in results.keys() if k.endswith("_score")]
         if score_keys:
-            total_weighted = sum(
-                results[k] * weights.get(k, 1) for k in score_keys
-            )
+            total_weighted = sum(results[k] * weights.get(k, 1) for k in score_keys)
             total_weights = sum(weights.get(k, 1) for k in score_keys)
             overall_score = total_weighted / total_weights
         else:
@@ -164,9 +144,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             "findings": findings,
         }
 
-    def _handle_risk_register(
-        self, check: Dict, data: Dict
-    ) -> Dict[str, float]:
+    def _handle_risk_register(self, check: Dict, data: Dict) -> Dict[str, float]:
         """Handle risk register checks."""
         name = check["name"]
         threshold = check.get("threshold", 1.0)
@@ -186,17 +164,11 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             value = len(article_risks)
             score = min(100, (value / threshold) * 100)
         elif name == "mitigation_coverage":
-            value = (
-                article_risks["Mitigation"]
-                .apply(lambda x: bool(str(x).strip()))
-                .mean()
-            )
+            value = article_risks["Mitigation"].apply(lambda x: bool(str(x).strip())).mean()
             score = min(100, (value / threshold) * 100)
         elif name == "mitigation_completion":
             if "Mitigation_status" in article_risks.columns:
-                value = (
-                    article_risks["Mitigation_status"] == "COMPLETED"
-                ).mean()
+                value = (article_risks["Mitigation_status"] == "COMPLETED").mean()
             else:
                 value = 0
             score = min(100, (value / threshold) * 100)
@@ -204,9 +176,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             if "Review_date" in article_risks.columns:
                 from datetime import datetime
 
-                review_dates = pd.to_datetime(
-                    article_risks["Review_date"], errors="coerce"
-                )
+                review_dates = pd.to_datetime(article_risks["Review_date"], errors="coerce")
                 now = datetime.now()
 
                 # Calculate days since review for each risk
@@ -225,9 +195,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                     if avg_days <= threshold:
                         score = 100
                     else:
-                        score = max(
-                            0, 100 * (1 - (avg_days - threshold) / threshold)
-                        )
+                        score = max(0, 100 * (1 - (avg_days - threshold) / threshold))
                     value = avg_days
                 else:
                     value = float("inf")
@@ -250,9 +218,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
         # Get file paths and resolve templates
         paths = (
-            check.get("paths", [check.get("path")])
-            if check.get("path")
-            else check.get("paths", [])
+            check.get("paths", [check.get("path")]) if check.get("path") else check.get("paths", [])
         )
 
         # Ensure we have the template variables with proper defaults
@@ -263,13 +229,6 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             "log_dir": data.get("log_dir", "logs"),
         }
 
-        # Additional logging for debugging
-        logger.debug(
-            f"Resolving paths for check '{name}' in article {self.article_id}"
-        )
-        logger.debug(f"Template data keys: {list(format_data.keys())}")
-        logger.debug(f"Original paths: {paths}")
-
         resolved_paths = []
         for path in paths:
             if path:
@@ -279,9 +238,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                     resolved_paths.append(resolved_path)
                 except KeyError as e:
                     # If template variable missing, log warning and skip this path
-                    logger.warning(
-                        f"Could not resolve path template {path}: missing {e}"
-                    )
+                    logger.warning(f"Could not resolve path template {path}: missing {e}")
                     continue
 
         # Find first existing file
@@ -310,9 +267,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                 )
                 coverage = 1.0
             else:
-                coverage = self._check_patterns(
-                    existing_file, check["patterns"]
-                )
+                coverage = self._check_patterns(existing_file, check["patterns"])
             score = min(100, (coverage / threshold) * 100)
         elif "matchers" in check:
             coverage = self._check_matchers(existing_file, check["matchers"])
@@ -323,9 +278,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
         return {f"{name}_coverage": coverage, f"{name}_score": score}
 
-    def _handle_evaluation_results(
-        self, check: Dict, data: Dict
-    ) -> Dict[str, float]:
+    def _handle_evaluation_results(self, check: Dict, data: Dict) -> Dict[str, float]:
         """Handle evaluation results checks."""
         name = check["name"]
         threshold = check.get("threshold", 1.0)
@@ -333,28 +286,28 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
         eval_results = data.get("evaluation_results")
         if not eval_results:
-            return {f"{name}_score": 0}
+            logger.warning(
+                f"No evaluation results found for check '{name}' in article {self.article_id}"
+            )
+            return {f"{name}_value": 0, f"{name}_score": 0}
 
         # Extract value using path
         path = check.get("path", "")
-        value = (
-            self._get_nested_value(eval_results, path)
-            if path
-            else eval_results.get(name, 0)
-        )
+        value = self._get_nested_value(eval_results, path) if path else eval_results.get(name, 0)
+
+        # If value is None, set it to 0 and log a warning
+        if value is None:
+            logger.warning(
+                f"Evaluation metric '{name}' with path '{path}' returned None, using 0 instead"
+            )
+            value = 0
 
         # Handle matchers for structural checks
         if "matchers" in check and check["matchers"].get("type") == "fields":
             if isinstance(value, dict):
                 required_fields = check["matchers"].get("values", [])
-                present_fields = sum(
-                    1 for field in required_fields if field in value
-                )
-                coverage = (
-                    present_fields / len(required_fields)
-                    if required_fields
-                    else 0
-                )
+                present_fields = sum(1 for field in required_fields if field in value)
+                coverage = present_fields / len(required_fields) if required_fields else 0
                 score = min(100, (coverage / threshold) * 100)
                 return {f"{name}_coverage": coverage, f"{name}_score": score}
 
@@ -367,31 +320,26 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         # Handle numeric values
         elif isinstance(value, (int, float)):
             if comparison == "less_than":
-                score = (
-                    100
-                    if value <= threshold
-                    else max(0, (threshold / value) * 100)
-                )
+                score = 100 if value <= threshold else max(0, (threshold / value) * 100)
             else:
                 score = min(100, (value / threshold) * 100)
         # Handle lists for count-based thresholds
-        elif (
-            isinstance(value, list) and check.get("threshold_type") == "count"
-        ):
+        elif isinstance(value, list) and check.get("threshold_type") == "count":
             count = len(value)
             score = min(100, (count / threshold) * 100)
-            logger.debug(
-                f"List count check for {name}: {count} items vs threshold {threshold}"
-            )
+            logger.debug(f"List count check for {name}: {count} items vs threshold {threshold}")
             return {f"{name}_value": count, f"{name}_score": score}
         else:
+            # Value is None or not a numeric type
+            logger.warning(
+                f"Check '{name}' has invalid value type: {type(value)}. Expected numeric."
+            )
             score = 0
+            value = 0  # Ensure value is a number, not None
 
         return {f"{name}_value": value, f"{name}_score": score}
 
-    def _handle_incident_log(
-        self, check: Dict, data: Dict
-    ) -> Dict[str, float]:
+    def _handle_incident_log(self, check: Dict, data: Dict) -> Dict[str, float]:
         """Handle incident log checks."""
         name = check["name"]
         threshold = check.get("threshold", 1.0)
@@ -405,12 +353,8 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         if matchers.get("type") == "fields":
             required_fields = matchers.get("values", [])
             first_incident = incidents[0] if incidents else {}
-            present_fields = sum(
-                1 for field in required_fields if field in first_incident
-            )
-            coverage = (
-                present_fields / len(required_fields) if required_fields else 0
-            )
+            present_fields = sum(1 for field in required_fields if field in first_incident)
+            coverage = present_fields / len(required_fields) if required_fields else 0
             score = min(100, (coverage / threshold) * 100)
             return {f"{name}_coverage": coverage, f"{name}_score": score}
 
@@ -436,12 +380,8 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         if matchers.get("type") == "files":
             expected_files = matchers.get("values", [])
             existing_files = os.listdir(release_path)
-            present_files = sum(
-                1 for file in expected_files if file in existing_files
-            )
-            coverage = (
-                present_files / len(expected_files) if expected_files else 0
-            )
+            present_files = sum(1 for file in expected_files if file in existing_files)
+            coverage = present_files / len(expected_files) if expected_files else 0
             score = min(100, (coverage / threshold) * 100)
             return {f"{name}_coverage": coverage, f"{name}_score": score}
 
@@ -455,21 +395,20 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
         risk_scores = data.get("risk_scores")
         if not risk_scores:
-            logger.warning(
-                f"No risk scores found for check '{name}' in article {self.article_id}"
-            )
-            return {f"{name}_score": 0}
+            logger.warning(f"No risk scores found for check '{name}' in article {self.article_id}")
+            return {f"{name}_value": 0, f"{name}_score": 0}
 
         # Log available risk score keys for debugging
         logger.debug(f"Available risk score keys: {list(risk_scores.keys())}")
 
         # Extract value using path
         path = check.get("path", "")
-        value = (
-            self._get_nested_value(risk_scores, path)
-            if path
-            else risk_scores.get("overall", 0)
-        )
+        value = self._get_nested_value(risk_scores, path) if path else risk_scores.get("overall", 0)
+
+        # If value is None, set it to 0 and log a warning
+        if value is None:
+            logger.warning(f"Risk score '{name}' value is None, using 0 instead")
+            value = 0
 
         # Log the extracted value for debugging
         logger.debug(
@@ -479,11 +418,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         # Handle numeric values
         if isinstance(value, (int, float)):
             if comparison == "less_than":
-                score = (
-                    100
-                    if value <= threshold
-                    else max(0, (threshold / value) * 100)
-                )
+                score = 100 if value <= threshold else max(0, (threshold / value) * 100)
             else:
                 score = min(100, (value / threshold) * 100)
 
@@ -491,9 +426,8 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             logger.debug(f"Risk score '{name}' calculated score: {score}")
         else:
             score = 0
-            logger.warning(
-                f"Risk score '{name}' value is not numeric: {value}"
-            )
+            logger.warning(f"Risk score '{name}' value is not numeric: {value}")
+            value = 0  # Ensure value is a number, not None or other type
 
         # Use risk_score_value to prevent key collisions with other checks
         return {f"{name}_value": value, f"{name}_score": score}
@@ -542,9 +476,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                 with open(log_config_path, "r", encoding="utf-8") as f:
                     log_config = yaml.safe_load(f)
             else:
-                logger.warning(
-                    f"Unsupported log config format: {log_config_path}"
-                )
+                logger.warning(f"Unsupported log config format: {log_config_path}")
                 return {f"{name}_score": 0}
 
             # Check retention days
@@ -563,9 +495,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
                 return {f"{name}": retention_days, f"{name}_score": score}
             else:
-                logger.warning(
-                    f"No retention.days field found in log config at {log_config_path}"
-                )
+                logger.warning(f"No retention.days field found in log config at {log_config_path}")
                 return {f"{name}_score": 0}
 
         except Exception as e:
@@ -589,9 +519,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         try:
             dir_path = raw_path.format(**format_data) if raw_path else ""
         except KeyError as e:
-            logger.warning(
-                f"Could not resolve directory path {raw_path}: missing {e}"
-            )
+            logger.warning(f"Could not resolve directory path {raw_path}: missing {e}")
             return {f"{name}_score": 0}
 
         if not dir_path or not os.path.isdir(dir_path):
@@ -608,9 +536,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         existing_files = os.listdir(dir_path)
         found_files = [f for f in expected_files if f in existing_files]
 
-        coverage = (
-            len(found_files) / len(expected_files) if expected_files else 0
-        )
+        coverage = len(found_files) / len(expected_files) if expected_files else 0
         score = min(100, (coverage / threshold) * 100)
 
         return {f"{name}_coverage": coverage, f"{name}_score": score}
@@ -626,11 +552,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
             threshold = check.get("threshold", 1.0)
             comparison = check.get("comparison", "greater_than")
             if comparison == "less_than":
-                score = (
-                    100
-                    if value <= threshold
-                    else max(0, (threshold / value) * 100)
-                )
+                score = 100 if value <= threshold else max(0, (threshold / value) * 100)
             else:
                 score = min(100, (value / threshold) * 100)
         else:
@@ -709,16 +631,10 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                     # For markdown files, just check if the content contains the values as patterns
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
-                    matches = sum(
-                        1
-                        for value in values
-                        if value.lower() in content.lower()
-                    )
+                    matches = sum(1 for value in values if value.lower() in content.lower())
                     return matches / len(values) if values else 0
                 else:
-                    logger.warning(
-                        f"Unsupported file format for matchers: {file_path}"
-                    )
+                    logger.warning(f"Unsupported file format for matchers: {file_path}")
                     return 0.0
             except UnicodeDecodeError:
                 # Retry with a different encoding
@@ -739,14 +655,10 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                 match_ratio = matches / len(values)
 
                 # Log matching details
-                logger.debug(
-                    f"Key matching for {file_path}: {matches}/{len(values)} keys matched"
-                )
+                logger.debug(f"Key matching for {file_path}: {matches}/{len(values)} keys matched")
                 if match_ratio < 1.0:
                     missing_keys = [k for k in values if k not in data]
-                    logger.debug(
-                        f"Missing keys in {file_path}: {missing_keys}"
-                    )
+                    logger.debug(f"Missing keys in {file_path}: {missing_keys}")
 
                 return match_ratio
 
@@ -762,19 +674,13 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                         f"Field matching for {file_path}: {matches}/{len(values)} fields matched"
                     )
                     if match_ratio < 1.0:
-                        missing_fields = [
-                            f for f in values if f not in first_item
-                        ]
-                        logger.debug(
-                            f"Missing fields in {file_path}: {missing_fields}"
-                        )
+                        missing_fields = [f for f in values if f not in first_item]
+                        logger.debug(f"Missing fields in {file_path}: {missing_fields}")
 
                     return match_ratio
 
             # For unsupported matcher type, return partial score
-            logger.warning(
-                f"Unsupported matcher type '{matcher_type}' for {file_path}"
-            )
+            logger.warning(f"Unsupported matcher type '{matcher_type}' for {file_path}")
             return 0.5
 
         except Exception as e:
@@ -783,6 +689,10 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
     def _get_nested_value(self, obj: Dict, path: str) -> Any:
         """Get nested value using dot notation."""
+        # If obj is None, return None immediately
+        if obj is None:
+            return None
+
         current = obj
         for part in path.split("."):
             if isinstance(current, dict) and part in current:
@@ -791,9 +701,7 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                 return None
         return current
 
-    def _handle_derived_check(
-        self, check: Dict, results: Dict, data: Dict
-    ) -> Dict[str, float]:
+    def _handle_derived_check(self, check: Dict, results: Dict, data: Dict) -> Dict[str, float]:
         """Handle derived checks that depend on other check results."""
         name = check["name"]
         threshold = check.get("threshold", 1.0)
@@ -810,16 +718,12 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
 
         # For other derived checks we can add specific implementations
         # Default fallback
-        logger.warning(
-            f"No specific handler for derived check '{name}', using default"
-        )
+        logger.warning(f"No specific handler for derived check '{name}', using default")
         coverage = 0.5  # Default to 50% for unknown derived checks
         score = min(100, (coverage / threshold) * 100)
         return {f"{name}_coverage": coverage, f"{name}_score": score}
 
-    def _add_finding_if_needed(
-        self, findings: List, check: Dict, result: Dict
-    ) -> None:
+    def _add_finding_if_needed(self, findings: List, check: Dict, result: Dict) -> None:
         """Add finding if check threshold not met."""
         name = check["name"]
         threshold = check.get("threshold", 1.0)
@@ -833,6 +737,11 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
         value = result[value_key]
         score = result.get(f"{name}_score", 0)
 
+        # Handle None values
+        if value is None:
+            logger.warning(f"Value for '{name}' is None when adding finding, using 0 instead")
+            value = 0
+
         # Check if threshold is met
         threshold_met = False
         if isinstance(value, (int, float)):
@@ -842,14 +751,19 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
                 threshold_met = value >= threshold
 
         if not threshold_met and score < 60:  # Reduced from 80 for demo
-            finding_type = (
-                "critical" if score < 40 else "warning"
-            )  # Reduced thresholds for demo
+            finding_type = "critical" if score < 40 else "warning"  # Reduced thresholds for demo
             desc = check.get("description", name)
+            try:
+                # Use safe formatting that handles None values
+                message = f"{desc} below threshold ({value:.2f} vs {threshold:.2f})"
+            except (TypeError, ValueError):
+                # Fallback if formatting fails
+                message = f"{desc} below threshold (value: {value}, threshold: {threshold})"
+
             findings.append(
                 {
                     "type": finding_type,
-                    "message": f"{desc} below threshold ({value:.2f} vs {threshold:.2f})",
+                    "message": message,
                     "recommendation": f"Improve {name} to meet compliance requirements",
                 }
             )
@@ -858,3 +772,41 @@ class ConfigDrivenCalculator(BaseComplianceCalculator):
     def post_process(self, metrics: Dict, findings: List) -> tuple:
         """Override in subclasses for article-specific processing."""
         return metrics, findings
+
+
+# Main public interface
+def calculate_compliance(
+    release_id: Optional[str] = None,
+    risk_register_path: Optional[str] = None,
+    articles: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    # Log the provided release_id for debugging
+    logger.info(f"Calculating compliance for release ID: {release_id}")
+    """Calculate compliance for specified articles.
+
+    Args:
+        release_id: Specific release to analyze (uses latest if None)
+        risk_register_path: Path to risk register (uses default if None)
+        articles: Articles to check (uses all if None)
+
+    Returns:
+        Dict with overall and per-article compliance results
+    """
+    # Import here to avoid circular import
+    from .orchestrator import ComplianceOrchestrator
+
+    orchestrator = ComplianceOrchestrator()
+
+    # Ensure we have a release_id (don't rely on the default 'latest')
+    if not release_id:
+        from .data_loader import ComplianceDataLoader
+
+        loader = ComplianceDataLoader()
+        release_id = loader.get_latest_release_id()
+        logger.info(f"No release_id provided, using latest: {release_id}")
+
+    return orchestrator.calculate_full_compliance(
+        release_id=release_id,
+        risk_register_path=risk_register_path,
+        articles=articles,
+    )

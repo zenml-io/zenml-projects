@@ -66,9 +66,7 @@ class ComplianceDataLoader:
         try:
             # Load the risk register data
             risk_df = pd.read_excel(risk_register_path)
-            logger.info(
-                f"Successfully loaded risk register from {risk_register_path}"
-            )
+            logger.info(f"Successfully loaded risk register from {risk_register_path}")
         except Exception as e:
             error_msg = f"Failed to load risk register: {str(e)}"
             logger.error(error_msg)
@@ -77,9 +75,7 @@ class ComplianceDataLoader:
         # Validate and standardize the risk register
         warnings = []
         try:
-            risk_df, validation_warnings = (
-                ComplianceDataLoader._validate_risk_register(risk_df)
-            )
+            risk_df, validation_warnings = ComplianceDataLoader._validate_risk_register(risk_df)
             warnings.extend(validation_warnings)
         except Exception as e:
             error_msg = f"Risk register validation failed: {str(e)}"
@@ -89,9 +85,7 @@ class ComplianceDataLoader:
         return risk_df, warnings
 
     @staticmethod
-    def save_risk_register(
-        risk_df: pd.DataFrame, risk_register_path: Optional[str] = None
-    ) -> None:
+    def save_risk_register(risk_df: pd.DataFrame, risk_register_path: Optional[str] = None) -> None:
         """Save the risk register DataFrame to an Excel file.
 
         Args:
@@ -112,9 +106,7 @@ class ComplianceDataLoader:
         try:
             # Save the risk register data
             risk_df.to_excel(risk_register_path, index=False)
-            logger.info(
-                f"Successfully saved risk register to {risk_register_path}"
-            )
+            logger.info(f"Successfully saved risk register to {risk_register_path}")
         except Exception as e:
             error_msg = f"Failed to save risk register: {str(e)}"
             logger.error(error_msg)
@@ -152,9 +144,7 @@ class ComplianceDataLoader:
             # Load the incident log data
             with open(incident_log_path, "r") as f:
                 incidents = json.load(f)
-            logger.info(
-                f"Successfully loaded incident log from {incident_log_path}"
-            )
+            logger.info(f"Successfully loaded incident log from {incident_log_path}")
         except Exception as e:
             error_msg = f"Failed to load incident log: {str(e)}"
             logger.error(error_msg)
@@ -163,9 +153,7 @@ class ComplianceDataLoader:
         # Validate the incident log
         warnings = []
         try:
-            incidents, validation_warnings = (
-                ComplianceDataLoader._validate_incident_log(incidents)
-            )
+            incidents, validation_warnings = ComplianceDataLoader._validate_incident_log(incidents)
             warnings.extend(validation_warnings)
         except Exception as e:
             error_msg = f"Incident log validation failed: {str(e)}"
@@ -176,7 +164,8 @@ class ComplianceDataLoader:
 
     @staticmethod
     def load_evaluation_results(
-        release_id: str, eval_file: Optional[str] = None
+        release_id: str,
+        eval_file: Optional[str] = None,
     ) -> Tuple[Dict[str, Any], List[str]]:
         """Load evaluation results for a specific release.
 
@@ -207,19 +196,19 @@ class ComplianceDataLoader:
         if not os.path.exists(file_path):
             error_msg = f"Evaluation results file not found at {file_path}"
             logger.error(error_msg)
-            raise ComplianceDataError(error_msg)
+            # Instead of raising an error, return empty results with a warning
+            return {"metrics": {}, "fairness": {}}, [error_msg]
 
         try:
             # Load the evaluation results
             with open(file_path, "r") as f:
                 results = yaml.safe_load(f)
-            logger.info(
-                f"Successfully loaded evaluation results from {file_path}"
-            )
+            logger.info(f"Successfully loaded evaluation results from {file_path}")
         except Exception as e:
             error_msg = f"Failed to load evaluation results: {str(e)}"
             logger.error(error_msg)
-            raise ComplianceDataError(error_msg)
+            # Instead of raising an error, return empty results with a warning
+            return {"metrics": {}, "fairness": {}}, [error_msg]
 
         return results, warnings
 
@@ -239,9 +228,7 @@ class ComplianceDataLoader:
 
         # Get all subdirectories in the releases directory
         release_dirs = [
-            d
-            for d in os.listdir(releases_dir)
-            if os.path.isdir(os.path.join(releases_dir, d))
+            d for d in os.listdir(releases_dir) if os.path.isdir(os.path.join(releases_dir, d))
         ]
 
         if not release_dirs:
@@ -257,9 +244,7 @@ class ComplianceDataLoader:
         return latest_release
 
     @staticmethod
-    def get_pipeline_log_paths(
-        pipeline_name: str, run_id: Optional[str] = None
-    ) -> Dict[str, str]:
+    def get_pipeline_log_paths(pipeline_name: str, run_id: Optional[str] = None) -> Dict[str, str]:
         """Get the paths to the log files for a specific pipeline run.
 
         This method retrieves metadata about the logs without saving them again,
@@ -284,13 +269,9 @@ class ComplianceDataLoader:
 
             # Find the specific run or use the latest
             if run_id:
-                run = next(
-                    (r for r in pipeline.runs if str(r.id) == run_id), None
-                )
+                run = next((r for r in pipeline.runs if str(r.id) == run_id), None)
                 if not run:
-                    logger.warning(
-                        f"Run ID {run_id} not found for pipeline {pipeline_name}"
-                    )
+                    logger.warning(f"Run ID {run_id} not found for pipeline {pipeline_name}")
                     return {}
             else:
                 # Use the latest run
@@ -310,18 +291,14 @@ class ComplianceDataLoader:
                 if hasattr(log_info, "created"):
                     result["created"] = str(log_info.created)
 
-                logger.info(
-                    f"Found log file for pipeline {pipeline_name} at {log_info.uri}"
-                )
+                logger.info(f"Found log file for pipeline {pipeline_name} at {log_info.uri}")
                 return result
             else:
                 logger.warning(f"No log URI found for run {run_id}")
                 return {}
 
         except Exception as e:
-            logger.error(
-                f"Failed to get log paths for pipeline {pipeline_name}: {e}"
-            )
+            logger.error(f"Failed to get log paths for pipeline {pipeline_name}: {e}")
             return {}
 
     @staticmethod
@@ -347,9 +324,7 @@ class ComplianceDataLoader:
 
         # Calculate percentage of completed mitigations
         if "Mitigation_status" in risk_df.columns:
-            completed_mitigations = (
-                risk_df["Mitigation_status"] == "COMPLETED"
-            ).sum()
+            completed_mitigations = (risk_df["Mitigation_status"] == "COMPLETED").sum()
             compliance_data["completed_mitigations_percentage"] = (
                 completed_mitigations / len(risk_df) if len(risk_df) > 0 else 0
             )
@@ -365,21 +340,15 @@ class ComplianceDataLoader:
             article_completion = {}
             for article in article_counts.keys():
                 article_risks = risk_df[risk_df["Article"] == article]
-                completed = (
-                    article_risks["Mitigation_status"] == "COMPLETED"
-                ).sum()
+                completed = (article_risks["Mitigation_status"] == "COMPLETED").sum()
                 article_completion[article] = (
-                    completed / len(article_risks)
-                    if len(article_risks) > 0
-                    else 0
+                    completed / len(article_risks) if len(article_risks) > 0 else 0
                 )
 
             compliance_data["completion_by_article"] = article_completion
 
         # Calculate average risk score
-        compliance_data["average_risk_overall"] = risk_df[
-            "Risk_overall"
-        ].mean()
+        compliance_data["average_risk_overall"] = risk_df["Risk_overall"].mean()
 
         # Calculate distribution by risk category
         if "Risk_category" in risk_df.columns:
@@ -409,9 +378,7 @@ class ComplianceDataLoader:
 
         # Check required columns
         missing_columns = [
-            col
-            for col in RISK_REGISTER_SCHEMA["required_columns"]
-            if col not in risk_df.columns
+            col for col in RISK_REGISTER_SCHEMA["required_columns"] if col not in risk_df.columns
         ]
         if missing_columns:
             # Check if these are the new columns we're adding
@@ -420,27 +387,19 @@ class ComplianceDataLoader:
                 # Add missing columns with default values
                 for col in missing_columns:
                     if col == "Article":
-                        risk_df[col] = (
-                            "article_9"  # Default to article 9 (risk management)
-                        )
+                        risk_df[col] = "article_9"  # Default to article 9 (risk management)
                     elif col == "Mitigation_status":
-                        risk_df[col] = risk_df[
-                            "Status"
-                        ]  # Copy from Status initially
+                        risk_df[col] = risk_df["Status"]  # Copy from Status initially
                     elif col == "Review_date":
-                        risk_df[col] = datetime.now().strftime(
-                            "%Y-%m-%dT%H:%M:%S.%f"
-                        )
+                        risk_df[col] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
-                warnings.append(
-                    f"Added new columns to risk register: {', '.join(missing_columns)}"
-                )
+                warnings.append(f"Added new columns to risk register: {', '.join(missing_columns)}")
             else:
-                critical_missing = [
-                    col for col in missing_columns if col not in new_columns
-                ]
+                critical_missing = [col for col in missing_columns if col not in new_columns]
                 if critical_missing:
-                    error_msg = f"Risk register is missing required columns: {', '.join(critical_missing)}"
+                    error_msg = (
+                        f"Risk register is missing required columns: {', '.join(critical_missing)}"
+                    )
                     logger.error(error_msg)
                     raise ComplianceDataError(error_msg)
 
@@ -468,18 +427,13 @@ class ComplianceDataLoader:
                 )
 
         if "Mitigation_status" in risk_df.columns:
-            risk_df["Mitigation_status"] = risk_df[
-                "Mitigation_status"
-            ].str.upper()
+            risk_df["Mitigation_status"] = risk_df["Mitigation_status"].str.upper()
 
             # Validate Mitigation_status values
             invalid_mitigation_statuses = [
                 status
                 for status in risk_df["Mitigation_status"].unique()
-                if status
-                not in RISK_REGISTER_SCHEMA["valid_values"][
-                    "Mitigation_status"
-                ]
+                if status not in RISK_REGISTER_SCHEMA["valid_values"]["Mitigation_status"]
             ]
             if invalid_mitigation_statuses:
                 warnings.append(
@@ -487,14 +441,9 @@ class ComplianceDataLoader:
                     f"Valid values are: {RISK_REGISTER_SCHEMA['valid_values']['Mitigation_status']}"
                 )
                 # Standardize invalid values
-                risk_df["Mitigation_status"] = risk_df[
-                    "Mitigation_status"
-                ].apply(
+                risk_df["Mitigation_status"] = risk_df["Mitigation_status"].apply(
                     lambda x: "PENDING"
-                    if x
-                    not in RISK_REGISTER_SCHEMA["valid_values"][
-                        "Mitigation_status"
-                    ]
+                    if x not in RISK_REGISTER_SCHEMA["valid_values"]["Mitigation_status"]
                     else x
                 )
 
@@ -505,8 +454,7 @@ class ComplianceDataLoader:
             invalid_categories = [
                 category
                 for category in risk_df["Risk_category"].unique()
-                if category
-                not in RISK_REGISTER_SCHEMA["valid_values"]["Risk_category"]
+                if category not in RISK_REGISTER_SCHEMA["valid_values"]["Risk_category"]
             ]
             if invalid_categories:
                 warnings.append(
@@ -526,10 +474,7 @@ class ComplianceDataLoader:
                 }
                 risk_df["Risk_category"] = risk_df["Risk_category"].apply(
                     lambda x: category_mapping.get(x, "MEDIUM")
-                    if x
-                    not in RISK_REGISTER_SCHEMA["valid_values"][
-                        "Risk_category"
-                    ]
+                    if x not in RISK_REGISTER_SCHEMA["valid_values"]["Risk_category"]
                     else x
                 )
 
@@ -539,8 +484,7 @@ class ComplianceDataLoader:
             invalid_articles = [
                 article
                 for article in risk_df["Article"].unique()
-                if article
-                not in RISK_REGISTER_SCHEMA["valid_values"]["Article"]
+                if article not in RISK_REGISTER_SCHEMA["valid_values"]["Article"]
             ]
             if invalid_articles:
                 warnings.append(
@@ -550,10 +494,7 @@ class ComplianceDataLoader:
 
                 # Map invalid articles based on risk description
                 def map_article(row):
-                    if (
-                        row["Article"]
-                        in RISK_REGISTER_SCHEMA["valid_values"]["Article"]
-                    ):
+                    if row["Article"] in RISK_REGISTER_SCHEMA["valid_values"]["Article"]:
                         return row["Article"]
 
                     risk_desc = (
@@ -573,34 +514,19 @@ class ComplianceDataLoader:
                         ]
                     ):
                         return "article_10"  # Data governance
-                    elif any(
-                        kw in risk_desc
-                        for kw in ["accuracy", "robustness", "performance"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["accuracy", "robustness", "performance"]):
                         return "article_15"  # Accuracy and robustness
-                    elif any(
-                        kw in risk_desc for kw in ["document", "documentation"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["document", "documentation"]):
                         return "article_11"  # Technical documentation
                     elif any(kw in risk_desc for kw in ["monitor", "drift"]):
                         return "article_17"  # Post-market monitoring
-                    elif any(
-                        kw in risk_desc
-                        for kw in ["human", "oversight", "review"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["human", "oversight", "review"]):
                         return "article_14"  # Human oversight
-                    elif any(
-                        kw in risk_desc
-                        for kw in ["transparent", "transparency", "explain"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["transparent", "transparency", "explain"]):
                         return "article_13"  # Transparency
-                    elif any(
-                        kw in risk_desc for kw in ["quality", "management"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["quality", "management"]):
                         return "article_16"  # Quality management
-                    elif any(
-                        kw in risk_desc for kw in ["record", "log", "audit"]
-                    ):
+                    elif any(kw in risk_desc for kw in ["record", "log", "audit"]):
                         return "article_12"  # Record keeping
                     else:
                         return "article_9"  # Default to risk management
@@ -614,20 +540,14 @@ class ComplianceDataLoader:
                 invalid_dates = []
                 for i, date_str in enumerate(risk_df[date_col]):
                     if not isinstance(date_str, str):
-                        risk_df.at[i, date_col] = datetime.now().strftime(
-                            "%Y-%m-%dT%H:%M:%S.%f"
-                        )
+                        risk_df.at[i, date_col] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
                         invalid_dates.append(f"Row {i + 1}")
-                    elif not date_str.startswith(
-                        "20"
-                    ):  # Simple check for year format
+                    elif not date_str.startswith("20"):  # Simple check for year format
                         try:
                             # Try to parse and reformat
                             parsed_date = pd.to_datetime(date_str)
-                            risk_df.at[i, date_col] = parsed_date.strftime(
-                                "%Y-%m-%dT%H:%M:%S.%f"
-                            )
-                        except:
+                            risk_df.at[i, date_col] = parsed_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
+                        except Exception:
                             risk_df.at[i, date_col] = datetime.now().strftime(
                                 "%Y-%m-%dT%H:%M:%S.%f"
                             )
@@ -673,9 +593,7 @@ class ComplianceDataLoader:
 
         for i, incident in enumerate(incidents):
             # Check for missing required fields
-            missing_fields = [
-                field for field in required_fields if field not in incident
-            ]
+            missing_fields = [field for field in required_fields if field not in incident]
             if missing_fields:
                 warnings.append(
                     f"Incident {i + 1} is missing required fields: {', '.join(missing_fields)}"
@@ -687,9 +605,7 @@ class ComplianceDataLoader:
                             f"incident_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f')}"
                         )
                     elif field == "timestamp":
-                        incident[field] = datetime.now().strftime(
-                            "%Y-%m-%dT%H:%M:%S.%f"
-                        )
+                        incident[field] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
                     elif field == "severity":
                         incident[field] = "medium"
                     elif field == "description":
@@ -731,9 +647,7 @@ class ComplianceDataLoader:
             # Add resolution_status field if not present
             if "resolution_status" not in incident:
                 incident["resolution_status"] = "open"
-                warnings.append(
-                    f"Added missing resolution_status field to incident {i + 1}"
-                )
+                warnings.append(f"Added missing resolution_status field to incident {i + 1}")
 
             # Add article field if not present
             if "article" not in incident:
@@ -742,32 +656,15 @@ class ComplianceDataLoader:
                 source = incident.get("source", "").lower()
 
                 # Simple keyword mapping
-                if any(
-                    kw in description or kw in source
-                    for kw in ["bias", "fair", "protected"]
-                ):
+                if any(kw in description or kw in source for kw in ["bias", "fair", "protected"]):
                     incident["article"] = "article_10"  # Data governance
-                elif any(
-                    kw in description or kw in source
-                    for kw in ["accuracy", "performance"]
-                ):
-                    incident["article"] = (
-                        "article_15"  # Accuracy and robustness
-                    )
-                elif any(
-                    kw in description or kw in source
-                    for kw in ["monitor", "drift"]
-                ):
-                    incident["article"] = (
-                        "article_17"  # Post-market monitoring
-                    )
+                elif any(kw in description or kw in source for kw in ["accuracy", "performance"]):
+                    incident["article"] = "article_15"  # Accuracy and robustness
+                elif any(kw in description or kw in source for kw in ["monitor", "drift"]):
+                    incident["article"] = "article_17"  # Post-market monitoring
                 else:
-                    incident["article"] = (
-                        "article_9"  # Default to risk management
-                    )
+                    incident["article"] = "article_9"  # Default to risk management
 
-                warnings.append(
-                    f"Added missing article field to incident {i + 1}"
-                )
+                warnings.append(f"Added missing article field to incident {i + 1}")
 
         return incidents, warnings

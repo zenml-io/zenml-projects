@@ -15,18 +15,31 @@
 # limitations under the License.
 #
 
+"""Utility functions for the project."""
+
+from .annex_iv import (
+    collect_zenml_metadata,
+    generate_readme,
+    load_and_process_manual_inputs,
+    record_log_locations,
+    save_evaluation_artifacts,
+    write_git_information,
+)
 from .eval import (
     analyze_fairness,
     report_bias_incident,
 )
 from .incidents import create_incident_report
-from .modal_utils import (
-    get_extension_for_artifact,
-    save_artifact_to_modal,
-    save_compliance_artifacts_to_modal,
-)
 from .preprocess import (
     DeriveAgeFeatures,
     DropIDColumn,
 )
-from .visualizations import generate_whylogs_visualization
+from .storage import (
+    get_extension_for_artifact,
+    save_artifact_to_modal,
+    save_compliance_artifacts_to_modal,
+)
+from .visualizations import (
+    generate_eval_visualization,
+    generate_whylogs_visualization,
+)
