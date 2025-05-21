@@ -5,7 +5,7 @@ that adds visualization capabilities for the ResearchState model.
 """
 
 import os
-from typing import Dict, Type, Any
+from typing import Dict
 
 from utils.pydantic_models import ResearchState
 from zenml.enums import ArtifactType, VisualizationType
@@ -15,40 +15,40 @@ from zenml.materializers import PydanticMaterializer
 
 class ResearchStateMaterializer(PydanticMaterializer):
     """Materializer for the ResearchState class with visualizations."""
-    
+
     ASSOCIATED_TYPES = (ResearchState,)
     ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
-    
+
     def save_visualizations(
         self, data: ResearchState
     ) -> Dict[str, VisualizationType]:
         """Create and save visualizations for the ResearchState.
-        
+
         Args:
             data: The ResearchState to visualize
-            
+
         Returns:
             Dictionary mapping file paths to visualization types
         """
         # Generate an HTML visualization
         visualization_path = os.path.join(self.uri, "research_state.html")
-        
+
         # Create HTML content based on current stage
         html_content = self._generate_visualization_html(data)
-        
+
         # Write the HTML content to a file
         with fileio.open(visualization_path, "w") as f:
             f.write(html_content)
-        
+
         # Return the visualization path and type
         return {visualization_path: VisualizationType.HTML}
-    
+
     def _generate_visualization_html(self, state: ResearchState) -> str:
         """Generate HTML visualization for the research state.
-        
+
         Args:
             state: The ResearchState to visualize
-            
+
         Returns:
             HTML string
         """

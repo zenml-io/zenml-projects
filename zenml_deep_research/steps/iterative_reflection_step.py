@@ -3,17 +3,17 @@ import logging
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
-from utils.pydantic_models import (
-    ReflectionMetadata,
-    ResearchState,
-    SynthesizedInfo,
-)
 from utils.llm_utils import (
     find_most_relevant_string,
     get_structured_llm_output,
     is_text_relevant,
 )
 from utils.prompts import ADDITIONAL_SYNTHESIS_PROMPT, REFLECTION_PROMPT
+from utils.pydantic_models import (
+    ReflectionMetadata,
+    ResearchState,
+    SynthesizedInfo,
+)
 from utils.search_utils import search_and_extract_results
 from zenml import step
 

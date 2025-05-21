@@ -3,10 +3,9 @@ import logging
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
-from materializers.search_result_materializer import SearchResultMaterializer
-from utils.pydantic_models import ResearchState, SynthesizedInfo, SearchResult
 from utils.llm_utils import synthesize_information
 from utils.prompts import SYNTHESIS_PROMPT
+from utils.pydantic_models import ResearchState, SynthesizedInfo
 from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,

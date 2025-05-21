@@ -3,16 +3,16 @@ import logging
 from typing import Annotated, List
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
-from utils.pydantic_models import (
-    ResearchState,
-    ViewpointAnalysis,
-    ViewpointTension,
-)
 from utils.helper_functions import (
     safe_json_loads,
 )
 from utils.llm_utils import run_llm_completion
 from utils.prompts import VIEWPOINT_ANALYSIS_PROMPT
+from utils.pydantic_models import (
+    ResearchState,
+    ViewpointAnalysis,
+    ViewpointTension,
+)
 from zenml import step
 
 logger = logging.getLogger(__name__)

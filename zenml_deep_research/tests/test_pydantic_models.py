@@ -9,15 +9,14 @@ This module contains tests for the Pydantic models that validate:
 
 import json
 from typing import Dict, List
-import pytest
 
 from utils.pydantic_models import (
+    ReflectionMetadata,
     ResearchState,
     SearchResult,
     SynthesizedInfo,
     ViewpointAnalysis,
     ViewpointTension,
-    ReflectionMetadata,
 )
 
 
@@ -29,7 +28,7 @@ def test_search_result_creation():
     assert result.content == ""
     assert result.title == ""
     assert result.snippet == ""
-    
+
     # Create with values
     result = SearchResult(
         url="https://example.com",
@@ -51,22 +50,22 @@ def test_search_result_serialization():
         title="Example Title",
         snippet="This is a snippet",
     )
-    
+
     # Serialize to dict
     result_dict = result.model_dump()
     assert result_dict["url"] == "https://example.com"
     assert result_dict["content"] == "Example content"
-    
+
     # Serialize to JSON
     result_json = result.model_dump_json()
     result_dict_from_json = json.loads(result_json)
     assert result_dict_from_json["url"] == "https://example.com"
-    
+
     # Deserialize from dict
     new_result = SearchResult.model_validate(result_dict)
     assert new_result.url == "https://example.com"
     assert new_result.content == "Example content"
-    
+
     # Deserialize from JSON
     new_result_from_json = SearchResult.model_validate_json(result_json)
     assert new_result_from_json.url == "https://example.com"
@@ -78,7 +77,7 @@ def test_viewpoint_tension_model():
     tension = ViewpointTension()
     assert tension.topic == ""
     assert tension.viewpoints == {}
-    
+
     # With data
     tension = ViewpointTension(
         topic="Climate Change Impacts",
@@ -90,12 +89,12 @@ def test_viewpoint_tension_model():
     assert tension.topic == "Climate Change Impacts"
     assert len(tension.viewpoints) == 2
     assert "Economic" in tension.viewpoints
-    
+
     # Serialization
     tension_dict = tension.model_dump()
     assert tension_dict["topic"] == "Climate Change Impacts"
     assert len(tension_dict["viewpoints"]) == 2
-    
+
     # Deserialization
     new_tension = ViewpointTension.model_validate(tension_dict)
     assert new_tension.topic == tension.topic
@@ -111,7 +110,7 @@ def test_synthesized_info_model():
     assert info.confidence_level == "medium"
     assert info.information_gaps == ""
     assert info.improvements == []
-    
+
     # With values
     info = SynthesizedInfo(
         synthesized_answer="This is a synthesized answer",
@@ -123,7 +122,7 @@ def test_synthesized_info_model():
     assert info.synthesized_answer == "This is a synthesized answer"
     assert len(info.key_sources) == 2
     assert info.confidence_level == "high"
-    
+
     # Serialization and deserialization
     info_dict = info.model_dump()
     new_info = SynthesizedInfo.model_validate(info_dict)
@@ -136,30 +135,39 @@ def test_viewpoint_analysis_model():
     # Create tensions for the analysis
     tension1 = ViewpointTension(
         topic="Economic Impact",
-        viewpoints={"Positive": "Creates jobs", "Negative": "Increases inequality"},
+        viewpoints={
+            "Positive": "Creates jobs",
+            "Negative": "Increases inequality",
+        },
     )
     tension2 = ViewpointTension(
         topic="Environmental Impact",
-        viewpoints={"Positive": "Reduces emissions", "Negative": "Land use changes"},
+        viewpoints={
+            "Positive": "Reduces emissions",
+            "Negative": "Land use changes",
+        },
     )
-    
+
     # Create the analysis
     analysis = ViewpointAnalysis(
-        main_points_of_agreement=["Need for action", "Technological innovation"],
+        main_points_of_agreement=[
+            "Need for action",
+            "Technological innovation",
+        ],
         areas_of_tension=[tension1, tension2],
         perspective_gaps="Missing indigenous perspectives",
         integrative_insights="Combined economic and environmental approach needed",
     )
-    
+
     assert len(analysis.main_points_of_agreement) == 2
     assert len(analysis.areas_of_tension) == 2
     assert analysis.areas_of_tension[0].topic == "Economic Impact"
-    
+
     # Test serialization
     analysis_dict = analysis.model_dump()
     assert len(analysis_dict["areas_of_tension"]) == 2
     assert analysis_dict["areas_of_tension"][0]["topic"] == "Economic Impact"
-    
+
     # Test deserialization
     new_analysis = ViewpointAnalysis.model_validate(analysis_dict)
     assert len(new_analysis.areas_of_tension) == 2
@@ -176,17 +184,17 @@ def test_reflection_metadata_model():
         improvements_made=3,
         error=None,
     )
-    
+
     assert len(metadata.critique_summary) == 2
     assert len(metadata.additional_questions_identified) == 1
     assert metadata.improvements_made == 3
     assert metadata.error is None
-    
+
     # Serialization
     metadata_dict = metadata.model_dump()
     assert len(metadata_dict["critique_summary"]) == 2
     assert metadata_dict["improvements_made"] == 3
-    
+
     # Deserialization
     new_metadata = ReflectionMetadata.model_validate(metadata_dict)
     assert new_metadata.improvements_made == metadata.improvements_made
@@ -201,16 +209,18 @@ def test_research_state_model():
     assert state.sub_questions == []
     assert state.search_results == {}
     assert state.get_current_stage() == "empty"
-    
+
     # Set main query
     state.main_query = "What are the impacts of climate change?"
     assert state.get_current_stage() == "initial"
-    
+
     # Test update methods
-    state.update_sub_questions(["What are economic impacts?", "What are environmental impacts?"])
+    state.update_sub_questions(
+        ["What are economic impacts?", "What are environmental impacts?"]
+    )
     assert len(state.sub_questions) == 2
     assert state.get_current_stage() == "after_query_decomposition"
-    
+
     # Add search results
     search_results: Dict[str, List[SearchResult]] = {
         "What are economic impacts?": [
@@ -225,7 +235,7 @@ def test_research_state_model():
     state.update_search_results(search_results)
     assert state.get_current_stage() == "after_search"
     assert len(state.search_results["What are economic impacts?"]) == 1
-    
+
     # Add synthesized info
     synthesized_info: Dict[str, SynthesizedInfo] = {
         "What are economic impacts?": SynthesizedInfo(
@@ -236,25 +246,31 @@ def test_research_state_model():
     }
     state.update_synthesized_info(synthesized_info)
     assert state.get_current_stage() == "after_synthesis"
-    
+
     # Add viewpoint analysis
     analysis = ViewpointAnalysis(
         main_points_of_agreement=["Economic changes are happening"],
         areas_of_tension=[
             ViewpointTension(
                 topic="Job impacts",
-                viewpoints={"Positive": "New green jobs", "Negative": "Fossil fuel job losses"},
+                viewpoints={
+                    "Positive": "New green jobs",
+                    "Negative": "Fossil fuel job losses",
+                },
             )
         ],
     )
     state.update_viewpoint_analysis(analysis)
     assert state.get_current_stage() == "after_viewpoint_analysis"
-    
+
     # Add reflection results
     enhanced_info = {
         "What are economic impacts?": SynthesizedInfo(
             synthesized_answer="Enhanced answer with more details",
-            key_sources=["https://example.com/economy", "https://example.com/new-source"],
+            key_sources=[
+                "https://example.com/economy",
+                "https://example.com/new-source",
+            ],
             confidence_level="high",
             improvements=["Added more context", "Added more sources"],
         )
@@ -265,21 +281,23 @@ def test_research_state_model():
     )
     state.update_after_reflection(enhanced_info, metadata)
     assert state.get_current_stage() == "after_reflection"
-    
+
     # Set final report
     state.set_final_report("<html>Final report content</html>")
     assert state.get_current_stage() == "final_report"
     assert state.final_report_html == "<html>Final report content</html>"
-    
+
     # Test serialization and deserialization
     state_dict = state.model_dump()
     new_state = ResearchState.model_validate(state_dict)
-    
+
     # Verify key properties were preserved
     assert new_state.main_query == state.main_query
     assert len(new_state.sub_questions) == len(state.sub_questions)
     assert new_state.get_current_stage() == state.get_current_stage()
     assert new_state.viewpoint_analysis is not None
     assert len(new_state.viewpoint_analysis.areas_of_tension) == 1
-    assert new_state.viewpoint_analysis.areas_of_tension[0].topic == "Job impacts"
+    assert (
+        new_state.viewpoint_analysis.areas_of_tension[0].topic == "Job impacts"
+    )
     assert new_state.final_report_html == state.final_report_html

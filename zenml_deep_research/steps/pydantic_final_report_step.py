@@ -4,13 +4,18 @@ This module provides a ZenML pipeline step for generating the final HTML researc
 using Pydantic models and improved materializers.
 """
 
-import html
 import json
 import logging
-import re
 from typing import Annotated, Tuple
 
-from utils.pydantic_models import ResearchState
+from materializers.pydantic_materializer import ResearchStateMaterializer
+
+# Import helper functions from the original module
+from steps.final_report_step import (
+    _generate_fallback_report,
+    clean_html_output,
+    generate_report_from_template,
+)
 from utils.helper_functions import (
     extract_html_from_content,
     remove_reasoning_from_output,
@@ -18,21 +23,10 @@ from utils.helper_functions import (
 from utils.llm_utils import run_llm_completion
 from utils.prompts import (
     REPORT_GENERATION_PROMPT,
-    STATIC_HTML_TEMPLATE,
-    SUB_QUESTION_TEMPLATE,
-    VIEWPOINT_ANALYSIS_TEMPLATE,
 )
+from utils.pydantic_models import ResearchState
 from zenml import step
 from zenml.types import HTMLString
-from materializers.pydantic_materializer import ResearchStateMaterializer
-
-# Import helper functions from the original module
-from steps.final_report_step import (
-    clean_html_output,
-    format_text_with_code_blocks,
-    generate_report_from_template,
-    _generate_fallback_report,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +42,7 @@ def pydantic_final_report_step(
     llm_model: str = "gpt-3.5-turbo",
     system_prompt: str = REPORT_GENERATION_PROMPT,
 ) -> Tuple[
-    Annotated[ResearchState, "state"],
-    Annotated[HTMLString, "report_html"]
+    Annotated[ResearchState, "state"], Annotated[HTMLString, "report_html"]
 ]:
     """Generate the final research report in HTML format using Pydantic models.
 

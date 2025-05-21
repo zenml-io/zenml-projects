@@ -4,8 +4,6 @@ import logging
 import re
 from typing import Annotated
 
-# Import Pydantic models instead of dataclasses
-from utils.pydantic_models import ResearchState
 from utils.helper_functions import (
     extract_html_from_content,
     remove_reasoning_from_output,
@@ -17,11 +15,13 @@ from utils.prompts import (
     SUB_QUESTION_TEMPLATE,
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
+
+# Import Pydantic models instead of dataclasses
+from utils.pydantic_models import ResearchState
 from zenml import step
 from zenml.types import HTMLString
 
 # Import materializer
-from materializers.pydantic_materializer import ResearchStateMaterializer
 
 logger = logging.getLogger(__name__)
 

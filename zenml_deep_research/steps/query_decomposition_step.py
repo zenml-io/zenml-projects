@@ -2,9 +2,9 @@ import logging
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
-from utils.pydantic_models import ResearchState
 from utils.llm_utils import get_structured_llm_output
 from utils.prompts import QUERY_DECOMPOSITION_PROMPT
+from utils.pydantic_models import ResearchState
 from zenml import step
 
 logger = logging.getLogger(__name__)
