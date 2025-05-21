@@ -51,7 +51,7 @@ credit_scoring_ai_act/
 │   │   │   ├── data_preprocessor.py # Basic feature engineering
 │   │   │   └──  data_splitter.py # Split dataset into train/test
 │   │   ├── training/ # Training steps
-│   │   │   ├── train.py # XGBoost / sklearn model
+│   │   │   ├── train.py # LightGBMClassifier model
 │   │   │   ├── evaluate.py # Standard + Fairness metrics
 │   │   │   └── risk_assessment.py # Risk assessment
 │   │   └── deployment/ # Deployment steps
@@ -61,7 +61,7 @@ credit_scoring_ai_act/
 │   │       ├── generate_sbom.py # Generate Software Bill of Materials
 │   │       └── post_run_annex.py # Generate Annex IV documentation
 │   ├── utils/ # Shared utilities
-│   │   ├── modal_utils.py # Modal Volume operations
+│   │   ├── storage.py # Storage utils
 │   │   ├── preprocess.py # Custom sklearn transformers
 │   │   ├── eval.py # Evaluation utils
 │   │   ├── incidents.py # Incident reporting system
