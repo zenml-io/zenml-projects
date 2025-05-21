@@ -21,7 +21,7 @@ steps:
       max_additional_searches: 2
       num_results_per_search: 3
   
-  final_report_generation_step:
+  pydantic_final_report_step:
     parameters:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
 
