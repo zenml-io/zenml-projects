@@ -30,17 +30,18 @@ The Deep Research Agent produces comprehensive, well-structured reports on any t
 
 ## 🚀 Pipeline Architecture
 
-The pipeline breaks down the research process into granular steps for maximum modularity and control:
+The pipeline uses a parallel processing architecture for efficiency and breaks down the research process into granular steps for maximum modularity and control:
 
 1. **Query Decomposition**: Break down the main query into specific sub-questions
-2. **Parallel Information Gathering**: Fetch data for each sub-question using optimized search queries
+2. **Parallel Information Gathering**: Process multiple sub-questions concurrently for faster results
 3. **Information Validation & Synthesis**: Validate sources, remove redundancies, and synthesize findings
 4. **Cross-Viewpoint Analysis**: Analyze discrepancies and agreements between different perspectives
 5. **Iterative Reflection**: Self-critique research output to identify gaps and trigger additional searches
 6. **Final Report Generation**: Compile all synthesized information into a coherent report
 
-This granular approach enables:
+This architecture enables:
 - Better reproducibility and caching of intermediate results
+- Parallel processing for faster research completion
 - Easier debugging and monitoring of specific research stages
 - More flexible reconfiguration of individual components
 - Enhanced transparency into how the research is conducted
@@ -101,8 +102,11 @@ python run.py --config configs/custom_enhanced_config.yaml
 # Override the research query from command line
 python run.py --query "My research topic"
 
-# Combine custom config and query
-python run.py --config configs/custom_enhanced_config.yaml --query "My research topic"
+# Specify maximum number of sub-questions to process in parallel
+python run.py --max-sub-questions 15
+
+# Combine multiple options
+python run.py --config configs/custom_enhanced_config.yaml --query "My research topic" --max-sub-questions 12
 ```
 
 ### Advanced Options
@@ -167,84 +171,108 @@ Report Structure:
 
 ```
 zenml_deep_research/
-├── configs/             # Configuration files
+├── configs/                    # Configuration files
 │   ├── __init__.py
-│   └── research_config.yaml
-├── pipelines/           # ZenML pipeline definitions
+│   └── enhanced_research.yaml  # Main configuration file
+├── materializers/             # Custom materializers for artifact storage
 │   ├── __init__.py
-│   └── research_pipeline.py
-├── steps/               # ZenML pipeline steps
+│   └── pydantic_materializer.py 
+├── pipelines/                 # ZenML pipeline definitions
 │   ├── __init__.py
-│   ├── load_config.py
-│   ├── report_structure_step.py
-│   ├── paragraph_research_step.py
-│   └── report_formatting_step.py
-├── utils/               # Utility functions and helpers
+│   └── parallel_research_pipeline.py
+├── steps/                     # ZenML pipeline steps
 │   ├── __init__.py
-│   ├── data_models.py
+│   ├── cross_viewpoint_step.py
+│   ├── iterative_reflection_step.py
+│   ├── merge_results_step.py
+│   ├── process_sub_question_step.py
+│   ├── pydantic_final_report_step.py
+│   └── query_decomposition_step.py
+├── utils/                      # Utility functions and helpers
+│   ├── __init__.py
 │   ├── helper_functions.py
-│   ├── prompts.py        # Contains static HTML templates for report generation
-│   └── state_visualizer.py  # Custom visualizer for the State class
+│   ├── llm_utils.py            # LLM integration utilities 
+│   ├── prompts.py              # Contains prompt templates and HTML templates
+│   ├── pydantic_models.py      # Data models using Pydantic
+│   └── search_utils.py         # Web search functionality
 ├── __init__.py
-├── requirements.txt     # Project dependencies
-├── logging_config.py    # Logging configuration
-├── README.md            # Project documentation
-└── run.py               # Main script to run the pipeline
+├── requirements.txt           # Project dependencies
+├── logging_config.py          # Logging configuration
+├── README.md                  # Project documentation
+└── run.py                     # Main script to run the pipeline
 ```
 
 ## 🔧 Customization
 
 The project supports two levels of customization:
 
-### 1. Step Parameters
+### 1. Command-Line Parameters
 
 You can customize the research behavior directly through command-line parameters:
 
 ```bash
-# Run with more reflection cycles
-python run.py --query "Your query" --num-reflections 3
+# Specify your research query
+python run.py --query "Your research topic"
 
-# Adjust search parameters (available as step parameters)
-python run.py --query "Your query" --num-reflections 4
+# Control parallelism with max-sub-questions
+python run.py --max-sub-questions 15
+
+# Combine multiple options
+python run.py --query "Your research topic" --max-sub-questions 12 --no-cache
 ```
 
-Each step has its own parameters with sensible defaults that can be customized by modifying the step definitions.
+These settings control how the parallel pipeline processes your research query.
 
 ### 2. Pipeline Configuration
 
-For pipeline-level settings, modify the configuration file:
+For more detailed settings, modify the configuration file:
 
 ```yaml
-# configs/pipeline_config.yaml
+# configs/enhanced_research.yaml
 
-# Pipeline settings
+# Enhanced Deep Research Pipeline Configuration
 enable_cache: true
 
-# Research parameters
-step:
-  report_structure_step:
+# Research query parameters
+query: "Climate change policy debates"
+
+# Step configurations
+steps:
+  initial_query_decomposition_step:
     parameters:
-      query: "Default research query"  # The research query/topic to investigate
-  paragraph_research_step:
-    parameters:
-      num_reflections: 2  # Number of reflection cycles to perform per paragraph
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
   
+  cross_viewpoint_analysis_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      viewpoint_categories: ["scientific", "political", "economic", "social", "ethical", "historical"]
+  
+  iterative_reflection_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      max_additional_searches: 2
+      num_results_per_search: 3
+  
+  pydantic_final_report_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+
 # Environment settings
 settings:
   docker:
     requirements:
-      - litellm>=1.0.0
+      - openai>=1.0.0
       - tavily-python>=0.2.8
       - PyYAML>=6.0
       - click>=8.0.0
       - pydantic>=2.0.0
-      - typing_extensions>=4.0.0
+      - typing_extensions>=4.0.0 
 ```
 
 To use a custom configuration file:
 
 ```bash
-python run.py --config configs/custom_pipeline.yaml
+python run.py --config configs/custom_research.yaml
 ```
 
 ### Available Configurations

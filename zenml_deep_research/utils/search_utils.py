@@ -52,11 +52,129 @@ def tavily_search(
 
         tavily_client = TavilyClient(api_key=api_key)
 
+        # First try with advanced search
         results = tavily_client.search(
             query=query,
             include_raw_content=include_raw_content,
             max_results=max_results,
+            search_depth="advanced",  # Use advanced search for better results
+            include_domains=[],  # No domain restrictions
+            exclude_domains=[],  # No exclusions
+            include_answer=False,  # We don't need the answer field
+            include_images=False,  # We don't need images
+            # Note: 'include_snippets' is not a supported parameter
         )
+
+        # Check if we got good results (with non-None and non-empty content)
+        if include_raw_content and "results" in results:
+            bad_content_count = sum(
+                1
+                for r in results["results"]
+                if "raw_content" in r
+                and (
+                    r["raw_content"] is None or r["raw_content"].strip() == ""
+                )
+            )
+
+            # If more than half of results have bad content, try a different approach
+            if bad_content_count > len(results["results"]) / 2:
+                logger.warning(
+                    f"{bad_content_count}/{len(results['results'])} results have None or empty content. "
+                    "Trying to use 'content' field instead of 'raw_content'..."
+                )
+
+                # Try to use the 'content' field which comes by default
+                for result in results["results"]:
+                    if (
+                        "raw_content" in result
+                        and (
+                            result["raw_content"] is None
+                            or result["raw_content"].strip() == ""
+                        )
+                    ) and "content" in result:
+                        result["raw_content"] = result["content"]
+                        logger.info(
+                            f"Using 'content' field as 'raw_content' for URL {result.get('url', 'unknown')}"
+                        )
+
+                # Re-check after our fix
+                bad_content_count = sum(
+                    1
+                    for r in results["results"]
+                    if "raw_content" in r
+                    and (
+                        r["raw_content"] is None
+                        or r["raw_content"].strip() == ""
+                    )
+                )
+
+                if bad_content_count > 0:
+                    logger.warning(
+                        f"Still have {bad_content_count}/{len(results['results'])} results with bad content after fixes."
+                    )
+
+                # Try alternative approach - search with 'include_answer=True'
+                try:
+                    # Search with include_answer=True which may give us better content
+                    logger.info(
+                        "Trying alternative search with include_answer=True"
+                    )
+                    alt_results = tavily_client.search(
+                        query=query,
+                        include_raw_content=include_raw_content,
+                        max_results=max_results,
+                        search_depth="advanced",
+                        include_domains=[],
+                        exclude_domains=[],
+                        include_answer=True,  # Include answer this time
+                        include_images=False,
+                    )
+
+                    # Check if we got any improved content
+                    if "results" in alt_results:
+                        # Create a merged results set taking the best content
+                        for i, result in enumerate(alt_results["results"]):
+                            if i < len(results["results"]):
+                                if (
+                                    "raw_content" in result
+                                    and result["raw_content"]
+                                    and (
+                                        results["results"][i].get(
+                                            "raw_content"
+                                        )
+                                        is None
+                                        or results["results"][i]
+                                        .get("raw_content", "")
+                                        .strip()
+                                        == ""
+                                    )
+                                ):
+                                    # Replace the bad content with better content from alt_results
+                                    results["results"][i]["raw_content"] = (
+                                        result["raw_content"]
+                                    )
+                                    logger.info(
+                                        f"Replaced bad content with better content from alternative search for URL {result.get('url', 'unknown')}"
+                                    )
+
+                        # If answer is available, add it as a special result
+                        if "answer" in alt_results and alt_results["answer"]:
+                            answer_text = alt_results["answer"]
+                            answer_result = {
+                                "url": "tavily-generated-answer",
+                                "title": "Generated Answer",
+                                "raw_content": f"Generated Answer based on search results:\n\n{answer_text}",
+                                "content": answer_text,
+                            }
+                            results["results"].append(answer_result)
+                            logger.info(
+                                "Added Tavily generated answer as additional search result"
+                            )
+
+                except Exception as alt_error:
+                    logger.warning(
+                        f"Failed to get better results with alternative search: {alt_error}"
+                    )
 
         # Cap content length if specified
         if cap_content_length > 0 and "results" in results:
@@ -92,15 +210,75 @@ def extract_search_results(
     results_list = []
     if "results" in tavily_results:
         for result in tavily_results["results"]:
-            if "url" in result and "raw_content" in result:
+            if "url" in result:
+                # Get fields with defaults
+                url = result["url"]
+                title = result.get("title", "")
+
+                # Try to extract the best content available:
+                # 1. First try raw_content (if we requested it)
+                # 2. Then try regular content (always available)
+                # 3. Then try to use snippet combined with title
+                # 4. Last resort: use just title
+
+                raw_content = result.get("raw_content", None)
+                regular_content = result.get("content", "")
+                snippet = result.get("snippet", "")
+
+                # Set our final content - prioritize raw_content if available and not None
+                if raw_content is not None and raw_content.strip():
+                    content = raw_content
+                # Next best is the regular content field
+                elif regular_content and regular_content.strip():
+                    content = regular_content
+                    logger.info(
+                        f"Using 'content' field for URL {url} because raw_content was not available"
+                    )
+                # Try to create a usable content from snippet and title
+                elif snippet:
+                    content = f"Title: {title}\n\nContent: {snippet}"
+                    logger.warning(
+                        f"Using title and snippet as content fallback for {url}"
+                    )
+                # Last resort - just use the title
+                elif title:
+                    content = (
+                        f"Title: {title}\n\nNo content available for this URL."
+                    )
+                    logger.warning(
+                        f"Using only title as content fallback for {url}"
+                    )
+                # Nothing available
+                else:
+                    content = ""
+                    logger.warning(
+                        f"No content available for URL {url}, using empty string"
+                    )
+
                 results_list.append(
                     SearchResult(
-                        url=result["url"],
-                        content=result["raw_content"],
-                        title=result.get("title", ""),
-                        snippet=result.get("snippet", ""),
+                        url=url,
+                        content=content,
+                        title=title,
+                        snippet=snippet,
                     )
                 )
+
+    # If we got the answer, add it as a special result
+    if "answer" in tavily_results and tavily_results["answer"]:
+        answer_text = tavily_results["answer"]
+        results_list.append(
+            SearchResult(
+                url="tavily-generated-answer",
+                content=f"Generated Answer based on search results:\n\n{answer_text}",
+                title="Tavily Generated Answer",
+                snippet=answer_text[:100] + "..."
+                if len(answer_text) > 100
+                else answer_text,
+            )
+        )
+        logger.info("Added Tavily generated answer as a search result")
+
     return results_list
 
 
@@ -138,6 +316,7 @@ def search_and_extract_results(
     query: str,
     max_results: int = 3,
     cap_content_length: int = 20000,
+    max_retries: int = 2,
 ) -> List[SearchResult]:
     """Perform a search and extract results in one step.
 
@@ -145,14 +324,79 @@ def search_and_extract_results(
         query: Search query
         max_results: Maximum number of results to return
         cap_content_length: Maximum length of content to return
+        max_retries: Maximum number of retries in case of failure
 
     Returns:
         List of SearchResult objects
     """
-    tavily_results = tavily_search(
-        query=query,
-        max_results=max_results,
-        cap_content_length=cap_content_length,
-    )
+    results = []
+    retry_count = 0
 
-    return extract_search_results(tavily_results)
+    # List of alternative query formats to try if the original query fails
+    # to yield good results with non-None content
+    alternative_queries = [
+        query,  # Original query first
+        f'"{query}"',  # Try exact phrase matching
+        f"about {query}",  # Try broader context
+        f"research on {query}",  # Try research-oriented results
+        query.replace(" OR ", " "),  # Try without OR operator
+    ]
+
+    while retry_count <= max_retries and retry_count < len(
+        alternative_queries
+    ):
+        try:
+            current_query = alternative_queries[retry_count]
+            logger.info(
+                f"Searching with query ({retry_count + 1}/{max_retries + 1}): {current_query}"
+            )
+
+            tavily_results = tavily_search(
+                query=current_query,
+                max_results=max_results,
+                cap_content_length=cap_content_length,
+            )
+
+            results = extract_search_results(tavily_results)
+
+            # Check if we got results with actual content
+            if results:
+                # Count results with non-empty content
+                content_results = sum(1 for r in results if r.content.strip())
+
+                if content_results >= max(1, len(results) // 2):
+                    logger.info(
+                        f"Found {content_results}/{len(results)} results with content"
+                    )
+                    return results
+                else:
+                    logger.warning(
+                        f"Only found {content_results}/{len(results)} results with content. "
+                        f"Trying alternative query..."
+                    )
+
+            # If we didn't get good results but haven't hit max retries yet, try again
+            if retry_count < max_retries:
+                logger.warning(
+                    f"Inadequate search results. Retrying with alternative query... ({retry_count + 1}/{max_retries})"
+                )
+                retry_count += 1
+            else:
+                # If we're out of retries, return whatever we have
+                logger.warning(
+                    f"Out of retries. Returning best results found ({len(results)} results)."
+                )
+                return results
+
+        except Exception as e:
+            if retry_count < max_retries:
+                logger.warning(
+                    f"Search failed with error: {e}. Retrying... ({retry_count + 1}/{max_retries})"
+                )
+                retry_count += 1
+            else:
+                logger.error(f"Search failed after {max_retries} retries: {e}")
+                return []
+
+    # If we've exhausted all retries, return the best results we have
+    return results

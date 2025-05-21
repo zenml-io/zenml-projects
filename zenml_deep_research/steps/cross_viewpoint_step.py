@@ -71,7 +71,7 @@ def cross_viewpoint_analysis_step(
             prompt=json.dumps(analysis_input),
             system_prompt=system_prompt,
             model=llm_model,  # Model name will be prefixed in the function
-            max_tokens=2000,  # Increased for this complex task
+            max_tokens=3000,  # Further increased for more comprehensive viewpoint analysis
         )
 
         result = safe_json_loads(content)

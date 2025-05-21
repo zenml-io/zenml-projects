@@ -22,7 +22,7 @@ def run_llm_completion(
     system_prompt: str,
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     clean_output: bool = True,
-    max_tokens: int = 1000,
+    max_tokens: int = 2000,  # Increased default token limit
     temperature: float = 0.2,
     top_p: float = 0.9,
 ) -> str:
@@ -99,7 +99,7 @@ def get_structured_llm_output(
     system_prompt: str,
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     fallback_response: Optional[Dict[str, Any]] = None,
-    max_tokens: int = 1000,
+    max_tokens: int = 2000,  # Increased default token limit for structured outputs
     temperature: float = 0.2,
     top_p: float = 0.9,
 ) -> Dict[str, Any]:
@@ -302,7 +302,7 @@ def synthesize_information(
         system_prompt=system_prompt,
         model=model,
         fallback_response=fallback_response,
-        max_tokens=2000,  # Increased for synthesis
+        max_tokens=3000,  # Increased for more detailed synthesis
     )
 
     return result

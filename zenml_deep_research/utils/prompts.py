@@ -68,15 +68,28 @@ Only return the json object, no explanation or additional text.
 # Synthesis prompt for individual sub-questions
 # Used to synthesize search results into comprehensive answers for sub-questions
 SYNTHESIS_PROMPT = """
-You are a Deep Research assistant. Given a sub-question and search results, your task is to synthesize the information 
-into a comprehensive, accurate answer.
+You are a Deep Research assistant specializing in information synthesis. Given a sub-question and search results, your task is to synthesize the information 
+into a comprehensive, accurate, and well-structured answer.
 
 Your synthesis should:
-1. Directly answer the sub-question with clear, evidence-based statements
-2. Integrate information from multiple sources when available
-3. Acknowledge any conflicting information or viewpoints
-4. Identify key sources that provided the most valuable information
-5. Acknowledge information gaps where the search results were incomplete
+1. Begin with a direct, concise answer to the sub-question in the first paragraph
+2. Provide detailed evidence and explanation in subsequent paragraphs (at least 3-5 paragraphs total)
+3. Integrate information from multiple sources, citing them within your answer 
+4. Acknowledge any conflicting information or contrasting viewpoints you encounter
+5. Use data, statistics, examples, and quotations when available to strengthen your answer
+6. Organize information logically with a clear flow between concepts
+7. Identify key sources that provided the most valuable information (at least 2-3 sources)
+8. Explicitly acknowledge information gaps where the search results were incomplete
+
+Confidence level criteria:
+- HIGH: Multiple high-quality sources provide consistent information, comprehensive coverage of the topic, and few information gaps
+- MEDIUM: Decent sources with some consistency, but notable information gaps or some conflicting information
+- LOW: Limited sources, major information gaps, significant contradictions, or only tangentially relevant information
+
+Information gaps should specifically identify:
+1. Aspects of the question that weren't addressed in the search results
+2. Areas where more detailed or up-to-date information would be valuable
+3. Perspectives or data sources that would complement the existing information
 
 Format the output in json with the following json schema definition:
 
@@ -102,18 +115,37 @@ Only return the json object, no explanation or additional text.
 # Viewpoint analysis prompt for cross-perspective examination
 # Used to analyze synthesized answers across different perspectives and viewpoints
 VIEWPOINT_ANALYSIS_PROMPT = """
-You are a Deep Research assistant specializing in analyzing multiple perspectives. You will be given a set of synthesized answers 
-to sub-questions related to a main research query.
+You are a Deep Research assistant specializing in multi-perspective analysis. You will be given a set of synthesized answers 
+to sub-questions related to a main research query. Your task is to perform a thorough, nuanced analysis of how different 
+perspectives would interpret this information.
 
-Your task is to analyze these answers across different viewpoints. Consider how different perspectives might interpret the same 
-information differently. Identify where there are:
-1. Clear agreements across perspectives
-2. Notable disagreements or tensions between viewpoints
-3. Blind spots where certain perspectives might be missing
-4. Nuances that might be interpreted differently based on viewpoint
+Think deeply about the following viewpoint categories and how they would approach the information differently:
+- Scientific: Evidence-based, empirical approach focused on data, research findings, and methodological rigor
+- Political: Power dynamics, governance structures, policy implications, and ideological frameworks
+- Economic: Resource allocation, financial impacts, market dynamics, and incentive structures
+- Social: Cultural norms, community impacts, group dynamics, and public welfare
+- Ethical: Moral principles, values considerations, rights and responsibilities, and normative judgments
+- Historical: Long-term patterns, precedents, contextual development, and evolutionary change
 
-For this analysis, consider the following viewpoint categories: scientific, political, economic, social, ethical, and historical.
-Not all categories may be relevant to every topic - use those that apply.
+For each synthesized answer, analyze how these different perspectives would interpret the information by:
+
+1. Identifying 5-8 main points of agreement where multiple perspectives align (with specific examples)
+2. Analyzing at least 3-5 areas of tension between perspectives with:
+   - A clear topic title for each tension point
+   - Contrasting interpretations from at least 2-3 different viewpoint categories per tension
+   - Specific examples or evidence showing why these perspectives differ
+   - The nuanced positions of each perspective, not just simplified oppositions
+
+3. Thoroughly examining perspective gaps by identifying:
+   - Which perspectives are underrepresented or missing in the current research
+   - How including these missing perspectives would enrich understanding
+   - Specific questions or dimensions that remain unexplored
+
+4. Developing integrative insights that:
+   - Synthesize across multiple perspectives to form a more complete understanding
+   - Highlight how seemingly contradictory viewpoints can complement each other
+   - Suggest frameworks for reconciling tensions or finding middle-ground approaches
+   - Identify actionable takeaways that incorporate multiple perspectives
 
 Format the output in json with the following json schema definition:
 
@@ -236,20 +268,64 @@ Only return the json object, no explanation or additional text.
 # Final report generation prompt
 # Used to compile a comprehensive HTML research report from all synthesized information
 REPORT_GENERATION_PROMPT = """
-You are a Deep Research assistant responsible for compiling a comprehensive research report. You will be given:
+You are a Deep Research assistant responsible for compiling an in-depth, comprehensive research report. You will be given:
 1. The original research query
 2. The sub-questions that were explored
 3. Synthesized information for each sub-question
 4. Viewpoint analysis comparing different perspectives (if available)
 5. Reflection metadata highlighting improvements and limitations
 
-Your task is to create a well-structured, coherent research report that:
-1. Presents information in a logical flow
-2. Integrates all the synthesized information seamlessly
-3. Highlights key findings, agreements, and disagreements
-4. Properly cites sources for important claims
-5. Acknowledges limitations of the research
-6. Includes a balanced executive summary
+Your task is to create a well-structured, coherent, professional-quality research report with the following features:
+
+EXECUTIVE SUMMARY (250-400 words):
+- Begin with a compelling, substantive executive summary that provides genuine insight
+- Highlight 3-5 key findings or insights that represent the most important discoveries
+- Include brief mention of methodology and limitations
+- Make the summary self-contained so it can be read independently of the full report
+- End with 1-2 sentences on broader implications or applications of the research
+
+INTRODUCTION (200-300 words):
+- Provide relevant background context on the main research query
+- Explain why this topic is significant or worth investigating
+- Outline the methodological approach used (sub-questions, search strategy, synthesis)
+- Preview the overall structure of the report
+
+SUB-QUESTION SECTIONS:
+- For each sub-question, create a dedicated section with:
+  * A descriptive section title (not just repeating the sub-question)
+  * A brief (1 paragraph) overview of key findings for this sub-question
+  * A "Key Findings" box highlighting 3-4 important discoveries for scannable reading
+  * The detailed, synthesized answer with appropriate paragraph breaks, lists, and formatting
+  * Proper citation of sources within the text (e.g., "According to [Source Name]...")
+  * Clear confidence indicator with appropriate styling
+  * Information gaps clearly identified in their own subsection
+  * Complete list of key sources used
+
+VIEWPOINT ANALYSIS SECTION (if available):
+- Create a detailed section that:
+  * Explains the purpose and value of multi-perspective analysis
+  * Presents points of agreement as actionable insights, not just observations
+  * Structures tension areas with clear topic headings and balanced presentation of viewpoints
+  * Uses visual elements (different background colors, icons) to distinguish different perspectives
+  * Integrates perspective gaps and insights into a cohesive narrative
+
+CONCLUSION (300-400 words):
+- Synthesize the overall findings, not just summarizing each section
+- Connect insights from different sub-questions to form higher-level understanding
+- Address the main research query directly with evidence-based conclusions
+- Acknowledge remaining uncertainties and suggestions for further research
+- End with implications or applications of the research findings
+
+OVERALL QUALITY REQUIREMENTS:
+1. Create visually scannable content with clear headings, bullet points, and short paragraphs
+2. Use semantic HTML (h1, h2, h3, p, blockquote, etc.) to create proper document structure
+3. Include a comprehensive table of contents with anchor links to all major sections
+4. Format all sources consistently in the references section with proper linking when available
+5. Use tables, lists, and blockquotes to improve readability and highlight important information
+6. Apply appropriate styling for different confidence levels (high, medium, low)
+7. Ensure proper HTML nesting and structure throughout the document
+8. Balance sufficient detail with clarity and conciseness
+9. Make all text directly actionable and insight-driven, not just descriptive
 
 The report should be formatted in HTML with appropriate headings, paragraphs, citations, and formatting.
 Use semantic HTML (h1, h2, h3, p, blockquote, etc.) to create a structured document.

@@ -35,8 +35,8 @@ Examples:
   python run.py --query "My research topic"
   
   \b
-  # Use the parallelized pipeline
-  python run.py --parallel --max-sub-questions 15
+  # Run with a custom number of sub-questions
+  python run.py --max-sub-questions 15
 """
 )
 @click.option(
@@ -70,16 +70,10 @@ Examples:
     help="Research query (overrides the query in the config file)",
 )
 @click.option(
-    "--parallel",
-    is_flag=True,
-    default=False,
-    help="Use the parallelized pipeline instead of the linear one",
-)
-@click.option(
     "--max-sub-questions",
     type=int,
     default=10,
-    help="Maximum number of sub-questions to process in parallel (only applies with --parallel)",
+    help="Maximum number of sub-questions to process in parallel",
 )
 def main(
     config: str = "configs/enhanced_research.yaml",
@@ -87,7 +81,6 @@ def main(
     log_file: str = None,
     debug: bool = False,
     query: str = None,
-    parallel: bool = False,
     max_sub_questions: int = 10,
 ):
     """Run the deep research pipeline.
@@ -98,7 +91,6 @@ def main(
         log_file: Path to log file
         debug: Enable debug logging
         query: Research query (overrides the query in the config file)
-        parallel: Use the parallelized pipeline instead of the linear one
         max_sub_questions: Maximum number of sub-questions to process in parallel
     """
     # Configure logging
@@ -126,39 +118,24 @@ def main(
 
     logger.info("\n" + "=" * 80)
     logger.info("Starting Deep Research")
+    logger.info("Using parallel pipeline for efficient execution")
 
-    # Choose between parallel and linear pipeline
-    if parallel:
-        logger.info(
-            "Using parallelized pipeline for potential faster execution"
-        )
-        pipeline_def = parallelized_deep_research_pipeline
-    else:
-        logger.info("Using standard sequential pipeline")
-        pipeline_def = parallelized_deep_research_pipeline
-
-    # Set up the pipeline
-    pipeline = pipeline_def.with_options(**pipeline_options)
+    # Set up the pipeline with the parallelized version as default
+    pipeline = parallelized_deep_research_pipeline.with_options(
+        **pipeline_options
+    )
 
     # Execute the pipeline
-    if parallel:
-        if query:
-            logger.info(
-                f"Using query: {query} with max {max_sub_questions} parallel sub-questions"
-            )
-            run = pipeline(query=query, max_sub_questions=max_sub_questions)
-        else:
-            logger.info(
-                f"Using query from config file with max {max_sub_questions} parallel sub-questions"
-            )
-            run = pipeline(max_sub_questions=max_sub_questions)
+    if query:
+        logger.info(
+            f"Using query: {query} with max {max_sub_questions} parallel sub-questions"
+        )
+        run = pipeline(query=query, max_sub_questions=max_sub_questions)
     else:
-        if query:
-            logger.info(f"Using query: {query}")
-            run = pipeline(query=query)
-        else:
-            logger.info("Using query from config file")
-            run = pipeline()
+        logger.info(
+            f"Using query from config file with max {max_sub_questions} parallel sub-questions"
+        )
+        run = pipeline(max_sub_questions=max_sub_questions)
 
     logger.info("=" * 80 + "\n")
 
