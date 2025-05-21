@@ -30,7 +30,7 @@ from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
 from src.constants import RELEASES_DIR, SBOM_ARTIFACT_NAME
-from src.utils.modal_utils import save_artifact_to_modal
+from src.utils.storage import save_artifact_to_modal
 
 logger = get_logger(__name__)
 
@@ -53,9 +53,7 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
             name=dep["name"],
             version=dep["version"],
             type=ComponentType.LIBRARY,
-            purl=PackageURL(
-                type="pypi", name=dep["name"], version=dep["version"]
-            ),
+            purl=PackageURL(type="pypi", name=dep["name"], version=dep["version"]),
         )
         bom.components.add(component)
 
@@ -71,9 +69,7 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
         json.dump(sbom_json, f, indent=2)
 
     modal_sbom_path = f"{release_dir}/{sbom_filename}"
-    checksum = save_artifact_to_modal(
-        artifact=sbom_json, artifact_path=modal_sbom_path
-    )
+    checksum = save_artifact_to_modal(artifact=sbom_json, artifact_path=modal_sbom_path)
 
     sbom_artifact = {
         "sbom_data": sbom_json,
@@ -83,9 +79,7 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
     }
 
     log_metadata(metadata={SBOM_ARTIFACT_NAME: sbom_artifact})
-    logger.info(
-        f"SBOM generation complete. Saved to Modal at {modal_sbom_path}"
-    )
+    logger.info(f"SBOM generation complete. Saved to Modal at {modal_sbom_path}")
 
     return sbom_artifact
 
@@ -103,9 +97,7 @@ def get_direct_dependencies():
         for line in f:
             line = line.strip()
             if line and not line.startswith("#"):
-                pkg_name = (
-                    line.split(">=")[0].split("==")[0].split("<")[0].strip()
-                )
+                pkg_name = line.split(">=")[0].split("==")[0].split("<")[0].strip()
                 pkg_name = pkg_name.lower().replace("_", "-")
 
                 if pkg_name in installed_packages:

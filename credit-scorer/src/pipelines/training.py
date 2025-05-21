@@ -68,12 +68,8 @@ def training(
     # Retrieve datasets if not provided
     if train_df is None or test_df is None:
         client = Client()
-        train_df = client.get_artifact_version(
-            name_id_or_prefix=TRAIN_DATASET_NAME
-        )
-        test_df = client.get_artifact_version(
-            name_id_or_prefix=TEST_DATASET_NAME
-        )
+        train_df = client.get_artifact_version(name_id_or_prefix=TRAIN_DATASET_NAME)
+        test_df = client.get_artifact_version(name_id_or_prefix=TEST_DATASET_NAME)
 
     # Train model with provided data
     model = train_model(
@@ -85,7 +81,7 @@ def training(
     )
 
     # Evaluate model for performance and fairness
-    eval_results = evaluate_model(
+    eval_results, eval_visualization = evaluate_model(
         test_df=test_df,
         protected_attributes=protected_attributes,
         target=target,
@@ -101,4 +97,4 @@ def training(
     )
 
     # Return artifacts to be used by deployment pipeline
-    return model, eval_results, risk_scores
+    return model, eval_results, eval_visualization, risk_scores

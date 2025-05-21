@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+"""Pipelines for the project."""
+
 from .deployment import deployment
 from .feature_engineering import feature_engineering
 from .training import training

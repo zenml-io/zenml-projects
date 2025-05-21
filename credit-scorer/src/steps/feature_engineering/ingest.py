@@ -22,7 +22,7 @@ from typing import Annotated, List, Optional, Tuple
 import pandas as pd
 import whylogs as why
 from whylogs.core import DatasetProfileView
-from zenml import get_step_context, log_metadata, step
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 from src.constants import WHYLOGS_VISUALIZATION_NAME
@@ -49,16 +49,16 @@ def ingest(
     3. Capturing and storing detailed dataset metadata
 
     Args:
+        dataset_path: Path to the dataset to ingest.
         random_state: Random state for sampling.
         target: Target column name, default is 'target'
         sample_fraction: Fraction of data to sample for inference.
-        log_data_profile: Whether to log a WhyLogs profile of the data
+        sensitive_attributes: List of sensitive attributes to check for.
 
     Returns:
         dataset: The loaded dataset
         profile_view: WhyLogs profile for data quality documentation
     """
-    run_id = str(get_step_context().pipeline_run.id)
     # Record start time for logging
     start_time = datetime.now()
     print(f"Ingesting data from {dataset_path} at {start_time}")
@@ -67,9 +67,7 @@ def ingest(
     df = pd.read_csv(dataset_path, low_memory=False)
 
     if target not in df.columns:
-        raise ValueError(
-            f"Target column '{target}' not found in {dataset_path}"
-        )
+        raise ValueError(f"Target column '{target}' not found in {dataset_path}")
 
     # Clean data by removing rows with all or most values missing
     if "SK_ID_CURR" in df.columns:
@@ -79,11 +77,7 @@ def ingest(
     if sample_fraction and 0 < sample_fraction < 1:
         df = (
             df.groupby(target, group_keys=False)
-            .apply(
-                lambda g: g.sample(
-                    frac=sample_fraction, random_state=random_state
-                )
-            )
+            .apply(lambda g: g.sample(frac=sample_fraction, random_state=random_state))
             .reset_index(drop=True)
         )
         print(f"→ Stratified sample: {len(df)} rows")
@@ -100,12 +94,7 @@ def ingest(
     }
 
     # identify sensitive columns by substring (for fairness checks)
-    sensitive_cols = [
-        col
-        for col in df.columns
-        for term in sensitive_attributes
-        if term in col
-    ]
+    sensitive_cols = [col for col in df.columns for term in sensitive_attributes if term in col]
 
     # dataset info for compliance documentation
     dataset_info = {
@@ -126,7 +115,6 @@ def ingest(
     whylogs_visualization = generate_whylogs_visualization(
         data_profile=data_profile,
         dataset_info=dataset_info,
-        run_id=run_id,
     )
 
     log_metadata(

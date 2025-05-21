@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+"""Training steps for the project."""
+
 from .evaluate import evaluate_model
 from .risk_assessment import risk_assessment
 from .train import train_model

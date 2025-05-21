@@ -31,6 +31,7 @@ from src.constants import (
 from src.steps import (
     approve_deployment,
     generate_annex_iv_documentation,
+    generate_compliance_dashboard,
     generate_sbom,
     modal_deployment,
     post_market_monitoring,
@@ -68,13 +69,9 @@ def deployment(
     if model is None:
         model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
     if evaluation_results is None:
-        evaluation_results = client.get_artifact_version(
-            name_id_or_prefix=EVALUATION_RESULTS_NAME
-        )
+        evaluation_results = client.get_artifact_version(name_id_or_prefix=EVALUATION_RESULTS_NAME)
     if risk_scores is None:
-        risk_scores = client.get_artifact_version(
-            name_id_or_prefix=RISK_SCORES_NAME
-        )
+        risk_scores = client.get_artifact_version(name_id_or_prefix=RISK_SCORES_NAME)
     if preprocess_pipeline is None:
         preprocess_pipeline = client.get_artifact_version(
             name_id_or_prefix=PREPROCESS_PIPELINE_NAME
@@ -97,7 +94,7 @@ def deployment(
     )
 
     # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
-    sbom_artifact = generate_sbom()
+    sbom_artifact = generate_sbom()  # noqa: F841
 
     # Post-market monitoring plan (Article 17)
     monitoring_plan = post_market_monitoring(
@@ -106,10 +103,15 @@ def deployment(
     )
 
     # Generate comprehensive technical documentation (Article 11)
-    documentation_path = generate_annex_iv_documentation(
+    documentation_path, run_release_dir = generate_annex_iv_documentation(
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
         deployment_info=deployment_info,
     )
 
-    return deployment_info, monitoring_plan, documentation_path
+    # Generate compliance dashboard HTML visualization
+    compliance_dashboard = generate_compliance_dashboard(
+        run_release_dir=run_release_dir,
+    )
+
+    return deployment_info, monitoring_plan, documentation_path, compliance_dashboard

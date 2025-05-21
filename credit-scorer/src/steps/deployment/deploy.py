@@ -26,7 +26,6 @@ from zenml.logger import get_logger
 from src.constants import (
     APPROVAL_RECORD_NAME,
     APPROVED_NAME,
-    DEPLOYMENT_INFO_NAME,
     EVALUATION_RESULTS_NAME,
     MODAL_ENVIRONMENT,
     MODAL_VOLUME_NAME,
@@ -37,9 +36,7 @@ from src.constants import (
 logger = get_logger(__name__)
 
 DEPLOYMENT_SCRIPT_PATH = (
-    Path(__file__).parent.parent.parent.parent
-    / "modal_app"
-    / "modal_deployment.py"
+    Path(__file__).parent.parent.parent.parent / "modal_app" / "modal_deployment.py"
 )
 
 
@@ -63,7 +60,7 @@ def modal_deployment(
     evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
     preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME],
     environment: str = MODAL_ENVIRONMENT,
-) -> Annotated[Dict[str, Any], DEPLOYMENT_INFO_NAME]:
+) -> Annotated[Dict[str, Any], "cs_deployment_info"]:
     """Deploy model with monitoring and incident reporting (Articles 10, 17, 18).
 
     This step:
@@ -104,7 +101,7 @@ def modal_deployment(
     approval_record["deployment_url"] = deployment_url
 
     # Save compliance artifacts to Modal
-    from src.utils.modal_utils import save_compliance_artifacts_to_modal
+    from src.utils.storage import save_compliance_artifacts_to_modal
 
     run_id = str(get_step_context().pipeline_run.id)
     artifacts = {
@@ -122,9 +119,7 @@ def modal_deployment(
     try:
         with open(release_dir / "approval_record.json", "w") as f:
             json.dump(approval_record, f, indent=2, default=str)
-        logger.info(
-            f"Approval record saved to: {release_dir / 'approval_record.json'}"
-        )
+        logger.info(f"Approval record saved to: {release_dir / 'approval_record.json'}")
     except (TypeError, ValueError) as e:
         logger.error(f"Failed to serialize approval record: {e}")
 

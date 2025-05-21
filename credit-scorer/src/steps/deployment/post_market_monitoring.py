@@ -53,9 +53,7 @@ def post_market_monitoring(
     timestamp = datetime.now().isoformat()
 
     # Define monitoring thresholds based on evaluation results
-    baseline_accuracy = evaluation_results.get("metrics", {}).get(
-        "accuracy", 0.8
-    )
+    baseline_accuracy = evaluation_results.get("metrics", {}).get("accuracy", 0.8)
     drift_threshold = 0.1  # Alert if metrics drop by more than 10%
 
     # Create comprehensive monitoring plan
@@ -102,16 +100,12 @@ def post_market_monitoring(
     with open(monitoring_plan_path, "w") as f:
         json.dump(monitoring_plan, f, indent=2)
 
-    logger.info(
-        f"Post-market monitoring plan saved to: {monitoring_plan_path}"
-    )
+    logger.info(f"Post-market monitoring plan saved to: {monitoring_plan_path}")
 
     # Log monitoring plan metadata for compliance documentation
     log_metadata(metadata={"monitoring_plan": monitoring_plan})
 
     print("✅ Post-market monitoring plan established (Article 17)")
-    print(
-        "📈 Daily drift monitoring, weekly performance checks, monthly fairness audits"
-    )
+    print("📈 Daily drift monitoring, weekly performance checks, monthly fairness audits")
 
     return monitoring_plan

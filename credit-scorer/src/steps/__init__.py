@@ -15,15 +15,17 @@
 # limitations under the License.
 #
 
-# feature engineering
+"""Steps for the project."""
+
 # deployment
 from .deployment.approve import approve_deployment
 from .deployment.deploy import modal_deployment
+from .deployment.generate_dashboard import generate_compliance_dashboard
 from .deployment.generate_sbom import generate_sbom
 from .deployment.post_market_monitoring import post_market_monitoring
-
-# annex
 from .deployment.post_run_annex import generate_annex_iv_documentation
+
+# feature engineering
 from .feature_engineering.data_preprocessor import data_preprocessor
 from .feature_engineering.data_splitter import data_splitter
 from .feature_engineering.ingest import ingest

@@ -15,9 +15,11 @@
 # limitations under the License.
 #
 
+"""Deployment steps for the project."""
 
 from .approve import approve_deployment
 from .deploy import modal_deployment
+from .generate_dashboard import generate_compliance_dashboard
 from .generate_sbom import generate_sbom
 from .post_market_monitoring import post_market_monitoring
 from .post_run_annex import generate_annex_iv_documentation
