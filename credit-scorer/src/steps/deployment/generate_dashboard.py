@@ -19,13 +19,12 @@ from pathlib import Path
 from typing import Annotated
 
 import pandas as pd
-from zenml import get_step_context, step
+from zenml import step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from src.constants import (
     COMPLIANCE_DASHBOARD_HTML_NAME,
-    RELEASES_DIR,
     RISK_REGISTER_PATH,
 )
 from src.utils.visualizations.compliance_dashboard import create_compliance_dashboard_artifact

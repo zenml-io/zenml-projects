@@ -140,6 +140,7 @@ def get_compliance_results(
         release_id: Optional specific release to analyze
         risk_register_path: Optional path to risk register
         articles: Optional list of specific articles to check
+        run_release_dir: Optional direct path to the release directory
 
     Returns:
         Dictionary with compliance results

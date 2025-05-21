@@ -774,14 +774,11 @@ class ComplianceCalculator:
         return metrics, findings
 
 
-# Main public interface
 def calculate_compliance(
     release_id: Optional[str] = None,
     risk_register_path: Optional[str] = None,
     articles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    # Log the provided release_id for debugging
-    logger.info(f"Calculating compliance for release ID: {release_id}")
     """Calculate compliance for specified articles.
 
     Args:
@@ -792,6 +789,8 @@ def calculate_compliance(
     Returns:
         Dict with overall and per-article compliance results
     """
+    logger.info(f"Calculating compliance for release ID: {release_id}")
+
     # Import here to avoid circular import
     from .orchestrator import ComplianceOrchestrator
 
