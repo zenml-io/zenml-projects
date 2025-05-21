@@ -12,7 +12,6 @@ os.environ["MODAL_AUTOMOUNT"] = "false"
 
 import modal
 from fastapi import FastAPI, HTTPException
-from src.constants import VOLUME_METADATA
 
 from modal_app.schemas import (
     ApiInfo,
@@ -22,6 +21,7 @@ from modal_app.schemas import (
     MonitorResponse,
     PredictionResponse,
 )
+from src.constants import VOLUME_METADATA
 
 # -- Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -31,9 +31,7 @@ logger = logging.getLogger("credit-scoring-deployer")
 APP_NAME = os.getenv("APP_NAME", VOLUME_METADATA["app_name"])
 VOLUME_NAME = os.getenv("VOLUME_NAME", VOLUME_METADATA["volume_name"])
 SECRET_NAME = os.getenv("SECRET_NAME", VOLUME_METADATA["secret_name"])
-ENVIRONMENT = os.getenv(
-    "MODAL_ENVIRONMENT", VOLUME_METADATA["environment_name"]
-)
+ENVIRONMENT = os.getenv("MODAL_ENVIRONMENT", VOLUME_METADATA["environment_name"])
 # Paths within the container (prefixed with /mnt)
 MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt/{VOLUME_METADATA['model_path']}")
 PREPROCESS_PATH = os.getenv(
@@ -52,22 +50,21 @@ def create_modal_app(python_version: str = "3.12.9"):
             "joblib",
             "pandas",
             "numpy",
+            "lightgbm",
             "requests",
             "whylogs",
             "fastapi[standard]",
             "uvicorn",
         )
         .add_local_python_source("modal_app")
-        .add_local_file(
-            "src/constants.py", remote_path="/root/src/constants.py"
-        )
+        .add_local_file("src/constants.py", remote_path="/root/src/constants.py")
         .add_local_file(
             "src/utils/incidents.py",
             remote_path="/root/src/utils/incidents.py",
         )
         .add_local_file(
-            "src/utils/modal_utils.py",
-            remote_path="/root/src/utils/modal_utils.py",
+            "src/utils/storage.py",
+            remote_path="/root/src/utils/storage.py",
         )
     )
 
@@ -109,18 +106,15 @@ def _load_model() -> Any:
 
 def _load_pipeline() -> Any:
     """Load preprocessing pipeline into memory from Modal volume."""
-    import pickle
+    import joblib
 
     pipeline_path = PREPROCESS_PATH
     if not os.path.isabs(pipeline_path):
         pipeline_path = os.path.join("/mnt", pipeline_path)
 
     if os.path.exists(pipeline_path):
-        logger.info(
-            f"Loading preprocessing pipeline from volume: {pipeline_path}"
-        )
-        with open(pipeline_path, "rb") as f:
-            return pickle.load(f)
+        logger.info(f"Loading preprocessing pipeline from volume: {pipeline_path}")
+        return joblib.load(pipeline_path)
     else:
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_path}")
 
@@ -194,11 +188,7 @@ def _predict(
         input_dict = {}
         for key, value in input_data.items():
             # Handle both with and without scale__ prefix for flexibility
-            clean_key = (
-                key.replace("scale__", "")
-                if key.startswith("scale__")
-                else key
-            )
+            clean_key = key.replace("scale__", "") if key.startswith("scale__") else key
             input_dict[clean_key] = value
 
         df = pd.DataFrame([input_dict])
@@ -220,18 +210,12 @@ def _predict(
         # Assess risk score based on probability
         risk_assessment = {
             "risk_score": float(probs[0]),
-            "risk_level": "high"
-            if probs[0] > 0.7
-            else "medium"
-            if probs[0] > 0.3
-            else "low",
+            "risk_level": "high" if probs[0] > 0.7 else "medium" if probs[0] > 0.3 else "low",
         }
 
         return {
             "probabilities": probs.tolist(),
-            "model_version": model_checksum[:8]
-            if model_checksum
-            else "unknown",
+            "model_version": model_checksum[:8] if model_checksum else "unknown",
             "timestamp": datetime.now().isoformat(),
             "risk_assessment": risk_assessment,
         }
@@ -301,9 +285,7 @@ def _create_fastapi_app() -> FastAPI:
             model_info = getattr(load_model.remote(), "_model_info", {})
             model_checksum = model_info.get("checksum", "unknown")
 
-            result = report_incident.remote(
-                incident_data.dict(), model_checksum
-            )
+            result = report_incident.remote(incident_data.dict(), model_checksum)
             if "error" in result:
                 raise HTTPException(status_code=500, detail=result["error"])
 
@@ -314,9 +296,7 @@ def _create_fastapi_app() -> FastAPI:
             return result
         except Exception as e:
             logger.exception(f"Incident reporting error: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Incident reporting failed: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Incident reporting failed: {str(e)}")
 
     @web_app.get("/monitor", response_model=MonitorResponse)
     async def monitor_endpoint() -> Dict:
@@ -329,9 +309,7 @@ def _create_fastapi_app() -> FastAPI:
             return result
         except Exception as e:
             logger.exception(f"Monitoring error: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Monitoring failed: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Monitoring failed: {str(e)}")
 
     @web_app.post("/predict", response_model=PredictionResponse)
     async def predict_endpoint(features: CreditScoringFeatures) -> Dict:
@@ -353,9 +331,7 @@ def _create_fastapi_app() -> FastAPI:
             return result
         except Exception as e:
             logger.exception(f"Prediction error: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Prediction failed: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
     return web_app
 
@@ -366,9 +342,7 @@ load_pipeline = app.function()(_load_pipeline)
 predict = app.function()(_predict)
 report_incident = app.function()(_report_incident)
 monitor_data_drift = app.function()(_monitor_data_drift)
-fastapi_app = app.function()(
-    modal.asgi_app(label=APP_NAME)(_create_fastapi_app)
-)
+fastapi_app = app.function()(modal.asgi_app(label=APP_NAME)(_create_fastapi_app))
 
 
 @app.local_entrypoint()
@@ -396,9 +370,7 @@ def main(
     predict = app.function()(_predict)
     report_incident = app.function()(_report_incident)
     monitor_data_drift = app.function()(_monitor_data_drift)
-    fastapi_app = app.function()(
-        modal.asgi_app(label=APP_NAME)(_create_fastapi_app)
-    )
+    fastapi_app = app.function()(modal.asgi_app(label=APP_NAME)(_create_fastapi_app))
 
     # Deploy (invoke Modal)
     from modal.output import enable_output
@@ -416,16 +388,21 @@ def main(
     # Method 1: Try to get URL directly from the fastapi_app
     try:
         # Access the web_url attribute directly after deployment
-        fastapi_url = fastapi_app.web_url
-        logger.info(f"Got URL from fastapi_app.web_url: {fastapi_url}")
+        fastapi_url = fastapi_app.get_web_url()
+        logger.info(f"Got URL from fastapi_app.get_web_url: {fastapi_url}")
     except Exception as e:
         logger.warning(f"Could not get URL from fastapi_app directly: {e}")
 
     # Method 2: Construct URL from workspace name and label
     workspace_name = getattr(deploy_result, "workspace_name", "marwan-ext")
-    fastapi_url = (
-        f"https://{workspace_name}-{ENVIRONMENT}--{APP_NAME}.modal.run"
-    )
+
+    if ENVIRONMENT == "main":
+        # Default environment doesn't include the suffix
+        fastapi_url = f"https://{workspace_name}--{APP_NAME}.modal.run"
+    else:
+        # Non-default environments include the suffix
+        fastapi_url = f"https://{workspace_name}-{ENVIRONMENT}--{APP_NAME}.modal.run"
+
     logger.info(f"Constructed URL with stage: {fastapi_url}")
 
     logger.info(f"Serving Credit Scoring Model on {APP_NAME}")

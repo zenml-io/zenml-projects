@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Script to collect log metadata for EU AI Act Article 12 compliance.
+"""Script to collect log metadata for EU AI Act Article 12 compliance.
 
 This script retrieves log URIs from all ZenML pipelines and creates
 the necessary directory structure and metadata files to satisfy
@@ -16,6 +15,8 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from zenml.client import Client
+
 from src.constants import (
     DEPLOYMENT_PIPELINE_NAME,
     FEATURE_ENGINEERING_PIPELINE_NAME,
@@ -23,7 +24,6 @@ from src.constants import (
     TRAINING_PIPELINE_NAME,
 )
 from src.utils.compliance.data_loader import ComplianceDataLoader
-from zenml.client import Client
 
 # Configure logging
 logging.basicConfig(
@@ -66,9 +66,7 @@ def main():
                 run_id = str(run.id)
 
                 # Get log information
-                log_info = ComplianceDataLoader.get_pipeline_log_paths(
-                    pipeline_name, run_id
-                )
+                log_info = ComplianceDataLoader.get_pipeline_log_paths(pipeline_name, run_id)
 
                 if log_info and "log_uri" in log_info:
                     # Add to metadata collection
@@ -80,9 +78,7 @@ def main():
 
                     if log_file_path.exists():
                         # Create a unique name for the symlink
-                        symlink_dest = (
-                            pipeline_logs_dir / f"{pipeline_name}_{run_id}.log"
-                        )
+                        symlink_dest = pipeline_logs_dir / f"{pipeline_name}_{run_id}.log"
 
                         # Create symlink or copy file
                         try:
@@ -90,9 +86,7 @@ def main():
                                 symlink_dest.unlink()
 
                             symlink_dest.symlink_to(log_file_path)
-                            logger.info(
-                                f"Created symlink to log file at {symlink_dest}"
-                            )
+                            logger.info(f"Created symlink to log file at {symlink_dest}")
                         except Exception:
                             # If symlink fails, copy the file
                             import shutil
@@ -113,9 +107,7 @@ def main():
         json.dump(all_logs_metadata, f, indent=2)
 
     logger.info(f"Log metadata saved to {metadata_path}")
-    logger.info(
-        f"Article 12 (Record Keeping) compliance directory created at {pipeline_logs_dir}"
-    )
+    logger.info(f"Article 12 (Record Keeping) compliance directory created at {pipeline_logs_dir}")
 
     # Return a count of collected logs
     return len(all_logs_metadata)

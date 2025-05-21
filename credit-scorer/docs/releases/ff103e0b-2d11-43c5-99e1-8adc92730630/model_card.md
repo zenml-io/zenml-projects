@@ -2,11 +2,11 @@
 
 ## Model Details
 
-**Model ID:** bb94f3d9
-**Version:** 2025-05-19
+**Model ID:** f27115fd
+**Version:** 2025-05-20
 **Description:** This model assesses credit risk for loan applications
-**Type:** Gradient Boosting Classifier
-**Framework:** scikit-learn
+**Type:** LGBMClassifier
+**Framework:** LightGBM
 
 ## Intended Use
 
@@ -14,15 +14,13 @@ This model is designed to assist financial institutions in assessing credit risk
 
 ## Performance Metrics
 
-| Metric   | Value  |
-| -------- | ------ |
-| accuracy | 0.9189 |
-| auc      | 0.7500 |
+| Metric | Value |
+|--------|-------|
+| accuracy | 0.8439 |
+| auc | 0.0000 |
 
 ### Decision Thresholds
-
 Model outputs a probability score (0-1). Recommended thresholds:
-
 - Low risk: 0.0-0.3
 - Medium risk: 0.3-0.6
 - High risk: 0.6-1.0
@@ -30,7 +28,6 @@ Model outputs a probability score (0-1). Recommended thresholds:
 ## Fairness Considerations
 
 The model has been evaluated for fairness across different demographic groups. We implement several measures to mitigate potential bias, including:
-
 - Protected attributes are not directly used as features
 - Fairness metrics are evaluated across different demographic groups
 - Post-processing techniques applied to reduce disparate impact
@@ -39,33 +36,33 @@ The model has been evaluated for fairness across different demographic groups. W
 
 #### Code Gender
 
-| Metric                   | Value  |
-| ------------------------ | ------ |
-| selection_rate_disparity | 0.0034 |
+| Metric | Value |
+|--------|-------|
+| selection_rate_disparity | 0.1427 |
 
-#### Num Age Years
+#### Num  Age Years
 
-| Metric                   | Value  |
-| ------------------------ | ------ |
+| Metric | Value |
+|--------|-------|
 | selection_rate_disparity | 1.0000 |
 
 #### Name Education Type
 
-| Metric                   | Value  |
-| ------------------------ | ------ |
-| selection_rate_disparity | 0.0217 |
+| Metric | Value |
+|--------|-------|
+| selection_rate_disparity | 0.8363 |
 
 #### Name Family Status
 
-| Metric                   | Value  |
-| ------------------------ | ------ |
-| selection_rate_disparity | 0.0045 |
+| Metric | Value |
+|--------|-------|
+| selection_rate_disparity | 0.2015 |
 
 #### Name Housing Type
 
-| Metric                   | Value  |
-| ------------------------ | ------ |
-| selection_rate_disparity | 0.0175 |
+| Metric | Value |
+|--------|-------|
+| selection_rate_disparity | 0.2793 |
 
 ## Limitations
 
@@ -76,7 +73,7 @@ The model has been evaluated for fairness across different demographic groups. W
 
 ## Risk Management
 
-The overall risk score for this model is 0.53 on a scale of 0-1 (lower is better).
+The overall risk score for this model is 0.65 on a scale of 0-1 (lower is better).
 This model is subject to continuous monitoring for data drift and performance degradation.
 Human oversight is required for all decisions made with assistance from this model.
 

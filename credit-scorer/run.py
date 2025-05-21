@@ -19,12 +19,13 @@ import os
 from pathlib import Path
 
 import click
+from zenml.logger import get_logger
+
 from src.pipelines import (
     deployment,
     feature_engineering,
     training,
 )
-from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -109,9 +110,7 @@ def main(
     # Get full path to config directory
     config_dir = Path(config_dir)
     if not config_dir.is_absolute():
-        config_dir = (
-            Path(os.path.dirname(os.path.realpath(__file__))) / config_dir
-        )
+        config_dir = Path(os.path.dirname(os.path.realpath(__file__))) / config_dir
     if not config_dir.exists():
         raise ValueError(f"Configuration directory {config_dir} not found")
 
@@ -119,9 +118,7 @@ def main(
     if auto_approve:
         os.environ["DEPLOY_APPROVAL"] = "y"
         os.environ["APPROVER"] = "automated_ci"
-        os.environ["APPROVAL_RATIONALE"] = (
-            "Automatic approval via --auto-approve flag"
-        )
+        os.environ["APPROVAL_RATIONALE"] = "Automatic approval via --auto-approve flag"
 
     # Common pipeline options
     pipeline_args = {}
@@ -142,9 +139,7 @@ def main(
 
         run_args = {}
         fe_pipeline = feature_engineering.with_options(**pipeline_args)
-        train_df, test_df, sk_pipeline, compliance_record, *_ = fe_pipeline(
-            **run_args
-        )
+        train_df, test_df, sk_pipeline, compliance_record, *_ = fe_pipeline(**run_args)
 
         logger.info("✅ Feature engineering pipeline finished successfully!")
 
@@ -168,11 +163,12 @@ def main(
             train_args["test_df"] = outputs["test_df"]
 
         training_pipeline = training.with_options(**pipeline_args)
-        model, eval_results, risk_scores, *_ = training_pipeline(**train_args)
+        model, eval_results, eval_visualization, risk_scores, *_ = training_pipeline(**train_args)
 
         # Store for potential chaining
         outputs["model"] = model
         outputs["evaluation_results"] = eval_results
+        outputs["eval_visualization"] = eval_visualization
         outputs["risk_scores"] = risk_scores
 
         logger.info("✅ Training pipeline completed")

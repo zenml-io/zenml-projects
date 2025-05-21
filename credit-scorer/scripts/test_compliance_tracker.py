@@ -13,20 +13,12 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import the compliance module
-from src.utils.compliance import (
-    ComplianceDataError,
-    ComplianceDataLoader,
-    calculate_compliance,
-)
-from src.utils.compliance.calculators.config_driven_calculator import (
-    ConfigDrivenCalculator,
-)
-from src.utils.compliance.compliance_constants import DEFAULT_COMPLIANCE_PATHS
+from src.utils.compliance import DEFAULT_COMPLIANCE_PATHS, ComplianceDataError
+from src.utils.compliance.compliance_calculator import ComplianceCalculator, calculate_compliance
+from src.utils.compliance.data_loader import ComplianceDataLoader
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -37,9 +29,7 @@ def test_load_risk_register():
         logger.info("Testing ComplianceDataLoader.load_risk_register()...")
         risk_df, warnings = data_loader.load_risk_register()
 
-        logger.info(
-            f"Successfully loaded risk register with {len(risk_df)} risks"
-        )
+        logger.info(f"Successfully loaded risk register with {len(risk_df)} risks")
         if warnings:
             logger.warning(f"Warnings: {len(warnings)}")
             for warning in warnings:
@@ -58,9 +48,7 @@ def test_load_incident_log():
         logger.info("\nTesting ComplianceDataLoader.load_incident_log()...")
         incidents, warnings = data_loader.load_incident_log()
 
-        logger.info(
-            f"Successfully loaded incident log with {len(incidents)} incidents"
-        )
+        logger.info(f"Successfully loaded incident log with {len(incidents)} incidents")
         if warnings:
             logger.warning(f"Warnings: {len(warnings)}")
             for warning in warnings:
@@ -84,10 +72,7 @@ def debug_article_9_config():
         logger.info("\n=== DEBUGGING ARTICLE 9 ===")
 
         # 1. Load config and check Article 9 definition
-        config_path = (
-            Path(__file__).parent.parent
-            / "src/utils/compliance/compliance_articles.yaml"
-        )
+        config_path = Path(__file__).parent.parent / "src/utils/compliance/compliance_articles.yaml"
 
         if not config_path.exists():
             logger.error(f"Config file not found: {config_path}")
@@ -135,18 +120,14 @@ def debug_article_9_config():
             has_mitigation = risk_df["Mitigation"].apply(
                 lambda x: bool(str(x).strip()) if pd.notna(x) else False
             )
-            logger.info(
-                f"Risks with mitigation: {has_mitigation.sum()}/{len(risk_df)}"
-            )
+            logger.info(f"Risks with mitigation: {has_mitigation.sum()}/{len(risk_df)}")
         else:
             logger.warning("No 'Mitigation' column found")
 
         # Check other relevant columns
         for col in ["Mitigation_status", "Review_date"]:
             if col in risk_df.columns:
-                logger.info(
-                    f"{col} present: {risk_df[col].notna().sum()}/{len(risk_df)} non-null"
-                )
+                logger.info(f"{col} present: {risk_df[col].notna().sum()}/{len(risk_df)} non-null")
             else:
                 logger.warning(f"No '{col}' column found")
 
@@ -158,9 +139,9 @@ def debug_article_9_config():
 
 
 def test_config_driven_calculator():
-    """Test the ConfigDrivenCalculator directly."""
+    """Test the ComplianceCalculator directly."""
     try:
-        logger.info("\nTesting ConfigDrivenCalculator...")
+        logger.info("\nTesting ComplianceCalculator...")
 
         # Load data
         data_loader = ComplianceDataLoader()
@@ -171,9 +152,7 @@ def test_config_driven_calculator():
         logger.info(f"Risk register shape: {risk_df.shape}")
         logger.info(f"Risk register columns: {list(risk_df.columns)}")
         if "Article" in risk_df.columns:
-            logger.info(
-                f"Article 9 risks: {len(risk_df[risk_df['Article'] == 'article_9'])}"
-            )
+            logger.info(f"Article 9 risks: {len(risk_df[risk_df['Article'] == 'article_9'])}")
 
         # Prepare data
         data = {
@@ -198,17 +177,14 @@ def test_config_driven_calculator():
                 logger.warning(f"Failed to load risk scores: {e}")
 
         # Test Article 9 calculator
-        config_path = (
-            Path(__file__).parent.parent
-            / "src/utils/compliance/compliance_articles.yaml"
-        )
+        config_path = Path(__file__).parent.parent / "src/utils/compliance/compliance_articles.yaml"
 
         # Verify config exists
         if not config_path.exists():
             logger.error(f"Config file not found: {config_path}")
             return None
 
-        calculator = ConfigDrivenCalculator(str(config_path), "article_9")
+        calculator = ComplianceCalculator(str(config_path), "article_9")
         result = calculator.calculate(**data)
 
         # Print Article 9 specific results
@@ -217,26 +193,20 @@ def test_config_driven_calculator():
 
         # Log detailed metrics for debugging
         logger.info("Detailed Metrics:")
-        score_keys = [
-            k for k in result["metrics"].keys() if k.endswith("_score")
-        ]
+        score_keys = [k for k in result["metrics"].keys() if k.endswith("_score")]
         for key in score_keys:
             name = key.replace("_score", "")
             logger.info(f"  - {name}: {result['metrics'][key]:.2f}%")
 
         logger.info("Findings:")
         for i, finding in enumerate(result["findings"], 1):
-            logger.info(
-                f"  {i}. {finding['type'].upper()}: {finding['message']}"
-            )
+            logger.info(f"  {i}. {finding['type'].upper()}: {finding['message']}")
             if "recommendation" in finding:
-                logger.info(
-                    f"     Recommendation: {finding['recommendation']}"
-                )
+                logger.info(f"     Recommendation: {finding['recommendation']}")
 
         return result
     except Exception as e:
-        logger.error(f"Failed to test ConfigDrivenCalculator: {str(e)}")
+        logger.error(f"Failed to test ComplianceCalculator: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -281,16 +251,16 @@ def main():
     debug_article_9_config()
 
     # Test loading risk register
-    risk_df = test_load_risk_register()
+    test_load_risk_register()
 
     # Test loading incident log
-    incidents = test_load_incident_log()
+    test_load_incident_log()
 
-    # Test ConfigDrivenCalculator directly
-    calculator_result = test_config_driven_calculator()
+    # Test ComplianceCalculator directly
+    test_config_driven_calculator()
 
     # Test calculating compliance
-    compliance_results = test_calculate_compliance()
+    test_calculate_compliance()
 
     logger.info("=== All Tests Complete ===")
 

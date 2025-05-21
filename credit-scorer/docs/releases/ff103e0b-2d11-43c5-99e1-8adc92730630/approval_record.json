@@ -1,6 +1,6 @@
 {
-  "approval_id": "approval_2025-05-19T20-38-09.183181",
-  "timestamp": "2025-05-19T20:38:09.183181",
+  "approval_id": "approval_2025-05-20T20-11-01.536097",
+  "timestamp": "2025-05-20T20:11:01.536097",
   "approved": true,
   "approver": "automated_ci",
   "rationale": "Automatic approval via --auto-approve flag",
@@ -11,13 +11,13 @@
     "Risk score": false
   },
   "evaluation_summary": {
-    "accuracy": 0.9188571428571428,
-    "auc": 0.750025145422016,
+    "accuracy": 0.8438571428571429,
+    "auc": null,
     "fairness_flags": []
   },
   "risk_summary": {
     "risk_level": "unknown",
     "high_risk_factors": []
   },
-  "deployment_url": "https://marwan-ext-main--credit-scoring-app.modal.run"
+  "deployment_url": "https://marwan-ext--credit-scoring-app.modal.run"
 }

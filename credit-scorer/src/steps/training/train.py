@@ -99,12 +99,13 @@ def train_model(
         "num_leaves": 31,
         "max_depth": 6,
         "n_estimators": 200,
-        "scale_pos_weight": scale_pos_weight,  # Handle class imbalance
         "random_state": 42,
         "verbosity": -1,  # Silence output
     }
     if hyperparameters:
         params.update(hyperparameters)
+
+    params["scale_pos_weight"] = scale_pos_weight  # Handle class imbalance
 
     logger.info(f"Training LGBMClassifier with params: {params}")
 

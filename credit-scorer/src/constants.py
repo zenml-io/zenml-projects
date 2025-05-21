@@ -39,6 +39,7 @@ WHYLOGS_VISUALIZATION_NAME = "cs_whylogs_visualization"
 
 # Training artifacts
 EVALUATION_RESULTS_NAME = "cs_evaluation_results"
+EVAL_VISUALIZATION_NAME = "cs_evaluation_visualization"
 RISK_SCORES_NAME = "cs_risk_scores"
 FAIRNESS_REPORT_NAME = "cs_fairness_report"
 RISK_REGISTER_NAME = "cs_risk_register"
@@ -52,6 +53,8 @@ INCIDENT_REPORT_NAME = "cs_incident_report"
 COMPLIANCE_RECORD_NAME = "cs_compliance_record"
 SBOM_ARTIFACT_NAME = "cs_sbom_artifact"
 ANNEX_IV_PATH_NAME = "cs_annex_iv_path"
+RUN_RELEASE_DIR = "cs_run_release_dir"
+COMPLIANCE_DASHBOARD_HTML_NAME = "cs_compliance_dashboard_html"
 
 # ======================================================================
 # Required Local Directories (minimal) -- Same paths as Modal Volume
@@ -62,6 +65,7 @@ RISK_DIR = "docs/risk"
 RELEASES_DIR = "docs/releases"
 TEMPLATES_DIR = "docs/templates"
 SAMPLE_INPUTS_PATH = f"{TEMPLATES_DIR}/sample_inputs.json"
+RISK_REGISTER_PATH = f"{RISK_DIR}/risk_register.xlsx"
 
 # Ensure minimal local directories exist
 for dir_path in [RISK_DIR, RELEASES_DIR]:
@@ -110,9 +114,7 @@ HAZARD_DEFINITIONS = {
         "trigger": lambda results, scores: (
             any(
                 abs(v.get("selection_rate_disparity", 0)) > 0.2
-                for v in results["fairness"]
-                .get("fairness_metrics", {})
-                .values()
+                for v in results["fairness"].get("fairness_metrics", {}).values()
                 if isinstance(v, dict)
             )
         ),
@@ -123,8 +125,7 @@ HAZARD_DEFINITIONS = {
     },
     "low_accuracy": {
         "description": "Model accuracy below 0.75",
-        "trigger": lambda results, scores: results["metrics"]["accuracy"]
-        < 0.75,
+        "trigger": lambda results, scores: results["metrics"]["accuracy"] < 0.75,
         "severity": "medium",
         "mitigation": "Collect more data; tune hyper-parameters",
     },

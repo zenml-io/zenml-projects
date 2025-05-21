@@ -1,0 +1,490 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EU AI Act Compliance Dashboard</title>
+        
+<style>
+    body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+    h1, h2, h3, h4 {
+        color: #1F4E79;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+    h1 {
+        border-bottom: 2px solid #1F4E79;
+        padding-bottom: 10px;
+    }
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .summary-header {
+        text-align: center;
+        padding: 10px;
+        background-color: #f0f5ff;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    .overall-score {
+        font-size: 32px;
+        font-weight: bold;
+        color: #1F4E79;
+    }
+    .metrics-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+    }
+    .metric-card {
+        flex: 1;
+        min-width: 200px;
+        background-color: white;
+        border-radius: 5px;
+        padding: 15px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .metric-label {
+        font-size: 14px;
+        color: #666;
+    }
+    .strongest {
+        border-left: 4px solid #478C5C;
+    }
+    .strongest .metric-value {
+        color: #478C5C;
+    }
+    .weakest {
+        border-left: 4px solid #D64045;
+    }
+    .weakest .metric-value {
+        color: #D64045;
+    }
+    .gauges-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+    }
+    .gauge-card {
+        flex: 1;
+        min-width: 300px;
+        background-color: white;
+        border-radius: 5px;
+        padding: 15px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    }
+    .gauge-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .gauge {
+        width: 100%;
+        height: 120px;
+        position: relative;
+        margin-bottom: 10px;
+    }
+    .data-sources {
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+    .findings-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .finding {
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+    .finding-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .finding-critical {
+        background-color: #ffecec;
+        border-left: 3px solid #D64045;
+    }
+    .finding-warning {
+        background-color: #fff9ec;
+        border-left: 3px solid #FFB30F;
+    }
+    .finding-positive {
+        background-color: #f0f7f0;
+        border-left: 3px solid #478C5C;
+    }
+    /* Improved gauge styling */
+    .gauge-container {
+        width: 100%;
+        height: 180px;
+        position: relative;
+        margin-bottom: 10px;
+    }
+    .gauge-background {
+        width: 100%;
+        height: 15px;
+        background-color: #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+    .gauge-fill {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 1s ease-in-out;
+    }
+    .gauge-markers {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        font-size: 12px;
+        color: #666;
+    }
+    .gauge-value {
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+    }
+    .gauge-threshold {
+        position: absolute;
+        top: 0;
+        height: 15px;
+        width: 3px;
+        background-color: black;
+        z-index: 10;
+    }
+</style>
+
+    </head>
+    <body>
+    
+    <h1>EU AI Act Compliance Dashboard</h1>
+    <div class="card">
+        <h2>Executive Summary</h2>
+        <p>Overview of system compliance status, risk indicators, and key metrics related to the EU AI Act requirements.</p>
+    </div>
+    
+    <div class="summary-header">
+        <h3 style="margin: 0; color:#1F4E79;">Overall Compliance Score</h3>
+        <div class="overall-score">86.4%</div>
+    </div>
+    
+    <div class="metrics-container">
+    
+        <div class="metric-card">
+            <div class="metric-value">0</div>
+            <div class="metric-label">Risks Identified</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-value">1</div>
+            <div class="metric-label">Critical Findings</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-value">1</div>
+            <div class="metric-label">Warning Findings</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-value">0%</div>
+            <div class="metric-label">Mitigation Progress</div>
+        </div>
+    </div>
+    <div class="metrics-container">
+    
+        <div class="metric-card">
+            <div class="metric-value">0</div>
+            <div class="metric-label">High Risk Items</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-value">2</div>
+            <div class="metric-label">Reported Incidents</div>
+        </div>
+        
+        <div class="metric-card strongest">
+            <div class="metric-value">100%</div>
+            <div class="metric-label">Strongest: Art. 10</div>
+        </div>
+        
+        <div class="metric-card weakest">
+            <div class="metric-value">69%</div>
+            <div class="metric-label">Weakest: Art. 15</div>
+        </div>
+    </div>
+    <div class="card">
+        <h3>EU AI Act Compliance Status</h3>
+    <div style="display: flex; flex-wrap: wrap;"><div style="flex: 2; padding-right: 20px;"><div class="gauges-container">
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 9 (Risk Management System)</div>
+        <div class="gauge-value">98.8%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 98.84615384615384%; background-color: #C6E0B4;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Risk Register
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 10 (Data and Data Governance)</div>
+        <div class="gauge-value">100.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 100.0%; background-color: #C6E0B4;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Data Quality Metrics, Fairness Evaluation
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 11 (Technical Documentation)</div>
+        <div class="gauge-value">70.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 70.0%; background-color: #FFE699;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Annex IV Documentation, Software BOM
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 12 (Record Keeping)</div>
+        <div class="gauge-value">100.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 100.0%; background-color: #C6E0B4;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Audit Logs, Release Artifacts
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 13 (Transparency and Provision of Information)</div>
+        <div class="gauge-value">96.7%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 96.66666666666667%; background-color: #C6E0B4;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> N/A
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 14 (Human Oversight)</div>
+        <div class="gauge-value">76.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 76.0204081632653%; background-color: #FFE699;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Audit Logs
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 15 (Accuracy, Robustness and Cybersecurity)</div>
+        <div class="gauge-value">68.6%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 68.57142857142857%; background-color: #FFE699;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Fairness Metrics, Model Metrics, Robustness Tests
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 16 (Quality Management System)</div>
+        <div class="gauge-value">100.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 100.0%; background-color: #C6E0B4;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Quality Management System
+        </div>
+    </div>
+    
+    <div class="gauge-card">
+        <div class="gauge-title">Art. 17 (Post-market Monitoring)</div>
+        <div class="gauge-value">70.0%</div>
+        <div class="gauge-container">
+            <div class="gauge-background">
+                <div class="gauge-fill" style="width: 70.0%; background-color: #FFE699;"></div>
+                <div class="gauge-threshold" style="left: 75%;"></div>
+            </div>
+            <div class="gauge-markers">
+                <div>0%</div>
+                <div>25%</div>
+                <div>50%</div>
+                <div>75%</div>
+                <div>100%</div>
+            </div>
+        </div>
+        <div class="data-sources">
+            <strong>Sources:</strong> Monitoring Plan
+        </div>
+    </div>
+    </div></div><div style="flex: 1;"><h4>Key Compliance Findings</h4><div class="findings-container"><div style="color:#D64045; font-weight:bold; margin-bottom: 5px;">Critical Issues:</div>
+    <div class="finding finding-critical">
+        <div class="finding-title">Reviewer training materials below threshold (0.14 vs 0.50)</div>
+        <div class="finding-description">Improve training_materials to meet compliance requirements</div>
+    </div>
+    
+    <div class="finding finding-critical">
+        <div class="finding-title">Reviewer training materials below threshold (0.14 vs 0.50)</div>
+        <div class="finding-description">Improve training_materials to meet compliance requirements</div>
+    </div>
+    <div style="color:#FFB30F; font-weight:bold; margin-bottom: 5px;">Warnings:</div>
+    <div class="finding finding-warning">
+        <div class="finding-title">Accuracy, Robustness and Cybersecurity compliance is moderate (68.6%)</div>
+        <div class="finding-description">Address identified issues to improve compliance</div>
+    </div>
+    
+    <div class="finding finding-warning">
+        <div class="finding-title">Accuracy, Robustness and Cybersecurity compliance is moderate (68.6%)</div>
+        <div class="finding-description">Address identified issues to improve compliance</div>
+    </div>
+    <div style="color:#478C5C; font-weight:bold; margin-bottom: 5px;">Positive Findings:</div>
+    <div class="finding finding-positive">
+        <div class="finding-title">Risk Management System compliance is high (98.8%)</div>
+        <div class="finding-description">Continue maintaining good compliance practices</div>
+    </div>
+    
+    <div class="finding finding-positive">
+        <div class="finding-title">Data and Data Governance compliance is high (100.0%)</div>
+        <div class="finding-description">Continue maintaining good compliance practices</div>
+    </div>
+    
+    <div class="finding finding-positive">
+        <div class="finding-title">Technical Documentation compliance is high (70.0%)</div>
+        <div class="finding-description">Continue maintaining good compliance practices</div>
+    </div>
+    </div></div></div></div>
+    <div style="background-color:#f5f5f5; padding:10px; border-radius:5px; margin: 20px 0;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <div><strong>EU AI Act Compliance Status:</strong> High Compliance</div>
+            <div style="color:#666; font-size:12px;">Release ID: ff103e0b-2d11-43c5-99e1-8adc92730630</div>
+        </div>
+        <div style="background-color:#e0e0e0; border-radius:5px; height:10px; width:100%;">
+            <div style="background-color:#478C5C; width:86.38134484563057%; height:100%; border-radius:5px;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:5px;">
+            <div>0%</div>
+            <div>50%</div>
+            <div>100%</div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; font-size: 12px; color: #666; margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
+        Generated on 2025-05-20 at 20:12:52
+    </div>
+    
+    </body>
+    </html>
+    

@@ -47,7 +47,6 @@
   "frameworks": {
     "cyclonedx-python-lib": ">=10.0.1",
     "fairlearn": ">=0.12.0",
-    "pdfkit": ">=1.0.0",
     "pyyaml": ">=6.0.0",
     "markdown": ">=3.8",
     "matplotlib": ">=3.10.3",
