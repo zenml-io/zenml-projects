@@ -278,12 +278,18 @@ class ResearchStateMaterializer(PydanticMaterializer):
 
                         parsed_url = urlparse(result.url)
                         domain = parsed_url.netloc
+                        # Strip www. prefix to save space
+                        if domain.startswith("www."):
+                            domain = domain[4:]
                     except:
                         domain = (
                             result.url.split("/")[2]
                             if len(result.url.split("/")) > 2
                             else ""
                         )
+                        # Strip www. prefix to save space
+                        if domain.startswith("www."):
+                            domain = domain[4:]
 
                     html += f"""
                         <li>
