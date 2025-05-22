@@ -48,17 +48,17 @@ def approve_deployment(
     """
     # Timestamp for record-keeping
     timestamp = datetime.now().isoformat()
-    
+
     print("\n" + "=" * 60)
     print("  HUMAN OVERSIGHT REQUIRED (EU AI Act Article 14)  ")
     print("=" * 60)
-    
+
     # Extract metrics for display
     metrics = evaluation_results.get("metrics", {})
     fairness_data = evaluation_results.get("fairness", {})
     fairness_metrics = fairness_data.get("fairness_metrics", {})
     bias_flag = fairness_data.get("bias_flag", False)
-    
+
     # Performance metrics summary
     print("\n📊 PERFORMANCE METRICS:")
     print(f"  • Accuracy: {metrics.get('accuracy', 'N/A'):.4f}")
@@ -66,53 +66,63 @@ def approve_deployment(
     print(f"  • Recall: {metrics.get('recall', 'N/A'):.4f}")
     print(f"  • F1 Score: {metrics.get('f1_score', 'N/A'):.4f}")
     print(f"  • AUC-ROC: {metrics.get('auc_roc', 'N/A'):.4f}")
-    print(f"  • Average Precision: {metrics.get('average_precision', 'N/A'):.4f}")
-    print(f"  • Balanced Accuracy: {metrics.get('balanced_accuracy', 'N/A'):.4f}")
-    
+    print(
+        f"  • Average Precision: {metrics.get('average_precision', 'N/A'):.4f}"
+    )
+    print(
+        f"  • Balanced Accuracy: {metrics.get('balanced_accuracy', 'N/A'):.4f}"
+    )
+
     # Financial impact metrics
     print("\n💰 FINANCIAL IMPACT:")
-    print(f"  • Optimal Threshold: {metrics.get('optimal_threshold', 'N/A'):.4f}")
+    print(
+        f"  • Optimal Threshold: {metrics.get('optimal_threshold', 'N/A'):.4f}"
+    )
     print(f"  • Normalized Cost: {metrics.get('normalized_cost', 'N/A'):.4f}")
-    
-   # Fairness summary (aggregated, not per-group)
+
+    # Fairness summary (aggregated, not per-group)
     print(f"\n⚖️ FAIRNESS ASSESSMENT:")
     if bias_flag:
         print("  🚨 BIAS DETECTED - Requires careful review")
-        
+
         # Show worst disparity without listing all groups
         max_disparity = 0
         worst_attribute = None
-        
+
         for attribute, attr_metrics in fairness_metrics.items():
             disparity = abs(attr_metrics.get("selection_rate_disparity", 0))
             if disparity > max_disparity:
                 max_disparity = disparity
                 worst_attribute = attribute
-        
+
         if worst_attribute:
-            print(f"  • Highest disparity: {max_disparity:.3f} ({worst_attribute})")
-        
+            print(
+                f"  • Highest disparity: {max_disparity:.3f} ({worst_attribute})"
+            )
+
         print(f"  • Protected attributes analyzed: {len(fairness_metrics)}")
     else:
         print("  ✅ No significant bias detected across protected groups")
         print(f"  • Protected attributes analyzed: {len(fairness_metrics)}")
-    
+
     # Risk assessment
     print(f"\n⚠️ RISK ASSESSMENT:")
     print(f"  • Overall Risk Score: {risk_scores.get('overall', 0):.3f}")
     print(f"  • Risk Level: {risk_scores.get('risk_level', 'Unknown')}")
-    
+
     high_risk_count = len(risk_scores.get("high_risk_factors", []))
     if high_risk_count > 0:
         print(f"  • High-risk factors identified: {high_risk_count}")
-    
+
     # Approval criteria check
     threshold_checks = {
-        "Performance": metrics.get("accuracy", 0) >= approval_thresholds.get("accuracy", 0.7),
+        "Performance": metrics.get("accuracy", 0)
+        >= approval_thresholds.get("accuracy", 0.7),
         "Fairness": not bias_flag,
-        "Risk": risk_scores.get("overall", 1) <= approval_thresholds.get("risk_score", 0.8),
+        "Risk": risk_scores.get("overall", 1)
+        <= approval_thresholds.get("risk_score", 0.8),
     }
-    
+
     print(f"\n🔍 APPROVAL CRITERIA:")
     all_passed = True
     for check_name, passed in threshold_checks.items():
@@ -120,17 +130,25 @@ def approve_deployment(
         print(f"  • {check_name}: {status}")
         if not passed:
             all_passed = False
-    
-    print(f"\n📝 RECOMMENDATION: {'✅ APPROVE' if all_passed else '⚠️ REVIEW REQUIRED'}")
-    
+
+    print(
+        f"\n📝 RECOMMENDATION: {'✅ APPROVE' if all_passed else '⚠️ REVIEW REQUIRED'}"
+    )
+
     # Get decision
     decision = os.getenv("DEPLOY_APPROVAL")
-    
+
     if decision is None:
         if bias_flag:
             print("\n⚠️ WARNING: Review fairness implications before approval")
-        
-        decision = input(f"\nApprove deployment? ({'Y/n' if all_passed else 'y/N'}): ").strip().lower()
+
+        decision = (
+            input(
+                f"\nApprove deployment? ({'Y/n' if all_passed else 'y/N'}): "
+            )
+            .strip()
+            .lower()
+        )
         approver = os.getenv("USER", input("Approver name: ").strip())
         rationale = input("Decision rationale: ").strip()
         decision_mode = "interactive"
@@ -138,13 +156,13 @@ def approve_deployment(
         approver = os.getenv("APPROVER", "automated")
         rationale = os.getenv("APPROVAL_RATIONALE", "Automated approval")
         decision_mode = "automated"
-    
+
     # Handle default approval logic
     if decision == "":
         approved = all_passed  # Default to approve only if all criteria pass
     else:
         approved = decision in ["y", "yes"]
-    
+
     # Create approval record
     approval_record = {
         "approval_id": f"approval_{timestamp.replace(':', '-')}",
@@ -163,17 +181,21 @@ def approve_deployment(
             "risk_score": risk_scores.get("overall"),
         },
         "protected_attributes_count": len(fairness_metrics),
-        "max_bias_disparity": max([
-            abs(attr_metrics.get("selection_rate_disparity", 0))
-            for attr_metrics in fairness_metrics.values()
-        ]) if fairness_metrics else 0,
+        "max_bias_disparity": max(
+            [
+                abs(attr_metrics.get("selection_rate_disparity", 0))
+                for attr_metrics in fairness_metrics.values()
+            ]
+        )
+        if fairness_metrics
+        else 0,
     }
-    
+
     # Final status
     if approved:
         print(f"\n✅ DEPLOYMENT APPROVED by {approver}")
     else:
         print(f"\n❌ DEPLOYMENT REJECTED by {approver}")
         raise RuntimeError(f"Deployment rejected by {approver}: {rationale}")
-    
+
     return approved, approval_record
