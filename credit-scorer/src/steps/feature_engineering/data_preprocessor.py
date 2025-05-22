@@ -25,11 +25,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from zenml import log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    PREPROCESS_PIPELINE_NAME,
-    TEST_DATASET_NAME,
-    TRAIN_DATASET_NAME,
-)
+from src.constants import Artifacts as A
 from src.utils import save_artifact_to_modal
 from src.utils.preprocess import DeriveAgeFeatures, DropIDColumn
 
@@ -49,9 +45,9 @@ def data_preprocessor(
     normalize: bool = True,
     preprocess_pipeline_path: str = "pipelines/preprocess_pipeline.pkl",
 ) -> Tuple[
-    Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
-    Annotated[pd.DataFrame, TEST_DATASET_NAME],
-    Annotated[SkPipeline, PREPROCESS_PIPELINE_NAME],
+    Annotated[pd.DataFrame, A.TRAIN_DATASET],
+    Annotated[pd.DataFrame, A.TEST_DATASET],
+    Annotated[SkPipeline, A.PREPROCESS_PIPELINE],
 ]:
     """Data preprocessor step that focuses purely on data transformation.
 

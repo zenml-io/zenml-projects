@@ -1,157 +1,130 @@
-# Credit‑Scoring EU AI Act Demo
+# Credit Scoring EU AI Act Demo
 
-> A ZenML‑powered end‑to‑end credit‑scoring workflow that automatically generates the technical evidence required by the [EU AI Act](https://www.zenml.io/blog/understanding-the-ai-act-february-2025-updates-and-implications). This project demonstrates how to build AI systems that meet regulatory requirements while maintaining development efficiency. The EU AI Act, which came into effect in 2024, introduces mandatory compliance requirements for high-risk AI systems, making automated compliance crucial for organizations deploying AI in regulated environments.
+Automatically generate complete EU AI Act compliance documentation with minimal manual effort for credit scoring models.
 
-![Streamlit Compliance Dashboard](assets/streamlit-app.png)
+<div align="center"> <img src="assets/compliance-dashboard.png" alt="Compliance Dashboard" width="800" /> </div>
 
-## 🚀 Project Overview
+## 🎯 Regulatory Context
 
-The project implements three main pipelines:
+Financial institutions must comply with the EU AI Act for any high‑risk AI system. Meeting Articles 9–18 requires extensive documentation and auditing. This pipeline delivers a production‑ready workflow that:
 
-1. [**Feature Engineering Pipeline**](src/pipelines/feature_engineering.py): Handles data governance and preprocessing (Articles 10, 12, 15)
-   – `ingest → data_splitter → data_preprocessor`
+- Generates all required technical evidence automatically
+- Ensures robust risk management and human oversight
+- Maintains full audit trails with versioned artifacts
+- Provides real‑time compliance dashboards for stakeholders
 
-2. [**Training Pipeline**](src/pipelines/training.py): Implements model training, evaluation, and risk assessment (Articles 9, 11, 15)
-   – `train_model → evaluate_model → risk_assessment`
+## 🔍 Data Overview
 
-3. [**Deployment Pipeline**](src/pipelines/deployment.py): Manages human oversight, deployment, and monitoring (Articles 14, 17, 18)
-   – `approve_deployment → modal_deployment → generate_sbom → post_market_monitoring → generate_annex_iv_documentation`
+This project uses a credit scoring dataset based on the Home Credit Default Risk data. The raw dataset contains potentially sensitive attributes such as `CODE_GENDER`, `DAYS_BIRTH`, `NAME_EDUCATION_TYPE`, `NAME_FAMILY_STATUS`, and `NAME_HOUSING_TYPE`, which can be filtered using the pipeline's `sensitive_attributes` parameter to comply with fairness requirements.
 
-Each run automatically versions its inputs, logs hashes & metrics, and generates a complete Annex IV draft with all required compliance artifacts. These artifacts include an SBOM (Software Bill of Materials), monitoring plan, data profiling reports, risk assessments, and technical documentation.
+Key fields used for modeling:
 
-## Architecture
+| Field              | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `AMT_INCOME_TOTAL` | Annual income of the applicant                  |
+| `AMT_CREDIT`       | Credit amount of the loan                       |
+| `AMT_ANNUITY`      | Loan annuity amount                             |
+| `EXT_SOURCE_1/2/3` | External source scores (credit history proxies) |
+| `TARGET`           | Default indicator (0 = no default, 1 = default) |
 
-![End-to-End Architecture](assets/e2e.png)
+Automated preprocessing handles:
 
-## Project Structure
+- Missing value imputation using SimpleImputer
+- Feature scaling with StandardScaler (optional)
+- Categorical encoding with OneHotEncoder
+- Feature engineering including age derivation from `DAYS_BIRTH`
 
-```bash
-credit_scoring_ai_act/
-├── modal_app/ # Modal deployment app
-│   ├── modal_deployment.py # Modal deployment script
-│   └── schemas.py # Pydantic models for API
-├── scripts/ # Scripts for updating compliance data
-│   ├── update_risk_register.py # Update the risk register
-│   └── test_compliance_tracker.py # Test the compliance tracker
-├── streamlit_app/ # Streamlit app for compliance tracking
-│   ├── components/ # Streamlit components
-│   │   ├── executive_summary.py # Executive summary component
-│   │   ├── risk_dashboard.py # Risk dashboard component
-│   │   └── data_processor.py # Data processing and calculation utilities
-│   ├── config.py # Configuration settings
-│   └── main.py # Streamlit app entrypoint
+## 🚀 Pipeline Architecture
+
+<div> <img src="assets/e2e.png" alt="End-to-End Architecture" width="1200" /> </div>
+
+The system implements three main pipelines that map directly to EU AI Act requirements:
+
+| Pipeline                                                        | Key Steps                                                                                                                                                  | EU AI Act Focus |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| **[Feature Engineering](src/pipelines/feature_engineering.py)** | **Ingest** → Record SHA‑256 provenance 📥<br>**Profile** → WhyLogs data governance 📊<br>**Preprocess** → Impute, encode, normalize 🔧                     | Arts 10, 12, 15 |
+| **[Training](src/pipelines/training.py)**                       | **Train** → LightGBM w/ class‑imbalance handling 🎯<br>**Evaluate** → Accuracy, AUC, fairness analysis ⚖️<br>**Assess** → Risk scoring & model registry 📋 | Arts 9, 11, 15  |
+| **[Deployment](src/pipelines/deployment.py)**                   | **Approve** → Human oversight gate 🙋‍♂️<br>**Deploy** → Modal API deployment 🚀<br>**Monitor** → SBOM + post‑market tracking 📈                              | Arts 14, 17, 18 |
+
+Each pipeline run automatically versions all inputs/outputs, generates profiling reports, creates risk assessments, produces SBOM, and compiles complete Annex IV technical documentation.
+
+## 🛠️ Project Structure
+
+```
+credit-scorer/
+│
+├── run.py                  # Main pipeline execution script
+├── run_dashboard.py        # Dashboard launcher
+│
 ├── src/
-│   ├── pipelines/
-│   │   ├── feature_engineering.py # Feature engineering pipeline
-│   │   ├── training.py # Model training pipeline
-│   │   └── deployment.py # Deployment pipeline
-│   ├── steps/
-│   │   ├── feature_engineering/ # Feature engineering steps
-│   │   │   ├── ingest.py # Load CSV → log SHA‑256, WhyLogs profile
-│   │   │   ├── data_preprocessor.py # Basic feature engineering
-│   │   │   └──  data_splitter.py # Split dataset into train/test
-│   │   ├── training/ # Training steps
-│   │   │   ├── train.py # LightGBMClassifier model
-│   │   │   ├── evaluate.py # Standard + Fairness metrics
-│   │   │   └── risk_assessment.py # Risk assessment
-│   │   └── deployment/ # Deployment steps
-│   │       ├── approve.py # Human‑in‑loop gate (approve_deployment step)
-│   │       ├── deploy.py # Deployment to Modal
-│   │       ├── post_market_monitoring.py # Post‑market monitoring
-│   │       ├── generate_sbom.py # Generate Software Bill of Materials
-│   │       └── post_run_annex.py # Generate Annex IV documentation
-│   ├── utils/ # Shared utilities
-│   │   ├── storage.py # Storage utils
-│   │   ├── preprocess.py # Custom sklearn transformers
-│   │   ├── eval.py # Evaluation utils
-│   │   ├── incidents.py # Incident reporting system
-│   │   ├── risk_dashboard.py # Risk visualization dashboard
-│   │   ├── annex_iv.py # Annex IV template generation
-│   │   ├── compliance/ # Compliance tracking system
-│   │   ├── template.py # Template generation utils
-│   │   └── visualizations.py # Visualization utils
-│   │
-│   ├── configs/ # Configuration files
-│   └── constants.py # Centralized configuration constants
+│   ├── data/               # Dataset directory
+│   ├── pipelines/          # Pipeline definitions
+│   ├── steps/              # Pipeline step implementations
+│   ├── configs/            # Configuration files
+│   ├── utils/              # Utility functions
+│   └── constants/          # Project constants
 │
-├── docs/
-│   ├── compliance.md # EU AI Act Article to Pipeline Step mapping
-│   ├── risk/ # Risk assessment documentation
-│   │   ├── incident_log.json # Incident tracking
-│   │   └── risk_register.xlsx # Risk register
-│   ├── releases/ # Compliance artifacts organized by run ID
-│   │   └── <run_id>/
-│   │      ├── annex_iv_cs_deployment.md  # Annex IV technical documentation
-│   │      ├── evaluation_results.yaml    # Model performance metrics and evaluations
-│   │      ├── git_info.md                # Git commit and repository information
-│   │      ├── monitoring_plan.json       # Model monitoring configuration
-│   │      ├── README.md                  # Release-specific information
-│   │      ├── risk_scores.yaml           # Risk assessment scores and analysis
-│   │      ├── sbom.json                  # Software Bill of Materials
-│   │      └── whylogs_profile.html       # Data profiling report
-│   └── templates/
-│       ├── annex_iv_template.j2 # Annex IV template (Jinja2)
-│       ├── sample_inputs.json # Sample inputs for Annex IV template
-│       └── qms/ # Quality management system documentation
-│           ├── qms_template.md # Core QMS document
-│           ├── roles_and_responsibilities.md # Role assignments
-│           ├── audit_plan.md # Audit schedule and methodology
-│           └── sops/ # Standard Operating Procedures
-│               ├── model_release_sop.md # Model release protocol
-│               ├── drift_monitoring_sop.md # Monitoring procedures
-│               ├── incident_response_sop.md # Incident handling
-│               ├── risk_mitigation_sop.md # Risk management process
-│               └── data_ingestion_sop.md # Data handling procedures
-│
-├── assets/ # Pipeline diagrams and documentation
-│   ├── deployment-pipeline.png # Deployment pipeline diagram
-│   ├── e2e.png # End-to-end architecture diagram
-│   ├── feature-engineering-pipeline.png # Feature engineering pipeline diagram
-│   ├── modal-deployment.png # Modal deployment diagram
-│   └── training-pipeline.png # Training pipeline diagram
-├── data/ # Dataset directory
-│   └── credit_scoring.csv # Credit scoring dataset
-├── run.py # CLI entrypoint
-└── README.md
+├── streamlit_app/          # Compliance dashboard
+├── modal_app/              # Modal deployment code
+├── docs/                   # Documentation and compliance artifacts
+├── models/                 # Saved model artifacts
+├── assets/                 # Images and static resources
+└── scripts/                # Helper scripts
 ```
 
-## Running Pipelines
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.12+
+- ZenML >= 0.82.1
+- Modal account (for deployment pipeline)
+- WhyLogs integration (for data profiling)
+
+### Installation & Configuration
+
+1. Install dependencies
 
 ```bash
-# Run feature engineering pipeline (Articles 10, 12)
-python run.py --feature
-
-# Run model training pipeline (Articles 9, 11, 15)
-python run.py --train
-
-# Run deployment pipeline (Articles 14, 17, 18)
-python run.py --deploy
+pip install -r requirements.txt
 ```
 
-Options:
+2. Set up ZenML
 
-- `--auto-approve` for non‑interactive deployment
-- `--no-cache` to disable ZenML caching
-- `--config-dir <path>` to override default configs
+```bash
+zenml init
+```
 
-### Configuration
+3. Install [WhyLogs integration](https://docs.zenml.io/stacks/stack-components/data-validators/whylogs):
 
-Pipeline configurations are stored in the `src/configs/` directory:
+```bash
+zenml integration install whylogs -y
+zenml data-validator register whylogs_data_validator --flavor=whylogs
+zenml stack update <STACK_NAME> -dv whylogs_data_validator
+```
 
-- [`feature_engineering.yaml`](src/configs/feature_engineering.yaml)
-- [`training.yaml`](src/configs/training.yaml)
-- [`deployment.yaml`](src/configs/deployment.yaml)
+## 📊 Running Pipelines
 
-You can specify a custom config directory using the `--config-dir` option.
+### Basic Commands
 
-## Compliance Dashboard
+```bash
+# Run individual pipelines
+python run.py --feature    # Feature engineering (Articles 10, 12)
+python run.py --train      # Model training (Articles 9, 11, 15)
+python run.py --deploy     # Deployment (Articles 14, 17, 18)
+
+# Pipeline options
+python run.py --train --auto-approve     # Skip manual approval steps
+python run.py --feature --no-cache       # Disable ZenML caching
+python run.py --deploy --config-dir ./my-configs  # Custom config directory
+```
+
+### View Compliance Dashboard
 
 The project includes a Streamlit-based compliance dashboard that provides:
 
 - Real-time visibility into EU AI Act compliance status
 - Executive summary of current risk levels and compliance metrics
-- Detailed risk assessment visualizations and tracking
-- Access to all compliance artifacts from a single interface
 - Generated Annex IV documentation with export options
 
 To run the dashboard:
@@ -161,77 +134,45 @@ To run the dashboard:
 python run_dashboard.py
 ```
 
-## Modal Deployment
+> **Note:** All compliance artifacts are also directly accessible through the ZenML dashboard. The Streamlit dashboard is provided as a convenient additional interface for browsing compliance information interactively.
 
-![Modal Deployment](assets/modal-deployment.png)
+### 🔧 Configuration
 
-The project implements a serverless deployment using Modal with basic monitoring and incident reporting capabilities:
+Pipeline configurations are stored in `src/configs/`:
 
-- FastAPI application with documented endpoints
-- Automated model and preprocessing pipeline loading
-- Basic incident reporting functionality
-- Standardized storage paths for compliance artifacts
+- `feature_engineering.yaml` - Data processing and profiling settings
+- `training.yaml` - Model training and evaluation parameters
+- `deployment.yaml` - Deployment and monitoring configuration
 
-## 🔗 EU AI Act Compliance Mapping
+### ☁️ Cloud Deployment
 
-For an overview of how the credit‑scoring pipeline maps to the articles of the EU AI Act, refer to the [compliance_matrix.md](docs/compliance_matrix.md) file.
+You can store artifacts and run pipelines locally, but storing them in the cloud enables you to [visualize the data artifacts produced by pipelines](https://docs.zenml.io/concepts/artifacts/visualizations) directly in the ZenML dashboard.
 
-## Compliance Directory Structure
+See the [Cloud Deployment Guide](docs/guides/cloud_deployment.md) for step-by-step instructions on setting up a cloud artifact store and orchestrator.
 
-The repository uses a structured approach to organizing compliance artifacts:
+### 📄 Generated Artifacts
 
-| Directory               | Purpose                                  | Auto/Manual |
-| ----------------------- | ---------------------------------------- | ----------- |
-| **releases/**           | Compliance artifacts organized by run ID | Auto        |
-| **risk/**               | Risk assessment and incident tracking    | Auto/Manual |
-| **templates/**          | Templates for document generation        | Manual      |
-| **templates/qms/**      | Quality Management System documentation  | Manual      |
-| **templates/qms/sops/** | Standard Operating Procedures            | Manual      |
+Each pipeline run creates a unique release directory in `docs/releases/<run_id>/` containing all compliance artifacts. Here are some guides to help you navigate the artifacts produced and what ZenML features were leveraged to produce them:
 
-The **releases/** directory contains automatically generated artifacts for each pipeline run, including:
+- [Data Sources](docs/guides/compliance_data_sources.md)
+- [Pipeline Steps → Articles](docs/guides/pipeline_to_articles.md)
+- [Article Coverage Matrix](docs/guides/interdependencies.md)
+- [ZenML Feature Mapping](docs/guides/zenml_eu_act_features.md)
 
-- [Annex IV technical documentation](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/annex_iv_cs_deployment.md)
-- [Software Bill of Materials](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/sbom.json)
-- [Model performance metrics](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/evaluation_results.yaml)
-- [Risk assessment scores](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/risk_scores.yaml)
-- [Data profiling report](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/whylogs_profile.html)
-- [Monitoring configuration](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/monitoring_plan.json)
-- [Git repository information](docs/releases/37efcb13-f1b6-42bb-9ad2-42a58a6e1e0a/git_info.md)
+## 📚 Documentation
 
-## 📄 Annex IV Documentation
+- **[ZenML Documentation](https://docs.zenml.io/)**
+- **[EU AI Act Compliance Traceability](docs/guides/compliance_traceability.md)**
+- **[QMS Templates](docs/templates/qms/)** - Quality management system documentation templates
 
-The repository includes an automated Annex IV technical documentation generator that creates comprehensive EU AI Act-compliant documentation for each pipeline run.
+**Note**: This project provides the technical evidence required by the EU AI Act. For complete compliance, organizations must also maintain formal quality management documentation and processes.
 
-### Documentation Components
+### Additional Resources
 
-1. **Template System**:
+- [EU AI Act](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689)
+- [WhyLogs Documentation](https://whylogs.readthedocs.io/en/latest/index.html)
+- [Modal Documentation](https://modal.com/docs)
 
-   - `annex_iv_template.j2` - Jinja2 template for Annex IV documents
-   - `sample_inputs.json` - Default inputs for Annex IV fields
-   - `src/utils/template.py` - Template rendering utilities
-   - `src/utils/annex_iv.py` - Helper functions for metadata collection
+## 📄 License
 
-2. **Generation Process**:
-
-   - Automatically collects metadata from pipeline runs
-   - Extracts metrics from evaluation results
-   - Uses sample inputs for standardized sections
-   - Assembles a complete technical documentation file
-
-3. **Usage**:
-   ```python
-   # To customize the template inputs:
-   1. Edit docs/templates/sample_inputs.json with your specific values
-   2. The template utility will load these values automatically
-   ```
-
-## 📋 Quality Management System (Article 17)
-
-This repo delivers all _technical evidence_ (lineage, metadata, logs) required by the EU AI Act. For a complete QMS, you must also maintain formal QMS documentation.
-
-See `docs/templates/qms/` for starter templates:
-
-- **Quality Policy** (`qms_template.md`)
-- **Roles & Responsibilities** (`roles_and_responsibilities.md`)
-- **Audit Plan** (`audit_plan.md`)
-- **SOPs** (`sops/` folder: data ingestion, model release, risk mitigation, etc.)
+This project is licensed under the Apache License 2.0.

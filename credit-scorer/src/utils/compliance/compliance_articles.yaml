@@ -99,7 +99,7 @@ articles:
       - name: annex_iv
         <<: *file_check
         description: "Annex IV documentation completeness"
-        path: "{releases_dir}/{release_id}/annex_iv_cs_deployment.md"
+        path: "{releases_dir}/{release_id}/annex_iv.md"
         patterns:
           - "General Information"
           - "System Description"
@@ -167,7 +167,7 @@ articles:
             - "risk_scores.yaml"
             - "monitoring_plan.json"
             - "sbom.json"
-            - "annex_iv_cs_deployment.md"
+            - "annex_iv.md"
         threshold: 0.6
         threshold_type: percentage
         weight: 0.3
@@ -206,7 +206,7 @@ articles:
       - name: user_doc
         <<: *file_check
         description: "User documentation completeness"
-        path: "{releases_dir}/{release_id}/annex_iv_cs_deployment.md"
+        path: "{releases_dir}/{release_id}/annex_iv.md"
         patterns:
           - "General Description of the AI System"
           - "Intended Purpose"
@@ -273,7 +273,7 @@ articles:
         <<: *file_check
         description: "Human review procedures"
         paths:
-          - "{releases_dir}/{release_id}/annex_iv_cs_deployment.md"
+          - "{releases_dir}/{release_id}/annex_iv.md"
           - "docs/templates/qms/sops/model_release_sop.md"
         patterns:
           - "Human Oversight Assessment"

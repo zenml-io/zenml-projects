@@ -23,34 +23,28 @@ from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    HAZARD_DEFINITIONS,
-    RISK_SCORES_NAME,
-)
+from src.constants import Artifacts as A
+from src.constants import Hazards
 from src.utils.storage import save_artifact_to_modal
 
 logger = get_logger(__name__)
-
-# --------------------------------------------------------------------------- #
-RiskScores = Annotated[Dict[str, float], RISK_SCORES_NAME]
-# --------------------------------------------------------------------------- #
 
 
 def identify_hazards(evaluation_results: Dict, scores: Dict) -> List[Dict]:
     """Identify applicable hazards based on evaluation results."""
     identified_hazards = []
 
-    # Evaluate each hazard trigger function
-    for hazard_id, hazard_info in HAZARD_DEFINITIONS.items():
+    # Get all hazards and check which ones are triggered
+    hazards = Hazards.get_all()
+    for hazard_id, hazard in hazards.items():
         try:
-            trigger_func = hazard_info["trigger"]
-            if trigger_func(evaluation_results, scores):
+            if hazard.is_triggered(evaluation_results, scores):
                 identified_hazards.append(
                     {
                         "id": hazard_id,
-                        "description": hazard_info["description"],
-                        "severity": hazard_info["severity"],
-                        "mitigation": hazard_info["mitigation"],
+                        "description": hazard.description,
+                        "severity": hazard.severity,
+                        "mitigation": hazard.mitigation,
                     }
                 )
         except (KeyError, TypeError) as e:
@@ -122,7 +116,7 @@ def get_status(
 def get_article_for_hazard(hazard_id: str) -> str:
     """Map hazards to specific EU AI Act articles."""
     article_mapping = {
-        "bias_protected_groups": "article_10",  # Data and Data Governance
+        "BIAS_PROTECTED_GROUPS": "article_10",  # Data and Data Governance
         "poor_performance": "article_15",  # Accuracy, Robustness and Cybersecurity
         "data_quality_issues": "article_10",  # Data and Data Governance
         "model_drift": "article_17",  # Post-market Monitoring
@@ -141,7 +135,7 @@ def risk_assessment(
     evaluation_results: Dict,
     approval_thresholds: Dict[str, float],
     risk_register_path: str = "docs/risk/risk_register.xlsx",
-) -> RiskScores:
+) -> Annotated[Dict, A.RISK_SCORES]:
     """Compute risk scores & update register. Article 9 compliant."""
     scores = score_risk(evaluation_results)
     hazards = identify_hazards(evaluation_results, scores)
@@ -224,7 +218,7 @@ def risk_assessment(
         for hz in hazards:
             details = ""
             if (
-                hz["id"] == "bias_protected_groups"
+                hz["id"] == "BIAS_PROTECTED_GROUPS"
                 and "fairness" in evaluation_results
             ):
                 fairness = evaluation_results["fairness"]

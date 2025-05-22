@@ -10,7 +10,6 @@ from streamlit_app.components.documentation import (
 )
 from streamlit_app.components.executive_summary import display_exec_summary
 from streamlit_app.components.header import display_dashboard_header
-from streamlit_app.components.incidents import display_incident_tracking
 from streamlit_app.components.risks import display_risks_dashboard
 from streamlit_app.data.loader import load_incident_log, load_risk_register
 from streamlit_app.styling import apply_custom_css
@@ -34,12 +33,11 @@ def main():
     selected = option_menu(
         menu_title=None,
         options=[
-            "Executive Summary",
+            "Summary",
             "Risk Management",
-            "Incident Tracking",
-            "API Dashboard",
+            "API",
             "Data Profile",
-            "Annex IV Documentation",
+            "Annex IV",
         ],
         icons=[
             "clipboard-data",
@@ -75,7 +73,7 @@ def main():
     incident_data = load_incident_log()
 
     # Display the selected page
-    if selected == "Executive Summary":
+    if selected == "Summary":
         risk_df = (
             risk_data.get("Risks", pd.DataFrame())
             if risk_data
@@ -89,16 +87,13 @@ def main():
         else:
             st.warning("Risk register not found or empty.")
 
-    elif selected == "Incident Tracking":
-        display_incident_tracking(incident_data)
-
-    elif selected == "API Dashboard":
+    elif selected == "API":
         display_api_dashboard()
 
     elif selected == "Data Profile":
         display_data_profile()
 
-    elif selected == "Annex IV Documentation":
+    elif selected == "Annex IV":
         display_annex_iv_documentation()
 
     # Footer with credits

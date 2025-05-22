@@ -15,12 +15,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.constants import (
-    DEPLOYMENT_PIPELINE_NAME,
-    FEATURE_ENGINEERING_PIPELINE_NAME,
-    RELEASES_DIR,
-    TRAINING_PIPELINE_NAME,
-)
+from src.constants import Directories, Pipelines
 from src.utils.compliance.data_loader import ComplianceDataLoader
 from zenml.client import Client
 
@@ -35,7 +30,7 @@ logger = logging.getLogger(__name__)
 def main():
     """Main entry point for the script."""
     # Create the pipeline_logs directory required for Article 12 compliance
-    pipeline_logs_dir = Path(RELEASES_DIR).parent / "pipeline_logs"
+    pipeline_logs_dir = Path(Directories.RELEASES).parent / "pipeline_logs"
     pipeline_logs_dir.mkdir(exist_ok=True, parents=True)
 
     # Create a metadata file for all pipeline logs
@@ -43,9 +38,9 @@ def main():
 
     # Process each pipeline
     pipelines = [
-        FEATURE_ENGINEERING_PIPELINE_NAME,
-        TRAINING_PIPELINE_NAME,
-        DEPLOYMENT_PIPELINE_NAME,
+        Pipelines.FEATURE_ENGINEERING,
+        Pipelines.TRAINING,
+        Pipelines.DEPLOYMENT,
     ]
 
     # Get the client

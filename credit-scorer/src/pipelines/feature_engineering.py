@@ -19,15 +19,16 @@ from typing import List, Optional
 
 from zenml.pipelines import pipeline
 
-from src.constants import FEATURE_ENGINEERING_PIPELINE_NAME
+from src.constants import Pipelines
 from src.steps import (
     data_preprocessor,
+    data_profiler,
     data_splitter,
     ingest,
 )
 
 
-@pipeline(name=FEATURE_ENGINEERING_PIPELINE_NAME)
+@pipeline(name=Pipelines.FEATURE_ENGINEERING)
 def feature_engineering(
     dataset_path: str = "src/data/credit_scoring.csv",
     test_size: float = 0.2,
@@ -41,19 +42,21 @@ def feature_engineering(
 
     This pipeline handles:
     1. Data loading with provenance tracking (Article 10)
-    2. Data splitting into train and test sets
-    3. Data preprocessing with documented decisions (Article 10)
+    2. Data profiling with WhyLogs (Article 12)
+    3. Data splitting into train and test sets
+    4. Data preprocessing with documented decisions (Article 10)
     """
-    # Initialize volume metadata if not provided
-
     # Load the data
-    raw_data, whylogs_visualization = ingest(
+    raw_data = ingest(
         dataset_path=dataset_path,
         target=target,
         random_state=random_state,
         sample_fraction=sample_fraction,
         sensitive_attributes=sensitive_attributes,
     )
+
+    # Generate a WhyLogs profile for the dataset
+    whylogs_profile = data_profiler(raw_data)
 
     # Split the data into train and test sets
     dataset_trn, dataset_tst = data_splitter(
@@ -70,4 +73,4 @@ def feature_engineering(
         normalize=normalize,
     )
 
-    return train_df, test_df, sk_pipeline
+    return train_df, test_df, sk_pipeline, whylogs_profile

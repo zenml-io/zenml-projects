@@ -103,7 +103,7 @@ def load_latest_release_info():
             "risk_scores.yaml": False,
             "monitoring_plan.json": False,
             "sbom.json": False,
-            "annex_iv_cs_deployment.md": False,
+            "annex_iv.md": False,
         }
 
         for file_path in files:
@@ -139,7 +139,7 @@ def load_latest_annex_iv():
 
     try:
         # Find the Annex IV document
-        annex_files = list(release_info["path"].glob("annex_iv_*.md"))
+        annex_files = list(release_info["path"].glob("annex_iv.md"))
         if not annex_files:
             st.warning(
                 f"No Annex IV document found in {release_info['path']}."

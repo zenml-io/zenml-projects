@@ -34,9 +34,6 @@ def test_load_risk_register():
         logger.info("Testing ComplianceDataLoader.load_risk_register()...")
         risk_df, warnings = data_loader.load_risk_register()
 
-        logger.info(
-            f"Successfully loaded risk register with {len(risk_df)} risks"
-        )
         if warnings:
             logger.warning(f"Warnings: {len(warnings)}")
             for warning in warnings:

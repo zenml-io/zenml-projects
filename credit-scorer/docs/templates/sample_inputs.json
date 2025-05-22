@@ -24,12 +24,16 @@
   "user_doc_link": "../../../README.md",
   "api_doc_link": "../../../modal_app/api_guide.md",
   "arch_diagram_url": "../../../assets/modal-deployment.png",
-  "declaration_of_conformity": "EU Declaration of Conformity for Credit Scoring AI System\n\nProvider: ZenML GmbH\nAddress: Example Street 123, 80331 Munich, Germany\nContact: compliance@zenml.io\n\nWe, ZenML GmbH, declare under our sole responsibility that the Credit Scoring AI System, version 1.3.0, complies with the relevant requirements set out in Section 2 of the EU AI Act (Regulation 2024/1689).\n\nThe system has undergone conformity assessment in accordance with Article 43 and meets all requirements related to:\n- Risk management (Article 9)\n- Data governance (Article 10)\n- Technical documentation (Article 11)\n- Record keeping (Article 12)\n- Transparency (Article 13)\n- Human oversight (Article 14)\n- Accuracy, robustness and cybersecurity (Article 15)\n- Post-market monitoring (Articles 16-17)\n- Incident reporting (Articles 18-19)\n\nThis declaration is kept at the disposal of national competent authorities for 10 years after the system has been placed on the market or put into service, in compliance with Article 47.\n\nSigned for and on behalf of ZenML GmbH\n\nMunich, May 18, 2025\n\nLouisa Gerryts\nChief Compliance Officer",
+  "declaration_of_conformity": "./declaration_of_conformity.md",
   "model_architecture": "Gradient Boosting Decision Tree (XGBoost)",
   "optimization_objective": "Maximize balanced accuracy while minimizing fairness disparities across protected demographic groups",
   "performance_metrics": {
     "accuracy": null,
-    "auc": null
+    "auc": null,
+    "precision": null,
+    "recall": null,
+    "f1_score": null,
+    "optimal_threshold": null
   },
   "fairness_assessment": {
     "demographic_parity_gender": null,

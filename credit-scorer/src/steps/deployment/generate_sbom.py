@@ -19,7 +19,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any, Dict, Optional
 
 import pkg_resources
 from cyclonedx.model.bom import Bom
@@ -29,18 +29,20 @@ from packageurl import PackageURL
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import RELEASES_DIR, SBOM_ARTIFACT_NAME
-from src.utils.storage import save_artifact_to_modal
+from src.constants import Artifacts as A
+from src.constants import Directories
 
 logger = get_logger(__name__)
 
 
 @step(enable_cache=False)
-def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
+def generate_sbom(
+    deployment_info: Annotated[Optional[Dict[str, Any]], A.DEPLOYMENT_INFO],
+) -> Annotated[Dict[str, Any], A.SBOM_ARTIFACT]:
     """Generate SBOM using CycloneDX programmatically."""
     run_id = str(get_step_context().pipeline_run.id)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    release_dir = Path(RELEASES_DIR) / run_id
+    release_dir = Path(Directories.RELEASES) / run_id
     os.makedirs(release_dir, exist_ok=True)
 
     # Create CycloneDX BOM
@@ -63,28 +65,29 @@ def generate_sbom() -> Annotated[Dict[str, Any], SBOM_ARTIFACT_NAME]:
     json_output = JsonV1Dot5(bom)
     sbom_json = json.loads(json_output.output_as_string())
 
-    # Save and upload
+    # Save locally only (not needed by Modal app)
     sbom_filename = "sbom.json"
     local_sbom_path = Path(release_dir) / sbom_filename
 
     with open(local_sbom_path, "w") as f:
         json.dump(sbom_json, f, indent=2)
 
-    modal_sbom_path = f"{release_dir}/{sbom_filename}"
-    checksum = save_artifact_to_modal(
-        artifact=sbom_json, artifact_path=modal_sbom_path
-    )
+    # Generate checksum locally
+    import hashlib
+
+    with open(local_sbom_path, "rb") as f:
+        checksum = hashlib.sha256(f.read()).hexdigest()
 
     sbom_artifact = {
         "sbom_data": sbom_json,
-        "sbom_path": modal_sbom_path,
+        "sbom_path": str(local_sbom_path),
         "checksum": checksum,
         "generation_time": timestamp,
     }
 
-    log_metadata(metadata={SBOM_ARTIFACT_NAME: sbom_artifact})
+    log_metadata(metadata={A.SBOM_ARTIFACT: sbom_artifact})
     logger.info(
-        f"SBOM generation complete. Saved to Modal at {modal_sbom_path}"
+        f"SBOM generation complete. Saved locally at {local_sbom_path}"
     )
 
     return sbom_artifact

@@ -19,34 +19,29 @@ import hashlib
 import json
 import pickle
 import tempfile
-import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import joblib
+import yaml
 from modal import Volume
+from whylogs.viz import NotebookProfileVisualizer
+from zenml.client import Client
+from zenml.logger import get_logger
 
-from src.constants import (
-    MODAL_ENVIRONMENT,
-    MODAL_VOLUME_NAME,
-    RELEASES_DIR,
-)
+from src.constants.annotations import Artifacts as A
+from src.constants.annotations import Pipelines
+from src.constants.config import ModalConfig
 
-
-class UUIDEncoder(json.JSONEncoder):
-    """Custom JSON encoder to handle UUIDs."""
-
-    def default(self, obj):
-        if isinstance(obj, uuid.UUID):
-            return str(obj)
-        return super().default(obj)
+logger = get_logger(__name__)
 
 
 def save_artifact_to_modal(
     artifact: Any,
     artifact_path: str,
     overwrite: bool = True,
-    environment: str = MODAL_ENVIRONMENT,
+    environment: str = ModalConfig.ENVIRONMENT,
 ) -> Optional[str]:
     """Save any artifact to a Modal Volume.
 
@@ -83,7 +78,7 @@ def save_artifact_to_modal(
             pickle.dump(artifact, f)
 
     vol = Volume.from_name(
-        MODAL_VOLUME_NAME,
+        ModalConfig.VOLUME_NAME,
         create_if_missing=True,
         environment_name=environment,
     )
@@ -105,47 +100,109 @@ def save_artifact_to_modal(
     return None
 
 
-def save_compliance_artifacts_to_modal(
-    artifacts: Dict[str, Any],
-    run_id: str,
-) -> Dict[str, Dict[str, str]]:
-    """Save compliance-related artifacts to the Modal Volume.
+def save_whylogs_profile(run_release_dir: Path) -> Path:
+    """Save the WhyLogs profile to a file.
 
     Args:
-        artifacts: Dictionary of artifacts to save with their corresponding paths.
-        run_id: Optional pipeline run ID. If not provided, a new UUID will be generated.
+        run_release_dir: The directory to save the WhyLogs profile to.
 
     Returns:
-        Dictionary of artifact paths and their checksums.
+        The path to the saved WhyLogs profile.
     """
-    results = {}
+    client = Client()
+    # Get latest data profile
+    latest_artifact = client.get_artifact_version(A.WHYLOGS_PROFILE)
+    latest_profile = latest_artifact.load()
 
-    release_dir = Path(RELEASES_DIR) / run_id
-    Path(release_dir).mkdir(parents=True, exist_ok=True)
+    pipeline = client.get_pipeline(Pipelines.FEATURE_ENGINEERING)
+    runs = pipeline.runs  # sorted newest→oldest
 
-    for artifact_name, artifact_data in artifacts.items():
-        extension = get_extension_for_artifact(artifact_data)
-        path = f"{release_dir}/{artifact_name}{extension}"
+    latest_run, prev_run = runs[0], runs[1] if len(runs) > 1 else runs[0]
 
-        checksum = save_artifact_to_modal(
-            artifact=artifact_data,
-            artifact_path=path,
-        )
-        results[artifact_name] = {"path": path, "checksum": checksum}
+    # Default to self vs self
+    view_type = "Self-reference"
 
-    return results
-
-
-def get_extension_for_artifact(artifact: Any) -> str:
-    """Determine the appropriate file extension based on artifact type."""
-    if isinstance(artifact, (dict, list)):
-        return ".json"
-    elif hasattr(artifact, "__module__") and "sklearn" in artifact.__module__:
-        return ".pkl"
-    elif isinstance(artifact, str):
-        # Check if it looks like markdown
-        if artifact.startswith("#") or "```" in artifact:
-            return ".md"
-        return ".txt"
+    # Only load “previous” if it’s actually a different run
+    if prev_run.id == latest_run.id:
+        prev_profile = latest_profile
     else:
-        return ".pkl"
+        try:
+            prev_prof = prev_run.steps["data_profiler"]
+            prev_profile = prev_prof.outputs[A.WHYLOGS_PROFILE][0].load()
+            view_type = f"Drift comparison with run <code>{prev_run.id}</code>"
+        except Exception:
+            prev_profile = latest_profile
+            view_type = "Self-reference"
+
+    viz = NotebookProfileVisualizer()
+    viz.set_profiles(
+        target_profile_view=latest_profile,
+        reference_profile_view=prev_profile,
+    )
+    html = viz.summary_drift_report().data
+
+    # Add a header with info about the comparison type
+    header = f"""<div style="background-color: #f8f9fa; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+        <h2>WhyLogs Data Profile Report</h2>
+        <p><strong>Report type:</strong> {view_type}</p>
+        <p><strong>Generated:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+    </div>"""
+
+    # Insert the header after the opening <body> tag
+    if "<body>" in html:
+        html = html.replace("<body>", f"<body>{header}")
+    else:
+        html = f"{header}{html}"
+
+    output_path = run_release_dir / "whylogs_profile.html"
+    output_path.write_text(html)
+    logger.info(f"Saved drift report → {output_path}")
+
+    return output_path
+
+
+def save_evaluation_visualization(run_release_dir: Path) -> Path:
+    """Save evaluation visualization."""
+    client = Client()
+
+    eval_html = client.get_artifact_version(
+        name_id_or_prefix=A.EVAL_VISUALIZATION
+    )
+
+    eval_html_path = run_release_dir / "eval_visualization.html"
+
+    materialized_eval_html = eval_html.load()
+    eval_html_path.write_text(materialized_eval_html)
+
+    logger.info(f"Saved evaluation visualization → {eval_html_path}")
+
+    return eval_html_path
+
+
+def save_evaluation_artifacts(
+    run_release_dir: Path,
+    evaluation_results: Dict[str, Any] = None,
+    risk_scores: Dict[str, Any] = None,
+) -> None:
+    """Save evaluation and risk assessment artifacts as YAML files."""
+    from src.utils.compliance.annex_iv import _summarize_evaluation_results
+
+    if evaluation_results:
+        # Create summarized version of evaluation results for local storage
+        summarized_results = _summarize_evaluation_results(evaluation_results)
+        (run_release_dir / "evaluation_results.yaml").write_text(
+            yaml.dump(summarized_results)
+        )
+    if risk_scores:
+        (run_release_dir / "risk_scores.yaml").write_text(
+            yaml.dump(risk_scores)
+        )
+
+    logger.info(f"Saved evaluation artifacts → {run_release_dir}")
+
+
+def save_visualizations(run_release_dir: Path) -> None:
+    """Save WhyLogs and evaluation visualizations."""
+    # save visualizations
+    save_evaluation_visualization(run_release_dir)
+    save_whylogs_profile(run_release_dir)

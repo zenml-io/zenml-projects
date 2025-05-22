@@ -47,7 +47,43 @@ def setup_jinja_environment(template_dir: Path) -> jinja2.Environment:
     env.filters["nl2br"] = _filter_nl2br
     env.filters["preserve_newlines"] = _filter_preserve_newlines
 
+    # Add include_file global function
+    env.globals["include_file"] = lambda filename: _include_file(
+        filename, template_dir
+    )
+
     return env
+
+
+def _include_file(filename: str, template_dir: Path) -> str:
+    """Read and return the contents of a file.
+
+    Args:
+        filename: Path to the file (relative to template_dir)
+        template_dir: Base directory for templates
+
+    Returns:
+        Contents of the file as a string
+    """
+    try:
+        # Handle relative paths that might start with ./
+        if filename.startswith("./"):
+            file_path = template_dir / filename[2:]
+        else:
+            file_path = template_dir / filename
+
+        # If the file doesn't exist at the direct path, try alternative locations
+        if not file_path.exists():
+            # Try in the parent directory
+            parent_file_path = template_dir.parent / filename
+            if parent_file_path.exists():
+                file_path = parent_file_path
+
+        # Read the file contents
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"[Error including file {filename}: {str(e)}]"
 
 
 def load_sample_inputs(template_dir: Path) -> Dict[str, Any]:

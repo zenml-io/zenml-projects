@@ -22,9 +22,7 @@ from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score
 from zenml.logger import get_logger
 
-from src.constants import (
-    MODEL_NAME,
-)
+from src.constants import Artifacts as A
 from src.utils.incidents import create_incident_report
 
 logger = get_logger(__name__)
@@ -206,7 +204,7 @@ def report_bias_incident(fairness_report: Dict[str, Any], run_id: str) -> None:
 
         from zenml.client import Client
 
-        model = Client().get_model_version(model_name_or_id=MODEL_NAME).model
+        model = Client().get_model_version(model_name_or_id=A.MODEL).model
         model_version = model.latest_version_name
 
         create_incident_report(

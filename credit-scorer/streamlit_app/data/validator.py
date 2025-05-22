@@ -175,7 +175,7 @@ def validate_release_directory(
         "risk_scores.yaml": validate_yaml_file,
         "monitoring_plan.json": validate_json_file,
         "sbom.json": validate_json_file,
-        "annex_iv_cs_deployment.md": lambda f: (
+        "annex_iv.md": lambda f: (
             os.path.exists(f),
             None,
             [] if os.path.exists(f) else ["File not found"],

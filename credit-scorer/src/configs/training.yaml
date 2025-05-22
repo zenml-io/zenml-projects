@@ -1,3 +1,8 @@
+enable_cache: False
+enable_artifact_metadata: True
+enable_artifact_visualization: True
+enable_step_logs: True
+
 compliance:
   evaluation_metrics:
     data_quality_threshold: 0.8
@@ -17,18 +22,16 @@ settings:
     cpu_count: 2
     memory: "1GB"
 
-enable_cache: False
-enable_artifact_metadata: True
-
+# zenml model
 model:
-  name: "credit-scoring-model"
+  name: "credit_scorer"
   license: "Apache 2.0"
   description: "A credit scoring model"
   tags: ["credit-scoring", "eu-ai-act", "risk-assessment"]
   audience: "ZenML users"
   use_cases: "EU AI Act compliance, risk assessment, credit score prediction"
 
-# Training pipeline parameters
+# training pipeline parameters
 parameters:
   target: "TARGET"
   model_path: "models/model.pkl"
@@ -48,7 +51,7 @@ parameters:
     risk_score: 0.40
 
   hyperparameters:
-    objective: "binary:logistic"
+    objective: "binary"
     eval_metric: "auc"
     learning_rate: 0.03
     num_leaves: 31

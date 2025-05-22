@@ -17,16 +17,12 @@
 
 import hashlib
 from datetime import datetime
-from typing import Annotated, List, Optional, Tuple
+from typing import Annotated, List, Optional
 
 import pandas as pd
-import whylogs as why
-from whylogs.core import DatasetProfileView
 from zenml import log_metadata, step
-from zenml.types import HTMLString
 
-from src.constants import WHYLOGS_VISUALIZATION_NAME
-from src.utils import generate_whylogs_visualization
+from src.constants import Artifacts as A
 
 
 @step(enable_cache=False)
@@ -36,17 +32,13 @@ def ingest(
     target: str = "TARGET",
     sample_fraction: Optional[float] = None,
     sensitive_attributes: List[str] = None,
-) -> Tuple[
-    Annotated[pd.DataFrame, "credit_scoring_df"],
-    Annotated[HTMLString, WHYLOGS_VISUALIZATION_NAME],
-]:
+) -> Annotated[pd.DataFrame, A.CREDIT_SCORING_DF]:
     """Ingest local credit_scoring.csv and log compliance metadata.
 
     EU AI Act Article 10 (Data Governance) and Article 12 (Record-keeping)
     compliance is implemented by:
     1. Calculating and storing dataset SHA-256 hash for provenance
-    2. Creating WhyLogs profile for data quality documentation
-    3. Capturing and storing detailed dataset metadata
+    2. Capturing and storing detailed dataset metadata
 
     Args:
         dataset_path: Path to the dataset to ingest.
@@ -57,11 +49,9 @@ def ingest(
 
     Returns:
         dataset: The loaded dataset
-        profile_view: WhyLogs profile for data quality documentation
     """
     # Record start time for logging
     start_time = datetime.now()
-    print(f"Ingesting data from {dataset_path} at {start_time}")
 
     #  load the CSV
     df = pd.read_csv(dataset_path, low_memory=False)
@@ -118,16 +108,6 @@ def ingest(
         "sensitive_attributes": sensitive_cols,
     }
 
-    # WhyLogs profile for data quality documentation
-    data_profile: DatasetProfileView | None = None
-    data_profile = why.log(df).view()
-
-    # Generate WhyLogs visualization
-    whylogs_visualization = generate_whylogs_visualization(
-        data_profile=data_profile,
-        dataset_info=dataset_info,
-    )
-
     log_metadata(
         metadata={
             "timestamp": start_time.strftime("%Y%m%d_%H%M%S"),
@@ -137,4 +117,4 @@ def ingest(
 
     print(f"Ingestion completed at {datetime.now()}, SHA-256: {file_hash}")
 
-    return df, whylogs_visualization
+    return df

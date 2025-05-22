@@ -29,6 +29,7 @@ from .deployment.post_run_annex import generate_annex_iv_documentation
 from .feature_engineering.data_preprocessor import data_preprocessor
 from .feature_engineering.data_splitter import data_splitter
 from .feature_engineering.ingest import ingest
+from .feature_engineering.data_profiler import data_profiler
 from .training.evaluate import evaluate_model
 from .training.risk_assessment import risk_assessment
 

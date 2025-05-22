@@ -318,7 +318,7 @@ DEFAULT_COMPLIANCE_PATHS = {
     "evaluation_results": "evaluation_results.yaml",
     "risk_scores": "risk_scores.yaml",
     "monitoring_plan": "monitoring_plan.json",
-    "annex_iv": "annex_iv_cs_deployment.md",
+    "annex_iv": "annex_iv.md",
     "sbom": "sbom.json",
     "model_card": "model_card.md",
     "config_file": "compliance_articles.yaml",

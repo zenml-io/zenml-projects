@@ -24,11 +24,9 @@ from zenml import step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
-from src.constants import (
-    COMPLIANCE_DASHBOARD_HTML_NAME,
-    RISK_REGISTER_PATH,
-)
-from src.utils.visualizations.compliance_dashboard import (
+from src.constants import Artifacts as A
+from src.constants import Directories
+from src.utils.visualizations.dashboard import (
     create_compliance_dashboard_artifact,
 )
 
@@ -38,7 +36,7 @@ logger = get_logger(__name__)
 @step
 def generate_compliance_dashboard(
     run_release_dir: str,
-) -> Annotated[HTMLString, COMPLIANCE_DASHBOARD_HTML_NAME]:
+) -> Annotated[HTMLString, A.COMPLIANCE_DASHBOARD_HTML]:
     """Generate a compliance dashboard HTML artifact.
 
     This step creates an HTML dashboard visualization of the compliance status
@@ -58,7 +56,7 @@ def generate_compliance_dashboard(
     # Load risk data if available
     risk_df = None
     try:
-        risk_register_path = Path(RISK_REGISTER_PATH)
+        risk_register_path = Path(Directories.RISK_REGISTER_PATH)
         if risk_register_path.exists():
             risk_df = pd.read_excel(risk_register_path)
             logger.info(f"Loaded risk data with {len(risk_df)} entries")

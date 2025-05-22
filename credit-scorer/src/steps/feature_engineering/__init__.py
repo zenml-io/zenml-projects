@@ -20,5 +20,6 @@
 from .data_preprocessor import data_preprocessor
 from .data_splitter import data_splitter
 from .ingest import ingest
+from .data_profiler import data_profiler
 
-__all__ = ["data_preprocessor", "data_splitter", "ingest"]
+__all__ = ["data_preprocessor", "data_splitter", "ingest", "data_profiler"]

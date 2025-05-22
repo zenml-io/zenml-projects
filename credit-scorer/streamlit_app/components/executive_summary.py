@@ -1,10 +1,27 @@
+# Apache Software License 2.0
+#
+# Copyright (c) ZenML GmbH 2025. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 """Executive Summary component for the dashboard."""
 
 from datetime import datetime
 
 import plotly.graph_objects as go
 import streamlit as st
-from src.utils.visualizations.compliance_dashboard import (
+from src.utils.visualizations.dashboard import (
     format_activities,
 )
 from streamlit.components.v1 import html
@@ -19,12 +36,198 @@ from streamlit_app.data.compliance_utils import (
 )
 from streamlit_app.data.processor import compute_article_compliance
 
-# We are now importing format_activities from the shared module
-# So we no longer need this duplicate function here
+
+def render_article_card_streamlit(
+    article: str, score: float, sources_text: str = "N/A"
+) -> str:
+    """Render an article card for compliance visualization in Streamlit.
+
+    Args:
+        article: The article title
+        score: The compliance score (0-100)
+        sources_text: Text describing data sources
+
+    Returns:
+        HTML string for the article card
+    """
+    # Determine color based on score
+    if score >= 80:
+        color = "#478C5C"  # green
+        progress_class = "progress-high"
+    elif score >= 60:
+        color = "#FFB30F"  # yellow
+        progress_class = "progress-medium"
+    else:
+        color = "#D64045"  # red
+        progress_class = "progress-low"
+
+    # Create article card HTML
+    card_html = f"""
+    <div class="article-card">
+        <div class="article-title">{article}</div>
+        <div class="article-value" style="color: {color};">{score:.1f}%</div>
+        <div class="progress-bar">
+            <div class="progress-fill {progress_class}" style="width: {score}%;"></div>
+        </div>
+        <div class="article-source"><strong>Sources:</strong> {sources_text}</div>
+    </div>
+    """
+    return card_html
 
 
 def display_exec_summary(risk_df, incident_df):
     """Display an executive summary dashboard."""
+    # Add the same CSS styling as the dashboard
+    dashboard_css = """
+    <style>
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .summary-header {
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f5ff;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .overall-score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1F4E79;
+        }
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .article-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .article-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #1F4E79;
+        }
+        .article-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .progress-high {
+            background-color: #C6E0B4;
+        }
+        .progress-medium {
+            background-color: #FFE699;
+        }
+        .progress-low {
+            background-color: #F8CBAD;
+        }
+        .article-source {
+            font-size: 11px;
+            color: #666;
+        }
+        .metrics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .strongest {
+            border-left: 4px solid #478C5C;
+        }
+        .strongest .metric-value {
+            color: #478C5C;
+        }
+        .weakest {
+            border-left: 4px solid #D64045;
+        }
+        .weakest .metric-value {
+            color: #D64045;
+        }
+        .metrics-section {
+            margin-top: 30px;
+        }
+        .metrics-header {
+            padding: 10px;
+            background-color: #f0f5ff;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .findings-section {
+            margin-top: 30px;
+        }
+        .findings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .finding {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .finding-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .finding-critical {
+            background-color: #ffecec;
+            border-left: 3px solid #D64045;
+        }
+        .finding-warning {
+            background-color: #fff9ec;
+            border-left: 3px solid #FFB30F;
+        }
+        .finding-positive {
+            background-color: #f0f7f0;
+            border-left: 3px solid #478C5C;
+        }
+    </style>
+    """
+
+    st.markdown(dashboard_css, unsafe_allow_html=True)
+
     st.markdown(
         '<div class="card">'
         "<h2>Executive Summary</h2>"
@@ -33,12 +236,118 @@ def display_exec_summary(risk_df, incident_df):
         unsafe_allow_html=True,
     )
 
-    # Key metrics - combine compliance results with risk data
-    col1, col2, col3, col4 = st.columns(4)
-
     # Get compliance data
     compliance_results = get_compliance_results()
     compliance_summary = get_compliance_summary(compliance_results)
+
+    # Display overall compliance score (matching dashboard)
+    if "Overall Compliance" in compliance_summary:
+        overall_score = compliance_summary.get("overall_score", 0)
+        st.markdown(
+            f"""
+            <div class="summary-header">
+                <h3 style="margin: 0; color:#1F4E79;">Overall Compliance Score</h3>
+                <div class="overall-score">{overall_score:.1f}%</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # Get detailed compliance information
+    article_compliance = compute_article_compliance(
+        risk_df, use_compliance_calculator=True
+    )
+    data_sources = get_compliance_data_sources(compliance_results)
+    findings = compliance_results.get("findings", [])
+    grouped_findings = format_compliance_findings(findings)
+
+    # Article Cards Grid (NEW LAYOUT - using Streamlit columns)
+    st.markdown("<h3>Article Compliance Status</h3>", unsafe_allow_html=True)
+
+    # Create article cards for each article (excluding Overall Compliance)
+    article_items = [
+        (k, v)
+        for k, v in article_compliance.items()
+        if k != "Overall Compliance"
+    ]
+
+    # Display articles in columns (3 per row)
+    cols_per_row = 3
+    for i in range(0, len(article_items), cols_per_row):
+        cols = st.columns(cols_per_row)
+
+        for j in range(cols_per_row):
+            if i + j < len(article_items):
+                article, score = article_items[i + j]
+
+                # Extract article ID for looking up data sources
+                article_id = None
+                if article.startswith("Art."):
+                    article_num = (
+                        article.split("(")[0].strip().replace("Art. ", "")
+                    )
+                    article_id = f"article_{article_num}"
+
+                # Get data sources for this article
+                sources = data_sources.get(article_id, [])
+                sources_text = ", ".join(sources) if sources else "N/A"
+
+                # Determine color based on score
+                if score >= 80:
+                    color = "#478C5C"  # green
+                    bg_color = "#C6E0B4"
+                elif score >= 60:
+                    color = "#FFB30F"  # yellow
+                    bg_color = "#FFE699"
+                else:
+                    color = "#D64045"  # red
+                    bg_color = "#F8CBAD"
+
+                with cols[j]:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background-color: white;
+                            border-radius: 8px;
+                            padding: 15px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            margin-bottom: 15px;
+                            min-height: 120px;
+                        ">
+                            <div style="
+                                font-weight: bold;
+                                margin-bottom: 5px;
+                                font-size: 14px;
+                                color: #1F4E79;
+                            ">{article}</div>
+                            <div style="
+                                font-size: 24px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                color: {color};
+                            ">{score:.1f}%</div>
+                            <div style="
+                                height: 8px;
+                                background-color: #e0e0e0;
+                                border-radius: 4px;
+                                overflow: hidden;
+                                margin-bottom: 5px;
+                            ">
+                                <div style="
+                                    height: 100%;
+                                    border-radius: 4px;
+                                    width: {score}%;
+                                    background-color: {bg_color};
+                                "></div>
+                            </div>
+                            <div style="
+                                font-size: 11px;
+                                color: #666;
+                            "><strong>Sources:</strong> {sources_text}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
     # Extract risk metrics
     if risk_df is not None:
@@ -90,223 +399,276 @@ def display_exec_summary(risk_df, incident_df):
     if "Art." in weakest_name and "(" in weakest_name:
         weakest_name = weakest_name.split("(")[0].strip()
 
-    # Display metrics in styled cards - Top Row
-    with col1:
-        st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{total_risks}</div>'
-            '<div class="metric-label">Risks Identified</div>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
+    # Risk Metrics Section (MOVED BELOW and matching dashboard exactly)
+    st.markdown(
+        """
+        <div class="metrics-section">
+            <div class="metrics-header">
+                <h3 style="margin: 0; color:#1F4E79;">Risk & Compliance Metrics</h3>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with col2:
-        st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{critical_findings}</div>'
-            '<div class="metric-label">Critical Findings</div>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
+    # Risk Metrics Section (using Streamlit columns instead of HTML grid)
+    st.markdown("<h3>Risk & Compliance Metrics</h3>", unsafe_allow_html=True)
 
-    with col3:
-        st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{warning_findings}</div>'
-            '<div class="metric-label">Warning Findings</div>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
-    with col4:
-        st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{completion_status:.0%}</div>'
-            '<div class="metric-label">Mitigation Progress</div>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
-    # Second row of metrics
+    # Display metrics in 4 columns per row (2 rows total)
+    # First row
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{high_risks}</div>'
-            '<div class="metric-label">High Risk Items</div>'
-            "</div>",
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{total_risks}</div>
+                <div style="font-size: 14px; color: #666;">Risks Identified</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
     with col2:
         st.markdown(
-            '<div class="metric-card">'
-            f'<div class="metric-value">{total_incidents}</div>'
-            '<div class="metric-label">Reported Incidents</div>'
-            "</div>",
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{critical_findings}</div>
+                <div style="font-size: 14px; color: #666;">Critical Findings</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
     with col3:
-        # Show strongest article
         st.markdown(
-            f'<div class="metric-card" style="border-left: 4px solid #478C5C;">'
-            f'<div class="metric-value" style="color: #478C5C;">{strongest_article["score"]:.0f}%</div>'
-            f'<div class="metric-label">Strongest: {strongest_name}</div>'
-            "</div>",
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{warning_findings}</div>
+                <div style="font-size: 14px; color: #666;">Warning Findings</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
     with col4:
-        # Show weakest article
         st.markdown(
-            f'<div class="metric-card" style="border-left: 4px solid #D64045;">'
-            f'<div class="metric-value" style="color: #D64045;">{weakest_article["score"]:.0f}%</div>'
-            f'<div class="metric-label">Weakest: {weakest_name}</div>'
-            "</div>",
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{completion_status:.0%}</div>
+                <div style="font-size: 14px; color: #666;">Mitigation Progress</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
-    # Compliance status by EU AI Act article
-    st.markdown("<h3>EU AI Act Compliance Status</h3>", unsafe_allow_html=True)
-
-    # Get detailed compliance information
-    compliance_results = get_compliance_results()
-    article_compliance = compute_article_compliance(
-        risk_df, use_compliance_calculator=True
-    )
-    data_sources = get_compliance_data_sources(compliance_results)
-    findings = compliance_results.get("findings", [])
-    grouped_findings = format_compliance_findings(findings)
-    update_timestamps = get_last_update_timestamps(compliance_results)
-
-    # Display overall compliance score in a prominent way
-    if "Overall Compliance" in article_compliance:
-        overall_score = article_compliance["Overall Compliance"]
-        st.markdown(
-            f"<div style='text-align:center; padding:10px; background-color:#f0f5ff; border-radius:5px; margin-bottom:15px;'>"
-            f"<h4 style='margin:0; color:#1F4E79;'>Overall Compliance Score</h4>"
-            f"<div style='font-size:32px; font-weight:bold; color:#1F4E79;'>{overall_score:.1f}%</div>"
-            f"<div style='font-size:12px; color:#666;'>Last updated: {update_timestamps.get('Model Evaluation', 'N/A')}</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-
-    # Create a two-column layout
-    col1, col2 = st.columns([2, 1])
+    # Second row
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        # Create a gauge chart for each article (excluding Overall Compliance)
-        gauge_cols = st.columns(3)
-        article_items = [
-            (k, v)
-            for k, v in article_compliance.items()
-            if k != "Overall Compliance"
-        ]
-
-        for i, (article, score) in enumerate(article_items):
-            with gauge_cols[i % 3]:
-                # Extract article ID for looking up data sources
-                article_id = None
-                if article.startswith("Art."):
-                    article_num = (
-                        article.split("(")[0].strip().replace("Art. ", "")
-                    )
-                    article_id = f"article_{article_num}"
-
-                # Get data sources for this article
-                sources = data_sources.get(article_id, [])
-                sources_text = ", ".join(sources) if sources else "N/A"
-
-                # Use the original plotly gauge for interactive features
-                fig = go.Figure(
-                    go.Indicator(
-                        mode="gauge+number",
-                        value=score,
-                        domain={"x": [0, 1], "y": [0, 1]},
-                        gauge={
-                            "axis": {"range": [0, 100], "tickwidth": 1},
-                            "bar": {"color": PRIMARY_COLOR},
-                            "steps": [
-                                {"range": [0, 60], "color": "#ffcccb"},
-                                {"range": [60, 80], "color": "#FFE699"},
-                                {"range": [80, 100], "color": "#C6E0B4"},
-                            ],
-                            "threshold": {
-                                "line": {"color": "red", "width": 4},
-                                "thickness": 0.75,
-                                "value": 75,
-                            },
-                        },
-                        title={"text": article, "font": {"size": 14}},
-                        number={"suffix": "%", "font": {"size": 20}},
-                    )
-                )
-                fig.update_layout(
-                    height=180, margin=dict(l=30, r=30, t=50, b=30)
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-                # Show data sources under each gauge
-                st.markdown(
-                    f"<div style='text-align:center; font-size:11px; color:#666; margin-top:-15px;'>"
-                    f"<strong>Sources:</strong> {sources_text}</div>",
-                    unsafe_allow_html=True,
-                )
+        st.markdown(
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{high_risks}</div>
+                <div style="font-size: 14px; color: #666;">High Risk Items</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col2:
-        # Show compliance findings
-        st.markdown("<h4>Key Compliance Findings</h4>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{total_incidents}</div>
+                <div style="font-size: 14px; color: #666;">Reported Incidents</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-        # Critical issues first
-        if grouped_findings["critical"]:
+    with col3:
+        st.markdown(
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                border-left: 4px solid #478C5C;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px; color: #478C5C;">{strongest_article["score"]:.0f}%</div>
+                <div style="font-size: 14px; color: #666;">Strongest: {strongest_name}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col4:
+        st.markdown(
+            f"""
+            <div style="
+                background-color: white;
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                text-align: center;
+                border-left: 4px solid #D64045;
+                min-height: 80px;
+            ">
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px; color: #D64045;">{weakest_article["score"]:.0f}%</div>
+                <div style="font-size: 14px; color: #666;">Weakest: {weakest_name}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # Findings Section (using Streamlit native components)
+    st.markdown("<h3>Key Compliance Findings</h3>", unsafe_allow_html=True)
+
+    findings_displayed = False
+
+    # Helper function to deduplicate findings
+    def deduplicate_findings(findings_list):
+        seen = set()
+        unique_findings = []
+        for finding in findings_list:
+            # Create a unique key based on title and description
+            title = finding.get("title", finding.get("message", "Finding"))
+            description = finding.get(
+                "description", finding.get("recommendation", "")
+            )
+            key = f"{title}|{description}"
+            if key not in seen:
+                seen.add(key)
+                unique_findings.append(finding)
+        return unique_findings
+
+    # Critical issues first
+    if grouped_findings["critical"]:
+        unique_critical = deduplicate_findings(grouped_findings["critical"])
+        st.markdown("**🚨 Critical Issues:**", unsafe_allow_html=True)
+        findings_displayed = True
+        for finding in unique_critical[:3]:  # Show top 3 unique findings
+            title = finding.get("title", finding.get("message", "Finding"))
+            description = finding.get(
+                "description", finding.get("recommendation", "")
+            )
             st.markdown(
-                "<span style='color:#D64045; font-weight:bold;'>Critical Issues:</span>",
+                f"""
+                <div style="
+                    padding: 12px;
+                    margin-bottom: 5px;
+                    background-color: #ffecec;
+                    border-left: 3px solid #D64045;
+                    border-radius: 5px;
+                ">
+                    <div style="font-weight: bold; margin-bottom: 5px;">{title}</div>
+                    <div>{description}</div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
-            for finding in grouped_findings["critical"][:3]:  # Show top 3
-                st.markdown(
-                    f"<div style='padding:8px; margin-bottom:5px; background-color:#ffecec; border-left:3px solid #D64045; border-radius:3px;'>"
-                    f"<div style='font-weight:bold;'>{finding.get('title', 'Issue')}</div>"
-                    f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
 
-        # Warnings next
-        if grouped_findings["warning"]:
+    # Warnings next
+    if grouped_findings["warning"]:
+        unique_warnings = deduplicate_findings(grouped_findings["warning"])
+        st.markdown("**⚠️ Warnings:**", unsafe_allow_html=True)
+        findings_displayed = True
+        for finding in unique_warnings[:3]:  # Show top 3 unique findings
+            title = finding.get("title", finding.get("message", "Finding"))
+            description = finding.get(
+                "description", finding.get("recommendation", "")
+            )
             st.markdown(
-                "<span style='color:#FFB30F; font-weight:bold;'>Warnings:</span>",
+                f"""
+                <div style="
+                    padding: 12px;
+                    margin-bottom: 5px;
+                    background-color: #fff9ec;
+                    border-left: 3px solid #FFB30F;
+                    border-radius: 5px;
+                ">
+                    <div style="font-weight: bold; margin-bottom: 5px;">{title}</div>
+                    <div>{description}</div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
-            for finding in grouped_findings["warning"][:3]:  # Show top 3
-                st.markdown(
-                    f"<div style='padding:8px; margin-bottom:5px; background-color:#fff9ec; border-left:3px solid #FFB30F; border-radius:3px;'>"
-                    f"<div style='font-weight:bold;'>{finding.get('title', 'Warning')}</div>"
-                    f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
 
-        # Positive findings
-        if grouped_findings["positive"]:
+    # Positive findings
+    if grouped_findings["positive"]:
+        unique_positive = deduplicate_findings(grouped_findings["positive"])
+        st.markdown("**✅ Positive Findings:**", unsafe_allow_html=True)
+        findings_displayed = True
+        for finding in unique_positive[:3]:  # Show top 3 unique findings
+            title = finding.get("title", finding.get("message", "Finding"))
+            description = finding.get(
+                "description", finding.get("recommendation", "")
+            )
             st.markdown(
-                "<span style='color:#478C5C; font-weight:bold;'>Positive Findings:</span>",
+                f"""
+                <div style="
+                    padding: 12px;
+                    margin-bottom: 5px;
+                    background-color: #f0f7f0;
+                    border-left: 3px solid #478C5C;
+                    border-radius: 5px;
+                ">
+                    <div style="font-weight: bold; margin-bottom: 5px;">{title}</div>
+                    <div>{description}</div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
-            for finding in grouped_findings["positive"][:3]:  # Show top 3
-                st.markdown(
-                    f"<div style='padding:8px; margin-bottom:5px; background-color:#f0f7f0; border-left:3px solid #478C5C; border-radius:3px;'>"
-                    f"<div style='font-weight:bold;'>{finding.get('title', 'Positive')}</div>"
-                    f"<div style='font-size:12px;'>{finding.get('description', '')}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
 
-        # If no findings, show a message
-        if not any(grouped_findings.values()):
-            st.info("No compliance findings available for this release.")
+    # If no findings, show a message
+    if not findings_displayed:
+        st.info("No compliance findings available for this release.")
 
     # Recent activities section
     st.markdown("<h3>Recent Activities</h3>", unsafe_allow_html=True)

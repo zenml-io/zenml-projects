@@ -17,12 +17,11 @@
 
 """Utility functions for the project."""
 
-from .annex_iv import (
+from .compliance.annex_iv import (
     collect_zenml_metadata,
     generate_readme,
     load_and_process_manual_inputs,
     record_log_locations,
-    save_evaluation_artifacts,
     write_git_information,
 )
 from .eval import (
@@ -35,9 +34,9 @@ from .preprocess import (
     DropIDColumn,
 )
 from .storage import (
-    get_extension_for_artifact,
     save_artifact_to_modal,
-    save_compliance_artifacts_to_modal,
+    save_evaluation_artifacts,
+    save_visualizations,
 )
 from .visualizations import (
     generate_eval_visualization,

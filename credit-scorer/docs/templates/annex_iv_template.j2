@@ -39,24 +39,6 @@ intended purpose of the AI system]*" }}
 
 {% if stack and stack.components %}
 **ZenML Stack Configuration:**
-- **Stack Name:** {{ stack.name }}
-- **Stack ID:** `{{ stack.id }}`
-
-**Stack Components:**
-{% for comp_type, components in stack.components.items() %}
-**{{ comp_type | capitalize }}:**
-{% for component in components %}
-- **{{ component.name }}** ({{ component.flavor_name }}{% if component.integration %}, {{ component.integration }}{%
-endif %})
-{% endfor %}
-
-{% endfor %}
-{% else %}
-**ZenML Stack Configuration:** *Stack information not available*
-{% endif %}
-
-{% if stack and stack.components %}
-**ZenML Stack Configuration:**
 
 - **Stack Name:** {{ stack.name }}
 - **Stack ID:** `{{ stack.id }}` {% if stack.created %}
@@ -407,11 +389,21 @@ requirements]*
 
 {% if manual_inputs and manual_inputs.get("declaration_of_conformity") %}
 ```
+{% if manual_inputs.declaration_of_conformity.endswith(".txt") or
+manual_inputs.declaration_of_conformity.endswith(".md") %}
+{{ include_file(manual_inputs.declaration_of_conformity) | preserve_newlines }}
+{% else %}
 {{ manual_inputs.declaration_of_conformity | preserve_newlines }}
+{% endif %}
 ```
 {% else %}
 *[REQUIRED: Attach copy of EU declaration of conformity per Article 47]*
 {% endif %}
+
+### References
+
+- [EU AI Act 2024/1689 Text](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689)
+- [EU AI Act, Article 47: EU declaration of conformity](https://artificialintelligenceact.eu/article/47/)
 
 ---
 

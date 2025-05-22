@@ -23,15 +23,8 @@ from typing import Annotated, Any, Dict
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    APPROVAL_RECORD_NAME,
-    APPROVED_NAME,
-    EVALUATION_RESULTS_NAME,
-    MODAL_ENVIRONMENT,
-    MODAL_VOLUME_NAME,
-    MODEL_NAME,
-    PREPROCESS_PIPELINE_NAME,
-)
+from src.constants import Artifacts as A
+from src.constants import ModalConfig
 
 logger = get_logger(__name__)
 
@@ -56,13 +49,13 @@ def load_python_module(file_path: str) -> Any:
 
 @step(enable_cache=False)
 def modal_deployment(
-    approved: Annotated[bool, APPROVED_NAME],
-    approval_record: Annotated[Dict[str, Any], APPROVAL_RECORD_NAME],
-    model: Annotated[Any, MODEL_NAME],
-    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
-    preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME],
-    environment: str = MODAL_ENVIRONMENT,
-) -> Annotated[Dict[str, Any], "cs_deployment_info"]:
+    approved: Annotated[bool, A.APPROVED],
+    approval_record: Annotated[Dict[str, Any], A.APPROVAL_RECORD],
+    model: Annotated[Any, A.MODEL],
+    evaluation_results: Annotated[Dict[str, Any], A.EVALUATION_RESULTS],
+    preprocess_pipeline: Annotated[Any, A.PREPROCESS_PIPELINE],
+    environment: str = ModalConfig.ENVIRONMENT,
+) -> Annotated[Dict[str, Any], A.DEPLOYMENT_INFO]:
     """Deploy model with monitoring and incident reporting (Articles 10, 17, 18).
 
     This step:
@@ -102,21 +95,25 @@ def modal_deployment(
     deployment_url = deployment_record["endpoints"]["root"]
     approval_record["deployment_url"] = deployment_url
 
-    # Save compliance artifacts to Modal
-    from src.utils.storage import save_compliance_artifacts_to_modal
+    # Save only essential artifact to Modal
+    from src.utils.storage import save_artifact_to_modal
 
     run_id = str(get_step_context().pipeline_run.id)
-    artifacts = {
-        "deployment_record": deployment_record,
-        "model_card": model_card,
-        "approval_record": approval_record,
+    release_dir = Path(f"docs/releases/{run_id}")
+
+    # Save deployment record to Modal as it's needed for API functionality
+    deployment_path = f"{release_dir}/deployment_record.json"
+    checksum = save_artifact_to_modal(
+        artifact=deployment_record,
+        artifact_path=deployment_path,
+    )
+
+    # Create artifact_paths structure for compatibility
+    artifact_paths = {
+        "deployment_record": {"path": deployment_path, "checksum": checksum}
     }
 
-    # Save all artifacts to Modal volume
-    artifact_paths = save_compliance_artifacts_to_modal(artifacts, run_id)
-
-    # Save approval record to release directory
-    release_dir = Path("docs/releases") / str(run_id)
+    # Make sure release directory exists
     release_dir.mkdir(parents=True, exist_ok=True)
     try:
         with open(release_dir / "approval_record.json", "w") as f:
@@ -131,7 +128,7 @@ def modal_deployment(
     deployment_info = {
         "deployment_record": deployment_record,
         "artifact_paths": artifact_paths,
-        "modal_volume": MODAL_VOLUME_NAME,
+        "modal_volume": ModalConfig.VOLUME_NAME,
         "environment": environment,
     }
 

@@ -22,25 +22,18 @@ from typing import Annotated, Any, Dict, Optional, Tuple
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    ANNEX_IV_PATH_NAME,
-    RELEASES_DIR,
-    RUN_RELEASE_DIR,
-    SAMPLE_INPUTS_PATH,
-    TEMPLATES_DIR,
-    VOLUME_METADATA,
-)
-from src.utils.annex_iv import (
+from src.constants import Artifacts as A
+from src.constants import Directories, ModalConfig
+from src.utils.compliance.annex_iv import (
     collect_zenml_metadata,
     generate_model_card,
     generate_readme,
     load_and_process_manual_inputs,
     record_log_locations,
-    save_evaluation_artifacts,
     write_git_information,
 )
-from src.utils.storage import save_compliance_artifacts_to_modal
-from src.utils.template import render_annex_iv_template
+from src.utils.compliance.template import render_annex_iv_template
+from src.utils.storage import save_evaluation_artifacts, save_visualizations
 
 logger = get_logger(__name__)
 
@@ -51,8 +44,8 @@ def generate_annex_iv_documentation(
     risk_scores: Optional[Dict[str, Any]] = None,
     deployment_info: Optional[Dict[str, Any]] = None,
 ) -> Tuple[
-    Annotated[str, ANNEX_IV_PATH_NAME],
-    Annotated[str, RUN_RELEASE_DIR],
+    Annotated[str, A.ANNEX_IV_PATH],
+    Annotated[str, A.RUN_RELEASE_DIR],
 ]:
     """Generate Annex IV technical documentation.
 
@@ -76,14 +69,14 @@ def generate_annex_iv_documentation(
     logger.info(f"Generating Annex IV documentation for run: {run_id}")
 
     # Create immutable releases directory with run_id subdirectory
-    run_release_dir = Path(RELEASES_DIR) / run_id
+    run_release_dir = Path(Directories.RELEASES) / run_id
     run_release_dir.mkdir(parents=True, exist_ok=True)
 
     # Step 1: Collect metadata from context
     metadata = collect_zenml_metadata(context)
 
     # Add passed artifacts to metadata
-    metadata["volume_metadata"] = VOLUME_METADATA
+    metadata["volume_metadata"] = ModalConfig.get_volume_metadata()
     if evaluation_results:
         metadata["evaluation_results"] = evaluation_results
     if risk_scores:
@@ -92,21 +85,24 @@ def generate_annex_iv_documentation(
         metadata["deployment_info"] = deployment_info
 
     # Step 2: Load and process manual inputs from sample_inputs.json
-    manual_inputs = load_and_process_manual_inputs(SAMPLE_INPUTS_PATH)
+    manual_inputs = load_and_process_manual_inputs(
+        Directories.SAMPLE_INPUTS_PATH
+    )
 
     # Step 3: Render the Jinja template with metadata and enriched manual inputs
     content = render_annex_iv_template(
-        metadata, manual_inputs, Path(TEMPLATES_DIR)
+        metadata, manual_inputs, Path(Directories.TEMPLATES)
     )
 
     # Step 4: Save documentation and artifacts
-    md_name = f"annex_iv_{pipeline.name}.md"
+    md_name = "annex_iv.md"
     md_path = run_release_dir / md_name
     md_path.write_text(content)
 
     # Write additional documentation files
     write_git_information(run_release_dir)
     save_evaluation_artifacts(run_release_dir, evaluation_results, risk_scores)
+    save_visualizations(run_release_dir)
     generate_readme(
         releases_dir=run_release_dir,
         pipeline_name=pipeline.name,
@@ -116,35 +112,17 @@ def generate_annex_iv_documentation(
         has_risk_scores=risk_scores is not None,
     )
 
-    # Step 6: Save to Modal volume
-    try:
-        compliance_artifacts = {
-            "compliance_report": content,
-            "metadata": metadata,
-            "manual_inputs": manual_inputs,
+    # Log the artifacts metadata to ZenML
+    log_metadata(
+        metadata={
+            "compliance_artifacts_local_path": str(run_release_dir),
+            "modal_volume_metadata": ModalConfig.get_volume_metadata(),
+            "path": str(md_path),
+            "frameworks_count": len(manual_inputs.get("frameworks", {})),
         }
+    )
 
-        artifact_paths = save_compliance_artifacts_to_modal(
-            compliance_artifacts, run_id
-        )
-        logger.info(
-            f"Compliance artifacts saved to Modal volume: {artifact_paths}"
-        )
-
-        # Log the artifact paths to ZenML metadata
-        log_metadata(
-            metadata={
-                "compliance_artifacts": artifact_paths,
-                "modal_volume_metadata": VOLUME_METADATA,
-                "path": str(md_path),
-                "frameworks_count": len(manual_inputs.get("frameworks", {})),
-            }
-        )
-
-    except Exception as e:
-        logger.error(
-            f"Failed to save compliance artifacts to Modal volume: {e}"
-        )
+    logger.info(f"Compliance artifacts saved locally to: {run_release_dir}")
 
     # Step 7: Record log locations for Article 12 compliance
     log_info = record_log_locations(run_release_dir, pipeline.name, run_id)

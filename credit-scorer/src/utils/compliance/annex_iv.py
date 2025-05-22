@@ -27,15 +27,13 @@ from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.models.v2.core.pipeline_run import PipelineRunResponseBody
 
-from src.constants import (
-    DEPLOYMENT_PIPELINE_NAME,
-    EVAL_VISUALIZATION_NAME,
-    FEATURE_ENGINEERING_PIPELINE_NAME,
-    RELEASES_DIR,
-    TRAINING_PIPELINE_NAME,
-    WHYLOGS_VISUALIZATION_NAME,
-)
+from src.constants import Artifacts as A
+from src.constants import Directories, Pipelines
 from src.utils.compliance.data_loader import ComplianceDataLoader
+from src.utils.storage import (
+    save_evaluation_visualization,
+    save_whylogs_profile,
+)
 
 logger = get_logger(__name__)
 
@@ -231,9 +229,9 @@ def collect_zenml_metadata(context) -> Dict[str, Any]:
 
     # 6. Loop over your three pipelines and grab last_run & steps
     pipeline_names = [
-        FEATURE_ENGINEERING_PIPELINE_NAME,
-        TRAINING_PIPELINE_NAME,
-        DEPLOYMENT_PIPELINE_NAME,
+        Pipelines.FEATURE_ENGINEERING,
+        Pipelines.TRAINING,
+        Pipelines.DEPLOYMENT,
     ]
 
     for pipe_name in pipeline_names:
@@ -314,7 +312,7 @@ def _collect_previous_versions(client: Client) -> List[Dict[str, Any]]:
     """Collect previous versions of the deployment pipeline."""
     previous_versions = []
     try:
-        deployment_pipeline = client.get_pipeline(DEPLOYMENT_PIPELINE_NAME)
+        deployment_pipeline = client.get_pipeline(Pipelines.DEPLOYMENT)
         # Get all runs for the deployment pipeline, ordered by creation time (newest first)
         deployment_runs = list(
             client.list_pipeline_runs(pipeline_id=deployment_pipeline.id)
@@ -344,11 +342,11 @@ def _collect_previous_versions(client: Client) -> List[Dict[str, Any]]:
             )
 
         logger.info(
-            f"Found {len(previous_versions)} previous versions for {DEPLOYMENT_PIPELINE_NAME}"
+            f"Found {len(previous_versions)} previous versions for {Pipelines.DEPLOYMENT}"
         )
     except Exception as e:
         logger.warning(
-            f"Failed to get previous versions for {DEPLOYMENT_PIPELINE_NAME}: {e}"
+            f"Failed to get previous versions for {Pipelines.DEPLOYMENT}: {e}"
         )
 
     return previous_versions
@@ -406,54 +404,6 @@ def write_git_information(run_release_dir: Path) -> None:
         (run_release_dir / "git_info.md").write_text(git_md)
     except Exception:
         logger.warning("Failed to write git info")
-
-
-def _save_visualizations(run_release_dir: Path) -> Tuple[Path, Path]:
-    from zenml.client import Client
-
-    client = Client()
-    """Save WhyLogs and evaluation visualizations."""
-    # Get whylogs visualization and save to releases directory
-    whylogs_html = client.get_artifact_version(
-        name_id_or_prefix=WHYLOGS_VISUALIZATION_NAME
-    )
-    whylogs_html_path = run_release_dir / "whylogs_profile.html"
-    materialized_artifact = whylogs_html.load()
-    whylogs_html_path.write_text(materialized_artifact)
-
-    # Get eval_visualization_path
-    eval_html = client.get_artifact_version(
-        name_id_or_prefix=EVAL_VISUALIZATION_NAME
-    )
-    eval_html_path = run_release_dir / "eval_visualization.html"
-    materialized_eval_html = eval_html.load()
-    eval_html_path.write_text(materialized_eval_html)
-
-    logger.info(f"WhyLogs visualization saved to: {whylogs_html_path}")
-    logger.info(f"Evaluation visualization saved to: {eval_html_path}")
-
-    return whylogs_html_path, eval_html_path
-
-
-def save_evaluation_artifacts(
-    run_release_dir: Path,
-    evaluation_results: Dict[str, Any] = None,
-    risk_scores: Dict[str, Any] = None,
-) -> None:
-    """Save evaluation and risk assessment artifacts as YAML files."""
-    if evaluation_results:
-        # Create summarized version of evaluation results for local storage
-        summarized_results = _summarize_evaluation_results(evaluation_results)
-        (run_release_dir / "evaluation_results.yaml").write_text(
-            yaml.dump(summarized_results)
-        )
-    if risk_scores:
-        (run_release_dir / "risk_scores.yaml").write_text(
-            yaml.dump(risk_scores)
-        )
-
-    # save visualizations
-    _save_visualizations(run_release_dir)
 
 
 def _summarize_evaluation_results(
@@ -680,7 +630,14 @@ def generate_model_card(
         metrics = evaluation_results["metrics"]
         performance_metrics = {
             "accuracy": metrics.get("accuracy", 0.0),
-            "auc": metrics.get("auc", 0.0),
+            "auc": metrics.get("auc_roc", metrics.get("auc", 0.0)),
+            "precision": metrics.get("precision", 0.0),
+            "recall": metrics.get("recall", 0.0),
+            "f1_score": metrics.get("f1_score", 0.0),
+            "optimal_threshold": metrics.get(
+                "optimal_threshold",
+                metrics.get("optimal_f1_threshold", 0.5),
+            ),
         }
 
     # Process fairness metrics - summarize instead of showing all groups
@@ -764,13 +721,83 @@ def generate_model_card(
         # Performance Metrics
         f.write("## Performance Metrics\n\n")
         if performance_metrics:
+            # Model Quality Metrics (threshold-independent)
+            f.write("### Model Quality (Threshold-Independent)\n\n")
+            f.write("| Metric | Value | Description |\n")
+            f.write("|--------|-------|-------------|\n")
+
+            quality_metrics = [
+                ("auc_roc", "Area Under ROC Curve"),
+                ("average_precision", "Average Precision (PR-AUC)"),
+                ("balanced_accuracy", "Balanced Accuracy"),
+            ]
+
+            for metric_key, description in quality_metrics:
+                if metric_key in performance_metrics:
+                    value = performance_metrics[metric_key]
+                    formatted_value = (
+                        f"{value:.4f}" if isinstance(value, float) else value
+                    )
+                    f.write(
+                        f"| {metric_key} | {formatted_value} | {description} |\n"
+                    )
+
+            # Standard Threshold Metrics (0.5)
+            f.write("\n### Performance at Standard Threshold (0.5)\n\n")
             f.write("| Metric | Value |\n")
-            f.write("|--------|-------|\n")
-            for metric, value in performance_metrics.items():
-                formatted_value = (
-                    f"{value:.4f}" if isinstance(value, float) else value
+            f.write("|--------|---------|\n")
+
+            standard_metrics = ["accuracy", "precision", "recall", "f1_score"]
+
+            for metric in standard_metrics:
+                if metric in performance_metrics:
+                    value = performance_metrics[metric]
+                    formatted_value = (
+                        f"{value:.4f}" if isinstance(value, float) else value
+                    )
+                    f.write(f"| {metric} | {formatted_value} |\n")
+
+            # Optimal Threshold Metrics
+            f.write(
+                f"\n### Performance at Optimal Threshold ({performance_metrics.get('optimal_threshold', 'N/A')})\n\n"
+            )
+            f.write("| Metric | Value |\n")
+            f.write("|--------|---------|\n")
+
+            optimal_metrics = [
+                ("optimal_precision", "Precision"),
+                ("optimal_recall", "Recall"),
+                ("optimal_f1", "F1 Score"),
+                ("normalized_cost", "Normalized Cost"),
+            ]
+
+            for metric_key, display_name in optimal_metrics:
+                if metric_key in performance_metrics:
+                    value = performance_metrics[metric_key]
+                    formatted_value = (
+                        f"{value:.4f}" if isinstance(value, float) else value
+                    )
+                    f.write(f"| {display_name} | {formatted_value} |\n")
+
+            # Confusion Matrix
+            if all(
+                k in performance_metrics
+                for k in [
+                    "true_positives",
+                    "false_positives",
+                    "true_negatives",
+                    "false_negatives",
+                ]
+            ):
+                f.write("\n### Confusion Matrix (at Optimal Threshold)\n\n")
+                f.write("| | Predicted: No Default | Predicted: Default |\n")
+                f.write("|---|---|---|\n")
+                f.write(
+                    f"| **Actual: No Default** | {performance_metrics['true_negatives']} (TN) | {performance_metrics['false_positives']} (FP) |\n"
                 )
-                f.write(f"| {metric} | {formatted_value} |\n")
+                f.write(
+                    f"| **Actual: Default** | {performance_metrics['false_negatives']} (FN) | {performance_metrics['true_positives']} (TP) |\n"
+                )
         else:
             f.write("No performance metrics available.\n")
         f.write("\n")
@@ -881,8 +908,29 @@ def _extract_performance_metrics(
 
     metrics = evaluation_results["metrics"]
     performance_metrics = {
+        # Standard metrics (at default/0.5 threshold)
         "accuracy": metrics.get("accuracy", 0.0),
-        "auc": metrics.get("auc", 0.0),
+        "precision": metrics.get("precision", 0.0),
+        "recall": metrics.get("recall", 0.0),
+        "f1_score": metrics.get("f1_score", 0.0),
+        # Model quality metrics
+        "auc_roc": metrics.get("auc_roc", metrics.get("auc", 0.0)),
+        "average_precision": metrics.get("average_precision", 0.0),
+        "balanced_accuracy": metrics.get("balanced_accuracy", 0.0),
+        # Optimal threshold metrics
+        "optimal_threshold": metrics.get(
+            "optimal_threshold", metrics.get("optimal_cost_threshold", 0.5)
+        ),
+        "optimal_precision": metrics.get("optimal_precision", 0.0),
+        "optimal_recall": metrics.get("optimal_recall", 0.0),
+        "optimal_f1": metrics.get("optimal_f1", 0.0),
+        # Business impact
+        "normalized_cost": metrics.get("normalized_cost", 0.0),
+        # Confusion matrix (for transparency)
+        "true_positives": metrics.get("true_positives", 0),
+        "false_positives": metrics.get("false_positives", 0),
+        "true_negatives": metrics.get("true_negatives", 0),
+        "false_negatives": metrics.get("false_negatives", 0),
     }
 
     logger.info(f"Extracted performance metrics: {performance_metrics}")
@@ -1037,7 +1085,9 @@ def record_log_locations(
 
         if log_info and "log_uri" in log_info:
             # Create pipeline_logs directory for Article 12 compliance requirements
-            pipeline_logs_dir = Path(RELEASES_DIR).parent / "pipeline_logs"
+            pipeline_logs_dir = (
+                Path(Directories.RELEASES).parent / "pipeline_logs"
+            )
             pipeline_logs_dir.mkdir(exist_ok=True, parents=True)
 
             # Create a JSON file with log metadata

@@ -23,21 +23,16 @@ from typing import Annotated, Any, Dict
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import (
-    DEPLOYMENT_INFO_NAME,
-    EVALUATION_RESULTS_NAME,
-    MONITORING_PLAN_NAME,
-    RELEASES_DIR,
-)
+from src.constants import Artifacts as A, Directories
 
 logger = get_logger(__name__)
 
 
 @step
 def post_market_monitoring(
-    deployment_info: Annotated[Dict[str, Any], DEPLOYMENT_INFO_NAME],
-    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
-) -> Annotated[Dict[str, Any], MONITORING_PLAN_NAME]:
+    deployment_info: Annotated[Dict[str, Any], A.DEPLOYMENT_INFO],
+    evaluation_results: Annotated[Dict[str, Any], A.EVALUATION_RESULTS],
+) -> Annotated[Dict[str, Any], A.MONITORING_PLAN]:
     """Setup comprehensive post-market monitoring (Article 17).
 
     Creates a monitoring plan that satisfies EU AI Act Article 17 requirements
@@ -93,7 +88,7 @@ def post_market_monitoring(
     run_id = str(context.pipeline_run.id)
 
     # Create the release directory for this run
-    release_dir = Path(RELEASES_DIR) / run_id
+    release_dir = Path(Directories.RELEASES) / run_id
     Path(release_dir).mkdir(parents=True, exist_ok=True)
 
     # Save monitoring plan to the run-specific release directory

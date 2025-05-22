@@ -92,7 +92,7 @@ def validate_artifacts_directory(
         "risk_scores.yaml",
         "monitoring_plan.json",
         "sbom.json",
-        "annex_iv_cs_deployment.md",
+        "annex_iv.md",
     ]
 
     # Determine the release directory path
@@ -173,10 +173,6 @@ def get_compliance_results(
                     "findings": [],
                     "errors": ["No releases found"],
                 }
-
-        logging.info(
-            f"Using release ID for compliance calculation: {release_id}"
-        )
 
         # Validate the release directory, passing both release_id and run_release_dir
         valid, missing_files = validate_artifacts_directory(
@@ -419,7 +415,7 @@ def get_last_update_timestamps(results: Dict[str, Any]) -> Dict[str, str]:
             ("risk_scores.yaml", "Risk Scores"),
             ("monitoring_plan.json", "Monitoring Plan"),
             ("sbom.json", "Software BOM"),
-            ("annex_iv_cs_deployment.md", "Annex IV Documentation"),
+            ("annex_iv.md", "Annex IV Documentation"),
         ]:
             file_path = release_dir / filename
             if file_path.exists():

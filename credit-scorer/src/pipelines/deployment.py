@@ -20,14 +20,8 @@ from typing import Annotated, Any
 from zenml.client import Client
 from zenml.pipelines import pipeline
 
-from src.constants import (
-    DEPLOYMENT_PIPELINE_NAME,
-    EVALUATION_RESULTS_NAME,
-    MODAL_ENVIRONMENT,
-    MODEL_NAME,
-    PREPROCESS_PIPELINE_NAME,
-    RISK_SCORES_NAME,
-)
+from src.constants import Artifacts as A
+from src.constants import ModalConfig, Pipelines
 from src.steps import (
     approve_deployment,
     generate_annex_iv_documentation,
@@ -38,13 +32,13 @@ from src.steps import (
 )
 
 
-@pipeline(name=DEPLOYMENT_PIPELINE_NAME)
+@pipeline(name=Pipelines.DEPLOYMENT)
 def deployment(
-    model: Annotated[Any, MODEL_NAME] = None,
-    preprocess_pipeline: Annotated[Any, PREPROCESS_PIPELINE_NAME] = None,
-    evaluation_results: Annotated[Any, EVALUATION_RESULTS_NAME] = None,
-    risk_scores: Annotated[Any, RISK_SCORES_NAME] = None,
-    environment: str = MODAL_ENVIRONMENT,
+    model: Annotated[Any, A.MODEL] = None,
+    preprocess_pipeline: Annotated[Any, A.PREPROCESS_PIPELINE] = None,
+    evaluation_results: Annotated[Any, A.EVALUATION_RESULTS] = None,
+    risk_scores: Annotated[Any, A.RISK_SCORES] = None,
+    environment: str = ModalConfig.ENVIRONMENT,
 ):
     """EU AI Act compliant deployment pipeline.
 
@@ -67,18 +61,18 @@ def deployment(
     # Fetch artifacts from ZenML if not provided
     client = Client()
     if model is None:
-        model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
+        model = client.get_artifact_version(name_id_or_prefix=A.MODEL)
     if evaluation_results is None:
         evaluation_results = client.get_artifact_version(
-            name_id_or_prefix=EVALUATION_RESULTS_NAME
+            name_id_or_prefix=A.EVALUATION_RESULTS
         )
     if risk_scores is None:
         risk_scores = client.get_artifact_version(
-            name_id_or_prefix=RISK_SCORES_NAME
+            name_id_or_prefix=A.RISK_SCORES
         )
     if preprocess_pipeline is None:
         preprocess_pipeline = client.get_artifact_version(
-            name_id_or_prefix=PREPROCESS_PIPELINE_NAME
+            name_id_or_prefix=A.PREPROCESS_PIPELINE
         )
 
     # Human oversight approval gate (Article 14)
@@ -98,7 +92,9 @@ def deployment(
     )
 
     # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
-    sbom_artifact = generate_sbom()  # noqa: F841
+    sbom_artifact = generate_sbom(
+        deployment_info=deployment_info,
+    )  # noqa: F841
 
     # Post-market monitoring plan (Article 17)
     monitoring_plan = post_market_monitoring(

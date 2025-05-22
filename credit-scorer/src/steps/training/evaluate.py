@@ -34,12 +34,7 @@ from zenml.client import Client
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
-from src.constants import (
-    EVAL_VISUALIZATION_NAME,
-    EVALUATION_RESULTS_NAME,
-    MODEL_NAME,
-    TEST_DATASET_NAME,
-)
+from src.constants import Artifacts as A
 from src.utils import (
     analyze_fairness,
     generate_eval_visualization,
@@ -52,14 +47,15 @@ logger = get_logger(__name__)
 @step()
 def evaluate_model(
     protected_attributes: List[str],
-    test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
+    test_df: Annotated[pd.DataFrame, A.TEST_DATASET],
+    optimal_threshold: Annotated[float, A.OPTIMAL_THRESHOLD],
     target: str = "TARGET",
-    model: Annotated[Any, MODEL_NAME] = None,
+    model: Annotated[Any, A.MODEL] = None,
     approval_thresholds: Dict[str, float] = None,
     cost_matrix: Optional[Dict[str, float]] = None,
 ) -> Tuple[
-    Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
-    Annotated[HTMLString, EVAL_VISUALIZATION_NAME],
+    Annotated[Dict[str, Any], A.EVALUATION_RESULTS],
+    Annotated[HTMLString, A.EVAL_VISUALIZATION],
 ]:
     """Compute performance + fairness metrics. Articles 9 & 15 compliant.
 
@@ -68,6 +64,7 @@ def evaluate_model(
         test_df: Test dataset
         target: Target column name
         model: The trained model
+        optimal_threshold: The optimal threshold for the model
         approval_thresholds: Approval thresholds for fairness metrics
         cost_matrix: Optional cost matrix for financial impact evaluation
                     e.g. {"fp_cost": 1, "fn_cost": 5} means false negatives
@@ -86,7 +83,7 @@ def evaluate_model(
     # Get model and identify target column
     if model is None:
         client = Client()
-        model = client.get_artifact_version(name_id_or_prefix=MODEL_NAME)
+        model = client.get_artifact_version(name_id_or_prefix=A.MODEL)
 
     target_col = next(
         col
@@ -101,28 +98,29 @@ def evaluate_model(
     class_counts = y_test.value_counts()
     logger.info(f"Class distribution in test set: {class_counts}")
 
-    # Get predictions and raw probabilities
-    y_pred = model.predict(X_test)
+    # Get raw probabilities first
     y_prob = model.predict_proba(X_test)[:, 1]
+
+    # Use the optimal threshold from training
+    logger.info(f"Using optimal threshold from training: {optimal_threshold}")
+    y_pred = (y_prob >= optimal_threshold).astype(int)
 
     # Log prediction distribution
     pred_counts = pd.Series(y_pred).value_counts()
     logger.info(f"Predictions distribution: {pred_counts}")
 
-    # Import all necessary metrics
-
-    # Calculate confusion matrix for default threshold (0.5)
+    # Calculate confusion matrix at optimal threshold
     cm = confusion_matrix(y_test, y_pred)
     tn, fp, fn, tp = cm.ravel()
 
     logger.info(f"Confusion Matrix:\n{cm}")
 
-    # ===== 1. Standard metrics at default threshold =====
+    # ===== 1. Standard metrics at optimal threshold =====
     performance_metrics = {
         "accuracy": accuracy_score(y_test, y_pred),
-        "precision": precision_score(y_test, y_pred),
-        "recall": recall_score(y_test, y_pred),
-        "f1_score": f1_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, zero_division=0),
+        "recall": recall_score(y_test, y_pred, zero_division=0),
+        "f1_score": f1_score(y_test, y_pred, zero_division=0),
         "auc_roc": roc_auc_score(y_test, y_prob),
         # Add specific components for easier interpretation
         "true_negatives": int(tn),
@@ -148,20 +146,45 @@ def evaluate_model(
     # Normalize by dataset size for comparison across datasets
     performance_metrics["normalized_cost"] = total_cost / len(y_test)
 
-    # ===== 4. Threshold optimization =====
-    # Try different thresholds to find optimal F1 score
-    thresholds = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    # ===== 4. Use the training-optimized threshold =====
+    # Since we already have the optimal threshold from training, use it directly
+    performance_metrics["optimal_threshold"] = optimal_threshold
+    performance_metrics["optimal_f1_threshold"] = optimal_threshold
+    performance_metrics["optimal_f1_score"] = performance_metrics["f1_score"]
+    performance_metrics["optimal_cost_threshold"] = optimal_threshold
+    performance_metrics["optimal_cost"] = performance_metrics[
+        "normalized_cost"
+    ]
+
+    # The metrics calculated above are already at the optimal threshold
+    performance_metrics["optimal_precision"] = performance_metrics["precision"]
+    performance_metrics["optimal_recall"] = performance_metrics["recall"]
+    performance_metrics["optimal_f1"] = performance_metrics["f1_score"]
+    performance_metrics["optimal_accuracy"] = performance_metrics["accuracy"]
+
+    # ===== 5. Optional: Test a few comparison thresholds for context =====
+    # Generate some comparison metrics at different thresholds for visualization
+    # Include the optimal threshold so it appears in the visualization
+    comparison_thresholds = [
+        0.05,
+        0.1,
+        optimal_threshold,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+    ]
+    # Remove duplicates and sort
+    comparison_thresholds = sorted(list(set(comparison_thresholds)))
     threshold_metrics = {}
 
-    # Find optimal threshold for F1
-    best_f1 = 0
-    best_threshold = 0.5  # Default
-
-    for threshold in thresholds:
+    for threshold in comparison_thresholds:
         y_pred_at_threshold = (y_prob >= threshold).astype(int)
-        precision = precision_score(y_test, y_pred_at_threshold)
-        recall = recall_score(y_test, y_pred_at_threshold)
-        f1 = f1_score(y_test, y_pred_at_threshold)
+        precision = precision_score(
+            y_test, y_pred_at_threshold, zero_division=0
+        )
+        recall = recall_score(y_test, y_pred_at_threshold, zero_division=0)
+        f1 = f1_score(y_test, y_pred_at_threshold, zero_division=0)
 
         # Calculate confusion matrix at this threshold
         cm_t = confusion_matrix(y_test, y_pred_at_threshold)
@@ -184,60 +207,26 @@ def evaluate_model(
             "normalized_cost": normalized_threshold_cost,
         }
 
-        logger.info(
-            f"Threshold {threshold}: precision={precision:.4f}, recall={recall:.4f}, "
-            f"f1={f1:.4f}, cost={normalized_threshold_cost:.4f}"
-        )
-
-        # Track best F1 score
-        if f1 > best_f1:
-            best_f1 = f1
-            best_threshold = threshold
-
-    # Find optimal threshold for minimizing cost
-    cost_values = [
-        metrics["normalized_cost"] for metrics in threshold_metrics.values()
-    ]
-    min_cost_idx = np.argmin(cost_values)
-    min_cost_threshold = list(threshold_metrics.keys())[min_cost_idx]
-
-    # ===== 5. Add optimal threshold information =====
+    # Add threshold comparison metrics for visualization
     performance_metrics["threshold_metrics"] = threshold_metrics
-    performance_metrics["optimal_f1_threshold"] = best_threshold
-    performance_metrics["optimal_f1_score"] = best_f1
-    performance_metrics["optimal_cost_threshold"] = min_cost_threshold
-    performance_metrics["optimal_cost"] = threshold_metrics[
-        min_cost_threshold
-    ]["normalized_cost"]
 
-    # ===== 6. Calculate final metrics using cost-optimal threshold =====
-    optimal_y_pred = (y_prob >= min_cost_threshold).astype(int)
-    performance_metrics["optimal_precision"] = precision_score(
-        y_test, optimal_y_pred
+    # Log performance summary
+    logger.info(
+        f"Performance metrics at optimal threshold ({optimal_threshold}):"
     )
-    performance_metrics["optimal_recall"] = recall_score(
-        y_test, optimal_y_pred
-    )
-    performance_metrics["optimal_f1"] = f1_score(y_test, optimal_y_pred)
-    performance_metrics["optimal_accuracy"] = accuracy_score(
-        y_test, optimal_y_pred
+    logger.info(f"  Accuracy: {performance_metrics['accuracy']:.4f}")
+    logger.info(f"  Precision: {performance_metrics['precision']:.4f}")
+    logger.info(f"  Recall: {performance_metrics['recall']:.4f}")
+    logger.info(f"  F1 Score: {performance_metrics['f1_score']:.4f}")
+    logger.info(f"  AUC-ROC: {performance_metrics['auc_roc']:.4f}")
+    logger.info(
+        f"  Normalized Cost: {performance_metrics['normalized_cost']:.4f}"
     )
 
-    logger.info(
-        f"Performance metrics at default threshold (0.5): {performance_metrics}"
-    )
-    logger.info(
-        f"Optimal threshold for F1: {best_threshold}, F1: {best_f1:.4f}"
-    )
-    logger.info(
-        f"Optimal threshold for cost: {min_cost_threshold}, "
-        f"Cost: {threshold_metrics[min_cost_threshold]['normalized_cost']:.4f}"
-    )
-
-    # ===== 7. Fairness analysis with updated metrics =====
+    # ===== 6. Fairness analysis =====
     fairness_metrics, bias_flag = analyze_fairness(
         y_test,
-        optimal_y_pred,  # Use predictions from optimal threshold
+        y_pred,  # Use predictions from optimal threshold
         protected_attributes,
         test_df,
         approval_thresholds,
@@ -252,17 +241,16 @@ def evaluate_model(
         "cost_matrix": cost_matrix,
     }
 
-    # ===== 8. Generate visualizations for better understanding =====
-    # Precision-Recall curve
+    # ===== 7. Generate visualizations =====
     eval_visualization = generate_eval_visualization(
         performance_metrics=performance_metrics,
         threshold_metrics=threshold_metrics,
-        min_cost_threshold=min_cost_threshold,
+        min_cost_threshold=optimal_threshold,  # Use our optimal threshold
         y_test=y_test,
         y_prob=y_prob,
     )
 
-    # Log metadata for the pipeline
+    # ===== 8. Log metadata for the pipeline =====
     log_metadata(
         {
             "metrics": {
@@ -273,13 +261,24 @@ def evaluate_model(
                 "f1_score": performance_metrics["f1_score"],
                 "auc_roc": performance_metrics["auc_roc"],
                 "average_precision": performance_metrics["average_precision"],
-                "optimal_threshold": min_cost_threshold,
+                "balanced_accuracy": performance_metrics["balanced_accuracy"],
+                "optimal_threshold": optimal_threshold,
                 "optimal_precision": performance_metrics["optimal_precision"],
                 "optimal_recall": performance_metrics["optimal_recall"],
                 "optimal_f1": performance_metrics["optimal_f1"],
                 "optimal_cost": performance_metrics["optimal_cost"],
+                "normalized_cost": performance_metrics["normalized_cost"],
+                # Confusion matrix components
+                "true_positives": performance_metrics["true_positives"],
+                "false_positives": performance_metrics["false_positives"],
+                "true_negatives": performance_metrics["true_negatives"],
+                "false_negatives": performance_metrics["false_negatives"],
             },
             "bias_flag": bias_flag,
+            "fairness_summary": {
+                "protected_attributes": protected_attributes,
+                "bias_detected": bias_flag,
+            },
         }
     )
 
@@ -291,5 +290,6 @@ def evaluate_model(
         "metrics": performance_metrics,
         "fairness": fairness_report,
     }
+
     # Return the evaluation results
     return eval_results, eval_visualization

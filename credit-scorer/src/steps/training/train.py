@@ -16,7 +16,7 @@
 #
 
 from datetime import datetime
-from typing import Annotated, Dict, Optional
+from typing import Annotated, Dict, Optional, Tuple
 
 import joblib
 import lightgbm as lgb
@@ -33,11 +33,7 @@ from zenml import ArtifactConfig, log_metadata, step
 from zenml.enums import ArtifactType
 from zenml.logger import get_logger
 
-from src.constants import (
-    MODEL_NAME,
-    TEST_DATASET_NAME,
-    TRAIN_DATASET_NAME,
-)
+from src.constants import Artifacts as A
 from src.utils import save_artifact_to_modal
 
 logger = get_logger(__name__)
@@ -45,14 +41,17 @@ logger = get_logger(__name__)
 
 @step()
 def train_model(
-    train_df: Annotated[pd.DataFrame, TRAIN_DATASET_NAME],
-    test_df: Annotated[pd.DataFrame, TEST_DATASET_NAME],
+    train_df: Annotated[pd.DataFrame, A.TRAIN_DATASET],
+    test_df: Annotated[pd.DataFrame, A.TEST_DATASET],
     target: str = "target",
     hyperparameters: Optional[Dict] = None,
     model_path: str = "models/lgbm_model.pkl",
-) -> Annotated[
-    lgb.LGBMClassifier,
-    ArtifactConfig(name=MODEL_NAME, artifact_type=ArtifactType.MODEL),
+) -> Tuple[
+    Annotated[
+        lgb.LGBMClassifier,
+        ArtifactConfig(name=A.MODEL, artifact_type=ArtifactType.MODEL),
+    ],
+    Annotated[float, A.OPTIMAL_THRESHOLD],
 ]:
     """Train LightGBM with balanced objective, early stopping, and threshold tuning."""
     # Identify target column
@@ -93,27 +92,15 @@ def train_model(
     pos_count = class_counts.get(1, 0)
     scale_pos_weight = float(neg_count) / max(pos_count, 1)
 
-    # Base hyperparameters (merge any overrides)
-    params = {
-        "objective": "binary",
-        "metric": "auc",
-        "learning_rate": 0.03,
-        "num_leaves": 31,
-        "max_depth": 6,
-        "n_estimators": 200,
-        "random_state": 42,
-        "verbosity": -1,  # Silence output
-    }
-    if hyperparameters:
-        params.update(hyperparameters)
+    hyperparameters["scale_pos_weight"] = (
+        scale_pos_weight  # Handle class imbalance
+    )
 
-    params["scale_pos_weight"] = scale_pos_weight  # Handle class imbalance
-
-    logger.info(f"Training LGBMClassifier with params: {params}")
+    logger.info(f"Training LGBMClassifier with params: {hyperparameters}")
 
     # Train with early stopping, silence output
     start_time = datetime.now()
-    model = lgb.LGBMClassifier(**params)
+    model = lgb.LGBMClassifier(**hyperparameters)
 
     # Use callbacks for early stopping
     eval_set = [(X_val, y_val)]
@@ -172,6 +159,9 @@ def train_model(
         "cleaned_column_order": cleaned_columns,
     }
 
+    # Add the optimal threshold to the model metadata
+    model_metadata["optimal_threshold"] = best_t
+
     # Save model locally & to Modal volume
     joblib.dump((model, model_metadata), model_path)
     model_checksum = save_artifact_to_modal(
@@ -183,7 +173,7 @@ def train_model(
     log_metadata(
         metadata={
             "model_type": "LGBMClassifier",
-            "training_params": params,
+            "training_params": hyperparameters,
             "model_checksum": model_checksum,
             "validation_metrics": val_results,
             "best_iteration": int(model.best_iteration_)
@@ -211,4 +201,4 @@ def train_model(
         infer_model=True,
     )
 
-    return model
+    return model, best_t

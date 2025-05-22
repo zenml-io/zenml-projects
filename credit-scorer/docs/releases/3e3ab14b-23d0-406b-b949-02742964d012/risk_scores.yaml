@@ -1,11 +1,15 @@
 hazards:
 - description: Unfair bias against protected demographic groups
-  id: bias_protected_groups
+  id: BIAS_PROTECTED_GROUPS
   mitigation: Re-sample training data; add fairness constraints or post-processing
     techniques
   severity: high
+- description: Model accuracy below 0.75
+  id: LOW_ACCURACY
+  mitigation: Collect more data; tune hyper-parameters
+  severity: medium
 - description: ROC-AUC risk proxy > 0.3 indicates drift fragility
-  id: drift_vulnerability
+  id: DRIFT_VULNERABILITY
   mitigation: Enable drift monitoring; schedule periodic retraining
   severity: medium
 overall: 0.65

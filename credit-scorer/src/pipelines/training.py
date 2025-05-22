@@ -20,11 +20,8 @@ from typing import Any, Dict, List, Optional
 from zenml import pipeline
 from zenml.client import Client
 
-from src.constants import (
-    TEST_DATASET_NAME,
-    TRAIN_DATASET_NAME,
-    TRAINING_PIPELINE_NAME,
-)
+from src.constants import Artifacts as A
+from src.constants import Pipelines
 from src.steps import (
     evaluate_model,
     risk_assessment,
@@ -32,7 +29,7 @@ from src.steps import (
 )
 
 
-@pipeline(name=TRAINING_PIPELINE_NAME)
+@pipeline(name=Pipelines.TRAINING)
 def training(
     train_df: Any = None,
     test_df: Any = None,
@@ -69,14 +66,12 @@ def training(
     if train_df is None or test_df is None:
         client = Client()
         train_df = client.get_artifact_version(
-            name_id_or_prefix=TRAIN_DATASET_NAME
+            name_id_or_prefix=A.TRAIN_DATASET
         )
-        test_df = client.get_artifact_version(
-            name_id_or_prefix=TEST_DATASET_NAME
-        )
+        test_df = client.get_artifact_version(name_id_or_prefix=A.TEST_DATASET)
 
     # Train model with provided data
-    model = train_model(
+    model, optimal_threshold = train_model(
         train_df=train_df,
         test_df=test_df,
         target=target,
@@ -88,6 +83,7 @@ def training(
     eval_results, eval_visualization = evaluate_model(
         test_df=test_df,
         protected_attributes=protected_attributes,
+        optimal_threshold=optimal_threshold,
         target=target,
         model=model,
         approval_thresholds=approval_thresholds,

@@ -21,22 +21,17 @@ from typing import Annotated, Any, Dict, Tuple
 
 from zenml import step
 
-from src.constants import (
-    APPROVAL_RECORD_NAME,
-    APPROVED_NAME,
-    EVALUATION_RESULTS_NAME,
-    RISK_SCORES_NAME,
-)
+from src.constants import Artifacts as A
 
 
 @step(enable_cache=False)
 def approve_deployment(
-    evaluation_results: Annotated[Dict[str, Any], EVALUATION_RESULTS_NAME],
-    risk_scores: Annotated[Dict[str, Any], RISK_SCORES_NAME],
+    evaluation_results: Annotated[Dict[str, Any], A.EVALUATION_RESULTS],
+    risk_scores: Annotated[Dict[str, Any], A.RISK_SCORES],
     approval_thresholds: Dict[str, float],
 ) -> Tuple[
-    Annotated[bool, APPROVED_NAME],
-    Annotated[Dict[str, Any], APPROVAL_RECORD_NAME],
+    bool,
+    Annotated[Dict[str, Any], A.APPROVAL_RECORD],
 ]:
     """Human oversight approval gate with comprehensive documentation (Article 14).
 

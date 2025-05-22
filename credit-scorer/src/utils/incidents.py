@@ -20,11 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from src.constants import (
-    MODEL_NAME,
-    SLACK_BOT_TOKEN,
-    SLACK_CHANNEL,
-)
+from src.constants import Artifacts as A, Incident
 from src.utils.storage import save_artifact_to_modal
 
 
@@ -49,7 +45,7 @@ def create_incident_report(
     incident = {
         "incident_id": f"incident_{datetime.now().isoformat().replace(':', '-')}",
         "timestamp": datetime.now().isoformat(),
-        "model_name": MODEL_NAME,
+        "model_name": A.MODEL,
         "model_version": model_version,
         "severity": incident_data.get("severity", "medium"),
         "description": incident_data.get(
@@ -85,14 +81,14 @@ def create_incident_report(
             # May not be running in a Modal context
             persisted_to_modal = False
 
-        if SLACK_BOT_TOKEN and incident_data.get("severity", "") in [
+        if Incident.SLACK_BOT_TOKEN and incident_data.get("severity", "") in [
             "high",
             "critical",
         ]:
             try:
                 from slack_sdk import WebClient
 
-                slack_client = WebClient(token=SLACK_BOT_TOKEN)
+                slack_client = WebClient(token=Incident.SLACK_BOT_TOKEN)
 
                 # Create a well-formatted Slack message
                 emoji = {"high": "🔴", "critical": "🚨"}.get(
@@ -112,7 +108,7 @@ def create_incident_report(
                     message += f"\n>*Details:* {incident_data['details']}"
 
                 slack_client.chat_postMessage(
-                    channel=SLACK_CHANNEL,
+                    channel=Incident.SLACK_CHANNEL,
                     text=message,
                 )
 

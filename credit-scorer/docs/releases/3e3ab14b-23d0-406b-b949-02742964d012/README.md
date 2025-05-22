@@ -1,15 +1,15 @@
-# Documentation for cs_deployment (Run ff103e0b-2d11-43c5-99e1-8adc92730630)
+# Documentation for deployment (Run 3e3ab14b-23d0-406b-b949-02742964d012)
 
 ## Overview
 
-This directory contains compliance documentation and artifacts generated for pipeline run `ff103e0b-2d11-43c5-99e1-8adc92730630`.
-Generated on: 2025-05-20 20:12:27
+This directory contains compliance documentation and artifacts generated for pipeline run `3e3ab14b-23d0-406b-b949-02742964d012`.
+Generated on: 2025-05-21 20:21:04
 
 ### Core Documentation
 
 | File | Description | EU AI Act Articles |
 | ---- | ----------- | ------------------ |
-| [annex_iv_cs_deployment.md](annex_iv_cs_deployment.md) | Annex IV technical documentation | Art. 11 (Technical Docs) |
+| [annex_iv.md](annex_iv.md) | Annex IV technical documentation | Art. 11 (Technical Docs) |
 | [git_info.md](git_info.md) | Git commit and repository information | Art. 12 (Record-keeping) |
 | [sbom.json](sbom.json) | Software Bill of Materials | Art. 11 (Technical Docs), Art. 12 (Record-keeping) |
 

@@ -1,17 +1,17 @@
 {
-  "approval_id": "approval_2025-05-20T20-11-01.536097",
-  "timestamp": "2025-05-20T20:11:01.536097",
+  "approval_id": "approval_2025-05-21T20-20-09.435605",
+  "timestamp": "2025-05-21T20:20:09.435605",
   "approved": true,
   "approver": "automated_ci",
   "rationale": "Automatic approval via --auto-approve flag",
   "decision_mode": "automated",
   "threshold_checks": {
-    "Accuracy": true,
+    "Accuracy": false,
     "Bias disparity": true,
     "Risk score": false
   },
   "evaluation_summary": {
-    "accuracy": 0.8438571428571429,
+    "accuracy": 0.7307142857142858,
     "auc": null,
     "fairness_flags": []
   },

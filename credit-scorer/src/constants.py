@@ -19,45 +19,7 @@ import os
 from pathlib import Path
 
 # ======================================================================
-# Pipeline Names
-# ======================================================================
-FEATURE_ENGINEERING_PIPELINE_NAME = "cs_feature_engineering"
-TRAINING_PIPELINE_NAME = "cs_training"
-DEPLOYMENT_PIPELINE_NAME = "cs_deployment"
-
-# ======================================================================
-# ZenML Artifact Names
-# ======================================================================
-
-# Feature engineering artifacts
-MODEL_NAME = "credit_scoring_model"
-TRAIN_DATASET_NAME = "cs_train_df"
-TEST_DATASET_NAME = "cs_test_df"
-PREPROCESS_PIPELINE_NAME = "cs_preprocess_pipeline"
-PREPROCESSING_METADATA_NAME = "cs_preprocessing_metadata"
-WHYLOGS_VISUALIZATION_NAME = "cs_whylogs_visualization"
-
-# Training artifacts
-EVALUATION_RESULTS_NAME = "cs_evaluation_results"
-EVAL_VISUALIZATION_NAME = "cs_evaluation_visualization"
-RISK_SCORES_NAME = "cs_risk_scores"
-FAIRNESS_REPORT_NAME = "cs_fairness_report"
-RISK_REGISTER_NAME = "cs_risk_register"
-
-# Deployment artifacts
-APPROVED_NAME = "cs_approved"
-APPROVAL_RECORD_NAME = "cs_approval_record"
-DEPLOYMENT_INFO_NAME = "cs_deployment_info"
-MONITORING_PLAN_NAME = "cs_monitoring_plan"
-INCIDENT_REPORT_NAME = "cs_incident_report"
-COMPLIANCE_RECORD_NAME = "cs_compliance_record"
-SBOM_ARTIFACT_NAME = "cs_sbom_artifact"
-ANNEX_IV_PATH_NAME = "cs_annex_iv_path"
-RUN_RELEASE_DIR = "cs_run_release_dir"
-COMPLIANCE_DASHBOARD_HTML_NAME = "cs_compliance_dashboard_html"
-
-# ======================================================================
-# Required Local Directories (minimal) -- Same paths as Modal Volume
+# Required Local Directories (minimal)
 # ======================================================================
 
 # Base path for Annex IV document generation

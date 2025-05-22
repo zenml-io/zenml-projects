@@ -1,3 +1,8 @@
+enable_cache: False
+enable_artifact_metadata: True
+enable_artifact_visualization: True
+enable_step_logs: True
+
 settings:
   docker:
     required_integrations:
@@ -9,9 +14,6 @@ settings:
   resources:
     cpu_count: 2
     memory: "1GB"
-
-enable_cache: True
-enable_artifact_metadata: True
 
 parameters:
   test_size: 0.35
@@ -28,6 +30,6 @@ parameters:
 
 compliance:
   data_governance:
-    data_quality_profile: True  # Enable WhyLogs profiling
-    data_schema_validation: True  # Enable schema validation
-    minimum_feature_coverage: 0.95  # Minimum required feature coverage
+    data_quality_profile: True # Enable WhyLogs profiling
+    data_schema_validation: True # Enable schema validation
+    minimum_feature_coverage: 0.95 # Minimum required feature coverage

@@ -66,9 +66,6 @@ class ComplianceDataLoader:
         try:
             # Load the risk register data
             risk_df = pd.read_excel(risk_register_path)
-            logger.info(
-                f"Successfully loaded risk register from {risk_register_path}"
-            )
         except Exception as e:
             error_msg = f"Failed to load risk register: {str(e)}"
             logger.error(error_msg)

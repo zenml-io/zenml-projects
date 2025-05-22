@@ -12,7 +12,7 @@ os.environ["MODAL_AUTOMOUNT"] = "false"
 
 import modal
 from fastapi import FastAPI, HTTPException
-from src.constants import VOLUME_METADATA
+from src.constants.config import ModalConfig
 
 from modal_app.schemas import (
     ApiInfo,
@@ -28,16 +28,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("credit-scoring-deployer")
 
 # -- Configuration ─────────────────────────────────────────────────────────────
-APP_NAME = os.getenv("APP_NAME", VOLUME_METADATA["app_name"])
-VOLUME_NAME = os.getenv("VOLUME_NAME", VOLUME_METADATA["volume_name"])
-SECRET_NAME = os.getenv("SECRET_NAME", VOLUME_METADATA["secret_name"])
+volume_metadata = ModalConfig.get_volume_metadata()
+APP_NAME = os.getenv("APP_NAME", volume_metadata["app_name"])
+VOLUME_NAME = os.getenv("VOLUME_NAME", volume_metadata["volume_name"])
+SECRET_NAME = os.getenv("SECRET_NAME", volume_metadata["secret_name"])
 ENVIRONMENT = os.getenv(
-    "MODAL_ENVIRONMENT", VOLUME_METADATA["environment_name"]
+    "MODAL_ENVIRONMENT", volume_metadata["environment_name"]
 )
 # Paths within the container (prefixed with /mnt)
-MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt/{VOLUME_METADATA['model_path']}")
+MODEL_PATH = os.getenv("MODEL_PATH", f"/mnt/{volume_metadata['model_path']}")
 PREPROCESS_PATH = os.getenv(
-    "PREPROCESS_PATH", f"/mnt/{VOLUME_METADATA['preprocess_pipeline_path']}"
+    "PREPROCESS_PATH", f"/mnt/{volume_metadata['preprocess_pipeline_path']}"
 )
 
 
@@ -60,7 +61,10 @@ def create_modal_app(python_version: str = "3.12.9"):
         )
         .add_local_python_source("modal_app")
         .add_local_file(
-            "src/constants.py", remote_path="/root/src/constants.py"
+            "src/constants/config.py", remote_path="/root/src/constants/config.py"
+        )
+        .add_local_file(
+            "src/constants/annotations.py", remote_path="/root/src/constants/annotations.py"
         )
         .add_local_file(
             "src/utils/incidents.py",
@@ -302,7 +306,7 @@ def _create_fastapi_app() -> FastAPI:
             model_checksum = model_info.get("checksum", "unknown")
 
             result = report_incident.remote(
-                incident_data.dict(), model_checksum
+                incident_data.model_dump(), model_checksum
             )
             if "error" in result:
                 raise HTTPException(status_code=500, detail=result["error"])
@@ -339,7 +343,7 @@ def _create_fastapi_app() -> FastAPI:
         logger.info("Prediction request received")
         try:
             # Convert Pydantic model to dict for prediction
-            input_data = features.dict()
+            input_data = features.model_dump()
 
             # Get model info for checksum
             model_info = getattr(load_model.remote(), "_model_info", {})
@@ -510,5 +514,9 @@ def main(
 
 
 def run_deployment_entrypoint(**kwargs) -> Any:
-    """Wrapper to invoke local_entrypoint for external callers."""
+    """Wrapper to invoke local_entrypoint for external callers.
+
+    Note: This function handles saving the model and preprocessing pipeline
+    to Modal volume, no other artifacts need to be saved separately.
+    """
     return main(**kwargs)

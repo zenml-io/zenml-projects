@@ -1,0 +1,1459 @@
+<div style="background-color: #f8f9fa; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+        <h2>WhyLogs Data Profile Report</h2>
+        <p><strong>Report type:</strong> Drift comparison with run <code>8ef63102-67b6-410d-9ba7-fc959456165d</code></p>
+        <p><strong>Generated:</strong> 2025-05-21 20:21:03</p>
+    </div><div></div><iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;meta name=&quot;description&quot; content=&quot;&quot; /&gt;
+    &lt;meta name=&quot;author&quot; content=&quot;&quot; /&gt;
+
+    &lt;title&gt;Profile Visualizer | whylogs&lt;/title&gt;
+
+    &lt;link rel=&quot;icon&quot; href=&quot;images/whylabs-favicon.png&quot; type=&quot;image/png&quot; sizes=&quot;16x16&quot; /&gt;
+    &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot; /&gt;
+    &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin /&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot; /&gt;
+    &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; /&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css&quot; /&gt;
+
+    &lt;script
+      src=&quot;https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js&quot;
+      integrity=&quot;sha512-RNLkV3d+aLtfcpEyFG8jRbnWHxUqVZozacROI4J2F1sTaDqo1dPQYs01OMi1t1w9Y2FdbSCDSQ2ZVdAC8bzgAg==&quot;
+      crossorigin=&quot;anonymous&quot;
+      referrerpolicy=&quot;no-referrer&quot;
+    &gt;&lt;/script&gt;
+
+    &lt;style type=&quot;text/css&quot;&gt;
+      :root {
+        /* CONSTANTS */
+        --SIDE-PANEL-WIDTH: 320px;
+        --PROPERTY-PANEL-WIDTH: 420px;
+
+        /* COLOR VARIABLES */
+        /** Standard colors */
+        --red: #d11010;
+        --orange: #f07028;
+        --yellow: #faaf40;
+        --olive: #b5cc18;
+        --green: #1dbb42;
+        --teal: #00b5ad;
+        --blue: #2683c9;
+        --violet: #6435c9;
+        --purple: #a333c8;
+        --pink: #ed45a4;
+        --brown: #ac724d;
+        --grey: #778183;
+        --black: #1b1c1d;
+        --white: #ffffff;
+
+        /** Branded colors */
+        --brandPrimary900: #0e7384;
+        --brandPrimary800: #228798;
+        --brandPrimary700: #369bac;
+        --brandPrimary600: #4aafc0;
+        --brandPrimary500: #5ec3d4;
+        --brandPrimary400: #72d7e8;
+        --brandPrimary300: #86ebfc;
+        --brandPrimary200: #a6f2ff;
+        --brandPrimary100: #cdf8ff;
+        --brandSecondary900: #4f595b;
+        --brandSecondary800: #636d6f;
+        --brandSecondary700: #778183;
+        --brandSecondary600: #8b9597;
+        --brandSecondary500: #9fa9ab;
+        --brandSecondary400: #b3bdbf;
+        --brandSecondary300: #c7d1d3;
+        --brandSecondary200: #dbe5e7;
+        --brandSecondary100: #ebf2f3;
+        --secondaryLight1000: #313b3d;
+        --brandRed4: #b30000;
+        --brandRed3: #d72424;
+        --brandRed2: #eb5656;
+        --brandRed1: #ff8282;
+        --night1: #021826;
+        /** Purpose colors */
+        --textColor: #4f595b;
+        --linkColor: #369bac;
+        --infoColor: #2683c9;
+        --warningColor: #faaf40;
+        --tealBackground: #eaf2f3;
+        --pageBackground: #e5e5e5;
+        --contrastTableRow: #fafafa;
+        --whiteBackground: #ffffff;
+        --primaryBackground: #e5e5e5;
+      }
+
+      /* RESET STYLE */
+      *,
+      *::after,
+      *::before {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: &quot;Asap&quot;, Arial, Helvetica, sans-serif;
+      }
+
+      /*
+      * Main content
+      */
+      .main {
+        position: relative;
+        background: #FFFFFF;
+        border: 1px solid #DBE5E7;
+        box-sizing: border-box;
+        border-radius: 4px;
+      }
+      .main .page-header {
+        margin-top: 0;
+      }
+
+      /* CSS DIV TABLE BASIC STYLE */
+
+      .wl-table-row .wl-table-head:first-child {
+        min-width: 360px;
+        z-index: 2;
+      }
+
+      .wl-table-wrap {
+        position: relative;
+      }
+
+      .wl-table {
+        display: table;
+        width: 100%;
+      }
+
+      .row&gt;* {
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+      }
+
+      .wl-table-row {
+        display: table-row;
+      }
+
+      .wl-table-row:hover,
+      .wl-table-row:hover .wl-table-cell:first-child {
+        background-color: var(--brandSecondary100);
+      }
+      .wl-table-row--clickable:hover .wl-table-cell__title-button {
+        visibility: visible;
+      }
+
+      .wl-table-heading {
+        position: sticky;
+        top: 0;
+        z-index: 900;
+        display: table-header-group;
+        font-weight: 700;
+      }
+
+      .wl-table-cell,
+      .wl-table-head {
+        border-bottom: 1px solid var(--brandSecondary200);
+        display: table-cell;
+        padding: 12px 18px;
+      }
+
+      .wl-table-cell {
+        font-size: 14px;
+      }
+
+      .wl-table-cell--top-spacing {
+        padding-top: 35px; /* cell-top-padding + cell-title-height */
+      }
+
+      .wl-table-head-wraper {
+        background-color: var(--white);
+      }
+
+      .wl-table-head {
+        position: relative;
+        left: 0;
+        min-width: 100px;
+        border-bottom: 2px solid var(--brandSecondary100);
+        font-size: 12px;
+        line-height: 1.67;
+        white-space: nowrap;
+      }
+
+      .wl-sub-table-head {
+        position: relative;
+      }
+
+      .wl-table-body {
+        display: table-row-group;
+      }
+
+      .wl-table-row .wl-table-cell:first-child{
+        position: relative;
+        left: 0;
+        background-color: var(--white);
+        border-right-width: 2px;
+      }
+
+      /* Table custom style */
+
+      .wl-table-cell__title-wrap {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .wl-table-cell__title {
+        height: 25px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .wl-table-cell__bedge-wrap {
+        padding: 2px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        font-style: italic;
+        text-align: center;
+        color: var(--brandSecondary400);
+      }
+      .wl-table-cell__bedge {
+        height: 24px;
+        margin: 1px;
+        padding: 2px 8px;
+        border: 1px solid var(--brandSecondary400);
+        font-style: normal;
+        color: var(--brandSecondary900);
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+
+      /* Property side panel */
+
+      .wl-compare-profile {
+        position: relative;
+        left: 0;
+        padding: 18px;
+        background: var(--white);;
+        border-bottom: 1px solid var(--brandSecondary200);
+      }
+
+      /* Screen on smaller screens */
+      .no-responsive {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1031;
+        width: 100vw;
+        height: 100vh;
+        background-color: var(--tealBackground);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .no-responsive__content {
+        max-width: 600px;
+        width: 100%;
+        padding: 0 24px;
+      }
+
+      .no-responsive__title {
+        font-size: 96px;
+        font-weight: 300;
+        color: var(--brandSecondary900);
+        line-height: 1.167;
+      }
+
+      .no-responsive__text {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--brandSecondary900);
+        line-height: 1.5;
+      }
+
+      .space-between {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .align-items {
+        display: flex;
+        align-items: center;
+      }
+
+      .display-flex{
+        display: flex;
+      }
+
+      .table-border-none {
+        padding: 0;
+        border: none;
+      }
+
+      .flex-direction-colum {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .align-items {
+        align-items: center;
+      }
+
+      .search-input{
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      .search-input input{
+        border: none;
+        background: none;
+        outline: none;
+        height: 40px;
+        width: 100%;
+        font-size: 14px;
+      }
+
+      .search-input img{
+        height: 19px;
+        pointer-events: none;
+      }
+
+      input::placeholder {
+        color: var(--secondaryLight1000);
+      }
+
+      .text-align-center {
+        text-align: center;
+      }
+
+      .text-align-end {
+        text-align: end;
+      }
+
+      .drift-detection {
+        justify-content: space-between;
+        align-items: center;
+      }
+
+     .drift-detection-info-circle {
+       width: 15px;
+       height: 15px;
+       border-radius: 50px;
+       display: inline-block;
+       margin-right: 8px;
+     }
+
+     .severe-drift-circle-color {
+         background: #D40D00;
+     }
+
+     .moderate-drift-circle-color {
+         background: #F5843C;
+     }
+
+     .mild-drift-circle-color {
+         background: #F2C142;
+     }
+
+     .minimal-drift-circle-color {
+         background: #ABCA52;
+     }
+
+     .drift-detection-info-drifts-item {
+         padding-right: 20px;
+     }
+
+     .drift-detection-info-title {
+       font-family: Arial;
+       font-weight: bold;
+       font-size: 16px;
+       line-height: 130%;
+       color: #313B3D;
+     }
+
+     .drift-detection-info-drifts-item-count {
+       font-family: Arial;
+       font-weight: bold;
+       font-size: 14px;
+       line-height: 16px;
+       color: #000000;
+       padding-right: 8px;
+     }
+
+     .drift-detection-info-drifts-item-name {
+       font-family: Arial;
+       font-style: normal;
+       font-weight: normal;
+       font-size: 12px;
+       line-height: 14px;
+       color: #000000;
+     }
+
+     .drift-detection-info-drifts-item-range {
+       font-family: Arial;
+       font-style: normal;
+       font-weight: normal;
+       font-size: 11px;
+       line-height: 13px;
+       color: #6C757D;
+     }
+
+     .drift-detection-search-input {
+       display: flex;
+       align-items: center;
+       background: rgba(255, 255, 255, 0.7);
+       border: 1px solid #DBE5E7;
+       box-sizing: border-box;
+       border-radius: 4px;
+       width: 170px;
+       padding-left: 10px;
+     }
+
+     .drift-detection-search-input img{
+       margin-right: 5px;
+     }
+
+     .drift-detection-search-input input::placeholder {
+       font-family: Arial;
+       font-weight: normal;
+       font-size: 13px;
+       line-height: 16px;
+       color: #313B3D;
+     }
+
+     .close-filter-button {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       background: rgba(255, 255, 255, 0.7);
+       border: 1px solid #369BAC;
+       box-sizing: border-box;
+       border-radius: 4px;
+       width: 40px;
+       height: 40px;
+       cursor: pointer;
+       margin-left: 10px;
+     }
+
+     .filter-options-title {
+       width: 240px;
+     }
+
+     .filter-options-title p {
+       margin: 0;
+     }
+
+     .dropdown-container {
+       position: absolute;
+       right: 18px;
+       z-index: 999;
+       background: #FFFFFF;
+       border: 1px solid #DBE5E7;
+       box-sizing: border-box;
+       box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+       border-radius: 4px;
+       padding: 10px !important;
+       border: none !important;
+     }
+
+     .form-check-input:checked {
+       background-color: #0E7384;
+       border-color: #0E7384;
+     }
+
+     .form-check-input[type=checkbox] {
+       border-radius: 2px;
+     }
+
+      .justify-content-center {
+        justify-content: center;
+      }
+
+      .wl-table-cell__graph-wrap {
+        width: 0;
+      }
+
+      .svg-container {
+        display: inline-block;
+        position: relative;
+        width: 85%;
+        padding-bottom: 17%;
+        vertical-align: top;
+        overflow: hidden;
+      }
+
+      .svg-content-responsive {
+        display: inline-block;
+        position: absolute;
+        left: 0;
+      }
+
+      .reference-table-head {
+        min-width: 250px;
+      }
+
+      .wl__dropdown_arrow-icon {
+        position: relative;
+      }
+
+      .notif-circle-container{
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        padding: 5.3px;
+        border-radius: 50%;
+        background-color: white;
+        cursor: pointer;
+      }
+
+      .notif-circle {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        padding: 3.3px;
+        border-radius: 50%;
+        background-color: #F2994A;
+      }
+
+
+      .header-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #444444;
+      }
+
+      .statistic-number-title {
+        font-family: Arial;
+        font-weight: normal;
+        font-size: 14px;
+        line-height: 20px;
+        color: #6C757D;
+      }
+
+      .statistic-number {
+        font-family: Arial;
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 140%;
+        display: flex;
+        align-items: center;
+        color: #0E7384;
+      }
+
+      .statistic-measurement {
+        font-size: 15px !important;
+        margin-left: 3px;
+      }
+
+      .statistic-measurement-percent {
+        font-size: 15px !important;
+      }
+
+      .question-mark {
+        font-size: 10px;
+        font-weight: 900;
+        color: #0E7384;
+        border-radius: 50px;
+        border: 2px solid #0E7384;
+        padding: 0px 4px;
+        transition: 0.5s;
+        cursor: pointer;
+      }
+
+      .question-mark:hover {
+        color: white;
+        background: #0E7384;
+        border: 2px solid none;
+        transition: 0.5s;
+      }
+
+      .tooltip-full-number {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip-full-number .tooltiptext {
+        visibility: hidden;
+        background: black;
+        color: white;
+        border: 1px solid black;
+        text-align: start;
+        padding: 3px;
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        left: 100%;
+        margin-left: 5px;
+        opacity: 0;
+        transition: opacity 0.5s;
+        font-size: 13px;
+        font-weight: normal;
+        line-height: 100%;
+      }
+
+      .tooltip-full-number:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .display-flex {
+        display: flex;
+      }
+
+      .flex-direction-column {
+        flex-direction: column;
+      }
+
+      .justify-content-space-between {
+        justify-content: space-between;
+      }
+
+      .justify-content-center {
+        justify-content: center;
+      }
+
+      .align-items-center {
+        align-items: center;
+      }
+
+      .padding-right-30 {
+        padding-right: 30px;
+      }
+
+      .padding-5 {
+        padding: 5px;
+      }
+
+      .text-color {
+        color: var(--secondaryLight1000);
+      }
+
+      .error-message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: rgb(255, 114, 71);
+        font-size: 30px;
+        font-weight: 900;
+      }
+
+      @media screen and (min-width: 500px) {
+        .desktop-content {
+          display: block;
+        }
+        .no-responsive {
+          display: none;
+        }
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+
+  &lt;body id=&quot;generated-html&quot;&gt;&lt;/body&gt;
+
+  &lt;script id=&quot;entry-template&quot; type=&quot;text/x-handlebars-template&quot;&gt;
+    
+      &lt;div class=&quot;desktop-content&quot;&gt;
+        &lt;div class=&quot;container-fluid&quot;&gt;
+          &lt;div class=&quot;feature-summary-statistics-wrap&quot;&gt;
+            &lt;div class=&quot;feature-summary-statistics&quot;&gt;
+              &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;strong class=&quot;header-title&quot;&gt;Profile Summary&lt;/strong&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;display-flex statistics&quot;&gt;
+                  &lt;div class=&quot;padding-right-30&quot;&gt;
+                    &lt;div class=&quot;statistic-number-title&quot;&gt;Observations&lt;/div&gt;
+                    &lt;div class=&quot;statistic-number&quot;&gt;{{{observations this}}}&lt;/div&gt;
+                  &lt;/div&gt;
+                  &lt;div class=&quot;padding-right-30&quot;&gt;
+                    &lt;div class=&quot;statistic-number-title&quot;&gt;Missing Cells&lt;/div&gt;
+                    &lt;div class=&quot;statistic-number&quot;&gt;
+                      {{{missingCells this}}}
+                      &lt;div&gt;{{{missingCellsPercentage this}}}&lt;/div&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;row&quot;&gt;
+            &lt;div class=&quot;main&quot;&gt;
+              &lt;div class=&quot;wl-compare-profile&quot; id=&quot;compare-profile&quot;&gt;
+               &lt;div class=&quot;drift-detection-wrap&quot;&gt;
+                 &lt;div class=&quot;drift-detection display-flex&quot;&gt;
+                   &lt;div class=&quot;drift-detection-info flex-direction-colum&quot;&gt;
+                     &lt;div class=&quot;drift-detection-info-title-wrap display-flex&quot;&gt;
+                       &lt;p class=&quot;drift-detection-info-title&quot;&gt;
+                         Drift detected in
+                         &lt;span class=&quot;drift-count&quot;&gt;&lt;/span&gt;
+                         of
+                         &lt;span class=&quot;all-features&quot;&gt;&lt;/span&gt;
+                         features
+                       &lt;/p&gt;
+                     &lt;/div&gt;
+                     &lt;div class=&quot;drift-detection-info-drifts display-flex&quot; id=&quot;drift-detection-info-drifts&quot;&gt;
+                     &lt;/div&gt;
+                   &lt;/div&gt;
+                   &lt;div class=&quot;drift-detection-search-input-wrap display-flex&quot;&gt;
+                     &lt;div class=&quot;drift-detection-search-input search-input&quot;&gt;
+                       &lt;input type=&quot;text&quot; id=&quot;wl__feature-search&quot; placeholder=&quot;Quick search...&quot;/&gt;
+                       &lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGdSURBVHgBpZK7TkJBEIZnZoVocdTYyQNALxpNKPQBMEaNJsbCRMKhl8ISWwt6AaksCF5iTHgAGhJD4AHkAaAzGiwUsjvOQnO4SYh/cXbPzO43OxcEj9Zy92EiFSXNIfvPyE1kKFfdoxJMENpP6DrvLC0vJoEwCgwto7DWcxoIIHBYbA3NmKwnDltjAeuZhyul1DaTTlfPB6Nt5Z53DOgky4P875+nlctY2+unjZviLklkJhi5bPUa3y/7qJuQUM7PinMy7CdQc1Gh16vnBxPzrMROmlKQEgKNASAHLQCmSIGpS75O+O5pdQAgVXaIqTkNwDDXHmcnW3VmHZoGMLoTsOt88+NrAMCIZdu+iLTyTwKRa1Md6YKfOgXbzO7K8sWku5u5RxcRV5EpPezrzcHGbXEXWaUkgkweZ/UC9YrK3zqggFw5FBZfm8EUavHj7AjAKpIvBDrGn+pNnlcyhYgqbcC41idr1gvB4SdZkDbzQa21gwv0Vj07aPTtL07XdDOyDXohCDNoHIRmAVRie20f+RKybRDQDvxHkXy/7b/DrayncLbMwQAAAABJRU5ErkJggg==&quot;/&gt;
+                     &lt;/div&gt;
+                     &lt;div class=&quot;wl__dropdown_arrow-icon&quot;&gt;
+                       &lt;div onclick=&quot;openFilter()&quot; class=&quot;close-filter-button&quot;&gt;
+                         &lt;div class=&quot;display-flex close-filter-icon d-none&quot;&gt;
+                           &lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAADFSURBVHgBfY+xDcIwEEXvnLQBZQkYAEhDwwKpEEK0CCZgAEjJCEmgjYSAygxAHTZgFRSOsyUjY5mcZFnn/+78PwBXf3+MoKWUPuYjVBPFnTwpr9t/oNJfcTfXsAhRAlDqDhhQIPYgpAqNMDqcUqSAYZT1epr9gAHt6uXshvYme4DYHQJNDKh0dD0m5WXB10Y3Fqjtuh7fROn3oREDWxfeMLyRsMnc0OgDzdduaA0Pi3Plgr7Q2kaAePeBqh6rueSNBVt6fgCwBV1JLF3rlAAAAABJRU5ErkJggg==&quot;/&gt;
+                         &lt;/div&gt;
+                         &lt;div class=&quot;display-flex filter-icon&quot;&gt;
+                           &lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAPCAYAAADtc08vAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACSSURBVHgBrZLBCYAwDEWTUjw7igcdwI1cxkNXUJzBEVzFAbSVKoKmaVrEB6GHJv/w+AACtRk7P9IONv1QOYUl96k0zv61m2tjARoLtSDI3EFsgIJ4uoXrMLazO72CRG2mzg/8BSdVlEjhpGZJjAWdAZJECpWalEhJSs1pHuUlMad5FFai1Lwg4Ckx1TxKIPFL8w55mEWd8VjPGAAAAABJRU5ErkJggg==&quot;/&gt;
+                         &lt;/div&gt;
+                       &lt;/div&gt;
+                       &lt;span class=&quot;notif-circle-container&quot;&gt;
+                         &lt;span class=&quot;notif-circle&quot;&gt;&lt;/span&gt;
+                       &lt;/span&gt;
+                     &lt;/div&gt;
+                   &lt;/div&gt;
+                 &lt;/div&gt;
+               &lt;/div&gt;
+               &lt;div class=&quot;dropdown-container flex-direction-colum mb-2 d-none&quot; id=&quot;dropdown-container&quot;&gt;
+                 &lt;div class=&quot;filter-options&quot;&gt;
+                   &lt;div class=&quot;filter-options-title space-between dropdown&quot;&gt;
+                     &lt;p&gt;Filter by type&lt;/p&gt;
+                   &lt;/div&gt;
+                   &lt;div class=&quot;form-check mb-1 mt-2&quot;&gt;
+                     &lt;input
+                       class=&quot;form-check-input wl__feature-filter-input&quot;
+                       type=&quot;checkbox&quot;
+                       name=&quot;checkbox&quot;
+                       value=&quot;Discrete&quot;
+                       id=&quot;inferredDiscrete&quot;
+                       onclick=&quot;changeDiscreteValue()&quot;
+                       checked
+                     /&gt;
+                     &lt;label class=&quot;form-check-label&quot; for=&quot;inferredDiscrete&quot;&gt;
+                       Inferred discrete (&lt;span class=&quot;wl__feature-count--discrete&quot;&gt;{{getDiscreteTypeCount}}&lt;/span&gt;)
+                     &lt;/label&gt;
+                   &lt;/div&gt;
+                   &lt;div class=&quot;form-check mb-1&quot;&gt;
+                     &lt;input
+                       class=&quot;form-check-input wl__feature-filter-input&quot;
+                       type=&quot;checkbox&quot;
+                       name=&quot;checkbox&quot;
+                       value=&quot;Non-discrete&quot;
+                       id=&quot;inferredNonDiscrete&quot;
+                       onclick=&quot;changeNonDiscreteValue()&quot;
+                       checked
+                     /&gt;
+                     &lt;label class=&quot;form-check-label&quot; for=&quot;inferredNonDiscrete&quot;&gt;
+                       Inferred non-discrete (&lt;span
+                         class=&quot;wl__feature-count--non-discrete&quot;
+                       &gt;{{getNonDiscreteTypeCount}}&lt;/span&gt;)
+                     &lt;/label&gt;
+                   &lt;/div&gt;
+                   &lt;div class=&quot;form-check mb-1&quot;&gt;
+                     &lt;input
+                       class=&quot;form-check-input wl__feature-filter-input&quot;
+                       type=&quot;checkbox&quot;
+                       name=&quot;checkbox&quot;
+                       value=&quot;Unknown&quot;
+                       id=&quot;inferredUnknown&quot;
+                       onclick=&quot;changeUnknwonValue()&quot;
+                       checked
+                     /&gt;
+                     &lt;label class=&quot;form-check-label&quot; for=&quot;inferredUnknown&quot;&gt;
+                       Unknown (&lt;span class=&quot;wl__feature-count--unknown&quot;&gt;{{getUnknownTypeCount}}&lt;/span&gt;)
+                     &lt;/label&gt;
+                   &lt;/div&gt;
+                 &lt;/div&gt;
+               &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;wl-table-wrap&quot; id=&quot;table-content&quot;&gt;
+                &lt;div class=&quot;wl-table&quot;&gt;
+                  &lt;div class=&quot;wl-table-heading&quot;&gt;
+                    &lt;div class=&quot;wl-table-row wl-table-row--bottom-shadow&quot;&gt;
+                      &lt;div class=&quot;wl-table-head wl-table-head-wraper&quot;&gt;
+                        &lt;div class=&quot;wl-table-head table-border-none graph-table-head&quot;&gt;Target&lt;/div&gt;
+                        &lt;div class=&quot;wl-table-head table-border-none reference-table-head&quot;&gt;Reference&lt;/div&gt;
+                      &lt;/div&gt;
+                      &lt;div class=&quot;wl-table-head wl-table-head-wraper text-align-end&quot; style=&quot;cursor: pointer;&quot; id=&quot;diff-from-ref&quot;&gt;
+                        &lt;p id=&quot;pvalue&quot; &gt; p-value &lt;/p&gt;
+                        &lt;p id=&quot;pvalue-asc&quot; style=&quot;display: none;&quot;&gt; p-value &amp;#9650 &lt;/p&gt;
+                        &lt;p id=&quot;pvalue-desc&quot; style=&quot;display: none;&quot;&gt; p-value &amp;#9660 &lt;/p&gt;
+
+                        &lt;div class=&quot;tooltip-full-number&quot;&gt;
+                            &lt;span class=&quot;question-mark&quot;&gt;?&lt;/span&gt;
+                          &lt;span class=&quot;tooltiptext&quot;&gt;
+                           &lt;div class=&quot;mb-1&quot;&gt;p-values are calculated with K-S test for numerical features and Chi-squared for categorical features.&lt;/div&gt;
+                          &lt;/span&gt;
+                        &lt;/div&gt;
+                      &lt;/div&gt;
+                      &lt;div class=&quot;wl-table-head wl-table-head-wraper text-align-end&quot;&gt;Total count&lt;/div&gt;
+                      &lt;div class=&quot;wl-table-head wl-table-head-wraper text-align-end&quot;&gt;Mean&lt;/div&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                  &lt;ul class=&quot;wl-table-body wl__table-body&quot; id=&quot;table-body&quot;&gt;
+{{#each this.columns}}                    &lt;li
+                    {{#if this.numberSummary}} class=&quot;wl-table-row wl-table-row--clickable&quot; {{else}} class=&quot;wl-table-row&quot; {{/if}}
+                    data-feature-name={{@key}}
+                    data-inferred-type={{inferredType this}}
+                    data-scroll-to-feature-name={{@key}}
+                    data-p-value={{getpvalue this}}
+                  &gt;
+                      &lt;div class=&quot;wl-table-cell wl-table-cell__graph-wrap&quot;&gt;
+                        &lt;div class=&quot;wl-table-cell__title-wrap&quot;&gt;
+                          &lt;h4 class=&quot;wl-table-cell__title&quot;&gt;{{@key}}&lt;/h4&gt;
+                          &lt;div&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                          &lt;div class=&quot;display-flex&quot;&gt;
+                              {{{getGraphHtml this}}}
+                              {{{getReferenceGraphHtml this}}}
+                          &lt;/div&gt;
+                      &lt;/div&gt;
+                      &lt;div
+                        class=&quot;diff-from-ref-table-cell wl-table-cell wl-table-cell--top-spacing align-middle&quot;
+                        style=&quot;max-width: 270px; padding-right: 18px&quot;
+                      &gt;&lt;div class=&quot;wl-table-cell__bedge-wrap text-align-end&quot;&gt;
+                           {{{getDiffFromRef this}}}
+                        &lt;/div&gt;&lt;/div&gt;&lt;div
+                        class=&quot;wl-table-cell wl-table-cell--top-spacing align-middle&quot;
+                      &gt;&lt;div class=&quot;text-align-end&quot;&gt;{{totalCount this}}&lt;/div&gt;&lt;/div&gt;&lt;div
+                        class=&quot;wl-table-cell wl-table-cell--top-spacing align-middle&quot;
+                      &gt;&lt;div class=&quot;text-align-end&quot;&gt;{{mean this}}&lt;/div&gt;&lt;/div&gt;
+                    &lt;/li&gt;
+{{/each}}                  &lt;/ul&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;no-responsive&quot;&gt;
+        &lt;div class=&quot;no-responsive__content&quot;&gt;
+          &lt;h1 class=&quot;no-responsive__title&quot;&gt;Hold on! :)&lt;/h1&gt;
+          &lt;p class=&quot;no-responsive__text&quot;&gt;
+            It looks like your current screen size or device is not yet supported by the WhyLabs Sandbox. The Sandbox is
+            best experienced on a desktop computer. Please try maximizing this window or switching to another device. We
+            are working on adding support for a larger variety of devices.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    
+  &lt;/script&gt;
+
+  &lt;script src=&quot;https://code.jquery.com/jquery-3.6.0.min.js&quot; integrity=&quot;sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=&quot; crossorigin=&quot;anonymous&quot;&gt;&lt;/script&gt;
+
+  &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/d3/6.7.0/d3.min.js&quot; integrity=&quot;sha512-cd6CHE+XWDQ33ElJqsi0MdNte3S+bQY819f7p3NUHgwQQLXSKjE4cPZTeGNI+vaxZynk1wVU3hoHmow3m089wA==&quot; crossorigin=&quot;anonymous&quot; referrerpolicy=&quot;no-referrer&quot;&gt;&lt;/script&gt;
+
+  &lt;script&gt;
+    const getReferenceProfile = () =&gt; { return {&quot;columns&quot;: {&quot;AMT_ANNUITY&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 2052.0, &quot;end&quot;: 258025.52580255, &quot;width&quot;: 0, &quot;counts&quot;: [1845, 4555, 5391, 3727, 2205, 1283, 503, 296, 97, 24, 24, 8, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0], &quot;max&quot;: 258025.5, &quot;min&quot;: 2052.0, &quot;bins&quot;: [2052.0, 10584.450860085, 19116.90172017, 27649.352580255, 36181.80344034, 44714.254300425004, 53246.70516051, 61779.156020595, 70311.60688068, 78844.057740765, 87376.50860085001, 95908.959460935, 104441.41032102, 112973.861181105, 121506.31204119, 130038.76290127501, 138571.21376136, 147103.664621445, 155636.11548153, 164168.56634161502, 172701.01720170001, 181233.468061785, 189765.91892187, 198298.369781955, 206830.82064204, 215363.27150212502, 223895.72236221, 232428.173222295, 240960.62408238, 249493.074942465, 258025.52580255002], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;AMT_CREDIT&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 45000.0, &quot;end&quot;: 4050000.405, &quot;width&quot;: 0, &quot;counts&quot;: [1725, 4267, 2094, 3425, 2032, 1900, 1189, 1039, 724, 734, 252, 246, 114, 88, 81, 16, 33, 16, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 4050000.0, &quot;min&quot;: 45000.0, &quot;bins&quot;: [45000.0, 178500.0135, 312000.027, 445500.0405, 579000.054, 712500.0675, 846000.081, 979500.0945, 1113000.108, 1246500.1215, 1380000.135, 1513500.1485000001, 1647000.162, 1780500.1755, 1914000.189, 2047500.2025000001, 2181000.216, 2314500.2295, 2448000.243, 2581500.2565, 2715000.27, 2848500.2835, 2982000.2970000003, 3115500.3105, 3249000.324, 3382500.3375, 3516000.351, 3649500.3645, 3783000.378, 3916500.3915, 4050000.4050000003], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;AMT_GOODS_PRICE&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 45000.0, &quot;end&quot;: 4050000.405, &quot;width&quot;: 0, &quot;counts&quot;: [1936, 4878, 1770, 3856, 2934, 709, 1632, 341, 854, 587, 84, 125, 44, 161, 8, 0, 57, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4], &quot;max&quot;: 4050000.0, &quot;min&quot;: 45000.0, &quot;bins&quot;: [45000.0, 178500.0135, 312000.027, 445500.0405, 579000.054, 712500.0675, 846000.081, 979500.0945, 1113000.108, 1246500.1215, 1380000.135, 1513500.1485000001, 1647000.162, 1780500.1755, 1914000.189, 2047500.2025000001, 2181000.216, 2314500.2295, 2448000.243, 2581500.2565, 2715000.27, 2848500.2835, 2982000.2970000003, 3115500.3105, 3249000.324, 3382500.3375, 3516000.351, 3649500.3645, 3783000.378, 3916500.3915, 4050000.4050000003], &quot;n&quot;: 19984}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;AMT_INCOME_TOTAL&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 25650.0, &quot;end&quot;: 117000011.7, &quot;width&quot;: 0, &quot;counts&quot;: [19983, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16], &quot;max&quot;: 117000000.0, &quot;min&quot;: 25650.0, &quot;bins&quot;: [25650.0, 3924795.39, 7823940.78, 11723086.17, 15622231.56, 19521376.95, 23420522.34, 27319667.73, 31218813.12, 35117958.51, 39017103.9, 42916249.29, 46815394.68, 50714540.07, 54613685.46, 58512830.85, 62411976.24, 66311121.63, 70210267.02, 74109412.41, 78008557.8, 81907703.19, 85806848.58, 89705993.97, 93605139.36, 97504284.75, 101403430.14, 105302575.53, 109201720.92, 113100866.31, 117000011.7], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;CNT_CHILDREN&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.0, &quot;end&quot;: 8.0000008, &quot;width&quot;: 0, &quot;counts&quot;: [13967, 0, 0, 4052, 0, 0, 0, 1669, 0, 0, 0, 260, 0, 0, 35, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 8.0, &quot;min&quot;: 0.0, &quot;bins&quot;: [0.0, 0.26666669333333337, 0.5333333866666667, 0.8000000800000001, 1.0666667733333335, 1.3333334666666667, 1.6000001600000002, 1.8666668533333337, 2.133333546666667, 2.4000002400000002, 2.6666669333333335, 2.933333626666667, 3.2000003200000005, 3.4666670133333337, 3.7333337066666674, 4.0000004, 4.266667093333334, 4.533333786666668, 4.8000004800000005, 5.066667173333334, 5.333333866666667, 5.600000560000001, 5.866667253333334, 6.133333946666667, 6.400000640000001, 6.666667333333335, 6.933334026666667, 7.200000720000001, 7.466667413333335, 7.733334106666668, 8.0000008], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;CNT_FAM_MEMBERS&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 1.0, &quot;end&quot;: 10.000001, &quot;width&quot;: 0, &quot;counts&quot;: [4274, 0, 0, 10411, 0, 0, 3476, 0, 0, 1569, 0, 0, 0, 218, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 10.0, &quot;min&quot;: 1.0, &quot;bins&quot;: [1.0, 1.3000000333333332, 1.6000000666666665, 1.9000001, 2.200000133333333, 2.5000001666666662, 2.8000002, 3.100000233333333, 3.4000002666666664, 3.7000002999999997, 4.0000003333333325, 4.300000366666666, 4.6000004, 4.900000433333333, 5.200000466666666, 5.5000005, 5.800000533333333, 6.100000566666666, 6.400000599999999, 6.700000633333333, 7.000000666666666, 7.300000699999999, 7.600000733333332, 7.900000766666666, 8.2000008, 8.500000833333333, 8.800000866666666, 9.1000009, 9.400000933333333, 9.700000966666666, 10.000001], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;CODE_GENDER&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;F&quot;, &quot;estimate&quot;: 13151}, {&quot;value&quot;: &quot;M&quot;, &quot;estimate&quot;: 6848}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;DAYS_BIRTH&quot;: {&quot;histogram&quot;: {&quot;start&quot;: -25161.0, &quot;end&quot;: -7679.999232, &quot;width&quot;: 0, &quot;counts&quot;: [160, 204, 450, 536, 571, 642, 616, 696, 728, 768, 733, 669, 678, 767, 775, 857, 812, 909, 918, 927, 803, 814, 872, 875, 832, 852, 530, 411, 406, 188], &quot;max&quot;: -7680.0, &quot;min&quot;: -25161.0, &quot;bins&quot;: [-25161.0, -24578.2999744, -23995.5999488, -23412.8999232, -22830.1998976, -22247.499872, -21664.7998464, -21082.099820800002, -20499.3997952, -19916.6997696, -19333.999744, -18751.2997184, -18168.599692800002, -17585.8996672, -17003.199641600004, -16420.499616, -15837.799590400002, -15255.099564800003, -14672.399539200002, -14089.699513600002, -13506.999488000001, -12924.299462400002, -12341.599436800003, -11758.899411200002, -11176.199385600003, -10593.499360000003, -10010.799334400002, -9428.099308800003, -8845.399283200004, -8262.699257600005, -7679.999232000002], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;DAYS_EMPLOYED&quot;: {&quot;histogram&quot;: {&quot;start&quot;: -16365.0, &quot;end&quot;: 365243.0365243, &quot;width&quot;: 0, &quot;counts&quot;: [3384, 13057, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3558], &quot;max&quot;: 365243.0, &quot;min&quot;: -16365.0, &quot;bins&quot;: [-16365.0, -3644.7321158566665, 9075.535768286667, 21795.803652429997, 34516.071536573334, 47236.33942071667, 59956.607304859994, 72676.87518900333, 85397.14307314667, 98117.41095729, 110837.67884143334, 123557.94672557668, 136278.21460972, 148998.48249386332, 161718.75037800666, 174439.01826215, 187159.28614629334, 199879.55403043667, 212599.82191458, 225320.08979872335, 238040.35768286668, 250760.62556701002, 263480.89345115336, 276201.1613352967, 288921.42921944, 301641.6971035833, 314361.96498772665, 327082.23287187, 339802.5007560133, 352522.76864015666, 365243.0365243], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;EXT_SOURCE_1&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.023600619, &quot;end&quot;: 0.9331052953105202, &quot;width&quot;: 0, &quot;counts&quot;: [31, 51, 105, 148, 196, 228, 299, 351, 350, 363, 374, 328, 415, 357, 377, 389, 384, 428, 404, 413, 401, 364, 361, 379, 327, 309, 232, 231, 119, 39], &quot;max&quot;: 0.933105202, &quot;min&quot;: 0.023600619, &quot;bins&quot;: [0.023600619, 0.05391744154368401, 0.08423426408736802, 0.11455108663105203, 0.14486790917473602, 0.17518473171842003, 0.20550155426210404, 0.23581837680578804, 0.26613519934947205, 0.29645202189315606, 0.32676884443684007, 0.3570856669805241, 0.3874024895242081, 0.4177193120678921, 0.4480361346115761, 0.4783529571552601, 0.5086697796989441, 0.5389866022426282, 0.5693034247863121, 0.5996202473299961, 0.6299370698736801, 0.6602538924173642, 0.6905707149610482, 0.7208875375047321, 0.7512043600484162, 0.7815211825921002, 0.8118380051357842, 0.8421548276794681, 0.8724716502231522, 0.9027884727668363, 0.9331052953105202], &quot;n&quot;: 8753}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;EXT_SOURCE_2&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 4.36e-05, &quot;end&quot;: 0.8549997514999665, &quot;width&quot;: 0, &quot;counts&quot;: [178, 208, 211, 222, 220, 370, 346, 318, 398, 560, 491, 470, 591, 487, 629, 715, 716, 896, 981, 1189, 1315, 1457, 1460, 1628, 1457, 1175, 874, 331, 56, 0], &quot;max&quot;: 0.854999666, &quot;min&quot;: 4.36e-05, &quot;bins&quot;: [4.36e-05, 0.02854213838333222, 0.05704067676666443, 0.08553921514999666, 0.11403775353332887, 0.1425362919166611, 0.1710348302999933, 0.19953336868332552, 0.22803190706665774, 0.25653044544998993, 0.28502898383332215, 0.31352752221665436, 0.3420260605999866, 0.3705245989833188, 0.399023137366651, 0.42752167574998323, 0.45602021413331545, 0.48451875251664767, 0.5130172908999799, 0.5415158292833121, 0.5700143676666444, 0.5985129060499766, 0.6270114444333088, 0.655509982816641, 0.6840085211999732, 0.7125070595833055, 0.7410055979666377, 0.7695041363499698, 0.7980026747333021, 0.8265012131166344, 0.8549997514999665], &quot;n&quot;: 19949}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;EXT_SOURCE_3&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.000527265, &quot;end&quot;: 0.8854884825488394, &quot;width&quot;: 0, &quot;counts&quot;: [73, 69, 129, 200, 258, 287, 355, 349, 421, 427, 504, 550, 571, 625, 717, 797, 763, 820, 799, 848, 856, 934, 988, 899, 866, 701, 572, 409, 175, 61], &quot;max&quot;: 0.885488394, &quot;min&quot;: 0.000527265, &quot;bins&quot;: [0.000527265, 0.030025972251627977, 0.059524679503255955, 0.08902338675488393, 0.11852209400651191, 0.14802080125813988, 0.17751950850976786, 0.20701821576139584, 0.23651692301302382, 0.2660156302646518, 0.29551433751627976, 0.32501304476790777, 0.3545117520195357, 0.38401045927116373, 0.4135091665227917, 0.4430078737744197, 0.47250658102604765, 0.5020052882776757, 0.5315039955293036, 0.5610027027809316, 0.5905014100325595, 0.6200001172841876, 0.6494988245358155, 0.6789975317874435, 0.7084962390390714, 0.7379949462906994, 0.7674936535423275, 0.7969923607939554, 0.8264910680455834, 0.8559897752972113, 0.8854884825488394], &quot;n&quot;: 16023}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;FLAG_OWN_CAR&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;N&quot;, &quot;estimate&quot;: 13220}, {&quot;value&quot;: &quot;Y&quot;, &quot;estimate&quot;: 6779}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;FLAG_OWN_REALTY&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Y&quot;, &quot;estimate&quot;: 13906}, {&quot;value&quot;: &quot;N&quot;, &quot;estimate&quot;: 6093}], &quot;drift_from_ref&quot;: 0.98977770916975, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_CONTRACT_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Cash loans&quot;, &quot;estimate&quot;: 18085}, {&quot;value&quot;: &quot;Revolving loans&quot;, &quot;estimate&quot;: 1914}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_EDUCATION_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Secondary / secondary special&quot;, &quot;estimate&quot;: 14148}, {&quot;value&quot;: &quot;Higher education&quot;, &quot;estimate&quot;: 4920}, {&quot;value&quot;: &quot;Incomplete higher&quot;, &quot;estimate&quot;: 664}, {&quot;value&quot;: &quot;Lower secondary&quot;, &quot;estimate&quot;: 256}, {&quot;value&quot;: &quot;Academic degree&quot;, &quot;estimate&quot;: 11}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_FAMILY_STATUS&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Married&quot;, &quot;estimate&quot;: 12921}, {&quot;value&quot;: &quot;Single / not married&quot;, &quot;estimate&quot;: 2864}, {&quot;value&quot;: &quot;Civil marriage&quot;, &quot;estimate&quot;: 1931}, {&quot;value&quot;: &quot;Separated&quot;, &quot;estimate&quot;: 1244}, {&quot;value&quot;: &quot;Widow&quot;, &quot;estimate&quot;: 1039}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_HOUSING_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;House / apartment&quot;, &quot;estimate&quot;: 17732}, {&quot;value&quot;: &quot;With parents&quot;, &quot;estimate&quot;: 968}, {&quot;value&quot;: &quot;Municipal apartment&quot;, &quot;estimate&quot;: 749}, {&quot;value&quot;: &quot;Rented apartment&quot;, &quot;estimate&quot;: 305}, {&quot;value&quot;: &quot;Office apartment&quot;, &quot;estimate&quot;: 165}, {&quot;value&quot;: &quot;Co-op apartment&quot;, &quot;estimate&quot;: 80}], &quot;drift_from_ref&quot;: 0.999999772110942, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_INCOME_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Working&quot;, &quot;estimate&quot;: 10455}, {&quot;value&quot;: &quot;Commercial associate&quot;, &quot;estimate&quot;: 4612}, {&quot;value&quot;: &quot;Pensioner&quot;, &quot;estimate&quot;: 3572}, {&quot;value&quot;: &quot;State servant&quot;, &quot;estimate&quot;: 1356}, {&quot;value&quot;: &quot;Student&quot;, &quot;estimate&quot;: 2}, {&quot;value&quot;: &quot;Unemployed&quot;, &quot;estimate&quot;: 2}], &quot;drift_from_ref&quot;: 0.9999999999952398, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;NAME_TYPE_SUITE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Unaccompanied&quot;, &quot;estimate&quot;: 16159}, {&quot;value&quot;: &quot;Family&quot;, &quot;estimate&quot;: 2631}, {&quot;value&quot;: &quot;Spouse, partner&quot;, &quot;estimate&quot;: 735}, {&quot;value&quot;: &quot;Children&quot;, &quot;estimate&quot;: 224}, {&quot;value&quot;: &quot;Other_B&quot;, &quot;estimate&quot;: 104}, {&quot;value&quot;: &quot;Other_A&quot;, &quot;estimate&quot;: 47}, {&quot;value&quot;: &quot;Group of people&quot;, &quot;estimate&quot;: 16}], &quot;drift_from_ref&quot;: 0.9999997877020571, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;OCCUPATION_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Laborers&quot;, &quot;estimate&quot;: 3558}, {&quot;value&quot;: &quot;Sales staff&quot;, &quot;estimate&quot;: 2114}, {&quot;value&quot;: &quot;Core staff&quot;, &quot;estimate&quot;: 1808}, {&quot;value&quot;: &quot;Managers&quot;, &quot;estimate&quot;: 1348}, {&quot;value&quot;: &quot;Drivers&quot;, &quot;estimate&quot;: 1198}, {&quot;value&quot;: &quot;High skill tech staff&quot;, &quot;estimate&quot;: 749}, {&quot;value&quot;: &quot;Accountants&quot;, &quot;estimate&quot;: 642}, {&quot;value&quot;: &quot;Medicine staff&quot;, &quot;estimate&quot;: 576}, {&quot;value&quot;: &quot;Security staff&quot;, &quot;estimate&quot;: 443}, {&quot;value&quot;: &quot;Cooking staff&quot;, &quot;estimate&quot;: 382}, {&quot;value&quot;: &quot;Cleaning staff&quot;, &quot;estimate&quot;: 289}, {&quot;value&quot;: &quot;Private service staff&quot;, &quot;estimate&quot;: 186}, {&quot;value&quot;: &quot;Low-skill Laborers&quot;, &quot;estimate&quot;: 160}, {&quot;value&quot;: &quot;Secretaries&quot;, &quot;estimate&quot;: 91}, {&quot;value&quot;: &quot;Waiters/barmen staff&quot;, &quot;estimate&quot;: 77}, {&quot;value&quot;: &quot;Realty agents&quot;, &quot;estimate&quot;: 55}, {&quot;value&quot;: &quot;IT staff&quot;, &quot;estimate&quot;: 38}, {&quot;value&quot;: &quot;HR staff&quot;, &quot;estimate&quot;: 37}], &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: null}, &quot;REGION_RATING_CLIENT&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 1.0, &quot;end&quot;: 3.0000003, &quot;width&quot;: 0, &quot;counts&quot;: [2113, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14804, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3082], &quot;max&quot;: 3.0, &quot;min&quot;: 1.0, &quot;bins&quot;: [1.0, 1.0666666766666666, 1.1333333533333334, 1.20000003, 1.2666667066666666, 1.3333333833333332, 1.40000006, 1.4666667366666666, 1.5333334133333332, 1.60000009, 1.6666667666666666, 1.7333334433333332, 1.80000012, 1.8666667966666666, 1.9333334733333332, 2.00000015, 2.0666668266666663, 2.133333503333333, 2.20000018, 2.2666668566666663, 2.333333533333333, 2.40000021, 2.4666668866666663, 2.533333563333333, 2.60000024, 2.6666669166666663, 2.733333593333333, 2.80000027, 2.8666669466666663, 2.933333623333333, 3.0000003], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;SK_ID_CURR&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 100002.0, &quot;end&quot;: 123324.0123324, &quot;width&quot;: 0, &quot;counts&quot;: [672, 656, 672, 672, 656, 672, 656, 656, 656, 704, 672, 656, 688, 672, 672, 640, 672, 656, 672, 656, 676, 656, 656, 672, 672, 672, 664, 672, 658, 673], &quot;max&quot;: 123324.0, &quot;min&quot;: 100002.0, &quot;bins&quot;: [100002.0, 100779.40041108, 101556.80082216, 102334.20123324, 103111.60164432, 103889.0020554, 104666.40246648, 105443.80287756, 106221.20328864, 106998.60369972, 107776.0041108, 108553.40452188, 109330.80493296, 110108.20534404, 110885.60575512, 111663.00616620001, 112440.40657728, 113217.80698836, 113995.20739944, 114772.60781052, 115550.0082216, 116327.40863268, 117104.80904376, 117882.20945484, 118659.60986592, 119437.010277, 120214.41068808, 120991.81109916, 121769.21151024, 122546.61192132, 123324.0123324], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}, &quot;TARGET&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.0, &quot;end&quot;: 1.0000001, &quot;width&quot;: 0, &quot;counts&quot;: [18414, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1585], &quot;max&quot;: 1.0, &quot;min&quot;: 0.0, &quot;bins&quot;: [0.0, 0.03333333666666667, 0.06666667333333334, 0.10000001000000001, 0.13333334666666669, 0.16666668333333334, 0.20000002000000003, 0.2333333566666667, 0.26666669333333337, 0.30000003000000003, 0.3333333666666667, 0.3666667033333334, 0.40000004000000006, 0.4333333766666667, 0.4666667133333334, 0.50000005, 0.5333333866666667, 0.5666667233333335, 0.6000000600000001, 0.6333333966666668, 0.6666667333333334, 0.7000000700000001, 0.7333334066666668, 0.7666667433333334, 0.8000000800000001, 0.8333334166666668, 0.8666667533333334, 0.9000000900000001, 0.9333334266666669, 0.9666667633333335, 1.0000001], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: 1.0, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: null}}, &quot;properties&quot;: {&quot;observations&quot;: 479976, &quot;missing_cells&quot;: 21618, &quot;missing_percentage&quot;: 4.503975198759938}} }
+    const referenceProfile = getReferenceProfile()
+
+    function fixNumberTo(number, decimals = 3) {
+      const fractionalDigits = String(number % 1).split(&#x27;&#x27;).slice(2, 2 + decimals).join(&#x27;&#x27;)
+      return `${Math.trunc(number)}.${fractionalDigits}`
+    }
+
+    function registerHandlebarHelperFunctions() {
+      //helper fun
+
+      class GenerateChartParams {
+        constructor(height, width, data, bottomMargin=20, topMargin=5) {
+          this.MARGIN = {
+            TOP: topMargin,
+            RIGHT: 5,
+            BOTTOM: bottomMargin,
+            LEFT: 55,
+          };
+          this.SVG_WIDTH = width;
+          this.SVG_HEIGHT = height;
+          this.CHART_WIDTH = this.SVG_WIDTH - this.MARGIN.LEFT - this.MARGIN.RIGHT;
+          this.CHART_HEIGHT = this.SVG_HEIGHT - this.MARGIN.TOP - this.MARGIN.BOTTOM;
+          this.svgEl = d3.create(&quot;svg&quot;)
+             .attr(&quot;preserveAspectRatio&quot;, &quot;xMinYMin meet&quot;)
+             .attr(&quot;viewBox&quot;, &quot;30 0 240 400&quot;)
+             .classed(&quot;svg-content-responsive&quot;, true)
+          this.maxYValue = d3.max(data, (d) =&gt; Math.abs(d.axisY));
+          this.xScale = d3
+            .scaleBand()
+            .domain(data.map((d) =&gt; d.axisX))
+            .range([this.MARGIN.LEFT, this.MARGIN.LEFT + this.CHART_WIDTH]);
+          this.yScale = d3
+            .scaleLinear()
+            .domain([0, this.maxYValue * 1.02])
+            .range([this.CHART_HEIGHT, 0]);
+        }
+      }
+
+      function generateChart(data, height = 70, width = 250, index = 0, referenceProfileExist = false) {
+        const sizes = new GenerateChartParams(height, width, data, 5)
+        const {
+          MARGIN,
+          SVG_WIDTH,
+          SVG_HEIGHT,
+          CHART_WIDTH,
+          CHART_HEIGHT,
+          svgEl,
+          maxYValue,
+          xScale,
+          yScale
+        } = sizes
+        const rectColors = [&quot;#44C0E7&quot;, &quot;#F5843C&quot;]
+
+        // Add the y Axis
+        if (!referenceProfileExist) {
+          svgEl
+            .append(&quot;g&quot;)
+            .attr(&quot;transform&quot;, &quot;translate(&quot; + MARGIN.LEFT + &quot;, &quot; + MARGIN.TOP + &quot;)&quot;)
+            .call(d3.axisLeft(yScale).tickValues([0, maxYValue/2, maxYValue]))
+            .selectAll(&quot;text&quot;)
+            .style(&quot;font-size&quot;, &quot;8&quot;)
+        }
+
+        const gChart = svgEl.append(&quot;g&quot;);
+        gChart
+          .attr(&quot;transform&quot;, &quot;translate(&quot; + 20 + &quot;, &quot; + 0 + &quot;)&quot;)
+          .selectAll(&quot;.bar&quot;)
+          .data(data)
+          .enter()
+          .append(&quot;rect&quot;)
+          .classed(&quot;bar&quot;, true)
+          .attr(&quot;width&quot;, xScale.bandwidth() - 1)
+          .attr(&quot;height&quot;, (d) =&gt; CHART_HEIGHT - yScale(d.axisY))
+          .attr(&quot;x&quot;, (d) =&gt; xScale(d.axisX))
+          .attr(&quot;y&quot;, (d) =&gt; yScale(d.axisY) + MARGIN.TOP)
+          .attr(&quot;fill&quot;, rectColors[index]);
+
+        return svgEl._groups[0][0].outerHTML;
+      }
+
+      function chartData(column) {
+        const data = [];
+        if (column.histogram) {
+          column.histogram.counts.slice(0, 30).forEach((count, index) =&gt; {
+            data.push({
+              axisY: count,
+              axisX: index,
+            });
+          });
+        } else if (column.frequentItems) {
+          Object.entries(column.frequentItems).forEach(([key, {value, estimate}], index) =&gt; {
+              data.push({
+                axisY: estimate,
+                axisX: value,
+              });
+            });
+        }
+
+        return data
+      }
+
+      function graph(column, key, referenceColumn) {
+        let data = [];
+        const columnKey = key.data.key
+        let chartValue = false
+        let chartColor = undefined
+        if(!!referenceColumn){
+          column = referenceColumn.columns[columnKey]
+          chartValue = true
+          chartColor = 1
+        } else if (referenceColumn === undefined) {
+          column = &quot;&quot;
+        }
+
+        if (column.histogram || column.frequentItems) {
+          data = chartData(column)
+        } else if (referenceColumn === null ) {
+            $(&quot;.svg-container&quot;).css(&quot;padding-bottom&quot;, &quot;0&quot;)
+            return &#x27;&lt;span class=&quot;wl-table-cell__bedge-wrap&quot;&gt;No data to show the chart&lt;/span&gt;&#x27;;
+        } else if (referenceColumn === undefined) {
+            $(document).ready(function() {
+              $(&quot;.reference-table-head&quot;).addClass(&quot;d-none&quot;)
+            });
+            return &#x27;&#x27;
+        } else if (referenceColumn.frequentItems === undefined){
+            return &#x27;&#x27;;
+        }
+        return `
+          &lt;div class=&quot;svg-container&quot;&gt;
+            ${generateChart(data, ...[,,], chartColor, chartValue)}
+          &lt;/div&gt;
+        `;
+      }
+
+      function formatLabelDate(timestamp) {
+        const date = new Date(timestamp);
+        const format = d3.timeFormat(&quot;%Y-%m-%d %I:%M:%S %p %Z&quot;);
+        return format(date);
+      }
+
+      const driftCountElement = (driftCount, driftColor, driftName, driftRange) =&gt; `
+      &lt;div class=&quot;display-flex flex-direction-column&quot;&gt;
+        &lt;div class=&quot;drift-detection-info-drifts-item display-flex align-items&quot;&gt;
+          &lt;div class=&quot;drift-detection-info-drifts-item-text display-flex align-items&quot;&gt;
+            &lt;p class=&quot;drift-detection-info-drifts-item-count mb-0&quot;&gt;${driftCount}&lt;/p&gt;
+            &lt;p class=&quot;drift-detection-info-drifts-item-range display-flex justify-content-center mb-0&quot;&gt;${driftRange}&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      `
+
+      const drifts = {
+        severe: {
+          count: 0,
+          range: &quot;with detected drift (0.00 - 0.05)&quot;,
+        },
+        moderate: {
+          count: 0,
+          range: &quot;with possible drift (0.05 - 0.15)&quot;,
+        },
+        mild: {
+          count: 0,
+          range: &quot;with no evidence of drift (0.15 - 1.0)&quot;,
+        }
+      };
+
+      const countOfDrifts = (driftNumber) =&gt; {
+        if(driftNumber &gt;= 0 &amp;&amp; driftNumber &lt;= 0.05) {
+          Object.values(drifts)[0].count++
+          return 0
+        } else if(driftNumber &gt; 0.05 &amp;&amp; driftNumber &lt;= 0.15) {
+          Object.values(drifts)[1].count++
+          return 1
+        } else if(driftNumber &gt; 0.15) {
+          Object.values(drifts)[2].count++
+          return 2
+        }
+
+      }
+
+    abbreviate_number = function(value, fixed = 0) {
+      value = +value
+      if (value === null) { return null; } // terminate early
+      if (value === 0) { return &#x27;0&#x27;; } // terminate early
+      fixed = (!fixed || fixed &lt; 0) ? 0 : fixed; // number of decimal places to show
+      var b = (value).toPrecision(2).split(&quot;e&quot;), // get power
+          k = b.length === 1 ? 0 : Math.floor(Math.min(b[1].slice(1), 14) / 3), // floor at decimals, ceiling at trillions
+          c = k &lt; 1 ? value.toFixed(0 + fixed) : (value / Math.pow(10, k * 3) ).toFixed(1 + fixed), // divide by power
+          d = c &lt; 0 ? c : Math.abs(c), // enforce -0 is 0
+          newValue = d,
+          suffixe = [&#x27;&#x27;, &#x27;K&#x27;, &#x27;M&#x27;, &#x27;B&#x27;, &#x27;T&#x27;][k]; // append power
+      return {value, newValue, suffixe};
+    }
+
+     function formatBytes(bytes, decimals = 2) {
+       let newValue,
+       suffixe = &quot;&quot;
+       if (bytes === 0) return &#x27;0 Bytes&#x27;;
+
+       const k = 1024;
+       const dm = decimals &lt; 0 ? 0 : decimals;
+       const sizes = [&#x27;Bytes&#x27;, &#x27;KiB&#x27;, &#x27;MB&#x27;, &#x27;GB&#x27;, &#x27;TB&#x27;, &#x27;PB&#x27;, &#x27;EB&#x27;, &#x27;ZB&#x27;, &#x27;YB&#x27;];
+
+       const i = Math.floor(Math.log(bytes) / Math.log(k));
+       newValue = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
+       suffixe = sizes[i]
+       return {bytes, newValue, suffixe};
+     }
+
+     const valueSuffixe = (newNumber) =&gt; `
+       &lt;div class=&quot;statistic-measurement&quot;&gt;
+        ${newNumber}
+       &lt;/div&gt;`
+     const valueNumber = (newNumber) =&gt; `
+       &lt;div class=&quot;statistic-number&quot;&gt;
+        ${newNumber}
+       &lt;/div&gt;`
+
+     const numberWithSuffixe = (number, newNumber, suffixe) =&gt;
+       `&lt;div class=&quot;tooltip-full-number&quot;&gt;
+          &lt;div class=&quot;statistic-number&quot;&gt;
+             ${newNumber}
+            &lt;div class=&quot;statistic-measurement&quot;&gt;${suffixe}&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;span class=&quot;tooltiptext&quot;&gt;${number}&lt;/span&gt;
+        &lt;/div&gt;`
+
+     Handlebars.registerHelper(&quot;observations&quot;, function (properties) {
+       const {value, newValue, suffixe} = abbreviate_number(referenceProfile.properties.observations)
+       return numberWithSuffixe(value, valueNumber(newValue), valueNumber(suffixe));
+     });
+
+     Handlebars.registerHelper(&quot;missingCells&quot;, function (properties) {
+       const {value, newValue, suffixe} = abbreviate_number(referenceProfile.properties.missing_cells)
+       if (typeof value !== &#x27;undefined&#x27; &amp;&amp; typeof newValue !== &#x27;undefined&#x27;  &amp;&amp; typeof suffixe !== &#x27;undefined&#x27; ) {
+        return numberWithSuffixe(value, valueSuffixe(`${newValue}`), suffixe);
+       }
+       return numberWithSuffixe(0, valueNumber(0), valueNumber(&#x27;&#x27;));
+     });
+
+     Handlebars.registerHelper(&quot;missingCellsPercentage&quot;, function (properties) {
+       const {value, newValue, suffixe} = abbreviate_number(referenceProfile.properties.missing_percentage)
+       if (typeof value !== &#x27;undefined&#x27; &amp;&amp; typeof newValue !== &#x27;undefined&#x27;  &amp;&amp; typeof suffixe !== &#x27;undefined&#x27; ) {
+        return numberWithSuffixe(value, valueSuffixe(`(${newValue}%)`), suffixe);
+       }
+       return numberWithSuffixe(0, valueSuffixe(`(${0}%)`), &#x27;&#x27;);
+     });
+
+     Handlebars.registerHelper(&quot;getProfileTimeStamp&quot;, function (properties) {
+       return formatLabelDate(+properties.properties.dataTimestamp)
+     });
+
+     Handlebars.registerHelper(&quot;getProfileName&quot;, function (properties) {
+       return properties.properties.tags.name
+     });
+
+      let driftCount = 0;
+      const diffFromRefTableElement = (driftFromRefNumber, circleColor) =&gt; `
+         &lt;div class=&quot;text-color padding-5 text-align-end justify-content-center&quot;&gt;
+           ${driftFromRefNumber}
+         &lt;/div&gt;
+       `
+
+       const cheqValueTypeNumber = (profile, profileValue) =&gt; {
+         let validValue;
+         if (profile &amp;&amp; profileValue !== undefined &amp;&amp; typeof profileValue === &quot;number&quot;) {
+           return true
+         } else if (profileValue !== undefined &amp;&amp; typeof profileValue !== &quot;number&quot;) {
+           return false
+         }
+       }
+
+
+       Handlebars.registerHelper(&quot;getpvalue&quot;, function (column, key) {
+        const columnKey = key.data.key
+        const {drift_from_ref} = referenceProfile.columns[columnKey]
+
+        if (cheqValueTypeNumber(referenceProfile, drift_from_ref)) {
+          const driftFromRefNumber = drift_from_ref.toPrecision(2)
+          return Number(driftFromRefNumber)
+
+        }
+      });
+
+      Handlebars.registerHelper(&quot;getDiffFromRef&quot;, function (column, key) {
+        const columnKey = key.data.key
+        const {drift_from_ref} = referenceProfile.columns[columnKey]
+
+        if (cheqValueTypeNumber(referenceProfile, drift_from_ref)) {
+          const driftFromRefNumber = drift_from_ref.toPrecision(2)
+          const driftCategory = countOfDrifts(driftFromRefNumber)
+          const circleColor = Object.values(drifts)[driftCategory].colorClass
+          if (driftCategory==0 || driftCategory == 1){
+            driftCount++
+          }
+          $(document).ready(() =&gt; {
+             $(&quot;.drift-count&quot;).html(driftCount)
+             $(&quot;.all-features&quot;).html(Object.keys(referenceProfile.columns).length)
+           })
+
+          return diffFromRefTableElement(driftFromRefNumber, circleColor)
+
+        } else if (cheqValueTypeNumber(referenceProfile, drift_from_ref) !== undefined) {
+          Object.values(drifts)[0].count++
+          return diffFromRefTableElement(&quot;undefined&quot;, &quot;severe-drift-circle-color&quot;)
+        }
+
+        return &#x27;&lt;p style=&quot;color: black&quot;&gt;-&lt;/p&gt;&#x27;;
+      });
+
+      $(document).ready(() =&gt;
+        Object.values(drifts).map(({count, name, colorClass, range}) =&gt;{
+          $(&quot;#drift-detection-info-drifts&quot;)
+          .append(driftCountElement(count, colorClass, name, range))
+        })
+      )
+
+      Handlebars.registerHelper(&quot;inferredType&quot;, function (column) {
+        let infferedType = &quot;&quot;;
+
+        if (column.isDiscrete) {
+          infferedType = &quot;Discrete&quot;;
+        } else {
+          infferedType = &quot;Non-discrete&quot;;
+        }
+        return infferedType;
+      });
+
+      Handlebars.registerHelper(&quot;frequentItems&quot;, function (column) {
+        frequentItemsElemString = &quot;&quot;;
+        if (column.isDiscrete) {
+          const slicedFrequentItems = column.frequentItems.items.slice(0, 5);
+          for (let fi = 0; fi &lt; slicedFrequentItems.length; fi++) {
+            frequentItemsElemString +=
+              &#x27;&lt;span class=&quot;wl-table-cell__bedge&quot;&gt;&#x27; + slicedFrequentItems[fi].jsonValue + &quot;&lt;/span&gt;&quot;;
+          }
+        } else {
+          frequentItemsElemString += &quot;No data to show&quot;;
+        }
+        return frequentItemsElemString;
+      });
+
+      Handlebars.registerHelper(&quot;totalCount&quot;, function (column) {
+        if (column.featureStats) {
+          return column.featureStats.total_count;
+        }
+
+        return &quot;-&quot;;
+      });
+
+      Handlebars.registerHelper(&quot;mean&quot;, function (column) {
+        if (column.featureStats?.descriptive_statistics) {
+          return fixNumberTo(column.featureStats.descriptive_statistics.mean);
+        }
+        return &quot;-&quot;;
+      });
+
+      Handlebars.registerHelper(&quot;getGraphHtml&quot;,(column,key) =&gt; graph(column, key, null));
+      Handlebars.registerHelper(&quot;getReferenceGraphHtml&quot;,(column,key) =&gt; graph(column, key, referenceProfile));
+
+      Handlebars.registerHelper(&quot;getDiscreteTypeCount&quot;, function () {
+        let count = 0;
+
+        Object.entries(this.columns).forEach((feature) =&gt; {
+          if (feature[1].isDiscrete === true) {
+            count++;
+          }
+        });
+        return count.toString();
+      });
+
+      Handlebars.registerHelper(&quot;getNonDiscreteTypeCount&quot;, function () {
+        let count = 0;
+
+        Object.entries(this.columns).forEach((feature) =&gt; {
+          if (feature[1].isDiscrete === false) {
+            count++;
+          }
+        });
+        return count;
+      });
+
+      Handlebars.registerHelper(&quot;getUnknownTypeCount&quot;, function () {
+        let count = 0;
+        return count;
+        Object.entries(this.columns).forEach((feature) =&gt; {
+          if (!feature[1].isDiscrete) {
+            count++;
+          }
+        });
+        return count;
+      });
+    }
+
+    function initHandlebarsTemplate() {
+      // Replace this context with JSON from .py file
+      const context = {&quot;columns&quot;: {&quot;AMT_ANNUITY&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 2052.0, &quot;end&quot;: 258025.52580255, &quot;width&quot;: 0, &quot;counts&quot;: [1837, 4561, 5377, 3735, 2187, 1315, 489, 302, 81, 26, 40, 8, 17, 0, 0, 16, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 258025.5, &quot;min&quot;: 2052.0, &quot;bins&quot;: [2052.0, 10584.450860085, 19116.90172017, 27649.352580255, 36181.80344034, 44714.254300425004, 53246.70516051, 61779.156020595, 70311.60688068, 78844.057740765, 87376.50860085001, 95908.959460935, 104441.41032102, 112973.861181105, 121506.31204119, 130038.76290127501, 138571.21376136, 147103.664621445, 155636.11548153, 164168.56634161502, 172701.01720170001, 181233.468061785, 189765.91892187, 198298.369781955, 206830.82064204, 215363.27150212502, 223895.72236221, 232428.173222295, 240960.62408238, 249493.074942465, 258025.52580255002], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 30.49273083536812, &quot;min&quot;: 2052.0, &quot;max&quot;: 258025.5, &quot;range&quot;: 255973.5, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 9000.0, &quot;iqr&quot;: 18216.0, &quot;q1&quot;: 16510.5, &quot;median&quot;: 25042.5, &quot;q3&quot;: 34726.5, &quot;ninety_fifth_percentile&quot;: 53293.5}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 14505.218021451064, &quot;coefficient_of_variation&quot;: 0.5349826867775993, &quot;sum&quot;: 542241576.0, &quot;variance&quot;: 210401349.84982872, &quot;mean&quot;: 27113.434471723587}}}, &quot;AMT_CREDIT&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 45000.0, &quot;end&quot;: 4050000.405, &quot;width&quot;: 0, &quot;counts&quot;: [1751, 4227, 2102, 3431, 2016, 1908, 1199, 1013, 740, 734, 236, 272, 96, 112, 65, 24, 41, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 4050000.0, &quot;min&quot;: 45000.0, &quot;bins&quot;: [45000.0, 178500.0135, 312000.027, 445500.0405, 579000.054, 712500.0675, 846000.081, 979500.0945, 1113000.108, 1246500.1215, 1380000.135, 1513500.1485000001, 1647000.162, 1780500.1755, 1914000.189, 2047500.2025000001, 2181000.216, 2314500.2295, 2448000.243, 2581500.2565, 2715000.27, 2848500.2835, 2982000.2970000003, 3115500.3105, 3249000.324, 3382500.3375, 3516000.351, 3649500.3645, 3783000.378, 3916500.3915, 4050000.4050000003], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 12.402507507960243, &quot;min&quot;: 45000.0, &quot;max&quot;: 4050000.0, &quot;range&quot;: 4005000.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 135000.0, &quot;iqr&quot;: 540000.0, &quot;q1&quot;: 270000.0, &quot;median&quot;: 517923.0, &quot;q3&quot;: 810000.0, &quot;ninety_fifth_percentile&quot;: 1350000.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 401715.39261068584, &quot;coefficient_of_variation&quot;: 0.6700739175653453, &quot;sum&quot;: 11989581934.5, &quot;variance&quot;: 161375256660.35745, &quot;mean&quot;: 599509.072178609}}}, &quot;AMT_GOODS_PRICE&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 45000.0, &quot;end&quot;: 4050000.405, &quot;width&quot;: 0, &quot;counts&quot;: [1932, 4894, 1746, 3856, 2930, 709, 1616, 361, 878, 579, 52, 141, 44, 161, 20, 0, 57, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4], &quot;max&quot;: 4050000.0, &quot;min&quot;: 45000.0, &quot;bins&quot;: [45000.0, 178500.0135, 312000.027, 445500.0405, 579000.054, 712500.0675, 846000.081, 979500.0945, 1113000.108, 1246500.1215, 1380000.135, 1513500.1485000001, 1647000.162, 1780500.1755, 1914000.189, 2047500.2025000001, 2181000.216, 2314500.2295, 2448000.243, 2581500.2565, 2715000.27, 2848500.2835, 2982000.2970000003, 3115500.3105, 3249000.324, 3382500.3375, 3516000.351, 3649500.3645, 3783000.378, 3916500.3915, 4050000.4050000003], &quot;n&quot;: 19984}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19984, &quot;missing&quot;: 15, &quot;distinct&quot;: 2.0546464121151606, &quot;min&quot;: 45000.0, &quot;max&quot;: 4050000.0, &quot;range&quot;: 4005000.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 135000.0, &quot;iqr&quot;: 441000.0, &quot;q1&quot;: 238500.0, &quot;median&quot;: 450000.0, &quot;q3&quot;: 679500.0, &quot;ninety_fifth_percentile&quot;: 1305000.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 369375.9863259578, &quot;coefficient_of_variation&quot;: 0.6855333644852507, &quot;sum&quot;: 10767688479.0, &quot;variance&quot;: 136438619274.27415, &quot;mean&quot;: 538815.4763310648}}}, &quot;AMT_INCOME_TOTAL&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 25650.0, &quot;end&quot;: 117000011.7, &quot;width&quot;: 0, &quot;counts&quot;: [19999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 117000000.0, &quot;min&quot;: 25650.0, &quot;bins&quot;: [25650.0, 3924795.39, 7823940.78, 11723086.17, 15622231.56, 19521376.95, 23420522.34, 27319667.73, 31218813.12, 35117958.51, 39017103.9, 42916249.29, 46815394.68, 50714540.07, 54613685.46, 58512830.85, 62411976.24, 66311121.63, 70210267.02, 74109412.41, 78008557.8, 81907703.19, 85806848.58, 89705993.97, 93605139.36, 97504284.75, 101403430.14, 105302575.53, 109201720.92, 113100866.31, 117000011.7], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 2.327071000531125, &quot;min&quot;: 25650.0, &quot;max&quot;: 117000000.0, &quot;range&quot;: 116974350.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 67500.0, &quot;iqr&quot;: 90000.0, &quot;q1&quot;: 112500.0, &quot;median&quot;: 148500.0, &quot;q3&quot;: 202500.0, &quot;ninety_fifth_percentile&quot;: 337500.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 831772.3867629175, &quot;coefficient_of_variation&quot;: 4.780680063381661, &quot;sum&quot;: 3479550135.6150002, &quot;variance&quot;: 691845303381.2804, &quot;mean&quot;: 173986.20609105457}}}, &quot;CNT_CHILDREN&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.0, &quot;end&quot;: 8.0000008, &quot;width&quot;: 0, &quot;counts&quot;: [13983, 0, 0, 4036, 0, 0, 0, 1685, 0, 0, 0, 252, 0, 0, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 8.0, &quot;min&quot;: 0.0, &quot;bins&quot;: [0.0, 0.26666669333333337, 0.5333333866666667, 0.8000000800000001, 1.0666667733333335, 1.3333334666666667, 1.6000001600000002, 1.8666668533333337, 2.133333546666667, 2.4000002400000002, 2.6666669333333335, 2.933333626666667, 3.2000003200000005, 3.4666670133333337, 3.7333337066666674, 4.0000004, 4.266667093333334, 4.533333786666668, 4.8000004800000005, 5.066667173333334, 5.333333866666667, 5.600000560000001, 5.866667253333334, 6.133333946666667, 6.400000640000001, 6.666667333333335, 6.933334026666667, 7.200000720000001, 7.466667413333335, 7.733334106666668, 8.0000008], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.045002251006620024, &quot;min&quot;: 0.0, &quot;max&quot;: 8.0, &quot;range&quot;: 8.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 0.0, &quot;iqr&quot;: 1.0, &quot;q1&quot;: 0.0, &quot;median&quot;: 0.0, &quot;q3&quot;: 1.0, &quot;ninety_fifth_percentile&quot;: 2.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.7210379475164849, &quot;coefficient_of_variation&quot;: 1.7279853699679066, &quot;sum&quot;: 8345.0, &quot;variance&quot;: 0.5198957217587852, &quot;mean&quot;: 0.41727086354317716}}}, &quot;CNT_FAM_MEMBERS&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 1.0, &quot;end&quot;: 10.000001, &quot;width&quot;: 0, &quot;counts&quot;: [4272, 0, 0, 10413, 0, 0, 3482, 0, 0, 1537, 0, 0, 0, 260, 0, 0, 19, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], &quot;max&quot;: 10.0, &quot;min&quot;: 1.0, &quot;bins&quot;: [1.0, 1.3000000333333332, 1.6000000666666665, 1.9000001, 2.200000133333333, 2.5000001666666662, 2.8000002, 3.100000233333333, 3.4000002666666664, 3.7000002999999997, 4.0000003333333325, 4.300000366666666, 4.6000004, 4.900000433333333, 5.200000466666666, 5.5000005, 5.800000533333333, 6.100000566666666, 6.400000599999999, 6.700000633333333, 7.000000666666666, 7.300000699999999, 7.600000733333332, 7.900000766666666, 8.2000008, 8.500000833333333, 8.800000866666666, 9.1000009, 9.400000933333333, 9.700000966666666, 10.000001], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.05000250124264925, &quot;min&quot;: 1.0, &quot;max&quot;: 10.0, &quot;range&quot;: 9.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 1.0, &quot;iqr&quot;: 1.0, &quot;q1&quot;: 2.0, &quot;median&quot;: 2.0, &quot;q3&quot;: 3.0, &quot;ninety_fifth_percentile&quot;: 4.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.905490310718926, &quot;coefficient_of_variation&quot;: 0.41922633401397813, &quot;sum&quot;: 43196.00000000001, &quot;variance&quot;: 0.8199127028058573, &quot;mean&quot;: 2.15990799539977}}}, &quot;CODE_GENDER&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;F&quot;, &quot;estimate&quot;: 13151}, {&quot;value&quot;: &quot;M&quot;, &quot;estimate&quot;: 6848}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.010000500049837761, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;DAYS_BIRTH&quot;: {&quot;histogram&quot;: {&quot;start&quot;: -25161.0, &quot;end&quot;: -7679.999232, &quot;width&quot;: 0, &quot;counts&quot;: [136, 220, 450, 520, 571, 666, 616, 672, 728, 760, 733, 693, 678, 751, 791, 849, 812, 901, 926, 935, 787, 814, 872, 883, 824, 852, 530, 419, 398, 212], &quot;max&quot;: -7680.0, &quot;min&quot;: -25161.0, &quot;bins&quot;: [-25161.0, -24578.2999744, -23995.5999488, -23412.8999232, -22830.1998976, -22247.499872, -21664.7998464, -21082.099820800002, -20499.3997952, -19916.6997696, -19333.999744, -18751.2997184, -18168.599692800002, -17585.8996672, -17003.199641600004, -16420.499616, -15837.799590400002, -15255.099564800003, -14672.399539200002, -14089.699513600002, -13506.999488000001, -12924.299462400002, -12341.599436800003, -11758.899411200002, -11176.199385600003, -10593.499360000003, -10010.799334400002, -9428.099308800003, -8845.399283200004, -8262.699257600005, -7679.999232000002], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 57.685695740784006, &quot;min&quot;: -25161.0, &quot;max&quot;: -7680.0, &quot;range&quot;: 17481.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: -23175.0, &quot;iqr&quot;: 7235.0, &quot;q1&quot;: -19582.0, &quot;median&quot;: -15709.0, &quot;q3&quot;: -12347.0, &quot;ninety_fifth_percentile&quot;: -9384.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 4348.259363318536, &quot;coefficient_of_variation&quot;: -0.2717439320354715, &quot;sum&quot;: -320010233.0, &quot;variance&quot;: 18907359.490687322, &quot;mean&quot;: -16001.31171558578}}}, &quot;DAYS_EMPLOYED&quot;: {&quot;histogram&quot;: {&quot;start&quot;: -16365.0, &quot;end&quot;: 365243.0365243, &quot;width&quot;: 0, &quot;counts&quot;: [3384, 13057, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3558], &quot;max&quot;: 365243.0, &quot;min&quot;: -16365.0, &quot;bins&quot;: [-16365.0, -3644.7321158566665, 9075.535768286667, 21795.803652429997, 34516.071536573334, 47236.33942071667, 59956.607304859994, 72676.87518900333, 85397.14307314667, 98117.41095729, 110837.67884143334, 123557.94672557668, 136278.21460972, 148998.48249386332, 161718.75037800666, 174439.01826215, 187159.28614629334, 199879.55403043667, 212599.82191458, 225320.08979872335, 238040.35768286668, 250760.62556701002, 263480.89345115336, 276201.1613352967, 288921.42921944, 301641.6971035833, 314361.96498772665, 327082.23287187, 339802.5007560133, 352522.76864015666, 365243.0365243], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 29.506744184055293, &quot;min&quot;: -16365.0, &quot;max&quot;: 365243.0, &quot;range&quot;: 381608.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: -6893.0, &quot;iqr&quot;: 2498.0, &quot;q1&quot;: -2786.0, &quot;median&quot;: -1226.0, &quot;q3&quot;: -288.0, &quot;ninety_fifth_percentile&quot;: 365243.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 140849.01318787178, &quot;coefficient_of_variation&quot;: 2.2255399619399183, &quot;sum&quot;: 1265688086.0, &quot;variance&quot;: 19838444515.997276, &quot;mean&quot;: 63287.56867843392}}}, &quot;EXT_SOURCE_1&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.023600619, &quot;end&quot;: 0.9331052953105202, &quot;width&quot;: 0, &quot;counts&quot;: [21, 55, 111, 140, 198, 228, 299, 349, 352, 361, 368, 336, 415, 357, 369, 395, 386, 420, 410, 413, 403, 364, 361, 371, 343, 299, 234, 221, 129, 45], &quot;max&quot;: 0.933105202, &quot;min&quot;: 0.023600619, &quot;bins&quot;: [0.023600619, 0.05391744154368401, 0.08423426408736802, 0.11455108663105203, 0.14486790917473602, 0.17518473171842003, 0.20550155426210404, 0.23581837680578804, 0.26613519934947205, 0.29645202189315606, 0.32676884443684007, 0.3570856669805241, 0.3874024895242081, 0.4177193120678921, 0.4480361346115761, 0.4783529571552601, 0.5086697796989441, 0.5389866022426282, 0.5693034247863121, 0.5996202473299961, 0.6299370698736801, 0.6602538924173642, 0.6905707149610482, 0.7208875375047321, 0.7512043600484162, 0.7815211825921002, 0.8118380051357842, 0.8421548276794681, 0.8724716502231522, 0.9027884727668363, 0.9331052953105202], &quot;n&quot;: 8753}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 8753, &quot;missing&quot;: 11246, &quot;distinct&quot;: 99.56252531920026, &quot;min&quot;: 0.023600619, &quot;max&quot;: 0.933105202, &quot;range&quot;: 0.909504583, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 0.163532213, &quot;iqr&quot;: 0.341956924, &quot;q1&quot;: 0.332785357, &quot;median&quot;: 0.509934913, &quot;q3&quot;: 0.674742281, &quot;ninety_fifth_percentile&quot;: 0.837737703}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.21047543502851523, &quot;coefficient_of_variation&quot;: 0.41761229093040375, &quot;sum&quot;: 4411.487695202, &quot;variance&quot;: 0.04429990875044274, &quot;mean&quot;: 0.5039972232608249}}}, &quot;EXT_SOURCE_2&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 4.36e-05, &quot;end&quot;: 0.8549997514999665, &quot;width&quot;: 0, &quot;counts&quot;: [174, 200, 215, 226, 236, 354, 342, 338, 378, 552, 495, 494, 567, 499, 641, 703, 720, 900, 985, 1185, 1311, 1441, 1480, 1612, 1453, 1203, 850, 339, 56, 0], &quot;max&quot;: 0.854999666, &quot;min&quot;: 4.36e-05, &quot;bins&quot;: [4.36e-05, 0.02854213838333222, 0.05704067676666443, 0.08553921514999666, 0.11403775353332887, 0.1425362919166611, 0.1710348302999933, 0.19953336868332552, 0.22803190706665774, 0.25653044544998993, 0.28502898383332215, 0.31352752221665436, 0.3420260605999866, 0.3705245989833188, 0.399023137366651, 0.42752167574998323, 0.45602021413331545, 0.48451875251664767, 0.5130172908999799, 0.5415158292833121, 0.5700143676666444, 0.5985129060499766, 0.6270114444333088, 0.655509982816641, 0.6840085211999732, 0.7125070595833055, 0.7410055979666377, 0.7695041363499698, 0.7980026747333021, 0.8265012131166344, 0.8549997514999665], &quot;n&quot;: 19949}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19949, &quot;missing&quot;: 50, &quot;distinct&quot;: 87.04454217296865, &quot;min&quot;: 4.36e-05, &quot;max&quot;: 0.854999666, &quot;range&quot;: 0.854956066, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 0.137258744, &quot;iqr&quot;: 0.269800128, &quot;q1&quot;: 0.394675562, &quot;median&quot;: 0.564537372, &quot;q3&quot;: 0.66447569, &quot;ninety_fifth_percentile&quot;: 0.747903223}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.19006624560540403, &quot;coefficient_of_variation&quot;: 0.36915923129333483, &quot;sum&quot;: 10270.992060251001, &quot;variance&quot;: 0.03612517771853377, &quot;mean&quot;: 0.5148625023936538}}}, &quot;EXT_SOURCE_3&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.000527265, &quot;end&quot;: 0.8854884825488394, &quot;width&quot;: 0, &quot;counts&quot;: [89, 53, 129, 200, 242, 303, 339, 385, 385, 443, 504, 554, 587, 589, 733, 801, 743, 820, 815, 832, 872, 934, 988, 899, 870, 681, 588, 429, 171, 45], &quot;max&quot;: 0.885488394, &quot;min&quot;: 0.000527265, &quot;bins&quot;: [0.000527265, 0.030025972251627977, 0.059524679503255955, 0.08902338675488393, 0.11852209400651191, 0.14802080125813988, 0.17751950850976786, 0.20701821576139584, 0.23651692301302382, 0.2660156302646518, 0.29551433751627976, 0.32501304476790777, 0.3545117520195357, 0.38401045927116373, 0.4135091665227917, 0.4430078737744197, 0.47250658102604765, 0.5020052882776757, 0.5315039955293036, 0.5610027027809316, 0.5905014100325595, 0.6200001172841876, 0.6494988245358155, 0.6789975317874435, 0.7084962390390714, 0.7379949462906994, 0.7674936535423275, 0.7969923607939554, 0.8264910680455834, 0.8559897752972113, 0.8854884825488394], &quot;n&quot;: 16023}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 16023, &quot;missing&quot;: 3976, &quot;distinct&quot;: 4.195101081168396, &quot;min&quot;: 0.000527265, &quot;max&quot;: 0.885488394, &quot;range&quot;: 0.884961129, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 0.156639827, &quot;iqr&quot;: 0.29663095, &quot;q1&quot;: 0.374020803, &quot;median&quot;: 0.53527625, &quot;q3&quot;: 0.670651753, &quot;ninety_fifth_percentile&quot;: 0.786266615}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.19434990722946066, &quot;coefficient_of_variation&quot;: 0.3794379986666413, &quot;sum&quot;: 8207.055103813, &quot;variance&quot;: 0.03777188644009997, &quot;mean&quot;: 0.5122046498042189}}}, &quot;FLAG_OWN_CAR&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;N&quot;, &quot;estimate&quot;: 13220}, {&quot;value&quot;: &quot;Y&quot;, &quot;estimate&quot;: 6779}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.010000500049837761, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;FLAG_OWN_REALTY&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Y&quot;, &quot;estimate&quot;: 13906}, {&quot;value&quot;: &quot;N&quot;, &quot;estimate&quot;: 6093}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.010000500049837761, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_CONTRACT_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Cash loans&quot;, &quot;estimate&quot;: 18085}, {&quot;value&quot;: &quot;Revolving loans&quot;, &quot;estimate&quot;: 1914}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.010000500049837761, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_EDUCATION_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Secondary / secondary special&quot;, &quot;estimate&quot;: 14148}, {&quot;value&quot;: &quot;Higher education&quot;, &quot;estimate&quot;: 4920}, {&quot;value&quot;: &quot;Incomplete higher&quot;, &quot;estimate&quot;: 664}, {&quot;value&quot;: &quot;Lower secondary&quot;, &quot;estimate&quot;: 256}, {&quot;value&quot;: &quot;Academic degree&quot;, &quot;estimate&quot;: 11}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.025001250310868237, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_FAMILY_STATUS&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Married&quot;, &quot;estimate&quot;: 12921}, {&quot;value&quot;: &quot;Single / not married&quot;, &quot;estimate&quot;: 2864}, {&quot;value&quot;: &quot;Civil marriage&quot;, &quot;estimate&quot;: 1931}, {&quot;value&quot;: &quot;Separated&quot;, &quot;estimate&quot;: 1244}, {&quot;value&quot;: &quot;Widow&quot;, &quot;estimate&quot;: 1039}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.025001250310868237, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_HOUSING_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;House / apartment&quot;, &quot;estimate&quot;: 17732}, {&quot;value&quot;: &quot;With parents&quot;, &quot;estimate&quot;: 968}, {&quot;value&quot;: &quot;Municipal apartment&quot;, &quot;estimate&quot;: 749}, {&quot;value&quot;: &quot;Rented apartment&quot;, &quot;estimate&quot;: 305}, {&quot;value&quot;: &quot;Office apartment&quot;, &quot;estimate&quot;: 165}, {&quot;value&quot;: &quot;Co-op apartment&quot;, &quot;estimate&quot;: 80}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.030001500447551413, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_INCOME_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Working&quot;, &quot;estimate&quot;: 10455}, {&quot;value&quot;: &quot;Commercial associate&quot;, &quot;estimate&quot;: 4612}, {&quot;value&quot;: &quot;Pensioner&quot;, &quot;estimate&quot;: 3572}, {&quot;value&quot;: &quot;State servant&quot;, &quot;estimate&quot;: 1356}, {&quot;value&quot;: &quot;Student&quot;, &quot;estimate&quot;: 2}, {&quot;value&quot;: &quot;Unemployed&quot;, &quot;estimate&quot;: 2}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.030001500447551413, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;NAME_TYPE_SUITE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Unaccompanied&quot;, &quot;estimate&quot;: 16159}, {&quot;value&quot;: &quot;Family&quot;, &quot;estimate&quot;: 2631}, {&quot;value&quot;: &quot;Spouse, partner&quot;, &quot;estimate&quot;: 735}, {&quot;value&quot;: &quot;Children&quot;, &quot;estimate&quot;: 224}, {&quot;value&quot;: &quot;Other_B&quot;, &quot;estimate&quot;: 104}, {&quot;value&quot;: &quot;Other_A&quot;, &quot;estimate&quot;: 47}, {&quot;value&quot;: &quot;Group of people&quot;, &quot;estimate&quot;: 16}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 19916, &quot;missing&quot;: 83, &quot;distinct&quot;: 0.035147620527757224, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;OCCUPATION_TYPE&quot;: {&quot;histogram&quot;: null, &quot;frequentItems&quot;: [{&quot;value&quot;: &quot;Laborers&quot;, &quot;estimate&quot;: 3558}, {&quot;value&quot;: &quot;Sales staff&quot;, &quot;estimate&quot;: 2114}, {&quot;value&quot;: &quot;Core staff&quot;, &quot;estimate&quot;: 1808}, {&quot;value&quot;: &quot;Managers&quot;, &quot;estimate&quot;: 1348}, {&quot;value&quot;: &quot;Drivers&quot;, &quot;estimate&quot;: 1198}, {&quot;value&quot;: &quot;High skill tech staff&quot;, &quot;estimate&quot;: 749}, {&quot;value&quot;: &quot;Accountants&quot;, &quot;estimate&quot;: 642}, {&quot;value&quot;: &quot;Medicine staff&quot;, &quot;estimate&quot;: 576}, {&quot;value&quot;: &quot;Security staff&quot;, &quot;estimate&quot;: 443}, {&quot;value&quot;: &quot;Cooking staff&quot;, &quot;estimate&quot;: 382}, {&quot;value&quot;: &quot;Cleaning staff&quot;, &quot;estimate&quot;: 289}, {&quot;value&quot;: &quot;Private service staff&quot;, &quot;estimate&quot;: 186}, {&quot;value&quot;: &quot;Low-skill Laborers&quot;, &quot;estimate&quot;: 160}, {&quot;value&quot;: &quot;Secretaries&quot;, &quot;estimate&quot;: 91}, {&quot;value&quot;: &quot;Waiters/barmen staff&quot;, &quot;estimate&quot;: 77}, {&quot;value&quot;: &quot;Realty agents&quot;, &quot;estimate&quot;: 55}, {&quot;value&quot;: &quot;IT staff&quot;, &quot;estimate&quot;: 38}, {&quot;value&quot;: &quot;HR staff&quot;, &quot;estimate&quot;: 37}], &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: true, &quot;featureStats&quot;: {&quot;total_count&quot;: 13751, &quot;missing&quot;: 6248, &quot;distinct&quot;: 0.13089957646686975, &quot;min&quot;: NaN, &quot;max&quot;: NaN, &quot;range&quot;: NaN, &quot;quantile_statistics&quot;: null, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.0, &quot;coefficient_of_variation&quot;: null, &quot;sum&quot;: 0.0, &quot;variance&quot;: 0.0, &quot;mean&quot;: 0.0}}}, &quot;REGION_RATING_CLIENT&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 1.0, &quot;end&quot;: 3.0000003, &quot;width&quot;: 0, &quot;counts&quot;: [2113, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14796, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3090], &quot;max&quot;: 3.0, &quot;min&quot;: 1.0, &quot;bins&quot;: [1.0, 1.0666666766666666, 1.1333333533333334, 1.20000003, 1.2666667066666666, 1.3333333833333332, 1.40000006, 1.4666667366666666, 1.5333334133333332, 1.60000009, 1.6666667666666666, 1.7333334433333332, 1.80000012, 1.8666667966666666, 1.9333334733333332, 2.00000015, 2.0666668266666663, 2.133333503333333, 2.20000018, 2.2666668566666663, 2.333333533333333, 2.40000021, 2.4666668866666663, 2.533333563333333, 2.60000024, 2.6666669166666663, 2.733333593333333, 2.80000027, 2.8666669466666663, 2.933333623333333, 3.0000003], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.015000750112011406, &quot;min&quot;: 1.0, &quot;max&quot;: 3.0, &quot;range&quot;: 2.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 1.0, &quot;iqr&quot;: 0.0, &quot;q1&quot;: 2.0, &quot;median&quot;: 2.0, &quot;q3&quot;: 2.0, &quot;ninety_fifth_percentile&quot;: 3.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.5075709240572208, &quot;coefficient_of_variation&quot;: 0.24778262773013301, &quot;sum&quot;: 40967.0, &quot;variance&quot;: 0.257628242948301, &quot;mean&quot;: 2.048452422621131}}}, &quot;SK_ID_CURR&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 100002.0, &quot;end&quot;: 123324.0123324, &quot;width&quot;: 0, &quot;counts&quot;: [688, 640, 672, 672, 656, 672, 656, 672, 656, 688, 672, 656, 688, 688, 656, 656, 672, 656, 672, 656, 660, 656, 664, 672, 672, 664, 672, 672, 650, 673], &quot;max&quot;: 123324.0, &quot;min&quot;: 100002.0, &quot;bins&quot;: [100002.0, 100779.40041108, 101556.80082216, 102334.20123324, 103111.60164432, 103889.0020554, 104666.40246648, 105443.80287756, 106221.20328864, 106998.60369972, 107776.0041108, 108553.40452188, 109330.80493296, 110108.20534404, 110885.60575512, 111663.00616620001, 112440.40657728, 113217.80698836, 113995.20739944, 114772.60781052, 115550.0082216, 116327.40863268, 117104.80904376, 117882.20945484, 118659.60986592, 119437.010277, 120214.41068808, 120991.81109916, 121769.21151024, 122546.61192132, 123324.0123324], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 101.07200626678974, &quot;min&quot;: 100002.0, &quot;max&quot;: 123324.0, &quot;range&quot;: 23322.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 101166.0, &quot;iqr&quot;: 11659.0, &quot;q1&quot;: 105862.0, &quot;median&quot;: 111636.0, &quot;q3&quot;: 117521.0, &quot;ninety_fifth_percentile&quot;: 122172.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 6731.645470352609, &quot;coefficient_of_variation&quot;: 0.06028675456924545, &quot;sum&quot;: 2233097116.0, &quot;variance&quot;: 45315050.73851879, &quot;mean&quot;: 111660.43882194109}}}, &quot;TARGET&quot;: {&quot;histogram&quot;: {&quot;start&quot;: 0.0, &quot;end&quot;: 1.0000001, &quot;width&quot;: 0, &quot;counts&quot;: [18424, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1575], &quot;max&quot;: 1.0, &quot;min&quot;: 0.0, &quot;bins&quot;: [0.0, 0.03333333666666667, 0.06666667333333334, 0.10000001000000001, 0.13333334666666669, 0.16666668333333334, 0.20000002000000003, 0.2333333566666667, 0.26666669333333337, 0.30000003000000003, 0.3333333666666667, 0.3666667033333334, 0.40000004000000006, 0.4333333766666667, 0.4666667133333334, 0.50000005, 0.5333333866666667, 0.5666667233333335, 0.6000000600000001, 0.6333333966666668, 0.6666667333333334, 0.7000000700000001, 0.7333334066666668, 0.7666667433333334, 0.8000000800000001, 0.8333334166666668, 0.8666667533333334, 0.9000000900000001, 0.9333334266666669, 0.9666667633333335, 1.0000001], &quot;n&quot;: 19999}, &quot;frequentItems&quot;: null, &quot;drift_from_ref&quot;: null, &quot;isDiscrete&quot;: false, &quot;featureStats&quot;: {&quot;total_count&quot;: 19999, &quot;missing&quot;: 0, &quot;distinct&quot;: 0.010000500049837761, &quot;min&quot;: 0.0, &quot;max&quot;: 1.0, &quot;range&quot;: 1.0, &quot;quantile_statistics&quot;: {&quot;fifth_percentile&quot;: 0.0, &quot;iqr&quot;: 0.0, &quot;q1&quot;: 0.0, &quot;median&quot;: 0.0, &quot;q3&quot;: 0.0, &quot;ninety_fifth_percentile&quot;: 1.0}, &quot;descriptive_statistics&quot;: {&quot;stddev&quot;: 0.2695955246264783, &quot;coefficient_of_variation&quot;: 3.4167559550094673, &quot;sum&quot;: 1578.0, &quot;variance&quot;: 0.07268174689862607, &quot;mean&quot;: 0.07890394519725986}}}}, &quot;properties&quot;: null};
+      // Config handlebars and pass data to HBS template
+      const source = document.getElementById(&quot;entry-template&quot;).innerHTML;
+      const template = Handlebars.compile(source);
+      const html = template(context);
+      const target = document.getElementById(&quot;generated-html&quot;);
+      target.innerHTML = html;
+    }
+
+    function initWebsiteScripts() {
+      const $featureSearch = document.getElementById(&quot;wl__feature-search&quot;);
+      const $tableBody = document.getElementById(&quot;table-body&quot;);
+      const $discrete = document.getElementById(&quot;inferredDiscrete&quot;);
+      const $nonDiscrete = document.getElementById(&quot;inferredNonDiscrete&quot;);
+      const $unknown = document.getElementById(&quot;inferredUnknown&quot;);
+      const $diffFromRef = document.getElementById(&quot;diff-from-ref&quot;);
+
+      const activeTypes = {
+        discrete: true,
+        &quot;non-discrete&quot;: true,
+        unknown: true,
+      };
+
+      var driftOrder = {
+        original: true,
+        descending: false,
+        ascending: false,
+      };
+      var originalColumnOrder;
+
+      let searchString = &quot;&quot;;
+
+      function debounce(func, wait, immediate) {
+        let timeout;
+
+        return function () {
+          const context = this;
+          const args = arguments;
+          const later = function () {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+          };
+
+          const callNow = immediate &amp;&amp; !timeout;
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+          if (callNow) func.apply(context, args);
+        };
+      }
+
+      function filterNotification() {
+        const $notifCircleContainer = $(&quot;.notif-circle-container&quot;)
+        const $boxes = $(&#x27;.wl_filter-options&gt;.form-check&gt;input[name=checkbox]:checked&#x27;);
+        const item = Object.values($boxes).find(function(value) { return $(value)[0] === undefined});
+        if (item === undefined) {
+          $notifCircleContainer.removeClass(&quot;d-none&quot;)
+        } else {
+          $notifCircleContainer.addClass(&quot;d-none&quot;)
+        }
+      }
+
+
+      function orderByDrift(direction) {
+        var tableBodyChildren = $tableBody.children;
+        if (driftOrder[&#x27;original&#x27;]) {
+          driftOrder[&#x27;original&#x27;] = false
+          driftOrder[&#x27;descending&#x27;] = true
+
+          originalColumnOrder = [...tableBodyChildren];
+          tableBodyChildren = [...tableBodyChildren].sort((a,b) =&gt; (b.dataset.pValue - a.dataset.pValue))
+          document.getElementById(&quot;pvalue&quot;).style.display = &quot;none&quot;;
+          document.getElementById(&quot;pvalue-desc&quot;).style.display = &quot;&quot;;
+
+        } else if (driftOrder[&#x27;descending&#x27;]) {
+          driftOrder[&#x27;descending&#x27;] = false
+          driftOrder[&#x27;ascending&#x27;] = true
+          tableBodyChildren = [...tableBodyChildren].sort((a,b) =&gt; (a.dataset.pValue - b.dataset.pValue))
+          document.getElementById(&quot;pvalue-desc&quot;).style.display = &quot;none&quot;;
+          document.getElementById(&quot;pvalue-asc&quot;).style.display = &quot;&quot;;
+
+
+        } else if (driftOrder[&#x27;ascending&#x27;]) {
+          driftOrder[&#x27;ascending&#x27;] = false
+          driftOrder[&#x27;original&#x27;] = true
+
+          tableBodyChildren = originalColumnOrder;
+          document.getElementById(&quot;pvalue-asc&quot;).style.display = &quot;none&quot;;
+          document.getElementById(&quot;pvalue&quot;).style.display = &quot;&quot;;
+
+        }
+
+        for (let i = 0; i &lt; tableBodyChildren.length; i++) {
+          console.log(tableBodyChildren[i].dataset.pValue)
+        }
+        for (var i = 0; i &lt; tableBodyChildren.length; i++){$tableBody.append(tableBodyChildren[i])}
+      }
+
+
+      function handleSearch() {
+        const tableBodyChildren = $tableBody.children;
+
+        for (let i = 0; i &lt; tableBodyChildren.length; i++) {
+          const type = tableBodyChildren[i].dataset.inferredType.toLowerCase();
+          const name = tableBodyChildren[i].dataset.featureName.toLowerCase();
+          if (activeTypes[type] &amp;&amp; name.startsWith(searchString)) {
+            tableBodyChildren[i].style.display = &quot;&quot;;
+          } else {
+            tableBodyChildren[i].style.display = &quot;none&quot;;
+          }
+        }
+      }
+
+      $featureSearch.addEventListener(
+        &quot;keyup&quot;,
+        debounce((event) =&gt; {
+          searchString = event.target.value.toLowerCase();
+          handleSearch();
+        }, 100),
+      );
+
+      $diffFromRef.addEventListener(
+        &quot;click&quot;,
+        debounce((event) =&gt; {
+          orderByDrift();
+        }, 100),
+      );
+
+      $discrete.addEventListener(&quot;change&quot;, (event) =&gt; {
+        if (event.currentTarget.checked) {
+          activeTypes[&quot;discrete&quot;] = true;
+        } else {
+          activeTypes[&quot;discrete&quot;] = false;
+        }
+        handleSearch();
+        filterNotification()
+      });
+
+      $nonDiscrete.addEventListener(&quot;change&quot;, (event) =&gt; {
+        if (event.currentTarget.checked) {
+          activeTypes[&quot;non-discrete&quot;] = true;
+        } else {
+          activeTypes[&quot;non-discrete&quot;] = false;
+        }
+        handleSearch();
+        filterNotification()
+      });
+
+      $unknown.addEventListener(&quot;change&quot;, (event) =&gt; {
+        if (event.currentTarget.checked) {
+          activeTypes[&quot;unknown&quot;] = true;
+        } else {
+          activeTypes[&quot;unknown&quot;] = false;
+        }
+        handleSearch();
+        filterNotification()
+      });
+
+      function checkCurrentProfile(item, referenceItem) {
+        if (referenceProfile &amp;&amp; Object.values(referenceProfile)) {
+          return referenceItem
+        } else {
+          return item
+        }
+      }
+
+      if(checkCurrentProfile(true, false)) {
+        $(&quot;.svg-container&quot;).css(&quot;padding-bottom&quot;, &quot;27%&quot;)
+        $(&quot;#diff-from-ref&quot;).addClass(&quot;d-none&quot;)
+        $(&quot;.diff-from-ref-table-cell&quot;).addClass(&quot;d-none&quot;)
+      } else {
+        $(&quot;#diff-from-ref&quot;).removeClass(&quot;d-none&quot;)
+        $(&quot;.diff-from-ref-table-cell&quot;).removeClass(&quot;d-none&quot;)
+      }
+    }
+
+    function checkedBoxes() {
+      const $boxes = $(&#x27;input[name=checkbox]:checked&#x27;);
+      const $notifCircleContainer = $(&quot;.notif-circle-container&quot;)
+
+      if ($boxes.length) {
+        $notifCircleContainer.removeClass(&quot;d-none&quot;)
+      }
+    }
+
+    function openFilter() {
+      const $filterOptions = $(&quot;.dropdown-container&quot;);
+      const $notifCircleContainer = $(&quot;.notif-circle-container&quot;)
+      const filterClass = $filterOptions.attr(&quot;class&quot;);
+
+      if (filterClass.indexOf(&quot;d-none&quot;) &gt; 0) {
+        $notifCircleContainer.addClass(&quot;d-none&quot;)
+        $filterOptions.removeClass(&quot;d-none&quot;);
+        $(&quot;.filter-icon&quot;).addClass(&quot;d-none&quot;)
+        $(&quot;.close-filter-icon&quot;).removeClass(&quot;d-none&quot;)
+      } else {
+        $filterOptions.addClass(&quot;d-none&quot;);
+        $(&quot;.close-filter-icon&quot;).addClass(&quot;d-none&quot;)
+        $(&quot;.filter-icon&quot;).removeClass(&quot;d-none&quot;)
+        checkedBoxes()
+      }
+    }
+
+    // Invoke functions -- keep in mind invokation order
+    registerHandlebarHelperFunctions();
+    initHandlebarsTemplate();
+    initWebsiteScripts();
+  &lt;/script&gt;
+&lt;/html&gt;
+" width=100% height=1000px
+        frameBorder=0></iframe>

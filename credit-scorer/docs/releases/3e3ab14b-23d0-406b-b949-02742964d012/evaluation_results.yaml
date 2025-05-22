@@ -1,0 +1,201 @@
+fairness:
+  bias_flag: true
+  cost_matrix:
+    fn_cost: 10
+    fp_cost: 1
+  fairness_metrics:
+    CODE_GENDER:
+      selection_rate_disparity: 0.15138960740627588
+    NAME_EDUCATION_TYPE:
+      selection_rate_disparity: 0.41048292108362777
+    NAME_FAMILY_STATUS:
+      selection_rate_disparity: 0.18885948390275695
+    NAME_HOUSING_TYPE:
+      selection_rate_disparity: 0.2021892277299021
+    num__AGE_YEARS:
+      accuracy_by_group_summary:
+        accuracy_range: 0.0000 - 1.0000
+        max_accuracy: 1.0
+        mean_accuracy: 0.7287
+        min_accuracy: 0.0
+        num_groups: 5683
+      selection_rate_disparity: 1.0
+  metrics:
+    accuracy: 0.7307142857142858
+    auc_roc: 0.7153490465530262
+    average_precision: 0.17758717274817257
+    balanced_accuracy: 0.6641605530981407
+    f1_score: 0.2552350849466614
+    false_negatives: 229
+    false_positives: 1656
+    normalized_cost: 0.5637142857142857
+    optimal_accuracy: 0.7307142857142858
+    optimal_cost: 0.5637142857142857
+    optimal_cost_threshold: 0.11
+    optimal_f1: 0.2552350849466614
+    optimal_f1_score: 0.2552350849466614
+    optimal_f1_threshold: 0.11
+    optimal_precision: 0.16321374431531077
+    optimal_recall: 0.5851449275362319
+    optimal_threshold: 0.11
+    precision: 0.16321374431531077
+    recall: 0.5851449275362319
+    threshold_metrics:
+      '0.05':
+        f1_score: 0.1461864406779661
+        false_negatives: 0
+        false_positives: 6448
+        normalized_cost: 0.9211428571428572
+        precision: 0.07885714285714286
+        recall: 1.0
+        true_negatives: 0
+        true_positives: 552
+      '0.1':
+        f1_score: 0.2092469018112488
+        false_negatives: 113
+        false_positives: 3205
+        normalized_cost: 0.6192857142857143
+        precision: 0.12047200878155873
+        recall: 0.7952898550724637
+        true_negatives: 3243
+        true_positives: 439
+      '0.11':
+        f1_score: 0.2552350849466614
+        false_negatives: 229
+        false_positives: 1656
+        normalized_cost: 0.5637142857142857
+        precision: 0.16321374431531077
+        recall: 0.5851449275362319
+        true_negatives: 4792
+        true_positives: 323
+      '0.15':
+        f1_score: 0.0
+        false_negatives: 552
+        false_positives: 0
+        normalized_cost: 0.7885714285714286
+        precision: 0.0
+        recall: 0.0
+        true_negatives: 6448
+        true_positives: 0
+      '0.2':
+        f1_score: 0.0
+        false_negatives: 552
+        false_positives: 0
+        normalized_cost: 0.7885714285714286
+        precision: 0.0
+        recall: 0.0
+        true_negatives: 6448
+        true_positives: 0
+      '0.25':
+        f1_score: 0.0
+        false_negatives: 552
+        false_positives: 0
+        normalized_cost: 0.7885714285714286
+        precision: 0.0
+        recall: 0.0
+        true_negatives: 6448
+        true_positives: 0
+      '0.3':
+        f1_score: 0.0
+        false_negatives: 552
+        false_positives: 0
+        normalized_cost: 0.7885714285714286
+        precision: 0.0
+        recall: 0.0
+        true_negatives: 6448
+        true_positives: 0
+    true_negatives: 4792
+    true_positives: 323
+  protected_attributes_checked:
+  - CODE_GENDER
+  - DAYS_BIRTH
+  - AGE_YEARS
+  - NAME_EDUCATION_TYPE
+  - NAME_FAMILY_STATUS
+  - NAME_HOUSING_TYPE
+metrics:
+  accuracy: 0.7307142857142858
+  auc_roc: 0.7153490465530262
+  average_precision: 0.17758717274817257
+  balanced_accuracy: 0.6641605530981407
+  f1_score: 0.2552350849466614
+  false_negatives: 229
+  false_positives: 1656
+  normalized_cost: 0.5637142857142857
+  optimal_accuracy: 0.7307142857142858
+  optimal_cost: 0.5637142857142857
+  optimal_cost_threshold: 0.11
+  optimal_f1: 0.2552350849466614
+  optimal_f1_score: 0.2552350849466614
+  optimal_f1_threshold: 0.11
+  optimal_precision: 0.16321374431531077
+  optimal_recall: 0.5851449275362319
+  optimal_threshold: 0.11
+  precision: 0.16321374431531077
+  recall: 0.5851449275362319
+  threshold_metrics:
+    '0.05':
+      f1_score: 0.1461864406779661
+      false_negatives: 0
+      false_positives: 6448
+      normalized_cost: 0.9211428571428572
+      precision: 0.07885714285714286
+      recall: 1.0
+      true_negatives: 0
+      true_positives: 552
+    '0.1':
+      f1_score: 0.2092469018112488
+      false_negatives: 113
+      false_positives: 3205
+      normalized_cost: 0.6192857142857143
+      precision: 0.12047200878155873
+      recall: 0.7952898550724637
+      true_negatives: 3243
+      true_positives: 439
+    '0.11':
+      f1_score: 0.2552350849466614
+      false_negatives: 229
+      false_positives: 1656
+      normalized_cost: 0.5637142857142857
+      precision: 0.16321374431531077
+      recall: 0.5851449275362319
+      true_negatives: 4792
+      true_positives: 323
+    '0.15':
+      f1_score: 0.0
+      false_negatives: 552
+      false_positives: 0
+      normalized_cost: 0.7885714285714286
+      precision: 0.0
+      recall: 0.0
+      true_negatives: 6448
+      true_positives: 0
+    '0.2':
+      f1_score: 0.0
+      false_negatives: 552
+      false_positives: 0
+      normalized_cost: 0.7885714285714286
+      precision: 0.0
+      recall: 0.0
+      true_negatives: 6448
+      true_positives: 0
+    '0.25':
+      f1_score: 0.0
+      false_negatives: 552
+      false_positives: 0
+      normalized_cost: 0.7885714285714286
+      precision: 0.0
+      recall: 0.0
+      true_negatives: 6448
+      true_positives: 0
+    '0.3':
+      f1_score: 0.0
+      false_negatives: 552
+      false_positives: 0
+      normalized_cost: 0.7885714285714286
+      precision: 0.0
+      recall: 0.0
+      true_negatives: 6448
+      true_positives: 0
+  true_negatives: 4792
+  true_positives: 323
