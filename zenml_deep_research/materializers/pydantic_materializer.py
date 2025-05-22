@@ -271,25 +271,28 @@ class ResearchStateMaterializer(PydanticMaterializer):
                 """
 
                 for result in results:
-                    # Extract domain from URL
-                    domain = ""
-                    try:
-                        from urllib.parse import urlparse
+                    # Extract domain from URL or use special handling for generated content
+                    if result.url == "tavily-generated-answer":
+                        domain = "Tavily"
+                    else:
+                        domain = ""
+                        try:
+                            from urllib.parse import urlparse
 
-                        parsed_url = urlparse(result.url)
-                        domain = parsed_url.netloc
-                        # Strip www. prefix to save space
-                        if domain.startswith("www."):
-                            domain = domain[4:]
-                    except:
-                        domain = (
-                            result.url.split("/")[2]
-                            if len(result.url.split("/")) > 2
-                            else ""
-                        )
-                        # Strip www. prefix to save space
-                        if domain.startswith("www."):
-                            domain = domain[4:]
+                            parsed_url = urlparse(result.url)
+                            domain = parsed_url.netloc
+                            # Strip www. prefix to save space
+                            if domain.startswith("www."):
+                                domain = domain[4:]
+                        except:
+                            domain = (
+                                result.url.split("/")[2]
+                                if len(result.url.split("/")) > 2
+                                else ""
+                            )
+                            # Strip www. prefix to save space
+                            if domain.startswith("www."):
+                                domain = domain[4:]
 
                     html += f"""
                         <li>
