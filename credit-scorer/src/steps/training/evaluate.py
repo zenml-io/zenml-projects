@@ -32,7 +32,6 @@ from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.integrations.slack.alerters.slack_alerter import (
     SlackAlerterParameters,
-    SlackAlerterPayload,
 )
 from zenml.logger import get_logger
 from zenml.types import HTMLString

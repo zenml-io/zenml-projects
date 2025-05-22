@@ -22,8 +22,6 @@ from fairlearn.metrics import MetricFrame, selection_rate
 from sklearn.metrics import accuracy_score
 from zenml.logger import get_logger
 
-from src.constants import Artifacts as A
-
 logger = get_logger(__name__)
 
 

@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-import hashlib
 import time
 from datetime import datetime
 from typing import Annotated, Any, Dict, Tuple
@@ -85,7 +84,7 @@ def approve_deployment(
     )
 
     # Generate model checksum for identification
-    model_id = run_id[:8]  # Use first 8 chars of run ID as model ID
+    model_id = run_id  # Use first 8 chars of run ID as model ID
 
     # Approval criteria checks
     perf_ok = accuracy >= approval_thresholds.get("accuracy", 0.7)
@@ -97,9 +96,7 @@ def approve_deployment(
 
     # Create Slack message with enhanced pipeline context
     header_text = (
-        ":white_check_mark: *MODEL AUTO-APPROVED!*"
-        if all_ok
-        else ":warning: *HUMAN REVIEW REQUIRED*"
+        "*MODEL AUTO-APPROVED*" if all_ok else "*HUMAN REVIEW REQUIRED*"
     )
 
     blocks = [
@@ -107,8 +104,8 @@ def approve_deployment(
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "💶 CreditScorer Model Approval",
-                "emoji": True,
+                "text": "Model Approval",
+                "emoji": False,
             },
         },
         {"type": "section", "text": {"type": "mrkdwn", "text": header_text}},
@@ -119,7 +116,7 @@ def approve_deployment(
                 {"type": "mrkdwn", "text": f"*Pipeline:* {pipeline_name}"},
                 {"type": "mrkdwn", "text": f"*Model ID:* {model_id}"},
                 {"type": "mrkdwn", "text": f"*Stack:* {stack_name}"},
-                {"type": "mrkdwn", "text": f"*Run ID:* {run_id[:12]}..."},
+                {"type": "mrkdwn", "text": f"*Run ID:* {run_id}"},
             ],
         },
         {"type": "divider"},
@@ -128,19 +125,19 @@ def approve_deployment(
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"{'✅' if perf_ok else '❌'} *Accuracy=* {accuracy:.3f}",
+                    "text": f"{'✅' if perf_ok else '❌'} *Accuracy:* {accuracy:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"{'✅' if risk_ok else '❌'} *Risk Score=* {risk_score:.3f}",
+                    "text": f"{'✅' if risk_ok else '❌'} *Risk Score:* {risk_score:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"{'✅' if fairness_ok else '❌'} *F1=* {f1_score:.3f}",
+                    "text": f"{'✅' if fairness_ok else '❌'} *F1 Score:* {f1_score:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*AUC=* {auc_roc:.3f}",
+                    "text": f"*AUC:* {auc_roc:.3f}",
                 },
             ],
         },
@@ -150,10 +147,6 @@ def approve_deployment(
                 {
                     "type": "mrkdwn",
                     "text": f"*Bias Check:* {'✅ No bias detected' if fairness_ok else f'❌ Max disparity: {max_disparity:.3f}'}",
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Protected Attributes:* {len(fairness_metrics)} checked",
                 },
             ],
         },
@@ -197,10 +190,50 @@ def approve_deployment(
     else:
         if alerter:
             try:
-                # Enhanced question with pipeline context
-                question = f"Should CreditScorer deploy model {model_id} from pipeline '{pipeline_name}'? Reply with 'yes' or 'no'"
+                # Simplified approval question with clearer formatting
+                approval_blocks = [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Deployment Approval Required*",
+                        },
+                    },
+                    {"type": "divider"},
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"*Model ID:* {model_id}",
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": f"*Pipeline:* {pipeline_name}",
+                            },
+                        ],
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "_Override deployment? Reply with 'yes' or 'no'_",
+                            }
+                        ],
+                    },
+                ]
+
+                approval_params = SlackAlerterParameters(
+                    blocks=approval_blocks
+                )
+
+                # Use a more direct question for the alerter.ask function
+                question = (
+                    f"Override deployment for pipeline '{pipeline_name}'?"
+                )
                 print("📱 Asking approval question in Slack...")
-                response = alerter.ask(question)
+                response = alerter.ask(question, params=approval_params)
                 print(f"📱 Received Slack response: {response}")
 
                 # Handle various response formats
@@ -252,9 +285,18 @@ def approve_deployment(
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "💶 CreditScorer Deployment Confirmed",
-                        "emoji": True,
+                        "text": "Deployment Confirmed",
+                        "emoji": False,
                     },
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "_CreditScorer_",
+                        }
+                    ],
                 },
                 {
                     "type": "section",
@@ -286,7 +328,7 @@ def approve_deployment(
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"🚀 *Deployment will proceed automatically*\n_Model checksum: {run_id}_",
+                        "text": f"*Deployment will proceed automatically*\n_Model checksum: {run_id}_",
                     },
                 },
             ]
@@ -295,7 +337,7 @@ def approve_deployment(
                 blocks=confirmation_blocks
             )
             alerter.post(
-                "✅ CreditScorer model approved for deployment",
+                "✅ Model approved for deployment",
                 params=confirmation_params,
             )
             print("📱 Deployment confirmation sent to Slack")
