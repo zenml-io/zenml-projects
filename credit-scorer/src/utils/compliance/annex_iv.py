@@ -578,7 +578,7 @@ def generate_readme(
         f.write("- **Article 16**: Post-market monitoring\n\n")
 
         f.write(
-            "For a complete mapping of pipeline steps to EU AI Act articles, refer to the [pipeline_to_articles.md](../../pipeline_to_articles.md) file.\n"
+            "For a complete mapping of pipeline steps to EU AI Act articles, refer to the [pipeline_to_articles.md](../../guides/pipeline_to_articles.md) file.\n"
         )
 
 
