@@ -101,7 +101,6 @@ def approve_deployment(
                                 "type": "mrkdwn",
                                 "text": f"*Stack:* {stack_name}",
                             },
-                            {"type": "mrkdwn", "text": f"*Run ID:* {run_id}"},
                         ],
                     },
                     {
@@ -144,7 +143,7 @@ def approve_deployment(
                         "elements": [
                             {
                                 "type": "mrkdwn",
-                                "text": f"Pipeline: {pipeline_name} • <!date^{int(time.time())}^{{date_short_pretty}} {{time}}|{datetime.now().isoformat()}>",
+                                "text": f"<!date^{int(time.time())}^{{date_short_pretty}} {{time}}|{datetime.now().isoformat()}>",
                             }
                         ],
                     },
