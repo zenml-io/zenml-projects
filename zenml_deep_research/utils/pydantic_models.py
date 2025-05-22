@@ -8,6 +8,7 @@ Pydantic's validation, serialization, and integration with ZenML.
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
+from typing_extensions import Literal
 
 
 class SearchResult(BaseModel):
@@ -43,7 +44,7 @@ class SynthesizedInfo(BaseModel):
 
     synthesized_answer: str = ""
     key_sources: List[str] = Field(default_factory=list)
-    confidence_level: str = "medium"  # high, medium, low
+    confidence_level: Literal["high", "medium", "low"] = "medium"
     information_gaps: str = ""
     improvements: List[str] = Field(default_factory=list)
 

@@ -103,7 +103,11 @@ Format the output in json with the following json schema definition:
       "items": {"type": "string"}
     },
     "confidence_level": {"type": "string", "enum": ["high", "medium", "low"]},
-    "information_gaps": {"type": "string"}
+    "information_gaps": {"type": "string"},
+    "improvements": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
   }
 }
 </OUTPUT JSON SCHEMA>
