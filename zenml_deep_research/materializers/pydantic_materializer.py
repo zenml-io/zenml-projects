@@ -267,23 +267,33 @@ class ResearchStateMaterializer(PydanticMaterializer):
                 html += f"""
                     <h3>{question}</h3>
                     <p>Found {len(results)} results</p>
+                    <ul>
                 """
 
-                for i, result in enumerate(
-                    results[:3]
-                ):  # Show first 3 results
+                for result in results:
+                    # Extract domain from URL
+                    domain = ""
+                    try:
+                        from urllib.parse import urlparse
+
+                        parsed_url = urlparse(result.url)
+                        domain = parsed_url.netloc
+                    except:
+                        domain = (
+                            result.url.split("/")[2]
+                            if len(result.url.split("/")) > 2
+                            else ""
+                        )
+
                     html += f"""
-                    <div class="search-result">
-                        <p><strong>{i + 1}. {result.title}</strong></p>
-                        <p>{result.snippet[:200]}{"..." if len(result.snippet) > 200 else ""}</p>
-                        <div class="metadata">
-                            <a href="{result.url}" target="_blank">{result.url}</a>
-                        </div>
-                    </div>
+                        <li>
+                            <a href="{result.url}" target="_blank">{result.title}</a> ({domain})
+                        </li>
                     """
 
-                if len(results) > 3:
-                    html += f"<p><em>...and {len(results) - 3} more results</em></p>"
+                html += """
+                    </ul>
+                """
 
             html += """
                 </div>
