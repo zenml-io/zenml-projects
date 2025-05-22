@@ -1,6 +1,11 @@
 import copy
 import logging
+import warnings
 from typing import Annotated
+
+# Suppress Pydantic serialization warnings from ZenML artifact metadata
+# These occur when ZenML stores timestamp metadata as floats but models expect ints
+warnings.filterwarnings("ignore", message=".*PydanticSerializationUnexpectedValue.*")
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import synthesize_information
@@ -124,6 +129,7 @@ def process_sub_question_step(
                 "information_gaps",
                 "Synthesis process encountered technical difficulties.",
             ),
+            improvements=synthesis_result.get("improvements", []),
         )
     }
 
