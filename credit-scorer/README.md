@@ -162,7 +162,6 @@ Each pipeline run creates a unique release directory in `docs/releases/<run_id>/
 ## 📚 Documentation
 
 - **[ZenML Documentation](https://docs.zenml.io/)**
-- **[EU AI Act Compliance Traceability](docs/guides/compliance_traceability.md)**
 - **[QMS Templates](docs/templates/qms/)** - Quality management system documentation templates
 
 **Note**: This project provides the technical evidence required by the EU AI Act. For complete compliance, organizations must also maintain formal quality management documentation and processes.

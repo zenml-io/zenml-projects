@@ -578,7 +578,7 @@ def generate_readme(
         f.write("- **Article 16**: Post-market monitoring\n\n")
 
         f.write(
-            "For a complete mapping of pipeline steps to EU AI Act articles, see the project's [compliance_matrix.md](../../compliance_matrix.md) file.\n"
+            "For a complete mapping of pipeline steps to EU AI Act articles, refer to the [pipeline_to_articles.md](../../pipeline_to_articles.md) file.\n"
         )
 
 
@@ -881,12 +881,6 @@ def generate_model_card(
         )
         f.write(
             "Human oversight is required for all decisions made with assistance from this model.\n\n"
-        )
-
-        # Contact Information
-        f.write("## Contact Information\n\n")
-        f.write(
-            "For questions or concerns about this model, please contact compliance@example.com\n"
         )
 
     logger.info(f"Generated model card at: {model_card_path}")
