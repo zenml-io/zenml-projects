@@ -1,6 +1,6 @@
 # Credit Scoring EU AI Act Demo
 
-Automatically generate complete EU AI Act compliance documentation with minimal manual effort for credit scoring models.
+An end‑to‑end credit‑scoring workflow that automatically generates the technical evidence required by the [EU AI Act](https://www.zenml.io/blog/understanding-the-ai-act-february-2025-updates-and-implications).
 
 <div align="center"> <img src="assets/compliance-dashboard.png" alt="Compliance Dashboard" width="800" /> </div>
 
@@ -15,7 +15,7 @@ Financial institutions must comply with the EU AI Act for any high‑risk AI sys
 
 ## 🔍 Data Overview
 
-This project uses a credit scoring dataset based on the Home Credit Default Risk data. The raw dataset contains potentially sensitive attributes such as `CODE_GENDER`, `DAYS_BIRTH`, `NAME_EDUCATION_TYPE`, `NAME_FAMILY_STATUS`, and `NAME_HOUSING_TYPE`, which can be filtered using the pipeline's `sensitive_attributes` parameter to comply with fairness requirements.
+This project leverages the [Home Credit Default Risk dataset provided by the Home Credit Group](https://www.kaggle.com/c/home-credit-default-risk/overview). The raw dataset contains potentially sensitive attributes such as `CODE_GENDER`, `DAYS_BIRTH`, `NAME_EDUCATION_TYPE`, `NAME_FAMILY_STATUS`, and `NAME_HOUSING_TYPE`, which can be filtered using the pipeline's `sensitive_attributes` parameter to comply with fairness requirements.
 
 Key fields used for modeling:
 
@@ -46,7 +46,7 @@ The system implements three main pipelines that map directly to EU AI Act requir
 | **[Training](src/pipelines/training.py)**                       | **Train** → LightGBM w/ class‑imbalance handling 🎯<br>**Evaluate** → Accuracy, AUC, fairness analysis ⚖️<br>**Assess** → Risk scoring & model registry 📋 | Arts 9, 11, 15  |
 | **[Deployment](src/pipelines/deployment.py)**                   | **Approve** → Human oversight gate 🙋‍♂️<br>**Deploy** → Modal API deployment 🚀<br>**Monitor** → SBOM + post‑market tracking 📈                              | Arts 14, 17, 18 |
 
-Each pipeline run automatically versions all inputs/outputs, generates profiling reports, creates risk assessments, produces SBOM, and compiles complete Annex IV technical documentation.
+Each pipeline run automatically versions all inputs/outputs, generates profiling reports, creates risk assessments, produces a [Software Bill of Materials (SBOM)](https://www.cisa.gov/sbom), and compiles complete Annex IV technical documentation.
 
 ## 🛠️ Project Structure
 
@@ -134,7 +134,7 @@ To run the dashboard:
 python run_dashboard.py
 ```
 
-> **Note:** All compliance artifacts are also directly accessible through the ZenML dashboard. The Streamlit dashboard is provided as a convenient additional interface for browsing compliance information interactively.
+> **Note:** All compliance artifacts are also directly accessible through the ZenML dashboard. The Streamlit dashboard is provided as a convenient additional interface for browsing compliance information locally and offline.
 
 ### 🔧 Configuration
 

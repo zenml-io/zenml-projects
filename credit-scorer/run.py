@@ -83,7 +83,7 @@ Examples:
 @click.option(
     "--auto-approve",
     is_flag=True,
-    default=True,
+    default=False,
     help="Auto-approve deployment (for CI/CD pipelines).",
 )
 @click.option(
