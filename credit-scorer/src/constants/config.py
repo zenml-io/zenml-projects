@@ -69,7 +69,7 @@ class ModalConfig:
 class SlackConfig:
     """Slack configuration parameters."""
 
-    CHANNEL_ID = "C03ES6D8X0X"
+    CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID")
     BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 
 

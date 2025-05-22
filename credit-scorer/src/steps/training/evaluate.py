@@ -30,17 +30,15 @@ from sklearn.metrics import (
 )
 from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
-
-# from zenml.integrations.slack.alerters.slack_alerter import (
-#     SlackAlerterParameters,
-#     SlackAlerterPayload,
-# )
+from zenml.integrations.slack.alerters.slack_alerter import (
+    SlackAlerterParameters,
+    SlackAlerterPayload,
+)
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from src.constants import Artifacts as A
-
-# from src.constants.config import SlackConfig as SC
+from src.constants.config import SlackConfig as SC
 from src.utils import (
     analyze_fairness,
     generate_eval_visualization,
@@ -50,7 +48,7 @@ logger = get_logger(__name__)
 
 
 @step(
-    # settings={"alerter": {"slack_channel_id": SC.CHANNEL_ID}},
+    settings={"alerter": {"slack_channel_id": SC.CHANNEL_ID}},
 )
 def evaluate_model(
     protected_attributes: List[str],
@@ -283,56 +281,56 @@ def evaluate_model(
     )
 
     # ===== 9. Send Slack alert if bias detected =====
-    # if bias_flag:
-    #     alerter = Client().active_stack.alerter
-    #     if alerter:
-    #         message = (
-    #             f"🚨 *BIAS DETECTED* in model evaluation for run {run_id}"
-    #         )
+    if bias_flag:
+        alerter = Client().active_stack.alerter
+        if alerter:
+            message = (
+                f"🚨 *BIAS DETECTED* in model evaluation for run {run_id}"
+            )
 
-    #         # Create detailed blocks for bias alert
-    #         bias_blocks = [
-    #             {
-    #                 "type": "section",
-    #                 "text": {
-    #                     "type": "mrkdwn",
-    #                     "text": "🚨 *BIAS DETECTED* in model evaluation",
-    #                 },
-    #             },
-    #             {"type": "divider"},
-    #             {
-    #                 "type": "section",
-    #                 "fields": [
-    #                     {"type": "mrkdwn", "text": f"*Run ID:* {run_id}"},
-    #                     {
-    #                         "type": "mrkdwn",
-    #                         "text": f"*Protected Attributes:* {', '.join(protected_attributes)}",
-    #                     },
-    #                     {"type": "mrkdwn", "text": f"*Model:* {A.MODEL}"},
-    #                     {
-    #                         "type": "mrkdwn",
-    #                         "text": f"*Accuracy:* {performance_metrics['accuracy']:.3f}",
-    #                     },
-    #                 ],
-    #             },
-    #             {
-    #                 "type": "section",
-    #                 "text": {
-    #                     "type": "mrkdwn",
-    #                     "text": "*Fairness Issues:*\n"
-    #                     + "\n".join(
-    #                         [
-    #                             f"• {attr}: {data.get('selection_rate_disparity', 'N/A'):.3f} disparity"
-    #                             for attr, data in fairness_metrics.items()
-    #                         ]
-    #                     ),
-    #                 },
-    #             },
-    #         ]
+            # Create detailed blocks for bias alert
+            bias_blocks = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "🚨 *BIAS DETECTED* in model evaluation",
+                    },
+                },
+                {"type": "divider"},
+                {
+                    "type": "section",
+                    "fields": [
+                        {"type": "mrkdwn", "text": f"*Run ID:* {run_id}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Protected Attributes:* {', '.join(protected_attributes)}",
+                        },
+                        {"type": "mrkdwn", "text": f"*Model:* {A.MODEL}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Accuracy:* {performance_metrics['accuracy']:.3f}",
+                        },
+                    ],
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*Fairness Issues:*\n"
+                        + "\n".join(
+                            [
+                                f"• {attr}: {data.get('selection_rate_disparity', 'N/A'):.3f} disparity"
+                                for attr, data in fairness_metrics.items()
+                            ]
+                        ),
+                    },
+                },
+            ]
 
-    #         params = SlackAlerterParameters(blocks=bias_blocks)
-    #         alerter.post(message=message, params=params)
-    #         logger.info("Bias alert sent to Slack")
+            params = SlackAlerterParameters(blocks=bias_blocks)
+            alerter.post(message=message, params=params)
+            logger.info("Bias alert sent to Slack")
 
     eval_results = {
         "metrics": performance_metrics,

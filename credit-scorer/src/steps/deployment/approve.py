@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+import hashlib
 import time
 from datetime import datetime
 from typing import Annotated, Any, Dict, Tuple
@@ -70,6 +71,7 @@ def approve_deployment(
 
     accuracy = metrics.get("accuracy", 0)
     f1_score = metrics.get("f1_score", 0)
+    auc_roc = metrics.get("auc_roc", 0)
     risk_score = risk_scores.get("overall", 1)
     max_disparity = (
         max(
@@ -81,6 +83,9 @@ def approve_deployment(
         if fairness_metrics
         else 0
     )
+
+    # Generate model checksum for identification
+    model_id = run_id[:8]  # Use first 8 chars of run ID as model ID
 
     # Approval criteria checks
     perf_ok = accuracy >= approval_thresholds.get("accuracy", 0.7)
@@ -102,7 +107,7 @@ def approve_deployment(
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "🤖 Model Deployment Approval",
+                "text": "💶 CreditScorer Model Approval",
                 "emoji": True,
             },
         },
@@ -112,9 +117,9 @@ def approve_deployment(
             "type": "section",
             "fields": [
                 {"type": "mrkdwn", "text": f"*Pipeline:* {pipeline_name}"},
-                {"type": "mrkdwn", "text": f"*Step:* {step_name}"},
+                {"type": "mrkdwn", "text": f"*Model ID:* {model_id}"},
                 {"type": "mrkdwn", "text": f"*Stack:* {stack_name}"},
-                {"type": "mrkdwn", "text": f"*Run ID:* {run_id[:8]}..."},
+                {"type": "mrkdwn", "text": f"*Run ID:* {run_id[:12]}..."},
             ],
         },
         {"type": "divider"},
@@ -123,19 +128,32 @@ def approve_deployment(
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Performance:* {'✅' if perf_ok else '❌'}  Acc={accuracy:.3f}",
+                    "text": f"{'✅' if perf_ok else '❌'} *Accuracy=* {accuracy:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Fairness:* {'✅' if fairness_ok else '❌'}  Bias={'No' if fairness_ok else f'{max_disparity:.3f}'}",
+                    "text": f"{'✅' if risk_ok else '❌'} *Risk Score=* {risk_score:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Risk:* {'✅' if risk_ok else '❌'}  Score={risk_score:.3f}",
+                    "text": f"{'✅' if fairness_ok else '❌'} *F1=* {f1_score:.3f}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*F1:* {f1_score:.3f}  *Attributes:* {len(fairness_metrics)}",
+                    "text": f"*AUC=* {auc_roc:.3f}",
+                },
+            ],
+        },
+        {
+            "type": "section",
+            "fields": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Bias Check:* {'✅ No bias detected' if fairness_ok else f'❌ Max disparity: {max_disparity:.3f}'}",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Protected Attributes:* {len(fairness_metrics)} checked",
                 },
             ],
         },
@@ -165,6 +183,7 @@ def approve_deployment(
     if alerter:
         try:
             alerter.post(message=header_text, params=params)
+            print("✅ Slack notification sent successfully")
         except Exception as e:
             print(f"⚠️  Slack notification failed: {e}")
             print("Continuing without Slack notification...")
@@ -179,8 +198,10 @@ def approve_deployment(
         if alerter:
             try:
                 # Enhanced question with pipeline context
-                question = f":question: Override deployment for pipeline '{pipeline_name}'? Reply with 'yes' or 'no'"
+                question = f"Should CreditScorer deploy model {model_id} from pipeline '{pipeline_name}'? Reply with 'yes' or 'no'"
+                print("📱 Asking approval question in Slack...")
                 response = alerter.ask(question)
+                print(f"📱 Received Slack response: {response}")
 
                 # Handle various response formats
                 if isinstance(response, str):
@@ -192,17 +213,29 @@ def approve_deployment(
                 approved = override
                 approver = "human_via_slack"
                 rationale = (
-                    f"Human override via Slack for pipeline '{pipeline_name}'"
+                    f"Human override via Slack for model {model_id}"
                     if override
-                    else f"Rejected via Slack for pipeline '{pipeline_name}'"
+                    else f"Rejected via Slack for model {model_id}"
                 )
+                print(
+                    f"📱 Slack approval result: {'APPROVED' if override else 'REJECTED'}"
+                )
+
             except Exception as e:
-                print(f"⚠️  Slack interaction failed: {e}")
+                print(f"❌ Slack interaction failed: {e}")
+                if "not_in_channel" in str(e):
+                    print(
+                        "💡 Fix: Add your bot to the Slack channel using: /invite @your-bot-name"
+                    )
+                elif "not_allowed_token_type" in str(e):
+                    print(
+                        "💡 Fix: Use a Bot User OAuth Token (starts with xoxb-)"
+                    )
                 print("❌ Cannot get human approval - deployment blocked")
                 approved, approver, rationale = (
                     False,
                     "system",
-                    "Slack integration failed - no human oversight possible",
+                    f"Slack integration failed: {str(e)}",
                 )
         else:
             approved, approver, rationale = (
@@ -210,6 +243,65 @@ def approve_deployment(
                 "system",
                 "No alerter configured - blocked",
             )
+
+    # Send confirmation message if approved
+    if approved and alerter:
+        try:
+            confirmation_blocks = [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "💶 CreditScorer Deployment Confirmed",
+                        "emoji": True,
+                    },
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"✅ *Model {model_id} has been approved for deployment*",
+                    },
+                },
+                {"type": "divider"},
+                {
+                    "type": "section",
+                    "fields": [
+                        {"type": "mrkdwn", "text": f"*Model ID:* {model_id}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Pipeline:* {pipeline_name}",
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Approved by:* {approver}",
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Accuracy:* {accuracy:.3f}",
+                        },
+                    ],
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"🚀 *Deployment will proceed automatically*\n_Model checksum: {run_id}_",
+                    },
+                },
+            ]
+
+            confirmation_params = SlackAlerterParameters(
+                blocks=confirmation_blocks
+            )
+            alerter.post(
+                "✅ CreditScorer model approved for deployment",
+                params=confirmation_params,
+            )
+            print("📱 Deployment confirmation sent to Slack")
+
+        except Exception as e:
+            print(f"⚠️  Could not send confirmation message: {e}")
 
     if not approved:
         raise RuntimeError(f"🚫 Deployment rejected: {rationale}")
@@ -222,6 +314,7 @@ def approve_deployment(
         "approved": approved,
         "approver": approver,
         "rationale": rationale,
+        "model_id": model_id,
         "decision_mode": "automated" if all_ok else "slack_approval",
         "criteria_met": all_ok,
         "failed_criteria": [
@@ -237,7 +330,7 @@ def approve_deployment(
         "key_metrics": {
             "accuracy": accuracy,
             "f1_score": f1_score,
-            "auc_roc": metrics.get("auc_roc"),
+            "auc_roc": auc_roc,
             "normalized_cost": metrics.get("normalized_cost"),
             "risk_score": risk_score,
         },
@@ -254,6 +347,6 @@ def approve_deployment(
     }
 
     print(f"✅ APPROVED by {approver}: {rationale}")
-    print(f"📋 Pipeline Context: {pipeline_name} -> {step_name}")
+    print(f"📋 Model {model_id} from pipeline: {pipeline_name}")
 
     return approved, approval_record
