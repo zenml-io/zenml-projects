@@ -628,10 +628,7 @@ def generate_model_card(
             "precision": metrics.get("precision", 0.0),
             "recall": metrics.get("recall", 0.0),
             "f1_score": metrics.get("f1_score", 0.0),
-            "optimal_threshold": metrics.get(
-                "optimal_threshold",
-                metrics.get("optimal_f1_threshold", 0.5),
-            ),
+            "optimal_threshold": metrics.get("optimal_threshold", 0.0),
         }
 
     # Process fairness metrics - summarize instead of showing all groups
@@ -906,12 +903,7 @@ def _extract_performance_metrics(
         "average_precision": metrics.get("average_precision", 0.0),
         "balanced_accuracy": metrics.get("balanced_accuracy", 0.0),
         # Optimal threshold metrics
-        "optimal_threshold": metrics.get(
-            "optimal_threshold", metrics.get("optimal_cost_threshold", 0.5)
-        ),
-        "optimal_precision": metrics.get("optimal_precision", 0.0),
-        "optimal_recall": metrics.get("optimal_recall", 0.0),
-        "optimal_f1": metrics.get("optimal_f1", 0.0),
+        "optimal_threshold": metrics.get("optimal_threshold", 0.0),
         # Business impact
         "normalized_cost": metrics.get("normalized_cost", 0.0),
         # Confusion matrix (for transparency)

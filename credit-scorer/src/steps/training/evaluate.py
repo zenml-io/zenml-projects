@@ -30,20 +30,28 @@ from sklearn.metrics import (
 )
 from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
+
+# from zenml.integrations.slack.alerters.slack_alerter import (
+#     SlackAlerterParameters,
+#     SlackAlerterPayload,
+# )
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from src.constants import Artifacts as A
+
+# from src.constants.config import SlackConfig as SC
 from src.utils import (
     analyze_fairness,
     generate_eval_visualization,
-    report_bias_incident,
 )
 
 logger = get_logger(__name__)
 
 
-@step()
+@step(
+    # settings={"alerter": {"slack_channel_id": SC.CHANNEL_ID}},
+)
 def evaluate_model(
     protected_attributes: List[str],
     test_df: Annotated[pd.DataFrame, A.TEST_DATASET],
@@ -128,7 +136,6 @@ def evaluate_model(
         "true_positives": int(tp),
     }
 
-    # ===== 2. Add metrics suited for imbalanced data =====
     # Average precision summarizes precision-recall curve
     performance_metrics["average_precision"] = average_precision_score(
         y_test, y_prob
@@ -139,18 +146,13 @@ def evaluate_model(
         y_test, y_pred
     )
 
-    # ===== 3. Financial impact metric =====
     # Calculate expected cost using the cost matrix
     total_cost = (fp * cost_matrix["fp_cost"]) + (fn * cost_matrix["fn_cost"])
     # Normalize by dataset size for comparison across datasets
     performance_metrics["normalized_cost"] = total_cost / len(y_test)
 
-    # ===== 4. Use the training-optimized threshold =====
-    # Since we already have the optimal threshold from training, use it directly
+    # Use the training-optimized threshold
     performance_metrics["optimal_threshold"] = optimal_threshold
-    performance_metrics["optimal_f1_threshold"] = optimal_threshold
-    performance_metrics["optimal_f1_score"] = performance_metrics["f1_score"]
-    performance_metrics["optimal_cost_threshold"] = optimal_threshold
     performance_metrics["optimal_cost"] = performance_metrics[
         "normalized_cost"
     ]
@@ -163,7 +165,6 @@ def evaluate_model(
 
     # ===== 5. Optional: Test a few comparison thresholds for context =====
     # Generate some comparison metrics at different thresholds for visualization
-    # Include the optimal threshold so it appears in the visualization
     comparison_thresholds = [
         0.05,
         0.1,
@@ -281,9 +282,57 @@ def evaluate_model(
         }
     )
 
-    # Create incident report if bias detected
-    if bias_flag:
-        report_bias_incident(fairness_report, run_id)
+    # ===== 9. Send Slack alert if bias detected =====
+    # if bias_flag:
+    #     alerter = Client().active_stack.alerter
+    #     if alerter:
+    #         message = (
+    #             f"🚨 *BIAS DETECTED* in model evaluation for run {run_id}"
+    #         )
+
+    #         # Create detailed blocks for bias alert
+    #         bias_blocks = [
+    #             {
+    #                 "type": "section",
+    #                 "text": {
+    #                     "type": "mrkdwn",
+    #                     "text": "🚨 *BIAS DETECTED* in model evaluation",
+    #                 },
+    #             },
+    #             {"type": "divider"},
+    #             {
+    #                 "type": "section",
+    #                 "fields": [
+    #                     {"type": "mrkdwn", "text": f"*Run ID:* {run_id}"},
+    #                     {
+    #                         "type": "mrkdwn",
+    #                         "text": f"*Protected Attributes:* {', '.join(protected_attributes)}",
+    #                     },
+    #                     {"type": "mrkdwn", "text": f"*Model:* {A.MODEL}"},
+    #                     {
+    #                         "type": "mrkdwn",
+    #                         "text": f"*Accuracy:* {performance_metrics['accuracy']:.3f}",
+    #                     },
+    #                 ],
+    #             },
+    #             {
+    #                 "type": "section",
+    #                 "text": {
+    #                     "type": "mrkdwn",
+    #                     "text": "*Fairness Issues:*\n"
+    #                     + "\n".join(
+    #                         [
+    #                             f"• {attr}: {data.get('selection_rate_disparity', 'N/A'):.3f} disparity"
+    #                             for attr, data in fairness_metrics.items()
+    #                         ]
+    #                     ),
+    #                 },
+    #             },
+    #         ]
+
+    #         params = SlackAlerterParameters(blocks=bias_blocks)
+    #         alerter.post(message=message, params=params)
+    #         logger.info("Bias alert sent to Slack")
 
     eval_results = {
         "metrics": performance_metrics,

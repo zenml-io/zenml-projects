@@ -95,12 +95,24 @@ pip install -r requirements.txt
 zenml init
 ```
 
-3. Install [WhyLogs integration](https://docs.zenml.io/stacks/stack-components/data-validators/whylogs):
+3. Install [WhyLogs integration](https://docs.zenml.io/stacks/stack-components/data-validators/whylogs) for data profiling:
 
 ```bash
-zenml integration install whylogs -y
+zenml integration install whylogs
 zenml data-validator register whylogs_data_validator --flavor=whylogs
 zenml stack update <STACK_NAME> -dv whylogs_data_validator
+```
+
+4. Install [Slack integration](https://docs.zenml.io/stacks/stack-components/alerters/slack) for deployment approval gate and incident reporting:
+
+```bash
+zenml integration install slack
+zenml secret create slack_token --oauth_token=<SLACK_TOKEN>
+zenml alerter register slack_alerter \
+    --flavor=slack \
+    --slack_token={{slack_token.oauth_token}} \
+    --slack_channel_id=<SLACK_CHANNEL_ID>
+zenml stack update <STACK_NAME> -al slack_alerter
 ```
 
 ## 📊 Running Pipelines

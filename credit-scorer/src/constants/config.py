@@ -66,11 +66,11 @@ class ModalConfig:
         }
 
 
-class Incident:
-    """Incident reporting configuration."""
+class SlackConfig:
+    """Slack configuration parameters."""
 
-    SLACK_CHANNEL = "#credit-scoring-alerts"
-    SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+    CHANNEL_ID = "C03ES6D8X0X"
+    BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 
 
 # Initialize required directories at module import

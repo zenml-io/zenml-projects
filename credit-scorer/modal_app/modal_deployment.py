@@ -69,10 +69,6 @@ def create_modal_app(python_version: str = "3.12.9"):
             remote_path="/root/src/constants/annotations.py",
         )
         .add_local_file(
-            "src/utils/incidents.py",
-            remote_path="/root/src/utils/incidents.py",
-        )
-        .add_local_file(
             "src/utils/storage.py",
             remote_path="/root/src/utils/storage.py",
         )
@@ -133,13 +129,98 @@ def _load_pipeline() -> Any:
 
 def _report_incident(incident_data: dict, model_checksum: str) -> dict:
     """Report incidents to compliance team and log them (Article 18)."""
-    from src.utils.incidents import create_incident_report
+    import json
+    from datetime import datetime
+    from pathlib import Path
 
-    # Add deployment context
-    incident_data["source"] = "modal_api"
+    import requests
+    from src.constants.config import SlackConfig as SC
 
-    # Create the incident report
-    return create_incident_report(incident_data, model_checksum[:8])
+    # Format incident report
+    incident = {
+        "incident_id": f"incident_{datetime.now().isoformat().replace(':', '-')}",
+        "timestamp": datetime.now().isoformat(),
+        "model_name": "credit_scoring_model",
+        "model_version": model_checksum,
+        "severity": incident_data.get("severity", "medium"),
+        "description": incident_data.get(
+            "description", "Unspecified incident"
+        ),
+        "source": "modal_api",
+        "data": incident_data,
+    }
+
+    try:
+        # 1. Append to local log (if accessible)
+        incident_log_path = "docs/risk/incident_log.json"
+        try:
+            existing = []
+            if Path(incident_log_path).exists():
+                try:
+                    with open(incident_log_path, "r") as f:
+                        existing = json.load(f)
+                except json.JSONDecodeError:
+                    existing = []
+
+            existing.append(incident)
+            with open(incident_log_path, "w") as f:
+                json.dump(existing, f, indent=2)
+        except Exception as e:
+            logger.warning(f"Could not write to local incident log: {e}")
+
+        # 2. Direct Slack notification for high/critical severity (not using ZenML)
+        if incident["severity"] in ("high", "critical"):
+            try:
+                slack_token = os.getenv("SLACK_BOT_TOKEN")
+                slack_channel = os.getenv("SLACK_CHANNEL_ID", SC.CHANNEL_ID)
+
+                if slack_token and slack_channel:
+                    emoji = {"high": "🔴", "critical": "🚨"}[
+                        incident["severity"]
+                    ]
+                    message = (
+                        f"{emoji} *Incident from Modal API:* {incident['description']}\n"
+                        f">*Severity:* {incident['severity']}\n"
+                        f">*Source:* {incident['source']}\n"
+                        f">*Model Version:* {incident['model_version']}\n"
+                        f">*Time:* {incident['timestamp']}\n"
+                        f">*ID:* {incident['incident_id']}"
+                    )
+
+                    # Direct Slack API call
+                    response = requests.post(
+                        "https://slack.com/api/chat.postMessage",
+                        headers={"Authorization": f"Bearer {slack_token}"},
+                        json={
+                            "channel": slack_channel,
+                            "text": message,
+                            "username": "Modal Incident Bot",
+                        },
+                    )
+
+                    if response.status_code == 200:
+                        incident["slack_notified"] = True
+                        logger.info("Slack notification sent successfully")
+                    else:
+                        logger.warning(
+                            f"Slack notification failed: {response.text}"
+                        )
+                else:
+                    logger.info(
+                        "Slack credentials not available, skipping notification"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to send Slack notification: {e}")
+
+        return {
+            "status": "reported",
+            "incident_id": incident["incident_id"],
+            "slack_notified": incident.get("slack_notified", False),
+        }
+
+    except Exception as e:
+        logger.error(f"Error reporting incident: {e}")
+        return {"status": "error", "message": str(e)}
 
 
 def _monitor_data_drift() -> dict:

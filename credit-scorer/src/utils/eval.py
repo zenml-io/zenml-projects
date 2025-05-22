@@ -23,7 +23,6 @@ from sklearn.metrics import accuracy_score
 from zenml.logger import get_logger
 
 from src.constants import Artifacts as A
-from src.utils.incidents import create_incident_report
 
 logger = get_logger(__name__)
 
@@ -159,63 +158,3 @@ def analyze_fairness(
             bias_flag = True
 
     return fairness_report, bias_flag
-
-
-def report_bias_incident(fairness_report: Dict[str, Any], run_id: str) -> None:
-    """Create an incident report for detected bias.
-
-    Args:
-        fairness_report: Fairness analysis results
-        run_id: Pipeline run ID
-    """
-    try:
-        # Extract bias details
-        bias_details = []
-        fairness_metrics = fairness_report.get("fairness_metrics", {})
-
-        for attr, attr_metrics in fairness_metrics.items():
-            if isinstance(attr_metrics, dict):
-                disparity = attr_metrics.get("selection_rate_disparity")
-                if disparity and abs(disparity) > 0.2:
-                    group_rates = attr_metrics.get(
-                        "selection_rate_by_group", {}
-                    )
-                    if group_rates:
-                        max_group = max(
-                            group_rates.items(), key=lambda x: x[1]
-                        )
-                        min_group = min(
-                            group_rates.items(), key=lambda x: x[1]
-                        )
-                        bias_details.append(
-                            f"{attr}: {abs(disparity):.3f} disparity ({min_group[0]}: {min_group[1]:.2f} vs {max_group[0]}: {max_group[1]:.2f})"
-                        )
-                    else:
-                        bias_details.append(
-                            f"{attr}: {abs(disparity):.3f} disparity"
-                        )
-
-        # Create the incident report
-        details_text = (
-            "Selection rate disparities detected:\n" + "\n".join(bias_details)
-            if bias_details
-            else "Bias detected but details unavailable"
-        )
-
-        from zenml.client import Client
-
-        model = Client().get_model_version(model_name_or_id=A.MODEL).model
-        model_version = model.latest_version_name
-
-        create_incident_report(
-            model_version=model_version,
-            incident_data={
-                "severity": "high",
-                "description": "Bias detected in model evaluation",
-                "details": details_text,
-                "source": "evaluate_model",
-                "run_id": run_id,
-            },
-        )
-    except Exception as e:
-        logger.warning(f"Failed to report bias incident: {e}")

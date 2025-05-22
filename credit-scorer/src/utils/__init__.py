@@ -24,11 +24,7 @@ from .compliance.annex_iv import (
     record_log_locations,
     write_git_information,
 )
-from .eval import (
-    analyze_fairness,
-    report_bias_incident,
-)
-from .incidents import create_incident_report
+from .eval import analyze_fairness
 from .preprocess import (
     DeriveAgeFeatures,
     DropIDColumn,
