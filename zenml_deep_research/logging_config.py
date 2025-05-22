@@ -35,3 +35,8 @@ def configure_logging(
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
+    
+    # Reduce verbosity for noisy third-party libraries
+    logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
