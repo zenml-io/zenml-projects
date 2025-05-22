@@ -316,7 +316,7 @@ class ResearchStateMaterializer(PydanticMaterializer):
                 html += f"""
                     <h3>{question} <span class="confidence {info.confidence_level}">{info.confidence_level}</span></h3>
                     <div class="synthesized">
-                        <p>{info.synthesized_answer[:300]}{"..." if len(info.synthesized_answer) > 300 else ""}</p>
+                        <p>{info.synthesized_answer}</p>
                 """
 
                 if info.key_sources:
