@@ -51,7 +51,8 @@ def get_modal_app_url() -> Optional[str]:
     try:
         releases_dir = "docs/releases"
         release_folders = [
-            f for f in os.listdir(releases_dir)
+            f
+            for f in os.listdir(releases_dir)
             if os.path.isdir(os.path.join(releases_dir, f))
         ]
 
@@ -62,19 +63,26 @@ def get_modal_app_url() -> Optional[str]:
         latest_timestamp = None
 
         for folder in release_folders:
-            approval_path = os.path.join(releases_dir, folder, "approval_record.json")
+            approval_path = os.path.join(
+                releases_dir, folder, "approval_record.json"
+            )
             if os.path.exists(approval_path):
                 with open(approval_path, "r") as f:
                     try:
                         record = json.load(f)
                         timestamp = record.get("timestamp")
-                        if timestamp and (latest_timestamp is None or timestamp > latest_timestamp):
+                        if timestamp and (
+                            latest_timestamp is None
+                            or timestamp > latest_timestamp
+                        ):
                             latest_timestamp = timestamp
                             latest_approval = record
                     except json.JSONDecodeError:
                         continue
 
-        return latest_approval.get("deployment_url") if latest_approval else None
+        return (
+            latest_approval.get("deployment_url") if latest_approval else None
+        )
     except Exception as e:
         logger.error(f"Error getting Modal app URL: {e}")
         return None
@@ -92,12 +100,12 @@ def display_api_dashboard():
 
     # Get and display API URL
     modal_url = get_modal_app_url()
-    
+
     if not modal_url:
         modal_url = st.text_input(
             "API Base URL",
             value="https://marwan-ext-main--credit-scoring-app.modal.run",
-            help="Enter your deployed Modal API URL"
+            help="Enter your deployed Modal API URL",
         )
 
     if modal_url:
@@ -106,19 +114,19 @@ def display_api_dashboard():
 
     # Quick reference
     st.markdown("### 📋 Available Endpoints")
-    
+
     endpoints_data = {
         "Endpoint": ["/", "/health", "/predict", "/monitor", "/incident"],
         "Method": ["GET", "GET", "POST", "GET", "POST"],
         "Purpose": [
             "API Information",
-            "Health Check", 
+            "Health Check",
             "Make Predictions",
             "Check Data Drift",
-            "Report Issues"
-        ]
+            "Report Issues",
+        ],
     }
-    
+
     df = pd.DataFrame(endpoints_data)
     st.dataframe(df, use_container_width=True, hide_index=True)
 
@@ -131,13 +139,16 @@ def display_api_dashboard():
     with tabs[0]:
         st.markdown("## Prediction Endpoint")
         st.markdown(f"**URL:** `POST {modal_url}/predict`")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### Request Body")
-            st.code(json.dumps(SAMPLE_PREDICTION_REQUEST, indent=2), language="json")
-            
+            st.code(
+                json.dumps(SAMPLE_PREDICTION_REQUEST, indent=2),
+                language="json",
+            )
+
         with col2:
             st.markdown("#### Response")
             example_response = {
@@ -173,40 +184,37 @@ print(f"Risk Score: {{result['risk_assessment']['risk_score']}}")"""
     # Monitoring Tab
     with tabs[1]:
         st.markdown("## Monitoring Endpoints")
-        
+
         # Health Check
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### Health Check")
             st.markdown(f"**URL:** `GET {modal_url}/health`")
-            
+
             health_response = {
                 "status": "healthy",
-                "timestamp": "2024-03-20T10:00:00Z"
+                "timestamp": "2024-03-20T10:00:00Z",
             }
             st.code(json.dumps(health_response, indent=2), language="json")
-            
+
         with col2:
             st.markdown("#### Data Drift Monitoring")
             st.markdown(f"**URL:** `GET {modal_url}/monitor`")
-            
+
             monitor_response = {
                 "drift_detected": False,
                 "drift_score": 0.05,
-                "model_performance": {
-                    "accuracy": 0.92,
-                    "auc": 0.95
-                },
-                "last_check": "2024-03-20T10:00:00Z"
+                "model_performance": {"accuracy": 0.92, "auc": 0.95},
+                "last_check": "2024-03-20T10:00:00Z",
             }
             st.code(json.dumps(monitor_response, indent=2), language="json")
 
         # Sample monitoring charts
         st.markdown("#### Sample Monitoring Data")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("**Drift Scores by Feature**")
             drift_data = {
@@ -216,32 +224,47 @@ print(f"Risk Score: {{result['risk_assessment']['risk_score']}}")"""
                 "credit_history": 0.03,
             }
             st.bar_chart(drift_data)
-            
+
         with col2:
             st.markdown("**Model Performance Over Time**")
-            performance_data = pd.DataFrame({
-                "Week": range(1, 11),
-                "Accuracy": [0.92, 0.91, 0.915, 0.905, 0.91, 0.90, 0.895, 0.89, 0.885, 0.88],
-            })
+            performance_data = pd.DataFrame(
+                {
+                    "Week": range(1, 11),
+                    "Accuracy": [
+                        0.92,
+                        0.91,
+                        0.915,
+                        0.905,
+                        0.91,
+                        0.90,
+                        0.895,
+                        0.89,
+                        0.885,
+                        0.88,
+                    ],
+                }
+            )
             st.line_chart(performance_data.set_index("Week"))
 
     # Incidents Tab
     with tabs[2]:
         st.markdown("## Incident Reporting")
         st.markdown(f"**URL:** `POST {modal_url}/incident`")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### Request Body")
-            st.code(json.dumps(SAMPLE_INCIDENT_REQUEST, indent=2), language="json")
-            
+            st.code(
+                json.dumps(SAMPLE_INCIDENT_REQUEST, indent=2), language="json"
+            )
+
             st.markdown("**Severity Levels:**")
             st.markdown("- `low` - Minor issues")
-            st.markdown("- `medium` - Moderate problems") 
+            st.markdown("- `medium` - Moderate problems")
             st.markdown("- `high` - Serious issues")
             st.markdown("- `critical` - System failures")
-            
+
         with col2:
             st.markdown("#### Response")
             incident_response = {
@@ -269,21 +292,28 @@ print(f"Incident ID: {{result['incident_id']}}")"""
     # Simple error reference
     st.markdown("---")
     st.markdown("### ❌ Common HTTP Response Codes")
-    
+
     error_data = {
         "Code": ["200", "400", "422", "500"],
-        "Status": ["Success", "Bad Request", "Validation Error", "Server Error"],
+        "Status": [
+            "Success",
+            "Bad Request",
+            "Validation Error",
+            "Server Error",
+        ],
         "Description": [
             "Request completed successfully",
-            "Invalid request format", 
+            "Invalid request format",
             "Data validation failed",
-            "Internal server error"
-        ]
+            "Internal server error",
+        ],
     }
-    
+
     error_df = pd.DataFrame(error_data)
     st.dataframe(error_df, use_container_width=True, hide_index=True)
 
     # Footer
     st.markdown("---")
-    st.info("💡 **Need help?** Check the endpoint responses for detailed error messages.")
+    st.info(
+        "💡 **Need help?** Check the endpoint responses for detailed error messages."
+    )

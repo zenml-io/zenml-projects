@@ -92,9 +92,9 @@ def deployment(
     )
 
     # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
-    sbom_artifact = generate_sbom(
+    generate_sbom(
         deployment_info=deployment_info,
-    )  # noqa: F841
+    )
 
     # Post-market monitoring plan (Article 17)
     monitoring_plan = post_market_monitoring(

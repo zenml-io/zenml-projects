@@ -20,7 +20,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from src.constants import Artifacts as A, Incident
+from src.constants import Artifacts as A
+from src.constants import Incident
 from src.utils.storage import save_artifact_to_modal
 
 

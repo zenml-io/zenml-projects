@@ -61,10 +61,12 @@ def create_modal_app(python_version: str = "3.12.9"):
         )
         .add_local_python_source("modal_app")
         .add_local_file(
-            "src/constants/config.py", remote_path="/root/src/constants/config.py"
+            "src/constants/config.py",
+            remote_path="/root/src/constants/config.py",
         )
         .add_local_file(
-            "src/constants/annotations.py", remote_path="/root/src/constants/annotations.py"
+            "src/constants/annotations.py",
+            remote_path="/root/src/constants/annotations.py",
         )
         .add_local_file(
             "src/utils/incidents.py",

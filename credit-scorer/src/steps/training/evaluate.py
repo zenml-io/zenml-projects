@@ -17,7 +17,6 @@
 
 from typing import Annotated, Any, Dict, List, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,

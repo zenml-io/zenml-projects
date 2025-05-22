@@ -59,7 +59,7 @@ def display_annex_iv_documentation():
     # Export options
     st.markdown("---")
     st.subheader("Export Options")
-    
+
     col1, col2 = st.columns(2)
 
     with col1:

@@ -23,7 +23,8 @@ from typing import Annotated, Any, Dict
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 
-from src.constants import Artifacts as A, Directories
+from src.constants import Artifacts as A
+from src.constants import Directories
 
 logger = get_logger(__name__)
 

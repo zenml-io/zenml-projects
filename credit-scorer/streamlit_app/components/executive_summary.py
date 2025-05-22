@@ -19,20 +19,18 @@
 
 from datetime import datetime
 
-import plotly.graph_objects as go
 import streamlit as st
 from src.utils.visualizations.dashboard import (
     format_activities,
 )
 from streamlit.components.v1 import html
 
-from streamlit_app.config import PRIMARY_COLOR, RISK_COLORS
+from streamlit_app.config import RISK_COLORS
 from streamlit_app.data.compliance_utils import (
     format_compliance_findings,
     get_compliance_data_sources,
     get_compliance_results,
     get_compliance_summary,
-    get_last_update_timestamps,
 )
 from streamlit_app.data.processor import compute_article_compliance
 
