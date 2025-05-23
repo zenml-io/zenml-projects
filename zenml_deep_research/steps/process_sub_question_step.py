@@ -5,7 +5,9 @@ from typing import Annotated
 
 # Suppress Pydantic serialization warnings from ZenML artifact metadata
 # These occur when ZenML stores timestamp metadata as floats but models expect ints
-warnings.filterwarnings("ignore", message=".*PydanticSerializationUnexpectedValue.*")
+warnings.filterwarnings(
+    "ignore", message=".*PydanticSerializationUnexpectedValue.*"
+)
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import synthesize_information
@@ -67,7 +69,9 @@ def process_sub_question_step(
 
     # Get the target sub-question
     sub_question = state.sub_questions[question_index]
-    logger.info(f"Processing sub-question {question_index}: {sub_question}")
+    logger.info(
+        f"Processing sub-question {question_index + 1}: {sub_question}"
+    )
 
     # Store only this sub-question in the sub-state
     sub_state.sub_questions = [sub_question]

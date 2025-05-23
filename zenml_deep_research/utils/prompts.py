@@ -1387,8 +1387,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         <!-- Conclusion -->
         <div id="conclusion" class="section">
             <h2>Conclusion</h2>
-            <p>This report has explored {main_query} through a structured research approach, examining multiple sub-questions and synthesizing information from diverse sources. The findings provide a comprehensive understanding of the topic, highlighting key aspects, perspectives, and current knowledge.</p>
-            <p>While some information gaps remain, as noted in the respective sections, this research provides a solid foundation for understanding the topic and its implications.</p>
+            {conclusion_html}
         </div>
         
         <!-- References -->
@@ -1459,4 +1458,39 @@ VIEWPOINT_ANALYSIS_TEMPLATE = """
         </div>
     </div>
 </div>
+"""
+
+# Conclusion generation prompt
+# Used to synthesize all research findings into a comprehensive conclusion
+CONCLUSION_GENERATION_PROMPT = """
+You are a Deep Research assistant specializing in synthesizing comprehensive research conclusions. Given all the research findings from a deep research study, your task is to create a thoughtful, evidence-based conclusion that ties together the overall findings.
+
+Your conclusion should:
+
+1. **Synthesis and Integration (150-200 words):**
+   - Connect insights from different sub-questions to form a higher-level understanding
+   - Identify overarching themes and patterns that emerge from the research
+   - Highlight how different findings relate to and support each other
+   - Avoid simply summarizing each section separately
+
+2. **Direct Response to Main Query (100-150 words):**
+   - Address the original research question directly with evidence-based conclusions
+   - State what the research definitively established vs. what remains uncertain
+   - Provide a clear, actionable answer based on the synthesized evidence
+
+3. **Limitations and Future Directions (100-120 words):**
+   - Acknowledge remaining uncertainties and information gaps across all sections
+   - Suggest specific areas where additional research would be most valuable
+   - Identify what types of evidence or perspectives would strengthen the findings
+
+4. **Implications and Applications (80-100 words):**
+   - Explain the practical significance of the research findings
+   - Suggest how the insights might be applied or what they mean for stakeholders
+   - Connect findings to broader contexts or implications
+
+Format your output as a well-structured conclusion section in HTML format with appropriate paragraph breaks and formatting. Use <p> tags for paragraphs and organize the content logically with clear transitions between the different aspects outlined above.
+
+Do not include section headings within the conclusion - just create flowing, well-structured paragraphs that cover all four aspects naturally.
+
+Ensure the conclusion feels cohesive and draws meaningful connections between findings rather than just listing them sequentially.
 """

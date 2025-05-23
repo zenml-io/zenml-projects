@@ -17,6 +17,7 @@ from utils.helper_functions import (
 )
 from utils.llm_utils import run_llm_completion
 from utils.prompts import (
+    CONCLUSION_GENERATION_PROMPT,
     REPORT_GENERATION_PROMPT,
     STATIC_HTML_TEMPLATE,
     SUB_QUESTION_TEMPLATE,
@@ -136,7 +137,100 @@ def format_text_with_code_blocks(text: str) -> str:
     return "".join(parts)
 
 
-def generate_report_from_template(state: ResearchState) -> str:
+def generate_conclusion(
+    state: ResearchState,
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+) -> str:
+    """Generate a comprehensive conclusion using LLM based on all research findings.
+
+    Args:
+        state: The ResearchState containing all research findings
+        llm_model: The model to use for conclusion generation
+
+    Returns:
+        str: HTML-formatted conclusion content
+    """
+    logger.info("Generating comprehensive conclusion using LLM")
+
+    # Prepare input data for conclusion generation
+    conclusion_input = {
+        "main_query": state.main_query,
+        "sub_questions": state.sub_questions,
+        "enhanced_info": {},
+    }
+
+    # Include enhanced information for each sub-question
+    for question in state.sub_questions:
+        if question in state.enhanced_info:
+            info = state.enhanced_info[question]
+            conclusion_input["enhanced_info"][question] = {
+                "synthesized_answer": info.synthesized_answer,
+                "confidence_level": info.confidence_level,
+                "information_gaps": info.information_gaps,
+                "key_sources": info.key_sources,
+                "improvements": getattr(info, "improvements", []),
+            }
+        elif question in state.synthesized_info:
+            # Fallback to synthesized info if enhanced info not available
+            info = state.synthesized_info[question]
+            conclusion_input["enhanced_info"][question] = {
+                "synthesized_answer": info.synthesized_answer,
+                "confidence_level": info.confidence_level,
+                "information_gaps": info.information_gaps,
+                "key_sources": info.key_sources,
+                "improvements": [],
+            }
+
+    # Include viewpoint analysis if available
+    if state.viewpoint_analysis:
+        conclusion_input["viewpoint_analysis"] = {
+            "main_points_of_agreement": state.viewpoint_analysis.main_points_of_agreement,
+            "areas_of_tension": [
+                {"topic": tension.topic, "viewpoints": tension.viewpoints}
+                for tension in state.viewpoint_analysis.areas_of_tension
+            ],
+            "perspective_gaps": state.viewpoint_analysis.perspective_gaps,
+            "integrative_insights": state.viewpoint_analysis.integrative_insights,
+        }
+
+    # Include reflection metadata if available
+    if state.reflection_metadata:
+        conclusion_input["reflection_metadata"] = {
+            "critique_summary": state.reflection_metadata.critique_summary,
+            "additional_questions_identified": state.reflection_metadata.additional_questions_identified,
+            "improvements_made": state.reflection_metadata.improvements_made,
+        }
+
+    try:
+        # Generate conclusion using LLM
+        conclusion_html = run_llm_completion(
+            prompt=json.dumps(conclusion_input, indent=2),
+            system_prompt=CONCLUSION_GENERATION_PROMPT,
+            model=llm_model,
+            clean_output=True,
+            max_tokens=1500,  # Sufficient for comprehensive conclusion
+        )
+
+        # Clean up any formatting issues
+        conclusion_html = conclusion_html.strip()
+        if not conclusion_html.startswith("<p>"):
+            # Wrap in paragraph tags if not already formatted
+            conclusion_html = f"<p>{conclusion_html}</p>"
+
+        logger.info("Successfully generated LLM-based conclusion")
+        return conclusion_html
+
+    except Exception as e:
+        logger.warning(f"Failed to generate LLM conclusion: {e}")
+        # Return a basic fallback conclusion
+        return f"""<p>This report has explored {html.escape(state.main_query)} through a structured research approach, examining {len(state.sub_questions)} focused sub-questions and synthesizing information from diverse sources. The findings provide a comprehensive understanding of the topic, highlighting key aspects, perspectives, and current knowledge.</p>
+        <p>While some information gaps remain, as noted in the respective sections, this research provides a solid foundation for understanding the topic and its implications.</p>"""
+
+
+def generate_report_from_template(
+    state: ResearchState,
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+) -> str:
     """Generate a final HTML report from a static template.
 
     Instead of using an LLM to generate HTML, this function uses predefined HTML
@@ -144,6 +238,7 @@ def generate_report_from_template(state: ResearchState) -> str:
 
     Args:
         state: The current research state
+        llm_model: The model to use for conclusion generation
 
     Returns:
         str: The HTML content of the report
@@ -300,6 +395,9 @@ def generate_report_from_template(state: ResearchState) -> str:
     else:
         executive_summary = f"This report examines {html.escape(state.main_query)} through a structured approach, breaking down the topic into {len(state.sub_questions)} focused sub-questions. The research synthesizes information from multiple sources to provide a comprehensive analysis of the topic."
 
+    # Generate comprehensive conclusion using LLM
+    conclusion_html = generate_conclusion(state, llm_model)
+
     # Generate complete HTML report
     html_content = STATIC_HTML_TEMPLATE.format(
         main_query=html.escape(state.main_query),
@@ -309,6 +407,7 @@ def generate_report_from_template(state: ResearchState) -> str:
         num_sub_questions=len(state.sub_questions),
         sub_questions_html=sub_questions_html,
         viewpoint_analysis_html=viewpoint_analysis_html,
+        conclusion_html=conclusion_html,
         references_html=references_html,
     )
 
@@ -670,7 +769,7 @@ def _generate_fallback_report(state: ResearchState) -> str:
 def pydantic_final_report_step(
     state: ResearchState,
     use_static_template: bool = True,
-    llm_model: str = "gpt-3.5-turbo",
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     system_prompt: str = REPORT_GENERATION_PROMPT,
 ) -> Tuple[
     Annotated[ResearchState, "state"], Annotated[HTMLString, "report_html"]
@@ -695,7 +794,7 @@ def pydantic_final_report_step(
     if use_static_template:
         # Use the static HTML template approach
         logger.info("Using static HTML template for report generation")
-        html_content = generate_report_from_template(state)
+        html_content = generate_report_from_template(state, llm_model)
 
         # Update the state with the final report HTML
         state.set_final_report(html_content)

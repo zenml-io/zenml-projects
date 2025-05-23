@@ -9,7 +9,7 @@ from zenml import pipeline
 from zenml.types import HTMLString
 
 
-@pipeline(name="parallelized_deep_research_pipeline")
+@pipeline(enable_cache=False)
 def parallelized_deep_research_pipeline(
     query: str = "What is ZenML?", max_sub_questions: int = 10
 ) -> HTMLString:
@@ -41,7 +41,7 @@ def parallelized_deep_research_pipeline(
         sub_state = process_sub_question_step(
             state=decomposed_state,
             question_index=i,
-            id=f"process_question_{i}",
+            id=f"process_question_{i + 1}",
         )
         after.append(sub_state)
 
