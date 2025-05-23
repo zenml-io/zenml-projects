@@ -95,6 +95,29 @@ python run.py
 
 The default configuration and research query are defined in `configs/enhanced_research.yaml`.
 
+#### Using Research Mode Presets
+
+The pipeline includes three pre-configured research modes for different use cases:
+
+```bash
+# Rapid mode - Quick overview with minimal depth
+python run.py --mode rapid
+
+# Balanced mode - Standard research depth (default)
+python run.py --mode balanced
+
+# Deep mode - Comprehensive analysis with maximum depth
+python run.py --mode deep
+```
+
+**Mode Comparison:**
+
+| Mode | Sub-Questions | Search Results | Additional Searches | Best For |
+|------|---------------|----------------|-------------------|----------|
+| **Rapid** | 5 | 2 per search | 0 | Quick overviews, time-sensitive research |
+| **Balanced** | 10 | 3 per search | 2 | Most research tasks, good depth/speed ratio |
+| **Deep** | 15 | 5 per search | 4 | Comprehensive analysis, academic research |
+
 #### Using Different Configurations
 
 ```bash
@@ -106,6 +129,9 @@ python run.py --query "My research topic"
 
 # Specify maximum number of sub-questions to process in parallel
 python run.py --max-sub-questions 15
+
+# Combine mode with other options
+python run.py --mode deep --query "Complex topic" --require-approval
 
 # Combine multiple options
 python run.py --config configs/custom_enhanced_config.yaml --query "My research topic" --max-sub-questions 12
@@ -153,6 +179,8 @@ When enabled, the pipeline will:
 5. Continue with approved queries or finalize the report based on your decision
 
 **Note**: You need a ZenML stack with an alerter configured (e.g., Discord or Slack) for approval functionality to work.
+
+**Tip**: When using `--mode deep`, the pipeline will suggest enabling `--require-approval` for better control over the comprehensive research process.
 
 ## 📊 Visualizing Research Process
 
@@ -319,13 +347,24 @@ python run.py --config configs/custom_research.yaml
 
 ### Available Configurations
 
+**Mode-Based Configurations** (automatically selected when using `--mode`):
+
+| Config File | Mode | Description |
+|-------------|------|-------------|
+| `rapid_research.yaml` | `--mode rapid` | Quick overview with minimal depth |
+| `balanced_research.yaml` | `--mode balanced` | Standard research with moderate depth |
+| `deep_research.yaml` | `--mode deep` | Comprehensive analysis with maximum depth |
+
+**Specialized Configurations:**
+
 | Config File | Description | Key Parameters |
 |-------------|-------------|----------------|
-| `enhanced_research.yaml` | Default research configuration | Climate change query, 2 additional searches |
-| `thorough_research.yaml` | In-depth analysis | More comprehensive search, 4 additional searches |
-| `quick_research.yaml` | Faster results | 1 additional search, fewer results per search |
+| `enhanced_research.yaml` | Default research configuration | Standard settings, 2 additional searches |
+| `thorough_research.yaml` | In-depth analysis | 12 sub-questions, 5 results per search |
+| `quick_research.yaml` | Faster results | 5 sub-questions, 2 results per search |
 | `daily_trends.yaml` | Research on recent topics | 24-hour search recency, disable cache |
-| `viewpoint_analysis.yaml` | Focus on comparing perspectives | Extended viewpoint categories, 3 additional searches |
+| `compare_viewpoints.yaml` | Focus on comparing perspectives | Extended viewpoint categories |
+| `parallel_research.yaml` | Optimized for parallel execution | Configured for distributed orchestrators |
 
 You can create additional configuration files by copying and modifying the base configuration files above.
 

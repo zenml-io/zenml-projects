@@ -9,6 +9,29 @@ from utils.helper_functions import check_required_env_vars
 
 logger = logging.getLogger(__name__)
 
+# Research mode presets for easy configuration
+RESEARCH_MODES = {
+    "rapid": {
+        "max_sub_questions": 5,
+        "num_results_per_search": 2,
+        "max_additional_searches": 0,
+        "description": "Quick research with minimal depth - great for getting a fast overview",
+    },
+    "balanced": {
+        "max_sub_questions": 10,
+        "num_results_per_search": 3,
+        "max_additional_searches": 2,
+        "description": "Balanced research with moderate depth - ideal for most use cases",
+    },
+    "deep": {
+        "max_sub_questions": 15,
+        "num_results_per_search": 5,
+        "max_additional_searches": 4,
+        "description": "Comprehensive research with maximum depth - for thorough analysis",
+        "suggest_approval": True,  # Suggest using approval for deep mode
+    },
+}
+
 
 @click.command(
     help="""
@@ -27,6 +50,12 @@ Examples:
   python run.py
 
   \b
+  # Use a research mode preset for easy configuration
+  python run.py --mode rapid    # Quick overview
+  python run.py --mode balanced  # Standard research (default)
+  python run.py --mode deep      # Comprehensive analysis
+
+  \b
   # Run with a custom pipeline configuration file
   python run.py --config configs/custom_pipeline.yaml
   
@@ -35,9 +64,19 @@ Examples:
   python run.py --query "My research topic"
   
   \b
+  # Combine mode with other options
+  python run.py --mode deep --query "Complex topic" --require-approval
+  
+  \b
   # Run with a custom number of sub-questions
   python run.py --max-sub-questions 15
 """
+)
+@click.option(
+    "--mode",
+    type=click.Choice(["rapid", "balanced", "deep"], case_sensitive=False),
+    default=None,
+    help="Research mode preset: rapid (fast overview), balanced (standard), or deep (comprehensive)",
 )
 @click.option(
     "--config",
@@ -88,6 +127,7 @@ Examples:
     help="Timeout in seconds for human approval (default: 3600)",
 )
 def main(
+    mode: str = None,
     config: str = "configs/enhanced_research.yaml",
     no_cache: bool = False,
     log_file: str = None,
@@ -100,6 +140,7 @@ def main(
     """Run the deep research pipeline.
 
     Args:
+        mode: Research mode preset (rapid, balanced, or deep)
         config: Path to the pipeline configuration YAML file
         no_cache: Disable caching for the pipeline run
         log_file: Path to log file
@@ -112,6 +153,53 @@ def main(
     # Configure logging
     log_level = logging.DEBUG if debug else logging.INFO
     configure_logging(level=log_level, log_file=log_file)
+
+    # Apply mode presets if specified
+    if mode:
+        mode_config = RESEARCH_MODES[mode.lower()]
+        logger.info(f"\n{'=' * 80}")
+        logger.info(f"Using research mode: {mode.upper()}")
+        logger.info(f"Description: {mode_config['description']}")
+
+        # Apply mode parameters (can be overridden by explicit arguments)
+        if max_sub_questions == 10:  # Default value - apply mode preset
+            max_sub_questions = mode_config["max_sub_questions"]
+            logger.info(f"  - Max sub-questions: {max_sub_questions}")
+
+        # Store mode config for later use
+        mode_max_additional_searches = mode_config["max_additional_searches"]
+        mode_num_results_per_search = mode_config["num_results_per_search"]
+
+        logger.info(
+            f"  - Max additional searches: {mode_max_additional_searches}"
+        )
+        logger.info(
+            f"  - Results per search: {mode_num_results_per_search} (configure in YAML for step-level control)"
+        )
+
+        # Check if a mode-specific config exists and user didn't override config
+        if config == "configs/enhanced_research.yaml":  # Default config
+            mode_specific_config = f"configs/{mode.lower()}_research.yaml"
+            import os
+
+            if os.path.exists(mode_specific_config):
+                config = mode_specific_config
+                logger.info(f"  - Using mode-specific config: {config}")
+
+        # Suggest approval for deep mode if not already enabled
+        if mode_config.get("suggest_approval") and not require_approval:
+            logger.info(f"\n{'!' * 60}")
+            logger.info(
+                f"! TIP: Consider using --require-approval with {mode} mode"
+            )
+            logger.info(f"! for better control over comprehensive research")
+            logger.info(f"{'!' * 60}")
+
+        logger.info(f"{'=' * 80}\n")
+    else:
+        # Default values if no mode specified
+        mode_max_additional_searches = 2
+        mode_num_results_per_search = 3
 
     # Check that required environment variables are present using the helper function
     required_vars = ["SAMBANOVA_API_KEY", "TAVILY_API_KEY"]
@@ -155,6 +243,7 @@ def main(
             max_sub_questions=max_sub_questions,
             require_approval=require_approval,
             approval_timeout=approval_timeout,
+            max_additional_searches=mode_max_additional_searches,
         )
     else:
         logger.info(
@@ -168,6 +257,7 @@ def main(
             max_sub_questions=max_sub_questions,
             require_approval=require_approval,
             approval_timeout=approval_timeout,
+            max_additional_searches=mode_max_additional_searches,
         )
 
     logger.info("=" * 80 + "\n")
