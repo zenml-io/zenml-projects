@@ -29,14 +29,22 @@ steps:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       viewpoint_categories: ["scientific", "political", "economic", "social", "ethical", "historical"]
   
-  iterative_reflection_step:
+  generate_reflection_step:
     parameters:
-      max_additional_searches: 2
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+
+  get_research_approval_step:
+    parameters:
+      timeout: 3600
+      max_queries: 2
+
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       num_results_per_search: 3
       cap_search_length: 20000
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
   
-  final_report_generation_step:
+  pydantic_final_report_step:
     parameters:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
 

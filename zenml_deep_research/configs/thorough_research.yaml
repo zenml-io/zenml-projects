@@ -17,11 +17,20 @@ steps:
       llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       num_results_per_search: 5  # More search results for deep research
   
-  iterative_reflection_step:
+  generate_reflection_step:
     parameters:
-      max_additional_searches: 3  # More reflection cycles
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  get_research_approval_step:
+    parameters:
+      auto_approve: false
+  
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      num_results_per_search: 5
       
-  final_report_generation_step:
+  pydantic_final_report_step:
     parameters:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       

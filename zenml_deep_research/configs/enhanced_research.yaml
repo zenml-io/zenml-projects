@@ -23,10 +23,18 @@ steps:
           "historical",
         ]
 
-  iterative_reflection_step:
+  generate_reflection_step:
     parameters:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
-      max_additional_searches: 2
+
+  get_research_approval_step:
+    parameters:
+      timeout: 3600
+      max_queries: 2
+
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       num_results_per_search: 3
 
   pydantic_final_report_step:

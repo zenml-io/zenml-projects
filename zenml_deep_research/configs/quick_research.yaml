@@ -17,9 +17,18 @@ steps:
       llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       num_results_per_search: 2  # Fewer search results for speed
   
-  iterative_reflection_step:
+  generate_reflection_step:
     parameters:
-      max_additional_searches: 1  # Minimal additional searches
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  get_research_approval_step:
+    parameters:
+      auto_approve: true  # Auto-approve for quick research
+  
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      num_results_per_search: 2
   
 # Environment settings
 settings:
