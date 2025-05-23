@@ -77,6 +77,7 @@ def training(
         target=target,
         hyperparameters=hyperparameters,
         model_path=model_path,
+        protected_attributes=protected_attributes,
     )
 
     # Evaluate model for performance and fairness

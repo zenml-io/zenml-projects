@@ -2,8 +2,8 @@
 
 ## Model Details
 
-**Model ID:** 8a876b84
-**Version:** 2025-05-21
+**Model ID:** bff4d94d
+**Version:** 2025-05-22
 **Description:** This model assesses credit risk for loan applications
 **Type:** LGBMClassifier
 **Framework:** LightGBM
@@ -23,12 +23,12 @@ This model is designed to assist financial institutions in assessing credit risk
 
 | Metric | Value |
 |--------|---------|
-| accuracy | 0.7307 |
-| precision | 0.1632 |
-| recall | 0.5851 |
-| f1_score | 0.2552 |
+| accuracy | 0.8399 |
+| precision | 0.2246 |
+| recall | 0.4203 |
+| f1_score | 0.2927 |
 
-### Performance at Optimal Threshold (0.11)
+### Performance at Optimal Threshold (0.63)
 
 | Metric | Value |
 |--------|---------|
@@ -52,31 +52,31 @@ The model has been evaluated for fairness across different demographic groups. W
 
 | Metric | Value |
 |--------|-------|
-| selection_rate_disparity | 0.1514 |
+| selection_rate_disparity | 0.1143 |
 
-#### Num  Age Years
-
-| Metric | Value |
-|--------|-------|
-| selection_rate_disparity | 1.0000 |
-
-#### Name Education Type
+#### Age Years Groups
 
 | Metric | Value |
 |--------|-------|
-| selection_rate_disparity | 0.4105 |
+| selection_rate_disparity | 0.2273 |
+
+#### Name Education Type Groups
+
+| Metric | Value |
+|--------|-------|
+| selection_rate_disparity | 0.1483 |
 
 #### Name Family Status
 
 | Metric | Value |
 |--------|-------|
-| selection_rate_disparity | 0.1889 |
+| selection_rate_disparity | 0.1387 |
 
 #### Name Housing Type
 
 | Metric | Value |
 |--------|-------|
-| selection_rate_disparity | 0.2022 |
+| selection_rate_disparity | 0.1547 |
 
 ## Limitations
 
@@ -91,6 +91,3 @@ The overall risk score for this model is 0.65 on a scale of 0-1 (lower is better
 This model is subject to continuous monitoring for data drift and performance degradation.
 Human oversight is required for all decisions made with assistance from this model.
 
-## Contact Information
-
-For questions or concerns about this model, please contact compliance@example.com

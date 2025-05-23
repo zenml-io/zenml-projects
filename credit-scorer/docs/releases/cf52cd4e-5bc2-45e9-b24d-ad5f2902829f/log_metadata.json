@@ -1,0 +1,6 @@
+{
+  "log_uri": "s3://zenml-dev/pipeline_runs/logs/a8cb0ed7-c0b1-46fc-bc95-00169663dc62.log",
+  "pipeline_name": "deployment",
+  "run_id": "cf52cd4e-5bc2-45e9-b24d-ad5f2902829f",
+  "created": "2025-05-23 00:09:57"
+}

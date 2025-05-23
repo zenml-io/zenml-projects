@@ -27,7 +27,9 @@ def approve_deployment(
     evaluation_results: Annotated[Dict[str, Any], A.EVALUATION_RESULTS],
     risk_scores: Annotated[Dict[str, Any], A.RISK_SCORES],
     approval_thresholds: Dict[str, float],
-) -> Tuple[bool, Annotated[Dict[str, Any], A.APPROVAL_RECORD]]:
+) -> Tuple[
+    Annotated[bool, A.APPROVED], Annotated[Dict[str, Any], A.APPROVAL_RECORD]
+]:
     """Human oversight approval gate with comprehensive documentation (Article 14)."""
     # Extract context and metrics
     ctx = get_step_context()
@@ -50,22 +52,25 @@ def approve_deployment(
     )
     risk_score = risk_scores.get("overall", 1)
     bias_flag = fairness_data.get("bias_flag", False)
-    max_disparity = (
-        max(
+
+    # Calculate minimum disparate impact ratio across all protected attributes
+    # Lower DI ratios indicate worse bias (DI < 0.8 is adverse impact)
+    min_di_ratio = (
+        min(
             [
-                abs(attr.get("selection_rate_disparity", 0))
+                attr.get("disparate_impact_ratio", 1.0)
                 for attr in fairness_metrics.values()
             ]
         )
         if fairness_metrics
-        else 0
+        else 1.0
     )
 
     # Check approval criteria
     perf_ok = accuracy >= approval_thresholds.get("accuracy", 0.7)
-    fairness_ok = not bias_flag and max_disparity <= approval_thresholds.get(
-        "max_disparity", 0.2
-    )
+    # DI ratio >= 0.8 means no adverse impact
+    di_threshold = approval_thresholds.get("disparate_impact_threshold", 0.8)
+    fairness_ok = not bias_flag and min_di_ratio >= di_threshold
     risk_ok = risk_score <= approval_thresholds.get("risk_score", 0.4)
     all_ok = perf_ok and fairness_ok and risk_ok
 
@@ -116,7 +121,7 @@ def approve_deployment(
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": f"{'✅' if fairness_ok else '❌'} *F1 Score:* {f1_score:.3f}",
+                                "text": f"*F1 Score:* {f1_score:.3f}",
                             },
                             {
                                 "type": "mrkdwn",
@@ -128,7 +133,7 @@ def approve_deployment(
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"{'✅ *Bias Check:* Passed' if fairness_ok else f'❌ *Bias Check:* Failed (disparity: {max_disparity:.3f})'}",
+                            "text": f"{'✅ *Bias Check:* Passed' if fairness_ok else f'❌ *Bias Check:* Failed (min DI ratio: {min_di_ratio:.3f})'}",
                         },
                     },
                     {
@@ -356,7 +361,7 @@ def approve_deployment(
             "risk_score": risk_score,
         },
         "protected_attributes_count": len(fairness_metrics),
-        "max_bias_disparity": max_disparity,
+        "min_disparate_impact_ratio": min_di_ratio,
         "thresholds_used": approval_thresholds,
         "pipeline_context": {
             "pipeline_name": pipeline_name,

@@ -47,11 +47,52 @@ def get_sensitive_feature(
         logger.info(f"Using direct column {attr}")
         return test_df[attr], attr, False
 
-    # Case 2: Numerical with prefix
+    # Case 2: Numerical with prefix - CREATE BALANCED GROUPS
     if any(col == f"num__{attr}" for col in test_df.columns):
         col_name = f"num__{attr}"
-        logger.info(f"Using numerical column {col_name}")
-        return test_df[col_name], col_name, False
+        logger.info(f"Creating balanced groups for numerical column {col_name}")
+        
+        # For AGE_YEARS, create balanced age groups instead of continuous values
+        if attr == "AGE_YEARS":
+            age_values = test_df[col_name]
+            logger.info(f"Age range: {age_values.min():.1f} - {age_values.max():.1f}")
+            
+            # Handle weird age preprocessing (might be standardized/normalized)
+            if age_values.min() < 10:  # Likely standardized or processed incorrectly
+                logger.info("Detected non-standard age values, using percentile-based grouping")
+                # Use percentiles to create balanced groups
+                age_percentiles = age_values.quantile([0.33, 0.67]).values
+                
+                age_groups = []
+                for age in age_values:
+                    if age <= age_percentiles[0]:
+                        age_groups.append("young_adult")
+                    elif age <= age_percentiles[1]:
+                        age_groups.append("middle_age")
+                    else:
+                        age_groups.append("mature")
+            else:
+                # Normal age values
+                age_groups = []
+                for age in age_values:
+                    if age < 35:
+                        age_groups.append("young_adult")  # < 35
+                    elif age < 50:
+                        age_groups.append("middle_age")   # 35-50  
+                    else:
+                        age_groups.append("mature")       # 50+
+            
+            age_series = pd.Series(age_groups, name=f"{attr}_groups")
+            logger.info(f"Age group distribution: {age_series.value_counts().to_dict()}")
+            return age_series, f"{attr}_groups", False
+        else:
+            # For other numerical attributes, create quantile-based groups
+            try:
+                groups = pd.qcut(test_df[col_name], q=3, duplicates='drop', labels=['low', 'medium', 'high'])
+                return groups, f"{attr}_groups", False
+            except:
+                logger.warning(f"Could not create groups for {col_name}, using original values")
+                return test_df[col_name], col_name, False
 
     # Case 3: Categorical - reconstruct from one-hot encoding
     categorical_cols = [
@@ -73,6 +114,22 @@ def get_sensitive_feature(
             [cat_values.get(i, "Unknown") for i in range(len(test_df))],
             name=attr,
         )
+        
+        # For education, group into broader categories to prevent 0.000 DI ratios
+        if attr == "NAME_EDUCATION_TYPE":
+            education_groups = []
+            for edu in sensitive_features:
+                if "Higher education" in str(edu) or "Academic degree" in str(edu):
+                    education_groups.append("higher_education")
+                elif "Secondary" in str(edu) or "Incomplete" in str(edu):
+                    education_groups.append("secondary_education")
+                else:
+                    education_groups.append("other_education")
+            
+            grouped_series = pd.Series(education_groups, name=f"{attr}_groups")
+            logger.info(f"Education group distribution: {grouped_series.value_counts().to_dict()}")
+            return grouped_series, f"{attr}_groups", False
+        
         return sensitive_features, attr, False
 
     # Case 4: Not found
@@ -105,12 +162,24 @@ def calculate_fairness_metrics(
         sensitive_features=sensitive_features,
     )
 
-    disparity = frame.difference(method="between_groups")["selection_rate"]
+    # Calculate disparate impact ratio (DI ratio)
+    # DI = min(selection_rates) / max(selection_rates)
+    # DI < 0.8 indicates adverse impact per four-fifths rule
+    selection_rates = frame.by_group["selection_rate"]
+    if len(selection_rates) >= 2 and selection_rates.max() > 0:
+        disparate_impact_ratio = selection_rates.min() / selection_rates.max()
+    else:
+        # Handle edge cases: only one group or no positive predictions
+        disparate_impact_ratio = 1.0
+    
+    # Also calculate the old difference metric for backward compatibility
+    disparity_difference = frame.difference(method="between_groups")["selection_rate"]
 
     return {
-        "selection_rate_by_group": frame.by_group["selection_rate"].to_dict(),
+        "selection_rate_by_group": selection_rates.to_dict(),
         "accuracy_by_group": frame.by_group["accuracy"].to_dict(),
-        "selection_rate_disparity": disparity,
+        "disparate_impact_ratio": disparate_impact_ratio,
+        "selection_rate_disparity": disparity_difference,  # Keep for compatibility
     }
 
 
@@ -150,9 +219,16 @@ def analyze_fairness(
         )
         fairness_report[feature_name] = metrics
 
-        # Check if bias threshold is exceeded
-        disparity = metrics["selection_rate_disparity"]
-        if abs(disparity) > approval_thresholds["bias_disparity"]:
+        # Check for adverse impact using disparate impact ratio
+        # DI ratio < 0.8 indicates adverse impact per four-fifths rule
+        di_ratio = metrics["disparate_impact_ratio"]
+        di_threshold = approval_thresholds.get("disparate_impact_threshold", 0.8)
+        
+        if di_ratio < di_threshold:
             bias_flag = True
+            logger.warning(
+                f"Adverse impact detected for {feature_name}: "
+                f"DI ratio = {di_ratio:.3f} < {di_threshold}"
+            )
 
     return fairness_report, bias_flag

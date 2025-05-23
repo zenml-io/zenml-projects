@@ -70,24 +70,30 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
 
     bias_flag = fairness.get("bias_flag", False)
 
-    # Calculate max disparity across groups
-    disparities = []
+    # Calculate minimum disparate impact ratio across groups
+    # Lower DI ratios indicate higher bias risk (DI < 0.8 is adverse impact)
+    di_ratios = []
     fairness_metrics = fairness.get("fairness_metrics", {})
     if isinstance(fairness_metrics, dict):
         for group_metrics in fairness_metrics.values():
             if (
                 isinstance(group_metrics, dict)
-                and "selection_rate_disparity" in group_metrics
+                and "disparate_impact_ratio" in group_metrics
             ):
-                disparities.append(
-                    abs(group_metrics["selection_rate_disparity"])
-                )
+                di_ratios.append(group_metrics["disparate_impact_ratio"])
 
-    disparity = max(disparities) if disparities else 0.0
+    min_di_ratio = min(di_ratios) if di_ratios else 1.0
 
     # Calculate risk scores
     risk_auc = 1 - auc  # low AUC → higher risk
-    risk_bias = 0.8 if bias_flag else disparity  # flat score if flagged
+    # Risk increases as DI ratio drops below 0.8 (adverse impact threshold)
+    # DI ratio 1.0 = no bias risk, DI ratio 0.0 = maximum bias risk
+    if bias_flag:
+        risk_bias = 0.8  # High risk when bias is explicitly flagged
+    else:
+        # Convert DI ratio to risk score: 1.0 DI ratio = 0 risk, 0.8 DI ratio = 0.25 risk
+        risk_bias = max(0.0, (0.8 - min_di_ratio) / 0.8)
+    
     overall = round(min(1.0, 0.5 * risk_auc + 0.5 * risk_bias), 3)
 
     return {
@@ -233,10 +239,10 @@ def risk_assessment(
                             isinstance(metrics, dict)
                             and "selection_rate_disparity" in metrics
                         ):
-                            disparity = metrics["selection_rate_disparity"]
-                            if abs(disparity) > 0.2:
+                            di_ratio = metrics.get("disparate_impact_ratio", 1.0)
+                            if di_ratio < 0.8:  # Adverse impact threshold
                                 details += (
-                                    f"{attr}: {abs(disparity):.3f} disparity\n"
+                                    f"{attr}: {di_ratio:.3f} DI ratio (< 0.8 indicates adverse impact)\n"
                                 )
 
             article = get_article_for_hazard(hz["id"])

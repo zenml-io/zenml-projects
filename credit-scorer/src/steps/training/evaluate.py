@@ -319,7 +319,7 @@ def evaluate_model(
                         "text": "*Fairness Issues:*\n"
                         + "\n".join(
                             [
-                                f"• {attr}: {data.get('selection_rate_disparity', 'N/A'):.3f} disparity"
+                                f"• {attr}: DI ratio {data.get('disparate_impact_ratio', 'N/A'):.3f} ({'✅ OK' if data.get('disparate_impact_ratio', 1.0) >= 0.8 else '❌ Adverse Impact'})"
                                 for attr, data in fairness_metrics.items()
                             ]
                         ),

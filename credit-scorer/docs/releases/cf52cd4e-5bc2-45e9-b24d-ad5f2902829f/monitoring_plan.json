@@ -1,7 +1,7 @@
 {
-  "plan_id": "monitoring_plan_2025-05-21T20-21-21.638389",
+  "plan_id": "monitoring_plan_2025-05-22T19-12-38.288688",
   "model_id": "unknown",
-  "created_at": "2025-05-21T20:21:21.638389",
+  "created_at": "2025-05-22T19:12:38.288688",
   "description": "Post-market monitoring plan for credit scoring model",
   "monitoring_frequency": {
     "data_drift": "daily",
@@ -9,7 +9,7 @@
     "fairness_audit": "monthly"
   },
   "alert_thresholds": {
-    "accuracy_drop": 0.6307142857142858,
+    "accuracy_drop": 0.7398571428571429,
     "data_drift_score": 0.15,
     "fairness_metrics": {
       "disparate_impact_min": 0.8,

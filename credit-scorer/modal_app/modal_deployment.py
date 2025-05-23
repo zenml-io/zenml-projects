@@ -2,11 +2,16 @@
 """EU AI Act compliant credit scoring model deployment with Modal."""
 
 import hashlib
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict
+
+import requests
+from src.constants.config import SlackConfig as SC
 
 os.environ["MODAL_AUTOMOUNT"] = "false"
 
@@ -129,13 +134,6 @@ def _load_pipeline() -> Any:
 
 def _report_incident(incident_data: dict, model_checksum: str) -> dict:
     """Report incidents to compliance team and log them (Article 18)."""
-    import json
-    from datetime import datetime
-    from pathlib import Path
-
-    import requests
-    from src.constants.config import SlackConfig as SC
-
     # Format incident report
     incident = {
         "incident_id": f"incident_{datetime.now().isoformat().replace(':', '-')}",
