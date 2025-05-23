@@ -113,11 +113,13 @@ python run.py --mode deep
 
 **Mode Comparison:**
 
-| Mode | Sub-Questions | Search Results | Additional Searches | Best For |
+| Mode | Sub-Questions | Search Results* | Additional Searches | Best For |
 |------|---------------|----------------|-------------------|----------|
 | **Rapid** | 5 | 2 per search | 0 | Quick overviews, time-sensitive research |
 | **Balanced** | 10 | 3 per search | 2 | Most research tasks, good depth/speed ratio |
 | **Deep** | 15 | 5 per search | 4 | Comprehensive analysis, academic research |
+
+*Can be overridden with `--num-results`
 
 #### Using Different Configurations
 
@@ -160,6 +162,10 @@ python run.py --require-approval --approval-timeout 7200
 python run.py --search-provider exa                      # Use Exa search
 python run.py --search-provider both                     # Use both providers
 python run.py --search-provider exa --search-mode neural # Exa with neural search
+
+# Control the number of search results per query
+python run.py --num-results 5                            # Get 5 results per search
+python run.py --num-results 10 --search-provider exa     # 10 results with Exa
 ```
 
 ### Search Providers

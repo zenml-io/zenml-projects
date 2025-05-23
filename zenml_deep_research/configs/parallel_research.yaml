@@ -16,7 +16,6 @@ steps:
     parameters:
       llm_model_search: "sambanova/Meta-Llama-3.3-70B-Instruct"
       llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
-      num_results_per_search: 3
       cap_search_length: 20000
   
   merge_sub_question_results_step:
@@ -41,7 +40,6 @@ steps:
   execute_approved_searches_step:
     parameters:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
-      num_results_per_search: 3
       cap_search_length: 20000
   
   pydantic_final_report_step:

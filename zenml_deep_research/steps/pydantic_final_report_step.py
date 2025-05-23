@@ -213,6 +213,30 @@ def generate_conclusion(
 
         # Clean up any formatting issues
         conclusion_html = conclusion_html.strip()
+
+        # Remove any h2 tags with "Conclusion" text that LLM might have added
+        # Since we already have a Conclusion header in the template
+        conclusion_html = re.sub(
+            r"<h2[^>]*>\s*Conclusion\s*</h2>\s*",
+            "",
+            conclusion_html,
+            flags=re.IGNORECASE,
+        )
+        conclusion_html = re.sub(
+            r"<h3[^>]*>\s*Conclusion\s*</h3>\s*",
+            "",
+            conclusion_html,
+            flags=re.IGNORECASE,
+        )
+
+        # Also remove plain text "Conclusion" at the start if it exists
+        conclusion_html = re.sub(
+            r"^Conclusion\s*\n*",
+            "",
+            conclusion_html.strip(),
+            flags=re.IGNORECASE,
+        )
+
         if not conclusion_html.startswith("<p>"):
             # Wrap in paragraph tags if not already formatted
             conclusion_html = f"<p>{conclusion_html}</p>"

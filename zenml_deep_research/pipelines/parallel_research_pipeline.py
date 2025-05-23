@@ -20,6 +20,7 @@ def parallelized_deep_research_pipeline(
     max_additional_searches: int = 2,
     search_provider: str = "tavily",
     search_mode: str = "auto",
+    num_results_per_search: int = 3,
 ) -> HTMLString:
     """Parallelized ZenML pipeline for deep research on a given query.
 
@@ -34,6 +35,7 @@ def parallelized_deep_research_pipeline(
         max_additional_searches: Maximum number of additional searches to perform
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
+        num_results_per_search: Number of search results to return per query
 
     Returns:
         Formatted research report as HTML
@@ -56,6 +58,7 @@ def parallelized_deep_research_pipeline(
             question_index=i,
             search_provider=search_provider,
             search_mode=search_mode,
+            num_results_per_search=num_results_per_search,
             id=f"process_question_{i + 1}",
         )
         after.append(sub_state)
@@ -91,6 +94,7 @@ def parallelized_deep_research_pipeline(
         approval_decision=approval_decision,
         search_provider=search_provider,
         search_mode=search_mode,
+        num_results_per_search=num_results_per_search,
     )
 
     # Use our new Pydantic-based final report step

@@ -1490,7 +1490,7 @@ Your conclusion should:
 
 Format your output as a well-structured conclusion section in HTML format with appropriate paragraph breaks and formatting. Use <p> tags for paragraphs and organize the content logically with clear transitions between the different aspects outlined above.
 
-Do not include section headings within the conclusion - just create flowing, well-structured paragraphs that cover all four aspects naturally.
+IMPORTANT: Do NOT include any headings like "Conclusion", <h2>, or <h3> tags - the section already has a heading. Start directly with the conclusion content in paragraph form. Just create flowing, well-structured paragraphs that cover all four aspects naturally.
 
 Ensure the conclusion feels cohesive and draws meaningful connections between findings rather than just listing them sequentially.
 """

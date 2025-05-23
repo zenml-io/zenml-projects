@@ -138,6 +138,12 @@ Examples:
     default="auto",
     help="Search mode for Exa provider: neural, keyword, or auto (default: auto)",
 )
+@click.option(
+    "--num-results",
+    type=int,
+    default=3,
+    help="Number of search results to return per query (default: 3)",
+)
 def main(
     mode: str = None,
     config: str = "configs/enhanced_research.yaml",
@@ -150,6 +156,7 @@ def main(
     approval_timeout: int = 3600,
     search_provider: str = None,
     search_mode: str = "auto",
+    num_results: int = 3,
 ):
     """Run the deep research pipeline.
 
@@ -165,6 +172,7 @@ def main(
         approval_timeout: Timeout in seconds for human approval
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
+        num_results: Number of search results to return per query
     """
     # Configure logging
     log_level = logging.DEBUG if debug else logging.INFO
@@ -184,14 +192,15 @@ def main(
 
         # Store mode config for later use
         mode_max_additional_searches = mode_config["max_additional_searches"]
-        mode_num_results_per_search = mode_config["num_results_per_search"]
+
+        # Use mode's num_results_per_search only if user didn't override with --num-results
+        if num_results == 3:  # Default value - apply mode preset
+            num_results = mode_config["num_results_per_search"]
 
         logger.info(
             f"  - Max additional searches: {mode_max_additional_searches}"
         )
-        logger.info(
-            f"  - Results per search: {mode_num_results_per_search} (configure in YAML for step-level control)"
-        )
+        logger.info(f"  - Results per search: {num_results}")
 
         # Check if a mode-specific config exists and user didn't override config
         if config == "configs/enhanced_research.yaml":  # Default config
@@ -215,7 +224,6 @@ def main(
     else:
         # Default values if no mode specified
         mode_max_additional_searches = 2
-        mode_num_results_per_search = 3
 
     # Check that required environment variables are present using the helper function
     required_vars = ["SAMBANOVA_API_KEY"]
@@ -258,6 +266,10 @@ def main(
     else:
         logger.info("Search provider: TAVILY (default)")
 
+    # Log num_results if custom value or no mode preset
+    if num_results != 3 or not mode:
+        logger.info(f"Results per search: {num_results}")
+
     # Set up the pipeline with the parallelized version as default
     pipeline = parallelized_deep_research_pipeline.with_options(
         **pipeline_options
@@ -280,6 +292,7 @@ def main(
             max_additional_searches=mode_max_additional_searches,
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
+            num_results_per_search=num_results,
         )
     else:
         logger.info(
@@ -296,6 +309,7 @@ def main(
             max_additional_searches=mode_max_additional_searches,
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
+            num_results_per_search=num_results,
         )
 
     logger.info("=" * 80 + "\n")
