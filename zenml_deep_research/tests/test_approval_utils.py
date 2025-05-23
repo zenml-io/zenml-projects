@@ -72,9 +72,8 @@ def test_format_approval_request():
     assert "5" in message
     assert "0.75" in message
     assert "2 queries" in message
-    assert "APPROVE ALL" in message
-    assert "SKIP" in message
-    assert "SELECT" in message
+    assert "approve" in message.lower()
+    assert "reject" in message.lower()
     assert "Missing data" in message
 
 
