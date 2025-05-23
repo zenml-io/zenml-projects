@@ -17,9 +17,9 @@
 
 """HTML component utilities for rendering compliance dashboards."""
 
+from .dashboard import generate_compliance_dashboard_html
 from .eval import generate_eval_visualization
 from .whylogs import generate_whylogs_visualization
-from .dashboard import generate_compliance_dashboard_html
 
 __all__ = [
     "generate_eval_visualization",

@@ -93,7 +93,7 @@ def score_risk(evaluation: Dict) -> Dict[str, float]:
     else:
         # Convert DI ratio to risk score: 1.0 DI ratio = 0 risk, 0.8 DI ratio = 0.25 risk
         risk_bias = max(0.0, (0.8 - min_di_ratio) / 0.8)
-    
+
     overall = round(min(1.0, 0.5 * risk_auc + 0.5 * risk_bias), 3)
 
     return {
@@ -239,11 +239,11 @@ def risk_assessment(
                             isinstance(metrics, dict)
                             and "selection_rate_disparity" in metrics
                         ):
-                            di_ratio = metrics.get("disparate_impact_ratio", 1.0)
+                            di_ratio = metrics.get(
+                                "disparate_impact_ratio", 1.0
+                            )
                             if di_ratio < 0.8:  # Adverse impact threshold
-                                details += (
-                                    f"{attr}: {di_ratio:.3f} DI ratio (< 0.8 indicates adverse impact)\n"
-                                )
+                                details += f"{attr}: {di_ratio:.3f} DI ratio (< 0.8 indicates adverse impact)\n"
 
             article = get_article_for_hazard(hz["id"])
             hazard_sheet.append(

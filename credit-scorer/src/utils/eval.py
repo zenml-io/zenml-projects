@@ -50,19 +50,27 @@ def get_sensitive_feature(
     # Case 2: Numerical with prefix - CREATE BALANCED GROUPS
     if any(col == f"num__{attr}" for col in test_df.columns):
         col_name = f"num__{attr}"
-        logger.info(f"Creating balanced groups for numerical column {col_name}")
-        
+        logger.info(
+            f"Creating balanced groups for numerical column {col_name}"
+        )
+
         # For AGE_YEARS, create balanced age groups instead of continuous values
         if attr == "AGE_YEARS":
             age_values = test_df[col_name]
-            logger.info(f"Age range: {age_values.min():.1f} - {age_values.max():.1f}")
-            
+            logger.info(
+                f"Age range: {age_values.min():.1f} - {age_values.max():.1f}"
+            )
+
             # Handle weird age preprocessing (might be standardized/normalized)
-            if age_values.min() < 10:  # Likely standardized or processed incorrectly
-                logger.info("Detected non-standard age values, using percentile-based grouping")
+            if (
+                age_values.min() < 10
+            ):  # Likely standardized or processed incorrectly
+                logger.info(
+                    "Detected non-standard age values, using percentile-based grouping"
+                )
                 # Use percentiles to create balanced groups
                 age_percentiles = age_values.quantile([0.33, 0.67]).values
-                
+
                 age_groups = []
                 for age in age_values:
                     if age <= age_percentiles[0]:
@@ -78,20 +86,29 @@ def get_sensitive_feature(
                     if age < 35:
                         age_groups.append("young_adult")  # < 35
                     elif age < 50:
-                        age_groups.append("middle_age")   # 35-50  
+                        age_groups.append("middle_age")  # 35-50
                     else:
-                        age_groups.append("mature")       # 50+
-            
+                        age_groups.append("mature")  # 50+
+
             age_series = pd.Series(age_groups, name=f"{attr}_groups")
-            logger.info(f"Age group distribution: {age_series.value_counts().to_dict()}")
+            logger.info(
+                f"Age group distribution: {age_series.value_counts().to_dict()}"
+            )
             return age_series, f"{attr}_groups", False
         else:
             # For other numerical attributes, create quantile-based groups
             try:
-                groups = pd.qcut(test_df[col_name], q=3, duplicates='drop', labels=['low', 'medium', 'high'])
+                groups = pd.qcut(
+                    test_df[col_name],
+                    q=3,
+                    duplicates="drop",
+                    labels=["low", "medium", "high"],
+                )
                 return groups, f"{attr}_groups", False
             except:
-                logger.warning(f"Could not create groups for {col_name}, using original values")
+                logger.warning(
+                    f"Could not create groups for {col_name}, using original values"
+                )
                 return test_df[col_name], col_name, False
 
     # Case 3: Categorical - reconstruct from one-hot encoding
@@ -114,22 +131,26 @@ def get_sensitive_feature(
             [cat_values.get(i, "Unknown") for i in range(len(test_df))],
             name=attr,
         )
-        
+
         # For education, group into broader categories to prevent 0.000 DI ratios
         if attr == "NAME_EDUCATION_TYPE":
             education_groups = []
             for edu in sensitive_features:
-                if "Higher education" in str(edu) or "Academic degree" in str(edu):
+                if "Higher education" in str(edu) or "Academic degree" in str(
+                    edu
+                ):
                     education_groups.append("higher_education")
                 elif "Secondary" in str(edu) or "Incomplete" in str(edu):
                     education_groups.append("secondary_education")
                 else:
                     education_groups.append("other_education")
-            
+
             grouped_series = pd.Series(education_groups, name=f"{attr}_groups")
-            logger.info(f"Education group distribution: {grouped_series.value_counts().to_dict()}")
+            logger.info(
+                f"Education group distribution: {grouped_series.value_counts().to_dict()}"
+            )
             return grouped_series, f"{attr}_groups", False
-        
+
         return sensitive_features, attr, False
 
     # Case 4: Not found
@@ -171,9 +192,11 @@ def calculate_fairness_metrics(
     else:
         # Handle edge cases: only one group or no positive predictions
         disparate_impact_ratio = 1.0
-    
+
     # Also calculate the old difference metric for backward compatibility
-    disparity_difference = frame.difference(method="between_groups")["selection_rate"]
+    disparity_difference = frame.difference(method="between_groups")[
+        "selection_rate"
+    ]
 
     return {
         "selection_rate_by_group": selection_rates.to_dict(),
@@ -222,8 +245,10 @@ def analyze_fairness(
         # Check for adverse impact using disparate impact ratio
         # DI ratio < 0.8 indicates adverse impact per four-fifths rule
         di_ratio = metrics["disparate_impact_ratio"]
-        di_threshold = approval_thresholds.get("disparate_impact_threshold", 0.8)
-        
+        di_threshold = approval_thresholds.get(
+            "disparate_impact_threshold", 0.8
+        )
+
         if di_ratio < di_threshold:
             bias_flag = True
             logger.warning(

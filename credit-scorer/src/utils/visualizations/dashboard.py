@@ -676,15 +676,6 @@ def generate_compliance_dashboard_html(
     compliance_percentage = compliance_summary.get("overall_score", 0)
     last_release_id = compliance_summary.get("release_id", "Unknown")
 
-    # Determine color based on compliance score
-    bar_color = (
-        "#D64045"
-        if compliance_percentage < 60
-        else "#FFB30F"
-        if compliance_percentage < 80
-        else "#478C5C"
-    )
-
     # Determine status text
     if compliance_percentage >= 80:
         status_text = "High Compliance"
