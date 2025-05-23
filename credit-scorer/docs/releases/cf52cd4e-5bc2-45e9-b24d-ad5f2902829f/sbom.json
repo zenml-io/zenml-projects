@@ -1,0 +1,194 @@
+{
+  "components": [
+    {
+      "bom-ref": "BomRef.07237700849851447.9456677448839729",
+      "name": "cyclonedx-python-lib",
+      "purl": "pkg:pypi/cyclonedx-python-lib@10.0.1",
+      "type": "library",
+      "version": "10.0.1"
+    },
+    {
+      "bom-ref": "BomRef.5776897479364583.5706706708645136",
+      "name": "fairlearn",
+      "purl": "pkg:pypi/fairlearn@0.12.0",
+      "type": "library",
+      "version": "0.12.0"
+    },
+    {
+      "bom-ref": "BomRef.8667158184208171.9134094080247366",
+      "name": "lightgbm",
+      "purl": "pkg:pypi/lightgbm@4.6.0",
+      "type": "library",
+      "version": "4.6.0"
+    },
+    {
+      "bom-ref": "BomRef.0998122392323707.8139705569726468",
+      "name": "markdown",
+      "purl": "pkg:pypi/markdown@3.8",
+      "type": "library",
+      "version": "3.8"
+    },
+    {
+      "bom-ref": "BomRef.14481891590408824.27773408524209253",
+      "name": "matplotlib",
+      "purl": "pkg:pypi/matplotlib@3.10.3",
+      "type": "library",
+      "version": "3.10.3"
+    },
+    {
+      "bom-ref": "BomRef.12411164788415441.5282505833910307",
+      "name": "modal",
+      "purl": "pkg:pypi/modal@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "BomRef.16301957092921393.3529706820498485",
+      "name": "openpyxl",
+      "purl": "pkg:pypi/openpyxl@3.1.5",
+      "type": "library",
+      "version": "3.1.5"
+    },
+    {
+      "bom-ref": "BomRef.7866603241744561.49420197713288205",
+      "name": "pandas",
+      "purl": "pkg:pypi/pandas@2.2.3",
+      "type": "library",
+      "version": "2.2.3"
+    },
+    {
+      "bom-ref": "BomRef.9733951597304132.3006826110517986",
+      "name": "plotly",
+      "purl": "pkg:pypi/plotly@6.1.1",
+      "type": "library",
+      "version": "6.1.1"
+    },
+    {
+      "bom-ref": "BomRef.8353609642237706.07639792070279905",
+      "name": "scikit-learn",
+      "purl": "pkg:pypi/scikit-learn@1.6.1",
+      "type": "library",
+      "version": "1.6.1"
+    },
+    {
+      "bom-ref": "BomRef.8028757648466055.9096475526240709",
+      "name": "seaborn",
+      "purl": "pkg:pypi/seaborn@0.13.2",
+      "type": "library",
+      "version": "0.13.2"
+    },
+    {
+      "bom-ref": "BomRef.6063487722317096.5398842842058061",
+      "name": "slack-sdk",
+      "purl": "pkg:pypi/slack-sdk@3.30.0",
+      "type": "library",
+      "version": "3.30.0"
+    },
+    {
+      "bom-ref": "BomRef.29599913871128425.09751499520994422",
+      "name": "streamlit",
+      "purl": "pkg:pypi/streamlit@1.45.1",
+      "type": "library",
+      "version": "1.45.1"
+    },
+    {
+      "bom-ref": "BomRef.32278402592054045.5335717314664942",
+      "name": "streamlit-option-menu",
+      "purl": "pkg:pypi/streamlit-option-menu@0.4.0",
+      "type": "library",
+      "version": "0.4.0"
+    },
+    {
+      "bom-ref": "BomRef.5298377146543023.1600543630206419",
+      "name": "tabulate",
+      "purl": "pkg:pypi/tabulate@0.9.0",
+      "type": "library",
+      "version": "0.9.0"
+    },
+    {
+      "bom-ref": "BomRef.1698575413320712.396459485235087",
+      "name": "weasyprint",
+      "purl": "pkg:pypi/weasyprint@65.1",
+      "type": "library",
+      "version": "65.1"
+    },
+    {
+      "bom-ref": "BomRef.09869967313691752.017651335967724058",
+      "name": "xlsxwriter",
+      "purl": "pkg:pypi/xlsxwriter@3.2.3",
+      "type": "library",
+      "version": "3.2.3"
+    },
+    {
+      "bom-ref": "BomRef.9005184660303546.7685854161998463",
+      "name": "zenml",
+      "purl": "pkg:pypi/zenml@0.82.1",
+      "type": "library",
+      "version": "0.82.1"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "BomRef.07237700849851447.9456677448839729"
+    },
+    {
+      "ref": "BomRef.5776897479364583.5706706708645136"
+    },
+    {
+      "ref": "BomRef.8667158184208171.9134094080247366"
+    },
+    {
+      "ref": "BomRef.0998122392323707.8139705569726468"
+    },
+    {
+      "ref": "BomRef.14481891590408824.27773408524209253"
+    },
+    {
+      "ref": "BomRef.12411164788415441.5282505833910307"
+    },
+    {
+      "ref": "BomRef.16301957092921393.3529706820498485"
+    },
+    {
+      "ref": "BomRef.7866603241744561.49420197713288205"
+    },
+    {
+      "ref": "BomRef.9733951597304132.3006826110517986"
+    },
+    {
+      "ref": "BomRef.8353609642237706.07639792070279905"
+    },
+    {
+      "ref": "BomRef.8028757648466055.9096475526240709"
+    },
+    {
+      "ref": "BomRef.6063487722317096.5398842842058061"
+    },
+    {
+      "ref": "BomRef.29599913871128425.09751499520994422"
+    },
+    {
+      "ref": "BomRef.32278402592054045.5335717314664942"
+    },
+    {
+      "ref": "BomRef.5298377146543023.1600543630206419"
+    },
+    {
+      "ref": "BomRef.1698575413320712.396459485235087"
+    },
+    {
+      "ref": "BomRef.09869967313691752.017651335967724058"
+    },
+    {
+      "ref": "BomRef.9005184660303546.7685854161998463"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2025-05-23T00:12:30.547795+00:00"
+  },
+  "serialNumber": "urn:uuid:65604219-8a35-4d3d-a0e3-7512a95d9b64",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5"
+}

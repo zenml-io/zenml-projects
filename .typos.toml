@@ -6,6 +6,7 @@ extend-exclude = [
     "llm-finetuning/*",
     "end-to-end-computer-vision/*",
     "research-radar/data/*.jsonl",
+    "credit-scorer/docs/releases/*",
 ]
 
 [default.extend-identifiers]

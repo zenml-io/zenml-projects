@@ -1,0 +1,36 @@
+{
+  "approval_id": "approval_2025-05-22T19-11-24.037949",
+  "timestamp": "2025-05-22T19:11:24.037949",
+  "approved": true,
+  "approver": "human_via_slack",
+  "rationale": "Human override via Slack for model cf52cd4e-5bc2-45e9-b24d-ad5f2902829f",
+  "model_id": "cf52cd4e-5bc2-45e9-b24d-ad5f2902829f",
+  "decision_mode": "slack_approval",
+  "criteria_met": false,
+  "failed_criteria": [
+    "Fairness",
+    "Risk"
+  ],
+  "bias_detected": true,
+  "key_metrics": {
+    "accuracy": 0.8398571428571429,
+    "f1_score": 0.29274447949526816,
+    "auc_roc": 0.749974995055202,
+    "normalized_cost": 0.5715714285714286,
+    "risk_score": 0.65
+  },
+  "protected_attributes_count": 5,
+  "min_disparate_impact_ratio": 0.161411728242175,
+  "thresholds_used": {
+    "accuracy": 0.7,
+    "disparate_impact_threshold": 0.8,
+    "risk_score": 0.6
+  },
+  "pipeline_context": {
+    "pipeline_name": "deployment",
+    "step_name": "approve_deployment",
+    "stack_name": "local-s3",
+    "run_id": "cf52cd4e-5bc2-45e9-b24d-ad5f2902829f"
+  },
+  "deployment_url": "https://marwan-ext--credit-scoring-app.modal.run"
+}

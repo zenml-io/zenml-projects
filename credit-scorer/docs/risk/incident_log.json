@@ -1,0 +1,66 @@
+[
+  {
+    "incident_id": "incident_2025-05-20T19-43-37.030821",
+    "timestamp": "2025-05-20T19:43:37.030845",
+    "model_name": "credit_scoring_model",
+    "model_version": "12",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9163318306457091: 0.00 vs -1.9207088617897712: 1.00)\nNAME_EDUCATION_TYPE: 0.836 disparity (Higher education: 0.16 vs Academic degree: 1.00)\nNAME_FAMILY_STATUS: 0.202 disparity (Widow: 0.18 vs Civil marriage: 0.38)\nNAME_HOUSING_TYPE: 0.279 disparity (Office apartment: 0.25 vs With parents: 0.52)",
+      "source": "evaluate_model",
+      "run_id": "ee45a707-5150-4ffa-9712-7ab5c85acfb5"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-21T18-13-35.354218",
+    "timestamp": "2025-05-21T18:13:35.354252",
+    "model_name": "credit_scorer",
+    "model_version": "1",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9163318306457091: 0.00 vs -1.9207088617897712: 1.00)\nNAME_EDUCATION_TYPE: 0.410 disparity (Higher education: 0.26 vs Academic degree: 0.67)\nNAME_HOUSING_TYPE: 0.202 disparity (House / apartment: 0.27 vs With parents: 0.47)",
+      "source": "evaluate_model",
+      "run_id": "b4421b8e-7d46-4cc2-9b4f-effdb9f3e8a4"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-21T19-06-11.391663",
+    "timestamp": "2025-05-21T19:06:11.391674",
+    "model_name": "credit_scorer",
+    "model_version": "2",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9163318306457091: 0.00 vs -1.9207088617897712: 1.00)\nNAME_EDUCATION_TYPE: 0.410 disparity (Higher education: 0.26 vs Academic degree: 0.67)\nNAME_HOUSING_TYPE: 0.202 disparity (House / apartment: 0.27 vs With parents: 0.47)",
+      "source": "evaluate_model",
+      "run_id": "ea9382b8-ad1d-41a8-a10b-9b28715e0f77"
+    }
+  },
+  {
+    "incident_id": "incident_2025-05-21T20-19-27.353165",
+    "timestamp": "2025-05-21T20:19:27.353184",
+    "model_name": "credit_scorer",
+    "model_version": "3",
+    "severity": "high",
+    "description": "Bias detected in model evaluation",
+    "source": "evaluate_model",
+    "data": {
+      "severity": "high",
+      "description": "Bias detected in model evaluation",
+      "details": "Selection rate disparities detected:\nnum__AGE_YEARS: 1.000 disparity (-1.9163318306457091: 0.00 vs -1.9207088617897712: 1.00)\nNAME_EDUCATION_TYPE: 0.410 disparity (Higher education: 0.26 vs Academic degree: 0.67)\nNAME_HOUSING_TYPE: 0.202 disparity (House / apartment: 0.27 vs With parents: 0.47)",
+      "source": "evaluate_model",
+      "run_id": "e244f4ce-832c-4618-addc-984857f50653"
+    }
+  }
+]
