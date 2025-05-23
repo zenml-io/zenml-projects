@@ -36,7 +36,7 @@ The pipeline uses a parallel processing architecture for efficiency and breaks d
 2. **Parallel Information Gathering**: Process multiple sub-questions concurrently for faster results
 3. **Information Validation & Synthesis**: Validate sources, remove redundancies, and synthesize findings
 4. **Cross-Viewpoint Analysis**: Analyze discrepancies and agreements between different perspectives
-5. **Iterative Reflection**: Self-critique research output to identify gaps and trigger additional searches
+5. **Iterative Reflection with Human Approval**: Self-critique research output to identify gaps and optionally request human approval before conducting additional searches
 6. **Final Report Generation**: Compile all synthesized information into a coherent report
 
 This architecture enables:
@@ -45,6 +45,7 @@ This architecture enables:
 - Easier debugging and monitoring of specific research stages
 - More flexible reconfiguration of individual components
 - Enhanced transparency into how the research is conducted
+- Human oversight and control over iterative research expansions
 
 ## 💡 Under the Hood
 
@@ -54,6 +55,7 @@ This architecture enables:
 - **Reproducibility**: Track every step, parameter, and output via ZenML
 - **Visualizations**: Interactive visualizations of the research structure and progress
 - **Report Generation**: Uses static HTML templates for consistent, high-quality reports
+- **Human-in-the-Loop**: Optional approval mechanism via ZenML alerters (Discord, Slack, etc.)
 
 ## 🛠️ Getting Started
 
@@ -120,7 +122,37 @@ python run.py --no-cache
 
 # Specify a log file
 python run.py --log-file research.log
+
+# Enable human-in-the-loop approval for additional research
+python run.py --require-approval
+
+# Set approval timeout (in seconds)
+python run.py --require-approval --approval-timeout 7200
 ```
+
+### Human-in-the-Loop Approval
+
+The pipeline supports human approval for additional research queries identified during the reflection phase:
+
+```bash
+# Enable approval with default 1-hour timeout
+python run.py --require-approval
+
+# Custom timeout (2 hours)
+python run.py --require-approval --approval-timeout 7200
+
+# Approval works with any configuration
+python run.py --config configs/thorough_research.yaml --require-approval
+```
+
+When enabled, the pipeline will:
+1. Pause after the initial research phase
+2. Send an approval request via your configured ZenML alerter (Discord, Slack, etc.)
+3. Present research progress, identified gaps, and proposed additional queries
+4. Wait for your approval before conducting additional searches
+5. Continue with approved queries or finalize the report based on your decision
+
+**Note**: You need a ZenML stack with an alerter configured (e.g., Discord or Slack) for approval functionality to work.
 
 ## 📊 Visualizing Research Process
 
@@ -182,14 +214,18 @@ zenml_deep_research/
 │   └── parallel_research_pipeline.py
 ├── steps/                     # ZenML pipeline steps
 │   ├── __init__.py
+│   ├── approval_step.py         # Human approval step for additional research
 │   ├── cross_viewpoint_step.py
-│   ├── iterative_reflection_step.py
+│   ├── execute_approved_searches_step.py  # Execute approved searches
+│   ├── generate_reflection_step.py         # Generate reflection without execution
+│   ├── iterative_reflection_step.py       # Legacy combined reflection step
 │   ├── merge_results_step.py
 │   ├── process_sub_question_step.py
 │   ├── pydantic_final_report_step.py
 │   └── query_decomposition_step.py
 ├── utils/                      # Utility functions and helpers
 │   ├── __init__.py
+│   ├── approval_utils.py       # Human approval utilities
 │   ├── helper_functions.py
 │   ├── llm_utils.py            # LLM integration utilities 
 │   ├── prompts.py              # Contains prompt templates and HTML templates
@@ -252,6 +288,12 @@ steps:
       llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
       max_additional_searches: 2
       num_results_per_search: 3
+  
+  # Human approval configuration (when using --require-approval)
+  get_research_approval_step:
+    parameters:
+      timeout: 3600  # 1 hour timeout for approval
+      max_queries: 2  # Maximum queries to present for approval
   
   pydantic_final_report_step:
     parameters:
