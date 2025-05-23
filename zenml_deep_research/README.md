@@ -78,7 +78,8 @@ pip install -r requirements.txt
 
 # Set up API keys
 export OPENAI_API_KEY=your_openai_key  # Or another LLM provider key
-export TAVILY_API_KEY=your_tavily_key
+export TAVILY_API_KEY=your_tavily_key  # For Tavily search (default)
+export EXA_API_KEY=your_exa_key        # For Exa search (optional)
 
 # Initialize ZenML (if needed)
 zenml init
@@ -154,6 +155,52 @@ python run.py --require-approval
 
 # Set approval timeout (in seconds)
 python run.py --require-approval --approval-timeout 7200
+
+# Use a different search provider (default: tavily)
+python run.py --search-provider exa                      # Use Exa search
+python run.py --search-provider both                     # Use both providers
+python run.py --search-provider exa --search-mode neural # Exa with neural search
+```
+
+### Search Providers
+
+The pipeline supports multiple search providers for flexibility and comparison:
+
+#### Available Providers
+
+1. **Tavily** (Default)
+   - Traditional keyword-based search
+   - Good for factual information and current events
+   - Requires `TAVILY_API_KEY` environment variable
+
+2. **Exa**
+   - Neural search engine with semantic understanding
+   - Better for conceptual and research-oriented queries
+   - Supports three search modes:
+     - `auto` (default): Automatically chooses between neural and keyword
+     - `neural`: Semantic search for conceptual understanding
+     - `keyword`: Traditional keyword matching
+   - Requires `EXA_API_KEY` environment variable
+
+3. **Both**
+   - Runs searches on both providers
+   - Useful for comprehensive research or comparing results
+   - Requires both API keys
+
+#### Usage Examples
+
+```bash
+# Use Exa with neural search
+python run.py --search-provider exa --search-mode neural
+
+# Compare results from both providers
+python run.py --search-provider both
+
+# Use Exa with keyword search for exact matches
+python run.py --search-provider exa --search-mode keyword
+
+# Combine with other options
+python run.py --mode deep --search-provider exa --require-approval
 ```
 
 ### Human-in-the-Loop Approval

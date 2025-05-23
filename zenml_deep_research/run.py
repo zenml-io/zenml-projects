@@ -126,6 +126,18 @@ Examples:
     default=3600,
     help="Timeout in seconds for human approval (default: 3600)",
 )
+@click.option(
+    "--search-provider",
+    type=click.Choice(["tavily", "exa", "both"], case_sensitive=False),
+    default=None,
+    help="Search provider to use: tavily (default), exa, or both",
+)
+@click.option(
+    "--search-mode",
+    type=click.Choice(["neural", "keyword", "auto"], case_sensitive=False),
+    default="auto",
+    help="Search mode for Exa provider: neural, keyword, or auto (default: auto)",
+)
 def main(
     mode: str = None,
     config: str = "configs/enhanced_research.yaml",
@@ -136,6 +148,8 @@ def main(
     max_sub_questions: int = 10,
     require_approval: bool = False,
     approval_timeout: int = 3600,
+    search_provider: str = None,
+    search_mode: str = "auto",
 ):
     """Run the deep research pipeline.
 
@@ -149,6 +163,8 @@ def main(
         max_sub_questions: Maximum number of sub-questions to process in parallel
         require_approval: Enable human-in-the-loop approval for additional searches
         approval_timeout: Timeout in seconds for human approval
+        search_provider: Search provider to use (tavily, exa, or both)
+        search_mode: Search mode for Exa provider (neural, keyword, or auto)
     """
     # Configure logging
     log_level = logging.DEBUG if debug else logging.INFO
@@ -202,7 +218,14 @@ def main(
         mode_num_results_per_search = 3
 
     # Check that required environment variables are present using the helper function
-    required_vars = ["SAMBANOVA_API_KEY", "TAVILY_API_KEY"]
+    required_vars = ["SAMBANOVA_API_KEY"]
+
+    # Add provider-specific API key requirements
+    if search_provider in ["exa", "both"]:
+        required_vars.append("EXA_API_KEY")
+    if search_provider in ["tavily", "both", None]:  # Default is tavily
+        required_vars.append("TAVILY_API_KEY")
+
     missing_vars = check_required_env_vars(required_vars)
 
     if missing_vars:
@@ -224,6 +247,17 @@ def main(
     logger.info("Starting Deep Research")
     logger.info("Using parallel pipeline for efficient execution")
 
+    # Log search provider settings
+    if search_provider:
+        logger.info(f"Search provider: {search_provider.upper()}")
+        if search_provider == "exa":
+            logger.info(f"  - Search mode: {search_mode}")
+        elif search_provider == "both":
+            logger.info(f"  - Running both Tavily and Exa searches")
+            logger.info(f"  - Exa search mode: {search_mode}")
+    else:
+        logger.info("Search provider: TAVILY (default)")
+
     # Set up the pipeline with the parallelized version as default
     pipeline = parallelized_deep_research_pipeline.with_options(
         **pipeline_options
@@ -244,6 +278,8 @@ def main(
             require_approval=require_approval,
             approval_timeout=approval_timeout,
             max_additional_searches=mode_max_additional_searches,
+            search_provider=search_provider or "tavily",
+            search_mode=search_mode,
         )
     else:
         logger.info(
@@ -258,6 +294,8 @@ def main(
             require_approval=require_approval,
             approval_timeout=approval_timeout,
             max_additional_searches=mode_max_additional_searches,
+            search_provider=search_provider or "tavily",
+            search_mode=search_mode,
         )
 
     logger.info("=" * 80 + "\n")

@@ -46,6 +46,8 @@ def execute_approved_searches_step(
     cap_search_length: int = 20000,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     additional_synthesis_prompt: str = ADDITIONAL_SYNTHESIS_PROMPT,
+    search_provider: str = "tavily",
+    search_mode: str = "auto",
 ) -> Annotated[ResearchState, "updated_state"]:
     """
     Execute approved searches and enhance the research state.
@@ -130,6 +132,8 @@ def execute_approved_searches_step(
                 query=query,
                 max_results=num_results_per_search,
                 cap_content_length=cap_search_length,
+                provider=search_provider,
+                search_mode=search_mode,
             )
 
             # Extract raw contents

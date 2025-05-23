@@ -30,6 +30,8 @@ def process_sub_question_step(
     llm_model_synthesis: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     num_results_per_search: int = 3,
     cap_search_length: int = 20000,
+    search_provider: str = "tavily",
+    search_mode: str = "auto",
 ) -> Annotated[ResearchState, "output"]:
     """Process a single sub-question if it exists at the given index.
 
@@ -43,6 +45,8 @@ def process_sub_question_step(
         llm_model_synthesis: Model to use for synthesis
         num_results_per_search: Number of results to fetch per search
         cap_search_length: Maximum length of content to process from search results
+        search_provider: Search provider to use (tavily, exa, or both)
+        search_mode: Search mode for Exa provider (neural, keyword, or auto)
 
     Returns:
         A new ResearchState containing only the processed sub-question's results
@@ -89,10 +93,14 @@ def process_sub_question_step(
 
     # Perform search
     logger.info(f"Performing search with query: {search_query}")
+    if search_provider:
+        logger.info(f"Using search provider: {search_provider}")
     results_list = search_and_extract_results(
         query=search_query,
         max_results=num_results_per_search,
         cap_content_length=cap_search_length,
+        provider=search_provider,
+        search_mode=search_mode,
     )
 
     search_results = {sub_question: results_list}

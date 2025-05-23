@@ -1,14 +1,65 @@
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from tavily import TavilyClient
+
+try:
+    from exa_py import Exa
+
+    EXA_AVAILABLE = True
+except ImportError:
+    EXA_AVAILABLE = False
+    Exa = None
 
 from utils.llm_utils import get_structured_llm_output
 from utils.prompts import DEFAULT_SEARCH_QUERY_PROMPT
-
-# Import Pydantic model instead of dataclass
 from utils.pydantic_models import SearchResult
 
 logger = logging.getLogger(__name__)
+
+
+class SearchProvider(Enum):
+    TAVILY = "tavily"
+    EXA = "exa"
+    BOTH = "both"
+
+
+class SearchEngineConfig:
+    """Configuration for search engines"""
+
+    def __init__(self):
+        self.tavily_api_key = os.getenv("TAVILY_API_KEY")
+        self.exa_api_key = os.getenv("EXA_API_KEY")
+        self.default_provider = os.getenv("DEFAULT_SEARCH_PROVIDER", "tavily")
+        self.enable_parallel_search = (
+            os.getenv("ENABLE_PARALLEL_SEARCH", "false").lower() == "true"
+        )
+
+
+def get_search_client(provider: Union[str, SearchProvider]) -> Optional[Any]:
+    """Get the appropriate search client based on provider."""
+    if isinstance(provider, str):
+        provider = SearchProvider(provider.lower())
+
+    config = SearchEngineConfig()
+
+    if provider == SearchProvider.TAVILY:
+        if not config.tavily_api_key:
+            raise ValueError("TAVILY_API_KEY environment variable not set")
+        return TavilyClient(api_key=config.tavily_api_key)
+
+    elif provider == SearchProvider.EXA:
+        if not EXA_AVAILABLE:
+            raise ImportError(
+                "exa-py is not installed. Please install it with: pip install exa-py"
+            )
+        if not config.exa_api_key:
+            raise ValueError("EXA_API_KEY environment variable not set")
+        return Exa(config.exa_api_key)
+
+    return None
 
 
 def tavily_search(
@@ -42,15 +93,7 @@ def tavily_search(
             }
     """
     try:
-        from tavily import TavilyClient
-
-        # Get API key directly from environment variables
-        api_key = os.environ.get("TAVILY_API_KEY", "")
-        if not api_key:
-            logger.error("TAVILY_API_KEY environment variable not set")
-            raise ValueError("TAVILY_API_KEY environment variable not set")
-
-        tavily_client = TavilyClient(api_key=api_key)
+        tavily_client = get_search_client(SearchProvider.TAVILY)
 
         # First try with advanced search
         results = tavily_client.search(
@@ -191,13 +234,180 @@ def tavily_search(
         return {"query": query, "results": [], "error": str(e)}
 
 
-def extract_search_results(
-    tavily_results: Dict[str, Any],
-) -> List[SearchResult]:
-    """Extract SearchResult objects from Tavily API response.
+def exa_search(
+    query: str,
+    max_results: int = 3,
+    cap_content_length: int = 20000,
+    search_mode: str = "auto",
+    include_highlights: bool = False,
+) -> Dict[str, Any]:
+    """Perform a search using the Exa API.
 
     Args:
-        tavily_results: Results from tavily_search function
+        query: Search query
+        max_results: Maximum number of results to return
+        cap_content_length: Maximum length of content to return
+        search_mode: Search mode ("neural", "keyword", or "auto")
+        include_highlights: Whether to include highlights in results
+
+    Returns:
+        Dict[str, Any]: Search results from Exa in a format compatible with Tavily
+    """
+    try:
+        exa_client = get_search_client(SearchProvider.EXA)
+
+        # Configure content options
+        text_options = {"max_characters": cap_content_length}
+
+        kwargs = {
+            "query": query,
+            "num_results": max_results,
+            "type": search_mode,  # "neural", "keyword", or "auto"
+            "text": text_options,
+        }
+
+        if include_highlights:
+            kwargs["highlights"] = {
+                "highlights_per_url": 2,
+                "num_sentences": 3,
+            }
+
+        response = exa_client.search_and_contents(**kwargs)
+
+        # Convert to standardized format compatible with Tavily
+        results = {"query": query, "results": []}
+
+        for r in response.results:
+            result_dict = {
+                "url": r.url,
+                "title": r.title or "",
+                "snippet": "",
+                "raw_content": getattr(r, "text", ""),
+                "content": getattr(r, "text", ""),
+            }
+
+            # Add highlights as snippet if available
+            if hasattr(r, "highlights") and r.highlights:
+                result_dict["snippet"] = " ".join(r.highlights[:1])
+
+            # Store additional metadata
+            result_dict["_metadata"] = {
+                "provider": "exa",
+                "score": getattr(r, "score", None),
+                "published_date": getattr(r, "published_date", None),
+                "author": getattr(r, "author", None),
+            }
+
+            results["results"].append(result_dict)
+
+        return results
+
+    except Exception as e:
+        logger.error(f"Error in Exa search: {e}")
+        return {"query": query, "results": [], "error": str(e)}
+
+
+def unified_search(
+    query: str,
+    provider: Union[str, SearchProvider, None] = None,
+    max_results: int = 3,
+    cap_content_length: int = 20000,
+    search_mode: str = "auto",
+    include_highlights: bool = False,
+    compare_results: bool = False,
+    **kwargs,
+) -> Union[List[SearchResult], Dict[str, List[SearchResult]]]:
+    """
+    Unified search interface supporting multiple providers.
+
+    Args:
+        query: Search query
+        provider: Search provider to use (tavily, exa, both)
+        max_results: Maximum number of results
+        cap_content_length: Maximum content length
+        search_mode: Search mode for Exa ("neural", "keyword", "auto")
+        include_highlights: Include highlights for Exa results
+        compare_results: Return results from both providers separately
+
+    Returns:
+        List[SearchResult] or Dict mapping provider to results (when compare_results=True or provider="both")
+    """
+    # Use default provider if not specified
+    if provider is None:
+        config = SearchEngineConfig()
+        provider = config.default_provider
+
+    # Convert string to enum if needed
+    if isinstance(provider, str):
+        provider = SearchProvider(provider.lower())
+
+    # Handle single provider case
+    if provider == SearchProvider.TAVILY:
+        results = tavily_search(
+            query,
+            max_results=max_results,
+            cap_content_length=cap_content_length,
+        )
+        extracted = extract_search_results(results, provider="tavily")
+        return extracted if not compare_results else {"tavily": extracted}
+
+    elif provider == SearchProvider.EXA:
+        results = exa_search(
+            query=query,
+            max_results=max_results,
+            cap_content_length=cap_content_length,
+            search_mode=search_mode,
+            include_highlights=include_highlights,
+        )
+        extracted = extract_search_results(results, provider="exa")
+        return extracted if not compare_results else {"exa": extracted}
+
+    elif provider == SearchProvider.BOTH:
+        # Run both searches
+        tavily_results = tavily_search(
+            query,
+            max_results=max_results,
+            cap_content_length=cap_content_length,
+        )
+        exa_results = exa_search(
+            query=query,
+            max_results=max_results,
+            cap_content_length=cap_content_length,
+            search_mode=search_mode,
+            include_highlights=include_highlights,
+        )
+
+        # Extract results from both
+        tavily_extracted = extract_search_results(
+            tavily_results, provider="tavily"
+        )
+        exa_extracted = extract_search_results(exa_results, provider="exa")
+
+        if compare_results:
+            return {"tavily": tavily_extracted, "exa": exa_extracted}
+        else:
+            # Merge results, interleaving them
+            merged = []
+            max_len = max(len(tavily_extracted), len(exa_extracted))
+            for i in range(max_len):
+                if i < len(tavily_extracted):
+                    merged.append(tavily_extracted[i])
+                if i < len(exa_extracted):
+                    merged.append(exa_extracted[i])
+            return merged[:max_results]  # Limit to requested number
+
+    else:
+        raise ValueError(f"Unknown provider: {provider}")
+
+
+def extract_search_results(
+    search_results: Dict[str, Any], provider: str = "tavily"
+) -> List[SearchResult]:
+    """Extract SearchResult objects from provider-specific API responses.
+
+    Args:
+        search_results: Results from search API
+        provider: Which provider the results came from
 
     Returns:
         List[SearchResult]: List of converted SearchResult objects with standardized fields.
@@ -208,8 +418,9 @@ def extract_search_results(
           - snippet: A brief snippet of the page content
     """
     results_list = []
-    if "results" in tavily_results:
-        for result in tavily_results["results"]:
+
+    if "results" in search_results:
+        for result in search_results["results"]:
             if "url" in result:
                 # Get fields with defaults
                 url = result["url"]
@@ -255,18 +466,29 @@ def extract_search_results(
                         f"No content available for URL {url}, using empty string"
                     )
 
-                results_list.append(
-                    SearchResult(
-                        url=url,
-                        content=content,
-                        title=title,
-                        snippet=snippet,
-                    )
+                # Create SearchResult with provider metadata
+                search_result = SearchResult(
+                    url=url,
+                    content=content,
+                    title=title,
+                    snippet=snippet,
                 )
 
-    # If we got the answer, add it as a special result
-    if "answer" in tavily_results and tavily_results["answer"]:
-        answer_text = tavily_results["answer"]
+                # Add provider info to metadata if available
+                if "_metadata" in result:
+                    search_result.metadata = result["_metadata"]
+                else:
+                    search_result.metadata = {"provider": provider}
+
+                results_list.append(search_result)
+
+    # If we got the answer (Tavily specific), add it as a special result
+    if (
+        provider == "tavily"
+        and "answer" in search_results
+        and search_results["answer"]
+    ):
+        answer_text = search_results["answer"]
         results_list.append(
             SearchResult(
                 url="tavily-generated-answer",
@@ -275,6 +497,7 @@ def extract_search_results(
                 snippet=answer_text[:100] + "..."
                 if len(answer_text) > 100
                 else answer_text,
+                metadata={"provider": "tavily", "type": "generated_answer"},
             )
         )
         logger.info("Added Tavily generated answer as a search result")
@@ -317,6 +540,9 @@ def search_and_extract_results(
     max_results: int = 3,
     cap_content_length: int = 20000,
     max_retries: int = 2,
+    provider: Optional[Union[str, SearchProvider]] = None,
+    search_mode: str = "auto",
+    include_highlights: bool = False,
 ) -> List[SearchResult]:
     """Perform a search and extract results in one step.
 
@@ -325,6 +551,9 @@ def search_and_extract_results(
         max_results: Maximum number of results to return
         cap_content_length: Maximum length of content to return
         max_retries: Maximum number of retries in case of failure
+        provider: Search provider to use (tavily, exa, both)
+        search_mode: Search mode for Exa ("neural", "keyword", "auto")
+        include_highlights: Include highlights for Exa results
 
     Returns:
         List of SearchResult objects
@@ -351,13 +580,23 @@ def search_and_extract_results(
                 f"Searching with query ({retry_count + 1}/{max_retries + 1}): {current_query}"
             )
 
-            tavily_results = tavily_search(
+            # Use unified search interface
+            results = unified_search(
                 query=current_query,
+                provider=provider,
                 max_results=max_results,
                 cap_content_length=cap_content_length,
+                search_mode=search_mode,
+                include_highlights=include_highlights,
             )
 
-            results = extract_search_results(tavily_results)
+            # Handle case where unified_search returns a dict (when provider="both" and compare_results=True)
+            if isinstance(results, dict):
+                # Merge results from all providers
+                all_results = []
+                for provider_results in results.values():
+                    all_results.extend(provider_results)
+                results = all_results[:max_results]
 
             # Check if we got results with actual content
             if results:

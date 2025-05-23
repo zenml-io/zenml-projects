@@ -19,6 +19,7 @@ class SearchResult(BaseModel):
     content: str = ""
     title: str = ""
     snippet: str = ""
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     model_config = {
         "extra": "ignore",  # Ignore extra fields during deserialization

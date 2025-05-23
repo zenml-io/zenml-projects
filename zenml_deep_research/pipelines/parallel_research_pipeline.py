@@ -18,6 +18,8 @@ def parallelized_deep_research_pipeline(
     require_approval: bool = False,
     approval_timeout: int = 3600,
     max_additional_searches: int = 2,
+    search_provider: str = "tavily",
+    search_mode: str = "auto",
 ) -> HTMLString:
     """Parallelized ZenML pipeline for deep research on a given query.
 
@@ -30,6 +32,8 @@ def parallelized_deep_research_pipeline(
         require_approval: Whether to require human approval for additional searches
         approval_timeout: Timeout in seconds for human approval
         max_additional_searches: Maximum number of additional searches to perform
+        search_provider: Search provider to use (tavily, exa, or both)
+        search_mode: Search mode for Exa provider (neural, keyword, or auto)
 
     Returns:
         Formatted research report as HTML
@@ -50,6 +54,8 @@ def parallelized_deep_research_pipeline(
         sub_state = process_sub_question_step(
             state=decomposed_state,
             question_index=i,
+            search_provider=search_provider,
+            search_mode=search_mode,
             id=f"process_question_{i + 1}",
         )
         after.append(sub_state)
@@ -83,6 +89,8 @@ def parallelized_deep_research_pipeline(
     reflected_state = execute_approved_searches_step(
         reflection_output=reflection_output,
         approval_decision=approval_decision,
+        search_provider=search_provider,
+        search_mode=search_mode,
     )
 
     # Use our new Pydantic-based final report step
