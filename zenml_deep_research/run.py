@@ -75,6 +75,18 @@ Examples:
     default=10,
     help="Maximum number of sub-questions to process in parallel",
 )
+@click.option(
+    "--require-approval",
+    is_flag=True,
+    default=False,
+    help="Enable human-in-the-loop approval for additional searches",
+)
+@click.option(
+    "--approval-timeout",
+    type=int,
+    default=3600,
+    help="Timeout in seconds for human approval (default: 3600)",
+)
 def main(
     config: str = "configs/enhanced_research.yaml",
     no_cache: bool = False,
@@ -82,6 +94,8 @@ def main(
     debug: bool = False,
     query: str = None,
     max_sub_questions: int = 10,
+    require_approval: bool = False,
+    approval_timeout: int = 3600,
 ):
     """Run the deep research pipeline.
 
@@ -92,6 +106,8 @@ def main(
         debug: Enable debug logging
         query: Research query (overrides the query in the config file)
         max_sub_questions: Maximum number of sub-questions to process in parallel
+        require_approval: Enable human-in-the-loop approval for additional searches
+        approval_timeout: Timeout in seconds for human approval
     """
     # Configure logging
     log_level = logging.DEBUG if debug else logging.INFO
@@ -130,12 +146,29 @@ def main(
         logger.info(
             f"Using query: {query} with max {max_sub_questions} parallel sub-questions"
         )
-        run = pipeline(query=query, max_sub_questions=max_sub_questions)
+        if require_approval:
+            logger.info(
+                f"Human approval enabled with {approval_timeout}s timeout"
+            )
+        run = pipeline(
+            query=query,
+            max_sub_questions=max_sub_questions,
+            require_approval=require_approval,
+            approval_timeout=approval_timeout,
+        )
     else:
         logger.info(
             f"Using query from config file with max {max_sub_questions} parallel sub-questions"
         )
-        run = pipeline(max_sub_questions=max_sub_questions)
+        if require_approval:
+            logger.info(
+                f"Human approval enabled with {approval_timeout}s timeout"
+            )
+        run = pipeline(
+            max_sub_questions=max_sub_questions,
+            require_approval=require_approval,
+            approval_timeout=approval_timeout,
+        )
 
     logger.info("=" * 80 + "\n")
 

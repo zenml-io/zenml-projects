@@ -5,7 +5,8 @@ pipeline. These models replace the previous dataclasses implementation and lever
 Pydantic's validation, serialization, and integration with ZenML.
 """
 
-from typing import Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
@@ -170,3 +171,34 @@ class ResearchState(BaseModel):
     def set_final_report(self, html: str) -> None:
         """Set the final report HTML."""
         self.final_report_html = html
+
+
+class ReflectionOutput(BaseModel):
+    """Output from the reflection generation step."""
+
+    state: ResearchState
+    recommended_queries: List[str] = Field(default_factory=list)
+    critique_summary: List[Dict[str, Any]] = Field(default_factory=list)
+    additional_questions: List[str] = Field(default_factory=list)
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+
+class ApprovalDecision(BaseModel):
+    """Approval decision from human reviewer."""
+
+    approved: bool = False
+    selected_queries: List[str] = Field(default_factory=list)
+    approval_method: str = ""  # "APPROVE_ALL", "SKIP", "SELECT_SPECIFIC"
+    reviewer_notes: str = ""
+    timestamp: float = Field(default_factory=lambda: time.time())
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
