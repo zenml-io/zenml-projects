@@ -3,7 +3,7 @@ import logging
 from typing import Annotated
 
 from utils.llm_utils import get_structured_llm_output
-from utils.prompts import REFLECTION_PROMPT
+from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ReflectionOutput, ResearchState
 from zenml import step
 
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 @step
 def generate_reflection_step(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
-    reflection_prompt: str = REFLECTION_PROMPT,
 ) -> Annotated[ReflectionOutput, "reflection_output"]:
     """
     Generate reflection and recommendations WITHOUT executing searches.
@@ -24,8 +24,8 @@ def generate_reflection_step(
 
     Args:
         state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
         llm_model: The model to use for reflection
-        reflection_prompt: System prompt for the reflection
 
     Returns:
         ReflectionOutput containing the state, recommendations, and critique
@@ -70,6 +70,9 @@ def generate_reflection_step(
 
     # Get reflection critique
     logger.info(f"Generating self-critique via {llm_model}")
+
+    # Get the prompt from the bundle
+    reflection_prompt = prompts_bundle.get_prompt_content("reflection_prompt")
 
     # Define fallback for reflection result
     fallback_reflection = {

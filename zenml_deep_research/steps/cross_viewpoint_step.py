@@ -7,7 +7,7 @@ from utils.helper_functions import (
     safe_json_loads,
 )
 from utils.llm_utils import run_llm_completion
-from utils.prompts import VIEWPOINT_ANALYSIS_PROMPT
+from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import (
     ResearchState,
     ViewpointAnalysis,
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def cross_viewpoint_analysis_step(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     viewpoint_categories: List[str] = [
         "scientific",
@@ -30,15 +31,14 @@ def cross_viewpoint_analysis_step(
         "ethical",
         "historical",
     ],
-    system_prompt: str = VIEWPOINT_ANALYSIS_PROMPT,
 ) -> Annotated[ResearchState, "updated_state"]:
     """Analyze synthesized information across different viewpoints.
 
     Args:
         state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
         llm_model: The model to use for viewpoint analysis
         viewpoint_categories: Categories of viewpoints to analyze
-        system_prompt: System prompt for the LLM
 
     Returns:
         Updated research state with viewpoint analysis
@@ -66,6 +66,11 @@ def cross_viewpoint_analysis_step(
     # Perform viewpoint analysis
     try:
         logger.info(f"Calling {llm_model} for viewpoint analysis")
+        # Get the prompt from the bundle
+        system_prompt = prompts_bundle.get_prompt_content(
+            "viewpoint_analysis_prompt"
+        )
+
         # Use the run_llm_completion function from llm_utils
         content = run_llm_completion(
             prompt=json.dumps(analysis_input),

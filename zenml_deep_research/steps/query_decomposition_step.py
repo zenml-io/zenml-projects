@@ -3,7 +3,7 @@ from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import get_structured_llm_output
-from utils.prompts import QUERY_DECOMPOSITION_PROMPT
+from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ResearchState
 from zenml import step
 
@@ -13,22 +13,27 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def initial_query_decomposition_step(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
-    system_prompt: str = QUERY_DECOMPOSITION_PROMPT,
     max_sub_questions: int = 8,
 ) -> Annotated[ResearchState, "updated_state"]:
     """Break down a complex research query into specific sub-questions.
 
     Args:
         state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
         llm_model: The reasoning model to use with provider prefix
-        system_prompt: System prompt for the LLM
         max_sub_questions: Maximum number of sub-questions to generate
 
     Returns:
         Updated research state with sub-questions
     """
     logger.info(f"Decomposing research query: {state.main_query}")
+
+    # Get the prompt from the bundle
+    system_prompt = prompts_bundle.get_prompt_content(
+        "query_decomposition_prompt"
+    )
 
     try:
         # Call OpenAI API to decompose the query

@@ -16,9 +16,8 @@ from utils.helper_functions import (
     remove_reasoning_from_output,
 )
 from utils.llm_utils import run_llm_completion
+from utils.prompt_models import PromptsBundle
 from utils.prompts import (
-    CONCLUSION_GENERATION_PROMPT,
-    REPORT_GENERATION_PROMPT,
     STATIC_HTML_TEMPLATE,
     SUB_QUESTION_TEMPLATE,
     VIEWPOINT_ANALYSIS_TEMPLATE,
@@ -139,12 +138,14 @@ def format_text_with_code_blocks(text: str) -> str:
 
 def generate_conclusion(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
 ) -> str:
     """Generate a comprehensive conclusion using LLM based on all research findings.
 
     Args:
         state: The ResearchState containing all research findings
+        prompts_bundle: Bundle containing all prompts for the pipeline
         llm_model: The model to use for conclusion generation
 
     Returns:
@@ -202,10 +203,15 @@ def generate_conclusion(
         }
 
     try:
+        # Get the prompt from the bundle
+        conclusion_prompt = prompts_bundle.get_prompt_content(
+            "conclusion_generation_prompt"
+        )
+
         # Generate conclusion using LLM
         conclusion_html = run_llm_completion(
             prompt=json.dumps(conclusion_input, indent=2),
-            system_prompt=CONCLUSION_GENERATION_PROMPT,
+            system_prompt=conclusion_prompt,
             model=llm_model,
             clean_output=True,
             max_tokens=1500,  # Sufficient for comprehensive conclusion
@@ -253,6 +259,7 @@ def generate_conclusion(
 
 def generate_report_from_template(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
 ) -> str:
     """Generate a final HTML report from a static template.
@@ -262,6 +269,7 @@ def generate_report_from_template(
 
     Args:
         state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
         llm_model: The model to use for conclusion generation
 
     Returns:
@@ -420,7 +428,7 @@ def generate_report_from_template(
         executive_summary = f"This report examines {html.escape(state.main_query)} through a structured approach, breaking down the topic into {len(state.sub_questions)} focused sub-questions. The research synthesizes information from multiple sources to provide a comprehensive analysis of the topic."
 
     # Generate comprehensive conclusion using LLM
-    conclusion_html = generate_conclusion(state, llm_model)
+    conclusion_html = generate_conclusion(state, prompts_bundle, llm_model)
 
     # Generate complete HTML report
     html_content = STATIC_HTML_TEMPLATE.format(
@@ -792,9 +800,9 @@ def _generate_fallback_report(state: ResearchState) -> str:
 )
 def pydantic_final_report_step(
     state: ResearchState,
+    prompts_bundle: PromptsBundle,
     use_static_template: bool = True,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
-    system_prompt: str = REPORT_GENERATION_PROMPT,
 ) -> Tuple[
     Annotated[ResearchState, "state"], Annotated[HTMLString, "report_html"]
 ]:
@@ -806,9 +814,9 @@ def pydantic_final_report_step(
 
     Args:
         state: The current research state (Pydantic model)
+        prompts_bundle: Bundle containing all prompts for the pipeline
         use_static_template: Whether to use a static template instead of LLM generation
         llm_model: The model to use for report generation with provider prefix
-        system_prompt: System prompt for the LLM
 
     Returns:
         A tuple containing the updated research state and the HTML report
@@ -818,7 +826,9 @@ def pydantic_final_report_step(
     if use_static_template:
         # Use the static HTML template approach
         logger.info("Using static HTML template for report generation")
-        html_content = generate_report_from_template(state, llm_model)
+        html_content = generate_report_from_template(
+            state, prompts_bundle, llm_model
+        )
 
         # Update the state with the final report HTML
         state.set_final_report(html_content)
@@ -846,10 +856,15 @@ def pydantic_final_report_step(
     try:
         logger.info(f"Calling {llm_model} to generate final report")
 
+        # Get the prompt from the bundle
+        report_prompt = prompts_bundle.get_prompt_content(
+            "report_generation_prompt"
+        )
+
         # Use the utility function to run LLM completion
         html_content = run_llm_completion(
             prompt=json.dumps(report_input),
-            system_prompt=system_prompt,
+            system_prompt=report_prompt,
             model=llm_model,
             clean_output=False,  # Don't clean in case of breaking HTML formatting
             max_tokens=4000,  # Increased token limit for detailed report generation

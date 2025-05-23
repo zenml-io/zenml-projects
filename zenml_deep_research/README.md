@@ -421,6 +421,74 @@ python run.py --config configs/custom_research.yaml
 
 You can create additional configuration files by copying and modifying the base configuration files above.
 
+## 🎯 Prompts Tracking and Management
+
+The pipeline includes a sophisticated prompts tracking system that allows you to track all prompts as versioned artifacts in ZenML. This provides better observability, version control, and visualization of the prompts used in your research pipeline.
+
+### Overview
+
+The prompts tracking system enables:
+- **Artifact Tracking**: All prompts are tracked as versioned artifacts in ZenML
+- **Beautiful Visualizations**: HTML interface in the dashboard with search, copy, and expand features
+- **Version Control**: Prompts are versioned alongside your code
+- **Pipeline Integration**: Prompts are passed through the pipeline as artifacts, not hardcoded imports
+
+### Components
+
+1. **PromptsBundle Model** (`utils/prompt_models.py`)
+   - Pydantic model containing all prompts used in the pipeline
+   - Each prompt includes metadata: name, content, description, version, and tags
+
+2. **PromptsBundleMaterializer** (`materializers/prompts_materializer.py`)
+   - Custom materializer creating HTML visualizations in the ZenML dashboard
+   - Features: search, copy-to-clipboard, expandable content, tag categorization
+
+3. **Prompt Loader** (`utils/prompt_loader.py`)
+   - Utility to load prompts from `prompts.py` into a PromptsBundle
+
+### Integration Guide
+
+To integrate prompts tracking into a pipeline:
+
+1. **Initialize prompts as the first step:**
+   ```python
+   from steps.initialize_prompts_step import initialize_prompts_step
+   
+   @pipeline
+   def my_pipeline():
+       prompts_bundle = initialize_prompts_step(pipeline_version="1.0.0")
+   ```
+
+2. **Update steps to receive prompts_bundle:**
+   ```python
+   @step
+   def my_step(state: ResearchState, prompts_bundle: PromptsBundle):
+       prompt = prompts_bundle.get_prompt_content("synthesis_prompt")
+       # Use prompt in your step logic
+   ```
+
+3. **Pass prompts_bundle through the pipeline:**
+   ```python
+   state = synthesis_step(state=state, prompts_bundle=prompts_bundle)
+   ```
+
+### Benefits
+
+- **Full Tracking**: Every pipeline run tracks which exact prompts were used
+- **Version History**: See how prompts evolved across different runs
+- **Debugging**: Easily identify which prompts produced specific outputs
+- **A/B Testing**: Compare results using different prompt versions
+
+### Visualization Features
+
+The HTML visualization in the ZenML dashboard includes:
+- Pipeline version and creation timestamp
+- Statistics (total prompts, tagged prompts, custom prompts)
+- Search functionality across all prompt content
+- Expandable/collapsible prompt content
+- One-click copy to clipboard
+- Tag-based categorization with visual indicators
+
 ## 📈 Example Use Cases
 
 - **Academic Research**: Rapidly generate preliminary research on academic topics

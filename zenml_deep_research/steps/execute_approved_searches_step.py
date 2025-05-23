@@ -8,7 +8,7 @@ from utils.llm_utils import (
     get_structured_llm_output,
     is_text_relevant,
 )
-from utils.prompts import ADDITIONAL_SYNTHESIS_PROMPT
+from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import (
     ApprovalDecision,
     ReflectionMetadata,
@@ -42,10 +42,10 @@ def create_enhanced_info_copy(synthesized_info):
 def execute_approved_searches_step(
     reflection_output: ReflectionOutput,
     approval_decision: ApprovalDecision,
+    prompts_bundle: PromptsBundle,
     num_results_per_search: int = 3,
     cap_search_length: int = 20000,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
-    additional_synthesis_prompt: str = ADDITIONAL_SYNTHESIS_PROMPT,
     search_provider: str = "tavily",
     search_mode: str = "auto",
 ) -> Annotated[ResearchState, "updated_state"]:
@@ -61,7 +61,9 @@ def execute_approved_searches_step(
         num_results_per_search: Number of results to fetch per search
         cap_search_length: Maximum length of content to process from search results
         llm_model: The model to use for synthesis enhancement
-        additional_synthesis_prompt: System prompt for incorporating additional information
+        prompts_bundle: Bundle containing all prompts for the pipeline
+        search_provider: Search provider to use
+        search_mode: Search mode for the provider
 
     Returns:
         Updated research state with enhanced information and reflection metadata
@@ -162,6 +164,13 @@ def execute_approved_searches_step(
                         )
                     ],
                 }
+
+                # Get the prompt from the bundle
+                additional_synthesis_prompt = (
+                    prompts_bundle.get_prompt_content(
+                        "additional_synthesis_prompt"
+                    )
+                )
 
                 # Use the utility function for enhancement
                 enhanced_synthesis = get_structured_llm_output(

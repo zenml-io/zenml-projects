@@ -2,6 +2,7 @@ from steps.approval_step import get_research_approval_step
 from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
 from steps.execute_approved_searches_step import execute_approved_searches_step
 from steps.generate_reflection_step import generate_reflection_step
+from steps.initialize_prompts_step import initialize_prompts_step
 from steps.merge_results_step import merge_sub_question_results_step
 from steps.process_sub_question_step import process_sub_question_step
 from steps.pydantic_final_report_step import pydantic_final_report_step
@@ -40,12 +41,17 @@ def parallelized_deep_research_pipeline(
     Returns:
         Formatted research report as HTML
     """
+    # Initialize prompts bundle for tracking
+    prompts_bundle = initialize_prompts_step(pipeline_version="1.0.0")
+
     # Initialize the research state with the main query
     state = ResearchState(main_query=query)
 
     # Step 1: Decompose the query into sub-questions, limiting to max_sub_questions
     decomposed_state = initial_query_decomposition_step(
-        state=state, max_sub_questions=max_sub_questions
+        state=state,
+        prompts_bundle=prompts_bundle,
+        max_sub_questions=max_sub_questions,
     )
 
     # Fan out: Process each sub-question in parallel
@@ -55,6 +61,7 @@ def parallelized_deep_research_pipeline(
         # Process the i-th sub-question (if it exists)
         sub_state = process_sub_question_step(
             state=decomposed_state,
+            prompts_bundle=prompts_bundle,
             question_index=i,
             search_provider=search_provider,
             search_mode=search_mode,
@@ -74,11 +81,15 @@ def parallelized_deep_research_pipeline(
     )
 
     # Continue with subsequent steps
-    analyzed_state = cross_viewpoint_analysis_step(state=merged_state)
+    analyzed_state = cross_viewpoint_analysis_step(
+        state=merged_state, prompts_bundle=prompts_bundle
+    )
 
     # New 3-step reflection flow with optional human approval
     # Step 1: Generate reflection and recommendations (no searches yet)
-    reflection_output = generate_reflection_step(state=analyzed_state)
+    reflection_output = generate_reflection_step(
+        state=analyzed_state, prompts_bundle=prompts_bundle
+    )
 
     # Step 2: Get approval for recommended searches
     approval_decision = get_research_approval_step(
@@ -92,6 +103,7 @@ def parallelized_deep_research_pipeline(
     reflected_state = execute_approved_searches_step(
         reflection_output=reflection_output,
         approval_decision=approval_decision,
+        prompts_bundle=prompts_bundle,
         search_provider=search_provider,
         search_mode=search_mode,
         num_results_per_search=num_results_per_search,
@@ -99,6 +111,8 @@ def parallelized_deep_research_pipeline(
 
     # Use our new Pydantic-based final report step
     # This returns a tuple (state, html_report)
-    _, final_report = pydantic_final_report_step(state=reflected_state)
+    _, final_report = pydantic_final_report_step(
+        state=reflected_state, prompts_bundle=prompts_bundle
+    )
 
     return final_report
