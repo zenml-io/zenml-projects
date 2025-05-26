@@ -16,6 +16,7 @@ def initial_query_decomposition_step(
     prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     max_sub_questions: int = 8,
+    langfuse_project_name: str = "deep-research",
 ) -> Annotated[ResearchState, "updated_state"]:
     """Break down a complex research query into specific sub-questions.
 
@@ -67,6 +68,7 @@ def initial_query_decomposition_step(
             system_prompt=updated_system_prompt,
             model=llm_model,
             fallback_response=fallback_questions,
+            project=langfuse_project_name,
         )
 
         # Extract just the sub-questions

@@ -1,6 +1,9 @@
 # Deep Research Pipeline Configuration - Daily Trends Research
 enable_cache: false  # Disable cache to always get fresh results for daily trends
 
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
 # Research parameters for daily trending topics
 parameters:
   query: "Latest developments in artificial intelligence"

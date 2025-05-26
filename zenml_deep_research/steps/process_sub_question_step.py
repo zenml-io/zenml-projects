@@ -33,6 +33,7 @@ def process_sub_question_step(
     cap_search_length: int = 20000,
     search_provider: str = "tavily",
     search_mode: str = "auto",
+    langfuse_project_name: str = "deep-research",
 ) -> Annotated[ResearchState, "output"]:
     """Process a single sub-question if it exists at the given index.
 
@@ -92,6 +93,7 @@ def process_sub_question_step(
         sub_question=sub_question,
         model=llm_model_search,
         system_prompt=search_query_prompt,
+        project=langfuse_project_name,
     )
     search_query = search_query_data.get(
         "search_query", f"research about {sub_question}"
@@ -134,6 +136,7 @@ def process_sub_question_step(
         synthesis_input=synthesis_input,
         model=llm_model_synthesis,
         system_prompt=synthesis_prompt,
+        project=langfuse_project_name,
     )
 
     # Create SynthesizedInfo object

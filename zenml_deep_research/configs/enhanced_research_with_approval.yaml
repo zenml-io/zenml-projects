@@ -1,6 +1,9 @@
 # Enhanced Deep Research Pipeline Configuration with Human Approval
 enable_cache: false
 
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
 # Research query parameters
 query: "Climate change policy debates"
 

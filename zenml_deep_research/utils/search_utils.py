@@ -509,6 +509,7 @@ def generate_search_query(
     sub_question: str,
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
+    project: str = "deep-research",
 ) -> Dict[str, Any]:
     """Generate an optimized search query for a sub-question.
 
@@ -518,6 +519,7 @@ def generate_search_query(
         sub_question: The sub-question to generate a search query for
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM, defaults to DEFAULT_SEARCH_QUERY_PROMPT
+        project: Langfuse project name for LLM tracking
 
     Returns:
         Dictionary with search query and reasoning
@@ -532,6 +534,7 @@ def generate_search_query(
         system_prompt=system_prompt,
         model=model,
         fallback_response=fallback_response,
+        project=project,
     )
 
 

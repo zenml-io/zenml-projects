@@ -1,6 +1,9 @@
 # Deep Research Pipeline Configuration - Deep Comprehensive Mode
 enable_cache: false  # Disable cache for fresh comprehensive analysis
 
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
 # Research parameters for deep comprehensive research
 parameters:
   query: "Default research query"

@@ -48,6 +48,7 @@ def execute_approved_searches_step(
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     search_provider: str = "tavily",
     search_mode: str = "auto",
+    langfuse_project_name: str = "deep-research",
 ) -> Annotated[ResearchState, "updated_state"]:
     """
     Execute approved searches and enhance the research state.
@@ -143,7 +144,10 @@ def execute_approved_searches_step(
 
             # Find the most relevant sub-question for this query
             most_relevant_question = find_most_relevant_string(
-                query, state.sub_questions, llm_model
+                query,
+                state.sub_questions,
+                llm_model,
+                project=langfuse_project_name,
             )
 
             if (
@@ -184,6 +188,7 @@ def execute_approved_searches_step(
                         "improvements_made": ["Failed to enhance synthesis"],
                         "remaining_limitations": "Enhancement process failed.",
                     },
+                    project=langfuse_project_name,
                 )
 
                 if (

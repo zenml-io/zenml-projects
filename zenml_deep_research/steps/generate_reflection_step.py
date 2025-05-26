@@ -15,6 +15,7 @@ def generate_reflection_step(
     state: ResearchState,
     prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
 ) -> Annotated[ReflectionOutput, "reflection_output"]:
     """
     Generate reflection and recommendations WITHOUT executing searches.
@@ -87,6 +88,7 @@ def generate_reflection_step(
         system_prompt=reflection_prompt,
         model=llm_model,
         fallback_response=fallback_reflection,
+        project=langfuse_project_name,
     )
 
     # Return structured output for next steps

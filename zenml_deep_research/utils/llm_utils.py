@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
+import litellm
 from litellm import completion
 from utils.helper_functions import (
     clean_json_tags,
@@ -9,12 +10,15 @@ from utils.helper_functions import (
     safe_json_loads,
 )
 from utils.prompts import SYNTHESIS_PROMPT
+from zenml import get_step_context
 
 logger = logging.getLogger(__name__)
 
 # This module uses litellm for all LLM interactions
 # Models are specified with a provider prefix (e.g., "sambanova/DeepSeek-R1-Distill-Llama-70B")
 # ALL model names require a provider prefix (e.g., "sambanova/", "openai/", "anthropic/")
+
+litellm.callbacks = ["langfuse"]
 
 
 def run_llm_completion(
@@ -25,6 +29,8 @@ def run_llm_completion(
     max_tokens: int = 2000,  # Increased default token limit
     temperature: float = 0.2,
     top_p: float = 0.9,
+    project: str = "deep-research",
+    tags: Optional[List[str]] = None,
 ) -> str:
     """Run an LLM completion with standard error handling and output cleaning.
 
@@ -40,6 +46,8 @@ def run_llm_completion(
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling value
+        project: Langfuse project name for LLM tracking
+        tags: Optional list of tags for Langfuse tracking. If None, no tags are added.
 
     Returns:
         str: Processed LLM output with optional cleaning applied
@@ -62,6 +70,26 @@ def run_llm_completion(
             logger.error(error_msg)
             raise ValueError(error_msg)
 
+        # Get pipeline run name and id for trace_name and trace_id if running in a step
+        trace_name = None
+        trace_id = None
+        try:
+            context = get_step_context()
+            trace_name = context.pipeline_run.name
+            trace_id = str(context.pipeline_run.id)
+        except RuntimeError:
+            # Not running in a step context
+            pass
+
+        # Build metadata dict
+        metadata = {"project": project}
+        if tags is not None:
+            metadata["tags"] = tags
+        if trace_name:
+            metadata["trace_name"] = trace_name
+        if trace_id:
+            metadata["trace_id"] = trace_id
+
         response = completion(
             model=model,
             messages=[
@@ -71,6 +99,7 @@ def run_llm_completion(
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
+            metadata=metadata,
         )
 
         # Defensive access to content
@@ -102,6 +131,8 @@ def get_structured_llm_output(
     max_tokens: int = 2000,  # Increased default token limit for structured outputs
     temperature: float = 0.2,
     top_p: float = 0.9,
+    project: str = "deep-research",
+    tags: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Get structured JSON output from an LLM with error handling.
 
@@ -115,11 +146,17 @@ def get_structured_llm_output(
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling value
+        project: Langfuse project name for LLM tracking
+        tags: Optional list of tags for Langfuse tracking. Defaults to ["structured_llm_output"] if None.
 
     Returns:
         Parsed JSON response or fallback
     """
     try:
+        # Use provided tags or default to ["structured_llm_output"]
+        if tags is None:
+            tags = ["structured_llm_output"]
+
         content = run_llm_completion(
             prompt=prompt,
             system_prompt=system_prompt,
@@ -128,6 +165,8 @@ def get_structured_llm_output(
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
+            project=project,
+            tags=tags,
         )
 
         if not content:
@@ -180,6 +219,8 @@ def find_most_relevant_string(
     target: str,
     options: List[str],
     model: Optional[str] = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    project: str = "deep-research",
+    tags: Optional[List[str]] = None,
 ) -> Optional[str]:
     """Find the most relevant string from a list of options using simple text matching.
 
@@ -189,6 +230,8 @@ def find_most_relevant_string(
         target: The target string to find relevance for
         options: List of string options to check against
         model: Model to use for matching (with provider prefix)
+        project: Langfuse project name for LLM tracking
+        tags: Optional list of tags for Langfuse tracking. Defaults to ["find_most_relevant_string"] if None.
 
     Returns:
         The most relevant string, or None if no relevant options
@@ -226,6 +269,28 @@ Which of the following options is most relevant to this text?
 
 Respond with only the exact text of the most relevant option."""
 
+            # Get pipeline run name and id for trace_name and trace_id if running in a step
+            trace_name = None
+            trace_id = None
+            try:
+                context = get_step_context()
+                trace_name = context.pipeline_run.name
+                trace_id = str(context.pipeline_run.id)
+            except RuntimeError:
+                # Not running in a step context
+                pass
+
+            # Use provided tags or default to ["find_most_relevant_string"]
+            if tags is None:
+                tags = ["find_most_relevant_string"]
+
+            # Build metadata dict
+            metadata = {"project": project, "tags": tags}
+            if trace_name:
+                metadata["trace_name"] = trace_name
+            if trace_id:
+                metadata["trace_id"] = trace_id
+
             response = completion(
                 model=model,
                 messages=[
@@ -234,6 +299,7 @@ Respond with only the exact text of the most relevant option."""
                 ],
                 max_tokens=100,
                 temperature=0.2,
+                metadata=metadata,
             )
 
             answer = response.choices[0].message.content.strip()
@@ -268,6 +334,8 @@ def synthesize_information(
     synthesis_input: Dict[str, Any],
     model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
     system_prompt: Optional[str] = None,
+    project: str = "deep-research",
+    tags: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Synthesize information from search results for a sub-question.
 
@@ -277,6 +345,8 @@ def synthesize_information(
         synthesis_input: Dictionary with sub-question, search results, and sources
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM
+        project: Langfuse project name for LLM tracking
+        tags: Optional list of tags for Langfuse tracking. Defaults to ["information_synthesis"] if None.
 
     Returns:
         Dictionary with synthesized information
@@ -296,6 +366,10 @@ def synthesize_information(
         "information_gaps": "An error occurred during the synthesis process.",
     }
 
+    # Use provided tags or default to ["information_synthesis"]
+    if tags is None:
+        tags = ["information_synthesis"]
+
     # Use the utility function to get structured output
     result = get_structured_llm_output(
         prompt=json.dumps(synthesis_input),
@@ -303,6 +377,8 @@ def synthesize_information(
         model=model,
         fallback_response=fallback_response,
         max_tokens=3000,  # Increased for more detailed synthesis
+        project=project,
+        tags=tags,
     )
 
     return result

@@ -31,6 +31,7 @@ def cross_viewpoint_analysis_step(
         "ethical",
         "historical",
     ],
+    langfuse_project_name: str = "deep-research",
 ) -> Annotated[ResearchState, "updated_state"]:
     """Analyze synthesized information across different viewpoints.
 
@@ -77,6 +78,7 @@ def cross_viewpoint_analysis_step(
             system_prompt=system_prompt,
             model=llm_model,  # Model name will be prefixed in the function
             max_tokens=3000,  # Further increased for more comprehensive viewpoint analysis
+            project=langfuse_project_name,
         )
 
         result = safe_json_loads(content)

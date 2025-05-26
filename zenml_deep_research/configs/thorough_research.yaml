@@ -1,6 +1,9 @@
 # Deep Research Pipeline Configuration - Thorough Research
 enable_cache: true
 
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
 # Research parameters for more thorough research
 parameters:
   query: "Quantum computing applications in cryptography"

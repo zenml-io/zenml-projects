@@ -22,6 +22,7 @@ def parallelized_deep_research_pipeline(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     num_results_per_search: int = 3,
+    langfuse_project_name: str = "deep-research",
 ) -> HTMLString:
     """Parallelized ZenML pipeline for deep research on a given query.
 
@@ -37,6 +38,7 @@ def parallelized_deep_research_pipeline(
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
         num_results_per_search: Number of search results to return per query
+        langfuse_project_name: Langfuse project name for LLM tracking
 
     Returns:
         Formatted research report as HTML
@@ -52,6 +54,7 @@ def parallelized_deep_research_pipeline(
         state=state,
         prompts_bundle=prompts_bundle,
         max_sub_questions=max_sub_questions,
+        langfuse_project_name=langfuse_project_name,
     )
 
     # Fan out: Process each sub-question in parallel
@@ -66,6 +69,7 @@ def parallelized_deep_research_pipeline(
             search_provider=search_provider,
             search_mode=search_mode,
             num_results_per_search=num_results_per_search,
+            langfuse_project_name=langfuse_project_name,
             id=f"process_question_{i + 1}",
         )
         after.append(sub_state)
@@ -82,13 +86,17 @@ def parallelized_deep_research_pipeline(
 
     # Continue with subsequent steps
     analyzed_state = cross_viewpoint_analysis_step(
-        state=merged_state, prompts_bundle=prompts_bundle
+        state=merged_state,
+        prompts_bundle=prompts_bundle,
+        langfuse_project_name=langfuse_project_name,
     )
 
     # New 3-step reflection flow with optional human approval
     # Step 1: Generate reflection and recommendations (no searches yet)
     reflection_output = generate_reflection_step(
-        state=analyzed_state, prompts_bundle=prompts_bundle
+        state=analyzed_state,
+        prompts_bundle=prompts_bundle,
+        langfuse_project_name=langfuse_project_name,
     )
 
     # Step 2: Get approval for recommended searches
@@ -107,12 +115,15 @@ def parallelized_deep_research_pipeline(
         search_provider=search_provider,
         search_mode=search_mode,
         num_results_per_search=num_results_per_search,
+        langfuse_project_name=langfuse_project_name,
     )
 
     # Use our new Pydantic-based final report step
     # This returns a tuple (state, html_report)
     _, final_report = pydantic_final_report_step(
-        state=reflected_state, prompts_bundle=prompts_bundle
+        state=reflected_state,
+        prompts_bundle=prompts_bundle,
+        langfuse_project_name=langfuse_project_name,
     )
 
     return final_report

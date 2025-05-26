@@ -4,6 +4,9 @@ enable_cache: false
 # Research query parameters
 query: "Climate change policy debates"
 
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
 # Step configurations
 steps:
   initial_query_decomposition_step:

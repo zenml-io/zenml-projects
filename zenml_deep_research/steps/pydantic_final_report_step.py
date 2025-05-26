@@ -140,6 +140,7 @@ def generate_conclusion(
     state: ResearchState,
     prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a comprehensive conclusion using LLM based on all research findings.
 
@@ -215,6 +216,7 @@ def generate_conclusion(
             model=llm_model,
             clean_output=True,
             max_tokens=1500,  # Sufficient for comprehensive conclusion
+            project=langfuse_project_name,
         )
 
         # Clean up any formatting issues
@@ -261,6 +263,7 @@ def generate_report_from_template(
     state: ResearchState,
     prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a final HTML report from a static template.
 
@@ -428,7 +431,9 @@ def generate_report_from_template(
         executive_summary = f"This report examines {html.escape(state.main_query)} through a structured approach, breaking down the topic into {len(state.sub_questions)} focused sub-questions. The research synthesizes information from multiple sources to provide a comprehensive analysis of the topic."
 
     # Generate comprehensive conclusion using LLM
-    conclusion_html = generate_conclusion(state, prompts_bundle, llm_model)
+    conclusion_html = generate_conclusion(
+        state, prompts_bundle, llm_model, langfuse_project_name
+    )
 
     # Generate complete HTML report
     html_content = STATIC_HTML_TEMPLATE.format(
@@ -803,6 +808,7 @@ def pydantic_final_report_step(
     prompts_bundle: PromptsBundle,
     use_static_template: bool = True,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
 ) -> Tuple[
     Annotated[ResearchState, "state"], Annotated[HTMLString, "report_html"]
 ]:
@@ -827,7 +833,7 @@ def pydantic_final_report_step(
         # Use the static HTML template approach
         logger.info("Using static HTML template for report generation")
         html_content = generate_report_from_template(
-            state, prompts_bundle, llm_model
+            state, prompts_bundle, llm_model, langfuse_project_name
         )
 
         # Update the state with the final report HTML
@@ -868,6 +874,7 @@ def pydantic_final_report_step(
             model=llm_model,
             clean_output=False,  # Don't clean in case of breaking HTML formatting
             max_tokens=4000,  # Increased token limit for detailed report generation
+            project=langfuse_project_name,
         )
 
         # Clean up any JSON wrapper or other artifacts

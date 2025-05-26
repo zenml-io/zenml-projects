@@ -270,6 +270,21 @@ def main(
     if num_results != 3 or not mode:
         logger.info(f"Results per search: {num_results}")
 
+    # Load config to get langfuse_project_name
+    import yaml
+
+    langfuse_project_name = "deep-research"  # default
+    try:
+        with open(config, "r") as f:
+            config_data = yaml.safe_load(f)
+            langfuse_project_name = config_data.get(
+                "langfuse_project_name", "deep-research"
+            )
+    except Exception as e:
+        logger.warning(
+            f"Could not load langfuse_project_name from config: {e}"
+        )
+
     # Set up the pipeline with the parallelized version as default
     pipeline = parallelized_deep_research_pipeline.with_options(
         **pipeline_options
@@ -293,6 +308,7 @@ def main(
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
             num_results_per_search=num_results,
+            langfuse_project_name=langfuse_project_name,
         )
     else:
         logger.info(
@@ -310,6 +326,7 @@ def main(
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
             num_results_per_search=num_results,
+            langfuse_project_name=langfuse_project_name,
         )
 
     logger.info("=" * 80 + "\n")
