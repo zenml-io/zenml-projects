@@ -56,6 +56,7 @@ This architecture enables:
 - **Visualizations**: Interactive visualizations of the research structure and progress
 - **Report Generation**: Uses static HTML templates for consistent, high-quality reports
 - **Human-in-the-Loop**: Optional approval mechanism via ZenML alerters (Discord, Slack, etc.)
+- **LLM Observability**: Integrated Langfuse tracking for monitoring LLM usage, costs, and performance
 
 ## 🛠️ Getting Started
 
@@ -65,6 +66,7 @@ This architecture enables:
 - ZenML installed and configured
 - API key for your preferred LLM provider (configured with litellm)
 - Tavily API key
+- Langfuse account for LLM tracking (optional but recommended)
 
 ### Installation
 
@@ -81,9 +83,62 @@ export OPENAI_API_KEY=your_openai_key  # Or another LLM provider key
 export TAVILY_API_KEY=your_tavily_key  # For Tavily search (default)
 export EXA_API_KEY=your_exa_key        # For Exa search (optional)
 
+# Set up Langfuse for LLM tracking (optional)
+export LANGFUSE_PUBLIC_KEY=your_public_key
+export LANGFUSE_SECRET_KEY=your_secret_key
+export LANGFUSE_HOST=https://cloud.langfuse.com  # Or your self-hosted URL
+
 # Initialize ZenML (if needed)
 zenml init
 ```
+
+### Setting up Langfuse for LLM Tracking
+
+The pipeline integrates with [Langfuse](https://langfuse.com) for comprehensive LLM observability and tracking. This allows you to monitor LLM usage, costs, and performance across all pipeline runs.
+
+#### 1. Create a Langfuse Account
+
+1. Sign up at [cloud.langfuse.com](https://cloud.langfuse.com) or set up a self-hosted instance
+2. Create a new project in your Langfuse dashboard (e.g., "deep-research")
+3. Navigate to Settings → API Keys to get your credentials
+
+#### 2. Configure Environment Variables
+
+Set the following environment variables with your Langfuse credentials:
+
+```bash
+export LANGFUSE_PUBLIC_KEY=pk-lf-...     # Your public key
+export LANGFUSE_SECRET_KEY=sk-lf-...     # Your secret key
+export LANGFUSE_HOST=https://cloud.langfuse.com  # Or your self-hosted URL
+```
+
+#### 3. Configure Project Name
+
+The Langfuse project name can be configured in any of the pipeline configuration files:
+
+```yaml
+# configs/enhanced_research.yaml
+langfuse_project_name: "deep-research"  # Change to match your Langfuse project
+```
+
+**Note**: The project must already exist in your Langfuse dashboard before running the pipeline.
+
+#### What Gets Tracked
+
+When Langfuse is configured, the pipeline automatically tracks:
+
+- **All LLM calls** with their prompts, responses, and token usage
+- **Pipeline trace information** including:
+  - `trace_name`: The ZenML pipeline run name for easy identification
+  - `trace_id`: The unique ZenML pipeline run ID for correlation
+- **Tagged operations** such as:
+  - `structured_llm_output`: JSON generation calls
+  - `information_synthesis`: Research synthesis operations
+  - `find_most_relevant_string`: Relevance matching operations
+- **Performance metrics**: Latency, token counts, and costs
+- **Project organization**: All traces are organized under your configured project
+
+This integration provides full observability into your research pipeline's LLM usage, making it easy to optimize performance, track costs, and debug issues.
 
 ### Running the Pipeline
 
