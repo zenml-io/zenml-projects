@@ -1,0 +1,77 @@
+# Enhanced Deep Research Pipeline Configuration with Human Approval
+enable_cache: false
+
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "enhanced_approval",
+    ]
+  use_cases: "Research on a given query."
+
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
+# Research query parameters
+query: "Climate change policy debates"
+
+# Pipeline parameters
+parameters:
+  require_approval: true  # Enable human-in-the-loop approval
+  approval_timeout: 1800  # 30 minutes timeout for approval
+  max_additional_searches: 3  # Allow up to 3 additional searches
+
+# Step configurations
+steps:
+  initial_query_decomposition_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+
+  cross_viewpoint_analysis_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      viewpoint_categories:
+        [
+          "scientific",
+          "political",
+          "economic",
+          "social",
+          "ethical",
+          "historical",
+        ]
+
+  # New reflection steps (replacing iterative_reflection_step)
+  generate_reflection_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  get_research_approval_step:
+    parameters:
+      alerter_type: "slack"  # or "email" if configured
+  
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+
+  pydantic_final_report_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0

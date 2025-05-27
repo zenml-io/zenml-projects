@@ -1,0 +1,81 @@
+# Deep Research Pipeline Configuration - Deep Comprehensive Mode
+enable_cache: false  # Disable cache for fresh comprehensive analysis
+
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "deep",
+    ]
+  use_cases: "Research on a given query."
+
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
+# Research parameters for deep comprehensive research
+parameters:
+  query: "Default research query"
+  
+steps:
+  initial_query_decomposition_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      max_sub_questions: 15  # Maximum sub-questions for comprehensive analysis
+  
+  process_sub_question_step:
+    parameters:
+      llm_model_search: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      cap_search_length: 30000  # Higher cap for more comprehensive data
+  
+  cross_viewpoint_analysis_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      viewpoint_categories:
+        [
+          "scientific",
+          "political",
+          "economic",
+          "social",
+          "ethical",
+          "historical",
+          "technological",
+          "philosophical",
+        ]  # Extended viewpoints for comprehensive analysis
+  
+  generate_reflection_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  get_research_approval_step:
+    parameters:
+      timeout: 7200  # 2 hour timeout for deep research
+      max_queries: 4  # Maximum additional queries for deep mode
+  
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      cap_search_length: 30000
+      
+  pydantic_final_report_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0
