@@ -12,6 +12,68 @@ from pydantic import BaseModel, Field
 from typing_extensions import Literal
 
 
+class Prompt(BaseModel):
+    """A single prompt with metadata for tracking and visualization.
+
+    This class is designed to be simple and intuitive to use. You can access
+    the prompt content directly via the content attribute or by converting
+    to string.
+    """
+
+    content: str = Field(..., description="The actual prompt text")
+    name: str = Field(..., description="Unique identifier for the prompt")
+    description: str = Field(
+        "", description="Human-readable description of what this prompt does"
+    )
+    version: str = Field("1.0.0", description="Version of the prompt")
+    tags: List[str] = Field(
+        default_factory=list, description="Tags for categorizing the prompt"
+    )
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+    def __str__(self) -> str:
+        """Return the prompt content as a string."""
+        return self.content
+
+    def __repr__(self) -> str:
+        """Return a readable representation of the prompt."""
+        return f"Prompt(name='{self.name}', version='{self.version}')"
+
+    @classmethod
+    def create(
+        cls,
+        content: str,
+        name: str,
+        description: str = "",
+        version: str = "1.0.0",
+        tags: Optional[List[str]] = None,
+    ) -> "Prompt":
+        """Factory method to create a Prompt instance.
+
+        Args:
+            content: The prompt text
+            name: Unique identifier for the prompt
+            description: Optional description of the prompt's purpose
+            version: Version string (defaults to "1.0.0")
+            tags: Optional list of tags for categorization
+
+        Returns:
+            A new Prompt instance
+        """
+        return cls(
+            content=content,
+            name=name,
+            description=description,
+            version=version,
+            tags=tags or [],
+        )
+
+
 class SearchResult(BaseModel):
     """Represents a search result for a sub-question."""
 

@@ -148,18 +148,18 @@ Examples:
     help="Number of search results to return per query (default: 3)",
 )
 def main(
-    mode: str = None,
-    config: str = "configs/enhanced_research.yaml",
-    no_cache: bool = False,
-    log_file: str = None,
-    debug: bool = False,
-    query: str = None,
-    max_sub_questions: int = 10,
-    require_approval: bool = False,
-    approval_timeout: int = 3600,
-    search_provider: str = None,
-    search_mode: str = "auto",
-    num_results: int = 3,
+    mode,
+    config,
+    no_cache,
+    log_file,
+    debug,
+    query,
+    max_sub_questions,
+    require_approval,
+    approval_timeout,
+    search_provider,
+    search_mode,
+    num_results,
 ):
     """Run the deep research pipeline.
 
@@ -184,7 +184,7 @@ def main(
     # Apply mode presets if specified
     if mode:
         mode_config = RESEARCH_MODES[mode.lower()]
-        logger.info(f"\n{'=' * 80}")
+        logger.info("\n" + "=" * 80)
         logger.info(f"Using research mode: {mode.upper()}")
         logger.info(f"Description: {mode_config['description']}")
 

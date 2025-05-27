@@ -43,8 +43,18 @@ def parallelized_deep_research_pipeline(
     Returns:
         Formatted research report as HTML
     """
-    # Initialize prompts bundle for tracking
-    prompts_bundle = initialize_prompts_step(pipeline_version="1.0.0")
+    # Initialize individual prompts for tracking
+    (
+        search_query_prompt,
+        query_decomposition_prompt,
+        synthesis_prompt,
+        viewpoint_analysis_prompt,
+        reflection_prompt,
+        additional_synthesis_prompt,
+        conclusion_generation_prompt,
+        executive_summary_prompt,
+        introduction_prompt,
+    ) = initialize_prompts_step(pipeline_version="1.0.0")
 
     # Initialize the research state with the main query
     state = ResearchState(main_query=query)
@@ -52,7 +62,7 @@ def parallelized_deep_research_pipeline(
     # Step 1: Decompose the query into sub-questions, limiting to max_sub_questions
     decomposed_state = initial_query_decomposition_step(
         state=state,
-        prompts_bundle=prompts_bundle,
+        query_decomposition_prompt=query_decomposition_prompt,
         max_sub_questions=max_sub_questions,
         langfuse_project_name=langfuse_project_name,
     )
@@ -64,7 +74,8 @@ def parallelized_deep_research_pipeline(
         # Process the i-th sub-question (if it exists)
         sub_state = process_sub_question_step(
             state=decomposed_state,
-            prompts_bundle=prompts_bundle,
+            search_query_prompt=search_query_prompt,
+            synthesis_prompt=synthesis_prompt,
             question_index=i,
             search_provider=search_provider,
             search_mode=search_mode,
@@ -87,7 +98,7 @@ def parallelized_deep_research_pipeline(
     # Continue with subsequent steps
     analyzed_state = cross_viewpoint_analysis_step(
         state=merged_state,
-        prompts_bundle=prompts_bundle,
+        viewpoint_analysis_prompt=viewpoint_analysis_prompt,
         langfuse_project_name=langfuse_project_name,
     )
 
@@ -95,7 +106,7 @@ def parallelized_deep_research_pipeline(
     # Step 1: Generate reflection and recommendations (no searches yet)
     reflection_output = generate_reflection_step(
         state=analyzed_state,
-        prompts_bundle=prompts_bundle,
+        reflection_prompt=reflection_prompt,
         langfuse_project_name=langfuse_project_name,
     )
 
@@ -111,7 +122,7 @@ def parallelized_deep_research_pipeline(
     reflected_state = execute_approved_searches_step(
         reflection_output=reflection_output,
         approval_decision=approval_decision,
-        prompts_bundle=prompts_bundle,
+        additional_synthesis_prompt=additional_synthesis_prompt,
         search_provider=search_provider,
         search_mode=search_mode,
         num_results_per_search=num_results_per_search,
@@ -122,7 +133,9 @@ def parallelized_deep_research_pipeline(
     # This returns a tuple (state, html_report)
     final_state, final_report = pydantic_final_report_step(
         state=reflected_state,
-        prompts_bundle=prompts_bundle,
+        conclusion_generation_prompt=conclusion_generation_prompt,
+        executive_summary_prompt=executive_summary_prompt,
+        introduction_prompt=introduction_prompt,
         langfuse_project_name=langfuse_project_name,
     )
 

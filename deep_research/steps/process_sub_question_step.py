@@ -12,8 +12,7 @@ warnings.filterwarnings(
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import synthesize_information
-from utils.prompt_models import PromptsBundle
-from utils.pydantic_models import ResearchState, SynthesizedInfo
+from utils.pydantic_models import Prompt, ResearchState, SynthesizedInfo
 from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
@@ -26,7 +25,8 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def process_sub_question_step(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    search_query_prompt: Prompt,
+    synthesis_prompt: Prompt,
     question_index: int,
     llm_model_search: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     llm_model_synthesis: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
@@ -43,7 +43,8 @@ def process_sub_question_step(
 
     Args:
         state: The original research state with all sub-questions
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        search_query_prompt: Prompt for generating search queries
+        synthesis_prompt: Prompt for synthesizing search results
         question_index: The index of the sub-question to process
         llm_model_search: Model to use for search query generation
         llm_model_synthesis: Model to use for synthesis
@@ -100,14 +101,11 @@ def process_sub_question_step(
     # === INFORMATION GATHERING ===
     search_phase_start = time.time()
 
-    # Generate search query with prompt from bundle
-    search_query_prompt = prompts_bundle.get_prompt_content(
-        "search_query_prompt"
-    )
+    # Generate search query with prompt
     search_query_data = generate_search_query(
         sub_question=sub_question,
         model=llm_model_search,
-        system_prompt=search_query_prompt,
+        system_prompt=str(search_query_prompt),
         project=langfuse_project_name,
     )
     search_query = search_query_data.get(
@@ -175,12 +173,11 @@ def process_sub_question_step(
         "sources": sources,
     }
 
-    # Synthesize information with prompt from bundle
-    synthesis_prompt = prompts_bundle.get_prompt_content("synthesis_prompt")
+    # Synthesize information with prompt
     synthesis_result = synthesize_information(
         synthesis_input=synthesis_input,
         model=llm_model_synthesis,
-        system_prompt=synthesis_prompt,
+        system_prompt=str(synthesis_prompt),
         project=langfuse_project_name,
     )
 

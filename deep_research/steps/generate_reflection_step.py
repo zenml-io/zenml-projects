@@ -7,8 +7,7 @@ from materializers.reflection_output_materializer import (
     ReflectionOutputMaterializer,
 )
 from utils.llm_utils import get_structured_llm_output
-from utils.prompt_models import PromptsBundle
-from utils.pydantic_models import ReflectionOutput, ResearchState
+from utils.pydantic_models import Prompt, ReflectionOutput, ResearchState
 from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ReflectionOutputMaterializer)
 def generate_reflection_step(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    reflection_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> Annotated[ReflectionOutput, "reflection_output"]:
@@ -29,7 +28,7 @@ def generate_reflection_step(
 
     Args:
         state: The current research state
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        reflection_prompt: Prompt for generating reflection
         llm_model: The model to use for reflection
 
     Returns:
@@ -77,9 +76,6 @@ def generate_reflection_step(
     # Get reflection critique
     logger.info(f"Generating self-critique via {llm_model}")
 
-    # Get the prompt from the bundle
-    reflection_prompt = prompts_bundle.get_prompt_content("reflection_prompt")
-
     # Define fallback for reflection result
     fallback_reflection = {
         "critique": [],
@@ -90,7 +86,7 @@ def generate_reflection_step(
     # Use utility function to get structured output
     reflection_result = get_structured_llm_output(
         prompt=json.dumps(reflection_input),
-        system_prompt=reflection_prompt,
+        system_prompt=str(reflection_prompt),
         model=llm_model,
         fallback_response=fallback_reflection,
         project=langfuse_project_name,

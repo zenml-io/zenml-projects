@@ -17,13 +17,12 @@ from utils.helper_functions import (
     remove_reasoning_from_output,
 )
 from utils.llm_utils import run_llm_completion
-from utils.prompt_models import PromptsBundle
 from utils.prompts import (
     STATIC_HTML_TEMPLATE,
     SUB_QUESTION_TEMPLATE,
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
-from utils.pydantic_models import ResearchState
+from utils.pydantic_models import Prompt, ResearchState
 from zenml import log_metadata, step
 from zenml.types import HTMLString
 
@@ -139,7 +138,7 @@ def format_text_with_code_blocks(text: str) -> str:
 
 def generate_executive_summary(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    executive_summary_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> str:
@@ -147,7 +146,7 @@ def generate_executive_summary(
 
     Args:
         state: The current research state
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        executive_summary_prompt: Prompt for generating executive summary
         llm_model: The model to use for generation
         langfuse_project_name: Name of the Langfuse project for tracking
 
@@ -179,24 +178,19 @@ def generate_executive_summary(
         for tension in state.viewpoint_analysis.areas_of_tension[:2]:
             context += f"- {tension.topic}\n"
 
-    # Get the executive summary prompt
+    # Use the executive summary prompt
     try:
-        executive_summary_prompt = prompts_bundle.get_prompt_content(
-            "executive_summary_prompt"
-        )
+        executive_summary_prompt_str = str(executive_summary_prompt)
         logger.info("Successfully retrieved executive_summary_prompt")
     except Exception as e:
         logger.error(f"Failed to get executive_summary_prompt: {e}")
-        logger.info(
-            f"Available prompts: {list(prompts_bundle.list_all_prompts().keys())}"
-        )
         return generate_fallback_executive_summary(state)
 
     try:
         # Call LLM to generate executive summary
         result = run_llm_completion(
             prompt=context,
-            system_prompt=executive_summary_prompt,
+            system_prompt=executive_summary_prompt_str,
             model=llm_model,
             temperature=0.7,
             max_tokens=800,
@@ -221,7 +215,7 @@ def generate_executive_summary(
 
 def generate_introduction(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    introduction_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> str:
@@ -229,7 +223,7 @@ def generate_introduction(
 
     Args:
         state: The current research state
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        introduction_prompt: Prompt for generating introduction
         llm_model: The model to use for generation
         langfuse_project_name: Name of the Langfuse project for tracking
 
@@ -246,22 +240,17 @@ def generate_introduction(
 
     # Get the introduction prompt
     try:
-        introduction_prompt = prompts_bundle.get_prompt_content(
-            "introduction_prompt"
-        )
+        introduction_prompt_str = str(introduction_prompt)
         logger.info("Successfully retrieved introduction_prompt")
     except Exception as e:
         logger.error(f"Failed to get introduction_prompt: {e}")
-        logger.info(
-            f"Available prompts: {list(prompts_bundle.list_all_prompts().keys())}"
-        )
         return generate_fallback_introduction(state)
 
     try:
         # Call LLM to generate introduction
         result = run_llm_completion(
             prompt=context,
-            system_prompt=introduction_prompt,
+            system_prompt=introduction_prompt_str,
             model=llm_model,
             temperature=0.7,
             max_tokens=600,
@@ -316,7 +305,7 @@ def generate_fallback_introduction(state: ResearchState) -> str:
 
 def generate_conclusion(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    conclusion_generation_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> str:
@@ -324,7 +313,7 @@ def generate_conclusion(
 
     Args:
         state: The ResearchState containing all research findings
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        conclusion_generation_prompt: Prompt for generating conclusion
         llm_model: The model to use for conclusion generation
 
     Returns:
@@ -382,15 +371,13 @@ def generate_conclusion(
         }
 
     try:
-        # Get the prompt from the bundle
-        conclusion_prompt = prompts_bundle.get_prompt_content(
-            "conclusion_generation_prompt"
-        )
+        # Use the conclusion generation prompt
+        conclusion_prompt_str = str(conclusion_generation_prompt)
 
         # Generate conclusion using LLM
         conclusion_html = run_llm_completion(
             prompt=json.dumps(conclusion_input, indent=2),
-            system_prompt=conclusion_prompt,
+            system_prompt=conclusion_prompt_str,
             model=llm_model,
             clean_output=True,
             max_tokens=1500,  # Sufficient for comprehensive conclusion
@@ -439,7 +426,9 @@ def generate_conclusion(
 
 def generate_report_from_template(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    conclusion_generation_prompt: Prompt,
+    executive_summary_prompt: Prompt,
+    introduction_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> str:
@@ -450,7 +439,9 @@ def generate_report_from_template(
 
     Args:
         state: The current research state
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        conclusion_generation_prompt: Prompt for generating conclusion
+        executive_summary_prompt: Prompt for generating executive summary
+        introduction_prompt: Prompt for generating introduction
         llm_model: The model to use for conclusion generation
 
     Returns:
@@ -604,7 +595,7 @@ def generate_report_from_template(
     # Generate dynamic executive summary using LLM
     logger.info("Generating dynamic executive summary...")
     executive_summary = generate_executive_summary(
-        state, prompts_bundle, llm_model, langfuse_project_name
+        state, executive_summary_prompt, llm_model, langfuse_project_name
     )
     logger.info(
         f"Executive summary generated: {len(executive_summary)} characters"
@@ -613,13 +604,13 @@ def generate_report_from_template(
     # Generate dynamic introduction using LLM
     logger.info("Generating dynamic introduction...")
     introduction_html = generate_introduction(
-        state, prompts_bundle, llm_model, langfuse_project_name
+        state, introduction_prompt, llm_model, langfuse_project_name
     )
     logger.info(f"Introduction generated: {len(introduction_html)} characters")
 
     # Generate comprehensive conclusion using LLM
     conclusion_html = generate_conclusion(
-        state, prompts_bundle, llm_model, langfuse_project_name
+        state, conclusion_generation_prompt, llm_model, langfuse_project_name
     )
 
     # Generate complete HTML report
@@ -993,7 +984,9 @@ def _generate_fallback_report(state: ResearchState) -> str:
 )
 def pydantic_final_report_step(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    conclusion_generation_prompt: Prompt,
+    executive_summary_prompt: Prompt,
+    introduction_prompt: Prompt,
     use_static_template: bool = True,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
@@ -1009,7 +1002,9 @@ def pydantic_final_report_step(
 
     Args:
         state: The current research state (Pydantic model)
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        conclusion_generation_prompt: Prompt for generating conclusions
+        executive_summary_prompt: Prompt for generating executive summary
+        introduction_prompt: Prompt for generating introduction
         use_static_template: Whether to use a static template instead of LLM generation
         llm_model: The model to use for report generation with provider prefix
 
@@ -1023,7 +1018,12 @@ def pydantic_final_report_step(
         # Use the static HTML template approach
         logger.info("Using static HTML template for report generation")
         html_content = generate_report_from_template(
-            state, prompts_bundle, llm_model, langfuse_project_name
+            state,
+            conclusion_generation_prompt,
+            executive_summary_prompt,
+            introduction_prompt,
+            llm_model,
+            langfuse_project_name,
         )
 
         # Update the state with the final report HTML
@@ -1112,10 +1112,8 @@ def pydantic_final_report_step(
     try:
         logger.info(f"Calling {llm_model} to generate final report")
 
-        # Get the prompt from the bundle
-        report_prompt = prompts_bundle.get_prompt_content(
-            "report_generation_prompt"
-        )
+        # Use a default report generation prompt
+        report_prompt = "Generate a comprehensive HTML research report based on the provided research data. Include proper HTML structure with sections for executive summary, introduction, findings, and conclusion."
 
         # Use the utility function to run LLM completion
         html_content = run_llm_completion(

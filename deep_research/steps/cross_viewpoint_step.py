@@ -8,8 +8,8 @@ from utils.helper_functions import (
     safe_json_loads,
 )
 from utils.llm_utils import run_llm_completion
-from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import (
+    Prompt,
     ResearchState,
     ViewpointAnalysis,
     ViewpointTension,
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=ResearchStateMaterializer)
 def cross_viewpoint_analysis_step(
     state: ResearchState,
-    prompts_bundle: PromptsBundle,
+    viewpoint_analysis_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     viewpoint_categories: List[str] = [
         "scientific",
@@ -38,7 +38,7 @@ def cross_viewpoint_analysis_step(
 
     Args:
         state: The current research state
-        prompts_bundle: Bundle containing all prompts for the pipeline
+        viewpoint_analysis_prompt: Prompt for viewpoint analysis
         llm_model: The model to use for viewpoint analysis
         viewpoint_categories: Categories of viewpoints to analyze
 
@@ -69,15 +69,10 @@ def cross_viewpoint_analysis_step(
     # Perform viewpoint analysis
     try:
         logger.info(f"Calling {llm_model} for viewpoint analysis")
-        # Get the prompt from the bundle
-        system_prompt = prompts_bundle.get_prompt_content(
-            "viewpoint_analysis_prompt"
-        )
-
         # Use the run_llm_completion function from llm_utils
         content = run_llm_completion(
             prompt=json.dumps(analysis_input),
-            system_prompt=system_prompt,
+            system_prompt=str(viewpoint_analysis_prompt),
             model=llm_model,  # Model name will be prefixed in the function
             max_tokens=3000,  # Further increased for more comprehensive viewpoint analysis
             project=langfuse_project_name,
