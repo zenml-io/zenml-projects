@@ -56,8 +56,7 @@ def execute_approved_searches_step(
         name="updated_state", tags=["approved_searches", "enriched"]
     ),
 ]:
-    """
-    Execute approved searches and enhance the research state.
+    """Execute approved searches and enhance the research state.
 
     This step receives the approval decision and only executes
     searches that were approved by the human reviewer (or auto-approved).
@@ -163,13 +162,39 @@ def execute_approved_searches_step(
             logger.info(f"Performing approved search: {query}")
 
             # Execute search using the utility function
-            search_results = search_and_extract_results(
+            search_results, search_cost = search_and_extract_results(
                 query=query,
                 max_results=num_results_per_search,
                 cap_content_length=cap_search_length,
                 provider=search_provider,
                 search_mode=search_mode,
             )
+
+            # Track search costs if using Exa
+            if (
+                search_provider
+                and search_provider.lower() in ["exa", "both"]
+                and search_cost > 0
+            ):
+                # Update total costs
+                state.search_costs["exa"] = (
+                    state.search_costs.get("exa", 0.0) + search_cost
+                )
+
+                # Add detailed cost entry
+                state.search_cost_details.append(
+                    {
+                        "provider": "exa",
+                        "query": query,
+                        "cost": search_cost,
+                        "timestamp": time.time(),
+                        "step": "execute_approved_searches",
+                        "purpose": "reflection_enhancement",
+                    }
+                )
+                logger.info(
+                    f"Exa search cost for approved query: ${search_cost:.4f}"
+                )
 
             # Extract raw contents
             raw_contents = [result.content for result in search_results]
@@ -251,6 +276,10 @@ def execute_approved_searches_step(
                             "num_results": len(search_results),
                             "improvements": len(improvements),
                             "enhanced": True,
+                            "search_cost": search_cost
+                            if search_provider
+                            and search_provider.lower() in ["exa", "both"]
+                            else 0.0,
                         }
                     )
 
@@ -331,6 +360,7 @@ def execute_approved_searches_step(
                     "search_mode": search_mode,
                     "llm_model": llm_model,
                     "success": True,
+                    "total_search_cost": state.search_costs.get("exa", 0.0),
                 }
             }
         )

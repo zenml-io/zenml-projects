@@ -179,7 +179,7 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                     </div>
                     
                     <div class="metric-card">
-                        <div class="metric-label">Total Cost</div>
+                        <div class="metric-label">LLM Cost</div>
                         <div class="metric-value">${metadata.total_cost:.4f}</div>
                     </div>
                     
@@ -437,6 +437,104 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                             }
                         }
                     });
+                </script>
+            """
+
+        # Add search cost visualization if available
+        if metadata.search_costs and any(metadata.search_costs.values()):
+            total_search_cost = sum(metadata.search_costs.values())
+            total_combined_cost = metadata.total_cost + total_search_cost
+
+            html += """
+                <h2>Search Provider Costs</h2>
+                <div class="metric-grid">
+            """
+
+            for provider, cost in metadata.search_costs.items():
+                if cost > 0:
+                    query_count = metadata.search_queries_count.get(
+                        provider, 0
+                    )
+                    avg_cost_per_query = (
+                        cost / query_count if query_count > 0 else 0
+                    )
+                    html += f"""
+                        <div class="metric-card">
+                            <div class="metric-label">{provider.upper()} Search</div>
+                            <div class="metric-value">${cost:.4f}</div>
+                            <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
+                                {query_count} queries • ${avg_cost_per_query:.4f}/query
+                            </div>
+                        </div>
+                    """
+
+            html += f"""
+                    <div class="metric-card">
+                        <div class="metric-label">Total Search Cost</div>
+                        <div class="metric-value" style="color: #e67e22;">${total_search_cost:.4f}</div>
+                        <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
+                            {sum(metadata.search_queries_count.values())} total queries
+                        </div>
+                    </div>
+                </div>
+                
+                <h2>Combined Cost Summary</h2>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">LLM Cost</div>
+                        <div class="metric-value">${metadata.total_cost:.4f}</div>
+                        <div style="font-size: 12px; color: #7f8c8d;">
+                            {(metadata.total_cost / total_combined_cost * 100):.1f}% of total
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Search Cost</div>
+                        <div class="metric-value">${total_search_cost:.4f}</div>
+                        <div style="font-size: 12px; color: #7f8c8d;">
+                            {(total_search_cost / total_combined_cost * 100):.1f}% of total
+                        </div>
+                    </div>
+                    <div class="metric-card" style="border: 2px solid #e74c3c;">
+                        <div class="metric-label">Total Pipeline Cost</div>
+                        <div class="metric-value" style="color: #e74c3c; font-size: 24px;">${total_combined_cost:.4f}</div>
+                    </div>
+                </div>
+                
+                <h3>Cost Breakdown Chart</h3>
+                <canvas id="costBreakdownChart" width="400" height="200"></canvas>
+                <script>
+                    var ctx = document.getElementById('costBreakdownChart').getContext('2d');
+                    var totalCombinedCost = {total_combined_cost:.4f};
+                    var costBreakdownChart = new Chart(ctx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['LLM Cost', 'Search Cost'],
+                            datasets: [{{
+                                data: [{metadata.total_cost:.4f}, {total_search_cost:.4f}],
+                                backgroundColor: ['#3498db', '#e67e22'],
+                                borderWidth: 1
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {{
+                                legend: {{
+                                    position: 'bottom'
+                                }},
+                                tooltip: {{
+                                    callbacks: {{
+                                        label: function(context) {{
+                                            var label = context.label || '';
+                                            var value = context.parsed || 0;
+                                            var percentage = ((value / totalCombinedCost) * 100).toFixed(1);
+                                            return label + ': $' + value.toFixed(4) + ' (' + percentage + '%)';
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
                 </script>
             """
 

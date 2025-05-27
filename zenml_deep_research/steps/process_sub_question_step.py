@@ -121,13 +121,40 @@ def process_sub_question_step(
     logger.info(f"Performing search with query: {search_query}")
     if search_provider:
         logger.info(f"Using search provider: {search_provider}")
-    results_list = search_and_extract_results(
+    results_list, search_cost = search_and_extract_results(
         query=search_query,
         max_results=num_results_per_search,
         cap_content_length=cap_search_length,
         provider=search_provider,
         search_mode=search_mode,
     )
+
+    # Track search costs if using Exa
+    if (
+        search_provider
+        and search_provider.lower() in ["exa", "both"]
+        and search_cost > 0
+    ):
+        # Update total costs
+        sub_state.search_costs["exa"] = (
+            sub_state.search_costs.get("exa", 0.0) + search_cost
+        )
+
+        # Add detailed cost entry
+        sub_state.search_cost_details.append(
+            {
+                "provider": "exa",
+                "query": search_query,
+                "cost": search_cost,
+                "timestamp": time.time(),
+                "step": "process_sub_question",
+                "sub_question": sub_question,
+                "question_index": question_index,
+            }
+        )
+        logger.info(
+            f"Exa search cost for sub-question {question_index}: ${search_cost:.4f}"
+        )
 
     search_results = {sub_question: results_list}
     sub_state.update_search_results(search_results)
@@ -225,6 +252,11 @@ def process_sub_question_step(
                 "key_sources_count": len(
                     synthesis_result.get("key_sources", [])
                 ),
+                "search_cost": search_cost,
+                "search_cost_provider": "exa"
+                if search_provider
+                and search_provider.lower() in ["exa", "both"]
+                else None,
             }
         }
     )

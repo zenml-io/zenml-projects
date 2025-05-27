@@ -48,6 +48,10 @@ def merge_sub_question_results_step(
     merged_state.search_results = {}
     merged_state.synthesized_info = {}
 
+    # Initialize search cost tracking
+    merged_state.search_costs = {}
+    merged_state.search_cost_details = []
+
     # Get pipeline run information to access outputs
     try:
         ctx = get_step_context()
@@ -127,6 +131,29 @@ def merge_sub_question_results_step(
                                         logger.info(
                                             f"Added synthesized info for: {sub_question}"
                                         )
+
+                                    # Merge search costs
+                                    if hasattr(sub_state, "search_costs"):
+                                        for (
+                                            provider,
+                                            cost,
+                                        ) in sub_state.search_costs.items():
+                                            merged_state.search_costs[
+                                                provider
+                                            ] = (
+                                                merged_state.search_costs.get(
+                                                    provider, 0.0
+                                                )
+                                                + cost
+                                            )
+
+                                    # Merge search cost details
+                                    if hasattr(
+                                        sub_state, "search_cost_details"
+                                    ):
+                                        merged_state.search_cost_details.extend(
+                                            sub_state.search_cost_details
+                                        )
                 except (ValueError, IndexError, KeyError, AttributeError) as e:
                     logger.warning(f"Error processing step {step_name}: {e}")
                     continue
@@ -138,6 +165,15 @@ def merge_sub_question_results_step(
         logger.info(
             f"Successfully processed {len(processed_questions)} sub-questions"
         )
+
+        # Log search cost summary
+        if merged_state.search_costs:
+            total_cost = sum(merged_state.search_costs.values())
+            logger.info(
+                f"Total search costs merged: ${total_cost:.4f} across {len(merged_state.search_cost_details)} queries"
+            )
+            for provider, cost in merged_state.search_costs.items():
+                logger.info(f"  {provider}: ${cost:.4f}")
 
         # Check for any missing sub-questions
         for sub_q in merged_state.sub_questions:
@@ -198,6 +234,9 @@ def merge_sub_question_results_step(
                     merged_state.search_results
                     and merged_state.synthesized_info
                 ),
+                "total_search_costs": merged_state.search_costs,
+                "total_search_queries": len(merged_state.search_cost_details),
+                "total_exa_cost": merged_state.search_costs.get("exa", 0.0),
             }
         }
     )

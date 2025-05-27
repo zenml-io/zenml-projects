@@ -131,7 +131,7 @@ def iterative_reflection_step(
             for query in search_queries:
                 logger.info(f"Performing additional search: {query}")
                 # Execute the search using the utility function
-                search_results = search_and_extract_results(
+                search_results, search_cost = search_and_extract_results(
                     query=query,
                     max_results=num_results_per_search,
                     cap_content_length=cap_search_length,
@@ -144,6 +144,36 @@ def iterative_reflection_step(
                 most_relevant_question = find_most_relevant_string(
                     query, state.sub_questions, llm_model
                 )
+
+                # Track search costs if using Exa (default provider)
+                # Note: This step doesn't have a search_provider parameter, so we check the default
+                from utils.search_utils import SearchEngineConfig
+
+                config = SearchEngineConfig()
+                if (
+                    config.default_provider.lower() in ["exa", "both"]
+                    and search_cost > 0
+                ):
+                    # Update total costs
+                    state.search_costs["exa"] = (
+                        state.search_costs.get("exa", 0.0) + search_cost
+                    )
+
+                    # Add detailed cost entry
+                    state.search_cost_details.append(
+                        {
+                            "provider": "exa",
+                            "query": query,
+                            "cost": search_cost,
+                            "timestamp": time.time(),
+                            "step": "iterative_reflection",
+                            "purpose": "gap_filling",
+                            "relevant_question": most_relevant_question,
+                        }
+                    )
+                    logger.info(
+                        f"Exa search cost for reflection query: ${search_cost:.4f}"
+                    )
 
                 if (
                     most_relevant_question
@@ -280,6 +310,7 @@ def iterative_reflection_step(
                     "total_improvements": reflection_metadata.improvements_made,
                     "confidence_improvements": confidence_improvements,
                     "has_viewpoint_analysis": bool(viewpoint_analysis_dict),
+                    "total_search_cost": state.search_costs.get("exa", 0.0),
                 }
             }
         )

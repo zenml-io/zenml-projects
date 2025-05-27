@@ -274,8 +274,18 @@ def exa_search(
 
         response = exa_client.search_and_contents(**kwargs)
 
+        # Extract cost information
+        exa_cost = 0.0
+        if hasattr(response, "cost_dollars") and hasattr(
+            response.cost_dollars, "total"
+        ):
+            exa_cost = response.cost_dollars.total
+            logger.info(
+                f"Exa search cost for query '{query}': ${exa_cost:.4f}"
+            )
+
         # Convert to standardized format compatible with Tavily
-        results = {"query": query, "results": []}
+        results = {"query": query, "results": [], "exa_cost": exa_cost}
 
         for r in response.results:
             result_dict = {
@@ -317,8 +327,7 @@ def unified_search(
     compare_results: bool = False,
     **kwargs,
 ) -> Union[List[SearchResult], Dict[str, List[SearchResult]]]:
-    """
-    Unified search interface supporting multiple providers.
+    """Unified search interface supporting multiple providers.
 
     Args:
         query: Search query
@@ -348,7 +357,7 @@ def unified_search(
             max_results=max_results,
             cap_content_length=cap_content_length,
         )
-        extracted = extract_search_results(results, provider="tavily")
+        extracted, cost = extract_search_results(results, provider="tavily")
         return extracted if not compare_results else {"tavily": extracted}
 
     elif provider == SearchProvider.EXA:
@@ -359,7 +368,7 @@ def unified_search(
             search_mode=search_mode,
             include_highlights=include_highlights,
         )
-        extracted = extract_search_results(results, provider="exa")
+        extracted, cost = extract_search_results(results, provider="exa")
         return extracted if not compare_results else {"exa": extracted}
 
     elif provider == SearchProvider.BOTH:
@@ -378,10 +387,12 @@ def unified_search(
         )
 
         # Extract results from both
-        tavily_extracted = extract_search_results(
+        tavily_extracted, tavily_cost = extract_search_results(
             tavily_results, provider="tavily"
         )
-        exa_extracted = extract_search_results(exa_results, provider="exa")
+        exa_extracted, exa_cost = extract_search_results(
+            exa_results, provider="exa"
+        )
 
         if compare_results:
             return {"tavily": tavily_extracted, "exa": exa_extracted}
@@ -402,7 +413,7 @@ def unified_search(
 
 def extract_search_results(
     search_results: Dict[str, Any], provider: str = "tavily"
-) -> List[SearchResult]:
+) -> tuple[List[SearchResult], float]:
     """Extract SearchResult objects from provider-specific API responses.
 
     Args:
@@ -410,7 +421,8 @@ def extract_search_results(
         provider: Which provider the results came from
 
     Returns:
-        List[SearchResult]: List of converted SearchResult objects with standardized fields.
+        Tuple of (List[SearchResult], float): List of converted SearchResult objects with standardized fields
+          and the search cost (0.0 if not available).
           SearchResult is a Pydantic model defined in data_models.py that includes:
           - url: The URL of the search result
           - content: The raw content of the page
@@ -418,6 +430,9 @@ def extract_search_results(
           - snippet: A brief snippet of the page content
     """
     results_list = []
+    search_cost = search_results.get(
+        "exa_cost", 0.0
+    )  # Extract cost if present
 
     if "results" in search_results:
         for result in search_results["results"]:
@@ -502,7 +517,7 @@ def extract_search_results(
         )
         logger.info("Added Tavily generated answer as a search result")
 
-    return results_list
+    return results_list, search_cost
 
 
 def generate_search_query(
@@ -546,7 +561,7 @@ def search_and_extract_results(
     provider: Optional[Union[str, SearchProvider]] = None,
     search_mode: str = "auto",
     include_highlights: bool = False,
-) -> List[SearchResult]:
+) -> tuple[List[SearchResult], float]:
     """Perform a search and extract results in one step.
 
     Args:
@@ -559,9 +574,10 @@ def search_and_extract_results(
         include_highlights: Include highlights for Exa results
 
     Returns:
-        List of SearchResult objects
+        Tuple of (List of SearchResult objects, search cost)
     """
     results = []
+    total_cost = 0.0
     retry_count = 0
 
     # List of alternative query formats to try if the original query fails
@@ -583,23 +599,84 @@ def search_and_extract_results(
                 f"Searching with query ({retry_count + 1}/{max_retries + 1}): {current_query}"
             )
 
-            # Use unified search interface
-            results = unified_search(
-                query=current_query,
-                provider=provider,
-                max_results=max_results,
-                cap_content_length=cap_content_length,
-                search_mode=search_mode,
-                include_highlights=include_highlights,
-            )
+            # Determine if we're using Exa to track costs
+            using_exa = False
+            if provider:
+                if isinstance(provider, str):
+                    using_exa = provider.lower() in ["exa", "both"]
+                else:
+                    using_exa = provider in [
+                        SearchProvider.EXA,
+                        SearchProvider.BOTH,
+                    ]
+            else:
+                config = SearchEngineConfig()
+                using_exa = config.default_provider.lower() in ["exa", "both"]
 
-            # Handle case where unified_search returns a dict (when provider="both" and compare_results=True)
-            if isinstance(results, dict):
-                # Merge results from all providers
-                all_results = []
-                for provider_results in results.values():
-                    all_results.extend(provider_results)
-                results = all_results[:max_results]
+            # Perform search based on provider
+            if using_exa and provider != SearchProvider.BOTH:
+                # Direct Exa search
+                search_results = exa_search(
+                    query=current_query,
+                    max_results=max_results,
+                    cap_content_length=cap_content_length,
+                    search_mode=search_mode,
+                    include_highlights=include_highlights,
+                )
+                results, cost = extract_search_results(
+                    search_results, provider="exa"
+                )
+                total_cost += cost
+            elif provider == SearchProvider.BOTH:
+                # Search with both providers
+                tavily_results = tavily_search(
+                    current_query,
+                    max_results=max_results,
+                    cap_content_length=cap_content_length,
+                )
+                exa_results = exa_search(
+                    query=current_query,
+                    max_results=max_results,
+                    cap_content_length=cap_content_length,
+                    search_mode=search_mode,
+                    include_highlights=include_highlights,
+                )
+
+                # Extract results from both
+                tavily_extracted, _ = extract_search_results(
+                    tavily_results, provider="tavily"
+                )
+                exa_extracted, exa_cost = extract_search_results(
+                    exa_results, provider="exa"
+                )
+                total_cost += exa_cost
+
+                # Merge results
+                results = []
+                max_len = max(len(tavily_extracted), len(exa_extracted))
+                for i in range(max_len):
+                    if i < len(tavily_extracted):
+                        results.append(tavily_extracted[i])
+                    if i < len(exa_extracted):
+                        results.append(exa_extracted[i])
+                results = results[:max_results]
+            else:
+                # Tavily search or unified search
+                results = unified_search(
+                    query=current_query,
+                    provider=provider,
+                    max_results=max_results,
+                    cap_content_length=cap_content_length,
+                    search_mode=search_mode,
+                    include_highlights=include_highlights,
+                )
+
+                # Handle case where unified_search returns a dict
+                if isinstance(results, dict):
+                    all_results = []
+                    for provider_results in results.values():
+                        all_results.extend(provider_results)
+                    results = all_results[:max_results]
 
             # Check if we got results with actual content
             if results:
@@ -610,7 +687,7 @@ def search_and_extract_results(
                     logger.info(
                         f"Found {content_results}/{len(results)} results with content"
                     )
-                    return results
+                    return results, total_cost
                 else:
                     logger.warning(
                         f"Only found {content_results}/{len(results)} results with content. "
@@ -628,7 +705,7 @@ def search_and_extract_results(
                 logger.warning(
                     f"Out of retries. Returning best results found ({len(results)} results)."
                 )
-                return results
+                return results, total_cost
 
         except Exception as e:
             if retry_count < max_retries:
@@ -638,7 +715,7 @@ def search_and_extract_results(
                 retry_count += 1
             else:
                 logger.error(f"Search failed after {max_retries} retries: {e}")
-                return []
+                return [], 0.0
 
     # If we've exhausted all retries, return the best results we have
-    return results
+    return results, total_cost

@@ -169,9 +169,33 @@ def collect_tracing_metadata_step(
         except Exception as e:
             logger.warning(f"Failed to collect prompt-level metrics: {str(e)}")
 
+        # Add search costs from the state
+        if hasattr(state, "search_costs") and state.search_costs:
+            metadata.search_costs = state.search_costs.copy()
+            logger.info(f"Added search costs: {metadata.search_costs}")
+
+        if hasattr(state, "search_cost_details") and state.search_cost_details:
+            metadata.search_cost_details = state.search_cost_details.copy()
+
+            # Count queries by provider
+            search_queries_count = {}
+            for detail in state.search_cost_details:
+                provider = detail.get("provider", "unknown")
+                search_queries_count[provider] = (
+                    search_queries_count.get(provider, 0) + 1
+                )
+            metadata.search_queries_count = search_queries_count
+
+            logger.info(
+                f"Added {len(metadata.search_cost_details)} search cost detail entries"
+            )
+
+        total_search_cost = sum(metadata.search_costs.values())
         logger.info(
             f"Successfully collected tracing metadata - "
-            f"Cost: ${metadata.total_cost:.4f}, "
+            f"LLM Cost: ${metadata.total_cost:.4f}, "
+            f"Search Cost: ${total_search_cost:.4f}, "
+            f"Total Cost: ${metadata.total_cost + total_search_cost:.4f}, "
             f"Tokens: {metadata.total_tokens:,}, "
             f"Models: {metadata.models_used}, "
             f"Duration: {metadata.formatted_latency}"
@@ -182,5 +206,19 @@ def collect_tracing_metadata_step(
             f"Failed to collect tracing metadata for pipeline run {pipeline_run_name}: {str(e)}"
         )
         # Return metadata with whatever we could collect
+
+        # Still try to get search costs even if Langfuse failed
+        if hasattr(state, "search_costs") and state.search_costs:
+            metadata.search_costs = state.search_costs.copy()
+        if hasattr(state, "search_cost_details") and state.search_cost_details:
+            metadata.search_cost_details = state.search_cost_details.copy()
+            # Count queries by provider
+            search_queries_count = {}
+            for detail in state.search_cost_details:
+                provider = detail.get("provider", "unknown")
+                search_queries_count[provider] = (
+                    search_queries_count.get(provider, 0) + 1
+                )
+            metadata.search_queries_count = search_queries_count
 
     return state, metadata

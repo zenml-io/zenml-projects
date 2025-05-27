@@ -113,6 +113,17 @@ class ResearchState(BaseModel):
     # Final report
     final_report_html: str = ""
 
+    # Search cost tracking
+    search_costs: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Total costs by search provider (e.g., {'exa': 0.0, 'tavily': 0.0})",
+    )
+    search_cost_details: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Detailed log of each search with cost information",
+    )
+    # Format: [{"provider": "exa", "query": "...", "cost": 0.0, "timestamp": ..., "step": "...", "sub_question": "..."}]
+
     model_config = {
         "extra": "ignore",
         "frozen": False,
@@ -265,6 +276,18 @@ class TracingMetadata(BaseModel):
     # Prompt-level metrics
     prompt_metrics: List[PromptTypeMetrics] = Field(
         default_factory=list, description="Cost breakdown by prompt type"
+    )
+
+    # Search provider costs
+    search_costs: Dict[str, float] = Field(
+        default_factory=dict, description="Total costs by search provider"
+    )
+    search_queries_count: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Number of queries by search provider",
+    )
+    search_cost_details: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Detailed search cost information"
     )
 
     # Timestamp
