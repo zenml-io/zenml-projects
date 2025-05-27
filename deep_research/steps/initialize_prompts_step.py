@@ -10,7 +10,7 @@ from typing import Annotated, Tuple
 from materializers.prompt_materializer import PromptMaterializer
 from utils import prompts
 from utils.pydantic_models import Prompt
-from zenml import step
+from zenml import add_tags, step
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,27 @@ def initialize_prompts_step(
     )
 
     logger.info(f"Loaded 9 individual prompts")
+
+    # add tags to all prompts
+    add_tags(tags=["prompt", "search"], artifact="search_query_prompt")
+    add_tags(
+        tags=["prompt", "generation"], artifact="query_decomposition_prompt"
+    )
+    add_tags(tags=["prompt", "generation"], artifact="synthesis_prompt")
+    add_tags(
+        tags=["prompt", "generation"], artifact="viewpoint_analysis_prompt"
+    )
+    add_tags(tags=["prompt", "generation"], artifact="reflection_prompt")
+    add_tags(
+        tags=["prompt", "generation"], artifact="additional_synthesis_prompt"
+    )
+    add_tags(
+        tags=["prompt", "generation"], artifact="conclusion_generation_prompt"
+    )
+    add_tags(
+        tags=["prompt", "generation"], artifact="executive_summary_prompt"
+    )
+    add_tags(tags=["prompt", "generation"], artifact="introduction_prompt")
 
     return (
         search_query_prompt,

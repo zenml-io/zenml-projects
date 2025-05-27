@@ -10,7 +10,7 @@ from utils.approval_utils import (
     summarize_research_progress,
 )
 from utils.pydantic_models import ApprovalDecision, ReflectionOutput
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 from zenml.client import Client
 
 logger = logging.getLogger(__name__)
@@ -299,6 +299,9 @@ def get_research_approval_step(
                 }
             }
         )
+
+        # Add tag to the approval decision artifact
+        add_tags(tags=["hitl"], artifact="approval_decision")
 
         return ApprovalDecision(
             approved=False,

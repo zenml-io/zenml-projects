@@ -16,7 +16,7 @@ from utils.pydantic_models import (
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -353,6 +353,9 @@ def iterative_reflection_step(
             infer_artifact=True,
         )
 
+        # Add tags to the artifact
+        add_tags(tags=["state", "reflected"], artifact="reflected_state")
+
         return state
 
     except Exception as e:
@@ -381,5 +384,8 @@ def iterative_reflection_step(
                 }
             }
         )
+
+        # Add tags to the artifact
+        add_tags(tags=["state", "reflected"], artifact="reflected_state")
 
         return state

@@ -5,7 +5,7 @@ from typing import Annotated
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import get_structured_llm_output
 from utils.pydantic_models import Prompt, ResearchState
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +125,9 @@ def initial_query_decomposition_step(
             infer_artifact=True,
         )
 
+        # Add tags to the artifact
+        add_tags(tags=["state", "decomposed"], artifact="updated_state")
+
         return state
 
     except Exception as e:
@@ -167,5 +170,8 @@ def initial_query_decomposition_step(
             },
             infer_model=True,
         )
+
+        # Add tags to the artifact
+        add_tags(tags=["state", "decomposed"], artifact="updated_state")
 
         return state

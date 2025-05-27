@@ -5,7 +5,7 @@ from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.pydantic_models import ResearchState
-from zenml import get_step_context, log_metadata, step
+from zenml import add_tags, get_step_context, log_metadata, step
 from zenml.client import Client
 
 logger = logging.getLogger(__name__)
@@ -261,5 +261,8 @@ def merge_sub_question_results_step(
         },
         infer_artifact=True,
     )
+
+    # Add tags to the artifact
+    add_tags(tags=["state", "merged"], artifact="merged_state")
 
     return merged_state

@@ -8,7 +8,7 @@ from materializers.reflection_output_materializer import (
 )
 from utils.llm_utils import get_structured_llm_output
 from utils.pydantic_models import Prompt, ReflectionOutput, ResearchState
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -159,5 +159,8 @@ def generate_reflection_step(
         },
         infer_artifact=True,
     )
+
+    # Add tags to the artifact
+    add_tags(tags=["reflection", "critique"], artifact="reflection_output")
 
     return reflection_output

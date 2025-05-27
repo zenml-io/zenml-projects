@@ -14,7 +14,7 @@ from utils.pydantic_models import (
     ViewpointAnalysis,
     ViewpointTension,
 )
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +187,9 @@ def cross_viewpoint_analysis_step(
             infer_artifact=True,
         )
 
+        # Add tags to the artifact
+        add_tags(tags=["state", "viewpoint"], artifact="analyzed_state")
+
         return state
 
     except Exception as e:
@@ -219,5 +222,8 @@ def cross_viewpoint_analysis_step(
                 }
             }
         )
+
+        # Add tags to the artifact
+        add_tags(tags=["state", "viewpoint"], artifact="analyzed_state")
 
         return state

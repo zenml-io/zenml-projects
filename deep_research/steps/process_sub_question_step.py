@@ -17,7 +17,7 @@ from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
 )
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +87,8 @@ def process_sub_question_step(
         )
         # Return an empty state since there's no question to process
         sub_state.sub_questions = []
+        # Add tags to the artifact
+        add_tags(tags=["state", "sub-question"], artifact="output")
         return sub_state
 
     # Get the target sub-question
@@ -282,5 +284,8 @@ def process_sub_question_step(
         },
         infer_artifact=True,
     )
+
+    # Add tags to the artifact
+    add_tags(tags=["state", "sub-question"], artifact="output")
 
     return sub_state

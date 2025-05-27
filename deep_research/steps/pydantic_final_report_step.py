@@ -23,7 +23,7 @@ from utils.prompts import (
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
 from utils.pydantic_models import Prompt, ResearchState
-from zenml import log_metadata, step
+from zenml import add_tags, log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
@@ -1092,6 +1092,9 @@ def pydantic_final_report_step(
         logger.info(
             "Final research report generated successfully with static template"
         )
+        # Add tags to the artifacts
+        add_tags(tags=["state", "final"], artifact="state")
+        add_tags(tags=["report", "html"], artifact="report_html")
         return state, HTMLString(html_content)
 
     # Otherwise use the LLM-generated approach
@@ -1187,6 +1190,9 @@ def pydantic_final_report_step(
         )
 
         logger.info("Final research report generated successfully")
+        # Add tags to the artifacts
+        add_tags(tags=["state", "final"], artifact="state")
+        add_tags(tags=["report", "html"], artifact="report_html")
         return state, HTMLString(html_content)
 
     except Exception as e:
@@ -1245,4 +1251,7 @@ def pydantic_final_report_step(
             infer_model=True,
         )
 
+        # Add tags to the artifacts
+        add_tags(tags=["state", "final"], artifact="state")
+        add_tags(tags=["report", "html"], artifact="report_html")
         return state, HTMLString(fallback_html)

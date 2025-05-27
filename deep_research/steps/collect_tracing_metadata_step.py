@@ -18,7 +18,7 @@ from utils.tracing_metadata_utils import (
     get_trace_stats,
     get_traces_by_name,
 )
-from zenml import get_step_context, step
+from zenml import add_tags, get_step_context, step
 
 logger = logging.getLogger(__name__)
 
@@ -230,5 +230,11 @@ def collect_tracing_metadata_step(
                     search_queries_count.get(provider, 0) + 1
                 )
             metadata.search_queries_count = search_queries_count
+
+    # Add tags to the artifacts
+    add_tags(tags=["state"], artifact="state")
+    add_tags(
+        tags=["exa", "tavily", "llm", "cost"], artifact="tracing_metadata"
+    )
 
     return state, metadata
