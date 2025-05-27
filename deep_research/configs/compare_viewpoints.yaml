@@ -1,0 +1,43 @@
+# Deep Research Pipeline Configuration - Compare Viewpoints
+enable_cache: true
+
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "viewpoints",
+    ]
+  use_cases: "Research on a given query."
+
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
+# Research parameters for comparing different viewpoints
+steps:
+  initial_query_decomposition_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  cross_viewpoint_analysis_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      viewpoint_categories: ["scientific", "political", "economic", "social", "ethical", "historical"]
+  
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0
