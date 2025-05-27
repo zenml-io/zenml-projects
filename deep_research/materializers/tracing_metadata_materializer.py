@@ -502,7 +502,9 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                 </div>
                 
                 <h3>Cost Breakdown Chart</h3>
-                <canvas id="costBreakdownChart" width="400" height="200"></canvas>
+                <div style="position: relative; height: 300px; width: 100%; max-width: 400px; margin: 0 auto;">
+                    <canvas id="costBreakdownChart"></canvas>
+                </div>
                 <script>
                     var ctx = document.getElementById('costBreakdownChart').getContext('2d');
                     var totalCombinedCost = """
@@ -526,7 +528,7 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false,
+                            maintainAspectRatio: true,
                             plugins: {
                                 legend: {
                                     position: 'bottom'
