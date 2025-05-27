@@ -1,6 +1,22 @@
 # Enhanced Deep Research Pipeline Configuration with Human Approval
 enable_cache: false
 
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "enhanced_approval",
+    ]
+  use_cases: "Research on a given query."
+
 # Langfuse project name for LLM tracking
 langfuse_project_name: "deep-research"
 

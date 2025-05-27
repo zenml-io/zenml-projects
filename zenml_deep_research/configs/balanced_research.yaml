@@ -1,6 +1,22 @@
 # Deep Research Pipeline Configuration - Balanced Mode
 enable_cache: true
 
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "balanced",
+    ]
+  use_cases: "Research on a given query."
+
 # Langfuse project name for LLM tracking
 langfuse_project_name: "deep-research"
 

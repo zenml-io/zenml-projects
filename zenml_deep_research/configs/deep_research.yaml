@@ -1,6 +1,22 @@
 # Deep Research Pipeline Configuration - Deep Comprehensive Mode
 enable_cache: false  # Disable cache for fresh comprehensive analysis
 
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "deep",
+    ]
+  use_cases: "Research on a given query."
+
 # Langfuse project name for LLM tracking
 langfuse_project_name: "deep-research"
 
