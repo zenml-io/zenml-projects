@@ -6,7 +6,7 @@ from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ResearchState
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,10 @@ def initial_query_decomposition_step(
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     max_sub_questions: int = 8,
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "updated_state"]:
+) -> Annotated[
+    ResearchState,
+    ArtifactConfig(name="updated_state", tags=["decomposed", "initial"]),
+]:
     """Break down a complex research query into specific sub-questions.
 
     Args:

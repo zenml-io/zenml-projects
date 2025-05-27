@@ -16,7 +16,7 @@ from utils.pydantic_models import (
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,10 @@ def iterative_reflection_step(
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     reflection_prompt: str = REFLECTION_PROMPT,
     additional_synthesis_prompt: str = ADDITIONAL_SYNTHESIS_PROMPT,
-) -> Annotated[ResearchState, "updated_state"]:
+) -> Annotated[
+    ResearchState,
+    ArtifactConfig(name="updated_state", tags=["reflection", "improved"]),
+]:
     """Perform iterative reflection on the research, identifying gaps and improving it.
 
     Args:

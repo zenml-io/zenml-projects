@@ -18,7 +18,7 @@ from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
 )
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,10 @@ def process_sub_question_step(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "output"]:
+) -> Annotated[
+    ResearchState,
+    ArtifactConfig(name="output", tags=["sub_question", "search_results"]),
+]:
     """Process a single sub-question if it exists at the given index.
 
     This step combines the gathering and synthesis steps for a single sub-question.

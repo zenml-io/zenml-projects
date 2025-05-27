@@ -14,7 +14,7 @@ from utils.pydantic_models import (
     ViewpointAnalysis,
     ViewpointTension,
 )
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,12 @@ def cross_viewpoint_analysis_step(
         "historical",
     ],
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "updated_state"]:
+) -> Annotated[
+    ResearchState,
+    ArtifactConfig(
+        name="updated_state", tags=["viewpoint_analysis", "synthesis"]
+    ),
+]:
     """Analyze synthesized information across different viewpoints.
 
     Args:

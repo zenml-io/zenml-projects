@@ -7,7 +7,7 @@ from utils.approval_utils import (
     summarize_research_progress,
 )
 from utils.pydantic_models import ApprovalDecision, ReflectionOutput
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,12 @@ def get_research_approval_step(
     alerter_type: str = "slack",
     timeout: int = 3600,
     max_queries: int = 2,
-) -> Annotated[ApprovalDecision, "approval_decision"]:
+) -> Annotated[
+    ApprovalDecision,
+    ArtifactConfig(
+        name="approval_decision", tags=["approval", "human_in_loop"]
+    ),
+]:
     """
     Get human approval for additional research queries.
 

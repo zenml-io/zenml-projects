@@ -18,7 +18,7 @@ from utils.pydantic_models import (
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,12 @@ def execute_approved_searches_step(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "updated_state"]:
+) -> Annotated[
+    ResearchState,
+    ArtifactConfig(
+        name="updated_state", tags=["approved_searches", "enriched"]
+    ),
+]:
     """
     Execute approved searches and enhance the research state.
 

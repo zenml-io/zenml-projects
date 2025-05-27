@@ -6,7 +6,7 @@ from typing import Annotated
 from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ReflectionOutput, ResearchState
-from zenml import log_metadata, step
+from zenml import ArtifactConfig, log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,10 @@ def generate_reflection_step(
     prompts_bundle: PromptsBundle,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ReflectionOutput, "reflection_output"]:
+) -> Annotated[
+    ReflectionOutput,
+    ArtifactConfig(name="reflection_output", tags=["reflection", "analysis"]),
+]:
     """
     Generate reflection and recommendations WITHOUT executing searches.
 
