@@ -81,9 +81,9 @@ class TestPromptLoader:
         all_prompts = bundle.list_all_prompts()
         for name, prompt in all_prompts.items():
             assert prompt.content, f"Prompt {name} has empty content"
-            assert len(prompt.content) > 50, (
-                f"Prompt {name} content seems too short"
-            )
+            assert (
+                len(prompt.content) > 50
+            ), f"Prompt {name} content seems too short"
 
     def test_all_prompts_have_descriptions(self):
         """Test that all loaded prompts have descriptions."""
@@ -92,9 +92,9 @@ class TestPromptLoader:
         all_prompts = bundle.list_all_prompts()
         for name, prompt in all_prompts.items():
             assert prompt.description, f"Prompt {name} has no description"
-            assert len(prompt.description) > 10, (
-                f"Prompt {name} description seems too short"
-            )
+            assert (
+                len(prompt.description) > 10
+            ), f"Prompt {name} description seems too short"
 
     def test_all_prompts_have_tags(self):
         """Test that all loaded prompts have at least one tag."""
@@ -103,6 +103,6 @@ class TestPromptLoader:
         all_prompts = bundle.list_all_prompts()
         for name, prompt in all_prompts.items():
             assert prompt.tags, f"Prompt {name} has no tags"
-            assert len(prompt.tags) >= 1, (
-                f"Prompt {name} should have at least one tag"
-            )
+            assert (
+                len(prompt.tags) >= 1
+            ), f"Prompt {name} should have at least one tag"
