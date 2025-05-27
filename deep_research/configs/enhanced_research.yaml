@@ -1,0 +1,71 @@
+# Enhanced Deep Research Pipeline Configuration
+enable_cache: false
+
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "enhanced",
+    ]
+  use_cases: "Research on a given query."
+
+# Research query parameters
+query: "Climate change policy debates"
+
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
+# Step configurations
+steps:
+  initial_query_decomposition_step:
+    parameters:
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
+
+  cross_viewpoint_analysis_step:
+    parameters:
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
+      viewpoint_categories:
+        [
+          "scientific",
+          "political",
+          "economic",
+          "social",
+          "ethical",
+          "historical",
+        ]
+
+  generate_reflection_step:
+    parameters:
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
+
+  get_research_approval_step:
+    parameters:
+      timeout: 3600
+      max_queries: 2
+
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
+
+  pydantic_final_report_step:
+    parameters:
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
+
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0

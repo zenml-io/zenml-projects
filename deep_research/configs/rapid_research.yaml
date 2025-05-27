@@ -1,0 +1,59 @@
+# Deep Research Pipeline Configuration - Quick Research
+enable_cache: true
+
+# ZenML MCP
+model:
+  name: "deep_research"
+  description: "Parallelized ZenML pipelines for deep research on a given query."
+  tags:
+    [
+      "research",
+      "exa",
+      "tavily",
+      "openrouter",
+      "sambanova",
+      "langfuse",
+      "rapid",
+    ]
+  use_cases: "Research on a given query."
+
+# Langfuse project name for LLM tracking
+langfuse_project_name: "deep-research"
+
+# Research parameters for quick research
+parameters:
+  query: "Default research query"
+
+steps:
+  initial_query_decomposition_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      max_sub_questions: 5  # Limit to fewer sub-questions for quick research
+  
+  process_sub_question_step:
+    parameters:
+      llm_model_search: "sambanova/Meta-Llama-3.3-70B-Instruct"
+      llm_model_synthesis: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  generate_reflection_step:
+    parameters:
+      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+  
+  get_research_approval_step:
+    parameters:
+      auto_approve: true  # Auto-approve for quick research
+  
+  execute_approved_searches_step:
+    parameters:
+      llm_model: "sambanova/Meta-Llama-3.3-70B-Instruct"
+  
+# Environment settings
+settings:
+  docker:
+    requirements:
+      - openai>=1.0.0
+      - tavily-python>=0.2.8
+      - PyYAML>=6.0
+      - click>=8.0.0
+      - pydantic>=2.0.0
+      - typing_extensions>=4.0.0
