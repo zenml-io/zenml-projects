@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @step(output_materializers=PromptsBundleMaterializer)
 def initialize_prompts_step(
-    pipeline_version: str = "1.0.0",
+    pipeline_version: str = "1.1.0",
 ) -> Annotated[PromptsBundle, "prompts_bundle"]:
     """Initialize the prompts bundle for the pipeline.
 

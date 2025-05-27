@@ -137,6 +137,187 @@ def format_text_with_code_blocks(text: str) -> str:
     return "".join(parts)
 
 
+def generate_executive_summary(
+    state: ResearchState,
+    prompts_bundle: PromptsBundle,
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
+) -> str:
+    """Generate an executive summary using LLM based on research findings.
+
+    Args:
+        state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
+        llm_model: The model to use for generation
+        langfuse_project_name: Name of the Langfuse project for tracking
+
+    Returns:
+        HTML formatted executive summary
+    """
+    logger.info("Generating executive summary using LLM")
+
+    # Prepare the context with all research findings
+    context = f"Main Research Query: {state.main_query}\n\n"
+
+    # Add synthesized findings for each sub-question
+    for i, sub_question in enumerate(state.sub_questions, 1):
+        info = state.enhanced_info.get(
+            sub_question
+        ) or state.synthesized_info.get(sub_question)
+        if info:
+            context += f"Sub-question {i}: {sub_question}\n"
+            context += f"Answer Summary: {info.synthesized_answer[:500]}...\n"
+            context += f"Confidence: {info.confidence_level}\n"
+            context += f"Key Sources: {', '.join(info.key_sources[:3]) if info.key_sources else 'N/A'}\n\n"
+
+    # Add viewpoint analysis insights if available
+    if state.viewpoint_analysis:
+        context += "Key Areas of Agreement:\n"
+        for agreement in state.viewpoint_analysis.main_points_of_agreement[:3]:
+            context += f"- {agreement}\n"
+        context += "\nKey Tensions:\n"
+        for tension in state.viewpoint_analysis.areas_of_tension[:2]:
+            context += f"- {tension.topic}\n"
+
+    # Get the executive summary prompt
+    try:
+        executive_summary_prompt = prompts_bundle.get_prompt_content(
+            "executive_summary_prompt"
+        )
+        logger.info("Successfully retrieved executive_summary_prompt")
+    except Exception as e:
+        logger.error(f"Failed to get executive_summary_prompt: {e}")
+        logger.info(
+            f"Available prompts: {list(prompts_bundle.list_all_prompts().keys())}"
+        )
+        return generate_fallback_executive_summary(state)
+
+    try:
+        # Call LLM to generate executive summary
+        result = run_llm_completion(
+            model=llm_model,
+            messages=[
+                {"role": "system", "content": executive_summary_prompt},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.7,
+            max_tokens=800,
+            project_name=langfuse_project_name,
+            trace_name="executive_summary_generation",
+        )
+
+        if result and "error" not in result:
+            content = remove_reasoning_from_output(result.get("content", ""))
+            # Clean up the HTML
+            content = extract_html_from_content(content)
+            logger.info("Successfully generated LLM-based executive summary")
+            return content
+        else:
+            logger.warning("Failed to generate executive summary via LLM")
+            return generate_fallback_executive_summary(state)
+
+    except Exception as e:
+        logger.error(f"Error generating executive summary: {e}")
+        return generate_fallback_executive_summary(state)
+
+
+def generate_introduction(
+    state: ResearchState,
+    prompts_bundle: PromptsBundle,
+    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    langfuse_project_name: str = "deep-research",
+) -> str:
+    """Generate an introduction using LLM based on research query and sub-questions.
+
+    Args:
+        state: The current research state
+        prompts_bundle: Bundle containing all prompts for the pipeline
+        llm_model: The model to use for generation
+        langfuse_project_name: Name of the Langfuse project for tracking
+
+    Returns:
+        HTML formatted introduction
+    """
+    logger.info("Generating introduction using LLM")
+
+    # Prepare the context
+    context = f"Main Research Query: {state.main_query}\n\n"
+    context += "Sub-questions being explored:\n"
+    for i, sub_question in enumerate(state.sub_questions, 1):
+        context += f"{i}. {sub_question}\n"
+
+    # Get the introduction prompt
+    try:
+        introduction_prompt = prompts_bundle.get_prompt_content(
+            "introduction_prompt"
+        )
+        logger.info("Successfully retrieved introduction_prompt")
+    except Exception as e:
+        logger.error(f"Failed to get introduction_prompt: {e}")
+        logger.info(
+            f"Available prompts: {list(prompts_bundle.list_all_prompts().keys())}"
+        )
+        return generate_fallback_introduction(state)
+
+    try:
+        # Call LLM to generate introduction
+        result = run_llm_completion(
+            model=llm_model,
+            messages=[
+                {"role": "system", "content": introduction_prompt},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.7,
+            max_tokens=600,
+            project_name=langfuse_project_name,
+            trace_name="introduction_generation",
+        )
+
+        if result and "error" not in result:
+            content = remove_reasoning_from_output(result.get("content", ""))
+            # Clean up the HTML
+            content = extract_html_from_content(content)
+            logger.info("Successfully generated LLM-based introduction")
+            return content
+        else:
+            logger.warning("Failed to generate introduction via LLM")
+            return generate_fallback_introduction(state)
+
+    except Exception as e:
+        logger.error(f"Error generating introduction: {e}")
+        return generate_fallback_introduction(state)
+
+
+def generate_fallback_executive_summary(state: ResearchState) -> str:
+    """Generate a fallback executive summary when LLM fails."""
+    summary = f"<p>This report examines the question: <strong>{html.escape(state.main_query)}</strong></p>"
+    summary += f"<p>The research explored {len(state.sub_questions)} key dimensions of this topic, "
+    summary += "synthesizing findings from multiple sources to provide a comprehensive analysis.</p>"
+
+    # Add confidence overview
+    confidence_counts = {"high": 0, "medium": 0, "low": 0}
+    for info in state.enhanced_info.values():
+        level = info.confidence_level.lower()
+        if level in confidence_counts:
+            confidence_counts[level] += 1
+
+    summary += f"<p>Overall confidence in findings: {confidence_counts['high']} high, "
+    summary += f"{confidence_counts['medium']} medium, {confidence_counts['low']} low.</p>"
+
+    return summary
+
+
+def generate_fallback_introduction(state: ResearchState) -> str:
+    """Generate a fallback introduction when LLM fails."""
+    intro = f"<p>This report addresses the research query: <strong>{html.escape(state.main_query)}</strong></p>"
+    intro += f"<p>The research was conducted by breaking down the main query into {len(state.sub_questions)} "
+    intro += (
+        "sub-questions to explore different aspects of the topic in depth. "
+    )
+    intro += "Each sub-question was researched independently, with findings synthesized from various sources.</p>"
+    return intro
+
+
 def generate_conclusion(
     state: ResearchState,
     prompts_bundle: PromptsBundle,
@@ -424,12 +605,21 @@ def generate_report_from_template(
         )
     references_html += "</ul>"
 
-    # Generate executive summary based on reflection or create a default one
-    executive_summary = ""
-    if hasattr(state, "reflection") and state.reflection:
-        executive_summary = format_text_with_code_blocks(state.reflection)
-    else:
-        executive_summary = f"This report examines {html.escape(state.main_query)} through a structured approach, breaking down the topic into {len(state.sub_questions)} focused sub-questions. The research synthesizes information from multiple sources to provide a comprehensive analysis of the topic."
+    # Generate dynamic executive summary using LLM
+    logger.info("Generating dynamic executive summary...")
+    executive_summary = generate_executive_summary(
+        state, prompts_bundle, llm_model, langfuse_project_name
+    )
+    logger.info(
+        f"Executive summary generated: {len(executive_summary)} characters"
+    )
+
+    # Generate dynamic introduction using LLM
+    logger.info("Generating dynamic introduction...")
+    introduction_html = generate_introduction(
+        state, prompts_bundle, llm_model, langfuse_project_name
+    )
+    logger.info(f"Introduction generated: {len(introduction_html)} characters")
 
     # Generate comprehensive conclusion using LLM
     conclusion_html = generate_conclusion(
@@ -442,6 +632,7 @@ def generate_report_from_template(
         sub_questions_toc=sub_questions_toc,
         additional_sections_toc=additional_sections_toc,
         executive_summary=executive_summary,
+        introduction_html=introduction_html,
         num_sub_questions=len(state.sub_questions),
         sub_questions_html=sub_questions_html,
         viewpoint_analysis_html=viewpoint_analysis_html,
@@ -888,6 +1079,7 @@ def pydantic_final_report_step(
                 }
             },
             infer_artifact=True,
+            artifact_name="report_html",
         )
 
         logger.info(

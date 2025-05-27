@@ -45,6 +45,8 @@ class PromptsBundle(BaseModel):
     reflection_prompt: PromptTemplate
     additional_synthesis_prompt: PromptTemplate
     conclusion_generation_prompt: PromptTemplate
+    executive_summary_prompt: PromptTemplate
+    introduction_prompt: PromptTemplate
 
     # Metadata
     pipeline_version: str = Field(

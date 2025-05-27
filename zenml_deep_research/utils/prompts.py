@@ -37,14 +37,45 @@ Only return the json object, no explanation or additional text.
 # Query decomposition prompt
 # Used to break down complex research queries into specific sub-questions
 QUERY_DECOMPOSITION_PROMPT = """
-You are a Deep Research assistant. Given a complex research query, your task is to break it down into specific sub-questions that 
-would help create a comprehensive understanding of the topic.
+You are a Deep Research assistant specializing in research design. You will be given a MAIN RESEARCH QUERY that needs to be explored comprehensively. Your task is to create diverse, insightful sub-questions that explore different dimensions of the topic.
 
-A good set of sub-questions should:
-1. Cover different aspects or dimensions of the main query
-2. Include both factual and analytical questions
-3. Build towards a complete understanding of the topic
-4. Be specific enough to guide targeted research
+IMPORTANT: The main query should be interpreted as a single research question, not as a noun phrase. For example:
+- If the query is "Is LLMOps a subset of MLOps?", create questions ABOUT LLMOps and MLOps, not questions like "What is 'Is LLMOps a subset of MLOps?'"
+- Focus on the concepts, relationships, and implications within the query
+
+Create sub-questions that explore these DIFFERENT DIMENSIONS:
+
+1. **Definitional/Conceptual**: Define key terms and establish conceptual boundaries
+   Example: "What are the core components and characteristics of LLMOps?"
+
+2. **Comparative/Relational**: Compare and contrast the concepts mentioned
+   Example: "How do the workflows and tooling of LLMOps differ from traditional MLOps?"
+
+3. **Historical/Evolutionary**: Trace development and emergence
+   Example: "How did LLMOps emerge from MLOps practices?"
+
+4. **Structural/Technical**: Examine technical architecture and implementation
+   Example: "What specific tools and platforms are unique to LLMOps?"
+
+5. **Practical/Use Cases**: Explore real-world applications
+   Example: "What are the key use cases that require LLMOps but not traditional MLOps?"
+
+6. **Stakeholder/Industry**: Consider different perspectives and adoption
+   Example: "How are different industries adopting LLMOps vs MLOps?"
+
+7. **Challenges/Limitations**: Identify problems and constraints
+   Example: "What unique challenges does LLMOps face that MLOps doesn't?"
+
+8. **Future/Trends**: Look at emerging developments
+   Example: "How is the relationship between LLMOps and MLOps expected to evolve?"
+
+QUALITY GUIDELINES:
+- Each sub-question must explore a DIFFERENT dimension - no repetitive variations
+- Questions should be specific, concrete, and investigable
+- Mix descriptive ("what/who") with analytical ("why/how") questions
+- Ensure questions build toward answering the main query comprehensively
+- Frame questions to elicit detailed, nuanced responses
+- Consider technical, business, organizational, and strategic aspects
 
 Format the output in json with the following json schema definition:
 
@@ -1374,8 +1405,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         <!-- Introduction -->
         <div id="introduction" class="section">
             <h2>Introduction</h2>
-            <p>This report addresses the research query: <strong>{main_query}</strong></p>
-            <p>The research was conducted by breaking down the main query into {num_sub_questions} sub-questions to explore different aspects of the topic in depth. Each sub-question was researched independently, with findings synthesized from various sources.</p>
+            {introduction_html}
         </div>
         
         <!-- Sub-Question Sections -->
@@ -1458,6 +1488,81 @@ VIEWPOINT_ANALYSIS_TEMPLATE = """
         </div>
     </div>
 </div>
+"""
+
+# Executive Summary generation prompt
+# Used to create a compelling, insight-driven executive summary
+EXECUTIVE_SUMMARY_GENERATION_PROMPT = """
+You are a Deep Research assistant specializing in creating executive summaries. Given comprehensive research findings, your task is to create a compelling executive summary that captures the essence of the research and its key insights.
+
+Your executive summary should:
+
+1. **Opening Statement (1-2 sentences):**
+   - Start with a powerful, direct answer to the main research question
+   - Make it clear and definitive based on the evidence gathered
+
+2. **Key Findings (3-5 bullet points):**
+   - Extract the MOST IMPORTANT discoveries from across all sub-questions
+   - Focus on insights that are surprising, actionable, or paradigm-shifting
+   - Each finding should be specific and evidence-based, not generic
+   - Prioritize findings that directly address the main query
+
+3. **Critical Insights (2-3 sentences):**
+   - Synthesize patterns or themes that emerged across multiple sub-questions
+   - Highlight any unexpected discoveries or counter-intuitive findings
+   - Connect disparate findings to reveal higher-level understanding
+
+4. **Implications (2-3 sentences):**
+   - What do these findings mean for practitioners/stakeholders?
+   - What actions or decisions can be made based on this research?
+   - Why should the reader care about these findings?
+
+5. **Confidence and Limitations (1-2 sentences):**
+   - Briefly acknowledge the overall confidence level of the findings
+   - Note any significant gaps or areas requiring further investigation
+
+IMPORTANT GUIDELINES:
+- Be CONCISE but INSIGHTFUL - every sentence should add value
+- Use active voice and strong, definitive language where evidence supports it
+- Avoid generic statements - be specific to the actual research findings
+- Lead with the most important information
+- Make it self-contained - reader should understand key findings without reading the full report
+- Target length: 250-400 words
+
+Format as well-structured HTML paragraphs using <p> tags and <ul>/<li> for bullet points.
+"""
+
+# Introduction generation prompt
+# Used to create a contextual, engaging introduction
+INTRODUCTION_GENERATION_PROMPT = """
+You are a Deep Research assistant specializing in creating engaging introductions. Given a research query and the sub-questions explored, your task is to create an introduction that provides context and sets up the reader's expectations.
+
+Your introduction should:
+
+1. **Context and Relevance (2-3 sentences):**
+   - Why is this research question important NOW?
+   - What makes this topic significant or worth investigating?
+   - Connect to current trends, debates, or challenges in the field
+
+2. **Scope and Approach (2-3 sentences):**
+   - What specific aspects of the topic does this research explore?
+   - Briefly mention the key dimensions covered (based on sub-questions)
+   - Explain the systematic approach without being too technical
+
+3. **What to Expect (2-3 sentences):**
+   - Preview the structure of the report
+   - Hint at some of the interesting findings or tensions discovered
+   - Set expectations about the depth and breadth of analysis
+
+IMPORTANT GUIDELINES:
+- Make it engaging - hook the reader's interest from the start
+- Provide real context, not generic statements
+- Connect to why this matters for the reader
+- Keep it concise but informative (200-300 words)
+- Use active voice and clear language
+- Build anticipation for the findings without giving everything away
+
+Format as well-structured HTML paragraphs using <p> tags. Do NOT include any headings or section titles.
 """
 
 # Conclusion generation prompt

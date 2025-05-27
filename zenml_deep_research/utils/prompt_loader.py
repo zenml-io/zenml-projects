@@ -8,7 +8,7 @@ from utils import prompts
 from utils.prompt_models import PromptsBundle, PromptTemplate
 
 
-def load_prompts_bundle(pipeline_version: str = "1.0.0") -> PromptsBundle:
+def load_prompts_bundle(pipeline_version: str = "1.1.0") -> PromptsBundle:
     """Load all prompts from prompts.py into a PromptsBundle.
 
     Args:
@@ -74,6 +74,22 @@ def load_prompts_bundle(pipeline_version: str = "1.0.0") -> PromptsBundle:
         tags=["report", "conclusion", "synthesis"],
     )
 
+    executive_summary_prompt = PromptTemplate(
+        name="executive_summary_prompt",
+        content=prompts.EXECUTIVE_SUMMARY_GENERATION_PROMPT,
+        description="Creates a compelling, insight-driven executive summary",
+        version="1.1.0",
+        tags=["report", "summary", "insights"],
+    )
+
+    introduction_prompt = PromptTemplate(
+        name="introduction_prompt",
+        content=prompts.INTRODUCTION_GENERATION_PROMPT,
+        description="Creates a contextual, engaging introduction",
+        version="1.1.0",
+        tags=["report", "introduction", "context"],
+    )
+
     # Create and return the bundle
     return PromptsBundle(
         search_query_prompt=search_query_prompt,
@@ -83,6 +99,8 @@ def load_prompts_bundle(pipeline_version: str = "1.0.0") -> PromptsBundle:
         reflection_prompt=reflection_prompt,
         additional_synthesis_prompt=additional_synthesis_prompt,
         conclusion_generation_prompt=conclusion_generation_prompt,
+        executive_summary_prompt=executive_summary_prompt,
+        introduction_prompt=introduction_prompt,
         pipeline_version=pipeline_version,
     )
 
