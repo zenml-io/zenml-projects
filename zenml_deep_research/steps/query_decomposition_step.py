@@ -106,6 +106,16 @@ def initial_query_decomposition_step(
             }
         )
 
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_scope": {
+                    "num_sub_questions": len(sub_questions),
+                }
+            },
+            infer_model=True,
+        )
+
         # Log artifact metadata for the output state
         log_metadata(
             metadata={
@@ -149,6 +159,16 @@ def initial_query_decomposition_step(
                     "sub_questions": fallback_questions,
                 }
             }
+        )
+
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_scope": {
+                    "num_sub_questions": len(fallback_questions),
+                }
+            },
+            infer_model=True,
         )
 
         return state

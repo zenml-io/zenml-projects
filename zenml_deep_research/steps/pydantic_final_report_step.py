@@ -1062,6 +1062,16 @@ def pydantic_final_report_step(
             }
         )
 
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_quality": {
+                    "confidence_distribution": confidence_distribution,
+                }
+            },
+            infer_model=True,
+        )
+
         # Log artifact metadata for the HTML report
         log_metadata(
             metadata={
@@ -1167,6 +1177,16 @@ def pydantic_final_report_step(
             }
         )
 
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_quality": {
+                    "confidence_distribution": confidence_distribution,
+                }
+            },
+            infer_model=True,
+        )
+
         logger.info("Final research report generated successfully")
         return state, HTMLString(html_content)
 
@@ -1214,6 +1234,16 @@ def pydantic_final_report_step(
                     "error_message": str(e),
                 }
             }
+        )
+
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_quality": {
+                    "confidence_distribution": confidence_distribution,
+                }
+            },
+            infer_model=True,
         )
 
         return state, HTMLString(fallback_html)

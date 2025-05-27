@@ -13,7 +13,7 @@ from zenml import pipeline
 from zenml.types import HTMLString
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=Falsecon)
 def parallelized_deep_research_pipeline(
     query: str = "What is ZenML?",
     max_sub_questions: int = 10,

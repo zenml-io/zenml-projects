@@ -281,6 +281,17 @@ def iterative_reflection_step(
             }
         )
 
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "improvement_metrics": {
+                    "confidence_improvements": confidence_improvements,
+                    "total_improvements": reflection_metadata.improvements_made,
+                }
+            },
+            infer_model=True,
+        )
+
         # Log artifact metadata
         log_metadata(
             metadata={

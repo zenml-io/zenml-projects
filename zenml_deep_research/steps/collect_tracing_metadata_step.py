@@ -1,7 +1,7 @@
 """Step to collect tracing metadata from Langfuse for the pipeline run."""
 
 import logging
-from typing import Tuple
+from typing import Annotated, Tuple
 
 from utils.pydantic_models import ResearchState, TracingMetadata
 from utils.tracing_metadata_utils import (
@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 def collect_tracing_metadata_step(
     state: ResearchState,
     langfuse_project_name: str,
-) -> Tuple[ResearchState, TracingMetadata]:
+) -> Tuple[
+    Annotated[ResearchState, "state"],
+    Annotated[TracingMetadata, "tracing_metadata"],
+]:
     """Collect tracing metadata from Langfuse for the current pipeline run.
 
     This step gathers comprehensive metrics about token usage, costs, and performance

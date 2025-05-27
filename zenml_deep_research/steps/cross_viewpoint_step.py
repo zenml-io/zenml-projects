@@ -162,6 +162,18 @@ def cross_viewpoint_analysis_step(
             }
         )
 
+        # Log model metadata for cross-pipeline tracking
+        log_metadata(
+            metadata={
+                "research_scope": {
+                    "num_tension_areas": len(
+                        viewpoint_analysis.areas_of_tension
+                    ),
+                }
+            },
+            infer_model=True,
+        )
+
         # Log artifact metadata
         log_metadata(
             metadata={

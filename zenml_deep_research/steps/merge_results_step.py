@@ -170,6 +170,13 @@ def merge_sub_question_results_step(
         if level in confidence_distribution:
             confidence_distribution[level] += 1
 
+    # Calculate completeness ratio
+    completeness_ratio = (
+        len(processed_questions) / len(merged_state.sub_questions)
+        if merged_state.sub_questions
+        else 0
+    )
+
     # Log metadata
     log_metadata(
         metadata={
@@ -192,6 +199,16 @@ def merge_sub_question_results_step(
         }
     )
 
+    # Log model metadata for cross-pipeline tracking
+    log_metadata(
+        metadata={
+            "research_quality": {
+                "completeness_ratio": completeness_ratio,
+            }
+        },
+        infer_model=True,
+    )
+
     # Log artifact metadata
     log_metadata(
         metadata={
@@ -200,10 +217,7 @@ def merge_sub_question_results_step(
                 "has_synthesized_info": bool(merged_state.synthesized_info),
                 "search_results_count": len(merged_state.search_results),
                 "synthesized_info_count": len(merged_state.synthesized_info),
-                "completeness_ratio": len(processed_questions)
-                / len(merged_state.sub_questions)
-                if merged_state.sub_questions
-                else 0,
+                "completeness_ratio": completeness_ratio,
             }
         },
         infer_artifact=True,

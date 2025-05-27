@@ -226,6 +226,19 @@ def process_sub_question_step(
         }
     )
 
+    # Log model metadata for cross-pipeline tracking
+    log_metadata(
+        metadata={
+            "search_metrics": {
+                "confidence_level": synthesis_result.get(
+                    "confidence_level", "low"
+                ),
+                "search_provider": search_provider,
+            }
+        },
+        infer_model=True,
+    )
+
     # Log artifact metadata for the output state
     log_metadata(
         metadata={
