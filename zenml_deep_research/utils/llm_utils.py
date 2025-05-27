@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -74,14 +75,10 @@ def run_llm_completion(
         # Get pipeline run name and id for trace_name and trace_id if running in a step
         trace_name = None
         trace_id = None
-        try:
+        with contextlib.suppress(RuntimeError):
             context = get_step_context()
             trace_name = context.pipeline_run.name
             trace_id = str(context.pipeline_run.id)
-        except RuntimeError:
-            # Not running in a step context
-            pass
-
         # Build metadata dict
         metadata = {"project": project}
         if tags is not None:
