@@ -6,8 +6,7 @@ from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ResearchState
-from zenml import step
-from zenml.metadata import log_metadata
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +84,8 @@ def initial_query_decomposition_step(
         sub_questions = sub_questions[:max_sub_questions]
 
         logger.info(f"Generated {len(sub_questions)} sub-questions")
+        for i, question in enumerate(sub_questions, 1):
+            logger.info(f"  {i}. {question}")
 
         # Update the state with the new sub-questions
         state.update_sub_questions(sub_questions)
@@ -128,6 +129,9 @@ def initial_query_decomposition_step(
             f"What are the implications of {state.main_query}?",
         ]
         fallback_questions = fallback_questions[:max_sub_questions]
+        logger.info(f"Using {len(fallback_questions)} fallback questions:")
+        for i, question in enumerate(fallback_questions, 1):
+            logger.info(f"  {i}. {question}")
         state.update_sub_questions(fallback_questions)
 
         # Log metadata for fallback scenario

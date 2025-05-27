@@ -16,8 +16,7 @@ from utils.pydantic_models import (
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import step
-from zenml.metadata import log_metadata
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 

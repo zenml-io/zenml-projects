@@ -6,8 +6,7 @@ from typing import Annotated
 from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ReflectionOutput, ResearchState
-from zenml import step
-from zenml.metadata import log_metadata
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 

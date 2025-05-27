@@ -10,7 +10,7 @@ from pipelines.parallel_research_pipeline import (
     parallelized_deep_research_pipeline,
 )
 from utils.helper_functions import check_required_env_vars
-from zenml.metadata import log_metadata
+from zenml import log_metadata
 
 logger = logging.getLogger(__name__)
 

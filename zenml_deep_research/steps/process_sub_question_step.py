@@ -18,8 +18,7 @@ from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
 )
-from zenml import step
-from zenml.metadata import log_metadata
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 

@@ -7,9 +7,8 @@ from utils.approval_utils import (
     summarize_research_progress,
 )
 from utils.pydantic_models import ApprovalDecision, ReflectionOutput
-from zenml import step
+from zenml import log_metadata, step
 from zenml.client import Client
-from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 

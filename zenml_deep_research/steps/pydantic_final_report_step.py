@@ -24,8 +24,7 @@ from utils.prompts import (
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
 from utils.pydantic_models import ResearchState
-from zenml import step
-from zenml.metadata import log_metadata
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
