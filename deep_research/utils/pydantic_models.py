@@ -360,3 +360,159 @@ class TracingMetadata(BaseModel):
         "frozen": False,
         "validate_assignment": True,
     }
+
+
+# ============================================================================
+# New Artifact Classes for ResearchState Refactoring
+# ============================================================================
+
+
+class QueryContext(BaseModel):
+    """Immutable context containing the research query and its decomposition.
+
+    This artifact is created once at the beginning of the pipeline and
+    remains unchanged throughout execution.
+    """
+
+    main_query: str = Field(
+        ..., description="The main research question from the user"
+    )
+    sub_questions: List[str] = Field(
+        default_factory=list,
+        description="Decomposed sub-questions for parallel processing",
+    )
+    decomposition_timestamp: float = Field(
+        default_factory=lambda: time.time(),
+        description="When the query was decomposed",
+    )
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": True,  # Make immutable after creation
+        "validate_assignment": True,
+    }
+
+
+class SearchCostDetail(BaseModel):
+    """Detailed information about a single search operation."""
+
+    provider: str
+    query: str
+    cost: float
+    timestamp: float
+    step: str
+    sub_question: Optional[str] = None
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+
+class SearchData(BaseModel):
+    """Accumulates search results and cost tracking throughout the pipeline.
+
+    This artifact grows as searches are performed and can be merged
+    when parallel searches complete.
+    """
+
+    search_results: Dict[str, List[SearchResult]] = Field(
+        default_factory=dict,
+        description="Map of sub-question to search results",
+    )
+    search_costs: Dict[str, float] = Field(
+        default_factory=dict, description="Total costs by provider"
+    )
+    search_cost_details: List[SearchCostDetail] = Field(
+        default_factory=list, description="Detailed log of each search"
+    )
+    total_searches: int = Field(
+        default=0, description="Total number of searches performed"
+    )
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+    def merge(self, other: "SearchData") -> "SearchData":
+        """Merge another SearchData instance into this one."""
+        # Merge search results
+        for sub_q, results in other.search_results.items():
+            if sub_q in self.search_results:
+                self.search_results[sub_q].extend(results)
+            else:
+                self.search_results[sub_q] = results
+
+        # Merge costs
+        for provider, cost in other.search_costs.items():
+            self.search_costs[provider] = (
+                self.search_costs.get(provider, 0.0) + cost
+            )
+
+        # Merge cost details
+        self.search_cost_details.extend(other.search_cost_details)
+
+        # Update total searches
+        self.total_searches += other.total_searches
+
+        return self
+
+
+class SynthesisData(BaseModel):
+    """Contains synthesized information for all sub-questions."""
+
+    synthesized_info: Dict[str, SynthesizedInfo] = Field(
+        default_factory=dict,
+        description="Synthesized answers for each sub-question",
+    )
+    enhanced_info: Dict[str, SynthesizedInfo] = Field(
+        default_factory=dict,
+        description="Enhanced information after reflection",
+    )
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+    def merge(self, other: "SynthesisData") -> "SynthesisData":
+        """Merge another SynthesisData instance into this one."""
+        self.synthesized_info.update(other.synthesized_info)
+        self.enhanced_info.update(other.enhanced_info)
+        return self
+
+
+class AnalysisData(BaseModel):
+    """Contains viewpoint analysis and reflection metadata."""
+
+    viewpoint_analysis: Optional[ViewpointAnalysis] = None
+    reflection_metadata: Optional[ReflectionMetadata] = None
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+
+class FinalReport(BaseModel):
+    """Contains the final HTML report."""
+
+    report_html: str = Field(default="", description="The final HTML report")
+    generated_at: float = Field(
+        default_factory=lambda: time.time(),
+        description="Timestamp when report was generated",
+    )
+    main_query: str = Field(
+        default="", description="The original research query"
+    )
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }

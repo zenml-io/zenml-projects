@@ -16,12 +16,12 @@ from utils.pydantic_models import (
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import add_tags, log_metadata, step
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
 
-@step(output_materializers=ResearchStateMaterializer)
+@step(output_materializers={"reflected_state": ResearchStateMaterializer})
 def iterative_reflection_step(
     state: ResearchState,
     max_additional_searches: int = 2,
@@ -354,7 +354,7 @@ def iterative_reflection_step(
         )
 
         # Add tags to the artifact
-        add_tags(tags=["state", "reflected"], artifact="reflected_state")
+        # add_tags(tags=["state", "reflected"], artifact_name="reflected_state", infer_artifact=True)
 
         return state
 
@@ -386,6 +386,6 @@ def iterative_reflection_step(
         )
 
         # Add tags to the artifact
-        add_tags(tags=["state", "reflected"], artifact="reflected_state")
+        # add_tags(tags=["state", "reflected"], artifact_name="reflected_state", infer_artifact=True)
 
         return state

@@ -1,7 +1,7 @@
-"""Final report generation step using Pydantic models and materializers.
+"""Final report generation step using artifact-based approach.
 
 This module provides a ZenML pipeline step for generating the final HTML research report
-using Pydantic models and improved materializers.
+using the new artifact-based approach.
 """
 
 import html
@@ -11,7 +11,7 @@ import re
 import time
 from typing import Annotated, Tuple
 
-from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.final_report_materializer import FinalReportMaterializer
 from utils.helper_functions import (
     extract_html_from_content,
     remove_reasoning_from_output,
@@ -22,8 +22,15 @@ from utils.prompts import (
     SUB_QUESTION_TEMPLATE,
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
-from utils.pydantic_models import Prompt, ResearchState
-from zenml import add_tags, log_metadata, step
+from utils.pydantic_models import (
+    AnalysisData,
+    FinalReport,
+    Prompt,
+    QueryContext,
+    SearchData,
+    SynthesisData,
+)
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
@@ -99,53 +106,84 @@ def format_text_with_code_blocks(text: str) -> str:
     if not text:
         return ""
 
-    # First escape HTML
-    escaped_text = html.escape(text)
+    # Handle code blocks
+    lines = text.split("\n")
+    formatted_lines = []
+    in_code_block = False
+    code_language = ""
+    code_lines = []
 
-    # Handle code blocks (wrap content in ``` or ```)
-    pattern = r"```(?:\w*\n)?(.*?)```"
-
-    def code_block_replace(match):
-        code_content = match.group(1)
-        # Strip extra newlines at beginning and end
-        code_content = code_content.strip("\n")
-        return f"<pre><code>{code_content}</code></pre>"
-
-    # Replace code blocks
-    formatted_text = re.sub(
-        pattern, code_block_replace, escaped_text, flags=re.DOTALL
-    )
-
-    # Convert regular newlines to <br> tags (but not inside <pre> blocks)
-    parts = []
-    in_pre = False
-    for line in formatted_text.split("\n"):
-        if "<pre>" in line:
-            in_pre = True
-            parts.append(line)
-        elif "</pre>" in line:
-            in_pre = False
-            parts.append(line)
-        elif in_pre:
-            # Inside a code block, preserve newlines
-            parts.append(line)
+    for line in lines:
+        # Check for code block start
+        if line.strip().startswith("```"):
+            if in_code_block:
+                # End of code block
+                code_content = "\n".join(code_lines)
+                formatted_lines.append(
+                    f'<pre><code class="language-{code_language}">{html.escape(code_content)}</code></pre>'
+                )
+                code_lines = []
+                in_code_block = False
+                code_language = ""
+            else:
+                # Start of code block
+                in_code_block = True
+                # Extract language if specified
+                code_language = line.strip()[3:].strip() or "plaintext"
+        elif in_code_block:
+            code_lines.append(line)
         else:
-            # Outside code blocks, convert newlines to <br>
-            parts.append(line + "<br>")
+            # Process inline code
+            line = re.sub(r"`([^`]+)`", r"<code>\1</code>", html.escape(line))
+            # Process bullet points
+            if line.strip().startswith("•") or line.strip().startswith("-"):
+                line = re.sub(r"^(\s*)[•-]\s*", r"\1", line)
+                formatted_lines.append(f"<li>{line.strip()}</li>")
+            elif line.strip():
+                formatted_lines.append(f"<p>{line}</p>")
 
-    return "".join(parts)
+    # Handle case where code block wasn't closed
+    if in_code_block and code_lines:
+        code_content = "\n".join(code_lines)
+        formatted_lines.append(
+            f'<pre><code class="language-{code_language}">{html.escape(code_content)}</code></pre>'
+        )
+
+    # Wrap list items in ul tags
+    result = []
+    in_list = False
+    for line in formatted_lines:
+        if line.startswith("<li>"):
+            if not in_list:
+                result.append("<ul>")
+                in_list = True
+            result.append(line)
+        else:
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append(line)
+
+    if in_list:
+        result.append("</ul>")
+
+    return "\n".join(result)
 
 
 def generate_executive_summary(
-    state: ResearchState,
+    query_context: QueryContext,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
     executive_summary_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> str:
-    """Generate an executive summary using LLM based on research findings.
+    """Generate an executive summary using LLM based on the complete research findings.
 
     Args:
-        state: The current research state
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesis data with all synthesized information
+        analysis_data: The analysis data with viewpoint analysis
         executive_summary_prompt: Prompt for generating executive summary
         llm_model: The model to use for generation
         langfuse_project_name: Name of the Langfuse project for tracking
@@ -155,45 +193,48 @@ def generate_executive_summary(
     """
     logger.info("Generating executive summary using LLM")
 
-    # Prepare the context with all research findings
-    context = f"Main Research Query: {state.main_query}\n\n"
+    # Prepare the context
+    summary_input = {
+        "main_query": query_context.main_query,
+        "sub_questions": query_context.sub_questions,
+        "key_findings": {},
+        "viewpoint_analysis": None,
+    }
 
-    # Add synthesized findings for each sub-question
-    for i, sub_question in enumerate(state.sub_questions, 1):
-        info = state.enhanced_info.get(
-            sub_question
-        ) or state.synthesized_info.get(sub_question)
-        if info:
-            context += f"Sub-question {i}: {sub_question}\n"
-            context += f"Answer Summary: {info.synthesized_answer[:500]}...\n"
-            context += f"Confidence: {info.confidence_level}\n"
-            context += f"Key Sources: {', '.join(info.key_sources[:3]) if info.key_sources else 'N/A'}\n\n"
+    # Include key findings from synthesis data
+    # Prefer enhanced info if available
+    info_source = (
+        synthesis_data.enhanced_info
+        if synthesis_data.enhanced_info
+        else synthesis_data.synthesized_info
+    )
 
-    # Add viewpoint analysis insights if available
-    if state.viewpoint_analysis:
-        context += "Key Areas of Agreement:\n"
-        for agreement in state.viewpoint_analysis.main_points_of_agreement[:3]:
-            context += f"- {agreement}\n"
-        context += "\nKey Tensions:\n"
-        for tension in state.viewpoint_analysis.areas_of_tension[:2]:
-            context += f"- {tension.topic}\n"
+    for question in query_context.sub_questions:
+        if question in info_source:
+            info = info_source[question]
+            summary_input["key_findings"][question] = {
+                "answer": info.synthesized_answer,
+                "confidence": info.confidence_level,
+                "gaps": info.information_gaps,
+            }
 
-    # Use the executive summary prompt
-    try:
-        executive_summary_prompt_str = str(executive_summary_prompt)
-        logger.info("Successfully retrieved executive_summary_prompt")
-    except Exception as e:
-        logger.error(f"Failed to get executive_summary_prompt: {e}")
-        return generate_fallback_executive_summary(state)
+    # Include viewpoint analysis if available
+    if analysis_data.viewpoint_analysis:
+        va = analysis_data.viewpoint_analysis
+        summary_input["viewpoint_analysis"] = {
+            "agreements": va.main_points_of_agreement,
+            "tensions": len(va.areas_of_tension),
+            "insights": va.integrative_insights,
+        }
 
     try:
         # Call LLM to generate executive summary
         result = run_llm_completion(
-            prompt=context,
-            system_prompt=executive_summary_prompt_str,
+            prompt=json.dumps(summary_input),
+            system_prompt=str(executive_summary_prompt),
             model=llm_model,
             temperature=0.7,
-            max_tokens=800,
+            max_tokens=600,
             project=langfuse_project_name,
             tags=["executive_summary_generation"],
         )
@@ -206,15 +247,19 @@ def generate_executive_summary(
             return content
         else:
             logger.warning("Failed to generate executive summary via LLM")
-            return generate_fallback_executive_summary(state)
+            return generate_fallback_executive_summary(
+                query_context, synthesis_data
+            )
 
     except Exception as e:
         logger.error(f"Error generating executive summary: {e}")
-        return generate_fallback_executive_summary(state)
+        return generate_fallback_executive_summary(
+            query_context, synthesis_data
+        )
 
 
 def generate_introduction(
-    state: ResearchState,
+    query_context: QueryContext,
     introduction_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
@@ -222,7 +267,7 @@ def generate_introduction(
     """Generate an introduction using LLM based on research query and sub-questions.
 
     Args:
-        state: The current research state
+        query_context: The query context with main query and sub-questions
         introduction_prompt: Prompt for generating introduction
         llm_model: The model to use for generation
         langfuse_project_name: Name of the Langfuse project for tracking
@@ -233,24 +278,16 @@ def generate_introduction(
     logger.info("Generating introduction using LLM")
 
     # Prepare the context
-    context = f"Main Research Query: {state.main_query}\n\n"
+    context = f"Main Research Query: {query_context.main_query}\n\n"
     context += "Sub-questions being explored:\n"
-    for i, sub_question in enumerate(state.sub_questions, 1):
+    for i, sub_question in enumerate(query_context.sub_questions, 1):
         context += f"{i}. {sub_question}\n"
-
-    # Get the introduction prompt
-    try:
-        introduction_prompt_str = str(introduction_prompt)
-        logger.info("Successfully retrieved introduction_prompt")
-    except Exception as e:
-        logger.error(f"Failed to get introduction_prompt: {e}")
-        return generate_fallback_introduction(state)
 
     try:
         # Call LLM to generate introduction
         result = run_llm_completion(
             prompt=context,
-            system_prompt=introduction_prompt_str,
+            system_prompt=str(introduction_prompt),
             model=llm_model,
             temperature=0.7,
             max_tokens=600,
@@ -266,22 +303,29 @@ def generate_introduction(
             return content
         else:
             logger.warning("Failed to generate introduction via LLM")
-            return generate_fallback_introduction(state)
+            return generate_fallback_introduction(query_context)
 
     except Exception as e:
         logger.error(f"Error generating introduction: {e}")
-        return generate_fallback_introduction(state)
+        return generate_fallback_introduction(query_context)
 
 
-def generate_fallback_executive_summary(state: ResearchState) -> str:
+def generate_fallback_executive_summary(
+    query_context: QueryContext, synthesis_data: SynthesisData
+) -> str:
     """Generate a fallback executive summary when LLM fails."""
-    summary = f"<p>This report examines the question: <strong>{html.escape(state.main_query)}</strong></p>"
-    summary += f"<p>The research explored {len(state.sub_questions)} key dimensions of this topic, "
+    summary = f"<p>This report examines the question: <strong>{html.escape(query_context.main_query)}</strong></p>"
+    summary += f"<p>The research explored {len(query_context.sub_questions)} key dimensions of this topic, "
     summary += "synthesizing findings from multiple sources to provide a comprehensive analysis.</p>"
 
     # Add confidence overview
     confidence_counts = {"high": 0, "medium": 0, "low": 0}
-    for info in state.enhanced_info.values():
+    info_source = (
+        synthesis_data.enhanced_info
+        if synthesis_data.enhanced_info
+        else synthesis_data.synthesized_info
+    )
+    for info in info_source.values():
         level = info.confidence_level.lower()
         if level in confidence_counts:
             confidence_counts[level] += 1
@@ -292,10 +336,10 @@ def generate_fallback_executive_summary(state: ResearchState) -> str:
     return summary
 
 
-def generate_fallback_introduction(state: ResearchState) -> str:
+def generate_fallback_introduction(query_context: QueryContext) -> str:
     """Generate a fallback introduction when LLM fails."""
-    intro = f"<p>This report addresses the research query: <strong>{html.escape(state.main_query)}</strong></p>"
-    intro += f"<p>The research was conducted by breaking down the main query into {len(state.sub_questions)} "
+    intro = f"<p>This report addresses the research query: <strong>{html.escape(query_context.main_query)}</strong></p>"
+    intro += f"<p>The research was conducted by breaking down the main query into {len(query_context.sub_questions)} "
     intro += (
         "sub-questions to explore different aspects of the topic in depth. "
     )
@@ -304,7 +348,9 @@ def generate_fallback_introduction(state: ResearchState) -> str:
 
 
 def generate_conclusion(
-    state: ResearchState,
+    query_context: QueryContext,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
     conclusion_generation_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
@@ -312,9 +358,12 @@ def generate_conclusion(
     """Generate a comprehensive conclusion using LLM based on all research findings.
 
     Args:
-        state: The ResearchState containing all research findings
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesis data with all synthesized information
+        analysis_data: The analysis data with viewpoint analysis
         conclusion_generation_prompt: Prompt for generating conclusion
         llm_model: The model to use for conclusion generation
+        langfuse_project_name: Name of the Langfuse project for tracking
 
     Returns:
         str: HTML-formatted conclusion content
@@ -323,15 +372,21 @@ def generate_conclusion(
 
     # Prepare input data for conclusion generation
     conclusion_input = {
-        "main_query": state.main_query,
-        "sub_questions": state.sub_questions,
+        "main_query": query_context.main_query,
+        "sub_questions": query_context.sub_questions,
         "enhanced_info": {},
     }
 
     # Include enhanced information for each sub-question
-    for question in state.sub_questions:
-        if question in state.enhanced_info:
-            info = state.enhanced_info[question]
+    info_source = (
+        synthesis_data.enhanced_info
+        if synthesis_data.enhanced_info
+        else synthesis_data.synthesized_info
+    )
+
+    for question in query_context.sub_questions:
+        if question in info_source:
+            info = info_source[question]
             conclusion_input["enhanced_info"][question] = {
                 "synthesized_answer": info.synthesized_answer,
                 "confidence_level": info.confidence_level,
@@ -339,93 +394,99 @@ def generate_conclusion(
                 "key_sources": info.key_sources,
                 "improvements": getattr(info, "improvements", []),
             }
-        elif question in state.synthesized_info:
-            # Fallback to synthesized info if enhanced info not available
-            info = state.synthesized_info[question]
-            conclusion_input["enhanced_info"][question] = {
-                "synthesized_answer": info.synthesized_answer,
-                "confidence_level": info.confidence_level,
-                "information_gaps": info.information_gaps,
-                "key_sources": info.key_sources,
-                "improvements": [],
-            }
 
-    # Include viewpoint analysis if available
-    if state.viewpoint_analysis:
+    # Include viewpoint analysis
+    if analysis_data.viewpoint_analysis:
+        va = analysis_data.viewpoint_analysis
         conclusion_input["viewpoint_analysis"] = {
-            "main_points_of_agreement": state.viewpoint_analysis.main_points_of_agreement,
+            "main_points_of_agreement": va.main_points_of_agreement,
             "areas_of_tension": [
-                {"topic": tension.topic, "viewpoints": tension.viewpoints}
-                for tension in state.viewpoint_analysis.areas_of_tension
+                {"topic": t.topic, "viewpoints": t.viewpoints}
+                for t in va.areas_of_tension
             ],
-            "perspective_gaps": state.viewpoint_analysis.perspective_gaps,
-            "integrative_insights": state.viewpoint_analysis.integrative_insights,
+            "integrative_insights": va.integrative_insights,
         }
 
     # Include reflection metadata if available
-    if state.reflection_metadata:
-        conclusion_input["reflection_metadata"] = {
-            "critique_summary": state.reflection_metadata.critique_summary,
-            "additional_questions_identified": state.reflection_metadata.additional_questions_identified,
-            "improvements_made": state.reflection_metadata.improvements_made,
+    if analysis_data.reflection_metadata:
+        rm = analysis_data.reflection_metadata
+        conclusion_input["reflection_insights"] = {
+            "improvements_made": rm.improvements_made,
+            "additional_questions_identified": rm.additional_questions_identified,
         }
 
     try:
-        # Use the conclusion generation prompt
-        conclusion_prompt_str = str(conclusion_generation_prompt)
-
-        # Generate conclusion using LLM
-        conclusion_html = run_llm_completion(
-            prompt=json.dumps(conclusion_input, indent=2),
-            system_prompt=conclusion_prompt_str,
+        # Call LLM to generate conclusion
+        result = run_llm_completion(
+            prompt=json.dumps(conclusion_input),
+            system_prompt=str(conclusion_generation_prompt),
             model=llm_model,
-            clean_output=True,
-            max_tokens=1500,  # Sufficient for comprehensive conclusion
+            temperature=0.7,
+            max_tokens=800,
             project=langfuse_project_name,
+            tags=["conclusion_generation"],
         )
 
-        # Clean up any formatting issues
-        conclusion_html = conclusion_html.strip()
-
-        # Remove any h2 tags with "Conclusion" text that LLM might have added
-        # Since we already have a Conclusion header in the template
-        conclusion_html = re.sub(
-            r"<h2[^>]*>\s*Conclusion\s*</h2>\s*",
-            "",
-            conclusion_html,
-            flags=re.IGNORECASE,
-        )
-        conclusion_html = re.sub(
-            r"<h3[^>]*>\s*Conclusion\s*</h3>\s*",
-            "",
-            conclusion_html,
-            flags=re.IGNORECASE,
-        )
-
-        # Also remove plain text "Conclusion" at the start if it exists
-        conclusion_html = re.sub(
-            r"^Conclusion\s*\n*",
-            "",
-            conclusion_html.strip(),
-            flags=re.IGNORECASE,
-        )
-
-        if not conclusion_html.startswith("<p>"):
-            # Wrap in paragraph tags if not already formatted
-            conclusion_html = f"<p>{conclusion_html}</p>"
-
-        logger.info("Successfully generated LLM-based conclusion")
-        return conclusion_html
+        if result:
+            content = remove_reasoning_from_output(result)
+            # Clean up the HTML
+            content = extract_html_from_content(content)
+            logger.info("Successfully generated LLM-based conclusion")
+            return content
+        else:
+            logger.warning("Failed to generate conclusion via LLM")
+            return generate_fallback_conclusion(query_context, synthesis_data)
 
     except Exception as e:
-        logger.warning(f"Failed to generate LLM conclusion: {e}")
-        # Return a basic fallback conclusion
-        return f"""<p>This report has explored {html.escape(state.main_query)} through a structured research approach, examining {len(state.sub_questions)} focused sub-questions and synthesizing information from diverse sources. The findings provide a comprehensive understanding of the topic, highlighting key aspects, perspectives, and current knowledge.</p>
-        <p>While some information gaps remain, as noted in the respective sections, this research provides a solid foundation for understanding the topic and its implications.</p>"""
+        logger.error(f"Error generating conclusion: {e}")
+        return generate_fallback_conclusion(query_context, synthesis_data)
+
+
+def generate_fallback_conclusion(
+    query_context: QueryContext, synthesis_data: SynthesisData
+) -> str:
+    """Generate a fallback conclusion when LLM fails.
+
+    Args:
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesis data with all synthesized information
+
+    Returns:
+        str: Basic HTML-formatted conclusion
+    """
+    conclusion = f"<p>This research has explored the question: <strong>{html.escape(query_context.main_query)}</strong></p>"
+    conclusion += f"<p>Through systematic investigation of {len(query_context.sub_questions)} sub-questions, "
+    conclusion += (
+        "we have gathered insights from multiple sources and perspectives.</p>"
+    )
+
+    # Add a summary of confidence levels
+    info_source = (
+        synthesis_data.enhanced_info
+        if synthesis_data.enhanced_info
+        else synthesis_data.synthesized_info
+    )
+    high_confidence = sum(
+        1
+        for info in info_source.values()
+        if info.confidence_level.lower() == "high"
+    )
+
+    if high_confidence > 0:
+        conclusion += f"<p>The research yielded {high_confidence} high-confidence findings out of "
+        conclusion += f"{len(info_source)} total areas investigated.</p>"
+
+    conclusion += "<p>Further research may be beneficial to address remaining information gaps "
+    conclusion += "and explore emerging questions identified during this investigation.</p>"
+
+    return conclusion
 
 
 def generate_report_from_template(
-    state: ResearchState,
+    query_context: QueryContext,
+    search_data: SearchData,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
     conclusion_generation_prompt: Prompt,
     executive_summary_prompt: Prompt,
     introduction_prompt: Prompt,
@@ -435,25 +496,29 @@ def generate_report_from_template(
     """Generate a final HTML report from a static template.
 
     Instead of using an LLM to generate HTML, this function uses predefined HTML
-    templates and populates them with data from the research state.
+    templates and populates them with data from the research artifacts.
 
     Args:
-        state: The current research state
+        query_context: The query context with main query and sub-questions
+        search_data: The search data (for source information)
+        synthesis_data: The synthesis data with all synthesized information
+        analysis_data: The analysis data with viewpoint analysis
         conclusion_generation_prompt: Prompt for generating conclusion
         executive_summary_prompt: Prompt for generating executive summary
         introduction_prompt: Prompt for generating introduction
         llm_model: The model to use for conclusion generation
+        langfuse_project_name: Name of the Langfuse project for tracking
 
     Returns:
         str: The HTML content of the report
     """
     logger.info(
-        f"Generating templated HTML report for query: {state.main_query}"
+        f"Generating templated HTML report for query: {query_context.main_query}"
     )
 
     # Generate table of contents for sub-questions
     sub_questions_toc = ""
-    for i, question in enumerate(state.sub_questions, 1):
+    for i, question in enumerate(query_context.sub_questions, 1):
         safe_id = f"question-{i}"
         sub_questions_toc += (
             f'<li><a href="#{safe_id}">{html.escape(question)}</a></li>\n'
@@ -461,7 +526,7 @@ def generate_report_from_template(
 
     # Add viewpoint analysis to TOC if available
     additional_sections_toc = ""
-    if state.viewpoint_analysis:
+    if analysis_data.viewpoint_analysis:
         additional_sections_toc += (
             '<li><a href="#viewpoint-analysis">Viewpoint Analysis</a></li>\n'
         )
@@ -470,11 +535,41 @@ def generate_report_from_template(
     sub_questions_html = ""
     all_sources = set()
 
-    for i, question in enumerate(state.sub_questions, 1):
-        info = state.enhanced_info.get(question, None)
+    # Determine which info source to use (merge original with enhanced)
+    # Start with the original synthesized info
+    info_source = synthesis_data.synthesized_info.copy()
+
+    # Override with enhanced info where available
+    if synthesis_data.enhanced_info:
+        info_source.update(synthesis_data.enhanced_info)
+
+    # Debug logging
+    logger.info(
+        f"Synthesis data has enhanced_info: {bool(synthesis_data.enhanced_info)}"
+    )
+    logger.info(
+        f"Synthesis data has synthesized_info: {bool(synthesis_data.synthesized_info)}"
+    )
+    logger.info(f"Info source has {len(info_source)} entries")
+    logger.info(f"Processing {len(query_context.sub_questions)} sub-questions")
+
+    # Log the keys in info_source for debugging
+    if info_source:
+        logger.info(
+            f"Keys in info_source: {list(info_source.keys())[:3]}..."
+        )  # First 3 keys
+    logger.info(
+        f"Sub-questions from query_context: {query_context.sub_questions[:3]}..."
+    )  # First 3
+
+    for i, question in enumerate(query_context.sub_questions, 1):
+        info = info_source.get(question, None)
 
         # Skip if no information is available
         if not info:
+            logger.warning(
+                f"No synthesis info found for question {i}: {question}"
+            )
             continue
 
         # Process confidence level
@@ -527,65 +622,73 @@ def generate_report_from_template(
             confidence_upper=confidence_upper,
             confidence_icon=confidence_icon,
             answer=format_text_with_code_blocks(info.synthesized_answer),
-            info_gaps_html=info_gaps_html,
             key_sources_html=key_sources_html,
+            info_gaps_html=info_gaps_html,
         )
 
         sub_questions_html += sub_question_html
 
     # Generate viewpoint analysis HTML if available
     viewpoint_analysis_html = ""
-    if state.viewpoint_analysis:
-        # Format points of agreement
-        agreements_html = ""
-        for point in state.viewpoint_analysis.main_points_of_agreement:
-            agreements_html += f"<li>{html.escape(point)}</li>\n"
-
-        # Format areas of tension
+    if analysis_data.viewpoint_analysis:
+        va = analysis_data.viewpoint_analysis
+        # Format tensions
         tensions_html = ""
-        for tension in state.viewpoint_analysis.areas_of_tension:
-            viewpoints_html = ""
-            for title, content in tension.viewpoints.items():
-                # Create category-specific styling
-                category_class = f"category-{title.lower()}"
-                category_title = title.capitalize()
-
-                viewpoints_html += f"""
-                <div class="viewpoint-item">
-                    <span class="viewpoint-category {category_class}">{category_title}</span>
-                    <p>{html.escape(content)}</p>
-                </div>
-                """
-
+        for tension in va.areas_of_tension:
+            viewpoints_list = "\n".join(
+                [
+                    f"<li><strong>{html.escape(viewpoint)}:</strong> {html.escape(description)}</li>"
+                    for viewpoint, description in tension.viewpoints.items()
+                ]
+            )
             tensions_html += f"""
-            <div class="viewpoint-tension">
+            <div class="tension-area">
                 <h4>{html.escape(tension.topic)}</h4>
-                <div class="viewpoint-content">
-                    {viewpoints_html}
-                </div>
+                <ul class="viewpoints-list">
+                    {viewpoints_list}
+                </ul>
             </div>
             """
 
-        # Format the viewpoint analysis section using the template
+        # Format agreements (just the list items)
+        agreements_html = ""
+        if va.main_points_of_agreement:
+            agreements_html = "\n".join(
+                [
+                    f"<li>{html.escape(point)}</li>"
+                    for point in va.main_points_of_agreement
+                ]
+            )
+
+        # Get perspective gaps if available
+        perspective_gaps = ""
+        if hasattr(va, "perspective_gaps") and va.perspective_gaps:
+            perspective_gaps = va.perspective_gaps
+        else:
+            perspective_gaps = "No significant perspective gaps identified."
+
+        # Get integrative insights
+        integrative_insights = ""
+        if va.integrative_insights:
+            integrative_insights = format_text_with_code_blocks(
+                va.integrative_insights
+            )
+
         viewpoint_analysis_html = VIEWPOINT_ANALYSIS_TEMPLATE.format(
             agreements_html=agreements_html,
             tensions_html=tensions_html,
-            perspective_gaps=format_text_with_code_blocks(
-                state.viewpoint_analysis.perspective_gaps
-            ),
-            integrative_insights=format_text_with_code_blocks(
-                state.viewpoint_analysis.integrative_insights
-            ),
+            perspective_gaps=perspective_gaps,
+            integrative_insights=integrative_insights,
         )
 
-    # Generate references HTML
-    references_html = "<ul>"
+    # Generate references section
+    references_html = '<ul class="reference-list">'
     if all_sources:
         for source in sorted(all_sources):
             if source.startswith(("http://", "https://")):
-                references_html += f'<li><a href="{html.escape(source)}" target="_blank">{html.escape(source)}</a></li>\n'
+                references_html += f'<li><a href="{html.escape(source)}" target="_blank">{html.escape(source)}</a></li>'
             else:
-                references_html += f"<li>{html.escape(source)}</li>\n"
+                references_html += f"<li>{html.escape(source)}</li>"
     else:
         references_html += (
             "<li>No external sources were referenced in this research.</li>"
@@ -595,7 +698,12 @@ def generate_report_from_template(
     # Generate dynamic executive summary using LLM
     logger.info("Generating dynamic executive summary...")
     executive_summary = generate_executive_summary(
-        state, executive_summary_prompt, llm_model, langfuse_project_name
+        query_context,
+        synthesis_data,
+        analysis_data,
+        executive_summary_prompt,
+        llm_model,
+        langfuse_project_name,
     )
     logger.info(
         f"Executive summary generated: {len(executive_summary)} characters"
@@ -604,23 +712,28 @@ def generate_report_from_template(
     # Generate dynamic introduction using LLM
     logger.info("Generating dynamic introduction...")
     introduction_html = generate_introduction(
-        state, introduction_prompt, llm_model, langfuse_project_name
+        query_context, introduction_prompt, llm_model, langfuse_project_name
     )
     logger.info(f"Introduction generated: {len(introduction_html)} characters")
 
     # Generate comprehensive conclusion using LLM
     conclusion_html = generate_conclusion(
-        state, conclusion_generation_prompt, llm_model, langfuse_project_name
+        query_context,
+        synthesis_data,
+        analysis_data,
+        conclusion_generation_prompt,
+        llm_model,
+        langfuse_project_name,
     )
 
     # Generate complete HTML report
     html_content = STATIC_HTML_TEMPLATE.format(
-        main_query=html.escape(state.main_query),
+        main_query=html.escape(query_context.main_query),
         sub_questions_toc=sub_questions_toc,
         additional_sections_toc=additional_sections_toc,
         executive_summary=executive_summary,
         introduction_html=introduction_html,
-        num_sub_questions=len(state.sub_questions),
+        num_sub_questions=len(query_context.sub_questions),
         sub_questions_html=sub_questions_html,
         viewpoint_analysis_html=viewpoint_analysis_html,
         conclusion_html=conclusion_html,
@@ -630,19 +743,20 @@ def generate_report_from_template(
     return html_content
 
 
-def _generate_fallback_report(state: ResearchState) -> str:
+def _generate_fallback_report(
+    query_context: QueryContext,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
+) -> str:
     """Generate a minimal fallback report when the main report generation fails.
 
     This function creates a simplified HTML report with a consistent structure when
-    the main report generation process encounters an error. The HTML includes:
-    - A header section with the main research query
-    - An error notice
-    - Introduction section
-    - Individual sections for each sub-question with available answers
-    - A references section if sources are available
+    the main report generation process encounters an error.
 
     Args:
-        state: The current research state containing query and answer information
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesis data with all synthesized information
+        analysis_data: The analysis data with viewpoint analysis
 
     Returns:
         str: A basic HTML report with a standard research report structure
@@ -688,302 +802,161 @@ def _generate_fallback_report(state: ResearchState) -> str:
         }}
         
         h3 {{
-            color: #3498db;
+            color: #34495e;
             margin-top: 20px;
         }}
         
         p {{
-            margin: 15px 0;
+            margin: 10px 0;
         }}
         
         /* Sections */
         .section {{
-            margin: 30px 0;
+            margin-bottom: 30px;
             padding: 20px;
             background-color: #f8f9fa;
-            border-left: 4px solid #3498db;
-            border-radius: 4px;
+            border-radius: 8px;
         }}
         
-        .content {{
-            margin-top: 15px;
-        }}
-        
-        /* Notice/Error Styles */
-        .notice {{
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }}
-        
-        .error {{
+        .error-notice {{
             background-color: #fee;
-            border-left: 4px solid #e74c3c;
-            color: #c0392b;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }}
         
-        /* Confidence Level Indicators */
-        .confidence-level {{
+        /* Confidence badges */
+        .confidence {{
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: bold;
-            margin: 10px 0;
+            margin-left: 10px;
         }}
         
-        .confidence-high {{
+        .confidence.high {{
             background-color: #d4edda;
             color: #155724;
-            border-left: 4px solid #28a745;
         }}
         
-        .confidence-medium {{
+        .confidence.medium {{
             background-color: #fff3cd;
             color: #856404;
-            border-left: 4px solid #ffc107;
         }}
         
-        .confidence-low {{
+        .confidence.low {{
             background-color: #f8d7da;
             color: #721c24;
-            border-left: 4px solid #dc3545;
         }}
         
         /* Lists */
         ul {{
-            padding-left: 20px;
+            margin: 10px 0;
+            padding-left: 25px;
         }}
         
         li {{
-            margin: 8px 0;
-        }}
-        
-        /* References Section */
-        .references {{
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }}
-        
-        .references ul {{
-            list-style-type: none;
-            padding-left: 0;
-        }}
-        
-        .references li {{
-            padding: 8px 0;
-            border-bottom: 1px dotted #ddd;
-        }}
-        
-        /* Table of Contents */
-        .toc {{
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-        }}
-        
-        .toc ul {{
-            list-style-type: none;
-            padding-left: 10px;
-        }}
-        
-        .toc li {{
             margin: 5px 0;
         }}
         
-        .toc a {{
-            color: #3498db;
-            text-decoration: none;
+        /* References */
+        .references {{
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
         }}
         
-        .toc a:hover {{
+        .reference-list {{
+            font-size: 14px;
+        }}
+        
+        .reference-list a {{
+            color: #3498db;
+            text-decoration: none;
+            word-break: break-word;
+        }}
+        
+        .reference-list a:hover {{
             text-decoration: underline;
         }}
-
-        /* Executive Summary */
-        .executive-summary {{
-            background-color: #e8f4f8;
-            padding: 20px;
-            border-radius: 4px;
-            margin: 20px 0;
-            border-left: 4px solid #3498db;
-        }}
     </style>
+    <title>Research Report - {html.escape(query_context.main_query)}</title>
 </head>
 <body>
     <div class="research-report">
-        <h1>Research Report: {state.main_query}</h1>
+        <h1>Research Report: {html.escape(query_context.main_query)}</h1>
         
-        <div class="notice error">
-            <p><strong>Note:</strong> This is a fallback report generated due to an error in the report generation process.</p>
+        <div class="error-notice">
+            <strong>Note:</strong> This is a simplified version of the report generated due to processing limitations.
         </div>
         
-        <!-- Table of Contents -->
-        <div class="toc">
-            <h2>Table of Contents</h2>
-            <ul>
-                <li><a href="#introduction">Introduction</a></li>
-"""
-
-    # Add TOC entries for each sub-question
-    for i, sub_question in enumerate(state.sub_questions):
-        safe_id = f"question-{i + 1}"
-        html += f'                <li><a href="#{safe_id}">{sub_question}</a></li>\n'
-
-    html += """                <li><a href="#references">References</a></li>
-            </ul>
-        </div>
-        
-        <!-- Executive Summary -->
-        <div class="executive-summary">
-            <h2>Executive Summary</h2>
-            <p>This report presents findings related to the main research query. It explores multiple aspects of the topic through structured sub-questions and synthesizes information from various sources.</p>
-        </div>
-        
-        <div class="introduction" id="introduction">
+        <div class="section">
             <h2>Introduction</h2>
-            <p>This report addresses the research query: "<strong>{state.main_query}</strong>"</p>
-            <p>The analysis is structured around {len(state.sub_questions)} sub-questions that explore different dimensions of this topic.</p>
+            <p>This report investigates the research query: <strong>{html.escape(query_context.main_query)}</strong></p>
+            <p>The investigation was structured around {len(query_context.sub_questions)} key sub-questions to provide comprehensive coverage of the topic.</p>
         </div>
+        
+        <div class="section">
+            <h2>Research Findings</h2>
 """
 
-    # Add each sub-question and its synthesized information
-    for i, sub_question in enumerate(state.sub_questions):
-        safe_id = f"question-{i + 1}"
-        info = state.enhanced_info.get(sub_question, None)
+    # Add findings for each sub-question
+    info_source = (
+        synthesis_data.enhanced_info
+        if synthesis_data.enhanced_info
+        else synthesis_data.synthesized_info
+    )
 
-        if not info:
-            # Try to get from synthesized info if not in enhanced info
-            info = state.synthesized_info.get(sub_question, None)
-
-        if info:
-            answer = info.synthesized_answer
-            confidence = info.confidence_level
-
-            # Add appropriate confidence class
-            confidence_class = ""
-            if confidence == "high":
-                confidence_class = "confidence-high"
-            elif confidence == "medium":
-                confidence_class = "confidence-medium"
-            elif confidence == "low":
-                confidence_class = "confidence-low"
+    for i, question in enumerate(query_context.sub_questions, 1):
+        if question in info_source:
+            info = info_source[question]
+            confidence_class = info.confidence_level.lower()
 
             html += f"""
-        <div class="section" id="{safe_id}">
-            <h2>{i + 1}. {sub_question}</h2>
-            <p class="confidence-level {confidence_class}">Confidence Level: {confidence.upper()}</p>
-            <div class="content">
-                <p>{answer}</p>
-            </div>
+            <div class="sub-question">
+                <h3>{i}. {html.escape(question)}</h3>
+                <span class="confidence {confidence_class}">Confidence: {info.confidence_level.upper()}</span>
+                <p>{html.escape(info.synthesized_answer)}</p>
             """
 
-            # Add information gaps if available
-            if hasattr(info, "information_gaps") and info.information_gaps:
-                html += f"""
-            <div class="information-gaps">
-                <h3>Information Gaps</h3>
-                <p>{info.information_gaps}</p>
-            </div>
-                """
+            if info.information_gaps:
+                html += f"<p><strong>Information Gaps:</strong> {html.escape(info.information_gaps)}</p>"
 
-            # Add improvements if available
-            if hasattr(info, "improvements") and info.improvements:
-                html += """
-            <div class="improvements">
-                <h3>Improvements Made</h3>
-                <ul>
-                """
+            html += "</div>"
 
-                for improvement in info.improvements:
-                    html += f"                <li>{improvement}</li>\n"
-
-                html += """
-                </ul>
-            </div>
-                """
-
-            # Add key sources if available
-            if hasattr(info, "key_sources") and info.key_sources:
-                html += """
-            <div class="key-sources">
-                <h3>Key Sources</h3>
-                <ul>
-                """
-
-                for source in info.key_sources:
-                    html += f"                <li>{source}</li>\n"
-
-                html += """
-                </ul>
-            </div>
-                """
-
-            html += """
-        </div>
-            """
-        else:
-            html += f"""
-        <div class="section" id="{safe_id}">
-            <h2>{i + 1}. {sub_question}</h2>
-            <p>No information available for this question.</p>
-        </div>
-            """
-
-    # Add conclusion section
     html += """
+        </div>
+        
         <div class="section">
             <h2>Conclusion</h2>
-            <p>This report has explored the research query through multiple sub-questions, providing synthesized information based on available sources. While limitations exist in some areas, the report provides a structured analysis of the topic.</p>
+            <p>This research has provided insights into the various aspects of the main query through systematic investigation.</p>
+            <p>The findings represent a synthesis of available information, with varying levels of confidence across different areas.</p>
         </div>
-    """
-
-    # Add sources if available
-    sources_set = set()
-    for info in state.enhanced_info.values():
-        if info.key_sources:
-            sources_set.update(info.key_sources)
-
-    if sources_set:
-        html += """
-        <div class="references" id="references">
+        
+        <div class="references">
             <h2>References</h2>
-            <ul>
-        """
-
-        for source in sorted(sources_set):
-            html += f"            <li>{source}</li>\n"
-
-        html += """
-            </ul>
+            <p>Sources were gathered from various search providers and synthesized to create this report.</p>
         </div>
-        """
-    else:
-        html += """
-        <div class="references" id="references">
-            <h2>References</h2>
-            <p>No references available.</p>
-        </div>
-        """
-
-    # Close the HTML structure
-    html += """
     </div>
 </body>
-</html>
-    """
+</html>"""
 
     return html
 
 
 @step(
     output_materializers={
-        "state": ResearchStateMaterializer,
+        "final_report": FinalReportMaterializer,
     }
 )
 def pydantic_final_report_step(
-    state: ResearchState,
+    query_context: QueryContext,
+    search_data: SearchData,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
     conclusion_generation_prompt: Prompt,
     executive_summary_prompt: Prompt,
     introduction_prompt: Prompt,
@@ -991,34 +964,41 @@ def pydantic_final_report_step(
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> Tuple[
-    Annotated[ResearchState, "state"],
+    Annotated[FinalReport, "final_report"],
     Annotated[HTMLString, "report_html"],
 ]:
-    """Generate the final research report in HTML format using Pydantic models.
+    """Generate the final research report in HTML format using artifact-based approach.
 
-    This step uses the Pydantic models and materializers to generate a final
-    HTML report and return both the updated state and the HTML report as
-    separate artifacts.
+    This step uses the individual artifacts to generate a final HTML report.
 
     Args:
-        state: The current research state (Pydantic model)
+        query_context: The query context with main query and sub-questions
+        search_data: The search data (for source information)
+        synthesis_data: The synthesis data with all synthesized information
+        analysis_data: The analysis data with viewpoint analysis and reflection metadata
         conclusion_generation_prompt: Prompt for generating conclusions
         executive_summary_prompt: Prompt for generating executive summary
         introduction_prompt: Prompt for generating introduction
         use_static_template: Whether to use a static template instead of LLM generation
         llm_model: The model to use for report generation with provider prefix
+        langfuse_project_name: Name of the Langfuse project for tracking
 
     Returns:
-        A tuple containing the updated research state and the HTML report
+        A tuple containing the FinalReport artifact and the HTML report string
     """
     start_time = time.time()
-    logger.info("Generating final research report using Pydantic models")
+    logger.info(
+        "Generating final research report using artifact-based approach"
+    )
 
     if use_static_template:
         # Use the static HTML template approach
         logger.info("Using static HTML template for report generation")
         html_content = generate_report_from_template(
-            state,
+            query_context,
+            search_data,
+            synthesis_data,
+            analysis_data,
             conclusion_generation_prompt,
             executive_summary_prompt,
             introduction_prompt,
@@ -1026,232 +1006,101 @@ def pydantic_final_report_step(
             langfuse_project_name,
         )
 
-        # Update the state with the final report HTML
-        state.set_final_report(html_content)
+        # Create the FinalReport artifact
+        final_report = FinalReport(
+            report_html=html_content,
+            main_query=query_context.main_query,
+        )
 
-        # Collect metadata about the report
+        # Calculate execution time
         execution_time = time.time() - start_time
 
-        # Count sources
-        all_sources = set()
-        for info in state.enhanced_info.values():
-            if info.key_sources:
-                all_sources.update(info.key_sources)
-
-        # Count confidence levels
+        # Calculate report metrics
+        info_source = (
+            synthesis_data.enhanced_info
+            if synthesis_data.enhanced_info
+            else synthesis_data.synthesized_info
+        )
         confidence_distribution = {"high": 0, "medium": 0, "low": 0}
-        for info in state.enhanced_info.values():
+        for info in info_source.values():
             level = info.confidence_level.lower()
             if level in confidence_distribution:
                 confidence_distribution[level] += 1
 
-        # Log metadata
+        # Count various elements in the report
+        num_sources = len(
+            set(
+                source
+                for info in info_source.values()
+                for source in info.key_sources
+            )
+        )
+        has_viewpoint_analysis = analysis_data.viewpoint_analysis is not None
+        has_reflection_insights = (
+            analysis_data.reflection_metadata is not None
+            and analysis_data.reflection_metadata.improvements_made > 0
+        )
+
+        # Log step metadata
         log_metadata(
             metadata={
-                "report_generation": {
+                "final_report_generation": {
                     "execution_time_seconds": execution_time,
-                    "generation_method": "static_template",
+                    "use_static_template": use_static_template,
                     "llm_model": llm_model,
-                    "report_length_chars": len(html_content),
-                    "num_sub_questions": len(state.sub_questions),
-                    "num_sources": len(all_sources),
-                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
-                    "has_reflection": bool(state.reflection_metadata),
+                    "main_query_length": len(query_context.main_query),
+                    "num_sub_questions": len(query_context.sub_questions),
+                    "num_synthesized_answers": len(info_source),
+                    "has_enhanced_info": bool(synthesis_data.enhanced_info),
                     "confidence_distribution": confidence_distribution,
-                    "fallback_report": False,
+                    "num_unique_sources": num_sources,
+                    "has_viewpoint_analysis": has_viewpoint_analysis,
+                    "has_reflection_insights": has_reflection_insights,
+                    "report_length_chars": len(html_content),
+                    "report_generation_success": True,
                 }
             }
         )
 
-        # Log model metadata for cross-pipeline tracking
+        # Log artifact metadata
         log_metadata(
             metadata={
-                "research_quality": {
-                    "confidence_distribution": confidence_distribution,
+                "final_report_characteristics": {
+                    "report_length": len(html_content),
+                    "main_query": query_context.main_query,
+                    "num_sections": len(query_context.sub_questions)
+                    + (1 if has_viewpoint_analysis else 0),
+                    "has_executive_summary": True,
+                    "has_introduction": True,
+                    "has_conclusion": True,
                 }
             },
-            infer_model=True,
+            artifact_name="final_report",
+            infer_artifact=True,
         )
 
-        # Log artifact metadata for the HTML report
-        log_metadata(
-            metadata={
-                "html_report_characteristics": {
-                    "size_bytes": len(html_content.encode("utf-8")),
-                    "has_toc": "toc" in html_content.lower(),
-                    "has_executive_summary": "executive summary"
-                    in html_content.lower(),
-                    "has_conclusion": "conclusion" in html_content.lower(),
-                    "has_references": "references" in html_content.lower(),
-                }
-            },
-            infer_artifact=True,
-            artifact_name="report_html",
-        )
+        # Add tags to the artifact
+        # add_tags(tags=["report", "final", "html"], artifact_name="final_report", infer_artifact=True)
 
         logger.info(
-            "Final research report generated successfully with static template"
+            f"Successfully generated final report ({len(html_content)} characters)"
         )
-        # Add tags to the artifacts
-        add_tags(tags=["state", "final"], artifact="state")
-        add_tags(tags=["report", "html"], artifact="report_html")
-        return state, HTMLString(html_content)
+        return final_report, HTMLString(html_content)
 
-    # Otherwise use the LLM-generated approach
-    # Convert Pydantic model to dict for LLM input
-    report_input = {
-        "main_query": state.main_query,
-        "sub_questions": state.sub_questions,
-        "synthesized_information": state.enhanced_info,
-    }
-
-    if state.viewpoint_analysis:
-        report_input["viewpoint_analysis"] = state.viewpoint_analysis
-
-    if state.reflection_metadata:
-        report_input["reflection_metadata"] = state.reflection_metadata
-
-    # Generate the report
-    try:
-        logger.info(f"Calling {llm_model} to generate final report")
-
-        # Use a default report generation prompt
-        report_prompt = "Generate a comprehensive HTML research report based on the provided research data. Include proper HTML structure with sections for executive summary, introduction, findings, and conclusion."
-
-        # Use the utility function to run LLM completion
-        html_content = run_llm_completion(
-            prompt=json.dumps(report_input),
-            system_prompt=report_prompt,
-            model=llm_model,
-            clean_output=False,  # Don't clean in case of breaking HTML formatting
-            max_tokens=4000,  # Increased token limit for detailed report generation
-            project=langfuse_project_name,
+    else:
+        # Handle non-static template case (future implementation)
+        logger.warning(
+            "Non-static template generation not yet implemented, falling back to static template"
         )
-
-        # Clean up any JSON wrapper or other artifacts
-        html_content = remove_reasoning_from_output(html_content)
-
-        # Process the HTML content to remove code block markers and fix common issues
-        html_content = clean_html_output(html_content)
-
-        # Basic validation of HTML content
-        if not html_content.strip().startswith("<"):
-            logger.warning(
-                "Generated content does not appear to be valid HTML"
-            )
-            # Try to extract HTML if it might be wrapped in code blocks or JSON
-            html_content = extract_html_from_content(html_content)
-
-        # Update the state with the final report HTML
-        state.set_final_report(html_content)
-
-        # Collect metadata about the report
-        execution_time = time.time() - start_time
-
-        # Count sources
-        all_sources = set()
-        for info in state.enhanced_info.values():
-            if info.key_sources:
-                all_sources.update(info.key_sources)
-
-        # Count confidence levels
-        confidence_distribution = {"high": 0, "medium": 0, "low": 0}
-        for info in state.enhanced_info.values():
-            level = info.confidence_level.lower()
-            if level in confidence_distribution:
-                confidence_distribution[level] += 1
-
-        # Log metadata
-        log_metadata(
-            metadata={
-                "report_generation": {
-                    "execution_time_seconds": execution_time,
-                    "generation_method": "llm_generated",
-                    "llm_model": llm_model,
-                    "report_length_chars": len(html_content),
-                    "num_sub_questions": len(state.sub_questions),
-                    "num_sources": len(all_sources),
-                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
-                    "has_reflection": bool(state.reflection_metadata),
-                    "confidence_distribution": confidence_distribution,
-                    "fallback_report": False,
-                }
-            }
+        return pydantic_final_report_step(
+            query_context=query_context,
+            search_data=search_data,
+            synthesis_data=synthesis_data,
+            analysis_data=analysis_data,
+            conclusion_generation_prompt=conclusion_generation_prompt,
+            executive_summary_prompt=executive_summary_prompt,
+            introduction_prompt=introduction_prompt,
+            use_static_template=True,
+            llm_model=llm_model,
+            langfuse_project_name=langfuse_project_name,
         )
-
-        # Log model metadata for cross-pipeline tracking
-        log_metadata(
-            metadata={
-                "research_quality": {
-                    "confidence_distribution": confidence_distribution,
-                }
-            },
-            infer_model=True,
-        )
-
-        logger.info("Final research report generated successfully")
-        # Add tags to the artifacts
-        add_tags(tags=["state", "final"], artifact="state")
-        add_tags(tags=["report", "html"], artifact="report_html")
-        return state, HTMLString(html_content)
-
-    except Exception as e:
-        logger.error(f"Error generating final report: {e}")
-        # Generate a minimal fallback report
-        fallback_html = _generate_fallback_report(state)
-
-        # Process the fallback HTML to ensure it's clean
-        fallback_html = clean_html_output(fallback_html)
-
-        # Update the state with the fallback report
-        state.set_final_report(fallback_html)
-
-        # Collect metadata about the fallback report
-        execution_time = time.time() - start_time
-
-        # Count sources
-        all_sources = set()
-        for info in state.enhanced_info.values():
-            if info.key_sources:
-                all_sources.update(info.key_sources)
-
-        # Count confidence levels
-        confidence_distribution = {"high": 0, "medium": 0, "low": 0}
-        for info in state.enhanced_info.values():
-            level = info.confidence_level.lower()
-            if level in confidence_distribution:
-                confidence_distribution[level] += 1
-
-        # Log metadata for fallback report
-        log_metadata(
-            metadata={
-                "report_generation": {
-                    "execution_time_seconds": execution_time,
-                    "generation_method": "fallback",
-                    "llm_model": llm_model,
-                    "report_length_chars": len(fallback_html),
-                    "num_sub_questions": len(state.sub_questions),
-                    "num_sources": len(all_sources),
-                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
-                    "has_reflection": bool(state.reflection_metadata),
-                    "confidence_distribution": confidence_distribution,
-                    "fallback_report": True,
-                    "error_message": str(e),
-                }
-            }
-        )
-
-        # Log model metadata for cross-pipeline tracking
-        log_metadata(
-            metadata={
-                "research_quality": {
-                    "confidence_distribution": confidence_distribution,
-                }
-            },
-            infer_model=True,
-        )
-
-        # Add tags to the artifacts
-        add_tags(tags=["state", "final"], artifact="state")
-        add_tags(tags=["report", "html"], artifact="report_html")
-        return state, HTMLString(fallback_html)

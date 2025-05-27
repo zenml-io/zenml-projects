@@ -10,7 +10,7 @@ from typing import Annotated, Tuple
 from materializers.prompt_materializer import PromptMaterializer
 from utils import prompts
 from utils.pydantic_models import Prompt
-from zenml import add_tags, step
+from zenml import step
 
 logger = logging.getLogger(__name__)
 
@@ -119,26 +119,27 @@ def initialize_prompts_step(
 
     logger.info(f"Loaded 9 individual prompts")
 
-    # add tags to all prompts
-    add_tags(tags=["prompt", "search"], artifact="search_query_prompt")
-    add_tags(
-        tags=["prompt", "generation"], artifact="query_decomposition_prompt"
-    )
-    add_tags(tags=["prompt", "generation"], artifact="synthesis_prompt")
-    add_tags(
-        tags=["prompt", "generation"], artifact="viewpoint_analysis_prompt"
-    )
-    add_tags(tags=["prompt", "generation"], artifact="reflection_prompt")
-    add_tags(
-        tags=["prompt", "generation"], artifact="additional_synthesis_prompt"
-    )
-    add_tags(
-        tags=["prompt", "generation"], artifact="conclusion_generation_prompt"
-    )
-    add_tags(
-        tags=["prompt", "generation"], artifact="executive_summary_prompt"
-    )
-    add_tags(tags=["prompt", "generation"], artifact="introduction_prompt")
+    # # add tags to all prompts
+    # add_tags(tags=["prompt", "search"], artifact_name="search_query_prompt", infer_artifact=True)
+
+    # add_tags(
+    #     tags=["prompt", "generation"], artifact_name="query_decomposition_prompt", infer_artifact=True
+    # )
+    # add_tags(tags=["prompt", "generation"], artifact_name="synthesis_prompt", infer_artifact=True)
+    # add_tags(
+    #     tags=["prompt", "generation"], artifact_name="viewpoint_analysis_prompt", infer_artifact=True
+    # )
+    # add_tags(tags=["prompt", "generation"], artifact_name="reflection_prompt", infer_artifact=True)
+    # add_tags(
+    #     tags=["prompt", "generation"], artifact_name="additional_synthesis_prompt", infer_artifact=True
+    # )
+    # add_tags(
+    #     tags=["prompt", "generation"], artifact_name="conclusion_generation_prompt", infer_artifact=True
+    # )
+    # add_tags(
+    #     tags=["prompt", "generation"], artifact_name="executive_summary_prompt", infer_artifact=True
+    # )
+    # add_tags(tags=["prompt", "generation"], artifact_name="introduction_prompt", infer_artifact=True)
 
     return (
         search_query_prompt,

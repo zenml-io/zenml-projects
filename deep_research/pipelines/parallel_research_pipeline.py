@@ -8,7 +8,6 @@ from steps.merge_results_step import merge_sub_question_results_step
 from steps.process_sub_question_step import process_sub_question_step
 from steps.pydantic_final_report_step import pydantic_final_report_step
 from steps.query_decomposition_step import initial_query_decomposition_step
-from utils.pydantic_models import ResearchState
 from zenml import pipeline
 
 
@@ -56,24 +55,22 @@ def parallelized_deep_research_pipeline(
         introduction_prompt,
     ) = initialize_prompts_step(pipeline_version="1.0.0")
 
-    # Initialize the research state with the main query
-    state = ResearchState(main_query=query)
-
     # Step 1: Decompose the query into sub-questions, limiting to max_sub_questions
-    decomposed_state = initial_query_decomposition_step(
-        state=state,
+    query_context = initial_query_decomposition_step(
+        main_query=query,
         query_decomposition_prompt=query_decomposition_prompt,
         max_sub_questions=max_sub_questions,
         langfuse_project_name=langfuse_project_name,
     )
 
     # Fan out: Process each sub-question in parallel
-    # Collect artifacts to establish dependencies for the merge step
-    after = []
+    # Collect step names to establish dependencies for the merge step
+    parallel_step_names = []
     for i in range(max_sub_questions):
         # Process the i-th sub-question (if it exists)
-        sub_state = process_sub_question_step(
-            state=decomposed_state,
+        step_name = f"process_question_{i + 1}"
+        search_data, synthesis_data = process_sub_question_step(
+            query_context=query_context,
             search_query_prompt=search_query_prompt,
             synthesis_prompt=synthesis_prompt,
             question_index=i,
@@ -81,66 +78,87 @@ def parallelized_deep_research_pipeline(
             search_mode=search_mode,
             num_results_per_search=num_results_per_search,
             langfuse_project_name=langfuse_project_name,
-            id=f"process_question_{i + 1}",
+            id=step_name,
+            after="initial_query_decomposition_step",
         )
-        after.append(sub_state)
+        parallel_step_names.append(step_name)
 
     # Fan in: Merge results from all parallel processing
     # The 'after' parameter ensures this step runs after all processing steps
-    # It doesn't directly use the processed_states input
-    merged_state = merge_sub_question_results_step(
-        original_state=decomposed_state,
-        step_prefix="process_question_",
-        output_name="output",
-        after=after,  # This creates the dependency
+    merged_search_data, merged_synthesis_data = (
+        merge_sub_question_results_step(
+            step_prefix="process_question_",
+            after=parallel_step_names,  # Wait for all parallel steps to complete
+        )
     )
 
     # Continue with subsequent steps
-    analyzed_state = cross_viewpoint_analysis_step(
-        state=merged_state,
+    analysis_data = cross_viewpoint_analysis_step(
+        query_context=query_context,
+        synthesis_data=merged_synthesis_data,
         viewpoint_analysis_prompt=viewpoint_analysis_prompt,
         langfuse_project_name=langfuse_project_name,
+        after="merge_sub_question_results_step",
     )
 
     # New 3-step reflection flow with optional human approval
     # Step 1: Generate reflection and recommendations (no searches yet)
-    reflection_output = generate_reflection_step(
-        state=analyzed_state,
+    analysis_with_reflection, recommended_queries = generate_reflection_step(
+        query_context=query_context,
+        synthesis_data=merged_synthesis_data,
+        analysis_data=analysis_data,
         reflection_prompt=reflection_prompt,
         langfuse_project_name=langfuse_project_name,
+        after="cross_viewpoint_analysis_step",
     )
 
     # Step 2: Get approval for recommended searches
     approval_decision = get_research_approval_step(
-        reflection_output=reflection_output,
+        query_context=query_context,
+        synthesis_data=merged_synthesis_data,
+        analysis_data=analysis_with_reflection,
+        recommended_queries=recommended_queries,
         require_approval=require_approval,
         timeout=approval_timeout,
         max_queries=max_additional_searches,
+        after="generate_reflection_step",
     )
 
     # Step 3: Execute approved searches (if any)
-    reflected_state = execute_approved_searches_step(
-        reflection_output=reflection_output,
-        approval_decision=approval_decision,
-        additional_synthesis_prompt=additional_synthesis_prompt,
-        search_provider=search_provider,
-        search_mode=search_mode,
-        num_results_per_search=num_results_per_search,
-        langfuse_project_name=langfuse_project_name,
+    enhanced_search_data, enhanced_synthesis_data, enhanced_analysis_data = (
+        execute_approved_searches_step(
+            query_context=query_context,
+            search_data=merged_search_data,
+            synthesis_data=merged_synthesis_data,
+            analysis_data=analysis_with_reflection,
+            recommended_queries=recommended_queries,
+            approval_decision=approval_decision,
+            additional_synthesis_prompt=additional_synthesis_prompt,
+            search_provider=search_provider,
+            search_mode=search_mode,
+            num_results_per_search=num_results_per_search,
+            langfuse_project_name=langfuse_project_name,
+            after="get_research_approval_step",
+        )
     )
 
     # Use our new Pydantic-based final report step
-    # This returns a tuple (state, html_report)
-    final_state, final_report = pydantic_final_report_step(
-        state=reflected_state,
+    pydantic_final_report_step(
+        query_context=query_context,
+        search_data=enhanced_search_data,
+        synthesis_data=enhanced_synthesis_data,
+        analysis_data=enhanced_analysis_data,
         conclusion_generation_prompt=conclusion_generation_prompt,
         executive_summary_prompt=executive_summary_prompt,
         introduction_prompt=introduction_prompt,
         langfuse_project_name=langfuse_project_name,
+        after="execute_approved_searches_step",
     )
 
     # Collect tracing metadata for the entire pipeline run
-    _, tracing_metadata = collect_tracing_metadata_step(
-        state=final_state,
+    collect_tracing_metadata_step(
+        query_context=query_context,
+        search_data=enhanced_search_data,
         langfuse_project_name=langfuse_project_name,
+        after="pydantic_final_report_step",
     )
