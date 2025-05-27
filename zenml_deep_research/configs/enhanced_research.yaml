@@ -11,11 +11,11 @@ langfuse_project_name: "deep-research"
 steps:
   initial_query_decomposition_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
 
   cross_viewpoint_analysis_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
       viewpoint_categories:
         [
           "scientific",
@@ -28,7 +28,7 @@ steps:
 
   generate_reflection_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
 
   get_research_approval_step:
     parameters:
@@ -37,11 +37,11 @@ steps:
 
   execute_approved_searches_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
 
   pydantic_final_report_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "openrouter/google/gemini-2.5-flash-preview-05-20"
 
 # Environment settings
 settings:

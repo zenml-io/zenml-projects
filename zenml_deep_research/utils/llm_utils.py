@@ -47,7 +47,7 @@ def run_llm_completion(
         temperature: Sampling temperature
         top_p: Top-p sampling value
         project: Langfuse project name for LLM tracking
-        tags: Optional list of tags for Langfuse tracking. If None, no tags are added.
+        tags: Optional list of tags for Langfuse tracking. If provided, also converted to trace_metadata format.
 
     Returns:
         str: Processed LLM output with optional cleaning applied
@@ -63,6 +63,7 @@ def run_llm_completion(
                 "meta",
                 "google",
                 "aws",
+                "openrouter",
             ]
         ):
             # Raise an error if no provider prefix is specified
@@ -85,6 +86,8 @@ def run_llm_completion(
         metadata = {"project": project}
         if tags is not None:
             metadata["tags"] = tags
+            # Convert tags to trace_metadata format
+            metadata["trace_metadata"] = {tag: True for tag in tags}
         if trace_name:
             metadata["trace_name"] = trace_name
         if trace_id:
@@ -255,6 +258,7 @@ def find_most_relevant_string(
                     "meta",
                     "google",
                     "aws",
+                    "openrouter",
                 ]
             ):
                 # Raise an error if no provider prefix is specified
@@ -286,6 +290,8 @@ Respond with only the exact text of the most relevant option."""
 
             # Build metadata dict
             metadata = {"project": project, "tags": tags}
+            # Convert tags to trace_metadata format
+            metadata["trace_metadata"] = {tag: True for tag in tags}
             if trace_name:
                 metadata["trace_name"] = trace_name
             if trace_id:

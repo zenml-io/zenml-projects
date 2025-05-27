@@ -195,19 +195,17 @@ def generate_executive_summary(
     try:
         # Call LLM to generate executive summary
         result = run_llm_completion(
+            prompt=context,
+            system_prompt=executive_summary_prompt,
             model=llm_model,
-            messages=[
-                {"role": "system", "content": executive_summary_prompt},
-                {"role": "user", "content": context},
-            ],
             temperature=0.7,
             max_tokens=800,
-            project_name=langfuse_project_name,
-            trace_name="executive_summary_generation",
+            project=langfuse_project_name,
+            tags=["executive_summary_generation"],
         )
 
-        if result and "error" not in result:
-            content = remove_reasoning_from_output(result.get("content", ""))
+        if result:
+            content = remove_reasoning_from_output(result)
             # Clean up the HTML
             content = extract_html_from_content(content)
             logger.info("Successfully generated LLM-based executive summary")
@@ -262,19 +260,17 @@ def generate_introduction(
     try:
         # Call LLM to generate introduction
         result = run_llm_completion(
+            prompt=context,
+            system_prompt=introduction_prompt,
             model=llm_model,
-            messages=[
-                {"role": "system", "content": introduction_prompt},
-                {"role": "user", "content": context},
-            ],
             temperature=0.7,
             max_tokens=600,
-            project_name=langfuse_project_name,
-            trace_name="introduction_generation",
+            project=langfuse_project_name,
+            tags=["introduction_generation"],
         )
 
-        if result and "error" not in result:
-            content = remove_reasoning_from_output(result.get("content", ""))
+        if result:
+            content = remove_reasoning_from_output(result)
             # Clean up the HTML
             content = extract_html_from_content(content)
             logger.info("Successfully generated LLM-based introduction")
