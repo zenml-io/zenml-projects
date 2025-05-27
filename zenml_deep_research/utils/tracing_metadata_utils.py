@@ -1,3 +1,5 @@
+"""Utilities for collecting and analyzing tracing metadata from Langfuse."""
+
 import time
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -13,6 +15,37 @@ from rich.table import Table
 console = Console()
 
 langfuse = Langfuse()
+
+# Prompt type identification keywords
+PROMPT_IDENTIFIERS = {
+    "query_decomposition": [
+        "MAIN RESEARCH QUERY",
+        "DIFFERENT DIMENSIONS",
+        "sub-questions",
+    ],
+    "search_query": ["Deep Research assistant", "effective search query"],
+    "synthesis": [
+        "information synthesis",
+        "comprehensive answer",
+        "confidence level",
+    ],
+    "viewpoint_analysis": [
+        "multi-perspective analysis",
+        "viewpoint categories",
+    ],
+    "reflection": ["critique and improve", "information gaps"],
+    "additional_synthesis": ["enhance the original synthesis"],
+    "conclusion_generation": [
+        "Synthesis and Integration",
+        "Direct Response to Main Query",
+    ],
+    "executive_summary": [
+        "executive summaries",
+        "Key Findings",
+        "250-400 words",
+    ],
+    "introduction": ["engaging introductions", "Context and Relevance"],
+}
 
 # Rate limiting configuration
 # Adjust these based on your Langfuse tier:
@@ -424,6 +457,161 @@ def display_trace_stats_table(
         )
 
     console.print(table)
+
+
+def identify_prompt_type(observation: ObservationsView) -> str:
+    """Identify the prompt type based on keywords in the observation's input.
+
+    Examines the system prompt in observation.input['messages'][0]['content']
+    for unique keywords that identify each prompt type.
+
+    Args:
+        observation: The observation to analyze
+
+    Returns:
+        str: The prompt type name, or "unknown" if not identified
+    """
+    try:
+        # Access the system prompt from the messages
+        if hasattr(observation, "input") and observation.input:
+            messages = observation.input.get("messages", [])
+            if messages and len(messages) > 0:
+                system_content = messages[0].get("content", "")
+
+                # Check each prompt type's keywords
+                for prompt_type, keywords in PROMPT_IDENTIFIERS.items():
+                    # Check if any keyword is in the system prompt
+                    for keyword in keywords:
+                        if keyword in system_content:
+                            return prompt_type
+
+        return "unknown"
+    except Exception as e:
+        console.print(
+            f"[yellow]Warning: Could not identify prompt type: {e}[/yellow]"
+        )
+        return "unknown"
+
+
+def get_costs_by_prompt_type(trace_id: str) -> Dict[str, Dict[str, float]]:
+    """Get cost breakdown by prompt type for a given trace.
+
+    Uses observation.usage.input/output for token counts and
+    observation.calculated_total_cost for costs.
+
+    Args:
+        trace_id: The ID of the trace to analyze
+
+    Returns:
+        Dict mapping prompt_type to {
+            'cost': float,
+            'input_tokens': int,
+            'output_tokens': int,
+            'count': int  # number of calls
+        }
+    """
+    try:
+        observations = fetch_observations_safe(trace_id=trace_id)
+        prompt_metrics = {}
+
+        for obs in observations:
+            # Identify prompt type
+            prompt_type = identify_prompt_type(obs)
+
+            # Initialize metrics for this prompt type if needed
+            if prompt_type not in prompt_metrics:
+                prompt_metrics[prompt_type] = {
+                    "cost": 0.0,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "count": 0,
+                }
+
+            # Add cost
+            cost = 0.0
+            if (
+                hasattr(obs, "calculated_total_cost")
+                and obs.calculated_total_cost
+            ):
+                cost = obs.calculated_total_cost
+            prompt_metrics[prompt_type]["cost"] += cost
+
+            # Add tokens
+            if hasattr(obs, "usage") and obs.usage:
+                if hasattr(obs.usage, "input") and obs.usage.input:
+                    prompt_metrics[prompt_type]["input_tokens"] += (
+                        obs.usage.input
+                    )
+                if hasattr(obs.usage, "output") and obs.usage.output:
+                    prompt_metrics[prompt_type]["output_tokens"] += (
+                        obs.usage.output
+                    )
+
+            # Increment count
+            prompt_metrics[prompt_type]["count"] += 1
+
+        return prompt_metrics
+    except Exception as e:
+        print(f"[red]Error getting costs by prompt type: {e}[/red]")
+        return {}
+
+
+def get_prompt_type_statistics(trace_id: str) -> Dict[str, Dict[str, Any]]:
+    """Get detailed statistics for each prompt type.
+
+    Args:
+        trace_id: The ID of the trace to analyze
+
+    Returns:
+        Dict mapping prompt_type to {
+            'cost': float,
+            'input_tokens': int,
+            'output_tokens': int,
+            'count': int,
+            'avg_cost_per_call': float,
+            'avg_input_tokens': float,
+            'avg_output_tokens': float,
+            'percentage_of_total_cost': float
+        }
+    """
+    try:
+        # Get basic metrics
+        prompt_metrics = get_costs_by_prompt_type(trace_id)
+
+        # Calculate total cost for percentage calculation
+        total_cost = sum(
+            metrics["cost"] for metrics in prompt_metrics.values()
+        )
+
+        # Enhance with statistics
+        enhanced_metrics = {}
+        for prompt_type, metrics in prompt_metrics.items():
+            count = metrics["count"]
+            enhanced_metrics[prompt_type] = {
+                "cost": metrics["cost"],
+                "input_tokens": metrics["input_tokens"],
+                "output_tokens": metrics["output_tokens"],
+                "count": count,
+                "avg_cost_per_call": metrics["cost"] / count
+                if count > 0
+                else 0,
+                "avg_input_tokens": metrics["input_tokens"] / count
+                if count > 0
+                else 0,
+                "avg_output_tokens": metrics["output_tokens"] / count
+                if count > 0
+                else 0,
+                "percentage_of_total_cost": (
+                    metrics["cost"] / total_cost * 100
+                )
+                if total_cost > 0
+                else 0,
+            }
+
+        return enhanced_metrics
+    except Exception as e:
+        print(f"[red]Error getting prompt type statistics: {e}[/red]")
+        return {}
 
 
 if __name__ == "__main__":

@@ -205,6 +205,24 @@ class ApprovalDecision(BaseModel):
     }
 
 
+class PromptTypeMetrics(BaseModel):
+    """Metrics for a specific prompt type."""
+
+    prompt_type: str
+    total_cost: float
+    input_tokens: int
+    output_tokens: int
+    call_count: int
+    avg_cost_per_call: float
+    percentage_of_total_cost: float
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
+
+
 class TracingMetadata(BaseModel):
     """Metadata about token usage, costs, and performance for a pipeline run."""
 
@@ -243,6 +261,11 @@ class TracingMetadata(BaseModel):
     step_costs: Dict[str, float] = Field(default_factory=dict)
     step_tokens: Dict[str, Dict[str, int]] = Field(default_factory=dict)
     # Format: {"step_name": {"input_tokens": X, "output_tokens": Y}}
+
+    # Prompt-level metrics
+    prompt_metrics: List[PromptTypeMetrics] = Field(
+        default_factory=list, description="Cost breakdown by prompt type"
+    )
 
     # Timestamp
     collected_at: float = Field(default_factory=lambda: time.time())

@@ -3,9 +3,14 @@
 import logging
 from typing import Annotated, Tuple
 
-from utils.pydantic_models import ResearchState, TracingMetadata
+from utils.pydantic_models import (
+    PromptTypeMetrics,
+    ResearchState,
+    TracingMetadata,
+)
 from utils.tracing_metadata_utils import (
     get_observations_for_trace,
+    get_prompt_type_statistics,
     get_trace_stats,
     get_traces_by_name,
 )
@@ -135,6 +140,34 @@ def collect_tracing_metadata_step(
         metadata.model_token_breakdown = model_tokens
         metadata.step_costs = step_costs
         metadata.step_tokens = step_tokens
+
+        # Collect prompt-level metrics
+        try:
+            prompt_stats = get_prompt_type_statistics(trace_id=trace.id)
+
+            # Convert to PromptTypeMetrics objects
+            prompt_metrics_list = []
+            for prompt_type, stats in prompt_stats.items():
+                prompt_metrics = PromptTypeMetrics(
+                    prompt_type=prompt_type,
+                    total_cost=stats["cost"],
+                    input_tokens=stats["input_tokens"],
+                    output_tokens=stats["output_tokens"],
+                    call_count=stats["count"],
+                    avg_cost_per_call=stats["avg_cost_per_call"],
+                    percentage_of_total_cost=stats["percentage_of_total_cost"],
+                )
+                prompt_metrics_list.append(prompt_metrics)
+
+            # Sort by total cost descending
+            prompt_metrics_list.sort(key=lambda x: x.total_cost, reverse=True)
+            metadata.prompt_metrics = prompt_metrics_list
+
+            logger.info(
+                f"Collected prompt-level metrics for {len(prompt_metrics_list)} prompt types"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to collect prompt-level metrics: {str(e)}")
 
         logger.info(
             f"Successfully collected tracing metadata - "

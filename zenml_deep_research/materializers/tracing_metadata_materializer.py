@@ -250,6 +250,196 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                 </table>
         """
 
+        # Add prompt-level metrics visualization
+        if metadata.prompt_metrics:
+            html += """
+                <h2>Cost Analysis by Prompt Type</h2>
+                
+                <!-- Chart.js library -->
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+                <!-- Cost by prompt type bar chart -->
+                <div style="max-width: 800px; margin: 20px auto;">
+                    <canvas id="promptCostChart"></canvas>
+                </div>
+                
+                <!-- Token usage by prompt type stacked bar chart -->
+                <div style="max-width: 800px; margin: 20px auto;">
+                    <canvas id="promptTokenChart"></canvas>
+                </div>
+                
+                <!-- Prompt efficiency table -->
+                <h3>Prompt Type Efficiency</h3>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Prompt Type</th>
+                            <th>Total Cost</th>
+                            <th>Calls</th>
+                            <th>Avg $/Call</th>
+                            <th>% of Total</th>
+                            <th>Input Tokens</th>
+                            <th>Output Tokens</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+
+            # Add prompt metrics rows
+            for metric in metadata.prompt_metrics:
+                # Format prompt type name nicely
+                prompt_type_display = metric.prompt_type.replace(
+                    "_", " "
+                ).title()
+                html += f"""
+                        <tr>
+                            <td>{prompt_type_display}</td>
+                            <td>${metric.total_cost:.4f}</td>
+                            <td>{metric.call_count}</td>
+                            <td>${metric.avg_cost_per_call:.4f}</td>
+                            <td>{metric.percentage_of_total_cost:.1f}%</td>
+                            <td>{metric.input_tokens:,}</td>
+                            <td>{metric.output_tokens:,}</td>
+                        </tr>
+                """
+
+            html += """
+                    </tbody>
+                </table>
+                
+                <script>
+                    // Data for the cost chart
+                    const promptLabels = [
+            """
+
+            # Add labels and data for charts
+            labels = [
+                metric.prompt_type.replace("_", " ").title()
+                for metric in metadata.prompt_metrics
+            ]
+            costs = [metric.total_cost for metric in metadata.prompt_metrics]
+            input_tokens = [
+                metric.input_tokens for metric in metadata.prompt_metrics
+            ]
+            output_tokens = [
+                metric.output_tokens for metric in metadata.prompt_metrics
+            ]
+
+            html += ", ".join([f'"{label}"' for label in labels])
+            html += "];\n"
+
+            html += "const promptCosts = ["
+            html += ", ".join([f"{cost:.4f}" for cost in costs])
+            html += "];\n"
+
+            html += "const promptInputTokens = ["
+            html += ", ".join([str(tokens) for tokens in input_tokens])
+            html += "];\n"
+
+            html += "const promptOutputTokens = ["
+            html += ", ".join([str(tokens) for tokens in output_tokens])
+            html += "];\n"
+
+            html += """
+                    // Cost by prompt type chart
+                    const costCtx = document.getElementById('promptCostChart').getContext('2d');
+                    new Chart(costCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: promptLabels,
+                            datasets: [{
+                                label: 'Cost ($)',
+                                data: promptCosts,
+                                backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Cost by Prompt Type'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Cost: $' + context.parsed.y.toFixed(4);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toFixed(2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Token usage by prompt type chart
+                    const tokenCtx = document.getElementById('promptTokenChart').getContext('2d');
+                    new Chart(tokenCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: promptLabels,
+                            datasets: [
+                                {
+                                    label: 'Input Tokens',
+                                    data: promptInputTokens,
+                                    backgroundColor: 'rgba(230, 126, 34, 0.8)',
+                                    borderColor: 'rgba(230, 126, 34, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Output Tokens',
+                                    data: promptOutputTokens,
+                                    backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                                    borderColor: 'rgba(46, 204, 113, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Token Usage by Prompt Type'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' tokens';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: true
+                                },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+            """
+
         # Add trace metadata
         if metadata.trace_tags or metadata.trace_metadata:
             html += """
