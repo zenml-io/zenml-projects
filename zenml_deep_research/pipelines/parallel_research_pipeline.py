@@ -1,4 +1,5 @@
 from steps.approval_step import get_research_approval_step
+from steps.collect_tracing_metadata_step import collect_tracing_metadata_step
 from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
 from steps.execute_approved_searches_step import execute_approved_searches_step
 from steps.generate_reflection_step import generate_reflection_step
@@ -120,9 +121,15 @@ def parallelized_deep_research_pipeline(
 
     # Use our new Pydantic-based final report step
     # This returns a tuple (state, html_report)
-    _, final_report = pydantic_final_report_step(
+    final_state, final_report = pydantic_final_report_step(
         state=reflected_state,
         prompts_bundle=prompts_bundle,
+        langfuse_project_name=langfuse_project_name,
+    )
+
+    # Collect tracing metadata for the entire pipeline run
+    _, tracing_metadata = collect_tracing_metadata_step(
+        state=final_state,
         langfuse_project_name=langfuse_project_name,
     )
 

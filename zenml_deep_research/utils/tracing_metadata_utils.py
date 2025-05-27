@@ -218,6 +218,42 @@ def get_trace_stats(trace: TraceWithDetails) -> Dict[str, Any]:
         return {}
 
 
+def get_traces_by_name(name: str, limit: int = 1) -> List[TraceWithDetails]:
+    """Get traces by name using Langfuse API.
+
+    Args:
+        name: The name of the trace to search for
+        limit: Maximum number of traces to return (default: 1)
+
+    Returns:
+        List of traces matching the name
+    """
+    try:
+        # Use the Langfuse API to get traces by name
+        traces_response = langfuse.get_traces(name=name, limit=limit)
+        return traces_response.data
+    except Exception as e:
+        print(f"[red]Error fetching traces by name: {e}[/red]")
+        return []
+
+
+def get_observations_for_trace(trace_id: str) -> List[ObservationsView]:
+    """Get all observations for a specific trace.
+
+    Args:
+        trace_id: The ID of the trace
+
+    Returns:
+        List of observations for the trace
+    """
+    try:
+        observations_response = langfuse.get_observations(trace_id=trace_id)
+        return observations_response.data
+    except Exception as e:
+        print(f"[red]Error fetching observations: {e}[/red]")
+        return []
+
+
 def filter_traces_by_date_range(
     start_date: datetime, end_date: datetime, limit: Optional[int] = None
 ) -> List[TraceWithDetails]:

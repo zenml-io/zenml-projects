@@ -1,0 +1,305 @@
+"""Materializer for TracingMetadata with custom visualization."""
+
+import os
+from typing import Dict
+
+from utils.pydantic_models import TracingMetadata
+from zenml.enums import ArtifactType, VisualizationType
+from zenml.io import fileio
+from zenml.materializers import PydanticMaterializer
+
+
+class TracingMetadataMaterializer(PydanticMaterializer):
+    """Materializer for the TracingMetadata class with visualizations."""
+
+    ASSOCIATED_TYPES = (TracingMetadata,)
+    ASSOCIATED_ARTIFACT_TYPE = ArtifactType.DATA
+
+    def save_visualizations(
+        self, data: TracingMetadata
+    ) -> Dict[str, VisualizationType]:
+        """Create and save visualizations for the TracingMetadata.
+
+        Args:
+            data: The TracingMetadata to visualize
+
+        Returns:
+            Dictionary mapping file paths to visualization types
+        """
+        # Generate an HTML visualization
+        visualization_path = os.path.join(self.uri, "tracing_metadata.html")
+
+        # Create HTML content
+        html_content = self._generate_visualization_html(data)
+
+        # Write the HTML content to a file
+        with fileio.open(visualization_path, "w") as f:
+            f.write(html_content)
+
+        # Return the visualization path and type
+        return {visualization_path: VisualizationType.HTML}
+
+    def _generate_visualization_html(self, metadata: TracingMetadata) -> str:
+        """Generate HTML visualization for the tracing metadata.
+
+        Args:
+            metadata: The TracingMetadata to visualize
+
+        Returns:
+            HTML string
+        """
+        # Calculate some derived values
+        avg_cost_per_token = metadata.total_cost / max(
+            metadata.total_tokens, 1
+        )
+
+        # Base structure for the HTML
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pipeline Tracing Metadata</title>
+            <style>
+                body {{
+                    font-family: 'Arial', sans-serif;
+                    line-height: 1.6;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #f5f5f5;
+                    color: #333;
+                }}
+                .container {{
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }}
+                h1, h2, h3 {{
+                    color: #2c3e50;
+                }}
+                h1 {{
+                    border-bottom: 2px solid #3498db;
+                    padding-bottom: 10px;
+                }}
+                .metric-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin: 20px 0;
+                }}
+                .metric-card {{
+                    background-color: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 15px;
+                    border-left: 4px solid #3498db;
+                }}
+                .metric-value {{
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    margin: 5px 0;
+                }}
+                .metric-label {{
+                    color: #7f8c8d;
+                    font-size: 14px;
+                }}
+                .cost-breakdown {{
+                    margin: 20px 0;
+                }}
+                .model-table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }}
+                .model-table th, .model-table td {{
+                    padding: 10px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }}
+                .model-table th {{
+                    background-color: #3498db;
+                    color: white;
+                }}
+                .model-table tr:hover {{
+                    background-color: #f5f5f5;
+                }}
+                .step-breakdown {{
+                    margin: 20px 0;
+                }}
+                .step-item {{
+                    background-color: #f8f9fa;
+                    border-left: 3px solid #e67e22;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border-radius: 4px;
+                }}
+                .metadata-info {{
+                    font-size: 12px;
+                    color: #7f8c8d;
+                    margin-top: 20px;
+                    padding-top: 10px;
+                    border-top: 1px dashed #ddd;
+                }}
+                .tag {{
+                    display: inline-block;
+                    background-color: #e1f5fe;
+                    color: #0277bd;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    margin: 2px;
+                }}
+                .progress-bar {{
+                    background-color: #ecf0f1;
+                    border-radius: 10px;
+                    height: 20px;
+                    overflow: hidden;
+                    position: relative;
+                }}
+                .progress-fill {{
+                    height: 100%;
+                    background-color: #3498db;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 10px;
+                    color: white;
+                    font-size: 12px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Pipeline Tracing Metadata</h1>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Pipeline Run</div>
+                        <div class="metric-value" style="font-size: 16px;">{metadata.pipeline_run_name}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Total Cost</div>
+                        <div class="metric-value">${metadata.total_cost:.4f}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Total Tokens</div>
+                        <div class="metric-value">{metadata.total_tokens:,}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Duration</div>
+                        <div class="metric-value">{metadata.formatted_latency}</div>
+                    </div>
+                </div>
+                
+                <h2>Token Usage</h2>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Input Tokens</div>
+                        <div class="metric-value">{metadata.total_input_tokens:,}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Output Tokens</div>
+                        <div class="metric-value">{metadata.total_output_tokens:,}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Observations</div>
+                        <div class="metric-value">{metadata.observation_count}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Cost per Token</div>
+                        <div class="metric-value">${avg_cost_per_token:.6f}</div>
+                    </div>
+                </div>
+                
+                <h2>Model Usage Breakdown</h2>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Input Tokens</th>
+                            <th>Output Tokens</th>
+                            <th>Total Tokens</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        # Add model breakdown
+        for model in metadata.models_used:
+            tokens = metadata.model_token_breakdown.get(model, {})
+            cost = metadata.cost_breakdown_by_model.get(model, 0.0)
+            html += f"""
+                        <tr>
+                            <td>{model}</td>
+                            <td>{tokens.get("input_tokens", 0):,}</td>
+                            <td>{tokens.get("output_tokens", 0):,}</td>
+                            <td>{tokens.get("total_tokens", 0):,}</td>
+                            <td>${cost:.4f}</td>
+                        </tr>
+            """
+
+        html += """
+                    </tbody>
+                </table>
+        """
+
+        # Add trace metadata
+        if metadata.trace_tags or metadata.trace_metadata:
+            html += """
+                <h2>Trace Information</h2>
+                <div class="metric-card">
+            """
+
+            if metadata.trace_tags:
+                html += """
+                    <h3>Tags</h3>
+                    <div>
+                """
+                for tag in metadata.trace_tags:
+                    html += f'<span class="tag">{tag}</span>'
+                html += """
+                    </div>
+                """
+
+            if metadata.trace_metadata:
+                html += """
+                    <h3>Metadata</h3>
+                    <pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px;">
+                """
+                import json
+
+                html += json.dumps(metadata.trace_metadata, indent=2)
+                html += """
+                    </pre>
+                """
+
+            html += """
+                </div>
+            """
+
+        # Add footer with collection info
+        from datetime import datetime
+
+        collection_time = datetime.fromtimestamp(
+            metadata.collected_at
+        ).strftime("%Y-%m-%d %H:%M:%S")
+
+        html += f"""
+                <div class="metadata-info">
+                    <p><strong>Trace ID:</strong> {metadata.trace_id}</p>
+                    <p><strong>Pipeline Run ID:</strong> {metadata.pipeline_run_id}</p>
+                    <p><strong>Collected at:</strong> {collection_time}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        return html

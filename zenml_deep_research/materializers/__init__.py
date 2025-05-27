@@ -6,10 +6,16 @@ deserialization of complex data types used in the research pipeline, particularl
 the ResearchState object that tracks the state of the research process.
 """
 
+from .approval_decision_materializer import ApprovalDecisionMaterializer
 from .prompts_materializer import PromptsBundleMaterializer
 from .pydantic_materializer import ResearchStateMaterializer
+from .reflection_output_materializer import ReflectionOutputMaterializer
+from .tracing_metadata_materializer import TracingMetadataMaterializer
 
 __all__ = [
-    "ResearchStateMaterializer",
+    "ApprovalDecisionMaterializer",
     "PromptsBundleMaterializer",
+    "ReflectionOutputMaterializer",
+    "ResearchStateMaterializer",
+    "TracingMetadataMaterializer",
 ]

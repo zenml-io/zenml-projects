@@ -203,3 +203,52 @@ class ApprovalDecision(BaseModel):
         "frozen": False,
         "validate_assignment": True,
     }
+
+
+class TracingMetadata(BaseModel):
+    """Metadata about token usage, costs, and performance for a pipeline run."""
+
+    # Pipeline information
+    pipeline_run_name: str = ""
+    pipeline_run_id: str = ""
+
+    # Token usage
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    total_tokens: int = 0
+
+    # Cost information
+    total_cost: float = 0.0
+    cost_breakdown_by_model: Dict[str, float] = Field(default_factory=dict)
+
+    # Performance metrics
+    total_latency_seconds: float = 0.0
+    formatted_latency: str = ""
+    observation_count: int = 0
+
+    # Model usage
+    models_used: List[str] = Field(default_factory=list)
+    model_token_breakdown: Dict[str, Dict[str, int]] = Field(
+        default_factory=dict
+    )
+    # Format: {"model_name": {"input_tokens": X, "output_tokens": Y, "total_tokens": Z}}
+
+    # Trace information
+    trace_id: str = ""
+    trace_name: str = ""
+    trace_tags: List[str] = Field(default_factory=list)
+    trace_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    # Step-by-step breakdown
+    step_costs: Dict[str, float] = Field(default_factory=dict)
+    step_tokens: Dict[str, Dict[str, int]] = Field(default_factory=dict)
+    # Format: {"step_name": {"input_tokens": X, "output_tokens": Y}}
+
+    # Timestamp
+    collected_at: float = Field(default_factory=lambda: time.time())
+
+    model_config = {
+        "extra": "ignore",
+        "frozen": False,
+        "validate_assignment": True,
+    }
