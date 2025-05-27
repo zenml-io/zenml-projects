@@ -59,20 +59,31 @@ class ResearchStateMaterializer(PydanticMaterializer):
         <head>
             <title>Research State: {state.main_query}</title>
             <style>
+                html, body {{
+                    margin: 0;
+                    padding: 0;
+                    height: 100%;
+                    min-height: 100%;
+                }}
                 body {{
                     font-family: 'Arial', sans-serif;
                     line-height: 1.6;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 20px;
                     background-color: #f5f5f5;
                     color: #333;
+                    display: flex;
+                    flex-direction: column;
                 }}
                 .container {{
                     background-color: white;
                     border-radius: 8px;
                     padding: 20px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    max-width: 1400px;
+                    margin: 20px auto;
+                    width: calc(100% - 40px);
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
                 }}
                 h1, h2, h3 {{
                     color: #2c3e50;
@@ -107,6 +118,50 @@ class ResearchStateMaterializer(PydanticMaterializer):
                     color: white;
                     font-weight: bold;
                 }}
+                .stage.completed {{
+                    background-color: #3498db;
+                    color: white;
+                }}
+                
+                /* Tab styles */
+                .tabs {{
+                    display: flex;
+                    list-style: none;
+                    padding: 0;
+                    margin: 20px 0 0 0;
+                    border-bottom: 2px solid #ddd;
+                }}
+                .tab {{
+                    padding: 10px 20px;
+                    cursor: pointer;
+                    background-color: #f0f0f0;
+                    border: 1px solid #ddd;
+                    border-bottom: none;
+                    margin-right: 5px;
+                    border-radius: 5px 5px 0 0;
+                    transition: background-color 0.3s;
+                }}
+                .tab:hover {{
+                    background-color: #e0e0e0;
+                }}
+                .tab.active {{
+                    background-color: white;
+                    border-bottom: 2px solid white;
+                    margin-bottom: -2px;
+                    font-weight: bold;
+                }}
+                .tab-content {{
+                    display: none;
+                    padding: 20px 0;
+                    flex: 1;
+                    overflow-y: auto;
+                    min-height: 500px;
+                }}
+                .tab-content.active {{
+                    display: flex;
+                    flex-direction: column;
+                }}
+                
                 .query {{
                     background-color: #eef2f7;
                     border-left: 4px solid #3498db;
@@ -202,7 +257,34 @@ class ResearchStateMaterializer(PydanticMaterializer):
                     height: 100%;
                     background-color: #3498db;
                 }}
+                .sub-section {{
+                    margin: 15px 0;
+                }}
+                .improvements {{
+                    margin-top: 10px;
+                }}
             </style>
+            <script>
+                function showTab(tabName) {{
+                    // Hide all tab contents
+                    var tabContents = document.getElementsByClassName('tab-content');
+                    for (var i = 0; i < tabContents.length; i++) {{
+                        tabContents[i].classList.remove('active');
+                    }}
+                    
+                    // Remove active class from all tabs
+                    var tabs = document.getElementsByClassName('tab');
+                    for (var i = 0; i < tabs.length; i++) {{
+                        tabs[i].classList.remove('active');
+                    }}
+                    
+                    // Show the selected tab content
+                    document.getElementById(tabName).classList.add('active');
+                    
+                    // Add active class to the clicked tab
+                    document.getElementById(tabName + '-tab').classList.add('active');
+                }}
+            </script>
         </head>
         <body>
             <div class="container">
@@ -223,51 +305,135 @@ class ResearchStateMaterializer(PydanticMaterializer):
                 <div class="progress">
                     <div class="progress-bar" style="width: {self._calculate_progress(state)}%"></div>
                 </div>
+                
+                <!-- Tab navigation -->
+                <ul class="tabs">
         """
 
-        # Add main query section
+        # Determine which tab should be active based on current stage
+        current_stage = state.get_current_stage()
+
+        # Map stages to tabs
+        stage_to_tab = {
+            "empty": "overview",
+            "initial": "overview",
+            "after_query_decomposition": "sub-questions",
+            "after_search": "search-results",
+            "after_synthesis": "synthesis",
+            "after_viewpoint_analysis": "viewpoints",
+            "after_reflection": "reflection",
+            "final_report": "final-report",
+        }
+
+        # Get the default active tab based on stage
+        default_active_tab = stage_to_tab.get(current_stage, "overview")
+
+        # Create tab headers dynamically based on available data
+        tabs_created = []
+
+        # Overview tab is always shown
+        is_active = default_active_tab == "overview"
+        html += f'<li class="tab {"active" if is_active else ""}" id="overview-tab" onclick="showTab(\'overview\')">Overview</li>'
+        tabs_created.append("overview")
+
+        if state.sub_questions:
+            is_active = default_active_tab == "sub-questions"
+            html += f'<li class="tab {"active" if is_active else ""}" id="sub-questions-tab" onclick="showTab(\'sub-questions\')">Sub-Questions</li>'
+            tabs_created.append("sub-questions")
+
+        if state.search_results:
+            is_active = default_active_tab == "search-results"
+            html += f'<li class="tab {"active" if is_active else ""}" id="search-results-tab" onclick="showTab(\'search-results\')">Search Results</li>'
+            tabs_created.append("search-results")
+
+        if state.synthesized_info:
+            is_active = default_active_tab == "synthesis"
+            html += f'<li class="tab {"active" if is_active else ""}" id="synthesis-tab" onclick="showTab(\'synthesis\')">Synthesis</li>'
+            tabs_created.append("synthesis")
+
+        if state.viewpoint_analysis:
+            is_active = default_active_tab == "viewpoints"
+            html += f'<li class="tab {"active" if is_active else ""}" id="viewpoints-tab" onclick="showTab(\'viewpoints\')">Viewpoints</li>'
+            tabs_created.append("viewpoints")
+
+        if state.enhanced_info or state.reflection_metadata:
+            is_active = default_active_tab == "reflection"
+            html += f'<li class="tab {"active" if is_active else ""}" id="reflection-tab" onclick="showTab(\'reflection\')">Reflection</li>'
+            tabs_created.append("reflection")
+
+        if state.final_report_html:
+            is_active = default_active_tab == "final-report"
+            html += f'<li class="tab {"active" if is_active else ""}" id="final-report-tab" onclick="showTab(\'final-report\')">Final Report</li>'
+            tabs_created.append("final-report")
+
+        # Ensure the active tab actually exists in the created tabs
+        # If not, fallback to the first available tab
+        if default_active_tab not in tabs_created and tabs_created:
+            default_active_tab = tabs_created[0]
+
+        html += """
+                </ul>
+                
+                <!-- Tab content containers -->
+        """
+
+        # Overview tab content (always shown)
+        is_active = default_active_tab == "overview"
+        html += f"""
+                <div id="overview" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Main Query</h2>
+                        <div class="query">
+        """
+
         if state.main_query:
-            html += f"""
-                <div class="section">
-                    <h2>Main Query</h2>
-                    <div class="query">
-                        <p>{state.main_query}</p>
+            html += f"<p>{state.main_query}</p>"
+        else:
+            html += "<p><em>No main query specified</em></p>"
+
+        html += """
+                        </div>
                     </div>
                 </div>
-            """
+        """
 
-        # Add sub-questions section
+        # Sub-questions tab content
         if state.sub_questions:
+            is_active = default_active_tab == "sub-questions"
             html += f"""
-                <div class="section">
-                    <h2>Sub-Questions ({len(state.sub_questions)})</h2>
-                    <div class="sub-questions">
+                <div id="sub-questions" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Sub-Questions ({len(state.sub_questions)})</h2>
+                        <div class="sub-questions">
             """
 
             for i, question in enumerate(state.sub_questions):
                 html += f"""
-                        <div class="sub-question">
-                            <strong>{i + 1}.</strong> {question}
-                        </div>
+                            <div class="sub-question">
+                                <strong>{i + 1}.</strong> {question}
+                            </div>
                 """
 
             html += """
+                        </div>
                     </div>
                 </div>
             """
 
-        # Add search results if available
+        # Search results tab content
         if state.search_results:
+            is_active = default_active_tab == "search-results"
             html += f"""
-                <div class="section">
-                    <h2>Search Results</h2>
+                <div id="search-results" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Search Results</h2>
             """
 
             for question, results in state.search_results.items():
                 html += f"""
-                    <h3>{question}</h3>
-                    <p>Found {len(results)} results</p>
-                    <ul>
+                        <h3>{question}</h3>
+                        <p>Found {len(results)} results</p>
+                        <ul>
                 """
 
                 for result in results:
@@ -295,174 +461,183 @@ class ResearchStateMaterializer(PydanticMaterializer):
                                 domain = domain[4:]
 
                     html += f"""
-                        <li>
-                            <a href="{result.url}" target="_blank">{result.title}</a> ({domain})
-                        </li>
+                            <li>
+                                <a href="{result.url}" target="_blank">{result.title}</a> ({domain})
+                            </li>
                     """
 
                 html += """
-                    </ul>
+                        </ul>
                 """
 
             html += """
+                    </div>
                 </div>
             """
 
-        # Add synthesized information if available
+        # Synthesized information tab content
         if state.synthesized_info:
+            is_active = default_active_tab == "synthesis"
             html += f"""
-                <div class="section">
-                    <h2>Synthesized Information</h2>
+                <div id="synthesis" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Synthesized Information</h2>
             """
 
             for question, info in state.synthesized_info.items():
                 html += f"""
-                    <h3>{question} <span class="confidence {info.confidence_level}">{info.confidence_level}</span></h3>
-                    <div class="synthesized">
-                        <p>{info.synthesized_answer}</p>
+                        <h3>{question} <span class="confidence {info.confidence_level}">{info.confidence_level}</span></h3>
+                        <div class="synthesized">
+                            <p>{info.synthesized_answer}</p>
                 """
 
                 if info.key_sources:
                     html += """
-                        <div class="sources">
-                            <p><strong>Key Sources:</strong></p>
-                            <ul>
+                            <div class="sources">
+                                <p><strong>Key Sources:</strong></p>
+                                <ul>
                     """
 
                     for source in info.key_sources[:3]:
                         html += f"""
-                                <li><a href="{source}" target="_blank">{source[:50]}...</a></li>
+                                    <li><a href="{source}" target="_blank">{source[:50]}...</a></li>
                         """
 
                     if len(info.key_sources) > 3:
                         html += f"<li><em>...and {len(info.key_sources) - 3} more sources</em></li>"
 
                     html += """
-                            </ul>
-                        </div>
+                                </ul>
+                            </div>
                     """
 
                 if info.information_gaps:
                     html += f"""
-                        <div class="metadata">
-                            <p><strong>Information Gaps:</strong> {info.information_gaps}</p>
-                        </div>
+                            <div class="metadata">
+                                <p><strong>Information Gaps:</strong> {info.information_gaps}</p>
+                            </div>
                     """
 
                 html += """
-                    </div>
+                        </div>
                 """
 
             html += """
+                    </div>
                 </div>
             """
 
-        # Add viewpoint analysis if available
+        # Viewpoint analysis tab content
         if state.viewpoint_analysis:
-            html += """
-                <div class="section">
-                    <h2>Viewpoint Analysis</h2>
-                    <div class="viewpoints">
+            is_active = default_active_tab == "viewpoints"
+            html += f"""
+                <div id="viewpoints" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Viewpoint Analysis</h2>
+                        <div class="viewpoints">
             """
 
             # Points of agreement
             if state.viewpoint_analysis.main_points_of_agreement:
                 html += """
-                        <h3>Points of Agreement</h3>
-                        <ul>
+                            <h3>Points of Agreement</h3>
+                            <ul>
                 """
 
                 for point in state.viewpoint_analysis.main_points_of_agreement:
                     html += f"""
-                            <li>{point}</li>
+                                <li>{point}</li>
                     """
 
                 html += """
-                        </ul>
+                            </ul>
                 """
 
             # Areas of tension
             if state.viewpoint_analysis.areas_of_tension:
                 html += """
-                        <h3>Areas of Tension</h3>
+                            <h3>Areas of Tension</h3>
                 """
 
                 for tension in state.viewpoint_analysis.areas_of_tension:
                     html += f"""
-                        <div class="sub-section">
-                            <h4>{tension.topic}</h4>
-                            <ul>
+                            <div class="sub-section">
+                                <h4>{tension.topic}</h4>
+                                <ul>
                     """
 
                     for viewpoint, description in tension.viewpoints.items():
                         html += f"""
-                                <li><strong>{viewpoint}:</strong> {description}</li>
+                                    <li><strong>{viewpoint}:</strong> {description}</li>
                         """
 
                     html += """
-                            </ul>
-                        </div>
+                                </ul>
+                            </div>
                     """
 
             # Perspective gaps and integrative insights
             if state.viewpoint_analysis.perspective_gaps:
                 html += f"""
-                        <h3>Perspective Gaps</h3>
-                        <p>{state.viewpoint_analysis.perspective_gaps}</p>
+                            <h3>Perspective Gaps</h3>
+                            <p>{state.viewpoint_analysis.perspective_gaps}</p>
                 """
 
             if state.viewpoint_analysis.integrative_insights:
                 html += f"""
-                        <h3>Integrative Insights</h3>
-                        <p>{state.viewpoint_analysis.integrative_insights}</p>
+                            <h3>Integrative Insights</h3>
+                            <p>{state.viewpoint_analysis.integrative_insights}</p>
                 """
 
             html += """
+                        </div>
                     </div>
                 </div>
             """
 
-        # Add reflection results if available
-        if state.enhanced_info and state.reflection_metadata:
-            html += """
-                <div class="section">
-                    <h2>Reflection & Enhancement</h2>
+        # Reflection & Enhancement tab content
+        if state.enhanced_info or state.reflection_metadata:
+            is_active = default_active_tab == "reflection"
+            html += f"""
+                <div id="reflection" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Reflection & Enhancement</h2>
             """
 
             # Reflection metadata
             if state.reflection_metadata:
                 html += """
-                    <div class="reflection">
+                        <div class="reflection">
                 """
 
                 if state.reflection_metadata.critique_summary:
                     html += """
-                        <h3>Critique Summary</h3>
-                        <ul>
+                            <h3>Critique Summary</h3>
+                            <ul>
                     """
 
                     for critique in state.reflection_metadata.critique_summary:
                         html += f"""
-                            <li>{critique}</li>
+                                <li>{critique}</li>
                         """
 
                     html += """
-                        </ul>
+                            </ul>
                     """
 
                 if state.reflection_metadata.additional_questions_identified:
                     html += """
-                        <h3>Additional Questions Identified</h3>
-                        <ul>
+                            <h3>Additional Questions Identified</h3>
+                            <ul>
                     """
 
                     for question in state.reflection_metadata.additional_questions_identified:
                         html += f"""
-                            <li>{question}</li>
+                                <li>{question}</li>
                         """
 
                     html += """
-                        </ul>
+                            </ul>
                     """
 
                 html += f"""
@@ -470,13 +645,13 @@ class ResearchStateMaterializer(PydanticMaterializer):
                             <p><strong>Searches Performed:</strong> {len(state.reflection_metadata.searches_performed)}</p>
                             <p><strong>Improvements Made:</strong> {state.reflection_metadata.improvements_made}</p>
                         </div>
-                    </div>
+                        </div>
                 """
 
             # Enhanced information
             if state.enhanced_info:
                 html += """
-                    <h3>Enhanced Information</h3>
+                        <h3>Enhanced Information</h3>
                 """
 
                 for question, info in state.enhanced_info.items():
@@ -503,15 +678,19 @@ class ResearchStateMaterializer(PydanticMaterializer):
                         """
 
             html += """
+                    </div>
                 </div>
             """
 
-        # Add final report section if available
+        # Final report tab
         if state.final_report_html:
-            html += """
-                <div class="section">
-                    <h2>Final Report</h2>
-                    <p><em>Final HTML report is available but not displayed here. View the HTML artifact to see the complete report.</em></p>
+            is_active = default_active_tab == "final-report"
+            html += f"""
+                <div id="final-report" class="tab-content {"active" if is_active else ""}">
+                    <div class="section">
+                        <h2>Final Report</h2>
+                        <p><em>Final HTML report is available but not displayed here. View the HTML artifact to see the complete report.</em></p>
+                    </div>
                 </div>
             """
 
