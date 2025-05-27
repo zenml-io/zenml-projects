@@ -468,7 +468,8 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                         </div>
                     """
 
-            html += f"""
+            html += (
+                f"""
                     <div class="metric-card">
                         <div class="metric-label">Total Search Cost</div>
                         <div class="metric-value" style="color: #e67e22;">${total_search_cost:.4f}</div>
@@ -504,39 +505,48 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                 <canvas id="costBreakdownChart" width="400" height="200"></canvas>
                 <script>
                     var ctx = document.getElementById('costBreakdownChart').getContext('2d');
-                    var totalCombinedCost = {total_combined_cost:.4f};
-                    var costBreakdownChart = new Chart(ctx, {{
+                    var totalCombinedCost = """
+                + f"{total_combined_cost:.4f}"
+                + """;
+                    var llmCost = """
+                + f"{metadata.total_cost:.4f}"
+                + """;
+                    var searchCost = """
+                + f"{total_search_cost:.4f}"
+                + """;
+                    var costBreakdownChart = new Chart(ctx, {
                         type: 'doughnut',
-                        data: {{
+                        data: {
                             labels: ['LLM Cost', 'Search Cost'],
-                            datasets: [{{
-                                data: [{metadata.total_cost:.4f}, {total_search_cost:.4f}],
+                            datasets: [{
+                                data: [llmCost, searchCost],
                                 backgroundColor: ['#3498db', '#e67e22'],
                                 borderWidth: 1
-                            }}]
-                        }},
-                        options: {{
+                            }]
+                        },
+                        options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {{
-                                legend: {{
+                            plugins: {
+                                legend: {
                                     position: 'bottom'
-                                }},
-                                tooltip: {{
-                                    callbacks: {{
-                                        label: function(context) {{
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
                                             var label = context.label || '';
                                             var value = context.parsed || 0;
                                             var percentage = ((value / totalCombinedCost) * 100).toFixed(1);
                                             return label + ': $' + value.toFixed(4) + ' (' + percentage + '%)';
-                                        }}
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }});
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
                 </script>
             """
+            )
 
         # Add trace metadata
         if metadata.trace_tags or metadata.trace_metadata:

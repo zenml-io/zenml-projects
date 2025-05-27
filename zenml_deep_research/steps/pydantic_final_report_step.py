@@ -24,7 +24,7 @@ from utils.prompts import (
     VIEWPOINT_ANALYSIS_TEMPLATE,
 )
 from utils.pydantic_models import ResearchState
-from zenml import ArtifactConfig, log_metadata, step
+from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
@@ -998,18 +998,8 @@ def pydantic_final_report_step(
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
 ) -> Tuple[
-    Annotated[
-        ResearchState,
-        ArtifactConfig(
-            name="state", tags=["final_state", "research_complete"]
-        ),
-    ],
-    Annotated[
-        HTMLString,
-        ArtifactConfig(
-            name="report_html", tags=["report", "html", "final_output"]
-        ),
-    ],
+    Annotated[ResearchState, "state"],
+    Annotated[HTMLString, "report_html"],
 ]:
     """Generate the final research report in HTML format using Pydantic models.
 

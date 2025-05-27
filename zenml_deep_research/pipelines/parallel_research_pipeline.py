@@ -10,7 +10,6 @@ from steps.pydantic_final_report_step import pydantic_final_report_step
 from steps.query_decomposition_step import initial_query_decomposition_step
 from utils.pydantic_models import ResearchState
 from zenml import pipeline
-from zenml.types import HTMLString
 
 
 @pipeline(enable_cache=False)
@@ -24,7 +23,7 @@ def parallelized_deep_research_pipeline(
     search_mode: str = "auto",
     num_results_per_search: int = 3,
     langfuse_project_name: str = "deep-research",
-) -> HTMLString:
+) -> None:
     """Parallelized ZenML pipeline for deep research on a given query.
 
     This pipeline uses the fan-out/fan-in pattern for parallel processing of sub-questions,
@@ -132,5 +131,3 @@ def parallelized_deep_research_pipeline(
         state=final_state,
         langfuse_project_name=langfuse_project_name,
     )
-
-    return final_report

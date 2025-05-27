@@ -2,30 +2,30 @@ import logging
 import time
 from typing import Annotated
 
+from materializers.approval_decision_materializer import (
+    ApprovalDecisionMaterializer,
+)
 from utils.approval_utils import (
     format_approval_request,
     summarize_research_progress,
 )
 from utils.pydantic_models import ApprovalDecision, ReflectionOutput
-from zenml import ArtifactConfig, log_metadata, step
+from zenml import log_metadata, step
 from zenml.client import Client
 
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False)  # Never cache approval decisions
+@step(
+    enable_cache=False, output_materializers=ApprovalDecisionMaterializer
+)  # Never cache approval decisions
 def get_research_approval_step(
     reflection_output: ReflectionOutput,
     require_approval: bool = True,
     alerter_type: str = "slack",
     timeout: int = 3600,
     max_queries: int = 2,
-) -> Annotated[
-    ApprovalDecision,
-    ArtifactConfig(
-        name="approval_decision", tags=["approval", "human_in_loop"]
-    ),
-]:
+) -> Annotated[ApprovalDecision, "approval_decision"]:
     """
     Get human approval for additional research queries.
 

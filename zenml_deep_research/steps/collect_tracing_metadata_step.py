@@ -3,6 +3,10 @@
 import logging
 from typing import Annotated, Tuple
 
+from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.tracing_metadata_materializer import (
+    TracingMetadataMaterializer,
+)
 from utils.pydantic_models import (
     PromptTypeMetrics,
     ResearchState,
@@ -19,7 +23,13 @@ from zenml import get_step_context, step
 logger = logging.getLogger(__name__)
 
 
-@step(enable_cache=False)
+@step(
+    enable_cache=False,
+    output_materializers={
+        "state": ResearchStateMaterializer,
+        "tracing_metadata": TracingMetadataMaterializer,
+    },
+)
 def collect_tracing_metadata_step(
     state: ResearchState,
     langfuse_project_name: str,

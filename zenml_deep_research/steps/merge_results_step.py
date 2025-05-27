@@ -5,7 +5,7 @@ from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.pydantic_models import ResearchState
-from zenml import ArtifactConfig, get_step_context, log_metadata, step
+from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 
 logger = logging.getLogger(__name__)
@@ -16,10 +16,7 @@ def merge_sub_question_results_step(
     original_state: ResearchState,
     step_prefix: str = "process_question_",
     output_name: str = "output",
-) -> Annotated[
-    ResearchState,
-    ArtifactConfig(name="merged_state", tags=["merged", "synthesis"]),
-]:
+) -> Annotated[ResearchState, "merged_state"]:
     """Merge results from individual sub-question processing steps.
 
     This step collects the results from the parallel sub-question processing steps

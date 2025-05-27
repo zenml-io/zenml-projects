@@ -10,7 +10,7 @@ from typing import Annotated
 from materializers.prompts_materializer import PromptsBundleMaterializer
 from utils.prompt_loader import load_prompts_bundle
 from utils.prompt_models import PromptsBundle
-from zenml import ArtifactConfig, step
+from zenml import step
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +18,7 @@ logger = logging.getLogger(__name__)
 @step(output_materializers=PromptsBundleMaterializer)
 def initialize_prompts_step(
     pipeline_version: str = "1.1.0",
-) -> Annotated[
-    PromptsBundle,
-    ArtifactConfig(name="prompts_bundle", tags=["prompts", "configuration"]),
-]:
+) -> Annotated[PromptsBundle, "prompts_bundle"]:
     """Initialize the prompts bundle for the pipeline.
 
     This step loads all prompts from the prompts.py module and creates
