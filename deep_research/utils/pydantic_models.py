@@ -247,21 +247,6 @@ class ResearchState(BaseModel):
         self.final_report_html = html
 
 
-class ReflectionOutput(BaseModel):
-    """Output from the reflection generation step."""
-
-    state: ResearchState
-    recommended_queries: List[str] = Field(default_factory=list)
-    critique_summary: List[Dict[str, Any]] = Field(default_factory=list)
-    additional_questions: List[str] = Field(default_factory=list)
-
-    model_config = {
-        "extra": "ignore",
-        "frozen": False,
-        "validate_assignment": True,
-    }
-
-
 class ApprovalDecision(BaseModel):
     """Approval decision from human reviewer."""
 

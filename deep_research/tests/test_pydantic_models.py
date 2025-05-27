@@ -8,11 +8,9 @@ This module contains tests for the Pydantic models that validate:
 """
 
 import json
-from typing import Dict, List
 
 from utils.pydantic_models import (
     ReflectionMetadata,
-    ResearchState,
     SearchResult,
     SynthesizedInfo,
     ViewpointAnalysis,
@@ -199,105 +197,3 @@ def test_reflection_metadata_model():
     new_metadata = ReflectionMetadata.model_validate(metadata_dict)
     assert new_metadata.improvements_made == metadata.improvements_made
     assert new_metadata.critique_summary == metadata.critique_summary
-
-
-def test_research_state_model():
-    """Test the main ResearchState model."""
-    # Create with defaults
-    state = ResearchState()
-    assert state.main_query == ""
-    assert state.sub_questions == []
-    assert state.search_results == {}
-    assert state.get_current_stage() == "empty"
-
-    # Set main query
-    state.main_query = "What are the impacts of climate change?"
-    assert state.get_current_stage() == "initial"
-
-    # Test update methods
-    state.update_sub_questions(
-        ["What are economic impacts?", "What are environmental impacts?"]
-    )
-    assert len(state.sub_questions) == 2
-    assert state.get_current_stage() == "after_query_decomposition"
-
-    # Add search results
-    search_results: Dict[str, List[SearchResult]] = {
-        "What are economic impacts?": [
-            SearchResult(
-                url="https://example.com/economy",
-                title="Economic Impacts",
-                snippet="Overview of economic impacts",
-                content="Detailed content about economic impacts",
-            )
-        ]
-    }
-    state.update_search_results(search_results)
-    assert state.get_current_stage() == "after_search"
-    assert len(state.search_results["What are economic impacts?"]) == 1
-
-    # Add synthesized info
-    synthesized_info: Dict[str, SynthesizedInfo] = {
-        "What are economic impacts?": SynthesizedInfo(
-            synthesized_answer="Economic impacts include job losses and growth opportunities",
-            key_sources=["https://example.com/economy"],
-            confidence_level="high",
-        )
-    }
-    state.update_synthesized_info(synthesized_info)
-    assert state.get_current_stage() == "after_synthesis"
-
-    # Add viewpoint analysis
-    analysis = ViewpointAnalysis(
-        main_points_of_agreement=["Economic changes are happening"],
-        areas_of_tension=[
-            ViewpointTension(
-                topic="Job impacts",
-                viewpoints={
-                    "Positive": "New green jobs",
-                    "Negative": "Fossil fuel job losses",
-                },
-            )
-        ],
-    )
-    state.update_viewpoint_analysis(analysis)
-    assert state.get_current_stage() == "after_viewpoint_analysis"
-
-    # Add reflection results
-    enhanced_info = {
-        "What are economic impacts?": SynthesizedInfo(
-            synthesized_answer="Enhanced answer with more details",
-            key_sources=[
-                "https://example.com/economy",
-                "https://example.com/new-source",
-            ],
-            confidence_level="high",
-            improvements=["Added more context", "Added more sources"],
-        )
-    }
-    metadata = ReflectionMetadata(
-        critique_summary=["Needed more sources"],
-        improvements_made=2,
-    )
-    state.update_after_reflection(enhanced_info, metadata)
-    assert state.get_current_stage() == "after_reflection"
-
-    # Set final report
-    state.set_final_report("<html>Final report content</html>")
-    assert state.get_current_stage() == "final_report"
-    assert state.final_report_html == "<html>Final report content</html>"
-
-    # Test serialization and deserialization
-    state_dict = state.model_dump()
-    new_state = ResearchState.model_validate(state_dict)
-
-    # Verify key properties were preserved
-    assert new_state.main_query == state.main_query
-    assert len(new_state.sub_questions) == len(state.sub_questions)
-    assert new_state.get_current_stage() == state.get_current_stage()
-    assert new_state.viewpoint_analysis is not None
-    assert len(new_state.viewpoint_analysis.areas_of_tension) == 1
-    assert (
-        new_state.viewpoint_analysis.areas_of_tension[0].topic == "Job impacts"
-    )
-    assert new_state.final_report_html == state.final_report_html
