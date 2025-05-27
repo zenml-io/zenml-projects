@@ -32,12 +32,16 @@ The Deep Research Agent produces comprehensive, well-structured reports on any t
 
 The pipeline uses a parallel processing architecture for efficiency and breaks down the research process into granular steps for maximum modularity and control:
 
-1. **Query Decomposition**: Break down the main query into specific sub-questions
-2. **Parallel Information Gathering**: Process multiple sub-questions concurrently for faster results
-3. **Information Validation & Synthesis**: Validate sources, remove redundancies, and synthesize findings
-4. **Cross-Viewpoint Analysis**: Analyze discrepancies and agreements between different perspectives
-5. **Iterative Reflection with Human Approval**: Self-critique research output to identify gaps and optionally request human approval before conducting additional searches
-6. **Final Report Generation**: Compile all synthesized information into a coherent report
+1. **Initialize Prompts**: Load and track all prompts as versioned artifacts
+2. **Query Decomposition**: Break down the main query into specific sub-questions
+3. **Parallel Information Gathering**: Process multiple sub-questions concurrently for faster results
+4. **Merge Results**: Combine results from parallel processing into a unified state
+5. **Cross-Viewpoint Analysis**: Analyze discrepancies and agreements between different perspectives
+6. **Reflection Generation**: Generate recommendations for improving research quality
+7. **Human Approval** (optional): Get human approval for additional searches
+8. **Execute Approved Searches**: Perform approved additional searches to fill gaps
+9. **Final Report Generation**: Compile all synthesized information into a coherent HTML report
+10. **Collect Tracing Metadata**: Gather comprehensive metrics about token usage, costs, and performance
 
 This architecture enables:
 - Better reproducibility and caching of intermediate results
@@ -306,9 +310,14 @@ After running the pipeline, you can view the visualizations in the ZenML dashboa
 2. Navigate to the "Runs" tab in the dashboard
 3. Select your pipeline run
 4. Explore visualizations for each step:
-   - **report_structure_step**: View the initial report structure and outline
-   - **paragraph_research_step**: See the research progress for each paragraph
-   - **report_formatting_step**: View the final formatted report
+   - **initialize_prompts_step**: View all prompts used in the pipeline
+   - **initial_query_decomposition_step**: See how the query was broken down
+   - **process_sub_question_step**: Track progress for each sub-question
+   - **cross_viewpoint_analysis_step**: View viewpoint analysis results
+   - **generate_reflection_step**: See reflection and recommendations
+   - **get_research_approval_step**: View approval decisions
+   - **pydantic_final_report_step**: Access the final research state
+   - **collect_tracing_metadata_step**: View comprehensive cost and performance metrics
 
 ### Visualization Features
 
@@ -543,6 +552,36 @@ The HTML visualization in the ZenML dashboard includes:
 - Expandable/collapsible prompt content
 - One-click copy to clipboard
 - Tag-based categorization with visual indicators
+
+## 📊 Cost and Performance Tracking
+
+The pipeline includes comprehensive tracking of costs and performance metrics through the `collect_tracing_metadata_step`, which runs at the end of each pipeline execution.
+
+### Tracked Metrics
+
+- **LLM Costs**: Detailed breakdown by model and prompt type
+- **Search Costs**: Tracking for both Tavily and Exa search providers
+- **Token Usage**: Input/output tokens per model and step
+- **Performance**: Latency and execution time metrics
+- **Cost Attribution**: See which steps and prompts consume the most resources
+
+### Viewing Metrics
+
+After pipeline execution, the tracing metadata is available in the ZenML dashboard:
+
+1. Navigate to your pipeline run
+2. Find the `collect_tracing_metadata_step` 
+3. View the comprehensive cost visualization including:
+   - Total pipeline cost (LLM + Search)
+   - Cost breakdown by model
+   - Token usage distribution
+   - Performance metrics
+
+This helps you:
+- Optimize pipeline costs by identifying expensive operations
+- Monitor token usage to stay within limits
+- Track performance over time
+- Make informed decisions about model selection
 
 ## 📈 Example Use Cases
 
