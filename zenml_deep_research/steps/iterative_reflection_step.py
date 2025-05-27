@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
@@ -16,6 +17,7 @@ from utils.pydantic_models import (
 )
 from utils.search_utils import search_and_extract_results
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ def iterative_reflection_step(
     Returns:
         Updated research state with enhanced information and reflection metadata
     """
+    start_time = time.time()
     logger.info("Starting iterative reflection on research")
 
     # Prepare input for reflection
@@ -229,6 +232,86 @@ def iterative_reflection_step(
         # Update the state with enhanced info and metadata
         state.update_after_reflection(enhanced_info, reflection_metadata)
 
+        # Calculate execution time
+        execution_time = time.time() - start_time
+
+        # Count questions that were enhanced
+        questions_enhanced = 0
+        for question, enhanced in enhanced_info.items():
+            if question in state.synthesized_info:
+                original = state.synthesized_info[question]
+                if enhanced.synthesized_answer != original.synthesized_answer:
+                    questions_enhanced += 1
+
+        # Calculate confidence level changes
+        confidence_improvements = {"improved": 0, "unchanged": 0, "new": 0}
+        for question, enhanced in enhanced_info.items():
+            if question in state.synthesized_info:
+                original = state.synthesized_info[question]
+                original_level = original.confidence_level.lower()
+                enhanced_level = enhanced.confidence_level.lower()
+
+                level_map = {"low": 0, "medium": 1, "high": 2}
+                if enhanced_level in level_map and original_level in level_map:
+                    if level_map[enhanced_level] > level_map[original_level]:
+                        confidence_improvements["improved"] += 1
+                    else:
+                        confidence_improvements["unchanged"] += 1
+            else:
+                confidence_improvements["new"] += 1
+
+        # Log metadata
+        log_metadata(
+            metadata={
+                "iterative_reflection": {
+                    "execution_time_seconds": execution_time,
+                    "llm_model": llm_model,
+                    "max_additional_searches": max_additional_searches,
+                    "searches_performed": len(search_queries),
+                    "num_critique_points": len(
+                        reflection_result.get("critique", [])
+                    ),
+                    "num_additional_questions": len(
+                        reflection_result.get("additional_questions", [])
+                    ),
+                    "questions_enhanced": questions_enhanced,
+                    "total_improvements": reflection_metadata.improvements_made,
+                    "confidence_improvements": confidence_improvements,
+                    "has_viewpoint_analysis": bool(viewpoint_analysis_dict),
+                }
+            }
+        )
+
+        # Log artifact metadata
+        log_metadata(
+            metadata={
+                "enhanced_state_characteristics": {
+                    "total_questions": len(enhanced_info),
+                    "questions_with_improvements": sum(
+                        1
+                        for info in enhanced_info.values()
+                        if info.improvements
+                    ),
+                    "high_confidence_count": sum(
+                        1
+                        for info in enhanced_info.values()
+                        if info.confidence_level.lower() == "high"
+                    ),
+                    "medium_confidence_count": sum(
+                        1
+                        for info in enhanced_info.values()
+                        if info.confidence_level.lower() == "medium"
+                    ),
+                    "low_confidence_count": sum(
+                        1
+                        for info in enhanced_info.values()
+                        if info.confidence_level.lower() == "low"
+                    ),
+                }
+            },
+            infer_artifact=True,
+        )
+
         return state
 
     except Exception as e:
@@ -242,5 +325,20 @@ def iterative_reflection_step(
         # Update the state with the original synthesized info as enhanced info
         # and the error metadata
         state.update_after_reflection(state.synthesized_info, error_metadata)
+
+        # Log error metadata
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "iterative_reflection": {
+                    "execution_time_seconds": execution_time,
+                    "llm_model": llm_model,
+                    "max_additional_searches": max_additional_searches,
+                    "searches_performed": 0,
+                    "status": "failed",
+                    "error_message": str(e),
+                }
+            }
+        )
 
         return state

@@ -1,5 +1,6 @@
 import copy
 import logging
+import time
 import warnings
 from typing import Annotated
 
@@ -18,6 +19,7 @@ from utils.search_utils import (
     search_and_extract_results,
 )
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,8 @@ def process_sub_question_step(
     Returns:
         A new ResearchState containing only the processed sub-question's results
     """
+    start_time = time.time()
+
     # Create a copy of the state to avoid modifying the original
     sub_state = copy.deepcopy(state)
 
@@ -70,6 +74,17 @@ def process_sub_question_step(
         logger.info(
             f"No sub-question at index {question_index}, skipping processing"
         )
+        # Log metadata for skipped processing
+        log_metadata(
+            metadata={
+                "sub_question_processing": {
+                    "question_index": question_index,
+                    "status": "skipped",
+                    "reason": "index_out_of_range",
+                    "total_sub_questions": len(state.sub_questions),
+                }
+            }
+        )
         # Return an empty state since there's no question to process
         sub_state.sub_questions = []
         return sub_state
@@ -84,6 +99,7 @@ def process_sub_question_step(
     sub_state.sub_questions = [sub_question]
 
     # === INFORMATION GATHERING ===
+    search_phase_start = time.time()
 
     # Generate search query with prompt from bundle
     search_query_prompt = prompts_bundle.get_prompt_content(
@@ -114,7 +130,10 @@ def process_sub_question_step(
     search_results = {sub_question: results_list}
     sub_state.update_search_results(search_results)
 
+    search_phase_time = time.time() - search_phase_start
+
     # === INFORMATION SYNTHESIS ===
+    synthesis_phase_start = time.time()
 
     # Extract raw contents and URLs
     raw_contents = []
@@ -157,5 +176,70 @@ def process_sub_question_step(
 
     # Update the state with synthesized information
     sub_state.update_synthesized_info(synthesized_info)
+
+    synthesis_phase_time = time.time() - synthesis_phase_start
+    total_execution_time = time.time() - start_time
+
+    # Calculate total content length processed
+    total_content_length = sum(len(content) for content in raw_contents)
+
+    # Get unique domains from sources
+    unique_domains = set()
+    for url in sources:
+        try:
+            from urllib.parse import urlparse
+
+            domain = urlparse(url).netloc
+            unique_domains.add(domain)
+        except:
+            pass
+
+    # Log comprehensive metadata
+    log_metadata(
+        metadata={
+            "sub_question_processing": {
+                "question_index": question_index,
+                "status": "completed",
+                "sub_question": sub_question,
+                "execution_time_seconds": total_execution_time,
+                "search_phase_time_seconds": search_phase_time,
+                "synthesis_phase_time_seconds": synthesis_phase_time,
+                "search_query": search_query,
+                "search_provider": search_provider,
+                "search_mode": search_mode,
+                "num_results_requested": num_results_per_search,
+                "num_results_retrieved": len(results_list),
+                "total_content_length": total_content_length,
+                "cap_search_length": cap_search_length,
+                "unique_domains": list(unique_domains),
+                "llm_model_search": llm_model_search,
+                "llm_model_synthesis": llm_model_synthesis,
+                "confidence_level": synthesis_result.get(
+                    "confidence_level", "low"
+                ),
+                "information_gaps": synthesis_result.get(
+                    "information_gaps", ""
+                ),
+                "key_sources_count": len(
+                    synthesis_result.get("key_sources", [])
+                ),
+            }
+        }
+    )
+
+    # Log artifact metadata for the output state
+    log_metadata(
+        metadata={
+            "sub_state_characteristics": {
+                "has_search_results": bool(sub_state.search_results),
+                "has_synthesized_info": bool(sub_state.synthesized_info),
+                "sub_question_processed": sub_question,
+                "confidence_level": synthesis_result.get(
+                    "confidence_level", "low"
+                ),
+            }
+        },
+        infer_artifact=True,
+    )
 
     return sub_state

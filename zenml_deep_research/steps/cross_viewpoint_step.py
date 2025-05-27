@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from typing import Annotated, List
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
@@ -14,6 +15,7 @@ from utils.pydantic_models import (
     ViewpointTension,
 )
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ def cross_viewpoint_analysis_step(
     Returns:
         Updated research state with viewpoint analysis
     """
+    start_time = time.time()
     logger.info(
         f"Performing cross-viewpoint analysis on {len(state.synthesized_info)} sub-questions"
     )
@@ -119,6 +122,65 @@ def cross_viewpoint_analysis_step(
         # Update the state with the viewpoint analysis
         state.update_viewpoint_analysis(viewpoint_analysis)
 
+        # Calculate execution time
+        execution_time = time.time() - start_time
+
+        # Count viewpoint tensions by category
+        tension_categories = {}
+        for tension in viewpoint_analysis.areas_of_tension:
+            for category in tension.viewpoints.keys():
+                tension_categories[category] = (
+                    tension_categories.get(category, 0) + 1
+                )
+
+        # Log metadata
+        log_metadata(
+            metadata={
+                "viewpoint_analysis": {
+                    "execution_time_seconds": execution_time,
+                    "llm_model": llm_model,
+                    "num_sub_questions_analyzed": len(state.synthesized_info),
+                    "viewpoint_categories_requested": viewpoint_categories,
+                    "num_agreement_points": len(
+                        viewpoint_analysis.main_points_of_agreement
+                    ),
+                    "num_tension_areas": len(
+                        viewpoint_analysis.areas_of_tension
+                    ),
+                    "tension_categories_distribution": tension_categories,
+                    "has_perspective_gaps": bool(
+                        viewpoint_analysis.perspective_gaps
+                        and viewpoint_analysis.perspective_gaps != ""
+                    ),
+                    "has_integrative_insights": bool(
+                        viewpoint_analysis.integrative_insights
+                        and viewpoint_analysis.integrative_insights != ""
+                    ),
+                    "analysis_success": not viewpoint_analysis.main_points_of_agreement[
+                        0
+                    ].startswith("Analysis failed"),
+                }
+            }
+        )
+
+        # Log artifact metadata
+        log_metadata(
+            metadata={
+                "state_with_viewpoint_analysis": {
+                    "has_viewpoint_analysis": True,
+                    "total_viewpoints_analyzed": sum(
+                        tension_categories.values()
+                    ),
+                    "most_common_tension_category": max(
+                        tension_categories, key=tension_categories.get
+                    )
+                    if tension_categories
+                    else None,
+                }
+            },
+            infer_artifact=True,
+        )
+
         return state
 
     except Exception as e:
@@ -135,5 +197,21 @@ def cross_viewpoint_analysis_step(
 
         # Update the state with the fallback analysis
         state.update_viewpoint_analysis(fallback_analysis)
+
+        # Log error metadata
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "viewpoint_analysis": {
+                    "execution_time_seconds": execution_time,
+                    "llm_model": llm_model,
+                    "num_sub_questions_analyzed": len(state.synthesized_info),
+                    "viewpoint_categories_requested": viewpoint_categories,
+                    "analysis_success": False,
+                    "error_message": str(e),
+                    "fallback_used": True,
+                }
+            }
+        )
 
         return state

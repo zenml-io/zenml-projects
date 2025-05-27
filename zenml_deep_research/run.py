@@ -1,4 +1,8 @@
 import logging
+import os
+import platform
+import subprocess
+import time
 
 import click
 from logging_config import configure_logging
@@ -6,8 +10,39 @@ from pipelines.parallel_research_pipeline import (
     parallelized_deep_research_pipeline,
 )
 from utils.helper_functions import check_required_env_vars
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
+
+
+def get_git_info():
+    """Get current git information."""
+    git_info = {}
+    try:
+        # Get current commit hash
+        commit_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()
+        git_info["commit_hash"] = commit_hash[:8]  # Short hash
+
+        # Get current branch
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], text=True
+        ).strip()
+        git_info["branch"] = branch
+
+        # Check if working directory is clean
+        status = subprocess.check_output(
+            ["git", "status", "--porcelain"], text=True
+        ).strip()
+        git_info["is_clean"] = len(status) == 0
+
+    except Exception as e:
+        logger.debug(f"Could not get git info: {e}")
+        git_info = {"error": str(e)}
+
+    return git_info
+
 
 # Research mode presets for easy configuration
 RESEARCH_MODES = {
@@ -178,6 +213,9 @@ def main(
     log_level = logging.DEBUG if debug else logging.INFO
     configure_logging(level=log_level, log_file=log_file)
 
+    # Track pipeline start time
+    pipeline_start_time = time.time()
+
     # Apply mode presets if specified
     if mode:
         mode_config = RESEARCH_MODES[mode.lower()]
@@ -205,8 +243,6 @@ def main(
         # Check if a mode-specific config exists and user didn't override config
         if config == "configs/enhanced_research.yaml":  # Default config
             mode_specific_config = f"configs/{mode.lower()}_research.yaml"
-            import os
-
             if os.path.exists(mode_specific_config):
                 config = mode_specific_config
                 logger.info(f"  - Using mode-specific config: {config}")
@@ -331,8 +367,65 @@ def main(
 
     logger.info("=" * 80 + "\n")
 
+    # Calculate total execution time
+    pipeline_execution_time = time.time() - pipeline_start_time
+
+    # Collect environment information
+    env_info = {
+        "platform": platform.platform(),
+        "python_version": platform.python_version(),
+        "processor": platform.processor() or "unknown",
+    }
+
+    # Get git information
+    git_info = get_git_info()
+
+    # Determine actual search provider used
+    actual_search_provider = search_provider or "tavily"
+
+    # Log pipeline-level metadata
+    log_metadata(
+        run_id=run.id,
+        metadata={
+            "pipeline_configuration": {
+                "research_mode": mode or "custom",
+                "config_file": config,
+                "max_sub_questions": max_sub_questions,
+                "num_results_per_search": num_results,
+                "max_additional_searches": mode_max_additional_searches,
+                "search_provider": actual_search_provider,
+                "search_mode": search_mode
+                if actual_search_provider in ["exa", "both"]
+                else None,
+                "require_approval": require_approval,
+                "approval_timeout": approval_timeout
+                if require_approval
+                else None,
+                "cache_enabled": not no_cache,
+                "langfuse_project_name": langfuse_project_name,
+                "custom_query_provided": query is not None,
+            },
+            "execution_metrics": {
+                "total_execution_time_seconds": pipeline_execution_time,
+                "total_execution_time_minutes": round(
+                    pipeline_execution_time / 60, 2
+                ),
+            },
+            "environment": env_info,
+            "git": git_info,
+            "run_info": {
+                "run_id": str(run.id),
+                "run_name": run.name,
+                "pipeline_name": run.pipeline.name,
+            },
+        },
+    )
+
     logger.info("\n" + "=" * 80)
     logger.info(f"Pipeline completed successfully! Run ID: {run.id}")
+    logger.info(
+        f"Total execution time: {round(pipeline_execution_time / 60, 2)} minutes"
+    )
     logger.info("=" * 80 + "\n")
 
 

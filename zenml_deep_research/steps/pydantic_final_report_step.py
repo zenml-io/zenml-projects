@@ -8,6 +8,7 @@ import html
 import json
 import logging
 import re
+import time
 from typing import Annotated, Tuple
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
@@ -24,6 +25,7 @@ from utils.prompts import (
 )
 from utils.pydantic_models import ResearchState
 from zenml import step
+from zenml.metadata import log_metadata
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
@@ -827,6 +829,7 @@ def pydantic_final_report_step(
     Returns:
         A tuple containing the updated research state and the HTML report
     """
+    start_time = time.time()
     logger.info("Generating final research report using Pydantic models")
 
     if use_static_template:
@@ -838,6 +841,55 @@ def pydantic_final_report_step(
 
         # Update the state with the final report HTML
         state.set_final_report(html_content)
+
+        # Collect metadata about the report
+        execution_time = time.time() - start_time
+
+        # Count sources
+        all_sources = set()
+        for info in state.enhanced_info.values():
+            if info.key_sources:
+                all_sources.update(info.key_sources)
+
+        # Count confidence levels
+        confidence_distribution = {"high": 0, "medium": 0, "low": 0}
+        for info in state.enhanced_info.values():
+            level = info.confidence_level.lower()
+            if level in confidence_distribution:
+                confidence_distribution[level] += 1
+
+        # Log metadata
+        log_metadata(
+            metadata={
+                "report_generation": {
+                    "execution_time_seconds": execution_time,
+                    "generation_method": "static_template",
+                    "llm_model": llm_model,
+                    "report_length_chars": len(html_content),
+                    "num_sub_questions": len(state.sub_questions),
+                    "num_sources": len(all_sources),
+                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
+                    "has_reflection": bool(state.reflection_metadata),
+                    "confidence_distribution": confidence_distribution,
+                    "fallback_report": False,
+                }
+            }
+        )
+
+        # Log artifact metadata for the HTML report
+        log_metadata(
+            metadata={
+                "html_report_characteristics": {
+                    "size_bytes": len(html_content.encode("utf-8")),
+                    "has_toc": "toc" in html_content.lower(),
+                    "has_executive_summary": "executive summary"
+                    in html_content.lower(),
+                    "has_conclusion": "conclusion" in html_content.lower(),
+                    "has_references": "references" in html_content.lower(),
+                }
+            },
+            infer_artifact=True,
+        )
 
         logger.info(
             "Final research report generated successfully with static template"
@@ -894,6 +946,40 @@ def pydantic_final_report_step(
         # Update the state with the final report HTML
         state.set_final_report(html_content)
 
+        # Collect metadata about the report
+        execution_time = time.time() - start_time
+
+        # Count sources
+        all_sources = set()
+        for info in state.enhanced_info.values():
+            if info.key_sources:
+                all_sources.update(info.key_sources)
+
+        # Count confidence levels
+        confidence_distribution = {"high": 0, "medium": 0, "low": 0}
+        for info in state.enhanced_info.values():
+            level = info.confidence_level.lower()
+            if level in confidence_distribution:
+                confidence_distribution[level] += 1
+
+        # Log metadata
+        log_metadata(
+            metadata={
+                "report_generation": {
+                    "execution_time_seconds": execution_time,
+                    "generation_method": "llm_generated",
+                    "llm_model": llm_model,
+                    "report_length_chars": len(html_content),
+                    "num_sub_questions": len(state.sub_questions),
+                    "num_sources": len(all_sources),
+                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
+                    "has_reflection": bool(state.reflection_metadata),
+                    "confidence_distribution": confidence_distribution,
+                    "fallback_report": False,
+                }
+            }
+        )
+
         logger.info("Final research report generated successfully")
         return state, HTMLString(html_content)
 
@@ -907,5 +993,40 @@ def pydantic_final_report_step(
 
         # Update the state with the fallback report
         state.set_final_report(fallback_html)
+
+        # Collect metadata about the fallback report
+        execution_time = time.time() - start_time
+
+        # Count sources
+        all_sources = set()
+        for info in state.enhanced_info.values():
+            if info.key_sources:
+                all_sources.update(info.key_sources)
+
+        # Count confidence levels
+        confidence_distribution = {"high": 0, "medium": 0, "low": 0}
+        for info in state.enhanced_info.values():
+            level = info.confidence_level.lower()
+            if level in confidence_distribution:
+                confidence_distribution[level] += 1
+
+        # Log metadata for fallback report
+        log_metadata(
+            metadata={
+                "report_generation": {
+                    "execution_time_seconds": execution_time,
+                    "generation_method": "fallback",
+                    "llm_model": llm_model,
+                    "report_length_chars": len(fallback_html),
+                    "num_sub_questions": len(state.sub_questions),
+                    "num_sources": len(all_sources),
+                    "has_viewpoint_analysis": bool(state.viewpoint_analysis),
+                    "has_reflection": bool(state.reflection_metadata),
+                    "confidence_distribution": confidence_distribution,
+                    "fallback_report": True,
+                    "error_message": str(e),
+                }
+            }
+        )
 
         return state, HTMLString(fallback_html)

@@ -1,11 +1,13 @@
 import copy
 import logging
+import time
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
 from utils.pydantic_models import ResearchState
 from zenml import get_step_context, step
 from zenml.client import Client
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,8 @@ def merge_sub_question_results_step(
         definition to ensure it runs after all parallel sub-question processing steps
         have completed.
     """
+    start_time = time.time()
+
     # Start with the original state that has all sub-questions
     merged_state = copy.deepcopy(original_state)
 
@@ -146,5 +150,64 @@ def merge_sub_question_results_step(
         logger.warning(
             "No results were found or merged from parallel processing steps!"
         )
+
+    # Calculate execution time
+    execution_time = time.time() - start_time
+
+    # Calculate metrics
+    missing_questions = [
+        q for q in merged_state.sub_questions if q not in processed_questions
+    ]
+
+    # Count total search results across all questions
+    total_search_results = sum(
+        len(results) for results in merged_state.search_results.values()
+    )
+
+    # Get confidence distribution for merged results
+    confidence_distribution = {"high": 0, "medium": 0, "low": 0}
+    for info in merged_state.synthesized_info.values():
+        level = info.confidence_level.lower()
+        if level in confidence_distribution:
+            confidence_distribution[level] += 1
+
+    # Log metadata
+    log_metadata(
+        metadata={
+            "merge_results": {
+                "execution_time_seconds": execution_time,
+                "total_sub_questions": len(merged_state.sub_questions),
+                "parallel_steps_processed": parallel_steps_processed,
+                "questions_successfully_merged": len(processed_questions),
+                "missing_questions_count": len(missing_questions),
+                "missing_questions": missing_questions[:5]
+                if missing_questions
+                else [],  # Limit to 5 for metadata
+                "total_search_results": total_search_results,
+                "confidence_distribution": confidence_distribution,
+                "merge_success": bool(
+                    merged_state.search_results
+                    and merged_state.synthesized_info
+                ),
+            }
+        }
+    )
+
+    # Log artifact metadata
+    log_metadata(
+        metadata={
+            "merged_state_characteristics": {
+                "has_search_results": bool(merged_state.search_results),
+                "has_synthesized_info": bool(merged_state.synthesized_info),
+                "search_results_count": len(merged_state.search_results),
+                "synthesized_info_count": len(merged_state.synthesized_info),
+                "completeness_ratio": len(processed_questions)
+                / len(merged_state.sub_questions)
+                if merged_state.sub_questions
+                else 0,
+            }
+        },
+        infer_artifact=True,
+    )
 
     return merged_state

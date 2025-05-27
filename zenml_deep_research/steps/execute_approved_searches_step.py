@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
@@ -18,6 +19,7 @@ from utils.pydantic_models import (
 )
 from utils.search_utils import search_and_extract_results
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,7 @@ def execute_approved_searches_step(
     Returns:
         Updated research state with enhanced information and reflection metadata
     """
+    start_time = time.time()
     logger.info(
         f"Processing approval decision: {approval_decision.approval_method}"
     )
@@ -119,6 +122,29 @@ def execute_approved_searches_step(
             )
 
         state.update_after_reflection(enhanced_info, reflection_metadata)
+
+        # Log metadata for no approved searches
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "execute_approved_searches": {
+                    "execution_time_seconds": execution_time,
+                    "approval_method": approval_decision.approval_method,
+                    "approval_status": "not_approved"
+                    if not approval_decision.approved
+                    else "no_queries",
+                    "num_queries_approved": 0,
+                    "num_searches_executed": 0,
+                    "num_additional_questions": len(
+                        reflection_output.additional_questions
+                    ),
+                    "improvements_made": improvements_count,
+                    "search_provider": search_provider,
+                    "llm_model": llm_model,
+                }
+            }
+        )
+
         return state
 
     # Execute approved searches
@@ -127,6 +153,8 @@ def execute_approved_searches_step(
     )
 
     try:
+        search_enhancements = []  # Track search results for metadata
+
         for query in approval_decision.selected_queries:
             logger.info(f"Performing approved search: {query}")
 
@@ -211,6 +239,17 @@ def execute_approved_searches_step(
                     )
                     improvements_count += len(improvements)
 
+                    # Track enhancement for metadata
+                    search_enhancements.append(
+                        {
+                            "query": query,
+                            "relevant_question": most_relevant_question,
+                            "num_results": len(search_results),
+                            "improvements": len(improvements),
+                            "enhanced": True,
+                        }
+                    )
+
         # Add any additional questions as new synthesized entries
         for new_question in reflection_output.additional_questions:
             if (
@@ -248,6 +287,70 @@ def execute_approved_searches_step(
         )
 
         state.update_after_reflection(enhanced_info, reflection_metadata)
+
+        # Calculate metrics for metadata
+        execution_time = time.time() - start_time
+        total_results = sum(
+            e.get("num_results", 0) for e in search_enhancements
+        )
+        questions_enhanced = len(
+            set(
+                e.get("relevant_question")
+                for e in search_enhancements
+                if e.get("enhanced")
+            )
+        )
+
+        # Log successful execution metadata
+        log_metadata(
+            metadata={
+                "execute_approved_searches": {
+                    "execution_time_seconds": execution_time,
+                    "approval_method": approval_decision.approval_method,
+                    "approval_status": "approved",
+                    "num_queries_recommended": len(
+                        reflection_output.recommended_queries
+                    ),
+                    "num_queries_approved": len(
+                        approval_decision.selected_queries
+                    ),
+                    "num_searches_executed": len(
+                        approval_decision.selected_queries
+                    ),
+                    "total_search_results": total_results,
+                    "questions_enhanced": questions_enhanced,
+                    "improvements_made": improvements_count,
+                    "num_additional_questions": len(
+                        reflection_output.additional_questions
+                    ),
+                    "search_provider": search_provider,
+                    "search_mode": search_mode,
+                    "llm_model": llm_model,
+                    "success": True,
+                }
+            }
+        )
+
+        # Log artifact metadata
+        log_metadata(
+            metadata={
+                "enhanced_state_after_approval": {
+                    "total_questions": len(enhanced_info),
+                    "questions_with_improvements": sum(
+                        1
+                        for info in enhanced_info.values()
+                        if info.improvements
+                    ),
+                    "total_improvements": sum(
+                        len(info.improvements)
+                        for info in enhanced_info.values()
+                    ),
+                    "approval_method": approval_decision.approval_method,
+                }
+            },
+            infer_artifact=True,
+        )
+
         return state
 
     except Exception as e:
@@ -266,5 +369,26 @@ def execute_approved_searches_step(
 
         # Update the state with the original synthesized info as enhanced info
         state.update_after_reflection(state.synthesized_info, error_metadata)
+
+        # Log error metadata
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "execute_approved_searches": {
+                    "execution_time_seconds": execution_time,
+                    "approval_method": approval_decision.approval_method,
+                    "approval_status": "approved",
+                    "num_queries_approved": len(
+                        approval_decision.selected_queries
+                    ),
+                    "num_searches_executed": 0,
+                    "improvements_made": 0,
+                    "search_provider": search_provider,
+                    "llm_model": llm_model,
+                    "success": False,
+                    "error_message": str(e),
+                }
+            }
+        )
 
         return state

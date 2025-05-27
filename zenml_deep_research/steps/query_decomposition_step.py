@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Annotated
 
 from materializers.pydantic_materializer import ResearchStateMaterializer
@@ -6,6 +7,7 @@ from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ResearchState
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ def initial_query_decomposition_step(
     Returns:
         Updated research state with sub-questions
     """
+    start_time = time.time()
     logger.info(f"Decomposing research query: {state.main_query}")
 
     # Get the prompt from the bundle
@@ -86,6 +89,34 @@ def initial_query_decomposition_step(
         # Update the state with the new sub-questions
         state.update_sub_questions(sub_questions)
 
+        # Log step metadata
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "query_decomposition": {
+                    "execution_time_seconds": execution_time,
+                    "num_sub_questions": len(sub_questions),
+                    "llm_model": llm_model,
+                    "max_sub_questions_requested": max_sub_questions,
+                    "fallback_used": False,
+                    "main_query_length": len(state.main_query),
+                    "sub_questions": sub_questions,
+                }
+            }
+        )
+
+        # Log artifact metadata for the output state
+        log_metadata(
+            metadata={
+                "state_characteristics": {
+                    "total_sub_questions": len(state.sub_questions),
+                    "has_search_results": bool(state.search_results),
+                    "has_synthesized_info": bool(state.synthesized_info),
+                }
+            },
+            infer_artifact=True,
+        )
+
         return state
 
     except Exception as e:
@@ -98,4 +129,22 @@ def initial_query_decomposition_step(
         ]
         fallback_questions = fallback_questions[:max_sub_questions]
         state.update_sub_questions(fallback_questions)
+
+        # Log metadata for fallback scenario
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "query_decomposition": {
+                    "execution_time_seconds": execution_time,
+                    "num_sub_questions": len(fallback_questions),
+                    "llm_model": llm_model,
+                    "max_sub_questions_requested": max_sub_questions,
+                    "fallback_used": True,
+                    "error_message": str(e),
+                    "main_query_length": len(state.main_query),
+                    "sub_questions": fallback_questions,
+                }
+            }
+        )
+
         return state

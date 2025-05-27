@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Annotated
 
 from utils.approval_utils import (
@@ -8,6 +9,7 @@ from utils.approval_utils import (
 from utils.pydantic_models import ApprovalDecision, ReflectionOutput
 from zenml import step
 from zenml.client import Client
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,7 @@ def get_research_approval_step(
     Returns:
         ApprovalDecision object with approval status and selected queries
     """
+    start_time = time.time()
 
     # Limit queries to max_queries
     limited_queries = reflection_output.recommended_queries[:max_queries]
@@ -45,6 +48,26 @@ def get_research_approval_step(
         logger.info(
             f"Auto-approving {len(limited_queries)} recommended queries (approval not required)"
         )
+
+        # Log metadata for auto-approval
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "approval_decision": {
+                    "execution_time_seconds": execution_time,
+                    "approval_required": False,
+                    "approval_method": "AUTO_APPROVED",
+                    "num_queries_recommended": len(
+                        reflection_output.recommended_queries
+                    ),
+                    "num_queries_approved": len(limited_queries),
+                    "max_queries_allowed": max_queries,
+                    "approval_status": "approved",
+                    "wait_time_seconds": 0,
+                }
+            }
+        )
+
         return ApprovalDecision(
             approved=True,
             selected_queries=limited_queries,
@@ -55,6 +78,24 @@ def get_research_approval_step(
     # If no queries to approve, skip
     if not limited_queries:
         logger.info("No additional queries recommended")
+
+        # Log metadata for no queries
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "approval_decision": {
+                    "execution_time_seconds": execution_time,
+                    "approval_required": require_approval,
+                    "approval_method": "NO_QUERIES",
+                    "num_queries_recommended": 0,
+                    "num_queries_approved": 0,
+                    "max_queries_allowed": max_queries,
+                    "approval_status": "skipped",
+                    "wait_time_seconds": 0,
+                }
+            }
+        )
+
         return ApprovalDecision(
             approved=False,
             selected_queries=[],
@@ -85,6 +126,27 @@ def get_research_approval_step(
 
         if not alerter:
             logger.warning("No alerter configured in stack, auto-approving")
+
+            # Log metadata for no alerter scenario
+            execution_time = time.time() - start_time
+            log_metadata(
+                metadata={
+                    "approval_decision": {
+                        "execution_time_seconds": execution_time,
+                        "approval_required": require_approval,
+                        "approval_method": "NO_ALERTER_AUTO_APPROVED",
+                        "alerter_type": "none",
+                        "num_queries_recommended": len(
+                            reflection_output.recommended_queries
+                        ),
+                        "num_queries_approved": len(limited_queries),
+                        "max_queries_allowed": max_queries,
+                        "approval_status": "auto_approved",
+                        "wait_time_seconds": 0,
+                    }
+                }
+            )
+
             return ApprovalDecision(
                 approved=True,
                 selected_queries=limited_queries,
@@ -116,13 +178,37 @@ def get_research_approval_step(
 
             # Use the ask method to get user response
             logger.info("Waiting for approval response from Discord...")
+            wait_start_time = time.time()
             approved = alerter.ask(discord_message)
+            wait_end_time = time.time()
+            wait_time = wait_end_time - wait_start_time
 
             logger.info(
                 f"Received Discord response: {'approved' if approved else 'rejected'}"
             )
 
             if approved:
+                # Log metadata for approved decision
+                execution_time = time.time() - start_time
+                log_metadata(
+                    metadata={
+                        "approval_decision": {
+                            "execution_time_seconds": execution_time,
+                            "approval_required": require_approval,
+                            "approval_method": "DISCORD_APPROVED",
+                            "alerter_type": alerter_type,
+                            "num_queries_recommended": len(
+                                reflection_output.recommended_queries
+                            ),
+                            "num_queries_approved": len(limited_queries),
+                            "max_queries_allowed": max_queries,
+                            "approval_status": "approved",
+                            "wait_time_seconds": wait_time,
+                            "timeout_configured": timeout,
+                        }
+                    }
+                )
+
                 return ApprovalDecision(
                     approved=True,
                     selected_queries=limited_queries,
@@ -130,6 +216,27 @@ def get_research_approval_step(
                     reviewer_notes="Approved via Discord",
                 )
             else:
+                # Log metadata for rejected decision
+                execution_time = time.time() - start_time
+                log_metadata(
+                    metadata={
+                        "approval_decision": {
+                            "execution_time_seconds": execution_time,
+                            "approval_required": require_approval,
+                            "approval_method": "DISCORD_REJECTED",
+                            "alerter_type": alerter_type,
+                            "num_queries_recommended": len(
+                                reflection_output.recommended_queries
+                            ),
+                            "num_queries_approved": 0,
+                            "max_queries_allowed": max_queries,
+                            "approval_status": "rejected",
+                            "wait_time_seconds": wait_time,
+                            "timeout_configured": timeout,
+                        }
+                    }
+                )
+
                 return ApprovalDecision(
                     approved=False,
                     selected_queries=[],
@@ -139,6 +246,27 @@ def get_research_approval_step(
 
         except Exception as e:
             logger.error(f"Failed to get approval from alerter: {e}")
+
+            # Log metadata for alerter error
+            execution_time = time.time() - start_time
+            log_metadata(
+                metadata={
+                    "approval_decision": {
+                        "execution_time_seconds": execution_time,
+                        "approval_required": require_approval,
+                        "approval_method": "ALERTER_ERROR",
+                        "alerter_type": alerter_type,
+                        "num_queries_recommended": len(
+                            reflection_output.recommended_queries
+                        ),
+                        "num_queries_approved": 0,
+                        "max_queries_allowed": max_queries,
+                        "approval_status": "error",
+                        "error_message": str(e),
+                    }
+                }
+            )
+
             return ApprovalDecision(
                 approved=False,
                 selected_queries=[],
@@ -148,6 +276,26 @@ def get_research_approval_step(
 
     except Exception as e:
         logger.error(f"Approval step failed: {e}")
+
+        # Log metadata for general error
+        execution_time = time.time() - start_time
+        log_metadata(
+            metadata={
+                "approval_decision": {
+                    "execution_time_seconds": execution_time,
+                    "approval_required": require_approval,
+                    "approval_method": "ERROR",
+                    "num_queries_recommended": len(
+                        reflection_output.recommended_queries
+                    ),
+                    "num_queries_approved": 0,
+                    "max_queries_allowed": max_queries,
+                    "approval_status": "error",
+                    "error_message": str(e),
+                }
+            }
+        )
+
         return ApprovalDecision(
             approved=False,
             selected_queries=[],

@@ -1,11 +1,13 @@
 import json
 import logging
+import time
 from typing import Annotated
 
 from utils.llm_utils import get_structured_llm_output
 from utils.prompt_models import PromptsBundle
 from utils.pydantic_models import ReflectionOutput, ResearchState
 from zenml import step
+from zenml.metadata import log_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ def generate_reflection_step(
     Returns:
         ReflectionOutput containing the state, recommendations, and critique
     """
+    start_time = time.time()
     logger.info("Generating reflection on research")
 
     # Prepare input for reflection
@@ -91,8 +94,8 @@ def generate_reflection_step(
         project=langfuse_project_name,
     )
 
-    # Return structured output for next steps
-    return ReflectionOutput(
+    # Prepare return value
+    reflection_output = ReflectionOutput(
         state=state,
         recommended_queries=reflection_result.get(
             "recommended_search_queries", []
@@ -100,3 +103,63 @@ def generate_reflection_step(
         critique_summary=reflection_result.get("critique", []),
         additional_questions=reflection_result.get("additional_questions", []),
     )
+
+    # Calculate execution time
+    execution_time = time.time() - start_time
+
+    # Count confidence levels in synthesized info
+    confidence_levels = [
+        info.confidence_level for info in state.synthesized_info.values()
+    ]
+    confidence_distribution = {
+        "high": confidence_levels.count("high"),
+        "medium": confidence_levels.count("medium"),
+        "low": confidence_levels.count("low"),
+    }
+
+    # Log step metadata
+    log_metadata(
+        metadata={
+            "reflection_generation": {
+                "execution_time_seconds": execution_time,
+                "llm_model": llm_model,
+                "num_sub_questions_analyzed": len(state.sub_questions),
+                "num_synthesized_answers": len(state.synthesized_info),
+                "viewpoint_analysis_included": bool(viewpoint_analysis_dict),
+                "num_critique_points": len(reflection_output.critique_summary),
+                "num_additional_questions": len(
+                    reflection_output.additional_questions
+                ),
+                "num_recommended_queries": len(
+                    reflection_output.recommended_queries
+                ),
+                "confidence_distribution": confidence_distribution,
+                "has_information_gaps": any(
+                    info.information_gaps
+                    for info in state.synthesized_info.values()
+                ),
+            }
+        }
+    )
+
+    # Log artifact metadata
+    log_metadata(
+        metadata={
+            "reflection_output_characteristics": {
+                "has_recommendations": bool(
+                    reflection_output.recommended_queries
+                ),
+                "has_critique": bool(reflection_output.critique_summary),
+                "has_additional_questions": bool(
+                    reflection_output.additional_questions
+                ),
+                "total_recommendations": len(
+                    reflection_output.recommended_queries
+                )
+                + len(reflection_output.additional_questions),
+            }
+        },
+        infer_artifact=True,
+    )
+
+    return reflection_output
