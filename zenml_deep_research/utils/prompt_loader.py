@@ -8,7 +8,7 @@ from utils import prompts
 from utils.prompt_models import PromptsBundle, PromptTemplate
 
 
-def load_prompts_bundle(pipeline_version: str = "1.1.0") -> PromptsBundle:
+def load_prompts_bundle(pipeline_version: str = "1.2.0") -> PromptsBundle:
     """Load all prompts from prompts.py into a PromptsBundle.
 
     Args:
@@ -38,7 +38,7 @@ def load_prompts_bundle(pipeline_version: str = "1.1.0") -> PromptsBundle:
         name="synthesis_prompt",
         content=prompts.SYNTHESIS_PROMPT,
         description="Synthesizes search results into comprehensive answers for sub-questions",
-        version="1.0.0",
+        version="1.1.0",
         tags=["synthesis", "integration", "analysis"],
     )
 
@@ -46,7 +46,7 @@ def load_prompts_bundle(pipeline_version: str = "1.1.0") -> PromptsBundle:
         name="viewpoint_analysis_prompt",
         content=prompts.VIEWPOINT_ANALYSIS_PROMPT,
         description="Analyzes synthesized answers across different perspectives and viewpoints",
-        version="1.0.0",
+        version="1.1.0",
         tags=["analysis", "viewpoint", "perspective"],
     )
 
@@ -62,7 +62,7 @@ def load_prompts_bundle(pipeline_version: str = "1.1.0") -> PromptsBundle:
         name="additional_synthesis_prompt",
         content=prompts.ADDITIONAL_SYNTHESIS_PROMPT,
         description="Enhances original synthesis with new information and addresses critique points",
-        version="1.0.0",
+        version="1.1.0",
         tags=["synthesis", "enhancement", "integration"],
     )
 

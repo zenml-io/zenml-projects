@@ -111,6 +111,7 @@ Your synthesis should:
 6. Organize information logically with a clear flow between concepts
 7. Identify key sources that provided the most valuable information (at least 2-3 sources)
 8. Explicitly acknowledge information gaps where the search results were incomplete
+9. Write in plain text format - do NOT use markdown formatting, bullet points, or special characters
 
 Confidence level criteria:
 - HIGH: Multiple high-quality sources provide consistent information, comprehensive coverage of the topic, and few information gaps
@@ -175,12 +176,14 @@ For each synthesized answer, analyze how these different perspectives would inte
    - Which perspectives are underrepresented or missing in the current research
    - How including these missing perspectives would enrich understanding
    - Specific questions or dimensions that remain unexplored
+   - Write in plain text format - do NOT use markdown formatting, bullet points, or special characters
 
 4. Developing integrative insights that:
    - Synthesize across multiple perspectives to form a more complete understanding
    - Highlight how seemingly contradictory viewpoints can complement each other
    - Suggest frameworks for reconciling tensions or finding middle-ground approaches
    - Identify actionable takeaways that incorporate multiple perspectives
+   - Write in plain text format - do NOT use markdown formatting, bullet points, or special characters
 
 Format the output in json with the following json schema definition:
 
@@ -279,6 +282,7 @@ The updated synthesis should:
 2. Address gaps identified in the critique
 3. Maintain a balanced, comprehensive, and accurate representation
 4. Preserve the strengths of the original synthesis
+5. Write in plain text format - do NOT use markdown formatting, bullet points, or special characters
 
 Format the output in json with the following json schema definition:
 
