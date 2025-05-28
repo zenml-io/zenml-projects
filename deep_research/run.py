@@ -7,7 +7,7 @@ from logging_config import configure_logging
 from pipelines.parallel_research_pipeline import (
     parallelized_deep_research_pipeline,
 )
-from utils.helper_functions import check_required_env_vars
+from utils.config_utils import check_required_env_vars
 
 logger = logging.getLogger(__name__)
 

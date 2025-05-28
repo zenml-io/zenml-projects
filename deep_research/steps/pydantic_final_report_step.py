@@ -12,12 +12,8 @@ import time
 from typing import Annotated, Tuple
 
 from materializers.final_report_materializer import FinalReportMaterializer
-from utils.css_utils import get_shared_css_tag
-from utils.helper_functions import (
-    extract_html_from_content,
-    remove_reasoning_from_output,
-)
-from utils.llm_utils import run_llm_completion
+from utils.css_utils import extract_html_from_content, get_shared_css_tag
+from utils.llm_utils import remove_reasoning_from_output, run_llm_completion
 from utils.prompts import (
     STATIC_HTML_TEMPLATE,
     SUB_QUESTION_TEMPLATE,

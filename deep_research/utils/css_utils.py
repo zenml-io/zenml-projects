@@ -1,5 +1,6 @@
 """CSS utility functions for consistent styling across materializers."""
 
+import json
 import os
 from typing import Optional
 
@@ -219,3 +220,48 @@ def create_notice(content: str, notice_type: str = "info") -> str:
         {content}
     </div>
     """
+
+
+def extract_html_from_content(content: str) -> str:
+    """Attempt to extract HTML content from a response that might be wrapped in other formats.
+
+    Args:
+        content: The content to extract HTML from
+
+    Returns:
+        The extracted HTML, or a basic fallback if extraction fails
+    """
+    if not content:
+        return ""
+
+    # Try to find HTML between tags
+    if "<html" in content and "</html>" in content:
+        start = content.find("<html")
+        end = content.find("</html>") + 7  # Include the closing tag
+        return content[start:end]
+
+    # Try to find div class="research-report"
+    if '<div class="research-report"' in content and "</div>" in content:
+        start = content.find('<div class="research-report"')
+        # Find the last closing div
+        last_div = content.rfind("</div>")
+        if last_div > start:
+            return content[start : last_div + 6]  # Include the closing tag
+
+    # Look for code blocks
+    if "```html" in content and "```" in content:
+        start = content.find("```html") + 7
+        end = content.find("```", start)
+        if end > start:
+            return content[start:end].strip()
+
+    # Look for JSON with an "html" field
+    try:
+        parsed = json.loads(content)
+        if isinstance(parsed, dict) and "html" in parsed:
+            return parsed["html"]
+    except:
+        pass
+
+    # If all extraction attempts fail, return the original content
+    return content
