@@ -132,7 +132,7 @@ Examples:
 @click.option(
     "--search-provider",
     type=click.Choice(["tavily", "exa", "both"], case_sensitive=False),
-    default=None,
+    default="tavily",
     help="Search provider to use: tavily (default), exa, or both",
 )
 @click.option(
@@ -189,7 +189,11 @@ def main(
         logger.info(f"Description: {mode_config['description']}")
 
         # Apply mode parameters (can be overridden by explicit arguments)
-        if max_sub_questions == 10:  # Default value - apply mode preset
+        if (
+            max_sub_questions
+            == click.get_current_context().params["max_sub_questions"]
+        ):
+            # Default value - apply mode preset
             max_sub_questions = mode_config["max_sub_questions"]
             logger.info(f"  - Max sub-questions: {max_sub_questions}")
 
