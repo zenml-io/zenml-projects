@@ -4,34 +4,35 @@
 
 /* 1. CSS Variables / Custom Properties */
 :root {
-    /* Color Palette */
-    --color-primary: #3498db;
-    --color-primary-dark: #2980b9;
+    /* Color Palette - ZenML Design System */
+    --color-primary: #7a3ef4;
+    --color-primary-dark: #6b35db;
+    --color-primary-light: #9d6ff7;
     --color-secondary: #667eea;
     --color-secondary-dark: #5a63d8;
     --color-accent: #764ba2;
     
-    /* Status Colors */
-    --color-success: #27ae60;
+    /* Status Colors - ZenML Semantic Colors */
+    --color-success: #179f3e;
     --color-success-light: #d4edda;
     --color-success-dark: #155724;
-    --color-warning: #f39c12;
+    --color-warning: #a65d07;
     --color-warning-light: #fff3cd;
     --color-warning-dark: #856404;
-    --color-danger: #e74c3c;
+    --color-danger: #dc3545;
     --color-danger-light: #f8d7da;
     --color-danger-dark: #721c24;
-    --color-info: #17a2b8;
+    --color-info: #007bff;
     --color-info-light: #d1ecf1;
-    --color-info-dark: #0c5460;
+    --color-info-dark: #004085;
     
-    /* Chart Colors */
-    --color-chart-1: #5e72e4;
-    --color-chart-2: #2dce89;
-    --color-chart-3: #11cdef;
-    --color-chart-4: #f5365c;
-    --color-chart-5: #fb6340;
-    --color-chart-6: #ffd600;
+    /* Chart Colors - ZenML Palette */
+    --color-chart-1: #7a3ef4;
+    --color-chart-2: #179f3e;
+    --color-chart-3: #007bff;
+    --color-chart-4: #dc3545;
+    --color-chart-5: #a65d07;
+    --color-chart-6: #6c757d;
     
     /* Neutrals */
     --color-text-primary: #333;
@@ -47,32 +48,32 @@
     --color-border-light: #dee2e6;
     --color-border-dark: #ddd;
     
-    /* Typography */
-    --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-family-mono: Consolas, Monaco, 'Andale Mono', 'Courier New', monospace;
+    /* Typography - ZenML Font Stack */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     
-    /* Spacing */
-    --spacing-xs: 5px;
-    --spacing-sm: 10px;
-    --spacing-md: 20px;
-    --spacing-lg: 30px;
-    --spacing-xl: 40px;
-    --spacing-xxl: 60px;
+    /* Spacing - ZenML 8px Grid System */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
     
-    /* Border Radius */
+    /* Border Radius - ZenML Subtle Corners */
     --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 15px;
-    --radius-xl: 20px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
     --radius-round: 50%;
     
-    /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.12);
-    --shadow-hover-lg: 0 5px 15px rgba(0, 0, 0, 0.3);
+    /* Shadows - ZenML Subtle Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+    --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.1);
+    --shadow-hover-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
     
     /* Transitions */
     --transition-base: all 0.3s ease;
@@ -86,11 +87,14 @@
 
 body {
     font-family: var(--font-family-base);
+    font-size: 14px;
     line-height: 1.6;
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
     margin: 0;
     padding: var(--spacing-md);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* 3. Layout Components */
@@ -111,8 +115,9 @@ body {
 /* 4. Typography */
 .dr-h1, h1 {
     color: var(--color-heading);
-    font-size: 2rem;
-    margin: 0 0 var(--spacing-md) 0;
+    font-size: 2em;
+    font-weight: 500;
+    margin: 0 0 var(--spacing-lg) 0;
     padding-bottom: var(--spacing-sm);
     border-bottom: 2px solid var(--color-primary);
 }
@@ -124,7 +129,8 @@ body {
 
 .dr-h2, h2 {
     color: var(--color-heading);
-    font-size: 1.5rem;
+    font-size: 1.4em;
+    font-weight: 500;
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
@@ -133,21 +139,22 @@ body {
 
 .dr-h3, h3 {
     color: var(--color-primary);
-    font-size: 1.2rem;
+    font-size: 1.2em;
+    font-weight: 500;
     margin-top: var(--spacing-md);
     margin-bottom: var(--spacing-sm);
 }
 
 p {
-    margin: 15px 0;
-    line-height: 1.8;
+    margin: var(--spacing-md) 0;
+    line-height: 1.6;
     color: var(--color-text-secondary);
 }
 
 /* 5. Card Components */
 .dr-card {
     background: var(--color-bg-white);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-md);
     margin-bottom: var(--spacing-lg);
@@ -155,12 +162,12 @@ p {
 }
 
 .dr-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
 
 .dr-card--bordered {
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border-light);
 }
 
 .dr-card--no-hover:hover {
@@ -171,10 +178,11 @@ p {
 /* Header Cards */
 .dr-header-card {
     background: white;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     padding: var(--spacing-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--color-border-light);
 }
 
 /* 6. Grid System */
@@ -198,12 +206,13 @@ p {
 /* 7. Badges & Tags */
 .dr-badge {
     display: inline-block;
-    padding: var(--spacing-xs) calc(var(--spacing-sm) * 1.5);
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1.5;
 }
 
 .dr-badge--success {
@@ -236,9 +245,9 @@ p {
     display: inline-block;
     background-color: #f0f0f0;
     color: #555;
-    padding: 3px 12px;
-    border-radius: 15px;
-    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
     font-weight: 500;
     margin: 2px;
 }
@@ -250,46 +259,49 @@ p {
 
 /* 8. Stat Cards */
 .dr-stat-card {
-    background: var(--color-bg-secondary);
+    background: var(--color-bg-white);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md) 25px;
+    padding: var(--spacing-lg);
     text-align: center;
     transition: var(--transition-base);
-    border: 2px solid var(--color-border);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .dr-stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
 
 .dr-stat-value {
-    font-size: 2.25rem;
-    font-weight: bold;
-    color: var(--color-chart-1);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-primary);
     margin-bottom: var(--spacing-xs);
     display: block;
 }
 
 .dr-stat-label {
     color: var(--color-text-secondary);
-    font-size: 0.875rem;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     display: block;
+    font-weight: 500;
 }
 
 /* 9. Sections */
 .dr-section {
     background: var(--color-bg-white);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-light);
 }
 
 .dr-section--bordered {
-    border-left: 4px solid var(--color-primary);
+    border-left: 3px solid var(--color-primary);
 }
 
 .dr-section--info {
@@ -351,9 +363,9 @@ p {
     background: var(--color-primary);
     color: white;
     border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: 10px 20px;
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: var(--transition-base);
@@ -361,12 +373,19 @@ p {
     align-items: center;
     gap: var(--spacing-xs);
     text-decoration: none;
+    position: relative;
+    overflow: hidden;
 }
 
 .dr-button:hover {
     background: var(--color-primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+.dr-button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
 }
 
 .dr-button--secondary {
@@ -375,7 +394,7 @@ p {
 
 .dr-button--secondary:hover {
     background: var(--color-secondary-dark);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: var(--shadow-hover);
 }
 
 .dr-button--success {
@@ -383,17 +402,18 @@ p {
 }
 
 .dr-button--small {
-    padding: 6px 15px;
-    font-size: 0.875rem;
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 /* 12. Confidence Indicators */
 .dr-confidence {
     display: inline-flex;
     align-items: center;
-    padding: 6px 15px;
-    border-radius: 30px;
-    font-weight: bold;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
     gap: var(--spacing-xs);
     box-shadow: var(--shadow-sm);
 }
@@ -540,14 +560,14 @@ p {
 }
 
 .dr-mind-map-node {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: white;
     padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     text-align: center;
     font-size: 1.25rem;
-    font-weight: bold;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
     margin-bottom: var(--spacing-xl);
 }
 
@@ -562,27 +582,27 @@ p {
 }
 
 .dr-result-item:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
 }
 
 .dr-result-title {
-    font-weight: bold;
+    font-weight: 600;
     color: var(--color-heading);
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-xs);
 }
 
 .dr-result-snippet {
     color: var(--color-text-secondary);
-    font-size: 0.875rem;
+    font-size: 13px;
     line-height: 1.6;
-    margin-bottom: 10px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .dr-result-link {
-    color: var(--color-chart-1);
+    color: var(--color-primary);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -594,19 +614,19 @@ p {
 .dr-timestamp {
     text-align: right;
     color: var(--color-text-light);
-    font-size: 0.875rem;
+    font-size: 12px;
     margin-top: var(--spacing-md);
-    padding-top: 15px;
+    padding-top: var(--spacing-md);
     border-top: 1px dashed var(--color-border-dark);
 }
 
 /* 21. Gradients */
 .dr-gradient-primary {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
 }
 
 .dr-gradient-header {
-    background: linear-gradient(90deg, #3498db, #2ecc71, #f1c40f, #e74c3c);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success), var(--color-warning), var(--color-danger));
     height: 5px;
 }
 
@@ -627,15 +647,15 @@ p {
     }
     
     .dr-h1, h1 {
-        font-size: 1.5rem;
+        font-size: 1.5em;
     }
     
     .dr-h2, h2 {
-        font-size: 1.25rem;
+        font-size: 1.25em;
     }
     
     .dr-stat-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
     
     .dr-section,
@@ -644,7 +664,7 @@ p {
     }
     
     .dr-table {
-        font-size: 0.875rem;
+        font-size: 13px;
     }
     
     .dr-table th,
