@@ -1,25 +1,38 @@
 import json
 import logging
 import time
-from typing import Annotated
+from typing import Annotated, List, Tuple
 
-from materializers.reflection_output_materializer import (
-    ReflectionOutputMaterializer,
-)
+from materializers.analysis_data_materializer import AnalysisDataMaterializer
 from utils.llm_utils import get_structured_llm_output
-from utils.pydantic_models import Prompt, ReflectionOutput, ResearchState
-from zenml import add_tags, log_metadata, step
+from utils.pydantic_models import (
+    AnalysisData,
+    Prompt,
+    QueryContext,
+    ReflectionMetadata,
+    SynthesisData,
+)
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
 
-@step(output_materializers=ReflectionOutputMaterializer)
+@step(
+    output_materializers={
+        "analysis_data": AnalysisDataMaterializer,
+    }
+)
 def generate_reflection_step(
-    state: ResearchState,
+    query_context: QueryContext,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
     reflection_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ReflectionOutput, "reflection_output"]:
+) -> Tuple[
+    Annotated[AnalysisData, "analysis_data"],
+    Annotated[List[str], "recommended_queries"],
+]:
     """
     Generate reflection and recommendations WITHOUT executing searches.
 
@@ -27,12 +40,15 @@ def generate_reflection_step(
     for additional research that could improve the quality of the results.
 
     Args:
-        state: The current research state
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesized information
+        analysis_data: The analysis data with viewpoint analysis
         reflection_prompt: Prompt for generating reflection
         llm_model: The model to use for reflection
+        langfuse_project_name: Project name for tracing
 
     Returns:
-        ReflectionOutput containing the state, recommendations, and critique
+        Tuple of updated AnalysisData and recommended queries
     """
     start_time = time.time()
     logger.info("Generating reflection on research")
@@ -45,28 +61,28 @@ def generate_reflection_step(
             "confidence_level": info.confidence_level,
             "information_gaps": info.information_gaps,
         }
-        for question, info in state.synthesized_info.items()
+        for question, info in synthesis_data.synthesized_info.items()
     }
 
     viewpoint_analysis_dict = None
-    if state.viewpoint_analysis:
+    if analysis_data.viewpoint_analysis:
         # Convert the viewpoint analysis to a dict for the LLM
         tension_list = []
-        for tension in state.viewpoint_analysis.areas_of_tension:
+        for tension in analysis_data.viewpoint_analysis.areas_of_tension:
             tension_list.append(
                 {"topic": tension.topic, "viewpoints": tension.viewpoints}
             )
 
         viewpoint_analysis_dict = {
-            "main_points_of_agreement": state.viewpoint_analysis.main_points_of_agreement,
+            "main_points_of_agreement": analysis_data.viewpoint_analysis.main_points_of_agreement,
             "areas_of_tension": tension_list,
-            "perspective_gaps": state.viewpoint_analysis.perspective_gaps,
-            "integrative_insights": state.viewpoint_analysis.integrative_insights,
+            "perspective_gaps": analysis_data.viewpoint_analysis.perspective_gaps,
+            "integrative_insights": analysis_data.viewpoint_analysis.integrative_insights,
         }
 
     reflection_input = {
-        "main_query": state.main_query,
-        "sub_questions": state.sub_questions,
+        "main_query": query_context.main_query,
+        "sub_questions": query_context.sub_questions,
         "synthesized_information": synthesized_info_dict,
     }
 
@@ -92,14 +108,21 @@ def generate_reflection_step(
         project=langfuse_project_name,
     )
 
-    # Prepare return value
-    reflection_output = ReflectionOutput(
-        state=state,
-        recommended_queries=reflection_result.get(
-            "recommended_search_queries", []
-        ),
-        critique_summary=reflection_result.get("critique", []),
-        additional_questions=reflection_result.get("additional_questions", []),
+    # Extract results
+    recommended_queries = reflection_result.get(
+        "recommended_search_queries", []
+    )
+    critique_summary = reflection_result.get("critique", [])
+    additional_questions = reflection_result.get("additional_questions", [])
+
+    # Update analysis data with reflection metadata
+    analysis_data.reflection_metadata = ReflectionMetadata(
+        critique_summary=[
+            str(c) for c in critique_summary
+        ],  # Convert to strings
+        additional_questions_identified=additional_questions,
+        searches_performed=[],  # Will be populated by execute_approved_searches_step
+        improvements_made=0.0,  # Will be updated later
     )
 
     # Calculate execution time
@@ -107,7 +130,8 @@ def generate_reflection_step(
 
     # Count confidence levels in synthesized info
     confidence_levels = [
-        info.confidence_level for info in state.synthesized_info.values()
+        info.confidence_level
+        for info in synthesis_data.synthesized_info.values()
     ]
     confidence_distribution = {
         "high": confidence_levels.count("high"),
@@ -121,20 +145,18 @@ def generate_reflection_step(
             "reflection_generation": {
                 "execution_time_seconds": execution_time,
                 "llm_model": llm_model,
-                "num_sub_questions_analyzed": len(state.sub_questions),
-                "num_synthesized_answers": len(state.synthesized_info),
+                "num_sub_questions_analyzed": len(query_context.sub_questions),
+                "num_synthesized_answers": len(
+                    synthesis_data.synthesized_info
+                ),
                 "viewpoint_analysis_included": bool(viewpoint_analysis_dict),
-                "num_critique_points": len(reflection_output.critique_summary),
-                "num_additional_questions": len(
-                    reflection_output.additional_questions
-                ),
-                "num_recommended_queries": len(
-                    reflection_output.recommended_queries
-                ),
+                "num_critique_points": len(critique_summary),
+                "num_additional_questions": len(additional_questions),
+                "num_recommended_queries": len(recommended_queries),
                 "confidence_distribution": confidence_distribution,
                 "has_information_gaps": any(
                     info.information_gaps
-                    for info in state.synthesized_info.values()
+                    for info in synthesis_data.synthesized_info.values()
                 ),
             }
         }
@@ -143,24 +165,33 @@ def generate_reflection_step(
     # Log artifact metadata
     log_metadata(
         metadata={
-            "reflection_output_characteristics": {
-                "has_recommendations": bool(
-                    reflection_output.recommended_queries
-                ),
-                "has_critique": bool(reflection_output.critique_summary),
-                "has_additional_questions": bool(
-                    reflection_output.additional_questions
-                ),
-                "total_recommendations": len(
-                    reflection_output.recommended_queries
-                )
-                + len(reflection_output.additional_questions),
+            "analysis_data_characteristics": {
+                "has_reflection_metadata": True,
+                "has_viewpoint_analysis": analysis_data.viewpoint_analysis
+                is not None,
+                "num_critique_points": len(critique_summary),
+                "num_additional_questions": len(additional_questions),
             }
         },
+        artifact_name="analysis_data",
         infer_artifact=True,
     )
 
-    # Add tags to the artifact
-    add_tags(tags=["reflection", "critique"], artifact="reflection_output")
+    log_metadata(
+        metadata={
+            "recommended_queries_characteristics": {
+                "num_queries": len(recommended_queries),
+                "has_recommendations": bool(recommended_queries),
+            }
+        },
+        artifact_name="recommended_queries",
+        infer_artifact=True,
+    )
 
-    return reflection_output
+    # Add tags to the artifacts
+    # add_tags(tags=["analysis", "reflection"], artifact_name="analysis_data", infer_artifact=True)
+    # add_tags(
+    #     tags=["recommendations", "queries"], artifact_name="recommended_queries", infer_artifact=True
+    # )
+
+    return analysis_data, recommended_queries

@@ -9,9 +9,14 @@ from typing import Dict, List
 import pytest
 from steps.pydantic_final_report_step import pydantic_final_report_step
 from utils.pydantic_models import (
+    AnalysisData,
+    FinalReport,
+    Prompt,
+    QueryContext,
     ReflectionMetadata,
-    ResearchState,
+    SearchData,
     SearchResult,
+    SynthesisData,
     SynthesizedInfo,
     ViewpointAnalysis,
     ViewpointTension,
@@ -20,15 +25,15 @@ from zenml.types import HTMLString
 
 
 @pytest.fixture
-def sample_research_state() -> ResearchState:
-    """Create a sample research state for testing."""
-    # Create a basic research state
-    state = ResearchState(main_query="What are the impacts of climate change?")
+def sample_artifacts():
+    """Create sample artifacts for testing."""
+    # Create QueryContext
+    query_context = QueryContext(
+        main_query="What are the impacts of climate change?",
+        sub_questions=["Economic impacts", "Environmental impacts"],
+    )
 
-    # Add sub-questions
-    state.update_sub_questions(["Economic impacts", "Environmental impacts"])
-
-    # Add search results
+    # Create SearchData
     search_results: Dict[str, List[SearchResult]] = {
         "Economic impacts": [
             SearchResult(
@@ -37,11 +42,19 @@ def sample_research_state() -> ResearchState:
                 snippet="Overview of economic impacts",
                 content="Detailed content about economic impacts of climate change",
             )
-        ]
+        ],
+        "Environmental impacts": [
+            SearchResult(
+                url="https://example.com/environment",
+                title="Environmental Impacts",
+                snippet="Environmental impact overview",
+                content="Content about environmental impacts",
+            )
+        ],
     }
-    state.update_search_results(search_results)
+    search_data = SearchData(search_results=search_results)
 
-    # Add synthesized info
+    # Create SynthesisData
     synthesized_info: Dict[str, SynthesizedInfo] = {
         "Economic impacts": SynthesizedInfo(
             synthesized_answer="Climate change will have significant economic impacts...",
@@ -54,12 +67,12 @@ def sample_research_state() -> ResearchState:
             confidence_level="high",
         ),
     }
-    state.update_synthesized_info(synthesized_info)
+    synthesis_data = SynthesisData(
+        synthesized_info=synthesized_info,
+        enhanced_info=synthesized_info,  # Same as synthesized for this test
+    )
 
-    # Add enhanced info (same as synthesized for this test)
-    state.enhanced_info = state.synthesized_info
-
-    # Add viewpoint analysis
+    # Create AnalysisData
     viewpoint_analysis = ViewpointAnalysis(
         main_points_of_agreement=[
             "Climate change is happening",
@@ -77,9 +90,7 @@ def sample_research_state() -> ResearchState:
         perspective_gaps="Indigenous perspectives are underrepresented",
         integrative_insights="A balanced approach combining regulations and market incentives may be most effective",
     )
-    state.update_viewpoint_analysis(viewpoint_analysis)
 
-    # Add reflection metadata
     reflection_metadata = ReflectionMetadata(
         critique_summary=["Need more sources for economic impacts"],
         additional_questions_identified=[
@@ -89,43 +100,111 @@ def sample_research_state() -> ResearchState:
             "economic impacts of climate change",
             "regional climate impacts",
         ],
-        improvements_made=2,
+        improvements_made=2.0,
     )
-    state.reflection_metadata = reflection_metadata
 
-    return state
+    analysis_data = AnalysisData(
+        viewpoint_analysis=viewpoint_analysis,
+        reflection_metadata=reflection_metadata,
+    )
+
+    # Create prompts
+    conclusion_prompt = Prompt(
+        name="conclusion_generation",
+        content="Generate a conclusion based on the research findings.",
+    )
+    executive_summary_prompt = Prompt(
+        name="executive_summary", content="Generate an executive summary."
+    )
+    introduction_prompt = Prompt(
+        name="introduction", content="Generate an introduction."
+    )
+
+    return {
+        "query_context": query_context,
+        "search_data": search_data,
+        "synthesis_data": synthesis_data,
+        "analysis_data": analysis_data,
+        "conclusion_generation_prompt": conclusion_prompt,
+        "executive_summary_prompt": executive_summary_prompt,
+        "introduction_prompt": introduction_prompt,
+    }
 
 
 def test_pydantic_final_report_step_returns_tuple():
-    """Test that the step returns a tuple with state and HTML."""
-    # Create a simple state
-    state = ResearchState(main_query="What is climate change?")
-    state.update_sub_questions(["What causes climate change?"])
+    """Test that the step returns a tuple with FinalReport and HTML."""
+    # Create simple artifacts
+    query_context = QueryContext(
+        main_query="What is climate change?",
+        sub_questions=["What causes climate change?"],
+    )
+    search_data = SearchData()
+    synthesis_data = SynthesisData(
+        synthesized_info={
+            "What causes climate change?": SynthesizedInfo(
+                synthesized_answer="Climate change is caused by greenhouse gases.",
+                confidence_level="high",
+                key_sources=["https://example.com/causes"],
+            )
+        }
+    )
+    analysis_data = AnalysisData()
+
+    # Create prompts
+    conclusion_prompt = Prompt(
+        name="conclusion_generation", content="Generate a conclusion."
+    )
+    executive_summary_prompt = Prompt(
+        name="executive_summary", content="Generate summary."
+    )
+    introduction_prompt = Prompt(
+        name="introduction", content="Generate intro."
+    )
 
     # Run the step
-    result = pydantic_final_report_step(state=state)
+    result = pydantic_final_report_step(
+        query_context=query_context,
+        search_data=search_data,
+        synthesis_data=synthesis_data,
+        analysis_data=analysis_data,
+        conclusion_generation_prompt=conclusion_prompt,
+        executive_summary_prompt=executive_summary_prompt,
+        introduction_prompt=introduction_prompt,
+    )
 
     # Assert that result is a tuple with 2 elements
     assert isinstance(result, tuple)
     assert len(result) == 2
 
-    # Assert first element is ResearchState
-    assert isinstance(result[0], ResearchState)
+    # Assert first element is FinalReport
+    assert isinstance(result[0], FinalReport)
 
     # Assert second element is HTMLString
     assert isinstance(result[1], HTMLString)
 
 
-def test_pydantic_final_report_step_with_complex_state(sample_research_state):
-    """Test that the step handles a complex state properly."""
-    # Run the step with a complex state
-    result = pydantic_final_report_step(state=sample_research_state)
+def test_pydantic_final_report_step_with_complex_artifacts(sample_artifacts):
+    """Test that the step handles complex artifacts properly."""
+    # Run the step with complex artifacts
+    result = pydantic_final_report_step(
+        query_context=sample_artifacts["query_context"],
+        search_data=sample_artifacts["search_data"],
+        synthesis_data=sample_artifacts["synthesis_data"],
+        analysis_data=sample_artifacts["analysis_data"],
+        conclusion_generation_prompt=sample_artifacts[
+            "conclusion_generation_prompt"
+        ],
+        executive_summary_prompt=sample_artifacts["executive_summary_prompt"],
+        introduction_prompt=sample_artifacts["introduction_prompt"],
+    )
 
     # Unpack the results
-    updated_state, html_report = result
+    final_report, html_report = result
 
-    # Assert state contains final report HTML
-    assert updated_state.final_report_html != ""
+    # Assert FinalReport contains expected data
+    assert final_report.main_query == "What are the impacts of climate change?"
+    assert len(final_report.sub_questions) == 2
+    assert final_report.report_html != ""
 
     # Assert HTML report contains key elements
     html_str = str(html_report)
@@ -136,32 +215,51 @@ def test_pydantic_final_report_step_with_complex_state(sample_research_state):
     assert "Conservative" in html_str
 
 
-def test_pydantic_final_report_step_updates_state():
-    """Test that the step properly updates the state."""
-    # Create an initial state without a final report
-    state = ResearchState(
+def test_pydantic_final_report_step_creates_report():
+    """Test that the step properly creates a final report."""
+    # Create artifacts
+    query_context = QueryContext(
         main_query="What is climate change?",
         sub_questions=["What causes climate change?"],
+    )
+    search_data = SearchData()
+    synthesis_data = SynthesisData(
         synthesized_info={
             "What causes climate change?": SynthesizedInfo(
                 synthesized_answer="Climate change is caused by greenhouse gases.",
                 confidence_level="high",
+                key_sources=["https://example.com/causes"],
             )
-        },
-        enhanced_info={
-            "What causes climate change?": SynthesizedInfo(
-                synthesized_answer="Climate change is caused by greenhouse gases.",
-                confidence_level="high",
-            )
-        },
+        }
+    )
+    analysis_data = AnalysisData()
+
+    # Create prompts
+    conclusion_prompt = Prompt(
+        name="conclusion_generation", content="Generate a conclusion."
+    )
+    executive_summary_prompt = Prompt(
+        name="executive_summary", content="Generate summary."
+    )
+    introduction_prompt = Prompt(
+        name="introduction", content="Generate intro."
     )
 
-    # Verify initial state has no report
-    assert state.final_report_html == ""
-
     # Run the step
-    updated_state, _ = pydantic_final_report_step(state=state)
+    final_report, html_report = pydantic_final_report_step(
+        query_context=query_context,
+        search_data=search_data,
+        synthesis_data=synthesis_data,
+        analysis_data=analysis_data,
+        conclusion_generation_prompt=conclusion_prompt,
+        executive_summary_prompt=executive_summary_prompt,
+        introduction_prompt=introduction_prompt,
+    )
 
-    # Verify state was updated with a report
-    assert updated_state.final_report_html != ""
-    assert "climate change" in updated_state.final_report_html.lower()
+    # Verify FinalReport was created with content
+    assert final_report.report_html != ""
+    assert "climate change" in final_report.report_html.lower()
+
+    # Verify HTML report was created
+    assert str(html_report) != ""
+    assert "climate change" in str(html_report).lower()

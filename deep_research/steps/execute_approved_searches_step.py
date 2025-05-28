@@ -1,47 +1,45 @@
 import json
 import logging
 import time
-from typing import Annotated
+from typing import Annotated, List, Tuple
 
-from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.analysis_data_materializer import AnalysisDataMaterializer
+from materializers.search_data_materializer import SearchDataMaterializer
+from materializers.synthesis_data_materializer import SynthesisDataMaterializer
 from utils.llm_utils import (
     find_most_relevant_string,
     get_structured_llm_output,
     is_text_relevant,
 )
 from utils.pydantic_models import (
+    AnalysisData,
     ApprovalDecision,
     Prompt,
-    ReflectionMetadata,
-    ReflectionOutput,
-    ResearchState,
+    QueryContext,
+    SearchCostDetail,
+    SearchData,
+    SynthesisData,
     SynthesizedInfo,
 )
 from utils.search_utils import search_and_extract_results
-from zenml import add_tags, log_metadata, step
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
 
-def create_enhanced_info_copy(synthesized_info):
-    """Create a deep copy of synthesized info for enhancement."""
-    return {
-        k: SynthesizedInfo(
-            synthesized_answer=v.synthesized_answer,
-            key_sources=v.key_sources.copy(),
-            confidence_level=v.confidence_level,
-            information_gaps=v.information_gaps,
-            improvements=v.improvements.copy()
-            if hasattr(v, "improvements")
-            else [],
-        )
-        for k, v in synthesized_info.items()
+@step(
+    output_materializers={
+        "enhanced_search_data": SearchDataMaterializer,
+        "enhanced_synthesis_data": SynthesisDataMaterializer,
+        "updated_analysis_data": AnalysisDataMaterializer,
     }
-
-
-@step(output_materializers=ResearchStateMaterializer)
+)
 def execute_approved_searches_step(
-    reflection_output: ReflectionOutput,
+    query_context: QueryContext,
+    search_data: SearchData,
+    synthesis_data: SynthesisData,
+    analysis_data: AnalysisData,
+    recommended_queries: List[str],
     approval_decision: ApprovalDecision,
     additional_synthesis_prompt: Prompt,
     num_results_per_search: int = 3,
@@ -50,32 +48,51 @@ def execute_approved_searches_step(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "updated_state"]:
-    """Execute approved searches and enhance the research state.
+) -> Tuple[
+    Annotated[SearchData, "enhanced_search_data"],
+    Annotated[SynthesisData, "enhanced_synthesis_data"],
+    Annotated[AnalysisData, "updated_analysis_data"],
+]:
+    """Execute approved searches and enhance the research artifacts.
 
     This step receives the approval decision and only executes
     searches that were approved by the human reviewer (or auto-approved).
 
     Args:
-        reflection_output: Output from the reflection generation step
+        query_context: The query context with main query and sub-questions
+        search_data: The existing search data
+        synthesis_data: The existing synthesis data
+        analysis_data: The analysis data with viewpoint and reflection metadata
+        recommended_queries: The recommended queries from reflection
         approval_decision: Human approval decision
+        additional_synthesis_prompt: Prompt for synthesis enhancement
         num_results_per_search: Number of results to fetch per search
         cap_search_length: Maximum length of content to process from search results
         llm_model: The model to use for synthesis enhancement
-        prompts_bundle: Bundle containing all prompts for the pipeline
         search_provider: Search provider to use
         search_mode: Search mode for the provider
+        langfuse_project_name: Project name for tracing
 
     Returns:
-        Updated research state with enhanced information and reflection metadata
+        Tuple of enhanced SearchData, SynthesisData, and updated AnalysisData
     """
     start_time = time.time()
     logger.info(
         f"Processing approval decision: {approval_decision.approval_method}"
     )
 
-    state = reflection_output.state
-    enhanced_info = create_enhanced_info_copy(state.synthesized_info)
+    # Create copies of the data to enhance
+    enhanced_search_data = SearchData(
+        search_results=search_data.search_results.copy(),
+        search_costs=search_data.search_costs.copy(),
+        search_cost_details=search_data.search_cost_details.copy(),
+        total_searches=search_data.total_searches,
+    )
+
+    enhanced_synthesis_data = SynthesisData(
+        synthesized_info=synthesis_data.synthesized_info.copy(),
+        enhanced_info={},  # Will be populated with enhanced versions
+    )
 
     # Track improvements count
     improvements_count = 0
@@ -87,39 +104,10 @@ def execute_approved_searches_step(
     ):
         logger.info("No additional searches approved")
 
-        # Add any additional questions as new synthesized entries (from reflection)
-        for new_question in reflection_output.additional_questions:
-            if (
-                new_question not in state.sub_questions
-                and new_question not in enhanced_info
-            ):
-                enhanced_info[new_question] = SynthesizedInfo(
-                    synthesized_answer=f"This question was identified during reflection but has not yet been researched: {new_question}",
-                    key_sources=[],
-                    confidence_level="low",
-                    information_gaps="This question requires additional research.",
-                )
-
-        # Create metadata indicating no additional research
-        reflection_metadata = ReflectionMetadata(
-            critique_summary=[
-                c.get("issue", "") for c in reflection_output.critique_summary
-            ],
-            additional_questions_identified=reflection_output.additional_questions,
-            searches_performed=[],
-            improvements_made=improvements_count,
-        )
-
-        # Add approval decision info to metadata
-        if hasattr(reflection_metadata, "__dict__"):
-            reflection_metadata.__dict__["user_decision"] = (
-                approval_decision.approval_method
-            )
-            reflection_metadata.__dict__["reviewer_notes"] = (
-                approval_decision.reviewer_notes
-            )
-
-        state.update_after_reflection(enhanced_info, reflection_metadata)
+        # Update reflection metadata with no searches
+        if analysis_data.reflection_metadata:
+            analysis_data.reflection_metadata.searches_performed = []
+            analysis_data.reflection_metadata.improvements_made = 0.0
 
         # Log metadata for no approved searches
         execution_time = time.time() - start_time
@@ -133,9 +121,7 @@ def execute_approved_searches_step(
                     else "no_queries",
                     "num_queries_approved": 0,
                     "num_searches_executed": 0,
-                    "num_additional_questions": len(
-                        reflection_output.additional_questions
-                    ),
+                    "num_recommended": len(recommended_queries),
                     "improvements_made": improvements_count,
                     "search_provider": search_provider,
                     "llm_model": llm_model,
@@ -143,10 +129,20 @@ def execute_approved_searches_step(
             }
         )
 
-        # Add tags to the artifact
-        add_tags(tags=["state", "enhanced"], artifact="updated_state")
+        # Add tags to the artifacts
+        # add_tags(
+        #     tags=["search", "not-enhanced"], artifact_name="enhanced_search_data", infer_artifact=True
+        # )
+        # add_tags(
+        #     tags=["synthesis", "not-enhanced"],
+        #     artifact_name="enhanced_synthesis_data",
+        #     infer_artifact=True,
+        # )
+        # add_tags(
+        #     tags=["analysis", "no-searches"], artifact_name="updated_analysis_data", infer_artifact=True
+        # )
 
-        return state
+        return enhanced_search_data, enhanced_synthesis_data, analysis_data
 
     # Execute approved searches
     logger.info(
@@ -175,24 +171,28 @@ def execute_approved_searches_step(
                 and search_cost > 0
             ):
                 # Update total costs
-                state.search_costs["exa"] = (
-                    state.search_costs.get("exa", 0.0) + search_cost
+                enhanced_search_data.search_costs["exa"] = (
+                    enhanced_search_data.search_costs.get("exa", 0.0)
+                    + search_cost
                 )
 
                 # Add detailed cost entry
-                state.search_cost_details.append(
-                    {
-                        "provider": "exa",
-                        "query": query,
-                        "cost": search_cost,
-                        "timestamp": time.time(),
-                        "step": "execute_approved_searches",
-                        "purpose": "reflection_enhancement",
-                    }
+                enhanced_search_data.search_cost_details.append(
+                    SearchCostDetail(
+                        provider="exa",
+                        query=query,
+                        cost=search_cost,
+                        timestamp=time.time(),
+                        step="execute_approved_searches",
+                        sub_question=None,  # These are reflection queries
+                    )
                 )
                 logger.info(
                     f"Exa search cost for approved query: ${search_cost:.4f}"
                 )
+
+            # Update total searches
+            enhanced_search_data.total_searches += 1
 
             # Extract raw contents
             raw_contents = [result.content for result in search_results]
@@ -200,28 +200,43 @@ def execute_approved_searches_step(
             # Find the most relevant sub-question for this query
             most_relevant_question = find_most_relevant_string(
                 query,
-                state.sub_questions,
+                query_context.sub_questions,
                 llm_model,
                 project=langfuse_project_name,
             )
 
             if (
                 most_relevant_question
-                and most_relevant_question in enhanced_info
+                and most_relevant_question in synthesis_data.synthesized_info
             ):
-                # Enhance the synthesis with new information
-                enhancement_input = {
-                    "original_synthesis": enhanced_info[
+                # Store the search results under the relevant question
+                if (
+                    most_relevant_question
+                    in enhanced_search_data.search_results
+                ):
+                    enhanced_search_data.search_results[
                         most_relevant_question
-                    ].synthesized_answer,
+                    ].extend(search_results)
+                else:
+                    enhanced_search_data.search_results[
+                        most_relevant_question
+                    ] = search_results
+
+                # Enhance the synthesis with new information
+                original_synthesis = synthesis_data.synthesized_info[
+                    most_relevant_question
+                ]
+
+                enhancement_input = {
+                    "original_synthesis": original_synthesis.synthesized_answer,
                     "new_information": raw_contents,
                     "critique": [
                         item
-                        for item in reflection_output.critique_summary
-                        if is_text_relevant(
-                            item.get("issue", ""), most_relevant_question
-                        )
-                    ],
+                        for item in analysis_data.reflection_metadata.critique_summary
+                        if is_text_relevant(item, most_relevant_question)
+                    ]
+                    if analysis_data.reflection_metadata
+                    else [],
                 }
 
                 # Use the utility function for enhancement
@@ -230,9 +245,7 @@ def execute_approved_searches_step(
                     system_prompt=str(additional_synthesis_prompt),
                     model=llm_model,
                     fallback_response={
-                        "enhanced_synthesis": enhanced_info[
-                            most_relevant_question
-                        ].synthesized_answer,
+                        "enhanced_synthesis": original_synthesis.synthesized_answer,
                         "improvements_made": ["Failed to enhance synthesis"],
                         "remaining_limitations": "Enhancement process failed.",
                     },
@@ -243,19 +256,30 @@ def execute_approved_searches_step(
                     enhanced_synthesis
                     and "enhanced_synthesis" in enhanced_synthesis
                 ):
-                    # Update the synthesized answer
-                    enhanced_info[
-                        most_relevant_question
-                    ].synthesized_answer = enhanced_synthesis[
-                        "enhanced_synthesis"
-                    ]
+                    # Create enhanced synthesis info
+                    enhanced_info = SynthesizedInfo(
+                        synthesized_answer=enhanced_synthesis[
+                            "enhanced_synthesis"
+                        ],
+                        key_sources=original_synthesis.key_sources
+                        + [r.url for r in search_results[:2]],
+                        confidence_level="high"
+                        if original_synthesis.confidence_level == "medium"
+                        else original_synthesis.confidence_level,
+                        information_gaps=enhanced_synthesis.get(
+                            "remaining_limitations", ""
+                        ),
+                        improvements=original_synthesis.improvements
+                        + enhanced_synthesis.get("improvements_made", []),
+                    )
 
-                    # Add improvements
+                    # Store in enhanced_info
+                    enhanced_synthesis_data.enhanced_info[
+                        most_relevant_question
+                    ] = enhanced_info
+
                     improvements = enhanced_synthesis.get(
                         "improvements_made", []
-                    )
-                    enhanced_info[most_relevant_question].improvements.extend(
-                        improvements
                     )
                     improvements_count += len(improvements)
 
@@ -274,43 +298,18 @@ def execute_approved_searches_step(
                         }
                     )
 
-        # Add any additional questions as new synthesized entries
-        for new_question in reflection_output.additional_questions:
-            if (
-                new_question not in state.sub_questions
-                and new_question not in enhanced_info
-            ):
-                enhanced_info[new_question] = SynthesizedInfo(
-                    synthesized_answer=f"This question was identified during reflection but has not yet been researched: {new_question}",
-                    key_sources=[],
-                    confidence_level="low",
-                    information_gaps="This question requires additional research.",
-                )
-
-        # Create final metadata with approval info
-        reflection_metadata = ReflectionMetadata(
-            critique_summary=[
-                c.get("issue", "") for c in reflection_output.critique_summary
-            ],
-            additional_questions_identified=reflection_output.additional_questions,
-            searches_performed=approval_decision.selected_queries,
-            improvements_made=improvements_count,
-        )
-
-        # Add approval decision info to metadata
-        if hasattr(reflection_metadata, "__dict__"):
-            reflection_metadata.__dict__["user_decision"] = (
-                approval_decision.approval_method
+        # Update reflection metadata with search info
+        if analysis_data.reflection_metadata:
+            analysis_data.reflection_metadata.searches_performed = (
+                approval_decision.selected_queries
             )
-            reflection_metadata.__dict__["reviewer_notes"] = (
-                approval_decision.reviewer_notes
+            analysis_data.reflection_metadata.improvements_made = float(
+                improvements_count
             )
 
         logger.info(
             f"Completed approved searches with {improvements_count} improvements"
         )
-
-        state.update_after_reflection(enhanced_info, reflection_metadata)
 
         # Calculate metrics for metadata
         execution_time = time.time() - start_time
@@ -332,9 +331,7 @@ def execute_approved_searches_step(
                     "execution_time_seconds": execution_time,
                     "approval_method": approval_decision.approval_method,
                     "approval_status": "approved",
-                    "num_queries_recommended": len(
-                        reflection_output.recommended_queries
-                    ),
+                    "num_queries_recommended": len(recommended_queries),
                     "num_queries_approved": len(
                         approval_decision.selected_queries
                     ),
@@ -344,14 +341,13 @@ def execute_approved_searches_step(
                     "total_search_results": total_results,
                     "questions_enhanced": questions_enhanced,
                     "improvements_made": improvements_count,
-                    "num_additional_questions": len(
-                        reflection_output.additional_questions
-                    ),
                     "search_provider": search_provider,
                     "search_mode": search_mode,
                     "llm_model": llm_model,
                     "success": True,
-                    "total_search_cost": state.search_costs.get("exa", 0.0),
+                    "total_search_cost": enhanced_search_data.search_costs.get(
+                        "exa", 0.0
+                    ),
                 }
             }
         )
@@ -359,44 +355,69 @@ def execute_approved_searches_step(
         # Log artifact metadata
         log_metadata(
             metadata={
-                "enhanced_state_after_approval": {
-                    "total_questions": len(enhanced_info),
-                    "questions_with_improvements": sum(
-                        1
-                        for info in enhanced_info.values()
-                        if info.improvements
+                "search_data_characteristics": {
+                    "new_searches": len(approval_decision.selected_queries),
+                    "total_searches": enhanced_search_data.total_searches,
+                    "additional_cost": enhanced_search_data.search_costs.get(
+                        "exa", 0.0
+                    )
+                    - search_data.search_costs.get("exa", 0.0),
+                }
+            },
+            artifact_name="enhanced_search_data",
+            infer_artifact=True,
+        )
+
+        log_metadata(
+            metadata={
+                "synthesis_data_characteristics": {
+                    "questions_enhanced": questions_enhanced,
+                    "total_enhancements": len(
+                        enhanced_synthesis_data.enhanced_info
                     ),
-                    "total_improvements": sum(
-                        len(info.improvements)
-                        for info in enhanced_info.values()
+                    "improvements_made": improvements_count,
+                }
+            },
+            artifact_name="enhanced_synthesis_data",
+            infer_artifact=True,
+        )
+
+        log_metadata(
+            metadata={
+                "analysis_data_characteristics": {
+                    "searches_performed": len(
+                        approval_decision.selected_queries
                     ),
                     "approval_method": approval_decision.approval_method,
                 }
             },
+            artifact_name="updated_analysis_data",
             infer_artifact=True,
         )
 
-        # Add tags to the artifact
-        add_tags(tags=["state", "enhanced"], artifact="updated_state")
+        # Add tags to the artifacts
+        # add_tags(tags=["search", "enhanced"], artifact_name="enhanced_search_data", infer_artifact=True)
+        # add_tags(
+        #     tags=["synthesis", "enhanced"], artifact_name="enhanced_synthesis_data", infer_artifact=True
+        # )
+        # add_tags(
+        #     tags=["analysis", "with-searches"],
+        #     artifact_name="updated_analysis_data",
+        #     infer_artifact=True,
+        # )
 
-        return state
+        return enhanced_search_data, enhanced_synthesis_data, analysis_data
 
     except Exception as e:
         logger.error(f"Error during approved search execution: {e}")
 
-        # Create error metadata
-        error_metadata = ReflectionMetadata(
-            error=f"Approved search execution failed: {str(e)}",
-            critique_summary=[
-                c.get("issue", "") for c in reflection_output.critique_summary
-            ],
-            additional_questions_identified=reflection_output.additional_questions,
-            searches_performed=[],
-            improvements_made=0,
-        )
-
-        # Update the state with the original synthesized info as enhanced info
-        state.update_after_reflection(state.synthesized_info, error_metadata)
+        # Update reflection metadata with error
+        if analysis_data.reflection_metadata:
+            analysis_data.reflection_metadata.error = (
+                f"Approved search execution failed: {str(e)}"
+            )
+            analysis_data.reflection_metadata.searches_performed = []
+            analysis_data.reflection_metadata.improvements_made = 0.0
 
         # Log error metadata
         execution_time = time.time() - start_time
@@ -419,7 +440,11 @@ def execute_approved_searches_step(
             }
         )
 
-        # Add tags to the artifact
-        add_tags(tags=["state", "enhanced"], artifact="updated_state")
+        # Add tags to the artifacts
+        # add_tags(tags=["search", "error"], artifact_name="enhanced_search_data", infer_artifact=True)
+        # add_tags(
+        #     tags=["synthesis", "error"], artifact_name="enhanced_synthesis_data", infer_artifact=True
+        # )
+        # add_tags(tags=["analysis", "error"], artifact_name="updated_analysis_data", infer_artifact=True)
 
-        return state
+        return enhanced_search_data, enhanced_synthesis_data, analysis_data

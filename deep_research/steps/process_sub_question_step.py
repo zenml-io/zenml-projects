@@ -1,8 +1,7 @@
-import copy
 import logging
 import time
 import warnings
-from typing import Annotated
+from typing import Annotated, Tuple
 
 # Suppress Pydantic serialization warnings from ZenML artifact metadata
 # These occur when ZenML stores timestamp metadata as floats but models expect ints
@@ -10,21 +9,34 @@ warnings.filterwarnings(
     "ignore", message=".*PydanticSerializationUnexpectedValue.*"
 )
 
-from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.search_data_materializer import SearchDataMaterializer
+from materializers.synthesis_data_materializer import SynthesisDataMaterializer
 from utils.llm_utils import synthesize_information
-from utils.pydantic_models import Prompt, ResearchState, SynthesizedInfo
+from utils.pydantic_models import (
+    Prompt,
+    QueryContext,
+    SearchCostDetail,
+    SearchData,
+    SynthesisData,
+    SynthesizedInfo,
+)
 from utils.search_utils import (
     generate_search_query,
     search_and_extract_results,
 )
-from zenml import add_tags, log_metadata, step
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
 
-@step(output_materializers=ResearchStateMaterializer)
+@step(
+    output_materializers={
+        "search_data": SearchDataMaterializer,
+        "synthesis_data": SynthesisDataMaterializer,
+    }
+)
 def process_sub_question_step(
-    state: ResearchState,
+    query_context: QueryContext,
     search_query_prompt: Prompt,
     synthesis_prompt: Prompt,
     question_index: int,
@@ -35,14 +47,17 @@ def process_sub_question_step(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "output"]:
+) -> Tuple[
+    Annotated[SearchData, "search_data"],
+    Annotated[SynthesisData, "synthesis_data"],
+]:
     """Process a single sub-question if it exists at the given index.
 
     This step combines the gathering and synthesis steps for a single sub-question.
     It's designed to be run in parallel for each sub-question.
 
     Args:
-        state: The original research state with all sub-questions
+        query_context: The query context with main query and sub-questions
         search_query_prompt: Prompt for generating search queries
         synthesis_prompt: Prompt for synthesizing search results
         question_index: The index of the sub-question to process
@@ -52,25 +67,19 @@ def process_sub_question_step(
         cap_search_length: Maximum length of content to process from search results
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
+        langfuse_project_name: Project name for tracing
 
     Returns:
-        A new ResearchState containing only the processed sub-question's results
+        Tuple of SearchData and SynthesisData for the processed sub-question
     """
     start_time = time.time()
 
-    # Create a copy of the state to avoid modifying the original
-    sub_state = copy.deepcopy(state)
-
-    # Clear all existing data except the main query
-    sub_state.search_results = {}
-    sub_state.synthesized_info = {}
-    sub_state.enhanced_info = {}
-    sub_state.viewpoint_analysis = None
-    sub_state.reflection_metadata = None
-    sub_state.final_report_html = ""
+    # Initialize empty artifacts
+    search_data = SearchData()
+    synthesis_data = SynthesisData()
 
     # Check if this index exists in sub-questions
-    if question_index >= len(state.sub_questions):
+    if question_index >= len(query_context.sub_questions):
         logger.info(
             f"No sub-question at index {question_index}, skipping processing"
         )
@@ -81,24 +90,24 @@ def process_sub_question_step(
                     "question_index": question_index,
                     "status": "skipped",
                     "reason": "index_out_of_range",
-                    "total_sub_questions": len(state.sub_questions),
+                    "total_sub_questions": len(query_context.sub_questions),
                 }
             }
         )
-        # Return an empty state since there's no question to process
-        sub_state.sub_questions = []
-        # Add tags to the artifact
-        add_tags(tags=["state", "sub-question"], artifact="output")
-        return sub_state
+        # Return empty artifacts
+        # add_tags(
+        #     tags=["search", "synthesis", "skipped"], artifact_name="search_data", infer_artifact=True
+        # )
+        # add_tags(
+        #     tags=["search", "synthesis", "skipped"], artifact_name="synthesis_data", infer_artifact=True
+        # )
+        return search_data, synthesis_data
 
     # Get the target sub-question
-    sub_question = state.sub_questions[question_index]
+    sub_question = query_context.sub_questions[question_index]
     logger.info(
         f"Processing sub-question {question_index + 1}: {sub_question}"
     )
-
-    # Store only this sub-question in the sub-state
-    sub_state.sub_questions = [sub_question]
 
     # === INFORMATION GATHERING ===
     search_phase_start = time.time()
@@ -126,6 +135,10 @@ def process_sub_question_step(
         search_mode=search_mode,
     )
 
+    # Update search data
+    search_data.search_results[sub_question] = results_list
+    search_data.total_searches = 1
+
     # Track search costs if using Exa
     if (
         search_provider
@@ -133,28 +146,22 @@ def process_sub_question_step(
         and search_cost > 0
     ):
         # Update total costs
-        sub_state.search_costs["exa"] = (
-            sub_state.search_costs.get("exa", 0.0) + search_cost
-        )
+        search_data.search_costs["exa"] = search_cost
 
         # Add detailed cost entry
-        sub_state.search_cost_details.append(
-            {
-                "provider": "exa",
-                "query": search_query,
-                "cost": search_cost,
-                "timestamp": time.time(),
-                "step": "process_sub_question",
-                "sub_question": sub_question,
-                "question_index": question_index,
-            }
+        search_data.search_cost_details.append(
+            SearchCostDetail(
+                provider="exa",
+                query=search_query,
+                cost=search_cost,
+                timestamp=time.time(),
+                step="process_sub_question",
+                sub_question=sub_question,
+            )
         )
         logger.info(
             f"Exa search cost for sub-question {question_index}: ${search_cost:.4f}"
         )
-
-    search_results = {sub_question: results_list}
-    sub_state.update_search_results(search_results)
 
     search_phase_time = time.time() - search_phase_start
 
@@ -184,23 +191,21 @@ def process_sub_question_step(
     )
 
     # Create SynthesizedInfo object
-    synthesized_info = {
-        sub_question: SynthesizedInfo(
-            synthesized_answer=synthesis_result.get(
-                "synthesized_answer", f"Synthesis for '{sub_question}' failed."
-            ),
-            key_sources=synthesis_result.get("key_sources", sources[:1]),
-            confidence_level=synthesis_result.get("confidence_level", "low"),
-            information_gaps=synthesis_result.get(
-                "information_gaps",
-                "Synthesis process encountered technical difficulties.",
-            ),
-            improvements=synthesis_result.get("improvements", []),
-        )
-    }
+    synthesized_info = SynthesizedInfo(
+        synthesized_answer=synthesis_result.get(
+            "synthesized_answer", f"Synthesis for '{sub_question}' failed."
+        ),
+        key_sources=synthesis_result.get("key_sources", sources[:1]),
+        confidence_level=synthesis_result.get("confidence_level", "low"),
+        information_gaps=synthesis_result.get(
+            "information_gaps",
+            "Synthesis process encountered technical difficulties.",
+        ),
+        improvements=synthesis_result.get("improvements", []),
+    )
 
-    # Update the state with synthesized information
-    sub_state.update_synthesized_info(synthesized_info)
+    # Update synthesis data
+    synthesis_data.synthesized_info[sub_question] = synthesized_info
 
     synthesis_phase_time = time.time() - synthesis_phase_start
     total_execution_time = time.time() - start_time
@@ -270,22 +275,41 @@ def process_sub_question_step(
         infer_model=True,
     )
 
-    # Log artifact metadata for the output state
+    # Log artifact metadata for the output artifacts
     log_metadata(
         metadata={
-            "sub_state_characteristics": {
-                "has_search_results": bool(sub_state.search_results),
-                "has_synthesized_info": bool(sub_state.synthesized_info),
-                "sub_question_processed": sub_question,
-                "confidence_level": synthesis_result.get(
-                    "confidence_level", "low"
-                ),
+            "search_data_characteristics": {
+                "sub_question": sub_question,
+                "num_results": len(results_list),
+                "search_provider": search_provider,
+                "search_cost": search_cost if search_cost > 0 else None,
             }
         },
+        artifact_name="search_data",
         infer_artifact=True,
     )
 
-    # Add tags to the artifact
-    add_tags(tags=["state", "sub-question"], artifact="output")
+    log_metadata(
+        metadata={
+            "synthesis_data_characteristics": {
+                "sub_question": sub_question,
+                "confidence_level": synthesis_result.get(
+                    "confidence_level", "low"
+                ),
+                "has_information_gaps": bool(
+                    synthesis_result.get("information_gaps")
+                ),
+                "num_key_sources": len(
+                    synthesis_result.get("key_sources", [])
+                ),
+            }
+        },
+        artifact_name="synthesis_data",
+        infer_artifact=True,
+    )
 
-    return sub_state
+    # Add tags to the artifacts
+    # add_tags(tags=["search", "sub-question"], artifact_name="search_data", infer_artifact=True)
+    # add_tags(tags=["synthesis", "sub-question"], artifact_name="synthesis_data", infer_artifact=True)
+
+    return search_data, synthesis_data

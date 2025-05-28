@@ -5,28 +5,6 @@ from typing import Any, Dict, List
 from utils.pydantic_models import ApprovalDecision
 
 
-def summarize_research_progress(state) -> Dict[str, Any]:
-    """Summarize the current research progress."""
-    completed_count = len(state.synthesized_info)
-    confidence_levels = [
-        info.confidence_level for info in state.synthesized_info.values()
-    ]
-
-    # Calculate average confidence (high=1.0, medium=0.5, low=0.0)
-    confidence_map = {"high": 1.0, "medium": 0.5, "low": 0.0}
-    avg_confidence = sum(
-        confidence_map.get(c, 0.5) for c in confidence_levels
-    ) / max(len(confidence_levels), 1)
-
-    low_confidence_count = sum(1 for c in confidence_levels if c == "low")
-
-    return {
-        "completed_count": completed_count,
-        "avg_confidence": round(avg_confidence, 2),
-        "low_confidence_count": low_confidence_count,
-    }
-
-
 def format_critique_summary(critique_points: List[Dict[str, Any]]) -> str:
     """Format critique points for display."""
     if not critique_points:

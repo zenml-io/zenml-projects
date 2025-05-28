@@ -6,9 +6,7 @@ from utils.approval_utils import (
     format_critique_summary,
     format_query_list,
     parse_approval_response,
-    summarize_research_progress,
 )
-from utils.pydantic_models import ResearchState, SynthesizedInfo
 
 
 def test_parse_approval_responses():
@@ -75,34 +73,6 @@ def test_format_approval_request():
     assert "approve" in message.lower()
     assert "reject" in message.lower()
     assert "Missing data" in message
-
-
-def test_summarize_research_progress():
-    """Test research progress summarization."""
-    state = ResearchState(
-        main_query="test",
-        synthesized_info={
-            "q1": SynthesizedInfo(
-                synthesized_answer="a1", confidence_level="high"
-            ),
-            "q2": SynthesizedInfo(
-                synthesized_answer="a2", confidence_level="medium"
-            ),
-            "q3": SynthesizedInfo(
-                synthesized_answer="a3", confidence_level="low"
-            ),
-            "q4": SynthesizedInfo(
-                synthesized_answer="a4", confidence_level="low"
-            ),
-        },
-    )
-
-    summary = summarize_research_progress(state)
-
-    assert summary["completed_count"] == 4
-    # (1.0 + 0.5 + 0.0 + 0.0) / 4 = 1.5 / 4 = 0.375, rounded to 0.38
-    assert summary["avg_confidence"] == 0.38
-    assert summary["low_confidence_count"] == 2
 
 
 def test_format_critique_summary():

@@ -3,25 +3,28 @@ import logging
 import time
 from typing import Annotated, List
 
-from materializers.pydantic_materializer import ResearchStateMaterializer
+from materializers.analysis_data_materializer import AnalysisDataMaterializer
 from utils.helper_functions import (
     safe_json_loads,
 )
 from utils.llm_utils import run_llm_completion
 from utils.pydantic_models import (
+    AnalysisData,
     Prompt,
-    ResearchState,
+    QueryContext,
+    SynthesisData,
     ViewpointAnalysis,
     ViewpointTension,
 )
-from zenml import add_tags, log_metadata, step
+from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
 
 
-@step(output_materializers=ResearchStateMaterializer)
+@step(output_materializers={"analysis_data": AnalysisDataMaterializer})
 def cross_viewpoint_analysis_step(
-    state: ResearchState,
+    query_context: QueryContext,
+    synthesis_data: SynthesisData,
     viewpoint_analysis_prompt: Prompt,
     llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
     viewpoint_categories: List[str] = [
@@ -33,27 +36,32 @@ def cross_viewpoint_analysis_step(
         "historical",
     ],
     langfuse_project_name: str = "deep-research",
-) -> Annotated[ResearchState, "analyzed_state"]:
+) -> Annotated[AnalysisData, "analysis_data"]:
     """Analyze synthesized information across different viewpoints.
 
     Args:
-        state: The current research state
+        query_context: The query context with main query and sub-questions
+        synthesis_data: The synthesized information to analyze
         viewpoint_analysis_prompt: Prompt for viewpoint analysis
         llm_model: The model to use for viewpoint analysis
         viewpoint_categories: Categories of viewpoints to analyze
+        langfuse_project_name: Project name for tracing
 
     Returns:
-        Updated research state with viewpoint analysis
+        AnalysisData containing viewpoint analysis
     """
     start_time = time.time()
     logger.info(
-        f"Performing cross-viewpoint analysis on {len(state.synthesized_info)} sub-questions"
+        f"Performing cross-viewpoint analysis on {len(synthesis_data.synthesized_info)} sub-questions"
     )
+
+    # Initialize analysis data
+    analysis_data = AnalysisData()
 
     # Prepare input for viewpoint analysis
     analysis_input = {
-        "main_query": state.main_query,
-        "sub_questions": state.sub_questions,
+        "main_query": query_context.main_query,
+        "sub_questions": query_context.sub_questions,
         "synthesized_information": {
             question: {
                 "synthesized_answer": info.synthesized_answer,
@@ -61,7 +69,7 @@ def cross_viewpoint_analysis_step(
                 "confidence_level": info.confidence_level,
                 "information_gaps": info.information_gaps,
             }
-            for question, info in state.synthesized_info.items()
+            for question, info in synthesis_data.synthesized_info.items()
         },
         "viewpoint_categories": viewpoint_categories,
     }
@@ -113,8 +121,8 @@ def cross_viewpoint_analysis_step(
 
         logger.info("Completed viewpoint analysis")
 
-        # Update the state with the viewpoint analysis
-        state.update_viewpoint_analysis(viewpoint_analysis)
+        # Update the analysis data with the viewpoint analysis
+        analysis_data.viewpoint_analysis = viewpoint_analysis
 
         # Calculate execution time
         execution_time = time.time() - start_time
@@ -133,7 +141,9 @@ def cross_viewpoint_analysis_step(
                 "viewpoint_analysis": {
                     "execution_time_seconds": execution_time,
                     "llm_model": llm_model,
-                    "num_sub_questions_analyzed": len(state.synthesized_info),
+                    "num_sub_questions_analyzed": len(
+                        synthesis_data.synthesized_info
+                    ),
                     "viewpoint_categories_requested": viewpoint_categories,
                     "num_agreement_points": len(
                         viewpoint_analysis.main_points_of_agreement
@@ -172,7 +182,7 @@ def cross_viewpoint_analysis_step(
         # Log artifact metadata
         log_metadata(
             metadata={
-                "state_with_viewpoint_analysis": {
+                "analysis_data_characteristics": {
                     "has_viewpoint_analysis": True,
                     "total_viewpoints_analyzed": sum(
                         tension_categories.values()
@@ -184,13 +194,14 @@ def cross_viewpoint_analysis_step(
                     else None,
                 }
             },
+            artifact_name="analysis_data",
             infer_artifact=True,
         )
 
         # Add tags to the artifact
-        add_tags(tags=["state", "viewpoint"], artifact="analyzed_state")
+        # add_tags(tags=["analysis", "viewpoint"], artifact_name="analysis_data", infer_artifact=True)
 
-        return state
+        return analysis_data
 
     except Exception as e:
         logger.error(f"Error performing viewpoint analysis: {e}")
@@ -204,8 +215,8 @@ def cross_viewpoint_analysis_step(
             integrative_insights="No insights available due to analysis failure.",
         )
 
-        # Update the state with the fallback analysis
-        state.update_viewpoint_analysis(fallback_analysis)
+        # Update the analysis data with the fallback analysis
+        analysis_data.viewpoint_analysis = fallback_analysis
 
         # Log error metadata
         execution_time = time.time() - start_time
@@ -214,7 +225,9 @@ def cross_viewpoint_analysis_step(
                 "viewpoint_analysis": {
                     "execution_time_seconds": execution_time,
                     "llm_model": llm_model,
-                    "num_sub_questions_analyzed": len(state.synthesized_info),
+                    "num_sub_questions_analyzed": len(
+                        synthesis_data.synthesized_info
+                    ),
                     "viewpoint_categories_requested": viewpoint_categories,
                     "analysis_success": False,
                     "error_message": str(e),
@@ -224,6 +237,10 @@ def cross_viewpoint_analysis_step(
         )
 
         # Add tags to the artifact
-        add_tags(tags=["state", "viewpoint"], artifact="analyzed_state")
+        # add_tags(
+        #     tags=["analysis", "viewpoint", "fallback"],
+        #     artifact_name="analysis_data",
+        #     infer_artifact=True,
+        # )
 
-        return state
+        return analysis_data

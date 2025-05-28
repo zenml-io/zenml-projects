@@ -1,15 +1,15 @@
 """Step to collect tracing metadata from Langfuse for the pipeline run."""
 
 import logging
-from typing import Annotated, Tuple
+from typing import Annotated, Dict
 
-from materializers.pydantic_materializer import ResearchStateMaterializer
 from materializers.tracing_metadata_materializer import (
     TracingMetadataMaterializer,
 )
 from utils.pydantic_models import (
     PromptTypeMetrics,
-    ResearchState,
+    QueryContext,
+    SearchData,
     TracingMetadata,
 )
 from utils.tracing_metadata_utils import (
@@ -18,7 +18,7 @@ from utils.tracing_metadata_utils import (
     get_trace_stats,
     get_traces_by_name,
 )
-from zenml import add_tags, get_step_context, step
+from zenml import get_step_context, step
 
 logger = logging.getLogger(__name__)
 
@@ -26,28 +26,26 @@ logger = logging.getLogger(__name__)
 @step(
     enable_cache=False,
     output_materializers={
-        "state": ResearchStateMaterializer,
         "tracing_metadata": TracingMetadataMaterializer,
     },
 )
 def collect_tracing_metadata_step(
-    state: ResearchState,
+    query_context: QueryContext,
+    search_data: SearchData,
     langfuse_project_name: str,
-) -> Tuple[
-    Annotated[ResearchState, "state"],
-    Annotated[TracingMetadata, "tracing_metadata"],
-]:
+) -> Annotated[TracingMetadata, "tracing_metadata"]:
     """Collect tracing metadata from Langfuse for the current pipeline run.
 
     This step gathers comprehensive metrics about token usage, costs, and performance
     for the entire pipeline run, providing insights into resource consumption.
 
     Args:
-        state: The final research state
+        query_context: The query context (for reference)
+        search_data: The search data containing cost information
         langfuse_project_name: Langfuse project name for accessing traces
 
     Returns:
-        Tuple of (ResearchState, TracingMetadata) - the state is passed through unchanged
+        TracingMetadata with comprehensive cost and performance metrics
     """
     ctx = get_step_context()
     pipeline_run_name = ctx.pipeline_run.name
@@ -74,7 +72,9 @@ def collect_tracing_metadata_step(
             logger.warning(
                 f"No trace found for pipeline run: {pipeline_run_name}"
             )
-            return state, metadata
+            # Still add search costs before returning
+            _add_search_costs_to_metadata(metadata, search_data)
+            return metadata
 
         trace = traces[0]
 
@@ -179,26 +179,8 @@ def collect_tracing_metadata_step(
         except Exception as e:
             logger.warning(f"Failed to collect prompt-level metrics: {str(e)}")
 
-        # Add search costs from the state
-        if hasattr(state, "search_costs") and state.search_costs:
-            metadata.search_costs = state.search_costs.copy()
-            logger.info(f"Added search costs: {metadata.search_costs}")
-
-        if hasattr(state, "search_cost_details") and state.search_cost_details:
-            metadata.search_cost_details = state.search_cost_details.copy()
-
-            # Count queries by provider
-            search_queries_count = {}
-            for detail in state.search_cost_details:
-                provider = detail.get("provider", "unknown")
-                search_queries_count[provider] = (
-                    search_queries_count.get(provider, 0) + 1
-                )
-            metadata.search_queries_count = search_queries_count
-
-            logger.info(
-                f"Added {len(metadata.search_cost_details)} search cost detail entries"
-            )
+        # Add search costs from the SearchData artifact
+        _add_search_costs_to_metadata(metadata, search_data)
 
         total_search_cost = sum(metadata.search_costs.values())
         logger.info(
@@ -216,25 +198,55 @@ def collect_tracing_metadata_step(
             f"Failed to collect tracing metadata for pipeline run {pipeline_run_name}: {str(e)}"
         )
         # Return metadata with whatever we could collect
-
         # Still try to get search costs even if Langfuse failed
-        if hasattr(state, "search_costs") and state.search_costs:
-            metadata.search_costs = state.search_costs.copy()
-        if hasattr(state, "search_cost_details") and state.search_cost_details:
-            metadata.search_cost_details = state.search_cost_details.copy()
-            # Count queries by provider
-            search_queries_count = {}
-            for detail in state.search_cost_details:
-                provider = detail.get("provider", "unknown")
-                search_queries_count[provider] = (
-                    search_queries_count.get(provider, 0) + 1
-                )
-            metadata.search_queries_count = search_queries_count
+        _add_search_costs_to_metadata(metadata, search_data)
 
-    # Add tags to the artifacts
-    add_tags(tags=["state"], artifact="state")
-    add_tags(
-        tags=["exa", "tavily", "llm", "cost"], artifact="tracing_metadata"
-    )
+    # Add tags to the artifact
+    # add_tags(
+    #     tags=["exa", "tavily", "llm", "cost", "tracing"],
+    #     artifact_name="tracing_metadata",
+    #     infer_artifact=True,
+    # )
 
-    return state, metadata
+    return metadata
+
+
+def _add_search_costs_to_metadata(
+    metadata: TracingMetadata, search_data: SearchData
+) -> None:
+    """Add search costs from SearchData to TracingMetadata.
+
+    Args:
+        metadata: The TracingMetadata object to update
+        search_data: The SearchData containing cost information
+    """
+    if search_data.search_costs:
+        metadata.search_costs = search_data.search_costs.copy()
+        logger.info(f"Added search costs: {metadata.search_costs}")
+
+    if search_data.search_cost_details:
+        # Convert SearchCostDetail objects to dicts for backward compatibility
+        metadata.search_cost_details = [
+            {
+                "provider": detail.provider,
+                "query": detail.query,
+                "cost": detail.cost,
+                "timestamp": detail.timestamp,
+                "step": detail.step,
+                "sub_question": detail.sub_question,
+            }
+            for detail in search_data.search_cost_details
+        ]
+
+        # Count queries by provider
+        search_queries_count: Dict[str, int] = {}
+        for detail in search_data.search_cost_details:
+            provider = detail.provider
+            search_queries_count[provider] = (
+                search_queries_count.get(provider, 0) + 1
+            )
+        metadata.search_queries_count = search_queries_count
+
+        logger.info(
+            f"Added {len(metadata.search_cost_details)} search cost detail entries"
+        )
