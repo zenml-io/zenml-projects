@@ -170,3 +170,7 @@ nohup.out
 
 # Claude
 .claude/
+
+# design folder
+design/
+deep_research/design
