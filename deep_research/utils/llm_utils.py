@@ -96,7 +96,7 @@ def safe_json_loads(json_str: Optional[str]) -> Dict[str, Any]:
 def run_llm_completion(
     prompt: str,
     system_prompt: str,
-    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     clean_output: bool = True,
     max_tokens: int = 2000,  # Increased default token limit
     temperature: float = 0.2,
@@ -197,7 +197,7 @@ def run_llm_completion(
 def get_structured_llm_output(
     prompt: str,
     system_prompt: str,
-    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     fallback_response: Optional[Dict[str, Any]] = None,
     max_tokens: int = 2000,  # Increased default token limit for structured outputs
     temperature: float = 0.2,
@@ -289,7 +289,7 @@ def is_text_relevant(text1: str, text2: str, min_word_length: int = 4) -> bool:
 def find_most_relevant_string(
     target: str,
     options: List[str],
-    model: Optional[str] = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    model: Optional[str] = "openrouter/google/gemini-2.0-flash-lite-001",
     project: str = "deep-research",
     tags: Optional[List[str]] = None,
 ) -> Optional[str]:
@@ -406,7 +406,7 @@ Respond with only the exact text of the most relevant option."""
 
 def synthesize_information(
     synthesis_input: Dict[str, Any],
-    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     system_prompt: Optional[str] = None,
     project: str = "deep-research",
     tags: Optional[List[str]] = None,

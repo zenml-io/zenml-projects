@@ -522,7 +522,7 @@ def extract_search_results(
 
 def generate_search_query(
     sub_question: str,
-    model: str = "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+    model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     system_prompt: Optional[str] = None,
     project: str = "deep-research",
 ) -> Dict[str, Any]:
