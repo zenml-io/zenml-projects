@@ -3,6 +3,11 @@
 import os
 from typing import Dict
 
+from utils.css_utils import (
+    create_stat_card,
+    get_grid_class,
+    get_shared_css_tag,
+)
 from utils.pydantic_models import QueryContext
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
@@ -48,13 +53,15 @@ class QueryContextMaterializer(PydanticMaterializer):
         if context.sub_questions:
             for i, sub_q in enumerate(context.sub_questions, 1):
                 sub_questions_html += f"""
-                <div class="sub-question">
+                <div class="sub-question-item">
                     <div class="sub-question-number">{i}</div>
                     <div class="sub-question-text">{sub_q}</div>
                 </div>
                 """
         else:
-            sub_questions_html = '<div class="no-sub-questions">No sub-questions decomposed yet</div>'
+            sub_questions_html = (
+                '<div class="dr-empty">No sub-questions decomposed yet</div>'
+            )
 
         # Format timestamp
         from datetime import datetime
@@ -63,27 +70,35 @@ class QueryContextMaterializer(PydanticMaterializer):
             context.decomposition_timestamp
         ).strftime("%Y-%m-%d %H:%M:%S UTC")
 
+        # Build stats
+        stats_html = f"""
+        <div class="{get_grid_class("stats")}">
+            {create_stat_card(len(context.sub_questions), "Sub-Questions")}
+            {create_stat_card(len(context.main_query.split()), "Words in Query")}
+            {create_stat_card(sum(len(q.split()) for q in context.sub_questions), "Total Sub-Question Words")}
+        </div>
+        """
+
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Query Context - {context.main_query[:50]}...</title>
+            {get_shared_css_tag()}
             <style>
+                /* Component-specific styles for mind map */
                 body {{
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
                     min-height: 100vh;
                     display: flex;
                     justify-content: center;
                     align-items: center;
                 }}
                 
-                .container {{
+                .dr-container {{
                     background: white;
                     border-radius: 20px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    box-shadow: var(--shadow-xl);
                     padding: 40px;
                     max-width: 1200px;
                     width: 90%;
@@ -92,39 +107,34 @@ class QueryContextMaterializer(PydanticMaterializer):
                 
                 .header {{
                     text-align: center;
-                    margin-bottom: 40px;
-                }}
-                
-                h1 {{
-                    color: #333;
-                    margin: 0 0 10px 0;
-                    font-size: 28px;
+                    margin-bottom: var(--spacing-xl);
                 }}
                 
                 .timestamp {{
-                    color: #666;
-                    font-size: 14px;
+                    color: var(--color-text-secondary);
+                    font-size: 0.875rem;
+                    margin-top: var(--spacing-sm);
                 }}
                 
                 .mind-map {{
                     position: relative;
-                    margin: 40px 0;
+                    margin: var(--spacing-xl) 0;
                 }}
                 
-                .main-query {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                .main-query-node {{
+                    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
                     color: white;
-                    padding: 30px;
-                    border-radius: 15px;
+                    padding: var(--spacing-lg);
+                    border-radius: var(--radius-lg);
                     text-align: center;
-                    font-size: 20px;
+                    font-size: 1.25rem;
                     font-weight: bold;
                     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-                    margin-bottom: 40px;
+                    margin-bottom: var(--spacing-xl);
                     position: relative;
                 }}
                 
-                .main-query::after {{
+                .main-query-node::after {{
                     content: '';
                     position: absolute;
                     bottom: -20px;
@@ -132,13 +142,13 @@ class QueryContextMaterializer(PydanticMaterializer):
                     transform: translateX(-50%);
                     width: 2px;
                     height: 20px;
-                    background: #667eea;
+                    background: var(--color-secondary);
                 }}
                 
                 .sub-questions-container {{
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 20px;
+                    gap: var(--spacing-md);
                     position: relative;
                 }}
                 
@@ -150,29 +160,29 @@ class QueryContextMaterializer(PydanticMaterializer):
                     transform: translateX(-50%);
                     width: 80%;
                     height: 2px;
-                    background: linear-gradient(90deg, transparent, #667eea, transparent);
+                    background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
                 }}
                 
-                .sub-question {{
-                    background: #f8f9fa;
-                    border: 2px solid #e9ecef;
-                    border-radius: 10px;
-                    padding: 20px;
+                .sub-question-item {{
+                    background: var(--color-bg-secondary);
+                    border: 2px solid var(--color-border);
+                    border-radius: var(--radius-md);
+                    padding: var(--spacing-md);
                     position: relative;
-                    transition: all 0.3s ease;
+                    transition: var(--transition-base);
                     display: flex;
                     align-items: flex-start;
                     gap: 15px;
                 }}
                 
-                .sub-question:hover {{
+                .sub-question-item:hover {{
                     transform: translateY(-5px);
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                    border-color: #667eea;
+                    box-shadow: var(--shadow-hover);
+                    border-color: var(--color-secondary);
                 }}
                 
                 .sub-question-number {{
-                    background: #667eea;
+                    background: var(--color-secondary);
                     color: white;
                     width: 30px;
                     height: 30px;
@@ -185,45 +195,9 @@ class QueryContextMaterializer(PydanticMaterializer):
                 }}
                 
                 .sub-question-text {{
-                    color: #333;
+                    color: var(--color-text-primary);
                     line-height: 1.6;
                     flex: 1;
-                }}
-                
-                .no-sub-questions {{
-                    text-align: center;
-                    color: #999;
-                    font-style: italic;
-                    padding: 40px;
-                    background: #f8f9fa;
-                    border-radius: 10px;
-                }}
-                
-                .stats {{
-                    background: #f8f9fa;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin-top: 30px;
-                    display: flex;
-                    justify-content: space-around;
-                    flex-wrap: wrap;
-                    gap: 20px;
-                }}
-                
-                .stat {{
-                    text-align: center;
-                }}
-                
-                .stat-value {{
-                    font-size: 32px;
-                    font-weight: bold;
-                    color: #667eea;
-                }}
-                
-                .stat-label {{
-                    color: #666;
-                    font-size: 14px;
-                    margin-top: 5px;
                 }}
                 
                 @media (max-width: 768px) {{
@@ -234,14 +208,14 @@ class QueryContextMaterializer(PydanticMaterializer):
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="dr-container">
                 <div class="header">
                     <h1>Query Decomposition Mind Map</h1>
                     <div class="timestamp">Created: {timestamp}</div>
                 </div>
                 
                 <div class="mind-map">
-                    <div class="main-query">
+                    <div class="main-query-node">
                         {context.main_query}
                     </div>
                     
@@ -250,20 +224,7 @@ class QueryContextMaterializer(PydanticMaterializer):
                     </div>
                 </div>
                 
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value">{len(context.sub_questions)}</div>
-                        <div class="stat-label">Sub-Questions</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">{len(context.main_query.split())}</div>
-                        <div class="stat-label">Words in Query</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">{sum(len(q.split()) for q in context.sub_questions)}</div>
-                        <div class="stat-label">Total Sub-Question Words</div>
-                    </div>
-                </div>
+                {stats_html}
             </div>
         </body>
         </html>

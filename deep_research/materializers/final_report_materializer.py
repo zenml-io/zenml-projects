@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from typing import Dict
 
+from utils.css_utils import get_shared_css_tag
 from utils.pydantic_models import FinalReport
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
@@ -68,74 +69,64 @@ class FinalReportMaterializer(PydanticMaterializer):
         <html>
         <head>
             <title>Final Research Report - {data.main_query[:50]}...</title>
+            {get_shared_css_tag()}
             <style>
+                /* Component-specific styles */
                 body {{
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
+                    margin: 0;
+                    padding: 0;
                 }}
                 
-                .header {{
+                .report-header {{
                     background: rgba(255, 255, 255, 0.95);
-                    padding: 30px;
-                    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-                }}
-                
-                .container {{
-                    max-width: 1200px;
-                    margin: 0 auto;
-                }}
-                
-                h1 {{
-                    color: #2c3e50;
-                    margin: 0 0 10px 0;
-                    font-size: 32px;
+                    padding: var(--spacing-lg);
+                    box-shadow: var(--shadow-md);
                 }}
                 
                 .metadata {{
                     display: flex;
-                    gap: 30px;
-                    margin-top: 20px;
+                    gap: var(--spacing-lg);
+                    margin-top: var(--spacing-md);
                     flex-wrap: wrap;
                 }}
                 
                 .meta-item {{
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    color: #666;
+                    gap: var(--spacing-sm);
+                    color: var(--color-text-secondary);
                 }}
                 
                 .meta-icon {{
                     width: 24px;
                     height: 24px;
-                    fill: #667eea;
+                    fill: var(--color-secondary);
                 }}
                 
                 .query-box {{
-                    background: #f8f9fa;
-                    border-left: 4px solid #667eea;
-                    padding: 20px;
-                    margin: 20px 0;
-                    border-radius: 8px;
+                    background: var(--color-bg-secondary);
+                    border-left: 4px solid var(--color-secondary);
+                    padding: var(--spacing-md);
+                    margin: var(--spacing-md) 0;
+                    border-radius: var(--radius-md);
                 }}
                 
                 .query-label {{
                     font-weight: bold;
-                    color: #495057;
-                    margin-bottom: 8px;
+                    color: var(--color-text-secondary);
+                    margin-bottom: var(--spacing-xs);
                     text-transform: uppercase;
-                    font-size: 12px;
+                    font-size: 0.75rem;
                     letter-spacing: 0.5px;
                 }}
                 
                 .query-text {{
-                    color: #333;
-                    font-size: 18px;
+                    color: var(--color-text-primary);
+                    font-size: 1.125rem;
                     line-height: 1.6;
                 }}
                 
@@ -155,35 +146,10 @@ class FinalReportMaterializer(PydanticMaterializer):
                 
                 .view-actions {{
                     position: absolute;
-                    top: 20px;
-                    right: 20px;
+                    top: var(--spacing-md);
+                    right: var(--spacing-md);
                     display: flex;
-                    gap: 10px;
-                }}
-                
-                .action-button {{
-                    background: #667eea;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    text-decoration: none;
-                    display: inline-block;
-                }}
-                
-                .action-button:hover {{
-                    background: #5a63d8;
-                    transform: translateY(-2px);
-                    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-                }}
-                
-                .loading-indicator {{
-                    text-align: center;
-                    padding: 60px;
-                    color: #666;
+                    gap: var(--spacing-sm);
                 }}
                 
                 @media (max-width: 768px) {{
@@ -199,8 +165,8 @@ class FinalReportMaterializer(PydanticMaterializer):
             </style>
         </head>
         <body>
-            <div class="header">
-                <div class="container">
+            <div class="report-header">
+                <div class="dr-container">
                     <h1>Final Research Report</h1>
                     
                     <div class="query-box">
@@ -227,15 +193,15 @@ class FinalReportMaterializer(PydanticMaterializer):
             
             <div class="report-frame-container">
                 <div class="view-actions">
-                    <a href="final_report.html" target="_blank" class="action-button">
+                    <a href="final_report.html" target="_blank" class="dr-button dr-button--secondary">
                         Open in New Tab
                     </a>
-                    <button onclick="window.print()" class="action-button">
+                    <button onclick="window.print()" class="dr-button dr-button--secondary">
                         Print Report
                     </button>
                 </div>
                 
-                <div id="loading" class="loading-indicator">
+                <div id="loading" class="dr-loading">
                     Loading report...
                 </div>
                 

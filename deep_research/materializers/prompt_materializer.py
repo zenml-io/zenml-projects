@@ -7,6 +7,12 @@ for individual prompts in the ZenML dashboard.
 import os
 from typing import Dict
 
+from utils.css_utils import (
+    create_stat_card,
+    get_card_class,
+    get_grid_class,
+    get_shared_css_tag,
+)
 from utils.pydantic_models import Prompt
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
@@ -52,28 +58,24 @@ class PromptMaterializer(PydanticMaterializer):
         Returns:
             HTML string
         """
-        # Determine tag colors
+        # Create tags HTML
         tag_html = ""
         if prompt.tags:
-            tag_colors = {
-                "search": "search",
-                "synthesis": "synthesis",
-                "analysis": "analysis",
-                "reflection": "reflection",
-                "report": "report",
-                "query": "query",
-                "decomposition": "decomposition",
-                "viewpoint": "viewpoint",
-                "conclusion": "conclusion",
-                "summary": "summary",
-                "introduction": "introduction",
-            }
-
             tag_html = '<div class="prompt-tags">'
             for tag in prompt.tags:
-                tag_class = tag_colors.get(tag, "default")
-                tag_html += f'<span class="tag {tag_class}">{tag}</span>'
+                tag_html += (
+                    f'<span class="dr-tag dr-tag--primary">{tag}</span>'
+                )
             tag_html += "</div>"
+
+        # Build stats HTML
+        stats_html = f"""
+        <div class="{get_grid_class("stats")}">
+            {create_stat_card(len(prompt.content.split()), "Words")}
+            {create_stat_card(len(prompt.content), "Characters")}
+            {create_stat_card(len(prompt.content.splitlines()), "Lines")}
+        </div>
+        """
 
         # Create HTML content
         html = f"""
@@ -81,37 +83,20 @@ class PromptMaterializer(PydanticMaterializer):
         <html>
         <head>
             <title>{prompt.name} - Prompt</title>
+            {get_shared_css_tag()}
             <style>
-                body {{
-                    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-                    line-height: 1.6;
-                    max-width: 1000px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f5f7fa;
-                    color: #333;
-                }}
-                
-                .container {{
-                    background-color: white;
-                    border-radius: 15px;
-                    padding: 30px;
-                    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-                }}
-                
+                /* Component-specific styles */
                 .prompt-header {{
-                    border-bottom: 3px solid #e1e8ed;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
+                    border-bottom: 3px solid var(--color-border);
+                    padding-bottom: var(--spacing-md);
+                    margin-bottom: var(--spacing-lg);
                 }}
                 
-                h1 {{
-                    color: #2c3e50;
-                    margin: 0 0 15px 0;
-                    font-size: 2.2em;
+                .prompt-title {{
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    flex-wrap: wrap;
                 }}
                 
                 .prompt-version {{
@@ -124,61 +109,29 @@ class PromptMaterializer(PydanticMaterializer):
                 }}
                 
                 .prompt-description {{
-                    color: #6c757d;
+                    color: var(--color-text-secondary);
                     font-size: 1.1em;
-                    margin-bottom: 20px;
+                    margin-bottom: var(--spacing-md);
                     font-style: italic;
                 }}
                 
                 .prompt-tags {{
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 8px;
-                    margin-bottom: 20px;
+                    gap: var(--spacing-xs);
+                    margin-bottom: var(--spacing-md);
                 }}
-                
-                .tag {{
-                    background-color: #f0f0f0;
-                    color: #555;
-                    padding: 5px 12px;
-                    border-radius: 15px;
-                    font-size: 0.9em;
-                    font-weight: 500;
-                }}
-                
-                .tag.default {{ background-color: #f0f0f0; color: #555; }}
-                .tag.search {{ background-color: #fff3cd; color: #856404; }}
-                .tag.synthesis {{ background-color: #d4edda; color: #155724; }}
-                .tag.analysis {{ background-color: #d1ecf1; color: #0c5460; }}
-                .tag.reflection {{ background-color: #f8d7da; color: #721c24; }}
-                .tag.report {{ background-color: #e2e3e5; color: #383d41; }}
-                .tag.query {{ background-color: #f3e5f5; color: #6a1b9a; }}
-                .tag.decomposition {{ background-color: #e8f5e9; color: #2e7d32; }}
-                .tag.viewpoint {{ background-color: #fff8e1; color: #f57c00; }}
-                .tag.conclusion {{ background-color: #e1f5fe; color: #0277bd; }}
-                .tag.summary {{ background-color: #fce4ec; color: #c2185b; }}
-                .tag.introduction {{ background-color: #f3e5f5; color: #7b1fa2; }}
                 
                 .prompt-content-section {{
-                    margin-top: 30px;
-                }}
-                
-                .section-title {{
-                    color: #495057;
-                    font-size: 1.3em;
-                    font-weight: 600;
-                    margin-bottom: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
+                    margin-top: var(--spacing-lg);
                 }}
                 
                 .prompt-content {{
-                    background-color: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 10px;
-                    padding: 20px;
-                    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                    background-color: var(--color-bg-secondary);
+                    border: 1px solid var(--color-border);
+                    border-radius: var(--radius-md);
+                    padding: var(--spacing-md);
+                    font-family: var(--font-family-mono);
                     font-size: 0.95em;
                     line-height: 1.6;
                     white-space: pre-wrap;
@@ -188,50 +141,14 @@ class PromptMaterializer(PydanticMaterializer):
                     overflow-y: auto;
                 }}
                 
-                .prompt-content::-webkit-scrollbar {{
-                    width: 10px;
-                }}
-                
-                .prompt-content::-webkit-scrollbar-track {{
-                    background: #f1f1f1;
-                    border-radius: 5px;
-                }}
-                
-                .prompt-content::-webkit-scrollbar-thumb {{
-                    background: #888;
-                    border-radius: 5px;
-                }}
-                
-                .prompt-content::-webkit-scrollbar-thumb:hover {{
-                    background: #555;
-                }}
-                
                 .copy-button {{
                     position: absolute;
                     top: 15px;
                     right: 15px;
-                    background-color: #3498db;
-                    color: white;
-                    border: none;
-                    padding: 8px 20px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 0.9em;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                }}
-                
-                .copy-button:hover {{
-                    background-color: #2980b9;
-                    transform: translateY(-1px);
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
                 }}
                 
                 .copy-button.copied {{
-                    background-color: #27ae60;
+                    background-color: var(--color-success);
                 }}
                 
                 .copy-icon {{
@@ -239,65 +156,23 @@ class PromptMaterializer(PydanticMaterializer):
                     height: 16px;
                 }}
                 
-                .stats {{
-                    display: flex;
-                    gap: 30px;
-                    margin: 30px 0;
-                    padding: 20px;
-                    background-color: #f8f9fa;
-                    border-radius: 10px;
-                }}
-                
-                .stat {{
-                    text-align: center;
-                    flex: 1;
-                }}
-                
-                .stat-value {{
-                    font-size: 2em;
-                    font-weight: bold;
-                    color: #3498db;
-                    display: block;
-                }}
-                
-                .stat-label {{
-                    font-size: 0.9em;
-                    color: #6c757d;
-                    margin-top: 5px;
+                .section-icon {{
+                    margin-right: var(--spacing-xs);
                 }}
                 
                 @media (max-width: 768px) {{
-                    body {{
-                        padding: 10px;
-                    }}
-                    
-                    .container {{
-                        padding: 20px;
-                    }}
-                    
-                    h1 {{
-                        font-size: 1.8em;
+                    .prompt-title {{
                         flex-direction: column;
                         align-items: flex-start;
                         gap: 10px;
-                    }}
-                    
-                    .stats {{
-                        flex-direction: column;
-                        gap: 15px;
-                    }}
-                    
-                    .copy-button {{
-                        padding: 6px 15px;
-                        font-size: 0.85em;
                     }}
                 }}
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="{get_card_class()} dr-container dr-container--narrow">
                 <div class="prompt-header">
-                    <h1>
+                    <h1 class="prompt-title">
                         🎯 {prompt.name}
                         <span class="prompt-version">v{prompt.version}</span>
                     </h1>
@@ -305,25 +180,12 @@ class PromptMaterializer(PydanticMaterializer):
                     {tag_html}
                 </div>
                 
-                <div class="stats">
-                    <div class="stat">
-                        <span class="stat-value">{len(prompt.content.split())}</span>
-                        <span class="stat-label">Words</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">{len(prompt.content)}</span>
-                        <span class="stat-label">Characters</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">{len(prompt.content.splitlines())}</span>
-                        <span class="stat-label">Lines</span>
-                    </div>
-                </div>
+                {stats_html}
                 
                 <div class="prompt-content-section">
-                    <h2 class="section-title">📝 Prompt Content</h2>
+                    <h2><span class="section-icon">📝</span>Prompt Content</h2>
                     <div class="prompt-content" id="promptContent">
-                        <button class="copy-button" onclick="copyToClipboard()" id="copyButton">
+                        <button class="dr-button dr-button--small copy-button" onclick="copyToClipboard()" id="copyButton">
                             <svg class="copy-icon" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
                                 <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>

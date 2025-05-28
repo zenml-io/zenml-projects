@@ -12,6 +12,7 @@ import time
 from typing import Annotated, Tuple
 
 from materializers.final_report_materializer import FinalReportMaterializer
+from utils.css_utils import get_shared_css_tag
 from utils.helper_functions import (
     extract_html_from_content,
     remove_reasoning_from_output,
@@ -729,6 +730,7 @@ def generate_report_from_template(
     # Generate complete HTML report
     html_content = STATIC_HTML_TEMPLATE.format(
         main_query=html.escape(query_context.main_query),
+        shared_css=get_shared_css_tag(),
         sub_questions_toc=sub_questions_toc,
         additional_sections_toc=additional_sections_toc,
         executive_summary=executive_summary,

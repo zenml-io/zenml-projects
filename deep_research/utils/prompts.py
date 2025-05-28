@@ -786,18 +786,9 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research Report: {main_query}</title>
+    {shared_css}
     <style>
-        /* Global Styles */
-        body {{
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            line-height: 1.7;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px;
-            background-color: #f5f7fa;
-        }}
-        
+        /* Report-specific styles that don't fit the common patterns */
         .research-report {{
             background-color: white;
             border-radius: 15px;
@@ -817,14 +808,10 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             background: linear-gradient(90deg, #3498db, #2ecc71, #f1c40f, #e74c3c);
         }}
         
-        /* Typography */
+        /* Center align h1 for report */
         h1 {{
-            color: #2c3e50;
-            padding-bottom: 15px;
-            margin-top: 0;
-            font-size: 2.2em;
             text-align: center;
-            position: relative;
+            margin-top: 0;
         }}
         
         h1::after {{
@@ -837,15 +824,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 3px;
         }}
         
-        h2 {{
-            color: #2c3e50;
-            padding-bottom: 10px;
-            margin-top: 30px;
-            font-size: 1.7em;
-            position: relative;
-            display: inline-block;
-        }}
-        
+        /* Special gradient headers for h2 */
         h2::after {{
             content: "";
             position: absolute;
@@ -857,79 +836,12 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 2px;
         }}
         
-        h3 {{
-            color: #3498db;
-            margin-top: 20px;
-            font-size: 1.3em;
-            position: relative;
-            display: inline-block;
-            margin-bottom: 15px;
-        }}
-        
-        h3::after {{
-            content: "";
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 40px;
-            height: 2px;
-            background-color: #3498db;
-            border-radius: 2px;
-        }}
-        
-        p {{
-            margin: 15px 0;
-            line-height: 1.8;
-            font-size: 1.02em;
-            color: #444;
-        }}
-        
-        strong {{
-            color: #2c3e50;
-            font-weight: 600;
-        }}
-        
-        /* Sections */
+        /* Sections with border-top */
         .section {{
-            margin: 30px 0;
-            padding: 25px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
-            border-top: 5px solid #3498db;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-top: 5px solid var(--color-primary);
         }}
         
-        .section:hover {{
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
-        }}
-        
-        .content {{
-            margin-top: 15px;
-            line-height: 1.7;
-        }}
-        
-        /* Notice/Alert Styles */
-        .notice {{
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }}
-        
-        .info {{
-            background-color: #e8f4f8;
-            border-left: 4px solid #3498db;
-            color: #0c5460;
-        }}
-        
-        .warning {{
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            color: #856404;
-        }}
-        
-        /* Confidence Level Indicators */
+        /* Question header layout */
         .question-header {{
             display: flex;
             justify-content: space-between;
@@ -944,36 +856,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             min-width: 200px;
         }}
         
-        .confidence-level {{
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 15px;
-            border-radius: 30px;
-            font-weight: bold;
-            margin: 10px 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }}
-        
-        .confidence-icon {{
-            margin-right: 8px;
-        }}
-        
-        .confidence-high {{
-            background: linear-gradient(to right, #d4edda, #c3e6cb);
-            color: #155724;
-        }}
-        
-        .confidence-medium {{
-            background: linear-gradient(to right, #fff3cd, #ffeeba);
-            color: #856404;
-        }}
-        
-        .confidence-low {{
-            background: linear-gradient(to right, #f8d7da, #f5c6cb);
-            color: #721c24;
-        }}
-        
-        /* Lists */
+        /* Lists styling for report */
         ul {{
             padding-left: 20px;
         }}
@@ -1003,7 +886,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         .source-list li {{
             padding: 6px 0;
-            border-bottom: 1px dashed #e9ecef;
+            border-bottom: 1px dashed var(--color-border);
         }}
         
         .source-list li:last-child {{
@@ -1011,13 +894,13 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .source-list a {{
-            color: #2980b9;
+            color: var(--color-primary-dark);
             text-decoration: none;
             transition: color 0.2s ease;
         }}
         
         .source-list a:hover {{
-            color: #3498db;
+            color: var(--color-primary);
             text-decoration: underline;
         }}
         
@@ -1026,13 +909,13 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             margin-top: 40px;
             padding: 25px;
             border-radius: 10px;
-            background-color: #f8f9fa;
+            background-color: var(--color-bg-secondary);
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05);
         }}
         
         .references h2 {{
             margin-top: 0;
-            color: #2c3e50;
+            color: var(--color-heading);
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
             display: flex;
@@ -1067,7 +950,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .references a {{
-            color: #2980b9;
+            color: var(--color-primary-dark);
             text-decoration: none;
         }}
         
@@ -1077,7 +960,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         /* Table of Contents */
         .toc {{
-            background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+            background: linear-gradient(to bottom right, var(--color-bg-secondary), #e9ecef);
             padding: 20px;
             border-radius: 10px;
             margin: 25px 0;
@@ -1087,7 +970,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         .toc h2 {{
             margin-top: 0;
-            color: #2c3e50;
+            color: var(--color-heading);
             display: flex;
             align-items: center;
         }}
@@ -1116,7 +999,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .toc a {{
-            color: #3498db;
+            color: var(--color-primary);
             text-decoration: none;
             display: inline-block;
             padding: 5px 10px;
@@ -1150,7 +1033,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .executive-summary h2 {{
-            color: #2980b9;
+            color: var(--color-primary-dark);
             border-bottom: 2px solid rgba(52, 152, 219, 0.3);
             padding-bottom: 10px;
             margin-top: 0;
@@ -1167,7 +1050,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         .key-findings h3 {{
             margin-top: 0;
-            color: #3498db;
+            color: var(--color-primary);
         }}
         
         /* Viewpoint Analysis */
@@ -1181,7 +1064,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 20px;
             margin: 10px 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #28a745;
+            border-left: 5px solid var(--color-success);
         }}
         
         .viewpoint-agreement ul {{
@@ -1200,7 +1083,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         .viewpoint-agreement li:before {{
             content: "✓";
-            color: #28a745;
+            color: var(--color-success);
             font-weight: bold;
             margin-right: 10px;
         }}
@@ -1211,11 +1094,11 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 20px;
             margin: 15px 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #dc3545;
+            border-left: 5px solid var(--color-danger);
         }}
         
         .viewpoint-tension h4 {{
-            color: #721c24;
+            color: var(--color-danger-dark);
             margin-top: 0;
             font-size: 1.1em;
             border-bottom: 1px solid rgba(220, 53, 69, 0.3);
@@ -1253,11 +1136,11 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         /* Category-specific styles */
         .category-economic {{
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            background: linear-gradient(135deg, var(--color-success), #27ae60);
         }}
         
         .category-scientific {{
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         }}
         
         .category-political {{
@@ -1265,11 +1148,11 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .category-social {{
-            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            background: linear-gradient(135deg, var(--color-warning), #f39c12);
         }}
         
         .category-ethical {{
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, var(--color-danger), #c0392b);
         }}
         
         .category-historical {{
@@ -1291,7 +1174,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         }}
         
         .perspective-gaps {{
-            border-left: 5px solid #17a2b8;
+            border-left: 5px solid var(--color-info);
         }}
         
         .integrative-insights {{
@@ -1307,7 +1190,7 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
             display: flex;
             align-items: center;
             margin-bottom: 15px;
-            color: #2c3e50;
+            color: var(--color-heading);
         }}
         
         .section-icon {{
@@ -1318,68 +1201,11 @@ STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
         
         /* Blockquote styling */
         blockquote {{
-            border-left: 3px solid #3498db;
-            background-color: #f8f9fa;
+            border-left: 3px solid var(--color-primary);
+            background-color: var(--color-bg-secondary);
             padding: 10px 20px;
             margin: 15px 0;
             font-style: italic;
-        }}
-        
-        /* Code/Pre styling */
-        code, pre {{
-            background-color: #f7f7f7;
-            border: 1px solid #e1e1e8;
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-family: Consolas, Monaco, 'Andale Mono', monospace;
-        }}
-        
-        pre {{
-            padding: 10px;
-            overflow: auto;
-            white-space: pre-wrap;
-        }}
-        
-        /* Responsive design */
-        @media (max-width: 768px) {{
-            body {{
-                padding: 10px;
-            }}
-            
-            .research-report {{
-                padding: 15px;
-            }}
-            
-            .section {{
-                padding: 15px;
-            }}
-        }}
-        
-        /* Table styling */
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }}
-        
-        th {{
-            background-color: #3498db;
-            color: white;
-            padding: 10px;
-            text-align: left;
-        }}
-        
-        td {{
-            padding: 8px 10px;
-            border-bottom: 1px solid #ddd;
-        }}
-        
-        tr:nth-child(even) {{
-            background-color: #f2f2f2;
-        }}
-        
-        tr:hover {{
-            background-color: #e6f7ff;
         }}
     </style>
 </head>
@@ -1602,4 +1428,545 @@ Format your output as a well-structured conclusion section in HTML format with a
 IMPORTANT: Do NOT include any headings like "Conclusion", <h2>, or <h3> tags - the section already has a heading. Start directly with the conclusion content in paragraph form. Just create flowing, well-structured paragraphs that cover all four aspects naturally.
 
 Ensure the conclusion feels cohesive and draws meaningful connections between findings rather than just listing them sequentially.
+"""
+
+# Static HTML template for direct report generation without LLM
+STATIC_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Report: {main_query}</title>
+    {shared_css}
+    <style>
+        /* Report-specific styles that don't fit the common patterns */
+        .research-report {{
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .research-report::before {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #3498db, #2ecc71, #f1c40f, #e74c3c);
+        }}
+        
+        /* Center align h1 for report */
+        h1 {{
+            text-align: center;
+            margin-top: 0;
+        }}
+        
+        h1::after {{
+            content: "";
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            margin: 15px auto 0;
+            border-radius: 3px;
+        }}
+        
+        /* Special gradient headers for h2 */
+        h2::after {{
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 2px;
+        }}
+        
+        /* Sections with border-top */
+        .section {{
+            border-top: 5px solid var(--color-primary);
+        }}
+        
+        /* Question header layout */
+        .question-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }}
+        
+        .question-header h2 {{
+            margin: 0;
+            flex: 1;
+            min-width: 200px;
+        }}
+        
+        /* Lists styling for report */
+        ul {{
+            padding-left: 20px;
+        }}
+        
+        li {{
+            margin: 8px 0;
+        }}
+        
+        /* Key Sources & Information Gaps */
+        .key-sources, .information-gaps {{
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(248, 249, 250, 0.6);
+        }}
+        
+        .key-sources h3, .information-gaps h3 {{
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .source-list {{
+            list-style-type: none;
+            padding-left: 10px;
+        }}
+        
+        .source-list li {{
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--color-border);
+        }}
+        
+        .source-list li:last-child {{
+            border-bottom: none;
+        }}
+        
+        .source-list a {{
+            color: var(--color-primary-dark);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }}
+        
+        .source-list a:hover {{
+            color: var(--color-primary);
+            text-decoration: underline;
+        }}
+        
+        /* References Section */
+        .references {{
+            margin-top: 40px;
+            padding: 25px;
+            border-radius: 10px;
+            background-color: var(--color-bg-secondary);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05);
+        }}
+        
+        .references h2 {{
+            margin-top: 0;
+            color: var(--color-heading);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .references h2::before {{
+            content: "📖";
+            margin-right: 10px;
+        }}
+        
+        .references ul {{
+            list-style-type: none;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }}
+        
+        .references li {{
+            padding: 10px 15px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            word-break: break-word;
+        }}
+        
+        .references li:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        
+        .references a {{
+            color: var(--color-primary-dark);
+            text-decoration: none;
+        }}
+        
+        .references a:hover {{
+            text-decoration: underline;
+        }}
+        
+        /* Table of Contents */
+        .toc {{
+            background: linear-gradient(to bottom right, var(--color-bg-secondary), #e9ecef);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }}
+        
+        .toc h2 {{
+            margin-top: 0;
+            color: var(--color-heading);
+            display: flex;
+            align-items: center;
+        }}
+        
+        .toc h2::before {{
+            content: "📑";
+            margin-right: 10px;
+        }}
+        
+        .toc ul {{
+            list-style-type: none;
+            padding-left: 15px;
+            column-count: 2;
+            column-gap: 30px;
+        }}
+        
+        @media (max-width: 768px) {{
+            .toc ul {{
+                column-count: 1;
+            }}
+        }}
+        
+        .toc li {{
+            margin: 8px 0;
+            break-inside: avoid;
+        }}
+        
+        .toc a {{
+            color: var(--color-primary);
+            text-decoration: none;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }}
+        
+        .toc a:hover {{
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: translateX(3px);
+        }}
+        
+        /* Executive Summary */
+        .executive-summary {{
+            background: linear-gradient(135deg, #e8f4f8, #d1e7ef);
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 3px 20px rgba(52, 152, 219, 0.15);
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .executive-summary::before {{
+            content: "📋";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2.5em;
+            opacity: 0.15;
+        }}
+        
+        .executive-summary h2 {{
+            color: var(--color-primary-dark);
+            border-bottom: 2px solid rgba(52, 152, 219, 0.3);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }}
+        
+        /* Key Findings Box */
+        .key-findings {{
+            background-color: #f0f7fb;
+            border: 1px solid #d0e3f0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }}
+        
+        .key-findings h3 {{
+            margin-top: 0;
+            color: var(--color-primary);
+        }}
+        
+        /* Viewpoint Analysis */
+        .viewpoint-analysis {{
+            margin: 30px 0;
+        }}
+        
+        .viewpoint-agreement {{
+            background-color: rgba(212, 237, 218, 0.6);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--color-success);
+        }}
+        
+        .viewpoint-agreement ul {{
+            padding-left: 10px;
+        }}
+        
+        .viewpoint-agreement li {{
+            padding: 8px 10px;
+            margin: 8px 0;
+            list-style-type: none;
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }}
+        
+        .viewpoint-agreement li:before {{
+            content: "✓";
+            color: var(--color-success);
+            font-weight: bold;
+            margin-right: 10px;
+        }}
+        
+        .viewpoint-tension {{
+            background-color: rgba(248, 215, 218, 0.5);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--color-danger);
+        }}
+        
+        .viewpoint-tension h4 {{
+            color: var(--color-danger-dark);
+            margin-top: 0;
+            font-size: 1.1em;
+            border-bottom: 1px solid rgba(220, 53, 69, 0.3);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }}
+        
+        .viewpoint-content {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }}
+        
+        .viewpoint-item {{
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1 1 200px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            margin-top: 10px;
+        }}
+        
+        .viewpoint-category {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        
+        /* Category-specific styles */
+        .category-economic {{
+            background: linear-gradient(135deg, var(--color-success), #27ae60);
+        }}
+        
+        .category-scientific {{
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+        }}
+        
+        .category-political {{
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }}
+        
+        .category-social {{
+            background: linear-gradient(135deg, var(--color-warning), #f39c12);
+        }}
+        
+        .category-ethical {{
+            background: linear-gradient(135deg, var(--color-danger), #c0392b);
+        }}
+        
+        .category-historical {{
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+        }}
+        
+        /* Default style for any other categories */
+        [class^="category-"] {{
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }}
+        
+        /* Perspective Gaps & Integrative Insights */
+        .perspective-gaps, .integrative-insights {{
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }}
+        
+        .perspective-gaps {{
+            border-left: 5px solid var(--color-info);
+        }}
+        
+        .integrative-insights {{
+            border-left: 5px solid #6f42c1;
+        }}
+        
+        /* Viewpoint section styling */
+        .viewpoint-section {{
+            margin-bottom: 25px;
+        }}
+        
+        .viewpoint-section h3 {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--color-heading);
+        }}
+        
+        .section-icon {{
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 1.2em;
+        }}
+        
+        /* Blockquote styling */
+        blockquote {{
+            border-left: 3px solid var(--color-primary);
+            background-color: var(--color-bg-secondary);
+            padding: 10px 20px;
+            margin: 15px 0;
+            font-style: italic;
+        }}
+    </style>
+</head>
+<body>
+    <div class="research-report">
+        <h1>Research Report: {main_query}</h1>
+        
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#executive-summary">Executive Summary</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                {sub_questions_toc}
+                {additional_sections_toc}
+                <li><a href="#conclusion">Conclusion</a></li>
+                <li><a href="#references">References</a></li>
+            </ul>
+        </div>
+        
+        <!-- Executive Summary -->
+        <div id="executive-summary" class="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>{executive_summary}</p>
+        </div>
+        
+        <!-- Introduction -->
+        <div id="introduction" class="dr-section">
+            <h2>Introduction</h2>
+            {introduction_html}
+        </div>
+        
+        <!-- Sub-Question Sections -->
+        {sub_questions_html}
+        
+        <!-- Viewpoint Analysis Section (if available) -->
+        {viewpoint_analysis_html}
+        
+        <!-- Conclusion -->
+        <div id="conclusion" class="dr-section">
+            <h2>Conclusion</h2>
+            {conclusion_html}
+        </div>
+        
+        <!-- References -->
+        <div id="references" class="references">
+            <h2>References</h2>
+            {references_html}
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# Template for sub-question section in the static HTML report
+SUB_QUESTION_TEMPLATE = """
+<div id="question-{index}" class="dr-section">
+    <div class="question-header">
+        <h2>{index}. {question}</h2>
+        <span class="dr-confidence dr-confidence--{confidence}">
+            <span class="confidence-icon">
+                {confidence_icon}
+            </span>
+            Confidence: {confidence_upper}
+        </span>
+    </div>
+    
+    <div class="content">
+        <p>{answer}</p>
+    </div>
+    
+    {info_gaps_html}
+    
+    {key_sources_html}
+</div>
+"""
+
+# Template for viewpoint analysis section in the static HTML report
+VIEWPOINT_ANALYSIS_TEMPLATE = """
+<div id="viewpoint-analysis" class="dr-section viewpoint-analysis">
+    <h2>Viewpoint Analysis</h2>
+    
+    <div class="viewpoint-section">
+        <h3><span class="section-icon">🤝</span> Points of Agreement</h3>
+        <div class="viewpoint-agreement">
+            <ul>
+                {agreements_html}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="viewpoint-section">
+        <h3><span class="section-icon">⚖️</span> Areas of Tension</h3>
+        <div class="viewpoint-tensions">
+            {tensions_html}
+        </div>
+    </div>
+    
+    <div class="viewpoint-section">
+        <h3><span class="section-icon">🔍</span> Perspective Gaps</h3>
+        <div class="perspective-gaps">
+            <p>{perspective_gaps}</p>
+        </div>
+    </div>
+    
+    <div class="viewpoint-section">
+        <h3><span class="section-icon">💡</span> Integrative Insights</h3>
+        <div class="integrative-insights">
+            <p>{integrative_insights}</p>
+        </div>
+    </div>
+</div>
 """

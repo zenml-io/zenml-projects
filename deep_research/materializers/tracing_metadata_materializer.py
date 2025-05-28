@@ -3,6 +3,13 @@
 import os
 from typing import Dict
 
+from utils.css_utils import (
+    create_stat_card,
+    get_card_class,
+    get_grid_class,
+    get_shared_css_tag,
+    get_table_class,
+)
 from utils.pydantic_models import TracingMetadata
 from zenml.enums import ArtifactType, VisualizationType
 from zenml.io import fileio
@@ -53,172 +60,60 @@ class TracingMetadataMaterializer(PydanticMaterializer):
             metadata.total_tokens, 1
         )
 
+        # Build stats cards HTML
+        stats_html = f"""
+        <div class="{get_grid_class("metrics")}">
+            <div class="dr-stat-card">
+                <div class="dr-stat-label">Pipeline Run</div>
+                <div class="dr-stat-value" style="font-size: 16px;">{metadata.pipeline_run_name}</div>
+            </div>
+            {create_stat_card(f"${metadata.total_cost:.4f}", "LLM Cost")}
+            {create_stat_card(f"{metadata.total_tokens:,}", "Total Tokens")}
+            {create_stat_card(metadata.formatted_latency, "Duration")}
+        </div>
+        """
+
+        token_stats_html = f"""
+        <div class="{get_grid_class("metrics")}">
+            {create_stat_card(f"{metadata.total_input_tokens:,}", "Input Tokens")}
+            {create_stat_card(f"{metadata.total_output_tokens:,}", "Output Tokens")}
+            {create_stat_card(metadata.observation_count, "Observations")}
+            {create_stat_card(f"${avg_cost_per_token:.6f}", "Avg Cost per Token")}
+        </div>
+        """
+
         # Base structure for the HTML
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Pipeline Tracing Metadata</title>
+            {get_shared_css_tag()}
             <style>
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    line-height: 1.6;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                    color: #333;
+                /* Component-specific styles */
+                .metric-breakdown-section {{
+                    margin-top: var(--spacing-lg);
                 }}
-                .container {{
-                    background-color: white;
-                    border-radius: 8px;
-                    padding: 20px;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }}
-                h1, h2, h3 {{
-                    color: #2c3e50;
-                }}
-                h1 {{
-                    border-bottom: 2px solid #3498db;
-                    padding-bottom: 10px;
-                }}
-                .metric-grid {{
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 20px;
-                    margin: 20px 0;
-                }}
-                .metric-card {{
-                    background-color: #f8f9fa;
-                    border-radius: 8px;
-                    padding: 15px;
-                    border-left: 4px solid #3498db;
-                }}
-                .metric-value {{
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                    margin: 5px 0;
-                }}
-                .metric-label {{
-                    color: #7f8c8d;
-                    font-size: 14px;
-                }}
-                .cost-breakdown {{
-                    margin: 20px 0;
-                }}
-                .model-table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }}
-                .model-table th, .model-table td {{
-                    padding: 10px;
-                    text-align: left;
-                    border-bottom: 1px solid #ddd;
-                }}
-                .model-table th {{
-                    background-color: #3498db;
-                    color: white;
-                }}
-                .model-table tr:hover {{
-                    background-color: #f5f5f5;
-                }}
-                .step-breakdown {{
-                    margin: 20px 0;
-                }}
-                .step-item {{
-                    background-color: #f8f9fa;
-                    border-left: 3px solid #e67e22;
-                    padding: 10px;
-                    margin: 10px 0;
-                    border-radius: 4px;
-                }}
-                .metadata-info {{
-                    font-size: 12px;
-                    color: #7f8c8d;
-                    margin-top: 20px;
-                    padding-top: 10px;
-                    border-top: 1px dashed #ddd;
-                }}
-                .tag {{
-                    display: inline-block;
-                    background-color: #e1f5fe;
-                    color: #0277bd;
-                    padding: 3px 8px;
-                    border-radius: 12px;
-                    font-size: 12px;
-                    margin: 2px;
-                }}
-                .progress-bar {{
-                    background-color: #ecf0f1;
-                    border-radius: 10px;
-                    height: 20px;
-                    overflow: hidden;
-                    position: relative;
-                }}
-                .progress-fill {{
-                    height: 100%;
-                    background-color: #3498db;
+                
+                .dr-tag-container {{
                     display: flex;
-                    align-items: center;
-                    padding: 0 10px;
-                    color: white;
-                    font-size: 12px;
+                    flex-wrap: wrap;
+                    gap: var(--spacing-xs);
+                    margin-top: var(--spacing-sm);
                 }}
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="dr-container">
                 <h1>Pipeline Tracing Metadata</h1>
                 
-                <div class="metric-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Pipeline Run</div>
-                        <div class="metric-value" style="font-size: 16px;">{metadata.pipeline_run_name}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">LLM Cost</div>
-                        <div class="metric-value">${metadata.total_cost:.4f}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">Total Tokens</div>
-                        <div class="metric-value">{metadata.total_tokens:,}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">Duration</div>
-                        <div class="metric-value">{metadata.formatted_latency}</div>
-                    </div>
-                </div>
+                {stats_html}
                 
                 <h2>Token Usage</h2>
-                <div class="metric-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Input Tokens</div>
-                        <div class="metric-value">{metadata.total_input_tokens:,}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">Output Tokens</div>
-                        <div class="metric-value">{metadata.total_output_tokens:,}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">Observations</div>
-                        <div class="metric-value">{metadata.observation_count}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-label">Avg Cost per Token</div>
-                        <div class="metric-value">${avg_cost_per_token:.6f}</div>
-                    </div>
-                </div>
+                {token_stats_html}
                 
                 <h2>Model Usage Breakdown</h2>
-                <table class="model-table">
+                <table class="{get_table_class(striped=True)}">
                     <thead>
                         <tr>
                             <th>Model</th>
@@ -252,25 +147,31 @@ class TracingMetadataMaterializer(PydanticMaterializer):
 
         # Add prompt-level metrics visualization
         if metadata.prompt_metrics:
-            html += """
+            html += f"""
                 <h2>Cost Analysis by Prompt Type</h2>
                 
                 <!-- Chart.js library -->
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 
                 <!-- Cost by prompt type bar chart -->
-                <div style="max-width: 800px; margin: 20px auto;">
-                    <canvas id="promptCostChart"></canvas>
+                <div class="{get_card_class()}">
+                    <h3>Cost Distribution</h3>
+                    <div class="dr-chart-container">
+                        <canvas id="promptCostChart"></canvas>
+                    </div>
                 </div>
                 
                 <!-- Token usage by prompt type stacked bar chart -->
-                <div style="max-width: 800px; margin: 20px auto;">
-                    <canvas id="promptTokenChart"></canvas>
+                <div class="{get_card_class()}">
+                    <h3>Token Usage</h3>
+                    <div class="dr-chart-container">
+                        <canvas id="promptTokenChart"></canvas>
+                    </div>
                 </div>
                 
                 <!-- Prompt efficiency table -->
                 <h3>Prompt Type Efficiency</h3>
-                <table class="model-table">
+                <table class="{get_table_class(striped=True)}">
                     <thead>
                         <tr>
                             <th>Prompt Type</th>
@@ -445,11 +346,8 @@ class TracingMetadataMaterializer(PydanticMaterializer):
             total_search_cost = sum(metadata.search_costs.values())
             total_combined_cost = metadata.total_cost + total_search_cost
 
-            html += """
-                <h2>Search Provider Costs</h2>
-                <div class="metric-grid">
-            """
-
+            # Build search provider cards
+            search_cards = ""
             for provider, cost in metadata.search_costs.items():
                 if cost > 0:
                     query_count = metadata.search_queries_count.get(
@@ -458,112 +356,114 @@ class TracingMetadataMaterializer(PydanticMaterializer):
                     avg_cost_per_query = (
                         cost / query_count if query_count > 0 else 0
                     )
-                    html += f"""
-                        <div class="metric-card">
-                            <div class="metric-label">{provider.upper()} Search</div>
-                            <div class="metric-value">${cost:.4f}</div>
-                            <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
-                                {query_count} queries • ${avg_cost_per_query:.4f}/query
-                            </div>
-                        </div>
-                    """
-
-            html += (
-                f"""
-                    <div class="metric-card">
-                        <div class="metric-label">Total Search Cost</div>
-                        <div class="metric-value" style="color: #e67e22;">${total_search_cost:.4f}</div>
-                        <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
-                            {sum(metadata.search_queries_count.values())} total queries
+                    search_cards += f"""
+                    <div class="dr-stat-card">
+                        <div class="dr-stat-label">{provider.upper()} Search</div>
+                        <div class="dr-stat-value">${cost:.4f}</div>
+                        <div class="dr-text-muted" style="font-size: 0.75rem; margin-top: 5px;">
+                            {query_count} queries • ${avg_cost_per_query:.4f}/query
                         </div>
                     </div>
+                    """
+
+            search_cards += f"""
+                <div class="dr-stat-card" style="border-color: var(--color-warning);">
+                    <div class="dr-stat-label">Total Search Cost</div>
+                    <div class="dr-stat-value" style="color: var(--color-warning);">${total_search_cost:.4f}</div>
+                    <div class="dr-text-muted" style="font-size: 0.75rem; margin-top: 5px;">
+                        {sum(metadata.search_queries_count.values())} total queries
+                    </div>
+                </div>
+            """
+
+            html += f"""
+                <h2>Search Provider Costs</h2>
+                <div class="{get_grid_class("metrics")}">
+                    {search_cards}
                 </div>
                 
                 <h2>Combined Cost Summary</h2>
-                <div class="metric-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">LLM Cost</div>
-                        <div class="metric-value">${metadata.total_cost:.4f}</div>
-                        <div style="font-size: 12px; color: #7f8c8d;">
+                <div class="{get_grid_class("stats")}">
+                    <div class="dr-stat-card">
+                        <div class="dr-stat-label">LLM Cost</div>
+                        <div class="dr-stat-value">${metadata.total_cost:.4f}</div>
+                        <div class="dr-text-muted" style="font-size: 0.75rem;">
                             {(metadata.total_cost / total_combined_cost * 100):.1f}% of total
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Search Cost</div>
-                        <div class="metric-value">${total_search_cost:.4f}</div>
-                        <div style="font-size: 12px; color: #7f8c8d;">
+                    <div class="dr-stat-card">
+                        <div class="dr-stat-label">Search Cost</div>
+                        <div class="dr-stat-value">${total_search_cost:.4f}</div>
+                        <div class="dr-text-muted" style="font-size: 0.75rem;">
                             {(total_search_cost / total_combined_cost * 100):.1f}% of total
                         </div>
                     </div>
-                    <div class="metric-card" style="border: 2px solid #e74c3c;">
-                        <div class="metric-label">Total Pipeline Cost</div>
-                        <div class="metric-value" style="color: #e74c3c; font-size: 24px;">${total_combined_cost:.4f}</div>
+                    <div class="dr-stat-card" style="border: 2px solid var(--color-danger);">
+                        <div class="dr-stat-label">Total Pipeline Cost</div>
+                        <div class="dr-stat-value" style="color: var(--color-danger);">${total_combined_cost:.4f}</div>
                     </div>
                 </div>
                 
-                <h3>Cost Breakdown Chart</h3>
-                <div style="position: relative; height: 300px; width: 100%; max-width: 400px; margin: 0 auto;">
-                    <canvas id="costBreakdownChart"></canvas>
+                <div class="{get_card_class()}">
+                    <h3>Cost Breakdown Chart</h3>
+                    <div class="dr-chart-container" style="max-width: 400px; margin: 0 auto;">
+                        <canvas id="costBreakdownChart"></canvas>
+                    </div>
                 </div>
                 <script>
                     var ctx = document.getElementById('costBreakdownChart').getContext('2d');
-                    var totalCombinedCost = """
-                + f"{total_combined_cost:.4f}"
-                + """;
-                    var llmCost = """
-                + f"{metadata.total_cost:.4f}"
-                + """;
-                    var searchCost = """
-                + f"{total_search_cost:.4f}"
-                + """;
-                    var costBreakdownChart = new Chart(ctx, {
+                    var totalCombinedCost = {total_combined_cost:.4f};
+                    var llmCost = {metadata.total_cost:.4f};
+                    var searchCost = {total_search_cost:.4f};
+                    var costBreakdownChart = new Chart(ctx, {{
                         type: 'doughnut',
-                        data: {
+                        data: {{
                             labels: ['LLM Cost', 'Search Cost'],
-                            datasets: [{
+                            datasets: [{{
                                 data: [llmCost, searchCost],
                                 backgroundColor: ['#3498db', '#e67e22'],
                                 borderWidth: 1
-                            }]
-                        },
-                        options: {
+                            }}]
+                        }},
+                        options: {{
                             responsive: true,
                             maintainAspectRatio: true,
-                            plugins: {
-                                legend: {
+                            plugins: {{
+                                legend: {{
                                     position: 'bottom'
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
+                                }},
+                                tooltip: {{
+                                    callbacks: {{
+                                        label: function(context) {{
                                             var label = context.label || '';
                                             var value = context.parsed || 0;
                                             var percentage = ((value / totalCombinedCost) * 100).toFixed(1);
                                             return label + ': $' + value.toFixed(4) + ' (' + percentage + '%)';
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
                 </script>
             """
-            )
 
         # Add trace metadata
         if metadata.trace_tags or metadata.trace_metadata:
-            html += """
+            html += f"""
                 <h2>Trace Information</h2>
-                <div class="metric-card">
+                <div class="{get_card_class()}">
             """
 
             if metadata.trace_tags:
                 html += """
                     <h3>Tags</h3>
-                    <div>
+                    <div class="dr-tag-container">
                 """
                 for tag in metadata.trace_tags:
-                    html += f'<span class="tag">{tag}</span>'
+                    html += (
+                        f'<span class="dr-tag dr-tag--primary">{tag}</span>'
+                    )
                 html += """
                     </div>
                 """
@@ -571,7 +471,7 @@ class TracingMetadataMaterializer(PydanticMaterializer):
             if metadata.trace_metadata:
                 html += """
                     <h3>Metadata</h3>
-                    <pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <pre class="dr-code">
                 """
                 import json
 
@@ -592,7 +492,7 @@ class TracingMetadataMaterializer(PydanticMaterializer):
         ).strftime("%Y-%m-%d %H:%M:%S")
 
         html += f"""
-                <div class="metadata-info">
+                <div class="dr-timestamp">
                     <p><strong>Trace ID:</strong> {metadata.trace_id}</p>
                     <p><strong>Pipeline Run ID:</strong> {metadata.pipeline_run_id}</p>
                     <p><strong>Collected at:</strong> {collection_time}</p>
