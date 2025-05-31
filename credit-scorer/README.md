@@ -1,4 +1,4 @@
-# Credit Scoring EU AI Act Demo
+# CreditScorer: EU AI Act-Compliant Pipeline
 
 An end‑to‑end credit‑scoring workflow that automatically generates the technical evidence required by the [EU AI Act](https://www.zenml.io/blog/understanding-the-ai-act-february-2025-updates-and-implications).
 
