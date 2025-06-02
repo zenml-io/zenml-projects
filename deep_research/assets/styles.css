@@ -1,0 +1,692 @@
+/* ===================================
+   Deep Research Pipeline Global Styles
+   =================================== */
+
+/* 1. CSS Variables / Custom Properties */
+:root {
+    /* Color Palette - ZenML Design System */
+    --color-primary: #7a3ef4;
+    --color-primary-dark: #6b35db;
+    --color-primary-light: #9d6ff7;
+    --color-secondary: #667eea;
+    --color-secondary-dark: #5a63d8;
+    --color-accent: #764ba2;
+    
+    /* Status Colors - ZenML Semantic Colors */
+    --color-success: #179f3e;
+    --color-success-light: #d4edda;
+    --color-success-dark: #155724;
+    --color-warning: #a65d07;
+    --color-warning-light: #fff3cd;
+    --color-warning-dark: #856404;
+    --color-danger: #dc3545;
+    --color-danger-light: #f8d7da;
+    --color-danger-dark: #721c24;
+    --color-info: #007bff;
+    --color-info-light: #d1ecf1;
+    --color-info-dark: #004085;
+    
+    /* Chart Colors - ZenML Palette */
+    --color-chart-1: #7a3ef4;
+    --color-chart-2: #179f3e;
+    --color-chart-3: #007bff;
+    --color-chart-4: #dc3545;
+    --color-chart-5: #a65d07;
+    --color-chart-6: #6c757d;
+    
+    /* Neutrals */
+    --color-text-primary: #333;
+    --color-text-secondary: #666;
+    --color-text-muted: #999;
+    --color-text-light: #7f8c8d;
+    --color-heading: #2c3e50;
+    --color-bg-primary: #f5f7fa;
+    --color-bg-secondary: #f8f9fa;
+    --color-bg-light: #f0f2f5;
+    --color-bg-white: #ffffff;
+    --color-border: #e9ecef;
+    --color-border-light: #dee2e6;
+    --color-border-dark: #ddd;
+    
+    /* Typography - ZenML Font Stack */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    
+    /* Spacing - ZenML 8px Grid System */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    
+    /* Border Radius - ZenML Subtle Corners */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-round: 50%;
+    
+    /* Shadows - ZenML Subtle Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+    --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.1);
+    --shadow-hover-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+    
+    /* Transitions */
+    --transition-base: all 0.3s ease;
+    --transition-fast: all 0.2s ease;
+}
+
+/* 2. Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-base);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    margin: 0;
+    padding: var(--spacing-md);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3. Layout Components */
+.dr-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+.dr-container--wide {
+    max-width: 1400px;
+}
+
+.dr-container--narrow {
+    max-width: 900px;
+}
+
+/* 4. Typography */
+.dr-h1, h1 {
+    color: var(--color-heading);
+    font-size: 2em;
+    font-weight: 500;
+    margin: 0 0 var(--spacing-lg) 0;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.dr-h1--no-border {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.dr-h2, h2 {
+    color: var(--color-heading);
+    font-size: 1.4em;
+    font-weight: 500;
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-xs);
+}
+
+.dr-h3, h3 {
+    color: var(--color-primary);
+    font-size: 1.2em;
+    font-weight: 500;
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+p {
+    margin: var(--spacing-md) 0;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+}
+
+/* 5. Card Components */
+.dr-card {
+    background: var(--color-bg-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-lg);
+    transition: var(--transition-base);
+}
+
+.dr-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.dr-card--bordered {
+    border: 1px solid var(--color-border-light);
+}
+
+.dr-card--no-hover:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+}
+
+/* Header Cards */
+.dr-header-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--color-border-light);
+}
+
+/* 6. Grid System */
+.dr-grid {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.dr-grid--stats {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.dr-grid--cards {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.dr-grid--metrics {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* 7. Badges & Tags */
+.dr-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+}
+
+.dr-badge--success {
+    background-color: var(--color-success-light);
+    color: var(--color-success-dark);
+}
+
+.dr-badge--warning {
+    background-color: var(--color-warning-light);
+    color: var(--color-warning-dark);
+}
+
+.dr-badge--danger {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger-dark);
+}
+
+.dr-badge--info {
+    background-color: var(--color-info-light);
+    color: var(--color-info-dark);
+}
+
+.dr-badge--primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Tag variations */
+.dr-tag {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #555;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    margin: 2px;
+}
+
+.dr-tag--primary {
+    background-color: #e1f5fe;
+    color: #0277bd;
+}
+
+/* 8. Stat Cards */
+.dr-stat-card {
+    background: var(--color-bg-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    text-align: center;
+    transition: var(--transition-base);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.dr-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.dr-stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.dr-stat-label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    font-weight: 500;
+}
+
+/* 9. Sections */
+.dr-section {
+    background: var(--color-bg-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-light);
+}
+
+.dr-section--bordered {
+    border-left: 3px solid var(--color-primary);
+}
+
+.dr-section--info {
+    background-color: #e8f4f8;
+    border-left: 4px solid var(--color-primary);
+}
+
+.dr-section--warning {
+    background-color: var(--color-warning-light);
+    border-left: 4px solid var(--color-warning);
+}
+
+.dr-section--success {
+    background-color: var(--color-success-light);
+    border-left: 4px solid var(--color-success);
+}
+
+.dr-section--danger {
+    background-color: var(--color-danger-light);
+    border-left: 4px solid var(--color-danger);
+}
+
+/* 10. Tables */
+.dr-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-md) 0;
+    background: var(--color-bg-white);
+    overflow: hidden;
+}
+
+.dr-table th {
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--spacing-sm);
+    text-align: left;
+    font-weight: 600;
+}
+
+.dr-table td {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.dr-table tr:last-child td {
+    border-bottom: none;
+}
+
+.dr-table tr:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.dr-table--striped tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* 11. Buttons */
+.dr-button {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.dr-button:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+.dr-button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.dr-button--secondary {
+    background: var(--color-secondary);
+}
+
+.dr-button--secondary:hover {
+    background: var(--color-secondary-dark);
+    box-shadow: var(--shadow-hover);
+}
+
+.dr-button--success {
+    background: var(--color-success);
+}
+
+.dr-button--small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* 12. Confidence Indicators */
+.dr-confidence {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
+}
+
+.dr-confidence--high {
+    background: linear-gradient(to right, #d4edda, #c3e6cb);
+    color: var(--color-success-dark);
+}
+
+.dr-confidence--medium {
+    background: linear-gradient(to right, #fff3cd, #ffeeba);
+    color: var(--color-warning-dark);
+}
+
+.dr-confidence--low {
+    background: linear-gradient(to right, #f8d7da, #f5c6cb);
+    color: var(--color-danger-dark);
+}
+
+/* 13. Chart Containers */
+.dr-chart-container {
+    position: relative;
+    height: 300px;
+    margin: var(--spacing-md) 0;
+}
+
+/* 14. Code Blocks */
+.dr-code {
+    background-color: #f7f7f7;
+    border: 1px solid #e1e1e8;
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm);
+    font-family: var(--font-family-mono);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* 15. Lists */
+.dr-list {
+    margin: var(--spacing-sm) 0;
+    padding-left: 25px;
+}
+
+.dr-list li {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.dr-list--unstyled {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+/* 16. Notice Boxes */
+.dr-notice {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: var(--radius-sm);
+}
+
+.dr-notice--info {
+    background-color: #e8f4f8;
+    border-left: 4px solid var(--color-primary);
+    color: var(--color-info-dark);
+}
+
+.dr-notice--warning {
+    background-color: var(--color-warning-light);
+    border-left: 4px solid var(--color-warning);
+    color: var(--color-warning-dark);
+}
+
+/* 17. Loading States */
+.dr-loading {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* 18. Empty States */
+.dr-empty {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--spacing-xl);
+    background: var(--color-bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+/* 19. Utility Classes */
+.dr-text-center { text-align: center; }
+.dr-text-right { text-align: right; }
+.dr-text-left { text-align: left; }
+.dr-text-muted { color: var(--color-text-muted); }
+.dr-text-secondary { color: var(--color-text-secondary); }
+.dr-text-primary { color: var(--color-text-primary); }
+
+/* Margin utilities */
+.dr-mt-xs { margin-top: var(--spacing-xs); }
+.dr-mt-sm { margin-top: var(--spacing-sm); }
+.dr-mt-md { margin-top: var(--spacing-md); }
+.dr-mt-lg { margin-top: var(--spacing-lg); }
+.dr-mt-xl { margin-top: var(--spacing-xl); }
+
+.dr-mb-xs { margin-bottom: var(--spacing-xs); }
+.dr-mb-sm { margin-bottom: var(--spacing-sm); }
+.dr-mb-md { margin-bottom: var(--spacing-md); }
+.dr-mb-lg { margin-bottom: var(--spacing-lg); }
+.dr-mb-xl { margin-bottom: var(--spacing-xl); }
+
+/* Padding utilities */
+.dr-p-sm { padding: var(--spacing-sm); }
+.dr-p-md { padding: var(--spacing-md); }
+.dr-p-lg { padding: var(--spacing-lg); }
+
+/* Display utilities */
+.dr-d-none { display: none; }
+.dr-d-block { display: block; }
+.dr-d-flex { display: flex; }
+.dr-d-grid { display: grid; }
+
+/* Flex utilities */
+.dr-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dr-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 20. Special Components */
+
+/* Mind Map Styles */
+.dr-mind-map {
+    position: relative;
+    margin: var(--spacing-xl) 0;
+}
+
+.dr-mind-map-node {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Result Cards */
+.dr-result-item {
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--color-border);
+    transition: var(--transition-base);
+}
+
+.dr-result-item:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+}
+
+.dr-result-title {
+    font-weight: 600;
+    color: var(--color-heading);
+    margin-bottom: var(--spacing-xs);
+}
+
+.dr-result-snippet {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+}
+
+.dr-result-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dr-result-link:hover {
+    text-decoration: underline;
+}
+
+/* Timestamp */
+.dr-timestamp {
+    text-align: right;
+    color: var(--color-text-light);
+    font-size: 12px;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px dashed var(--color-border-dark);
+}
+
+/* 21. Gradients */
+.dr-gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.dr-gradient-header {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success), var(--color-warning), var(--color-danger));
+    height: 5px;
+}
+
+/* 22. Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: var(--spacing-sm);
+    }
+    
+    .dr-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .dr-grid--stats,
+    .dr-grid--cards,
+    .dr-grid--metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .dr-h1, h1 {
+        font-size: 1.5em;
+    }
+    
+    .dr-h2, h2 {
+        font-size: 1.25em;
+    }
+    
+    .dr-stat-value {
+        font-size: 1.75rem;
+    }
+    
+    .dr-section,
+    .dr-card {
+        padding: var(--spacing-md);
+    }
+    
+    .dr-table {
+        font-size: 13px;
+    }
+    
+    .dr-table th,
+    .dr-table td {
+        padding: 8px;
+    }
+}
+
+/* 23. Print Styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .dr-card,
+    .dr-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .dr-button {
+        display: none;
+    }
+}
