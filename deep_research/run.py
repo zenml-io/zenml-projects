@@ -274,16 +274,16 @@ def main(
         logger.info(f"Results per search: {num_results}")
 
     langfuse_project_name = "deep-research"  # default
+    query_from_config = None  # default
     try:
         with open(config, "r") as f:
             config_data = yaml.safe_load(f)
             langfuse_project_name = config_data.get(
                 "langfuse_project_name", "deep-research"
             )
+            query_from_config = config_data.get("query", None)
     except Exception as e:
-        logger.warning(
-            f"Could not load langfuse_project_name from config: {e}"
-        )
+        logger.warning(f"Could not load config data: {e}")
 
     # Set up the pipeline with the parallelized version as default
     pipeline = parallelized_deep_research_pipeline.with_options(
@@ -291,16 +291,19 @@ def main(
     )
 
     # Execute the pipeline
-    if query:
+    # Use CLI query if provided, otherwise fall back to config query
+    final_query = query or query_from_config
+
+    if final_query:
         logger.info(
-            f"Using query: {query} with max {max_sub_questions} parallel sub-questions"
+            f"Using query: {final_query} with max {max_sub_questions} parallel sub-questions"
         )
         if require_approval:
             logger.info(
                 f"Human approval enabled with {approval_timeout}s timeout"
             )
         pipeline(
-            query=query,
+            query=final_query,
             max_sub_questions=max_sub_questions,
             require_approval=require_approval,
             approval_timeout=approval_timeout,
@@ -312,7 +315,7 @@ def main(
         )
     else:
         logger.info(
-            f"Using query from config file with max {max_sub_questions} parallel sub-questions"
+            f"No query provided via CLI or config. Using pipeline default with max {max_sub_questions} parallel sub-questions"
         )
         if require_approval:
             logger.info(
