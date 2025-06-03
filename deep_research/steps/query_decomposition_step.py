@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def initial_query_decomposition_step(
     main_query: str,
     query_decomposition_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     max_sub_questions: int = 8,
     langfuse_project_name: str = "deep-research",
 ) -> Annotated[QueryContext, "query_context"]:

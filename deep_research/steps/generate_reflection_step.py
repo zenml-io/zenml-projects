@@ -27,7 +27,7 @@ def generate_reflection_step(
     synthesis_data: SynthesisData,
     analysis_data: AnalysisData,
     reflection_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> Tuple[
     Annotated[AnalysisData, "analysis_data"],

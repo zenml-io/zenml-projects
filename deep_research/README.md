@@ -453,16 +453,16 @@ query: "Climate change policy debates"
 steps:
   initial_query_decomposition_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "google/gemini-2.0-flash-lite-001"
   
   cross_viewpoint_analysis_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "google/gemini-2.0-flash-lite-001"
       viewpoint_categories: ["scientific", "political", "economic", "social", "ethical", "historical"]
   
   iterative_reflection_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "google/gemini-2.0-flash-lite-001"
       max_additional_searches: 2
       num_results_per_search: 3
   
@@ -474,7 +474,7 @@ steps:
   
   pydantic_final_report_step:
     parameters:
-      llm_model: "sambanova/DeepSeek-R1-Distill-Llama-70B"
+      llm_model: "google/gemini-2.0-flash-lite-001"
 
 # Environment settings
 settings:

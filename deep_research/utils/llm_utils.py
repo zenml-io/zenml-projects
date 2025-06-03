@@ -12,8 +12,11 @@ from zenml import get_step_context
 logger = logging.getLogger(__name__)
 
 # This module uses litellm for all LLM interactions
-# Models are specified with a provider prefix (e.g., "sambanova/DeepSeek-R1-Distill-Llama-70B")
-# ALL model names require a provider prefix (e.g., "sambanova/", "openai/", "anthropic/")
+# Models are specified with a provider prefix:
+# - For Google Gemini via OpenRouter: "openrouter/google/gemini-2.0-flash-lite-001"
+# - For direct Google Gemini API: "gemini/gemini-2.0-flash-lite-001"
+# - For other providers: "sambanova/", "openai/", "anthropic/", "meta/", "aws/"
+# ALL model names require a provider prefix
 
 litellm.callbacks = ["langfuse"]
 
@@ -126,20 +129,23 @@ def run_llm_completion(
     """
     try:
         # Ensure model name has provider prefix
-        if not any(
+        # Special handling for OpenRouter models which have a nested provider
+        if model.startswith("openrouter/"):
+            # OpenRouter models are valid (e.g., openrouter/google/gemini-2.0-flash-lite-001)
+            pass
+        elif not any(
             model.startswith(prefix + "/")
             for prefix in [
                 "sambanova",
                 "openai",
                 "anthropic",
                 "meta",
-                "google",
+                "gemini",  # Direct Google Gemini API
                 "aws",
-                "openrouter",
             ]
         ):
             # Raise an error if no provider prefix is specified
-            error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'sambanova/{model}')"
+            error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'gemini/{model}', 'openrouter/{model}')"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -317,20 +323,23 @@ def find_most_relevant_string(
     if model:
         try:
             # Ensure model name has provider prefix
-            if not any(
+            # Special handling for OpenRouter models which have a nested provider
+            if model.startswith("openrouter/"):
+                # OpenRouter models are valid (e.g., openrouter/google/gemini-2.0-flash-lite-001)
+                pass
+            elif not any(
                 model.startswith(prefix + "/")
                 for prefix in [
                     "sambanova",
                     "openai",
                     "anthropic",
                     "meta",
-                    "google",
+                    "gemini",  # Direct Google Gemini API
                     "aws",
-                    "openrouter",
                 ]
             ):
                 # Raise an error if no provider prefix is specified
-                error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'sambanova/{model}')"
+                error_msg = f"Model '{model}' does not have a provider prefix. Please specify provider (e.g., 'gemini/{model}', 'openrouter/{model}')"
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 

@@ -196,7 +196,7 @@ def generate_executive_summary(
     analysis_data: AnalysisData,
     executive_summary_prompt: Prompt,
     mcp_results: MCPResult,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate an executive summary using LLM based on the complete research findings.
@@ -285,7 +285,7 @@ def generate_introduction(
     query_context: QueryContext,
     introduction_prompt: Prompt,
     mcp_results: MCPResult,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate an introduction using LLM based on research query and sub-questions.
@@ -378,7 +378,7 @@ def generate_conclusion(
     analysis_data: AnalysisData,
     conclusion_generation_prompt: Prompt,
     mcp_results: MCPResult,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a comprehensive conclusion using LLM based on all research findings.
@@ -519,7 +519,7 @@ def generate_report_from_template(
     executive_summary_prompt: Prompt,
     introduction_prompt: Prompt,
     mcp_results: MCPResult,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a final HTML report from a static template.
@@ -999,7 +999,7 @@ def pydantic_final_report_step(
     introduction_prompt: Prompt,
     mcp_results: MCPResult,
     use_static_template: bool = True,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> Tuple[
     Annotated[FinalReport, "final_report"],
