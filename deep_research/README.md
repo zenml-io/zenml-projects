@@ -13,6 +13,7 @@ The ZenML Deep Research Agent is a scalable, modular pipeline that automates in-
 
 - Creates a structured outline based on your research query
 - Researches each section through targeted web searches and LLM analysis
+- **NEW**: Performs additional MCP-powered searches using Anthropic's Model Context Protocol with Exa integration
 - Iteratively refines content through reflection cycles
 - Produces a comprehensive, well-formatted research report
 - Visualizes the research process and report structure in the ZenML dashboard
@@ -40,8 +41,9 @@ The pipeline uses a parallel processing architecture for efficiency and breaks d
 6. **Reflection Generation**: Generate recommendations for improving research quality
 7. **Human Approval** (optional): Get human approval for additional searches
 8. **Execute Approved Searches**: Perform approved additional searches to fill gaps
-9. **Final Report Generation**: Compile all synthesized information into a coherent HTML report
-10. **Collect Tracing Metadata**: Gather comprehensive metrics about token usage, costs, and performance
+9. **MCP-Powered Search**: Use Anthropic's Model Context Protocol to perform additional targeted searches via Exa
+10. **Final Report Generation**: Compile all synthesized information into a coherent HTML report
+11. **Collect Tracing Metadata**: Gather comprehensive metrics about token usage, costs, and performance
 
 This architecture enables:
 - Better reproducibility and caching of intermediate results
@@ -55,6 +57,7 @@ This architecture enables:
 
 - **LLM Integration**: Uses litellm for flexible access to various LLM providers
 - **Web Research**: Utilizes Tavily API for targeted internet searches
+- **MCP Integration**: Leverages Anthropic's Model Context Protocol with Exa for enhanced research capabilities
 - **ZenML Orchestration**: Manages pipeline flow, artifacts, and caching
 - **Reproducibility**: Track every step, parameter, and output via ZenML
 - **Visualizations**: Interactive visualizations of the research structure and progress
@@ -70,6 +73,8 @@ This architecture enables:
 - ZenML installed and configured
 - API key for your preferred LLM provider (configured with litellm)
 - Tavily API key
+- Anthropic API key (for MCP integration)
+- Exa API key (for MCP-powered searches)
 - Langfuse account for LLM tracking (optional but recommended)
 
 ### Installation
@@ -85,7 +90,8 @@ pip install -r requirements.txt
 # Set up API keys
 export OPENAI_API_KEY=your_openai_key  # Or another LLM provider key
 export TAVILY_API_KEY=your_tavily_key  # For Tavily search (default)
-export EXA_API_KEY=your_exa_key        # For Exa search (optional)
+export EXA_API_KEY=your_exa_key        # For Exa search and MCP integration (required for MCP)
+export ANTHROPIC_API_KEY=your_anthropic_key  # For MCP integration (required)
 
 # Set up Langfuse for LLM tracking (optional)
 export LANGFUSE_PUBLIC_KEY=your_public_key
@@ -227,6 +233,31 @@ python run.py --num-results 5                            # Get 5 results per sea
 python run.py --num-results 10 --search-provider exa     # 10 results with Exa
 ```
 
+### MCP (Model Context Protocol) Integration
+
+The pipeline includes a powerful MCP integration step that uses Anthropic's Model Context Protocol to perform additional targeted searches. This step runs after the reflection phase and before final report generation, providing an extra layer of research depth.
+
+#### How MCP Works
+
+The MCP step:
+1. Receives the synthesized research data and analysis from previous steps
+2. Uses Claude (via Anthropic API) with MCP tools to identify gaps or areas needing more research
+3. Performs targeted searches using Exa's advanced search capabilities including:
+   - `research_paper_search`: Academic paper and research content
+   - `company_research`: Company website crawling for business information
+   - `competitor_finder`: Find company competitors
+   - `linkedin_search`: Search LinkedIn for companies and people
+   - `wikipedia_search_exa`: Wikipedia article retrieval
+   - `github_search`: GitHub repositories and issues
+
+#### MCP Requirements
+
+To use the MCP integration, you need:
+- `ANTHROPIC_API_KEY`: For accessing Claude with MCP capabilities
+- `EXA_API_KEY`: For the Exa search tools used by MCP
+
+The MCP step uses Claude Sonnet 4.0 (claude-sonnet-4-20250514) which supports the MCP protocol.
+
 ### Search Providers
 
 The pipeline supports multiple search providers for flexibility and comparison:
@@ -364,6 +395,7 @@ zenml_deep_research/
 │   ├── execute_approved_searches_step.py  # Execute approved searches
 │   ├── generate_reflection_step.py         # Generate reflection without execution
 │   ├── iterative_reflection_step.py       # Legacy combined reflection step
+│   ├── mcp_step.py                        # MCP integration for additional searches
 │   ├── merge_results_step.py
 │   ├── process_sub_question_step.py
 │   ├── pydantic_final_report_step.py

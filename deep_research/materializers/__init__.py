@@ -8,6 +8,7 @@ deserialization of complex data types used in the research pipeline.
 from .analysis_data_materializer import AnalysisDataMaterializer
 from .approval_decision_materializer import ApprovalDecisionMaterializer
 from .final_report_materializer import FinalReportMaterializer
+from .mcp_result_materializer import MCPResultMaterializer
 from .prompt_materializer import PromptMaterializer
 from .query_context_materializer import QueryContextMaterializer
 from .search_data_materializer import SearchDataMaterializer
@@ -23,4 +24,5 @@ __all__ = [
     "SynthesisDataMaterializer",
     "AnalysisDataMaterializer",
     "FinalReportMaterializer",
+    "MCPResultMaterializer",
 ]
