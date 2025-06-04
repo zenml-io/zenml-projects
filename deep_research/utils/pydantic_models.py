@@ -507,7 +507,7 @@ class MCPResult(BaseModel):
     """Contains the result of the MCP update."""
 
     raw_mcp_result: str = Field(
-        default="", description="The raw outpt from the Exa search"
+        default="", description="The raw output from the Exa search"
     )
     mcp_result: str = Field(
         default="", description="The LLM-processed result of the Exa search"
