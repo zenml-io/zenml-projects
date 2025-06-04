@@ -22,6 +22,7 @@ from utils.prompts import (
 from utils.pydantic_models import (
     AnalysisData,
     FinalReport,
+    MCPResult,
     Prompt,
     QueryContext,
     SearchData,
@@ -31,6 +32,28 @@ from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
+
+
+def extract_mcp_content(mcp_results: MCPResult) -> str:
+    """Extract the HTML content from MCPResult object.
+
+    Args:
+        mcp_results: The MCPResult object from the MCP step
+
+    Returns:
+        The HTML-formatted MCP result, or empty string if not available
+    """
+    if not mcp_results:
+        return ""
+
+    # Prefer the processed mcp_result over raw_mcp_result
+    if mcp_results.mcp_result:
+        return mcp_results.mcp_result
+    elif mcp_results.raw_mcp_result:
+        # If only raw result is available, wrap it in basic HTML
+        return f"<p>Raw MCP search results:</p><pre>{html.escape(mcp_results.raw_mcp_result)}</pre>"
+    else:
+        return ""
 
 
 def clean_html_output(html_content: str) -> str:
@@ -172,7 +195,8 @@ def generate_executive_summary(
     synthesis_data: SynthesisData,
     analysis_data: AnalysisData,
     executive_summary_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    mcp_results: MCPResult,
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate an executive summary using LLM based on the complete research findings.
@@ -184,6 +208,7 @@ def generate_executive_summary(
         executive_summary_prompt: Prompt for generating executive summary
         llm_model: The model to use for generation
         langfuse_project_name: Name of the Langfuse project for tracking
+        mcp_results: The results from the MCP tools
 
     Returns:
         HTML formatted executive summary
@@ -196,6 +221,7 @@ def generate_executive_summary(
         "sub_questions": query_context.sub_questions,
         "key_findings": {},
         "viewpoint_analysis": None,
+        "mcp_results": extract_mcp_content(mcp_results),
     }
 
     # Include key findings from synthesis data
@@ -258,7 +284,8 @@ def generate_executive_summary(
 def generate_introduction(
     query_context: QueryContext,
     introduction_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    mcp_results: MCPResult,
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate an introduction using LLM based on research query and sub-questions.
@@ -275,10 +302,11 @@ def generate_introduction(
     logger.info("Generating introduction using LLM")
 
     # Prepare the context
-    context = f"Main Research Query: {query_context.main_query}\n\n"
-    context += "Sub-questions being explored:\n"
+    context = f"## Main Research Query: \n\n{query_context.main_query}\n\n"
+    context += "## Sub-questions being explored:\n"
     for i, sub_question in enumerate(query_context.sub_questions, 1):
-        context += f"{i}. {sub_question}\n"
+        context += f"### {i}. {sub_question}\n"
+    context += f"## Additional Exa MCP Results: \n\n{extract_mcp_content(mcp_results)}\n"
 
     try:
         # Call LLM to generate introduction
@@ -349,7 +377,8 @@ def generate_conclusion(
     synthesis_data: SynthesisData,
     analysis_data: AnalysisData,
     conclusion_generation_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    mcp_results: MCPResult,
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a comprehensive conclusion using LLM based on all research findings.
@@ -361,6 +390,7 @@ def generate_conclusion(
         conclusion_generation_prompt: Prompt for generating conclusion
         llm_model: The model to use for conclusion generation
         langfuse_project_name: Name of the Langfuse project for tracking
+        mcp_results: The results from the MCP tools
 
     Returns:
         str: HTML-formatted conclusion content
@@ -372,6 +402,7 @@ def generate_conclusion(
         "main_query": query_context.main_query,
         "sub_questions": query_context.sub_questions,
         "enhanced_info": {},
+        "mcp_results": extract_mcp_content(mcp_results),
     }
 
     # Include enhanced information for each sub-question
@@ -487,7 +518,8 @@ def generate_report_from_template(
     conclusion_generation_prompt: Prompt,
     executive_summary_prompt: Prompt,
     introduction_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    mcp_results: MCPResult,
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> str:
     """Generate a final HTML report from a static template.
@@ -504,6 +536,7 @@ def generate_report_from_template(
         executive_summary_prompt: Prompt for generating executive summary
         introduction_prompt: Prompt for generating introduction
         llm_model: The model to use for conclusion generation
+        mcp_results: The results from the MCP tools
         langfuse_project_name: Name of the Langfuse project for tracking
 
     Returns:
@@ -699,6 +732,7 @@ def generate_report_from_template(
         synthesis_data,
         analysis_data,
         executive_summary_prompt,
+        mcp_results,
         llm_model,
         langfuse_project_name,
     )
@@ -709,7 +743,11 @@ def generate_report_from_template(
     # Generate dynamic introduction using LLM
     logger.info("Generating dynamic introduction...")
     introduction_html = generate_introduction(
-        query_context, introduction_prompt, llm_model, langfuse_project_name
+        query_context,
+        introduction_prompt,
+        mcp_results,
+        llm_model,
+        langfuse_project_name,
     )
     logger.info(f"Introduction generated: {len(introduction_html)} characters")
 
@@ -719,6 +757,7 @@ def generate_report_from_template(
         synthesis_data,
         analysis_data,
         conclusion_generation_prompt,
+        mcp_results,
         llm_model,
         langfuse_project_name,
     )
@@ -958,8 +997,9 @@ def pydantic_final_report_step(
     conclusion_generation_prompt: Prompt,
     executive_summary_prompt: Prompt,
     introduction_prompt: Prompt,
+    mcp_results: MCPResult,
     use_static_template: bool = True,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     langfuse_project_name: str = "deep-research",
 ) -> Tuple[
     Annotated[FinalReport, "final_report"],
@@ -979,6 +1019,7 @@ def pydantic_final_report_step(
         introduction_prompt: Prompt for generating introduction
         use_static_template: Whether to use a static template instead of LLM generation
         llm_model: The model to use for report generation with provider prefix
+        mcp_results: The results from the MCP tools
         langfuse_project_name: Name of the Langfuse project for tracking
 
     Returns:
@@ -1000,6 +1041,7 @@ def pydantic_final_report_step(
             conclusion_generation_prompt,
             executive_summary_prompt,
             introduction_prompt,
+            mcp_results,
             llm_model,
             langfuse_project_name,
         )

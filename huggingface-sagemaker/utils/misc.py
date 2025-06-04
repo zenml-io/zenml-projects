@@ -32,7 +32,7 @@ def compute_metrics(eval_pred: tuple) -> Dict[str, float]:
     """
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
-    # calculate the mertic using the predicted and true value
+    # calculate the metric using the predicted and true value
     accuracy = load_metric("accuracy").compute(
         predictions=predictions, references=labels
     )

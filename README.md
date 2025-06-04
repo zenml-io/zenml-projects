@@ -58,6 +58,7 @@ etc.
 | [Gamesense](gamesense)                                       | 🤖 LLMOps | 🧠 LoRA, ⚡ Efficient Training                              | pytorch, peft, phi-2                 |
 | [Nightwatch AI](nightwatch-ai)                               | 🤖 LLMOps | 📝 Summarization, 📊 Reporting                              | openai, supabase, slack              |
 | [ResearchRadar](research-radar)                              | 🤖 LLMOps | 📝 Classification, 📊 Comparison                            | anthropic, huggingface, transformers |
+| [Deep Research](deep_research)                   | 🤖 LLMOps | 📝 Research, 📊 Reporting, 🔍 Web Search                     | anthropic, mcp, agents, openai |
 | [End-to-end Computer Vision](end-to-end-computer-vision)     | 👁 CV      | 🔎 Object Detection, 🏷️ Labeling                            | pytorch, label_studio, yolov8        |
 | [Magic Photobooth](magic-photobooth)                         | 👁 CV      | 📷 Image Gen, 🎞️ Video Gen                                  | stable-diffusion, huggingface        |
 | [OmniReader](omni-reader)                                    | 👁 CV      | 📑 OCR, 📊 Evaluation, ⚙️ Batch Processing                  | polars, litellm, openai, ollama      |

@@ -4,6 +4,7 @@ from steps.cross_viewpoint_step import cross_viewpoint_analysis_step
 from steps.execute_approved_searches_step import execute_approved_searches_step
 from steps.generate_reflection_step import generate_reflection_step
 from steps.initialize_prompts_step import initialize_prompts_step
+from steps.mcp_step import mcp_updates_step
 from steps.merge_results_step import merge_sub_question_results_step
 from steps.process_sub_question_step import process_sub_question_step
 from steps.pydantic_final_report_step import pydantic_final_report_step
@@ -142,6 +143,13 @@ def parallelized_deep_research_pipeline(
         )
     )
 
+    mcp_results = mcp_updates_step(
+        query_context=query_context,
+        synthesis_data=enhanced_synthesis_data,
+        analysis_data=enhanced_analysis_data,
+        langfuse_project_name=langfuse_project_name,
+    )
+
     # Use our new Pydantic-based final report step
     pydantic_final_report_step(
         query_context=query_context,
@@ -152,6 +160,7 @@ def parallelized_deep_research_pipeline(
         executive_summary_prompt=executive_summary_prompt,
         introduction_prompt=introduction_prompt,
         langfuse_project_name=langfuse_project_name,
+        mcp_results=mcp_results,
         after="execute_approved_searches_step",
     )
 

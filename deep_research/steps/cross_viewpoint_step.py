@@ -23,7 +23,7 @@ def cross_viewpoint_analysis_step(
     query_context: QueryContext,
     synthesis_data: SynthesisData,
     viewpoint_analysis_prompt: Prompt,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     viewpoint_categories: List[str] = [
         "scientific",
         "political",

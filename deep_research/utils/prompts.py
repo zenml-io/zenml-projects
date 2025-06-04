@@ -1433,3 +1433,65 @@ VIEWPOINT_ANALYSIS_TEMPLATE = """
     </div>
 </div>
 """
+
+MCP_PROMPT = """This is the final stage in a multi-step research-pipeline.
+
+You will be given the following information:
+
+- the original user query
+- written text synthesis that was generated based on the search data
+- analysis data containing reflection and viewpoint analysis
+
+You have the following tools available to you:
+
+- web_search_exa: Real-time web search with content extraction
+- research_paper_search: Academic paper and research content search
+- company_research: Company website crawling for business information
+- crawling: Extract content from specific URLs
+- competitor_finder: Find company competitors
+- linkedin_search: Search LinkedIn for companies and people
+- wikipedia_search_exa: Retrieve information from Wikipedia articles
+- github_search: Search GitHub repositories and issues
+
+Please use the tools to search for anything you feel might still be needed to
+answer or to round out the research. The results of what you find will be passed
+to the final report generation and summarization step.
+
+## User Query
+<user_query>
+{user_query}
+</user_query>
+
+## Synthesis Data
+
+### Synthesized Info
+<synthesized_info>
+{synthesized_info}
+</synthesized_info>
+
+### Enhanced Info
+<enhanced_info>
+{enhanced_info}
+</enhanced_info>
+
+## Analysis Data
+
+### Viewpoint Analysis
+<viewpoint_analysis>
+{viewpoint_analysis}
+</viewpoint_analysis>
+
+### Reflection Metadata
+<reflection_metadata>
+{reflection_metadata}
+</reflection_metadata>
+
+Now please use the tools to search for anything you feel might still be needed to
+answer or to round out the research. The results of what you find will be passed
+to the final report generation and summarization step.
+
+Format your output as a well-structured conclusion section in HTML format with
+appropriate paragraph breaks and formatting. Use <p> tags for paragraphs and
+organize the content logically with clear transitions between the different
+aspects outlined above.
+"""

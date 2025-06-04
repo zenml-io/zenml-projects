@@ -44,7 +44,7 @@ def execute_approved_searches_step(
     additional_synthesis_prompt: Prompt,
     num_results_per_search: int = 3,
     cap_search_length: int = 20000,
-    llm_model: str = "sambanova/DeepSeek-R1-Distill-Llama-70B",
+    llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     search_provider: str = "tavily",
     search_mode: str = "auto",
     langfuse_project_name: str = "deep-research",
