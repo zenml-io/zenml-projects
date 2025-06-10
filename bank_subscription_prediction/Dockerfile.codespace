@@ -1,0 +1,41 @@
+# Sandbox base image
+FROM zenmldocker/zenml-sandbox:latest
+
+# Install uv from official distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set uv environment variables for optimization
+ENV UV_SYSTEM_PYTHON=1
+ENV UV_COMPILE_BYTECODE=1
+
+# Project metadata
+LABEL project_name="bank_subscription_prediction"
+LABEL project_version="0.1.0"
+
+# Install dependencies with uv and cache optimization
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    "pandas" \
+    "numpy" \
+    "scikit-learn" \
+    "xgboost" \
+    "matplotlib" \
+    "plotly" \
+    "zenml>=0.82.1" \
+    "click" \
+    "requests" \
+    "pyarrow"
+
+# Set workspace directory
+WORKDIR /workspace
+
+# Clone only the project directory and reorganize
+RUN git clone --depth 1 https://github.com/zenml-io/zenml-projects.git /tmp/zenml-projects && \
+    cp -r /tmp/zenml-projects/bank_subscription_prediction/* /workspace/ && \
+    rm -rf /tmp/zenml-projects
+
+# VSCode settings
+RUN mkdir -p /workspace/.vscode && \
+    printf '{\n  "workbench.colorTheme": "Default Dark Modern"\n}' > /workspace/.vscode/settings.json
+
+
