@@ -17,6 +17,7 @@
 
 from datetime import datetime
 from typing import Annotated, Dict, Optional, Tuple
+import os
 
 import joblib
 import lightgbm as lgb
@@ -199,6 +200,7 @@ def train_model(
     model_metadata.update(fairness_metadata)
 
     # Save model locally & to Modal volume
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
     joblib.dump((model, model_metadata), model_path)
     model_checksum = save_artifact_to_modal(
         artifact=(model, model_metadata),
