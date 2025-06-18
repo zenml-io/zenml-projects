@@ -32,9 +32,9 @@ except ImportError:
 class Pipelines(StrEnum):
     """Pipeline names used in ZenML."""
 
-    FEATURE_ENGINEERING = "feature_engineering"
-    TRAINING = "training"
-    DEPLOYMENT = "deployment"
+    FEATURE_ENGINEERING = "credit_scoring_feature_engineering"
+    TRAINING = "credit_scoring_training"
+    DEPLOYMENT = "credit_scoring_deployment"
 
 
 class Artifacts(StrEnum):
