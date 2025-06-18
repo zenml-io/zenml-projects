@@ -103,10 +103,12 @@ def deployment(
     )
 
     # Generate comprehensive technical documentation (Article 11)
-    documentation_path, documentation_html, run_release_dir = generate_annex_iv_documentation(
-        evaluation_results=evaluation_results,
-        risk_scores=risk_scores,
-        deployment_info=deployment_info,
+    documentation_path, documentation_html, run_release_dir = (
+        generate_annex_iv_documentation(
+            evaluation_results=evaluation_results,
+            risk_scores=risk_scores,
+            deployment_info=deployment_info,
+        )
     )
 
     # Generate compliance dashboard HTML visualization

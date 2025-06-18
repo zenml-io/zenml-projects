@@ -19,7 +19,6 @@
 from pathlib import Path
 from typing import Annotated, Any, Dict, Optional, Tuple
 
-import markdown
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
@@ -101,10 +100,15 @@ def generate_annex_iv_documentation(
     md_name = "annex_iv.md"
     md_path = run_release_dir / md_name
     md_path.write_text(content)
-    
+
     # Generate enhanced HTML report
     html_content = generate_enhanced_annex_iv_html(
-        metadata, manual_inputs, evaluation_results, risk_scores, deployment_info, run_id
+        metadata,
+        manual_inputs,
+        evaluation_results,
+        risk_scores,
+        deployment_info,
+        run_id,
     )
 
     # Write additional documentation files
@@ -156,41 +160,52 @@ def generate_annex_iv_documentation(
 
 
 def generate_enhanced_annex_iv_html(
-    metadata: Dict[str, Any], 
-    manual_inputs: Dict[str, Any], 
-    evaluation_results: Optional[Dict[str, Any]], 
-    risk_scores: Optional[Dict[str, Any]], 
-    deployment_info: Optional[Dict[str, Any]], 
-    run_id: str
+    metadata: Dict[str, Any],
+    manual_inputs: Dict[str, Any],
+    evaluation_results: Optional[Dict[str, Any]],
+    risk_scores: Optional[Dict[str, Any]],
+    deployment_info: Optional[Dict[str, Any]],
+    run_id: str,
 ) -> str:
     """Generate enhanced HTML report for Annex IV documentation based on full template."""
-    
+
     # Extract comprehensive information from all sources
-    pipeline_name = metadata.get('pipeline', {}).get('name', 'Credit Scoring Pipeline')
-    pipeline_version = metadata.get('pipeline', {}).get('version', 'Unknown')
-    pipeline_run = metadata.get('pipeline_run', {})
-    stack_info = metadata.get('stack', {})
-    git_info = metadata.get('git_info', {})
-    
-    model_metrics = evaluation_results.get('metrics', {}) if evaluation_results else {}
-    fairness_data = evaluation_results.get('fairness', {}) if evaluation_results else {}
+    pipeline_name = metadata.get("pipeline", {}).get(
+        "name", "Credit Scoring Pipeline"
+    )
+    pipeline_version = metadata.get("pipeline", {}).get("version", "Unknown")
+    pipeline_run = metadata.get("pipeline_run", {})
+    stack_info = metadata.get("stack", {})
+    git_info = metadata.get("git_info", {})
+
+    model_metrics = (
+        evaluation_results.get("metrics", {}) if evaluation_results else {}
+    )
+    fairness_data = (
+        evaluation_results.get("fairness", {}) if evaluation_results else {}
+    )
     risk_data = risk_scores or {}
-    
+
     # Framework versions from manual inputs
-    frameworks = manual_inputs.get('frameworks', {})
-    
+    frameworks = manual_inputs.get("frameworks", {})
+
     # Get current timestamp
     from datetime import datetime
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
-    
+
     # Calculate compliance status
-    accuracy = model_metrics.get('accuracy', 0)
-    risk_score = risk_data.get('overall', 1)
-    bias_detected = fairness_data.get('bias_flag', True)
-    
-    compliance_status = "COMPLIANT" if accuracy > 0.7 and risk_score < 0.4 and not bias_detected else "REVIEW REQUIRED"
+    accuracy = model_metrics.get("accuracy", 0)
+    risk_score = risk_data.get("overall", 1)
+    bias_detected = fairness_data.get("bias_flag", True)
+
+    compliance_status = (
+        "COMPLIANT"
+        if accuracy > 0.7 and risk_score < 0.4 and not bias_detected
+        else "REVIEW REQUIRED"
+    )
     status_color = "#28a745" if compliance_status == "COMPLIANT" else "#dc3545"
-    
+
     # Generate comprehensive HTML based on full Annex IV structure
     html = f"""
     <!DOCTYPE html>
@@ -729,7 +744,7 @@ This declaration is issued under the sole responsibility of ZenML GmbH.
     </body>
     </html>
     """
-    
+
     return html
 
 
@@ -784,7 +799,7 @@ def generate_previous_versions_table(pipeline_runs: list) -> str:
             </table>
         </div>
         """
-    
+
     html = """
     <div class="subsection" style="margin-top: 1.5rem;">
         <div class="subsection-title">Previous Versions</div>
@@ -799,9 +814,9 @@ def generate_previous_versions_table(pipeline_runs: list) -> str:
             </thead>
             <tbody>
     """
-    
+
     for run in pipeline_runs[-10:]:  # Show last 10 runs
-        status_icon = "✅" if run.get('status') == 'completed' else "❌"
+        status_icon = "✅" if run.get("status") == "completed" else "❌"
         html += f"""
             <tr>
                 <td>{run.get('name', 'Unknown')}</td>
@@ -810,13 +825,13 @@ def generate_previous_versions_table(pipeline_runs: list) -> str:
                 <td>{status_icon} {run.get('status', 'Unknown')}</td>
             </tr>
         """
-    
+
     html += """
             </tbody>
         </table>
     </div>
     """
-    
+
     return html
 
 
@@ -944,15 +959,15 @@ def generate_pipeline_execution_history(execution_history: list) -> str:
             </table>
         </div>
         """
-    
+
     # If we have real execution history data, process it here
     html = "<div class='subsection-title'>Pipeline Execution History</div>"
-    
+
     for pipeline in execution_history:
-        pipeline_name = pipeline.get('name', 'Unknown Pipeline')
-        run_id = pipeline.get('run_id', 'Unknown')
-        steps = pipeline.get('steps', [])
-        
+        pipeline_name = pipeline.get("name", "Unknown Pipeline")
+        run_id = pipeline.get("run_id", "Unknown")
+        steps = pipeline.get("steps", [])
+
         html += f"""
         <div style="margin: 1.5rem 0;">
             <h4 style="color: #495057; margin-bottom: 0.5rem;">{pipeline_name}</h4>
@@ -968,14 +983,20 @@ def generate_pipeline_execution_history(execution_history: list) -> str:
                 </thead>
                 <tbody>
         """
-        
+
         for step in steps:
-            step_name = step.get('name', 'Unknown')
-            status = step.get('status', 'Unknown')
-            status_icon = "✅" if status == 'completed' else "🔄" if status == 'running' else "❌"
-            inputs = step.get('inputs', '-')
-            outputs = step.get('outputs', '-')
-            
+            step_name = step.get("name", "Unknown")
+            status = step.get("status", "Unknown")
+            status_icon = (
+                "✅"
+                if status == "completed"
+                else "🔄"
+                if status == "running"
+                else "❌"
+            )
+            inputs = step.get("inputs", "-")
+            outputs = step.get("outputs", "-")
+
             html += f"""
                 <tr>
                     <td><strong>{step_name}</strong></td>
@@ -984,13 +1005,13 @@ def generate_pipeline_execution_history(execution_history: list) -> str:
                     <td>{outputs}</td>
                 </tr>
             """
-        
+
         html += """
                 </tbody>
             </table>
         </div>
         """
-    
+
     return html
 
 
@@ -998,7 +1019,7 @@ def generate_stack_components_table(stack_components: Dict[str, Any]) -> str:
     """Generate HTML table for stack components."""
     if not stack_components:
         return "<p><em>No stack components available</em></p>"
-    
+
     html = """
     <table class="table" style="margin-top: 1rem;">
         <thead>
@@ -1011,7 +1032,7 @@ def generate_stack_components_table(stack_components: Dict[str, Any]) -> str:
         </thead>
         <tbody>
     """
-    
+
     for component_type, components in stack_components.items():
         if isinstance(components, list):
             for component in components:
@@ -1023,12 +1044,12 @@ def generate_stack_components_table(stack_components: Dict[str, Any]) -> str:
                         <td>{component.get('integration', 'Built-in')}</td>
                     </tr>
                 """
-    
+
     html += """
         </tbody>
     </table>
     """
-    
+
     return html
 
 
@@ -1036,7 +1057,7 @@ def generate_framework_versions_table(frameworks: Dict[str, str]) -> str:
     """Generate HTML table for framework versions."""
     if not frameworks:
         return "<p><em>No framework versions available</em></p>"
-    
+
     html = """
     <table class="table" style="margin-top: 1rem;">
         <thead>
@@ -1047,7 +1068,7 @@ def generate_framework_versions_table(frameworks: Dict[str, str]) -> str:
         </thead>
         <tbody>
     """
-    
+
     for framework, version in sorted(frameworks.items()):
         html += f"""
             <tr>
@@ -1055,12 +1076,12 @@ def generate_framework_versions_table(frameworks: Dict[str, str]) -> str:
                 <td>{version}</td>
             </tr>
         """
-    
+
     html += """
         </tbody>
     </table>
     """
-    
+
     return html
 
 
@@ -1068,10 +1089,10 @@ def generate_fairness_assessment_section(fairness_data: Dict[str, Any]) -> str:
     """Generate comprehensive fairness assessment section."""
     if not fairness_data:
         return "<p><em>No fairness assessment data available</em></p>"
-    
-    fairness_metrics = fairness_data.get('fairness_metrics', {})
-    bias_flag = fairness_data.get('bias_flag', True)
-    
+
+    fairness_metrics = fairness_data.get("fairness_metrics", {})
+    bias_flag = fairness_data.get("bias_flag", True)
+
     html = f"""
     <div class="subsection">
         <div class="subsection-title">Fairness Assessment</div>
@@ -1084,7 +1105,7 @@ def generate_fairness_assessment_section(fairness_data: Dict[str, Any]) -> str:
         {generate_fairness_table(fairness_metrics)}
     </div>
     """
-    
+
     return html
 
 
@@ -1092,7 +1113,7 @@ def generate_deployment_info_section(deployment_info: Dict[str, Any]) -> str:
     """Generate deployment information section."""
     if not deployment_info:
         return ""
-    
+
     return f"""
     <div class="section">
         <div class="section-header">
@@ -1119,7 +1140,7 @@ def generate_fairness_table(fairness_metrics: Dict[str, Any]) -> str:
     """Generate HTML table for fairness metrics."""
     if not fairness_metrics:
         return "<p><em>No fairness metrics available</em></p>"
-    
+
     html = """
     <table class="table" style="margin-top: 1rem;">
         <thead>
@@ -1131,11 +1152,11 @@ def generate_fairness_table(fairness_metrics: Dict[str, Any]) -> str:
         </thead>
         <tbody>
     """
-    
+
     for attr, metrics in fairness_metrics.items():
-        di_ratio = metrics.get('disparate_impact_ratio', 0)
-        status = '✅ Fair' if di_ratio >= 0.8 else '❌ Biased'
-        
+        di_ratio = metrics.get("disparate_impact_ratio", 0)
+        status = "✅ Fair" if di_ratio >= 0.8 else "❌ Biased"
+
         html += f"""
             <tr>
                 <td>{attr.replace('_', ' ').title()}</td>
@@ -1143,12 +1164,10 @@ def generate_fairness_table(fairness_metrics: Dict[str, Any]) -> str:
                 <td>{status}</td>
             </tr>
         """
-    
+
     html += """
         </tbody>
     </table>
     """
-    
+
     return html
-
-

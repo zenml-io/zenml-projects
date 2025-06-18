@@ -292,7 +292,11 @@ def approve_deployment(
     env_rationale = os.environ.get("APPROVAL_RATIONALE", "")
 
     # Send initial notification
-    header = "MODEL AUTO-APPROVED" if all_ok or auto_approve else "HUMAN REVIEW REQUIRED"
+    header = (
+        "MODEL AUTO-APPROVED"
+        if all_ok or auto_approve
+        else "HUMAN REVIEW REQUIRED"
+    )
     send_slack_message(header, create_blocks("Model Approval"))
 
     # Determine approval

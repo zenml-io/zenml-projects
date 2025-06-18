@@ -134,7 +134,7 @@ def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
     """Generate HTML representation of SBOM data."""
     components = sbom_data.get("components", [])
     metadata = sbom_data.get("metadata", {})
-    
+
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -178,13 +178,13 @@ def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
             </thead>
             <tbody>
     """
-    
-    for component in sorted(components, key=lambda x: x.get('name', '')):
-        name = component.get('name', 'Unknown')
-        version = component.get('version', 'Unknown')
-        comp_type = component.get('type', 'Unknown')
-        purl = component.get('purl', '')
-        
+
+    for component in sorted(components, key=lambda x: x.get("name", "")):
+        name = component.get("name", "Unknown")
+        version = component.get("version", "Unknown")
+        comp_type = component.get("type", "Unknown")
+        purl = component.get("purl", "")
+
         html += f"""
                 <tr>
                     <td><strong>{name}</strong></td>
@@ -193,7 +193,7 @@ def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
                     <td class="purl">{purl}</td>
                 </tr>
         """
-    
+
     html += """
             </tbody>
         </table>
@@ -205,5 +205,5 @@ def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
     </body>
     </html>
     """
-    
+
     return html

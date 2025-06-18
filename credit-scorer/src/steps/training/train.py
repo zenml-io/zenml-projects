@@ -15,9 +15,9 @@
 # limitations under the License.
 #
 
+import os
 from datetime import datetime
 from typing import Annotated, Dict, Optional, Tuple
-import os
 
 import joblib
 import lightgbm as lgb
