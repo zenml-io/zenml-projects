@@ -1007,7 +1007,7 @@ def create_compliance_dashboard_artifact(
     risk_df: Optional[Any] = None,
     incident_df: Optional[Any] = None,
 ) -> HTMLString:
-    """Create a ZenML HTML artifact for the compliance dashboard.
+    """Create a ZenML HTML artifact for the compliance dashboard using shared CSS.
 
     Args:
         compliance_results: Dictionary with compliance calculation results

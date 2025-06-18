@@ -27,6 +27,11 @@ from zenml.types import HTMLString
 from src.constants import Artifacts as A
 from src.constants import Hazards
 from src.utils.storage import save_artifact_to_modal
+from src.utils.visualizations.shared_styles import (
+    get_badge_class,
+    get_html_template,
+    get_risk_class,
+)
 
 logger = get_logger(__name__)
 
@@ -138,7 +143,7 @@ def get_article_for_hazard(hazard_id: str) -> str:
 
 
 def generate_risk_visualization(risk_scores: Dict, run_id: str) -> HTMLString:
-    """Generate HTML visualization for risk assessment results."""
+    """Generate HTML visualization for risk assessment results using shared CSS."""
     overall_risk = risk_scores.get("overall", 0.0)
     auc_risk = risk_scores.get("risk_auc", 0.0)
     bias_risk = risk_scores.get("risk_bias", 0.0)
@@ -147,205 +152,66 @@ def generate_risk_visualization(risk_scores: Dict, run_id: str) -> HTMLString:
     # Risk level categorization
     if overall_risk < 0.3:
         risk_level = "LOW"
-        risk_color = "#28a745"
-        risk_bg = "#d4edda"
     elif overall_risk < 0.7:
         risk_level = "MEDIUM"
-        risk_color = "#ffc107"
-        risk_bg = "#fff3cd"
     else:
         risk_level = "HIGH"
-        risk_color = "#dc3545"
-        risk_bg = "#f8d7da"
 
-    # Severity color mapping
-    severity_colors = {
-        "low": "#28a745",
-        "medium": "#ffc107",
-        "high": "#dc3545",
-        "critical": "#6f42c1",
-    }
-
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Risk Assessment Report - {run_id}</title>
-        <style>
-            body {{
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f8f9fa;
-            }}
-            .header {{
-                text-align: center;
-                margin-bottom: 30px;
-                padding: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }}
-            .risk-overview {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
-            }}
-            .risk-card {{
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                text-align: center;
-            }}
-            .risk-score {{
-                font-size: 2.5em;
-                font-weight: bold;
-                margin: 10px 0;
-            }}
-            .overall-risk {{
-                background: {risk_bg};
-                border-left: 5px solid {risk_color};
-            }}
-            .overall-risk .risk-score {{
-                color: {risk_color};
-            }}
-            .risk-level {{
-                font-size: 1.2em;
-                font-weight: bold;
-                color: {risk_color};
-                margin-top: 10px;
-            }}
-            .hazards-section {{
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                margin-bottom: 20px;
-            }}
-            .hazard-item {{
-                border-left: 4px solid #ddd;
-                padding: 15px;
-                margin: 10px 0;
-                background: #f8f9fa;
-                border-radius: 0 5px 5px 0;
-            }}
-            .hazard-high {{
-                border-left-color: #dc3545;
-                background: #fff5f5;
-            }}
-            .hazard-medium {{
-                border-left-color: #ffc107;
-                background: #fffbf0;
-            }}
-            .hazard-low {{
-                border-left-color: #28a745;
-                background: #f0fff4;
-            }}
-            .hazard-id {{
-                font-weight: bold;
-                color: #495057;
-                margin-bottom: 5px;
-            }}
-            .hazard-description {{
-                margin-bottom: 10px;
-                color: #6c757d;
-            }}
-            .hazard-mitigation {{
-                font-style: italic;
-                color: #495057;
-                border-top: 1px solid #dee2e6;
-                padding-top: 10px;
-            }}
-            .severity-badge {{
-                display: inline-block;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.8em;
-                font-weight: bold;
-                text-transform: uppercase;
-                color: white;
-                margin-bottom: 10px;
-            }}
-            .no-hazards {{
-                text-align: center;
-                padding: 40px;
-                color: #28a745;
-                background: #d4edda;
-                border-radius: 8px;
-                border: 2px solid #28a745;
-            }}
-            .timestamp {{
-                text-align: center;
-                color: #6c757d;
-                font-size: 0.9em;
-                margin-top: 20px;
-            }}
-        </style>
-    </head>
-    <body>
+    # Generate the main content using shared CSS classes
+    content = f"""
         <div class="header">
-            <h1>🛡️ Risk Assessment Report</h1>
+            <h1>Risk Assessment Report</h1>
             <p>EU AI Act Article 9 Compliance</p>
             <p><strong>Run ID:</strong> {run_id}</p>
         </div>
 
-        <div class="risk-overview">
-            <div class="risk-card overall-risk">
-                <h3>Overall Risk</h3>
-                <div class="risk-score">{overall_risk:.2f}</div>
-                <div class="risk-level">{risk_level}</div>
+        <div class="content">
+            <div class="metrics-container">
+                <div class="metric-card {get_risk_class(risk_level)}">
+                    <h3>Overall Risk</h3>
+                    <div class="metric-value">{overall_risk:.2f}</div>
+                    <div class="metric-label font-weight-bold">{risk_level}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Model Performance Risk</h3>
+                    <div class="metric-value text-muted">{auc_risk:.2f}</div>
+                    <div class="metric-label">Based on AUC Score</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Bias Risk</h3>
+                    <div class="metric-value text-muted">{bias_risk:.2f}</div>
+                    <div class="metric-label">Fairness Assessment</div>
+                </div>
             </div>
-            <div class="risk-card">
-                <h3>Model Performance Risk</h3>
-                <div class="risk-score" style="color: #6c757d;">{auc_risk:.2f}</div>
-                <small>Based on AUC Score</small>
-            </div>
-            <div class="risk-card">
-                <h3>Bias Risk</h3>
-                <div class="risk-score" style="color: #6c757d;">{bias_risk:.2f}</div>
-                <small>Fairness Assessment</small>
-            </div>
-        </div>
 
-        <div class="hazards-section">
-            <h2>📋 Identified Hazards</h2>
-            {generate_hazards_html(hazards) if hazards else '<div class="no-hazards"><h3>✅ No Hazards Identified</h3><p>The model meets all risk thresholds for this assessment.</p></div>'}
-        </div>
+            <div class="hazards-section">
+                <h2>📋 Identified Hazards</h2>
+                {generate_hazards_html(hazards) if hazards else '<div class="no-hazards"><h3>✅ No Hazards Identified</h3><p>The model meets all risk thresholds for this assessment.</p></div>'}
+            </div>
 
-        <div class="timestamp">
-            Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+            <div class="timestamp">
+                Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+            </div>
         </div>
-    </body>
-    </html>
     """
 
-    return HTMLString(html_content)
+    return HTMLString(
+        get_html_template(f"Risk Assessment Report - {run_id}", content)
+    )
 
 
 def generate_hazards_html(hazards: List[Dict]) -> str:
-    """Generate HTML for hazards list."""
+    """Generate HTML for hazards list using shared CSS classes."""
     html = ""
     for hazard in hazards:
         severity = hazard.get("severity", "low").lower()
-        severity_color = {
-            "low": "#28a745",
-            "medium": "#ffc107",
-            "high": "#dc3545",
-            "critical": "#6f42c1",
-        }.get(severity, "#6c757d")
-
         hazard_class = f"hazard-{severity}"
+        badge_class = get_badge_class(severity)
 
         html += f"""
         <div class="hazard-item {hazard_class}">
             <div class="hazard-id">{hazard.get('id', 'UNKNOWN')}</div>
-            <div class="severity-badge" style="background-color: {severity_color};">
+            <div class="badge {badge_class}">
                 {severity.upper()}
             </div>
             <div class="hazard-description">{hazard.get('description', 'No description available')}</div>

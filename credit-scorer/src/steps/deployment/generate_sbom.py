@@ -32,6 +32,7 @@ from zenml.types import HTMLString
 
 from src.constants import Artifacts as A
 from src.constants import Directories
+from src.utils.visualizations.shared_styles import get_html_template
 
 logger = get_logger(__name__)
 
@@ -131,79 +132,70 @@ def get_direct_dependencies():
 
 
 def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
-    """Generate HTML representation of SBOM data."""
+    """Generate HTML representation of SBOM data using shared CSS."""
     components = sbom_data.get("components", [])
     metadata = sbom_data.get("metadata", {})
 
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Software Bill of Materials (SBOM)</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            .header {{ background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin-bottom: 20px; }}
-            .metadata {{ background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-            table {{ border-collapse: collapse; width: 100%; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; font-weight: bold; }}
-            .checksum {{ font-family: monospace; word-break: break-all; }}
-            .purl {{ font-family: monospace; font-size: 0.9em; color: #666; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>Software Bill of Materials (SBOM)</h1>
-            <p><strong>Format:</strong> {sbom_data.get('bomFormat', 'CycloneDX')}</p>
-            <p><strong>Spec Version:</strong> {sbom_data.get('specVersion', 'N/A')}</p>
-            <p><strong>Serial Number:</strong> <span class="checksum">{sbom_data.get('serialNumber', 'N/A')}</span></p>
-            <p><strong>Generated:</strong> {timestamp}</p>
-        </div>
-        
-        <div class="metadata">
-            <h2>Metadata</h2>
-            <p><strong>Timestamp:</strong> {metadata.get('timestamp', 'N/A')}</p>
-            <p><strong>Total Components:</strong> {len(components)}</p>
-        </div>
-        
-        <h2>Components ({len(components)} total)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Version</th>
-                    <th>Type</th>
-                    <th>Package URL</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
-
+    # Build component table rows
+    component_rows = ""
     for component in sorted(components, key=lambda x: x.get("name", "")):
         name = component.get("name", "Unknown")
         version = component.get("version", "Unknown")
         comp_type = component.get("type", "Unknown")
         purl = component.get("purl", "")
 
-        html += f"""
+        component_rows += f"""
                 <tr>
                     <td><strong>{name}</strong></td>
                     <td>{version}</td>
                     <td>{comp_type}</td>
-                    <td class="purl">{purl}</td>
-                </tr>
-        """
+                    <td class="monospace purl">{purl}</td>
+                </tr>"""
 
-    html += """
-            </tbody>
-        </table>
-        
-        <div style="margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
-            <h3>About this SBOM</h3>
-            <p>This Software Bill of Materials (SBOM) was automatically generated as part of EU AI Act compliance requirements (Article 15 - Accuracy & Robustness). It provides a comprehensive inventory of all software components used in the credit scoring model deployment.</p>
+    # Generate main content using shared CSS classes
+    content = f"""
+        <div class="header">
+            <h1>Software Bill of Materials (SBOM)</h1>
+            <p>EU AI Act Article 15 Compliance - Accuracy & Robustness</p>
         </div>
-    </body>
-    </html>
+        
+        <div class="content">
+            <div class="card sbom-header">
+                <h2>SBOM Information</h2>
+                <p><strong>Format:</strong> {sbom_data.get('bomFormat', 'CycloneDX')}</p>
+                <p><strong>Spec Version:</strong> {sbom_data.get('specVersion', 'N/A')}</p>
+                <p><strong>Serial Number:</strong> <span class="monospace checksum">{sbom_data.get('serialNumber', 'N/A')}</span></p>
+                <p><strong>Generated:</strong> {timestamp}</p>
+            </div>
+            
+            <div class="card sbom-metadata">
+                <h2>Metadata</h2>
+                <p><strong>Timestamp:</strong> {metadata.get('timestamp', 'N/A')}</p>
+                <p><strong>Total Components:</strong> {len(components)}</p>
+            </div>
+            
+            <div class="card">
+                <h2>Components ({len(components)} total)</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Version</th>
+                            <th>Type</th>
+                            <th>Package URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {component_rows}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <h3>About this SBOM</h3>
+                <p>This Software Bill of Materials (SBOM) was automatically generated as part of EU AI Act compliance requirements (Article 15 - Accuracy & Robustness). It provides a comprehensive inventory of all software components used in the credit scoring model deployment.</p>
+            </div>
+        </div>
     """
 
-    return html
+    return get_html_template("Software Bill of Materials (SBOM)", content)
