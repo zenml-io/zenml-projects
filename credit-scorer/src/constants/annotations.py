@@ -58,6 +58,7 @@ class Artifacts(StrEnum):
     EVALUATION_RESULTS = "evaluation_results"
     EVAL_VISUALIZATION = "evaluation_visualization"
     RISK_SCORES = "risk_scores"
+    RISK_VISUALIZATION = "risk_visualization"
     FAIRNESS_REPORT = "fairness_report"
     RISK_REGISTER = "risk_register"
 

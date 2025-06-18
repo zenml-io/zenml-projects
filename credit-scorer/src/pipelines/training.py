@@ -91,11 +91,17 @@ def training(
     )
 
     # Perform risk assessment based on evaluation results
-    risk_scores = risk_assessment(
+    risk_scores, risk_visualization = risk_assessment(
         evaluation_results=eval_results,
         risk_register_path=risk_register_path,
         approval_thresholds=approval_thresholds,
     )
 
     # Return artifacts to be used by deployment pipeline
-    return model, eval_results, eval_visualization, risk_scores
+    return (
+        model,
+        eval_results,
+        eval_visualization,
+        risk_scores,
+        risk_visualization,
+    )

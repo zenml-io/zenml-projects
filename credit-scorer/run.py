@@ -170,9 +170,14 @@ def main(
         # from artifact store via Client.get_artifact_version() as designed
 
         training_pipeline = training.with_options(**pipeline_args)
-        model, eval_results, eval_visualization, risk_scores, *_ = (
-            training_pipeline(**train_args)
-        )
+        (
+            model,
+            eval_results,
+            eval_visualization,
+            risk_scores,
+            risk_visualization,
+            *_,
+        ) = training_pipeline(**train_args)
 
         # Store for potential chaining
         outputs["model"] = model
