@@ -81,10 +81,10 @@ Examples:
     help="Directory containing configuration files.",
 )
 @click.option(
-    "--auto-approve",
+    "--manual-approve",
     is_flag=True,
     default=False,
-    help="Auto-approve deployment (for CI/CD pipelines).",
+    help="Require manual approval for deployment (disables auto-approve).",
 )
 @click.option(
     "--no-cache",
@@ -92,14 +92,21 @@ Examples:
     default=False,
     help="Disable caching for pipeline runs.",
 )
+@click.option(
+    "--enable-slack",
+    is_flag=True,
+    default=False,
+    help="Enable Slack notifications in deployment (requires Modal secrets setup).",
+)
 def main(
     feature: bool = False,
     train: bool = False,
     deploy: bool = False,
     all: bool = False,
     config_dir: str = "src/configs",
-    auto_approve: bool = True,
+    manual_approve: bool = False,
     no_cache: bool = False,
+    enable_slack: bool = False,
 ):
     """Main entry point for EU AI Act compliance pipelines.
 
@@ -115,13 +122,18 @@ def main(
     if not config_dir.exists():
         raise ValueError(f"Configuration directory {config_dir} not found")
 
-    # Handle auto-approve setting for deployment
+    # Handle approval setting for deployment (auto-approve is now default)
+    auto_approve = not manual_approve
     if auto_approve:
         os.environ["DEPLOY_APPROVAL"] = "y"
         os.environ["APPROVER"] = "automated_ci"
         os.environ["APPROVAL_RATIONALE"] = (
-            "Automatic approval via --auto-approve flag"
+            "Automatic approval (default behavior)"
         )
+
+    # Handle Slack setting for deployment (Slack disabled by default)
+    if enable_slack:
+        os.environ["ENABLE_SLACK"] = "true"
 
     # Common pipeline options
     pipeline_args = {}
