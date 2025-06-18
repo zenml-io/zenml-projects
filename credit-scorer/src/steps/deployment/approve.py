@@ -4,6 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
+import os
 import time
 from datetime import datetime
 from typing import Annotated, Any, Dict, Tuple
@@ -285,8 +286,13 @@ def approve_deployment(
                 print("💡 Fix: Use a Bot User OAuth Token (starts with xoxb-)")
             return None
 
+    # Check for auto-approve from environment variables
+    auto_approve = os.environ.get("DEPLOY_APPROVAL", "").lower() == "y"
+    env_approver = os.environ.get("APPROVER", "")
+    env_rationale = os.environ.get("APPROVAL_RATIONALE", "")
+
     # Send initial notification
-    header = "MODEL AUTO-APPROVED" if all_ok else "HUMAN REVIEW REQUIRED"
+    header = "MODEL AUTO-APPROVED" if all_ok or auto_approve else "HUMAN REVIEW REQUIRED"
     send_slack_message(header, create_blocks("Model Approval"))
 
     # Determine approval
@@ -295,6 +301,12 @@ def approve_deployment(
             True,
             "automated_system",
             "All criteria met",
+        )
+    elif auto_approve:
+        approved, approver, rationale = (
+            True,
+            env_approver or "automated_ci",
+            env_rationale or "Auto-approved via environment variable",
         )
     else:
         response = send_slack_message(
