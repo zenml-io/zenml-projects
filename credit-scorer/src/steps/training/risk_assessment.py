@@ -17,15 +17,21 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Dict, List
+from typing import Annotated, Dict, List, Tuple
 
 from openpyxl import Workbook, load_workbook
 from zenml import get_step_context, log_metadata, step
 from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 from src.constants import Artifacts as A
 from src.constants import Hazards
 from src.utils.storage import save_artifact_to_modal
+from src.utils.visualizations.shared_styles import (
+    get_badge_class,
+    get_html_template,
+    get_risk_class,
+)
 
 logger = get_logger(__name__)
 
@@ -136,12 +142,96 @@ def get_article_for_hazard(hazard_id: str) -> str:
     )  # Default to Risk Management
 
 
+def generate_risk_visualization(risk_scores: Dict, run_id: str) -> HTMLString:
+    """Generate HTML visualization for risk assessment results using shared CSS."""
+    overall_risk = risk_scores.get("overall", 0.0)
+    auc_risk = risk_scores.get("risk_auc", 0.0)
+    bias_risk = risk_scores.get("risk_bias", 0.0)
+    hazards = risk_scores.get("hazards", [])
+
+    # Risk level categorization
+    if overall_risk < 0.3:
+        risk_level = "LOW"
+    elif overall_risk < 0.7:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "HIGH"
+
+    # Generate the main content using shared CSS classes
+    content = f"""
+        <div class="header">
+            <h1>Risk Assessment Report</h1>
+            <p>EU AI Act Article 9 Compliance</p>
+            <p><strong>Run ID:</strong> {run_id}</p>
+        </div>
+
+        <div class="content">
+            <div class="metrics-container">
+                <div class="metric-card {get_risk_class(risk_level)}">
+                    <h3>Overall Risk</h3>
+                    <div class="metric-value">{overall_risk:.2f}</div>
+                    <div class="metric-label font-weight-bold">{risk_level}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Model Performance Risk</h3>
+                    <div class="metric-value text-muted">{auc_risk:.2f}</div>
+                    <div class="metric-label">Based on AUC Score</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Bias Risk</h3>
+                    <div class="metric-value text-muted">{bias_risk:.2f}</div>
+                    <div class="metric-label">Fairness Assessment</div>
+                </div>
+            </div>
+
+            <div class="hazards-section">
+                <h2>📋 Identified Hazards</h2>
+                {generate_hazards_html(hazards) if hazards else '<div class="no-hazards"><h3>✅ No Hazards Identified</h3><p>The model meets all risk thresholds for this assessment.</p></div>'}
+            </div>
+
+            <div class="timestamp">
+                Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")}
+            </div>
+        </div>
+    """
+
+    return HTMLString(
+        get_html_template(f"Risk Assessment Report - {run_id}", content)
+    )
+
+
+def generate_hazards_html(hazards: List[Dict]) -> str:
+    """Generate HTML for hazards list using shared CSS classes."""
+    html = ""
+    for hazard in hazards:
+        severity = hazard.get("severity", "low").lower()
+        hazard_class = f"hazard-{severity}"
+        badge_class = get_badge_class(severity)
+
+        html += f"""
+        <div class="hazard-item {hazard_class}">
+            <div class="hazard-id">{hazard.get("id", "UNKNOWN")}</div>
+            <div class="badge {badge_class}">
+                {severity.upper()}
+            </div>
+            <div class="hazard-description">{hazard.get("description", "No description available")}</div>
+            <div class="hazard-mitigation">
+                <strong>Mitigation:</strong> {hazard.get("mitigation", "No mitigation specified")}
+            </div>
+        </div>
+        """
+
+    return html
+
+
 @step
 def risk_assessment(
     evaluation_results: Dict,
     approval_thresholds: Dict[str, float],
     risk_register_path: str = "docs/risk/risk_register.xlsx",
-) -> Annotated[Dict, A.RISK_SCORES]:
+) -> Tuple[
+    Annotated[Dict, A.RISK_SCORES], Annotated[HTMLString, A.RISK_VISUALIZATION]
+]:
     """Compute risk scores & update register. Article 9 compliant."""
     scores = score_risk(evaluation_results)
     hazards = identify_hazards(evaluation_results, scores)
@@ -288,4 +378,9 @@ def risk_assessment(
         "risk_register_path": str(risk_register_path),
     }
     log_metadata(metadata=result)
-    return result
+
+    # Generate visualization
+    run_id = get_step_context().pipeline_run.id
+    risk_visualization = generate_risk_visualization(result, str(run_id))
+
+    return result, risk_visualization

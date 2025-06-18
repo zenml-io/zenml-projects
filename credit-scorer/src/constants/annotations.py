@@ -32,9 +32,9 @@ except ImportError:
 class Pipelines(StrEnum):
     """Pipeline names used in ZenML."""
 
-    FEATURE_ENGINEERING = "feature_engineering"
-    TRAINING = "training"
-    DEPLOYMENT = "deployment"
+    FEATURE_ENGINEERING = "credit_scoring_feature_engineering"
+    TRAINING = "credit_scoring_training"
+    DEPLOYMENT = "credit_scoring_deployment"
 
 
 class Artifacts(StrEnum):
@@ -58,6 +58,7 @@ class Artifacts(StrEnum):
     EVALUATION_RESULTS = "evaluation_results"
     EVAL_VISUALIZATION = "evaluation_visualization"
     RISK_SCORES = "risk_scores"
+    RISK_VISUALIZATION = "risk_visualization"
     FAIRNESS_REPORT = "fairness_report"
     RISK_REGISTER = "risk_register"
 
@@ -69,6 +70,8 @@ class Artifacts(StrEnum):
     INCIDENT_REPORT = "incident_report"
     COMPLIANCE_RECORD = "compliance_record"
     SBOM_ARTIFACT = "sbom_artifact"
+    SBOM_HTML = "sbom_html"
     ANNEX_IV_PATH = "annex_iv_path"
+    ANNEX_IV_HTML = "annex_iv_html"
     RUN_RELEASE_DIR = "run_release_dir"
     COMPLIANCE_DASHBOARD_HTML = "compliance_dashboard_html"

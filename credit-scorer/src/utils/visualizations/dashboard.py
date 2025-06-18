@@ -485,10 +485,16 @@ def generate_compliance_dashboard_html(
 
     if risk_df is not None:
         try:
+            # Handle case where risk_df is a dict (from load_risk_register)
+            if isinstance(risk_df, dict):
+                risk_df = risk_df.get('Risks', risk_df.get('risks', None))
+                if risk_df is None:
+                    raise ValueError("No 'Risks' or 'risks' sheet found in risk data")
+            
             severity_column = next(
                 (
                     col
-                    for col in ["risk_category", "risk_level"]
+                    for col in ["risk_category", "risk_level", "Risk_category", "Risk_level"]
                     if col in risk_df.columns
                 ),
                 None,
@@ -672,6 +678,12 @@ def generate_compliance_dashboard_html(
     </div>
     """  # Close findings section
 
+    # Add API Documentation Section
+    html += generate_api_documentation_section(compliance_results.get('deployment_info'))
+    
+    # Add Risk Management Section  
+    html += generate_risk_management_section(risk_df)
+
     # Add compliance status bar
     compliance_percentage = compliance_summary.get("overall_score", 0)
     last_release_id = compliance_summary.get("release_id", "Unknown")
@@ -718,12 +730,284 @@ def generate_compliance_dashboard_html(
     return html
 
 
+def generate_api_documentation_section(deployment_info: Optional[Dict[str, Any]] = None) -> str:
+    """Generate API documentation section for the compliance dashboard."""
+    
+    # Extract actual deployment URL from deployment_info if available
+    modal_url = "https://api-endpoint.modal.run"  # fallback
+    
+    if deployment_info:
+        # Extract URL from deployment_record structure
+        deployment_record = deployment_info.get("deployment_record", {})
+        endpoints = deployment_record.get("endpoints", {})
+        modal_url = endpoints.get("root", modal_url)
+        
+        # Clean up URL if needed
+        if modal_url and not modal_url.startswith("http"):
+            modal_url = f"https://{modal_url}"
+    
+    html = """
+    <div class="card" style="margin-top: 30px;">
+        <h3>🚀 API Documentation & Integration</h3>
+        <p>Credit Scoring API endpoints for system integration and monitoring (Article 17 - Post-market monitoring).</p>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <strong>API Base URL:</strong> <code style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px;">""" + modal_url + """</code>
+        </div>
+        
+        <h4>Available Endpoints</h4>
+        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+            <thead>
+                <tr style="background-color: #f8f9fa;">
+                    <th style="padding: 10px; border: 1px solid #dee2e6; text-align: left;">Endpoint</th>
+                    <th style="padding: 10px; border: 1px solid #dee2e6; text-align: left;">Method</th>
+                    <th style="padding: 10px; border: 1px solid #dee2e6; text-align: left;">Purpose</th>
+                    <th style="padding: 10px; border: 1px solid #dee2e6; text-align: left;">EU AI Act Article</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;"><code>/health</code></td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">GET</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Health Check</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Article 17</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;"><code>/predict</code></td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">POST</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Make Credit Predictions</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Article 14 (Human Oversight)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;"><code>/monitor</code></td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">GET</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Data Drift Monitoring</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Article 17</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;"><code>/incident</code></td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">POST</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Report Issues</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">Article 18 (Incident Reporting)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div>
+                <h4>Sample Prediction Request</h4>
+                <pre style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-size: 12px; overflow-x: auto;">
+{
+  "AMT_INCOME_TOTAL": 450000.0,
+  "AMT_CREDIT": 1000000.0,
+  "AMT_ANNUITY": 60000.0,
+  "CODE_GENDER": "M",
+  "NAME_EDUCATION_TYPE": "Higher education",
+  "DAYS_BIRTH": -10000,
+  "EXT_SOURCE_1": 0.75,
+  "EXT_SOURCE_2": 0.65,
+  "EXT_SOURCE_3": 0.85
+}</pre>
+            </div>
+            
+            <div>
+                <h4>Sample Response</h4>
+                <pre style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-size: 12px; overflow-x: auto;">
+{
+  "probabilities": [0.75],
+  "model_version": "a1b2c3d4",
+  "timestamp": "2024-03-20T10:00:00Z",
+  "risk_assessment": {
+    "risk_score": 0.75,
+    "risk_level": "high"
+  }
+}</pre>
+            </div>
+        </div>
+        
+        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin-top: 15px;">
+            <strong>🔒 Compliance Note:</strong> All API endpoints implement logging and monitoring requirements per EU AI Act Articles 12 (Record Keeping) and 17 (Post-market monitoring). 
+            Prediction requests include model version tracking and risk assessment transparency per Article 14 (Human Oversight).
+        </div>
+    </div>
+    """
+    
+    return html
+
+
+def generate_risk_management_section(risk_df) -> str:
+    """Generate risk management section for the compliance dashboard."""
+    
+    html = """
+    <div class="card" style="margin-top: 30px;">
+        <h3>🛡️ Risk Management Dashboard</h3>
+        <p>Comprehensive risk monitoring and management system implementing EU AI Act Article 9 requirements.</p>
+    """
+    
+    if risk_df is not None:
+        try:
+            # Handle case where risk_df is a dict (from load_risk_register)
+            if isinstance(risk_df, dict):
+                risk_df = risk_df.get('Risks', risk_df.get('risks', None))
+                if risk_df is None:
+                    raise ValueError("No 'Risks' or 'risks' sheet found in risk data")
+            
+            if not risk_df.empty:
+                # Determine severity column (handle both uppercase and lowercase variants)
+                severity_column = next(
+                    (col for col in ["risk_category", "risk_level", "Risk_category", "Risk_level"] if col in risk_df.columns),
+                    None,
+                )
+                
+                if severity_column:
+                    # Calculate risk statistics
+                    total_risks = len(risk_df)
+                    risk_counts = risk_df[severity_column].value_counts()
+                    high_risks = risk_counts.get("HIGH", 0)
+                    medium_risks = risk_counts.get("MEDIUM", 0)
+                    low_risks = risk_counts.get("LOW", 0)
+                    
+                    # Calculate completion rate
+                    completion_rate = 0
+                    if "status" in risk_df.columns:
+                        completed = (risk_df["status"] == "COMPLETED").sum()
+                        completion_rate = (completed / total_risks * 100) if total_risks > 0 else 0
+                
+                    html += f"""
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div style="background-color: #fff2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #D64045;">
+                            <div style="font-size: 24px; font-weight: bold; color: #D64045;">{high_risks}</div>
+                            <div style="color: #666; font-size: 14px;">HIGH RISK</div>
+                        </div>
+                        <div style="background-color: #fff9e6; padding: 15px; border-radius: 8px; border-left: 4px solid #FFB30F;">
+                            <div style="font-size: 24px; font-weight: bold; color: #FFB30F;">{medium_risks}</div>
+                            <div style="color: #666; font-size: 14px;">MEDIUM RISK</div>
+                        </div>
+                        <div style="background-color: #f0f7f0; padding: 15px; border-radius: 8px; border-left: 4px solid #478C5C;">
+                            <div style="font-size: 24px; font-weight: bold; color: #478C5C;">{low_risks}</div>
+                            <div style="color: #666; font-size: 14px;">LOW RISK</div>
+                        </div>
+                        <div style="background-color: #f0f5ff; padding: 15px; border-radius: 8px; border-left: 4px solid #1F4E79;">
+                            <div style="font-size: 24px; font-weight: bold; color: #1F4E79;">{completion_rate:.0f}%</div>
+                            <div style="color: #666; font-size: 14px;">MITIGATION PROGRESS</div>
+                        </div>
+                    </div>
+                    
+                    <h4>Risk Register Summary</h4>
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 5px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background-color: #f8f9fa; position: sticky; top: 0;">
+                                <tr>
+                                    <th style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: left;">Risk ID</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: left;">Description</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: left;">Level</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: left;">Category</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: left;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    """
+                    
+                    # Add risk rows (limit to top 20 for performance)
+                    for idx, (_, row) in enumerate(risk_df.head(20).iterrows()):
+                        risk_id = row.get("id", f"RISK-{idx+1}")
+                        description = row.get("risk_description", "Risk description")
+                        level = row.get(severity_column, "UNKNOWN")
+                        category = row.get("category", "General")
+                        status = row.get("status", "PENDING")
+                        
+                        # Color code the risk level
+                        if level == "HIGH":
+                            level_color = "#D64045"
+                            level_bg = "#fff2f2"
+                        elif level == "MEDIUM":
+                            level_color = "#FFB30F"
+                            level_bg = "#fff9e6"
+                        elif level == "LOW":
+                            level_color = "#478C5C"
+                            level_bg = "#f0f7f0"
+                        else:
+                            level_color = "#666"
+                            level_bg = "#f8f9fa"
+                        
+                        html += f"""
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-family: monospace; font-size: 12px;">{risk_id}</td>
+                                    <td style="padding: 8px; max-width: 300px; word-wrap: break-word;">{description[:100]}{'...' if len(str(description)) > 100 else ''}</td>
+                                    <td style="padding: 8px;">
+                                        <span style="background-color: {level_bg}; color: {level_color}; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold;">
+                                            {level}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 8px;">{category}</td>
+                                    <td style="padding: 8px;">
+                                        <span style="font-size: 12px; color: #666;">{status}</span>
+                                    </td>
+                                </tr>
+                        """
+                    
+                    html += """
+                            </tbody>
+                        </table>
+                    </div>
+                    """
+                    
+                    # Add risk categories breakdown
+                    if "category" in risk_df.columns:
+                        category_counts = risk_df["category"].value_counts()
+                        html += """
+                        <h4 style="margin-top: 25px;">Risk Categories</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 15px 0;">
+                        """
+                        
+                        for category, count in category_counts.head(6).items():
+                            html += f"""
+                            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; border-left: 3px solid #1F4E79;">
+                                <div style="font-weight: bold; color: #1F4E79;">{count}</div>
+                                <div style="font-size: 12px; color: #666;">{category}</div>
+                            </div>
+                            """
+                        
+                        html += "</div>"
+                
+                else:
+                    html += """
+                    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px;">
+                        <strong>Notice:</strong> Risk level information not found in the current risk register.
+                    </div>
+                    """
+        
+        except Exception as e:
+            html += f"""
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px;">
+                <strong>Warning:</strong> Error processing risk data: {str(e)}
+            </div>
+            """
+    
+    else:
+        html += """
+        <div style="background-color: #e8f4fd; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px;">
+            <strong>Info:</strong> No risk register data available. Risk management data will be populated when the risk assessment pipeline runs.
+        </div>
+        """
+    
+    html += """
+        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <strong>📋 Article 9 Compliance:</strong> This risk management system implements comprehensive risk identification, assessment, mitigation, and monitoring processes. 
+            All risks are systematically tracked with defined mitigation strategies and regular review cycles to ensure ongoing EU AI Act compliance.
+        </div>
+    </div>
+    """
+    
+    return html
+
+
 def create_compliance_dashboard_artifact(
     compliance_results: Dict[str, Any],
     risk_df: Optional[Any] = None,
     incident_df: Optional[Any] = None,
 ) -> HTMLString:
-    """Create a ZenML HTML artifact for the compliance dashboard.
+    """Create a ZenML HTML artifact for the compliance dashboard using shared CSS.
 
     Args:
         compliance_results: Dictionary with compliance calculation results

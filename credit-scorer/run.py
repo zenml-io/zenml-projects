@@ -81,10 +81,10 @@ Examples:
     help="Directory containing configuration files.",
 )
 @click.option(
-    "--auto-approve",
+    "--manual-approve",
     is_flag=True,
     default=False,
-    help="Auto-approve deployment (for CI/CD pipelines).",
+    help="Require manual approval for deployment (disables auto-approve).",
 )
 @click.option(
     "--no-cache",
@@ -92,14 +92,21 @@ Examples:
     default=False,
     help="Disable caching for pipeline runs.",
 )
+@click.option(
+    "--enable-slack",
+    is_flag=True,
+    default=False,
+    help="Enable Slack notifications in deployment (requires Modal secrets setup).",
+)
 def main(
     feature: bool = False,
     train: bool = False,
     deploy: bool = False,
     all: bool = False,
     config_dir: str = "src/configs",
-    auto_approve: bool = True,
+    manual_approve: bool = False,
     no_cache: bool = False,
+    enable_slack: bool = False,
 ):
     """Main entry point for EU AI Act compliance pipelines.
 
@@ -115,18 +122,27 @@ def main(
     if not config_dir.exists():
         raise ValueError(f"Configuration directory {config_dir} not found")
 
-    # Handle auto-approve setting for deployment
+    # Handle approval setting for deployment (auto-approve is now default)
+    auto_approve = not manual_approve
     if auto_approve:
         os.environ["DEPLOY_APPROVAL"] = "y"
         os.environ["APPROVER"] = "automated_ci"
         os.environ["APPROVAL_RATIONALE"] = (
-            "Automatic approval via --auto-approve flag"
+            "Automatic approval (default behavior)"
         )
+
+    # Handle Slack setting for deployment (Slack disabled by default)
+    if enable_slack:
+        os.environ["ENABLE_SLACK"] = "true"
 
     # Common pipeline options
     pipeline_args = {}
     if no_cache:
         pipeline_args["enable_cache"] = False
+
+    # Handle --all flag first
+    if all:
+        feature = train = deploy = True
 
     # Track outputs for chaining pipelines
     outputs = {}
@@ -162,15 +178,18 @@ def main(
 
         train_args = {}
 
-        # Use outputs from previous pipeline if available
-        if "train_df" in outputs and "test_df" in outputs:
-            train_args["train_df"] = outputs["train_df"]
-            train_args["test_df"] = outputs["test_df"]
+        # Don't pass DataFrame artifacts directly - let training pipeline fetch them
+        # from artifact store via Client.get_artifact_version() as designed
 
         training_pipeline = training.with_options(**pipeline_args)
-        model, eval_results, eval_visualization, risk_scores, *_ = (
-            training_pipeline(**train_args)
-        )
+        (
+            model,
+            eval_results,
+            eval_visualization,
+            risk_scores,
+            risk_visualization,
+            *_,
+        ) = training_pipeline(**train_args)
 
         # Store for potential chaining
         outputs["model"] = model
@@ -188,21 +207,15 @@ def main(
 
         deploy_args = {}
 
-        if "model" in outputs:
-            deploy_args["model"] = outputs["model"]
-        if "evaluation_results" in outputs:
-            deploy_args["evaluation_results"] = outputs["evaluation_results"]
-        if "risk_scores" in outputs:
-            deploy_args["risk_scores"] = outputs["risk_scores"]
-        if "preprocess_pipeline" in outputs:
-            deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]
+        # Don't pass artifacts directly - let deployment pipeline fetch them
+        # from artifact store via Client.get_artifact_version() as designed
 
         deployment.with_options(**pipeline_args)(**deploy_args)
 
         logger.info("✅ Deployment pipeline completed")
 
     # If no pipeline specified, show help
-    if not any([feature, train, deploy, all]):
+    if not any([feature, train, deploy]):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
 

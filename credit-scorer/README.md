@@ -115,20 +115,37 @@ zenml alerter register slack_alerter \
 zenml stack update <STACK_NAME> -al slack_alerter
 ```
 
+5. Set up Modal secrets for deployment (optional, only needed with `--enable-slack` flag):
+
+```bash
+# Create Modal secret with Slack credentials for incident reporting
+modal secret create credit-scoring-secrets \
+    SLACK_BOT_TOKEN=<your_slack_bot_token> \
+    SLACK_CHANNEL_ID=<your_slack_channel_id>
+```
+
+> **Note:** The deployment pipeline uses Modal for cloud deployment. By default, Slack notifications are disabled for easier testing. The `credit-scoring-secrets` Modal secret stores the necessary Slack credentials for automated notifications when the deployed model API detects high or critical severity incidents.
+
+> **Enabling full compliance features:** For complete EU AI Act compliance incident reporting (Article 18), use the `--enable-slack` flag (e.g., `python run.py --deploy --enable-slack`). This requires the Modal secret to be configured with your Slack credentials for automated incident notifications.
+
 ## 📊 Running Pipelines
 
 ### Basic Commands
 
 ```bash
+# Run complete workflow (recommended)
+python run.py --all                      # Feature → Training → Deployment (auto-approved, no Slack)
+
 # Run individual pipelines
 python run.py --feature    # Feature engineering (Articles 10, 12)
 python run.py --train      # Model training (Articles 9, 11, 15)
 python run.py --deploy     # Deployment (Articles 14, 17, 18)
 
 # Pipeline options
-python run.py --train --auto-approve     # Skip manual approval steps
-python run.py --feature --no-cache       # Disable ZenML caching
+python run.py --all --no-cache           # Complete workflow without caching
+python run.py --all --manual-approve     # Complete workflow with manual approval steps
 python run.py --deploy --config-dir ./my-configs  # Custom config directory
+python run.py --all --enable-slack       # Complete workflow with Slack notifications (requires Modal secrets)
 ```
 
 ### View Compliance Dashboard

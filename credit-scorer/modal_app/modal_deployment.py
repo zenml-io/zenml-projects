@@ -81,8 +81,32 @@ def create_modal_app(python_version: str = "3.12.9"):
 
     app_config = {
         "image": base_image,
-        "secrets": [modal.Secret.from_name(SECRET_NAME)],
     }
+
+    # Only add secrets if Slack notifications are explicitly enabled
+    enable_slack_raw = os.getenv("ENABLE_SLACK", "false").lower()
+    if enable_slack_raw not in {"true", "false"}:
+        logger.error(
+            f"Invalid value for ENABLE_SLACK: '{enable_slack_raw}'. Expected 'true' or 'false'. Deployment aborted."
+        )
+        raise ValueError(
+            f"Invalid ENABLE_SLACK value: '{enable_slack_raw}'. Deployment aborted."
+        )
+
+    enable_slack = enable_slack_raw == "true"
+    if enable_slack:
+        try:
+            app_config["secrets"] = [modal.Secret.from_name(SECRET_NAME)]
+            logger.info(f"Added secret {SECRET_NAME} to Modal app")
+        except Exception as e:
+            logger.warning(f"Could not add secret {SECRET_NAME}: {e}")
+            logger.info(
+                "Continuing without secrets - Slack notifications will be disabled"
+            )
+    else:
+        logger.info(
+            "Slack notifications disabled by default - Modal app created without secrets"
+        )
 
     try:
         volume = modal.Volume.from_name(VOLUME_NAME)
@@ -167,7 +191,17 @@ def _report_incident(incident_data: dict, model_checksum: str) -> dict:
             logger.warning(f"Could not write to local incident log: {e}")
 
         # 2. Direct Slack notification for high/critical severity (not using ZenML)
-        if incident["severity"] in ("high", "critical"):
+        enable_slack_raw = os.getenv("ENABLE_SLACK", "false").lower()
+        if enable_slack_raw not in {"true", "false"}:
+            logger.error(
+                f"Invalid value for ENABLE_SLACK: '{enable_slack_raw}'. Expected 'true' or 'false'."
+            )
+            # Don't abort incident reporting, just skip Slack notification
+            enable_slack = False
+        else:
+            enable_slack = enable_slack_raw == "true"
+
+        if incident["severity"] in ("high", "critical") and enable_slack:
             try:
                 slack_token = os.getenv("SLACK_BOT_TOKEN")
                 slack_channel = os.getenv("SLACK_CHANNEL_ID", SC.CHANNEL_ID)
@@ -209,6 +243,10 @@ def _report_incident(incident_data: dict, model_checksum: str) -> dict:
                     )
             except Exception as e:
                 logger.warning(f"Failed to send Slack notification: {e}")
+        elif not enable_slack:
+            logger.info(
+                "Slack notifications disabled (use --enable-slack flag to enable)"
+            )
 
         return {
             "status": "reported",
