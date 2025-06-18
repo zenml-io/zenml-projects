@@ -128,6 +128,10 @@ def main(
     if no_cache:
         pipeline_args["enable_cache"] = False
 
+    # Handle --all flag first
+    if all:
+        feature = train = deploy = True
+
     # Track outputs for chaining pipelines
     outputs = {}
 
@@ -162,10 +166,8 @@ def main(
 
         train_args = {}
 
-        # Use outputs from previous pipeline if available
-        if "train_df" in outputs and "test_df" in outputs:
-            train_args["train_df"] = outputs["train_df"]
-            train_args["test_df"] = outputs["test_df"]
+        # Don't pass DataFrame artifacts directly - let training pipeline fetch them
+        # from artifact store via Client.get_artifact_version() as designed
 
         training_pipeline = training.with_options(**pipeline_args)
         model, eval_results, eval_visualization, risk_scores, *_ = (
@@ -188,22 +190,12 @@ def main(
 
         deploy_args = {}
 
-        if "model" in outputs:
-            deploy_args["model"] = outputs["model"]
-        if "evaluation_results" in outputs:
-            deploy_args["evaluation_results"] = outputs["evaluation_results"]
-        if "risk_scores" in outputs:
-            deploy_args["risk_scores"] = outputs["risk_scores"]
-        if "preprocess_pipeline" in outputs:
-            deploy_args["preprocess_pipeline"] = outputs["preprocess_pipeline"]
+        # Don't pass artifacts directly - let deployment pipeline fetch them
+        # from artifact store via Client.get_artifact_version() as designed
 
         deployment.with_options(**pipeline_args)(**deploy_args)
 
         logger.info("✅ Deployment pipeline completed")
-
-    # Handle --all flag
-    if all:
-        feature = train = deploy = True
 
     # If no pipeline specified, show help
     if not any([feature, train, deploy]):
