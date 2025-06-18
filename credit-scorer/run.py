@@ -201,8 +201,12 @@ def main(
 
         logger.info("✅ Deployment pipeline completed")
 
+    # Handle --all flag
+    if all:
+        feature = train = deploy = True
+
     # If no pipeline specified, show help
-    if not any([feature, train, deploy, all]):
+    if not any([feature, train, deploy]):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
 
