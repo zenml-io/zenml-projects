@@ -131,14 +131,17 @@ modal secret create credit-scoring-secrets \
 ### Basic Commands
 
 ```bash
+# Run complete workflow (recommended)
+python run.py --all --auto-approve       # Feature → Training → Deployment
+
 # Run individual pipelines
 python run.py --feature    # Feature engineering (Articles 10, 12)
 python run.py --train      # Model training (Articles 9, 11, 15)
 python run.py --deploy     # Deployment (Articles 14, 17, 18)
 
 # Pipeline options
+python run.py --all --no-cache           # Complete workflow without caching
 python run.py --train --auto-approve     # Skip manual approval steps
-python run.py --feature --no-cache       # Disable ZenML caching
 python run.py --deploy --config-dir ./my-configs  # Custom config directory
 ```
 
