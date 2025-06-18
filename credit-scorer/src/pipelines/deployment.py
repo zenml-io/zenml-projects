@@ -92,7 +92,7 @@ def deployment(
     )
 
     # Generate Software Bill of Materials for Article 15 (Accuracy & Robustness)
-    generate_sbom(
+    sbom_data, sbom_html = generate_sbom(
         deployment_info=deployment_info,
     )
 
@@ -103,7 +103,7 @@ def deployment(
     )
 
     # Generate comprehensive technical documentation (Article 11)
-    documentation_path, run_release_dir = generate_annex_iv_documentation(
+    documentation_path, documentation_html, run_release_dir = generate_annex_iv_documentation(
         evaluation_results=evaluation_results,
         risk_scores=risk_scores,
         deployment_info=deployment_info,
@@ -118,5 +118,8 @@ def deployment(
         deployment_info,
         monitoring_plan,
         documentation_path,
+        documentation_html,
+        sbom_data,
+        sbom_html,
         compliance_dashboard,
     )

@@ -69,6 +69,8 @@ class Artifacts(StrEnum):
     INCIDENT_REPORT = "incident_report"
     COMPLIANCE_RECORD = "compliance_record"
     SBOM_ARTIFACT = "sbom_artifact"
+    SBOM_HTML = "sbom_html"
     ANNEX_IV_PATH = "annex_iv_path"
+    ANNEX_IV_HTML = "annex_iv_html"
     RUN_RELEASE_DIR = "run_release_dir"
     COMPLIANCE_DASHBOARD_HTML = "compliance_dashboard_html"
