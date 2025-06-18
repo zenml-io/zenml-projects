@@ -162,15 +162,15 @@ def generate_sbom_html(sbom_data: Dict[str, Any], timestamp: str) -> str:
         <div class="content">
             <div class="card sbom-header">
                 <h2>SBOM Information</h2>
-                <p><strong>Format:</strong> {sbom_data.get('bomFormat', 'CycloneDX')}</p>
-                <p><strong>Spec Version:</strong> {sbom_data.get('specVersion', 'N/A')}</p>
-                <p><strong>Serial Number:</strong> <span class="monospace checksum">{sbom_data.get('serialNumber', 'N/A')}</span></p>
+                <p><strong>Format:</strong> {sbom_data.get("bomFormat", "CycloneDX")}</p>
+                <p><strong>Spec Version:</strong> {sbom_data.get("specVersion", "N/A")}</p>
+                <p><strong>Serial Number:</strong> <span class="monospace checksum">{sbom_data.get("serialNumber", "N/A")}</span></p>
                 <p><strong>Generated:</strong> {timestamp}</p>
             </div>
             
             <div class="card sbom-metadata">
                 <h2>Metadata</h2>
-                <p><strong>Timestamp:</strong> {metadata.get('timestamp', 'N/A')}</p>
+                <p><strong>Timestamp:</strong> {metadata.get("timestamp", "N/A")}</p>
                 <p><strong>Total Components:</strong> {len(components)}</p>
             </div>
             

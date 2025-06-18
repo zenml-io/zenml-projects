@@ -253,7 +253,7 @@ def generate_enhanced_annex_iv_html(
                         </tr>
                     </table>
                     
-                    {generate_previous_versions_table(metadata.get('pipeline_runs', []))}
+                    {generate_previous_versions_table(metadata.get("pipeline_runs", []))}
                     
                     <p><strong>Intended Purpose:</strong> To evaluate credit risk for loan applicants by providing an objective, fair, and transparent score based on financial history and demographic data.</p>
                 </div>
@@ -262,22 +262,22 @@ def generate_enhanced_annex_iv_html(
                     <h3>1(b) System Interactions</h3>
                     <div class="info-grid">
                         <div class="info-label">Stack Name:</div>
-                        <div class="info-value">{stack_info.get('name', 'Unknown')}</div>
+                        <div class="info-value">{stack_info.get("name", "Unknown")}</div>
                         <div class="info-label">Stack ID:</div>
-                        <div class="info-value">{stack_info.get('id', 'Unknown')}</div>
+                        <div class="info-value">{stack_info.get("id", "Unknown")}</div>
                         <div class="info-label">Created:</div>
-                        <div class="info-value">{stack_info.get('created', 'Unknown')}</div>
+                        <div class="info-value">{stack_info.get("created", "Unknown")}</div>
                     </div>
-                    {generate_stack_components_table(metadata.get('stack_components', {}))}
+                    {generate_stack_components_table(metadata.get("stack_components", {}))}
                 </div>
                 
                 <div class="subsection">
                     <h3>1(c) Software Versions</h3>
                     <div class="info-grid">
                         <div class="info-label">Pipeline Commit:</div>
-                        <div class="info-value">{git_info.get('commit', 'Unknown')}</div>
+                        <div class="info-value">{git_info.get("commit", "Unknown")}</div>
                         <div class="info-label">Repository:</div>
-                        <div class="info-value">{git_info.get('repository', 'Unknown')}</div>
+                        <div class="info-value">{git_info.get("repository", "Unknown")}</div>
                     </div>
                     {generate_framework_versions_table(frameworks)}
                 </div>
@@ -288,7 +288,7 @@ def generate_enhanced_annex_iv_html(
                         <div class="info-label">Type:</div>
                         <div class="info-value">Modal + FastAPI (Serverless API deployment with auto-scaling)</div>
                         <div class="info-label">Environment:</div>
-                        <div class="info-value">{deployment_info.get('environment', 'Production') if deployment_info else 'Production'}</div>
+                        <div class="info-value">{deployment_info.get("environment", "Production") if deployment_info else "Production"}</div>
                         <div class="info-label">Scaling:</div>
                         <div class="info-value">Automatic</div>
                     </div>
@@ -308,12 +308,12 @@ def generate_enhanced_annex_iv_html(
                 <div class="subsection">
                     <h3>2(a) Development Methods and Third-party Tools</h3>
                     
-                    {generate_pipeline_execution_history(metadata.get('pipeline_execution_history', []))}
+                    {generate_pipeline_execution_history(metadata.get("pipeline_execution_history", []))}
                     
                     <h4 style="margin-top: 2rem;">Development Environment</h4>
                     <div class="info-grid">
                         <div class="info-label">Source Repository:</div>
-                        <div class="info-value">{git_info.get('repository', 'git@github.com:zenml-io/zenml-projects.git')}</div>
+                        <div class="info-value">{git_info.get("repository", "git@github.com:zenml-io/zenml-projects.git")}</div>
                         <div class="info-label">Version Control:</div>
                         <div class="info-value">Git</div>
                         <div class="info-label">CI/CD Platform:</div>
@@ -348,19 +348,19 @@ def generate_enhanced_annex_iv_html(
                             <div class="metric-label">Accuracy</div>
                         </div>
                         <div class="metric-card">
-                            <div class="metric-value text-success">{model_metrics.get('f1_score', 0):.3f}</div>
+                            <div class="metric-value text-success">{model_metrics.get("f1_score", 0):.3f}</div>
                             <div class="metric-label">F1 Score</div>
                         </div>
                         <div class="metric-card">
-                            <div class="metric-value">{model_metrics.get('auc_roc', 0):.3f}</div>
+                            <div class="metric-value">{model_metrics.get("auc_roc", 0):.3f}</div>
                             <div class="metric-label">AUC-ROC</div>
                         </div>
                         <div class="metric-card">
-                            <div class="metric-value text-warning">{model_metrics.get('precision', 0):.3f}</div>
+                            <div class="metric-value text-warning">{model_metrics.get("precision", 0):.3f}</div>
                             <div class="metric-label">Precision</div>
                         </div>
                         <div class="metric-card">
-                            <div class="metric-value text-danger">{model_metrics.get('recall', 0):.3f}</div>
+                            <div class="metric-value text-danger">{model_metrics.get("recall", 0):.3f}</div>
                             <div class="metric-label">Recall</div>
                         </div>
                     </div>
@@ -393,7 +393,7 @@ def generate_enhanced_annex_iv_html(
                 <div class="card-header">
                     <h2 class="card-title">4. Appropriateness of Performance Metrics</h2>
                 </div>
-                <p>The selected metrics provide a balanced assessment: Accuracy ({accuracy:.1%}) measures overall predictive capability, AUC ({model_metrics.get('auc_roc', 0):.3f}) assesses discrimination ability, and fairness metrics ensure consistent performance across demographic groups.</p>
+                <p>The selected metrics provide a balanced assessment: Accuracy ({accuracy:.1%}) measures overall predictive capability, AUC ({model_metrics.get("auc_roc", 0):.3f}) assesses discrimination ability, and fairness metrics ensure consistent performance across demographic groups.</p>
             </div>
             
             <!-- 5. Risk Management -->
@@ -403,19 +403,19 @@ def generate_enhanced_annex_iv_html(
                 </div>
                 <div class="metrics-container">
                     <div class="metric-card">
-                        <div class="metric-value text-danger">{risk_data.get('overall', 0):.3f}</div>
+                        <div class="metric-value text-danger">{risk_data.get("overall", 0):.3f}</div>
                         <div class="metric-label">Overall Risk</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value text-warning">{risk_data.get('technical', 0):.3f}</div>
+                        <div class="metric-value text-warning">{risk_data.get("technical", 0):.3f}</div>
                         <div class="metric-label">Technical Risk</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value">{risk_data.get('operational', 0):.3f}</div>
+                        <div class="metric-value">{risk_data.get("operational", 0):.3f}</div>
                         <div class="metric-label">Operational Risk</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value text-success">{risk_data.get('compliance', 0):.3f}</div>
+                        <div class="metric-value text-success">{risk_data.get("compliance", 0):.3f}</div>
                         <div class="metric-label">Compliance Risk</div>
                     </div>
                 </div>
@@ -561,10 +561,10 @@ def generate_previous_versions_table(pipeline_runs: list) -> str:
         )
         html += f"""
             <tr>
-                <td>{run.get('name', 'Unknown')}</td>
-                <td><span class="monospace">{run.get('id', 'Unknown')[:8]}</span></td>
-                <td>{run.get('created', 'Unknown')}</td>
-                <td><span class="status-indicator {status_class}"></span> {run.get('status', 'Unknown')}</td>
+                <td>{run.get("name", "Unknown")}</td>
+                <td><span class="monospace">{run.get("id", "Unknown")[:8]}</span></td>
+                <td>{run.get("created", "Unknown")}</td>
+                <td><span class="status-indicator {status_class}"></span> {run.get("status", "Unknown")}</td>
             </tr>
         """
 
@@ -780,10 +780,10 @@ def generate_stack_components_table(stack_components: Dict[str, Any]) -> str:
             for component in components:
                 html += f"""
                     <tr>
-                        <td>{component_type.replace('_', ' ').title()}</td>
-                        <td>{component.get('name', 'Unknown')}</td>
-                        <td>{component.get('flavor', 'Unknown')}</td>
-                        <td>{component.get('integration', 'Built-in')}</td>
+                        <td>{component_type.replace("_", " ").title()}</td>
+                        <td>{component.get("name", "Unknown")}</td>
+                        <td>{component.get("flavor", "Unknown")}</td>
+                        <td>{component.get("integration", "Built-in")}</td>
                     </tr>
                 """
 
@@ -877,11 +877,11 @@ def generate_deployment_info_section(deployment_info: Dict[str, Any]) -> str:
             <div class="info-label">Deployment Status:</div>
             <div class="info-value">{status_indicator}</div>
             <div class="info-label">Environment:</div>
-            <div class="info-value">{deployment_info.get('environment', 'Unknown')}</div>
+            <div class="info-value">{deployment_info.get("environment", "Unknown")}</div>
             <div class="info-label">API Endpoint:</div>
-            <div class="info-value">{deployment_info.get('api_url', 'Not Available')}</div>
+            <div class="info-value">{deployment_info.get("api_url", "Not Available")}</div>
             <div class="info-label">Deployment Time:</div>
-            <div class="info-value">{deployment_info.get('deployment_time', 'Unknown')}</div>
+            <div class="info-value">{deployment_info.get("deployment_time", "Unknown")}</div>
         </div>
     </div>
     """
@@ -914,7 +914,7 @@ def generate_fairness_table(fairness_metrics: Dict[str, Any]) -> str:
 
         html += f"""
             <tr>
-                <td>{attr.replace('_', ' ').title()}</td>
+                <td>{attr.replace("_", " ").title()}</td>
                 <td>{di_ratio:.3f}</td>
                 <td>{status_indicator}</td>
             </tr>

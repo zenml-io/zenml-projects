@@ -190,7 +190,7 @@ def generate_risk_visualization(risk_scores: Dict, run_id: str) -> HTMLString:
             </div>
 
             <div class="timestamp">
-                Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+                Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")}
             </div>
         </div>
     """
@@ -210,13 +210,13 @@ def generate_hazards_html(hazards: List[Dict]) -> str:
 
         html += f"""
         <div class="hazard-item {hazard_class}">
-            <div class="hazard-id">{hazard.get('id', 'UNKNOWN')}</div>
+            <div class="hazard-id">{hazard.get("id", "UNKNOWN")}</div>
             <div class="badge {badge_class}">
                 {severity.upper()}
             </div>
-            <div class="hazard-description">{hazard.get('description', 'No description available')}</div>
+            <div class="hazard-description">{hazard.get("description", "No description available")}</div>
             <div class="hazard-mitigation">
-                <strong>Mitigation:</strong> {hazard.get('mitigation', 'No mitigation specified')}
+                <strong>Mitigation:</strong> {hazard.get("mitigation", "No mitigation specified")}
             </div>
         </div>
         """
