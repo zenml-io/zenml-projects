@@ -88,7 +88,8 @@ cd zenml_deep_research
 pip install -r requirements.txt
 
 # Set up API keys
-export OPENAI_API_KEY=your_openai_key  # Or another LLM provider key
+export OPENAI_API_KEY=your_openai_key  # If using OpenAI models
+export OPENROUTER_API_KEY=your_openrouter_key  # If using OpenRouter models (default configuration uses OpenRouter)
 export TAVILY_API_KEY=your_tavily_key  # For Tavily search (default)
 export EXA_API_KEY=your_exa_key        # For Exa search and MCP integration (required for MCP)
 export ANTHROPIC_API_KEY=your_anthropic_key  # For MCP integration (required)
