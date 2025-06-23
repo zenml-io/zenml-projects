@@ -5,6 +5,7 @@ from typing import Annotated
 from materializers.query_context_materializer import QueryContextMaterializer
 from utils.llm_utils import get_structured_llm_output
 from utils.pydantic_models import Prompt, QueryContext
+from utils.tracking_config import configure_tracking_provider
 from zenml import log_metadata, step
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,9 @@ def initial_query_decomposition_step(
     query_decomposition_prompt: Prompt,
     llm_model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     max_sub_questions: int = 8,
+    tracking_provider: str = "weave",
     langfuse_project_name: str = "deep-research",
+    weave_project_name: str = "deep-research",
 ) -> Annotated[QueryContext, "query_context"]:
     """Break down a complex research query into specific sub-questions.
 
@@ -25,12 +28,23 @@ def initial_query_decomposition_step(
         query_decomposition_prompt: Prompt for query decomposition
         llm_model: The reasoning model to use with provider prefix
         max_sub_questions: Maximum number of sub-questions to generate
-        langfuse_project_name: Project name for tracing
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        langfuse_project_name: Langfuse project name for tracing
+        weave_project_name: Weave project name for tracing
 
     Returns:
         QueryContext containing the main query and decomposed sub-questions
     """
     start_time = time.time()
+    
+    # Configure tracking provider
+    project_name = langfuse_project_name if tracking_provider == "langfuse" else weave_project_name
+    configure_tracking_provider(
+        tracking_provider=tracking_provider,
+        langfuse_project_name=langfuse_project_name,
+        weave_project_name=weave_project_name,
+    )
+    
     logger.info(f"Decomposing research query: {main_query}")
 
     # Get the prompt content
@@ -68,7 +82,8 @@ def initial_query_decomposition_step(
             system_prompt=updated_system_prompt,
             model=llm_model,
             fallback_response=fallback_questions,
-            project=langfuse_project_name,
+            tracking_provider=tracking_provider,
+            project=project_name,
         )
 
         # Extract just the sub-questions

@@ -12,6 +12,8 @@ warnings.filterwarnings(
 from materializers.search_data_materializer import SearchDataMaterializer
 from materializers.synthesis_data_materializer import SynthesisDataMaterializer
 from utils.llm_utils import synthesize_information
+from utils.tracking_config import configure_tracking_provider
+from utils.weave_zenml_integration import log_weave_summary_to_zenml
 from utils.pydantic_models import (
     Prompt,
     QueryContext,
@@ -46,7 +48,9 @@ def process_sub_question_step(
     cap_search_length: int = 20000,
     search_provider: str = "tavily",
     search_mode: str = "auto",
+    tracking_provider: str = "weave",
     langfuse_project_name: str = "deep-research",
+    weave_project_name: str = "deep-research",
 ) -> Tuple[
     Annotated[SearchData, "search_data"],
     Annotated[SynthesisData, "synthesis_data"],
@@ -67,12 +71,26 @@ def process_sub_question_step(
         cap_search_length: Maximum length of content to process from search results
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
-        langfuse_project_name: Project name for tracing
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        langfuse_project_name: Langfuse project name for tracing
+        weave_project_name: Weave project name for tracing
 
     Returns:
         Tuple of SearchData and SynthesisData for the processed sub-question
     """
     start_time = time.time()
+
+    # Configure tracking provider based on the provided setting
+    project_name = langfuse_project_name if tracking_provider == "langfuse" else weave_project_name
+    configure_tracking_provider(
+        tracking_provider=tracking_provider,
+        langfuse_project_name=langfuse_project_name,
+        weave_project_name=weave_project_name,
+    )
+    
+    # Log Weave dashboard link to ZenML metadata
+    if tracking_provider == "weave":
+        log_weave_summary_to_zenml()
 
     # Initialize empty artifacts
     search_data = SearchData()
@@ -117,7 +135,8 @@ def process_sub_question_step(
         sub_question=sub_question,
         model=llm_model_search,
         system_prompt=str(search_query_prompt),
-        project=langfuse_project_name,
+        tracking_provider=tracking_provider,
+        project=project_name,
     )
     search_query = search_query_data.get(
         "search_query", f"research about {sub_question}"
@@ -187,7 +206,8 @@ def process_sub_question_step(
         synthesis_input=synthesis_input,
         model=llm_model_synthesis,
         system_prompt=str(synthesis_prompt),
-        project=langfuse_project_name,
+        tracking_provider=tracking_provider,
+        project=project_name,
     )
 
     # Create SynthesizedInfo object

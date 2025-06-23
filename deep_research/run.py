@@ -147,6 +147,12 @@ Examples:
     default=3,
     help="Number of search results to return per query (default: 3)",
 )
+@click.option(
+    "--tracking-provider",
+    type=click.Choice(["langfuse", "weave", "none"], case_sensitive=False),
+    default="weave",
+    help="Experiment tracking provider: weave (default), langfuse, or none",
+)
 def main(
     mode,
     config,
@@ -160,6 +166,7 @@ def main(
     search_provider,
     search_mode,
     num_results,
+    tracking_provider,
 ):
     """Run the deep research pipeline.
 
@@ -274,12 +281,22 @@ def main(
         logger.info(f"Results per search: {num_results}")
 
     langfuse_project_name = "deep-research"  # default
+    weave_project_name = "deep-research"  # default
     query_from_config = None  # default
     try:
         with open(config, "r") as f:
             config_data = yaml.safe_load(f)
+            # Override tracking provider from config if specified
+            config_tracking_provider = config_data.get("tracking_provider", tracking_provider)
+            if config_tracking_provider != tracking_provider:
+                logger.info(f"Using tracking provider from config: {config_tracking_provider}")
+                tracking_provider = config_tracking_provider
+            
             langfuse_project_name = config_data.get(
                 "langfuse_project_name", "deep-research"
+            )
+            weave_project_name = config_data.get(
+                "weave_project_name", "deep-research"
             )
             query_from_config = config_data.get("query", None)
     except Exception as e:
@@ -311,7 +328,9 @@ def main(
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
             num_results_per_search=num_results,
+            tracking_provider=tracking_provider,
             langfuse_project_name=langfuse_project_name,
+            weave_project_name=weave_project_name,
         )
     else:
         logger.info(
@@ -329,7 +348,9 @@ def main(
             search_provider=search_provider or "tavily",
             search_mode=search_mode,
             num_results_per_search=num_results,
+            tracking_provider=tracking_provider,
             langfuse_project_name=langfuse_project_name,
+            weave_project_name=weave_project_name,
         )
 
 

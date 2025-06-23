@@ -14,6 +14,13 @@ except ImportError:
     Exa = None
 
 from utils.llm_utils import get_structured_llm_output
+
+# Import weave for optional decorators
+try:
+    import weave
+    WEAVE_AVAILABLE = True
+except ImportError:
+    WEAVE_AVAILABLE = False
 from utils.prompts import DEFAULT_SEARCH_QUERY_PROMPT
 from utils.pydantic_models import SearchResult
 
@@ -520,10 +527,19 @@ def extract_search_results(
     return results_list, search_cost
 
 
+# Conditional weave decorator
+def _weave_op_if_available(func):
+    """Conditionally apply weave.op decorator if weave is available."""
+    if WEAVE_AVAILABLE:
+        return weave.op()(func)
+    return func
+
+@_weave_op_if_available
 def generate_search_query(
     sub_question: str,
     model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     system_prompt: Optional[str] = None,
+    tracking_provider: str = "weave",
     project: str = "deep-research",
 ) -> Dict[str, Any]:
     """Generate an optimized search query for a sub-question.
@@ -534,7 +550,8 @@ def generate_search_query(
         sub_question: The sub-question to generate a search query for
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM, defaults to DEFAULT_SEARCH_QUERY_PROMPT
-        project: Langfuse project name for LLM tracking
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        project: Project name for LLM tracking
 
     Returns:
         Dictionary with search query and reasoning
@@ -549,6 +566,7 @@ def generate_search_query(
         system_prompt=system_prompt,
         model=model,
         fallback_response=fallback_response,
+        tracking_provider=tracking_provider,
         project=project,
     )
 

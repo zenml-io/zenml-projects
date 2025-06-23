@@ -5,9 +5,17 @@ from json.decoder import JSONDecodeError
 from typing import Any, Dict, List, Optional
 
 import litellm
-from litellm import completion
 from utils.prompts import SYNTHESIS_PROMPT
+from utils.tracking_config import configure_tracking_provider, get_tracking_metadata
+from utils.weave_zenml_integration import log_weave_trace_to_zenml, add_weave_context_to_function
 from zenml import get_step_context
+
+# Import weave for optional decorators
+try:
+    import weave
+    WEAVE_AVAILABLE = True
+except ImportError:
+    WEAVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +26,9 @@ logger = logging.getLogger(__name__)
 # - For other providers: "sambanova/", "openai/", "anthropic/", "meta/", "aws/"
 # ALL model names require a provider prefix
 
-litellm.callbacks = ["langfuse"]
+# Default tracking configuration - will be updated by configure_tracking_provider()
+# Note: This will be overridden by configure_tracking_provider() in each step
+litellm.callbacks = []
 
 
 def remove_reasoning_from_output(output: str) -> str:
@@ -96,6 +106,14 @@ def safe_json_loads(json_str: Optional[str]) -> Dict[str, Any]:
         return {}
 
 
+# Conditional weave decorator
+def _weave_op_if_available(func):
+    """Conditionally apply weave.op decorator if weave is available."""
+    if WEAVE_AVAILABLE:
+        return weave.op()(func)
+    return func
+
+@_weave_op_if_available
 def run_llm_completion(
     prompt: str,
     system_prompt: str,
@@ -104,6 +122,7 @@ def run_llm_completion(
     max_tokens: int = 2000,  # Increased default token limit
     temperature: float = 0.2,
     top_p: float = 0.9,
+    tracking_provider: str = "weave",
     project: str = "deep-research",
     tags: Optional[List[str]] = None,
 ) -> str:
@@ -121,8 +140,9 @@ def run_llm_completion(
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling value
-        project: Langfuse project name for LLM tracking
-        tags: Optional list of tags for Langfuse tracking. If provided, also converted to trace_metadata format.
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        project: Project name for LLM tracking
+        tags: Optional list of tags for tracking. If provided, also converted to trace_metadata format.
 
     Returns:
         str: Processed LLM output with optional cleaning applied
@@ -156,18 +176,30 @@ def run_llm_completion(
             context = get_step_context()
             trace_name = context.pipeline_run.name
             trace_id = str(context.pipeline_run.id)
-        # Build metadata dict
-        metadata = {"project": project}
-        if tags is not None:
-            metadata["tags"] = tags
-            # Convert tags to trace_metadata format
-            metadata["trace_metadata"] = {tag: True for tag in tags}
-        if trace_name:
-            metadata["trace_name"] = trace_name
-        if trace_id:
-            metadata["trace_id"] = trace_id
+        
+        # Build metadata dict using the tracking configuration
+        # For Weave, we don't pass metadata as it handles tracking automatically
+        metadata = {}
+        if tracking_provider.lower() != "weave":
+            metadata = get_tracking_metadata(
+                tracking_provider=tracking_provider,
+                project_name=project,
+                tags=tags,
+                trace_name=trace_name,
+                trace_id=trace_id,
+            )
+        
+        # Add ZenML context for Weave tracking
+        if tracking_provider.lower() == "weave" and WEAVE_AVAILABLE:
+            weave_context = add_weave_context_to_function(
+                "run_llm_completion",
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                tags=tags or []
+            )
 
-        response = completion(
+        response = litellm.completion(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -194,12 +226,26 @@ def run_llm_completion(
             content = remove_reasoning_from_output(content)
             content = clean_json_tags(content)
 
+        # Log to ZenML metadata for Weave tracking
+        if tracking_provider.lower() == "weave" and WEAVE_AVAILABLE:
+            log_weave_trace_to_zenml(
+                operation_name="llm_completion",
+                additional_metadata={
+                    "model": model,
+                    "prompt_length": len(prompt),
+                    "response_length": len(content) if content else 0,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                }
+            )
+
         return content
     except Exception as e:
         logger.error(f"Error in LLM completion: {e}")
         return ""
 
 
+@_weave_op_if_available
 def get_structured_llm_output(
     prompt: str,
     system_prompt: str,
@@ -208,6 +254,7 @@ def get_structured_llm_output(
     max_tokens: int = 2000,  # Increased default token limit for structured outputs
     temperature: float = 0.2,
     top_p: float = 0.9,
+    tracking_provider: str = "weave",
     project: str = "deep-research",
     tags: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
@@ -223,8 +270,9 @@ def get_structured_llm_output(
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling value
-        project: Langfuse project name for LLM tracking
-        tags: Optional list of tags for Langfuse tracking. Defaults to ["structured_llm_output"] if None.
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        project: Project name for LLM tracking
+        tags: Optional list of tags for tracking. Defaults to ["structured_llm_output"] if None.
 
     Returns:
         Parsed JSON response or fallback
@@ -242,6 +290,7 @@ def get_structured_llm_output(
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
+            tracking_provider=tracking_provider,
             project=project,
             tags=tags,
         )
@@ -296,6 +345,7 @@ def find_most_relevant_string(
     target: str,
     options: List[str],
     model: Optional[str] = "openrouter/google/gemini-2.0-flash-lite-001",
+    tracking_provider: str = "weave",
     project: str = "deep-research",
     tags: Optional[List[str]] = None,
 ) -> Optional[str]:
@@ -307,8 +357,9 @@ def find_most_relevant_string(
         target: The target string to find relevance for
         options: List of string options to check against
         model: Model to use for matching (with provider prefix)
-        project: Langfuse project name for LLM tracking
-        tags: Optional list of tags for Langfuse tracking. Defaults to ["find_most_relevant_string"] if None.
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        project: Project name for LLM tracking
+        tags: Optional list of tags for tracking. Defaults to ["find_most_relevant_string"] if None.
 
     Returns:
         The most relevant string, or None if no relevant options
@@ -365,16 +416,19 @@ Respond with only the exact text of the most relevant option."""
             if tags is None:
                 tags = ["find_most_relevant_string"]
 
-            # Build metadata dict
-            metadata = {"project": project, "tags": tags}
-            # Convert tags to trace_metadata format
-            metadata["trace_metadata"] = {tag: True for tag in tags}
-            if trace_name:
-                metadata["trace_name"] = trace_name
-            if trace_id:
-                metadata["trace_id"] = trace_id
+            # Build metadata dict using the tracking configuration
+            # For Weave, we don't pass metadata as it handles tracking automatically
+            metadata = {}
+            if tracking_provider.lower() != "weave":
+                metadata = get_tracking_metadata(
+                    tracking_provider=tracking_provider,
+                    project_name=project,
+                    tags=tags,
+                    trace_name=trace_name,
+                    trace_id=trace_id,
+                )
 
-            response = completion(
+            response = litellm.completion(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -413,10 +467,12 @@ Respond with only the exact text of the most relevant option."""
     return options[0]
 
 
+@_weave_op_if_available
 def synthesize_information(
     synthesis_input: Dict[str, Any],
     model: str = "openrouter/google/gemini-2.0-flash-lite-001",
     system_prompt: Optional[str] = None,
+    tracking_provider: str = "weave",
     project: str = "deep-research",
     tags: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
@@ -428,8 +484,9 @@ def synthesize_information(
         synthesis_input: Dictionary with sub-question, search results, and sources
         model: Model to use (with provider prefix)
         system_prompt: System prompt for the LLM
-        project: Langfuse project name for LLM tracking
-        tags: Optional list of tags for Langfuse tracking. Defaults to ["information_synthesis"] if None.
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
+        project: Project name for LLM tracking
+        tags: Optional list of tags for tracking. Defaults to ["information_synthesis"] if None.
 
     Returns:
         Dictionary with synthesized information
@@ -460,6 +517,7 @@ def synthesize_information(
         model=model,
         fallback_response=fallback_response,
         max_tokens=3000,  # Increased for more detailed synthesis
+        tracking_provider=tracking_provider,
         project=project,
         tags=tags,
     )

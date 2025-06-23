@@ -10,9 +10,40 @@ from steps.process_sub_question_step import process_sub_question_step
 from steps.pydantic_final_report_step import pydantic_final_report_step
 from steps.query_decomposition_step import initial_query_decomposition_step
 from zenml import pipeline
+from zenml.config import DockerSettings
 
 
-@pipeline(enable_cache=False)
+@pipeline(
+    enable_cache=False,
+    settings={
+        "docker": DockerSettings(
+            python_package_installer="uv",
+            requirements=[
+                "litellm",
+                "tavily-python>=0.2.8",
+                "exa-py>=1.0.0",
+                "langfuse>=2.0.0",
+                "weave>=0.50.0",
+                "wandb>=0.18.0",
+                "anthropic>=0.52.2",
+                "requests>=2.28.0",
+                "PyYAML>=6.0",
+                "pydantic>=2.0.0",
+            ],
+            environment={
+                "SAMBANOVA_API_KEY": "${SAMBANOVA_API_KEY}",
+                "TAVILY_API_KEY": "${TAVILY_API_KEY}",
+                "EXA_API_KEY": "${EXA_API_KEY}",
+                "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+                "LANGFUSE_PUBLIC_KEY": "${LANGFUSE_PUBLIC_KEY}",
+                "LANGFUSE_SECRET_KEY": "${LANGFUSE_SECRET_KEY}",
+                "WANDB_API_KEY": "${WANDB_API_KEY}",
+                "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+                "test": "test2"
+            },
+        )
+    },
+)
 def parallelized_deep_research_pipeline(
     query: str = "What is ZenML?",
     max_sub_questions: int = 10,
@@ -22,7 +53,9 @@ def parallelized_deep_research_pipeline(
     search_provider: str = "tavily",
     search_mode: str = "auto",
     num_results_per_search: int = 3,
+    tracking_provider: str = "weave",
     langfuse_project_name: str = "deep-research",
+    weave_project_name: str = "deep-research",
 ) -> None:
     """Parallelized ZenML pipeline for deep research on a given query.
 
@@ -38,7 +71,9 @@ def parallelized_deep_research_pipeline(
         search_provider: Search provider to use (tavily, exa, or both)
         search_mode: Search mode for Exa provider (neural, keyword, or auto)
         num_results_per_search: Number of search results to return per query
+        tracking_provider: Experiment tracking provider (weave, langfuse, or none)
         langfuse_project_name: Langfuse project name for LLM tracking
+        weave_project_name: Weave project name for LLM tracking
 
     Returns:
         Formatted research report as HTML
@@ -61,7 +96,9 @@ def parallelized_deep_research_pipeline(
         main_query=query,
         query_decomposition_prompt=query_decomposition_prompt,
         max_sub_questions=max_sub_questions,
+        tracking_provider=tracking_provider,
         langfuse_project_name=langfuse_project_name,
+        weave_project_name=weave_project_name,
     )
 
     # Fan out: Process each sub-question in parallel
@@ -78,7 +115,9 @@ def parallelized_deep_research_pipeline(
             search_provider=search_provider,
             search_mode=search_mode,
             num_results_per_search=num_results_per_search,
+            tracking_provider=tracking_provider,
             langfuse_project_name=langfuse_project_name,
+            weave_project_name=weave_project_name,
             id=step_name,
             after="initial_query_decomposition_step",
         )
