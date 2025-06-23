@@ -3,14 +3,16 @@
 import time
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from langfuse import Langfuse
 from langfuse.api.core import ApiError
-from langfuse.client import ObservationsView, TraceWithDetails
 from rich import print
 from rich.console import Console
 from rich.table import Table
+
+if TYPE_CHECKING:
+    from langfuse.client import ObservationsView, TraceWithDetails
 
 console = Console()
 
