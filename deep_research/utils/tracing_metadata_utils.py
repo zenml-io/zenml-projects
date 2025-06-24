@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from langfuse import Langfuse
 from langfuse.api.core import ApiError
-from langfuse.client import ObservationsView, TraceWithDetails
 from rich import print
 from rich.console import Console
 from rich.table import Table
@@ -106,14 +105,14 @@ def retry_with_backoff(func):
 
 @rate_limited
 @retry_with_backoff
-def fetch_traces_safe(limit: Optional[int] = None) -> List[TraceWithDetails]:
+def fetch_traces_safe(limit: Optional[int] = None) -> List:
     """Safely fetch traces with rate limiting and retry logic."""
     return langfuse.fetch_traces(limit=limit).data
 
 
 @rate_limited
 @retry_with_backoff
-def fetch_observations_safe(trace_id: str) -> List[ObservationsView]:
+def fetch_observations_safe(trace_id: str) -> List:
     """Safely fetch observations with rate limiting and retry logic."""
     return langfuse.fetch_observations(trace_id=trace_id).data
 
@@ -193,7 +192,7 @@ def get_total_tokens_used(trace_id: str) -> Tuple[int, int]:
         return 0, 0
 
 
-def get_trace_stats(trace: TraceWithDetails) -> Dict[str, Any]:
+def get_trace_stats(trace) -> Dict[str, Any]:
     """Get comprehensive statistics for a trace.
 
     Args:
@@ -251,7 +250,7 @@ def get_trace_stats(trace: TraceWithDetails) -> Dict[str, Any]:
         return {}
 
 
-def get_traces_by_name(name: str, limit: int = 1) -> List[TraceWithDetails]:
+def get_traces_by_name(name: str, limit: int = 1) -> List:
     """Get traces by name using Langfuse API.
 
     Args:
@@ -270,7 +269,7 @@ def get_traces_by_name(name: str, limit: int = 1) -> List[TraceWithDetails]:
         return []
 
 
-def get_observations_for_trace(trace_id: str) -> List[ObservationsView]:
+def get_observations_for_trace(trace_id: str) -> List:
     """Get all observations for a specific trace.
 
     Args:
@@ -289,7 +288,7 @@ def get_observations_for_trace(trace_id: str) -> List[ObservationsView]:
 
 def filter_traces_by_date_range(
     start_date: datetime, end_date: datetime, limit: Optional[int] = None
-) -> List[TraceWithDetails]:
+) -> List:
     """Filter traces within a specific date range.
 
     Args:
@@ -330,9 +329,7 @@ def filter_traces_by_date_range(
         return []
 
 
-def get_traces_last_n_days(
-    days: int, limit: Optional[int] = None
-) -> List[TraceWithDetails]:
+def get_traces_last_n_days(days: int, limit: Optional[int] = None) -> List:
     """Get traces from the last N days.
 
     Args:
@@ -349,7 +346,7 @@ def get_traces_last_n_days(
 
 
 def get_trace_stats_batch(
-    traces: List[TraceWithDetails], show_progress: bool = True
+    traces: List, show_progress: bool = True
 ) -> List[Dict[str, Any]]:
     """Get statistics for multiple traces efficiently with progress tracking.
 
@@ -375,7 +372,7 @@ def get_trace_stats_batch(
 
 
 def get_aggregate_stats_for_traces(
-    traces: List[TraceWithDetails],
+    traces: List,
 ) -> Dict[str, Any]:
     """Calculate aggregate statistics for a list of traces.
 
@@ -428,9 +425,7 @@ def get_aggregate_stats_for_traces(
     }
 
 
-def display_trace_stats_table(
-    traces: List[TraceWithDetails], title: str = "Trace Statistics"
-):
+def display_trace_stats_table(traces: List, title: str = "Trace Statistics"):
     """Display trace statistics in a formatted table.
 
     Args:
@@ -459,7 +454,7 @@ def display_trace_stats_table(
     console.print(table)
 
 
-def identify_prompt_type(observation: ObservationsView) -> str:
+def identify_prompt_type(observation) -> str:
     """Identify the prompt type based on keywords in the observation's input.
 
     Examines the system prompt in observation.input['messages'][0]['content']
