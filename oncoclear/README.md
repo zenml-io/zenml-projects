@@ -388,7 +388,7 @@ OncoClear follows a modular architecture:
 
 ## 📚 Learn More
 
-For detailed documentation on building MLOps pipelines with ZenML, visit the [ZenML Documentation](https://docs.zenml.io/). In particular, the [Production Guide](https://docs.zenml.io/user-guide/production-guide/) goes into more detail about transitioning pipelines to production in the cloud.
+For detailed documentation on building MLOps pipelines with ZenML, visit the [ZenML Documentation](https://docs.zenml.io/). In particular, the [Production Guide](https://docs.zenml.io/user-guides/production-guide/) goes into more detail about transitioning pipelines to production in the cloud.
 
 The best way to get a production ZenML instance up and running with all batteries included is with [ZenML Pro](https://zenml.io/pro). Check it out!
 
