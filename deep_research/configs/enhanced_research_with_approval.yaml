@@ -69,9 +69,14 @@ steps:
 settings:
   docker:
     requirements:
-      - openai>=1.0.0
+      - zenml>=0.83.1
       - tavily-python>=0.2.8
+      - exa-py>=1.0.0
       - PyYAML>=6.0
       - click>=8.0.0
       - pydantic>=2.0.0
       - typing_extensions>=4.0.0
+      - requests
+      - anthropic>=0.52.2
+      - litellm==1.69.1
+      - langfuse==2.60.8
