@@ -40,7 +40,7 @@ def data_splitter(
     In this example, the step can be configured to use different test
     set sizes. See the documentation for more information:
 
-        https://docs.zenml.io/how-to/build-pipelines/use-pipeline-step-parameters
+        https://docs.zenml.io/concepts/steps_and_pipelines#pipeline-parameterization
 
     Args:
         dataset: Dataset read from source.

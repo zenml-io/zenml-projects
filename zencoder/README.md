@@ -32,7 +32,7 @@ One of the first jobs of somebody entering MLOps is to convert their manual scri
 2. Type annotating the steps properly
 3. Connecting the steps together in a pipeline
 4. Creating the appropriate YAML files to [configure your pipeline](https://docs.zenml.io/user-guides/production-guide/configure-pipeline)
-5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/how-to/customize-docker-builds).
+5. Developing a Dockerfile or equivalent to encapsulate [the environment](https://docs.zenml.io/concepts/containerization).
 
 Frameworks like [ZenML](https://github.com/zenml-io/zenml) go a long way in alleviating this burden by abstracting much of the complexity away. However, recent advancement in Large Language Model based Copilots offer hope that even more repetitive aspects of this task can be automated.
 

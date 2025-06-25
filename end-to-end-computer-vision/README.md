@@ -69,7 +69,7 @@ zenml login <INSERT_ZENML_URL_HERE>
 We will use GCP in the commands listed below, but it will work for other cloud
 providers.
 
-1) Follow our guide to set up your credentials for GCP [here](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
+1) Follow our guide to set up your credentials for GCP [here](https://docs.zenml.io/stacks/service-connectors/connector-types/gcp-service-connector)
 2) Set up a bucket in GCP to persist your training data
 3) Set up a bucket to use as artifact store within ZenML
 Learn how to set up a GCP artifact store stack component within ZenML

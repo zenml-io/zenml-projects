@@ -45,7 +45,7 @@ def deployment_deploy() -> Annotated[
     In this example, the step can be configured to use different input data.
     See the documentation for more information:
 
-        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
+        https://docs.zenml.io/concepts/steps_and_pipelines/yaml_configuration
 
     Args:
         dataset_inf: The inference dataset.

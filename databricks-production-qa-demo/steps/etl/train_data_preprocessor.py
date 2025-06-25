@@ -52,7 +52,7 @@ def train_data_preprocessor(
     columns and normalize numerical columns. See the documentation for more
     information:
 
-        https://docs.zenml.io/how-to/build-pipelines/use-pipeline-step-parameters
+        https://docs.zenml.io/concepts/steps_and_pipelines#pipeline-parameterization
 
     Args:
         dataset_trn: The train dataset.
