@@ -632,6 +632,22 @@ This pipeline can integrate with:
 - **Alerting Systems**: Schedule research on key topics and receive regular reports
 - **Other ZenML Pipelines**: Chain with downstream analysis or processing
 
+## ☁️ Cloud Orchestrator Configuration
+
+When running the pipeline with a cloud orchestrator (like Kubernetes, AWS SageMaker, etc.), you'll need to update the environment variables in the configuration files with your actual API keys instead of placeholder values.
+
+The configuration files in `configs/` contain environment variable placeholders like:
+```yaml
+settings:
+  docker:
+    environment:
+      OPENROUTER_API_KEY: "YOUR_OPENROUTER_API_KEY"
+      TAVILY_API_KEY: "YOUR_TAVILY_API_KEY"
+      # ... other keys
+```
+
+Replace these placeholder values with your actual API keys when deploying to cloud environments. For security, consider using your cloud provider's secret management services (AWS Secrets Manager, Azure Key Vault, etc.) instead of hardcoding keys in configuration files.
+
 ## 📄 License
 
 This project is licensed under the Apache License 2.0.
