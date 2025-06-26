@@ -73,7 +73,6 @@ steps:
 settings:
   docker:
     requirements:
-      - zenml>=0.83.1
       - tavily-python>=0.2.8
       - exa-py>=1.0.0
       - PyYAML>=6.0
