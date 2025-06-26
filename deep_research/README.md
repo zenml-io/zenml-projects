@@ -634,19 +634,19 @@ This pipeline can integrate with:
 
 ## ☁️ Cloud Orchestrator Configuration
 
-When running the pipeline with a cloud orchestrator (like Kubernetes, AWS SageMaker, etc.), you'll need to update the environment variables in the configuration files with your actual API keys instead of placeholder values.
+When running the pipeline with a cloud orchestrator (like Kubernetes, AWS SageMaker, etc.), the configuration files automatically use environment variable substitution to pick up your API keys from the environment.
 
-The configuration files in `configs/` contain environment variable placeholders like:
+The configuration files in `configs/` use environment variable substitution like:
 ```yaml
 settings:
   docker:
     environment:
-      OPENROUTER_API_KEY: "YOUR_OPENROUTER_API_KEY"
-      TAVILY_API_KEY: "YOUR_TAVILY_API_KEY"
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
       # ... other keys
 ```
 
-Replace these placeholder values with your actual API keys when deploying to cloud environments. For security, consider using your cloud provider's secret management services (AWS Secrets Manager, Azure Key Vault, etc.) instead of hardcoding keys in configuration files.
+Simply ensure your environment variables are set in your orchestrator environment, and the pipeline will automatically pick them up. For security, consider using your cloud provider's secret management services (AWS Secrets Manager, Azure Key Vault, etc.) to inject these environment variables into your orchestrator runtime.
 
 ## 📄 License
 
