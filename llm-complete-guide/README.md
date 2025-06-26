@@ -166,7 +166,7 @@ zenml service-account create <SERVICE_ACCOUNT_NAME>
 ```
 
 For more information on this part of the process, please refer to the [ZenML
-documentation](https://docs.zenml.io/how-to/project-setup-and-management/connecting-to-zenml/connect-with-a-service-account).
+documentation](https://docs.zenml.io/concepts/service_connectors).
 
 Once you have your service account API token and store URL (the URL of your
 deployed ZenML tenant), you can update the secrets with the following command:
@@ -279,10 +279,11 @@ loss function](https://www.philschmid.de/fine-tune-embedding-model-for-rag) whic
 
 The basic RAG pipeline will run using a local stack, but if you want to improve
 the speed of the embeddings step you might want to consider using a cloud
-orchestrator. Please follow the instructions in [documentation on popular integrations](https://docs.zenml.io/how-to/popular-integrations) (currently available for
-[AWS](https://docs.zenml.io/how-to/popular-integrations/aws-guide) and
-[GCP](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)) to learn how you
-can run the pipelines on a remote stack.
+orchestrator. Please follow the instructions in documentation on popular integrations (currently available for
+[AWS](https://docs.zenml.io/stacks/popular-stacks/aws-guide),
+[GCP](https://docs.zenml.io/stacks/popular-stacks/gcp-guide), and
+[Azure](https://docs.zenml.io/stacks/popular-stacks/azure-guide)) to learn how
+you can run the pipelines on a remote stack.
 
 If you run the pipeline using a cloud artifact store, logs from all the steps as
 well as assets like the visualizations will all be shown in the ZenML dashboard.
@@ -299,7 +300,7 @@ You can also self-host the ZenML dashboard. Instructions are available in our
 
 ## 📜 Project Structure
 
-The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices):
+The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/user-guides/best-practices/set-up-your-repository):
 
 ```
 .

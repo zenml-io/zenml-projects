@@ -72,7 +72,7 @@ def model_trainer(
     hyperparameters to the model constructor. See the documentation for more
     information:
 
-        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
+        https://docs.zenml.io/concepts/steps_and_pipelines/yaml_configuration
 
     Args:
         dataset_trn: The preprocessed train dataset.

@@ -63,9 +63,21 @@ steps:
 settings:
   docker:
     requirements:
-      - openai>=1.0.0
       - tavily-python>=0.2.8
+      - exa-py>=1.0.0
       - PyYAML>=6.0
       - click>=8.0.0
       - pydantic>=2.0.0
       - typing_extensions>=4.0.0
+      - requests
+      - anthropic>=0.52.2
+      - litellm==1.69.1
+      - langfuse==2.60.8
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      EXA_API_KEY: ${EXA_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_HOST: ${LANGFUSE_HOST}

@@ -3,7 +3,7 @@
 
 Welcome to your ZenML project for deploying ML models using Google Cloud's Vertex AI! This project provides a hands-on experience with MLOps pipelines using ZenML and Vertex AI. It contains a collection of ZenML steps, pipelines, and other artifacts to help you efficiently deploy your machine learning models.
 
-Using these pipelines, you can run data preparation, model training, registration, and deployment with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guides/production-guide/configure-pipeline). ZenML takes care of tracking your metadata and [containerizing your pipelines](https://docs.zenml.io/how-to/customize-docker-builds).
+Using these pipelines, you can run data preparation, model training, registration, and deployment with a single command while using YAML files for [configuration](https://docs.zenml.io/user-guides/production-guide/configure-pipeline). ZenML takes care of tracking your metadata and [containerizing your pipelines](https://docs.zenml.io/concepts/containerization).
 
 
 ## 🏃 How to run
@@ -19,7 +19,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-We will need to set up access to Google Cloud and Vertex AI. You can follow the instructions in the [ZenML documentation](https://docs.zenml.io/how-to/auth-management/gcp-service-connector)
+We will need to set up access to Google Cloud and Vertex AI. You can follow the instructions in the [ZenML documentation](https://docs.zenml.io/stacks/service-connectors/connector-types/gcp-service-connector)
 to register a service connector and set up your Google Cloud credentials.
 
 Once you have set up your Google Cloud credentials, we can create a stack and run the deployment pipeline:
@@ -66,7 +66,7 @@ python run.py --inference-pipeline
 
 ## 📜 Project Structure
 
-The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices):
+The project loosely follows [the recommended ZenML project structure](https://docs.zenml.io/user-guides/best-practices/set-up-your-repository):
 
 ```
 .

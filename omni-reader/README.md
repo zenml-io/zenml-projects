@@ -189,7 +189,7 @@ streamlit run app.py
 
 ## ☁️ Cloud Deployment
 
-OmniReader supports storing artifacts remotely and executing pipelines on cloud infrastructure. For this example, we'll use AWS, but you can use any cloud provider you want. You can also refer to the [AWS Integration Guide](https://docs.zenml.io/how-to/popular-integrations/aws-guide) for detailed instructions.
+OmniReader supports storing artifacts remotely and executing pipelines on cloud infrastructure. For this example, we'll use AWS, but you can use any cloud provider you want. You can also refer to the [AWS Integration Guide](https://docs.zenml.io/stacks/popular-stacks/aws-guide) for detailed instructions.
 
 ### AWS Setup
 
@@ -264,9 +264,9 @@ Similar setup processes can be followed for other cloud providers:
 
 For detailed configuration options for these providers, refer to the ZenML documentation:
 
-- [GCP Integration Guide](https://docs.zenml.io/how-to/popular-integrations/gcp-guide)
-- [Azure Integration Guide](https://docs.zenml.io/how-to/popular-integrations/azure-guide)
-- [Kubernetes Integration Guide](https://docs.zenml.io/how-to/popular-integrations/kubernetes)
+- [GCP Integration Guide](https://docs.zenml.io/stacks/popular-stacks/gcp-guide)
+- [Azure Integration Guide](https://docs.zenml.io/stacks/popular-stacks/azure-guide)
+- [Kubernetes Integration Guide](https://docs.zenml.io/stacks/popular-stacks/kubernetes)
 
 ### 🐳 Docker Settings for Cloud Deployment
 

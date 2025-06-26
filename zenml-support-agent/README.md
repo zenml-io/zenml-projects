@@ -136,10 +136,9 @@ It is much more ideal to run a pipeline like the agent creation pipeline on a re
 you have to [deploy ZenML](https://docs.zenml.io/user-guides/production-guide/deploying-zenml) 
 and set up a stack that supports 
 [our scheduling
-feature](https://docs.zenml.io/how-to/build-pipelines/schedule-a-pipeline). If you
+feature](https://docs.zenml.io/concepts/steps_and_pipelines/scheduling). If you
 wish to deploy the slack bot on GCP Cloud Run as described above, you'll also
 need to be using [a Google Cloud Storage Artifact
 Store](https://docs.zenml.io/stack-components/artifact-stores/gcp). Note that
 certain code artifacts like the `Dockerfile` for this project will also need to
-be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/how-to/setting-up-a-project-repository/best-practices) 
-for more information.
+be adapted for your own particular needs and requirements. Please check [our docs](https://docs.zenml.io/user-guides/best-practices/set-up-your-repository) for more information.

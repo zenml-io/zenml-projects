@@ -48,7 +48,7 @@ def promote_metric_compare_promoter(
     In this example, the step can be configured to use different input data.
     See the documentation for more information:
 
-        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
+        https://docs.zenml.io/concepts/steps_and_pipelines/yaml_configuration
 
     Args:
         latest_metrics: Recently trained model metrics results.

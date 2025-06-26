@@ -45,18 +45,18 @@ def url_scraper(
             "https://docs.zenml.io/getting-started/system-architectures",
             "https://docs.zenml.io/getting-started/core-concepts",
             "https://docs.zenml.io/user-guides/llmops-guide/rag-with-zenml/rag-85-loc",
-            "https://docs.zenml.io/how-to/track-metrics-metadata/logging-metadata",
-            "https://docs.zenml.io/how-to/debug-and-solve-issues",
+            "https://docs.zenml.io/concepts/metadata",
+            "https://docs.zenml.io/user-guides/best-practices/debug-and-solve-issues",
             "https://docs.zenml.io/stack-components/step-operators/azureml",
-            # "https://docs.zenml.io/how-to/interact-with-secrets",
-            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/service-connectors-guide",
-            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/hyperai-service-connector",
+            # "https://docs.zenml.io/concepts/secrets",
+            # "https://docs.zenml.io/stacks/service-connectors/service-connectors-guide",
+            # "https://docs.zenml.io/stacks/service-connectors/hyperai-service-connector",
             # "https://docs.zenml.io/stack-components/data-validators/evidently",
             # "https://docs.zenml.io/stack-components/data-validators",
             # "https://docs.zenml.io/stack-components/step-operators/sagemaker",
             # "https://docs.zenml.io/stack-components/alerters/slack",
-            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/kubernetes-service-connector",
-            # "https://docs.zenml.io/how-to/infrastructure-deployment/auth-management/azure-service-connector"
+            # "https://docs.zenml.io/stacks/service-connectors/kubernetes-service-connector",
+            # "https://docs.zenml.io/stacks/service-connectors/azure-service-connector"
         ]
     else:
         docs_urls = get_all_pages(docs_url)

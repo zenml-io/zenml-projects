@@ -57,7 +57,7 @@ def model_evaluator(
     does not meet the minimum criteria. See the documentation for more
     information:
 
-        https://docs.zenml.io/how-to/build-pipelines/use-pipeline-step-parameters
+        https://docs.zenml.io/concepts/steps_and_pipelines#pipeline-parameterization
 
     Args:
         model: The pre-trained model artifact.

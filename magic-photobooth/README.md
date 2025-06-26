@@ -78,7 +78,7 @@ Behind the scenes, Magic Photobooth employs Low-Rank Adaptation (LoRA) technolog
 
 Magic Photobooth requires GPU resources for optimal performance. We recommend deploying on a cloud infrastructure:
 
-1. **Set up your cloud environment** using our [1-click deployment guide](https://docs.zenml.io/how-to/stack-deployment/deploy-a-cloud-stack) for AWS, GCP, or Azure.
+1. **Set up your cloud environment** using our [1-click deployment guide](https://docs.zenml.io/stacks/deployment/deploy-a-cloud-stack) for AWS, GCP, or Azure.
 
 2. **Configure your GPU quotas** to ensure sufficient resources for model training and inference.
 

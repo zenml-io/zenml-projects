@@ -44,7 +44,7 @@ def compute_performance_metrics_on_current_data(
     and target environment stage for promotion.
     See the documentation for more information:
 
-        https://docs.zenml.io/how-to/pipeline-development/use-configuration-files
+        https://docs.zenml.io/concepts/steps_and_pipelines/yaml_configuration
 
     Args:
         dataset_tst: The test dataset.

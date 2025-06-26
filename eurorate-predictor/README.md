@@ -92,8 +92,7 @@ output "zenml_stack_name" {
 }
 ```
 To learn more about the terraform script, read the 
-[ZenML documentation.](https://docs.zenml.io/how-to/
-stack-deployment/deploy-a-cloud-stack-with-terraform) or 
+[ZenML documentation.](https://docs.zenml.io/stacks/deployment/deploy-a-cloud-stack-with-terraform) or 
 see
 the [Terraform registry](https://registry.terraform.io/
 modules/zenml-io/zenml-stack).
@@ -163,4 +162,6 @@ For detailed documentation on using ZenML to build your own MLOps pipelines, ple
 
 ## 🔄 Continuous Improvement
 
-EuroRate Predictor is designed for continuous improvement of your interest rate forecasts. As new ECB data becomes available, simply re-run the pipelines to generate updated predictions.
+EuroRate Predictor is designed for continuous improvement of your interest rate
+forecasts. As new ECB data becomes available, simply re-run the pipelines to
+generate updated predictions.
