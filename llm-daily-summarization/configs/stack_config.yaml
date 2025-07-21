@@ -1,0 +1,96 @@
+# ZenML Stack Configuration for LLM Summarization Pipeline
+
+stack_name: "llm-summarization-stack"
+
+# Stack components configuration
+components:
+  orchestrator:
+    flavor: "local"
+    name: "local_orchestrator"
+    configuration: {}
+  
+  artifact_store:
+    flavor: "local"
+    name: "local_artifact_store"
+    configuration:
+      path: "./artifacts"
+  
+  experiment_tracker:
+    flavor: "mlflow"
+    name: "mlflow_tracker"
+    configuration:
+      tracking_uri: "file:./mlruns"
+  
+  # Optional: Add more components as needed
+  # model_deployer:
+  #   flavor: "vertex"
+  #   name: "vertex_deployer"
+  #   configuration:
+  #     project: "your-gcp-project"
+  #     region: "us-central1"
+  
+  # alerter:
+  #   flavor: "discord"
+  #   name: "discord_alerter"
+  #   configuration:
+  #     webhook_url: "${DISCORD_WEBHOOK_URL}"
+
+# Pipeline settings
+pipeline_settings:
+  docker:
+    required_integrations:
+      - langchain
+      - langfuse
+      - discord
+      - slack
+    requirements: "requirements.txt"
+    environment:
+      ZENML_LOGGING_VERBOSITY: "INFO"
+      LANGFUSE_TRACING: "true"
+
+# Model configuration
+model_config:
+  model_name: "gemini-2.5-flash"
+  max_tokens: 4000
+  temperature: 0.1
+  top_p: 0.95
+
+# Data ingestion configuration
+data_config:
+  sources:
+    - "discord"
+    - "slack"
+  channels:
+    discord:
+      - "general"
+      - "engineering"
+      - "product"
+    slack:
+      - "general"
+      - "engineering"
+      - "product"
+  days_back: 1
+
+# Output configuration
+output_config:
+  targets:
+    - "slack"
+    - "notion"
+  # - "github"
+  # - "discord"
+
+# Monitoring configuration
+monitoring_config:
+  langfuse:
+    enabled: true
+    public_key: "${LANGFUSE_PUBLIC_KEY}"
+    secret_key: "${LANGFUSE_SECRET_KEY}"
+    host: "https://cloud.langfuse.com"
+  
+  evaluation:
+    enabled: true
+    metrics:
+      - "summary_quality"
+      - "task_accuracy"
+      - "cost_tracking"
+      - "delivery_success"

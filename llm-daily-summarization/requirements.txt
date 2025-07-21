@@ -1,0 +1,41 @@
+# ZenML Core
+zenml[server]>=0.84.0
+
+# LLM and Agent Framework
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-google-vertexai>=2.0.0
+
+# Observability and Monitoring
+langfuse>=2.0.0
+
+# Google Cloud / Vertex AI
+google-cloud-aiplatform>=1.70.0
+google-auth>=2.30.0
+
+# Data Sources
+discord.py>=2.4.0
+slack-sdk>=3.30.0
+requests>=2.32.0
+
+# Output Integrations
+notion-client>=2.2.0
+
+# Data Processing
+pandas>=2.2.0
+pydantic>=2.9.0
+
+# Utilities
+python-dotenv>=1.0.0
+tenacity>=9.0.0
+
+# Development and Testing
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+black>=24.0.0
+isort>=5.13.0
+mypy>=1.11.0
+
+# Optional: For enhanced logging and debugging
+rich>=13.0.0
+structlog>=24.0.0
