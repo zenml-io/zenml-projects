@@ -10,6 +10,7 @@ from langchain.schema import HumanMessage, SystemMessage
 from langfuse import observe
 
 from ..utils.models import ConversationData, TaskItem
+from ..utils.session_manager import get_session_manager
 
 class TaskExtractorAgent:
     """Agent responsible for extracting tasks and action items from conversations."""
@@ -47,6 +48,13 @@ class TaskExtractorAgent:
     @observe(as_type="generation")
     def extract_tasks(self, conversation: ConversationData) -> List[TaskItem]:
         """Extract tasks and action items from a conversation."""
+        
+        # Update current trace with session information
+        try:
+            session_manager = get_session_manager()
+            session_manager.update_current_trace_with_session()
+        except Exception:
+            pass  # Continue if session management fails
         
         conversation_text = self._format_conversation_for_prompt(conversation)
         
@@ -211,6 +219,13 @@ Be thorough but only include genuine action items that require follow-up. Ignore
     @observe(as_type="generation")
     def extract_tasks_from_multiple_conversations(self, conversations: List[ConversationData]) -> List[TaskItem]:
         """Extract tasks from multiple conversations."""
+        
+        # Update current trace with session information
+        try:
+            session_manager = get_session_manager()
+            session_manager.update_current_trace_with_session()
+        except Exception:
+            pass  # Continue if session management fails
         
         all_tasks = []
         

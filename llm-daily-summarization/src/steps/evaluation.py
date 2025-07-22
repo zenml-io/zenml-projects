@@ -3,6 +3,7 @@ Evaluation step for assessing pipeline quality and performance metrics.
 """
 
 from typing import List, Tuple
+from typing_extensions import Annotated
 from datetime import datetime
 
 from zenml import step
@@ -270,7 +271,7 @@ def evaluation_step(
     summaries_and_tasks: ProcessedData,
     raw_conversations: RawConversationData,
     delivery_results: List[DeliveryResult]
-) -> Tuple[EvaluationMetrics, HTMLString]:
+) -> Tuple[Annotated[EvaluationMetrics, "evaluation_metrics"], Annotated[HTMLString, "evaluation_dashboard"]]:
     """
     Evaluate the pipeline performance and quality metrics.
     

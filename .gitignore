@@ -174,3 +174,6 @@ nohup.out
 # design folder
 design/
 deep_research/design
+
+llm-daily-summarization/.env
+llm-daily-summarization/zenml-vertex-ai-agents.json

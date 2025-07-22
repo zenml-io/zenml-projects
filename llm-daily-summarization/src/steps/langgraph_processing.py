@@ -22,6 +22,7 @@ from ..utils.models import (
     Summary,
     TaskItem,
 )
+from ..utils.session_manager import get_session_manager, log_session_metadata
 
 logger = get_logger(__name__)
 
@@ -47,6 +48,10 @@ class LangGraphOrchestrator:
         self.summarizer_agent = SummarizerAgent(model_config)
         self.task_extractor_agent = TaskExtractorAgent(model_config)
         self.trace_id = str(uuid.uuid4())
+        
+        # Use ZenML pipeline run UUID as Langfuse session ID
+        self.session_manager = get_session_manager()
+        self.session_id = self.session_manager.session_id
         
         # Build the workflow graph
         self.workflow = self._build_workflow()
@@ -77,11 +82,17 @@ class LangGraphOrchestrator:
     @observe(as_type="span")
     def _initialize_processing(self, state: AgentState) -> AgentState:
         """Initialize the processing workflow."""
-        logger.info("Initializing LangGraph processing workflow")
+        logger.info(f"Initializing LangGraph processing workflow with ZenML session ID: {self.session_id}")
+        
+        # Update current Langfuse trace with session information
+        self.session_manager.update_current_trace_with_session()
         
         state["processing_metadata"] = {
             "start_time": datetime.utcnow().isoformat(),
             "trace_id": self.trace_id,
+            "session_id": self.session_id,
+            "zenml_run_name": self.session_manager.run_name,
+            "zenml_pipeline_name": self.session_manager.pipeline_name,
             "total_conversations": len(state["conversations"]),
             "workflow_version": "1.0"
         }
@@ -298,6 +309,489 @@ class LangGraphOrchestrator:
         return state
 
 
+def _create_agent_architecture_visualization(processed_data: ProcessedData, orchestrator: 'LangGraphOrchestrator') -> HTMLString:
+    """Create HTML visualization for LangGraph agent architecture."""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>LangGraph Agent Architecture</title>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }}
+            
+            .container {{
+                max-width: 1400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                overflow: hidden;
+            }}
+            
+            .header {{
+                background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }}
+            
+            .header h1 {{
+                margin: 0 0 10px 0;
+                font-size: 2.5em;
+                font-weight: 300;
+            }}
+            
+            .workflow-diagram {{
+                background: #f8f9fa;
+                padding: 30px;
+                margin: 30px;
+                border-radius: 10px;
+            }}
+            
+            .workflow-steps {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 20px;
+            }}
+            
+            .workflow-step {{
+                background: white;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                text-align: center;
+                flex: 1;
+                min-width: 150px;
+                border-left: 4px solid;
+            }}
+            
+            .step-initialize {{ border-left-color: #3498db; }}
+            .step-summarize {{ border-left-color: #e74c3c; }}
+            .step-extract {{ border-left-color: #f39c12; }}
+            .step-quality {{ border-left-color: #9b59b6; }}
+            .step-finalize {{ border-left-color: #27ae60; }}
+            
+            .workflow-arrow {{
+                font-size: 2em;
+                color: #bdc3c7;
+            }}
+            
+            .agents-section {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin: 30px;
+            }}
+            
+            .agent-card {{
+                background: white;
+                border-radius: 10px;
+                padding: 25px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                border-top: 5px solid;
+            }}
+            
+            .summarizer-agent {{ border-top-color: #e74c3c; }}
+            .task-agent {{ border-top-color: #f39c12; }}
+            
+            .metrics-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin: 30px;
+            }}
+            
+            .metric-card {{
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }}
+            
+            .metric-value {{
+                font-size: 2.5em;
+                font-weight: 700;
+                color: #3498db;
+                margin: 10px 0;
+            }}
+            
+            .metric-label {{
+                color: #666;
+                font-size: 1em;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🤖 LangGraph Agent Architecture</h1>
+                <p>Multi-Agent Workflow Orchestration</p>
+                <p><strong>Trace ID:</strong> {processed_data.agent_trace_id}</p>
+            </div>
+            
+            <div class="workflow-diagram">
+                <h2 style="text-align: center; color: #2c3e50; margin-bottom: 30px;">🔄 Workflow Pipeline</h2>
+                <div class="workflow-steps">
+                    <div class="workflow-step step-initialize">
+                        <h3>🚀 Initialize</h3>
+                        <p>Setup metadata and state</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    
+                    <div class="workflow-step step-summarize">
+                        <h3>📝 Summarize</h3>
+                        <p>Generate summaries via SummarizerAgent</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    
+                    <div class="workflow-step step-extract">
+                        <h3>✅ Extract Tasks</h3>
+                        <p>Identify tasks via TaskExtractorAgent</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    
+                    <div class="workflow-step step-quality">
+                        <h3>🔍 Quality Check</h3>
+                        <p>Validate output quality</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    
+                    <div class="workflow-step step-finalize">
+                        <h3>🏁 Finalize</h3>
+                        <p>Complete processing</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="agents-section">
+                <div class="agent-card summarizer-agent">
+                    <h3>📝 Summarizer Agent</h3>
+                    <p><strong>Model:</strong> {orchestrator.model_config.get('model_name', 'gemini-1.5-flash')}</p>
+                    <p><strong>Temperature:</strong> {orchestrator.model_config.get('temperature', 0.1)}</p>
+                    <p><strong>Max Tokens:</strong> {orchestrator.model_config.get('max_tokens', 4000)}</p>
+                    <p><strong>Features:</strong> Multi-conversation processing, structured output parsing, confidence scoring</p>
+                </div>
+                
+                <div class="agent-card task-agent">
+                    <h3>✅ Task Extractor Agent</h3>
+                    <p><strong>Keywords:</strong> 32 task indicators</p>
+                    <p><strong>Parsing:</strong> TASK_START/END format</p>
+                    <p><strong>Deduplication:</strong> 0.8 similarity threshold</p>
+                    <p><strong>Features:</strong> Assignment detection, deadline parsing, priority classification</p>
+                </div>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">{len(processed_data.summaries)}</div>
+                    <div class="metric-label">Summaries Generated</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{len(processed_data.tasks)}</div>
+                    <div class="metric-label">Tasks Extracted</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{processed_data.llm_usage_stats.get('api_calls', 0)}</div>
+                    <div class="metric-label">API Calls</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{processed_data.llm_usage_stats.get('total_tokens', 0):,}</div>
+                    <div class="metric-label">Total Tokens</div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return HTMLString(html_content)
+
+
+def _create_langgraph_traces_visualization(processed_data: ProcessedData, final_state: AgentState) -> HTMLString:
+    """Create HTML visualization for LangGraph execution traces."""
+    
+    # Extract timing and execution data from the final state
+    processing_time = processed_data.processing_metadata.get('processing_time_seconds', 0)
+    start_time = processed_data.processing_metadata.get('start_time', datetime.now().isoformat())
+    end_time = processed_data.processing_metadata.get('end_time', datetime.now().isoformat())
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>LangGraph Execution Traces</title>
+        <style>
+            body {{
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                margin: 0;
+                padding: 20px;
+                background: #0d1117;
+                color: #c9d1d9;
+                line-height: 1.6;
+            }}
+            
+            .container {{
+                max-width: 1600px;
+                margin: 0 auto;
+                background: #161b22;
+                border-radius: 12px;
+                box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+                overflow: hidden;
+            }}
+            
+            .header {{
+                background: linear-gradient(135deg, #1f6feb 0%, #8b5cf6 100%);
+                padding: 30px;
+                text-align: center;
+                color: white;
+            }}
+            
+            .trace-metadata {{
+                background: #21262d;
+                padding: 20px;
+                margin: 20px;
+                border-radius: 8px;
+                border-left: 4px solid #f85149;
+            }}
+            
+            .metadata-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }}
+            
+            .metadata-item {{
+                background: #0d1117;
+                padding: 12px;
+                border-radius: 6px;
+                border: 1px solid #30363d;
+            }}
+            
+            .metadata-label {{
+                color: #7d8590;
+                font-size: 0.9em;
+            }}
+            
+            .metadata-value {{
+                color: #58a6ff;
+                font-weight: 600;
+            }}
+            
+            .trace-timeline {{
+                position: relative;
+                margin: 30px 20px;
+            }}
+            
+            .timeline-line {{
+                position: absolute;
+                left: 30px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: linear-gradient(180deg, #1f6feb 0%, #8b5cf6 100%);
+            }}
+            
+            .trace-step {{
+                position: relative;
+                margin: 0 0 25px 70px;
+                background: #21262d;
+                border-radius: 10px;
+                border: 1px solid #30363d;
+            }}
+            
+            .step-icon {{
+                position: absolute;
+                left: -55px;
+                top: 15px;
+                width: 30px;
+                height: 30px;
+                background: #1f6feb;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                border: 3px solid #0d1117;
+            }}
+            
+            .step-header {{
+                padding: 20px;
+                border-bottom: 1px solid #30363d;
+            }}
+            
+            .step-title {{
+                color: #f0f6fc;
+                font-size: 1.3em;
+                margin: 0;
+            }}
+            
+            .step-content {{
+                padding: 20px;
+            }}
+            
+            .langfuse-trace {{
+                background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+            }}
+            
+            .json-viewer {{
+                background: #0d1117;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                padding: 15px;
+                font-family: 'Monaco', monospace;
+                font-size: 0.9em;
+                overflow-x: auto;
+            }}
+            
+            .json-key {{ color: #79c0ff; }}
+            .json-string {{ color: #a5d6ff; }}
+            .json-number {{ color: #79c0ff; }}
+            .json-boolean {{ color: #ff7b72; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔍 LangGraph Execution Traces</h1>
+                <p>Real-time workflow execution monitoring</p>
+            </div>
+            
+            <div class="trace-metadata">
+                <h2 style="color: #f85149; margin: 0 0 15px 0;">📊 Trace Overview</h2>
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <div class="metadata-label">Trace ID</div>
+                        <div class="metadata-value">{processed_data.agent_trace_id}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Total Duration</div>
+                        <div class="metadata-value">{processing_time:.2f}s</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">API Calls</div>
+                        <div class="metadata-value">{processed_data.llm_usage_stats.get('api_calls', 0)}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Total Tokens</div>
+                        <div class="metadata-value">{processed_data.llm_usage_stats.get('total_tokens', 0):,}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Status</div>
+                        <div class="metadata-value">✅ Completed</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Quality Issues</div>
+                        <div class="metadata-value">{len(processed_data.processing_metadata.get('quality_issues', []))}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trace-timeline">
+                <div class="timeline-line"></div>
+                
+                <div class="trace-step">
+                    <div class="step-header">
+                        <div class="step-icon">🚀</div>
+                        <div class="step-title">_initialize_processing</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="langfuse-trace">
+                            <strong>@observe(as_type="span")</strong><br>
+                            Initialized workflow state and metadata
+                        </div>
+                        <div class="json-viewer">
+<span class="json-key">"processing_metadata"</span>: {{
+    <span class="json-key">"start_time"</span>: <span class="json-string">"{start_time}"</span>,
+    <span class="json-key">"trace_id"</span>: <span class="json-string">"{processed_data.agent_trace_id}"</span>
+}}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trace-step">
+                    <div class="step-header">
+                        <div class="step-icon">📝</div>
+                        <div class="step-title">_summarize_conversations</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="langfuse-trace">
+                            <strong>@observe(as_type="generation")</strong><br>
+                            SummarizerAgent: Generated {len(processed_data.summaries)} summaries<br>
+                            Tokens used: {processed_data.llm_usage_stats.get('summarization_tokens', 0):,}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trace-step">
+                    <div class="step-header">
+                        <div class="step-icon">✅</div>
+                        <div class="step-title">_extract_tasks</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="langfuse-trace">
+                            <strong>@observe(as_type="generation")</strong><br>
+                            TaskExtractorAgent: Extracted {len(processed_data.tasks)} tasks<br>
+                            Tokens used: {processed_data.llm_usage_stats.get('task_extraction_tokens', 0):,}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trace-step">
+                    <div class="step-header">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-title">_quality_check</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="langfuse-trace">
+                            <strong>@observe(as_type="span")</strong><br>
+                            Quality validation completed<br>
+                            Issues found: {len(processed_data.processing_metadata.get('quality_issues', []))}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trace-step">
+                    <div class="step-header">
+                        <div class="step-icon">🏁</div>
+                        <div class="step-title">_finalize_processing</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="langfuse-trace">
+                            <strong>@observe(as_type="span")</strong><br>
+                            Processing completed successfully<br>
+                            End time: {end_time}
+                        </div>
+                        <div class="json-viewer">
+<span class="json-key">"llm_usage_stats"</span>: {{
+    <span class="json-key">"total_tokens"</span>: <span class="json-number">{processed_data.llm_usage_stats.get('total_tokens', 0)}</span>,
+    <span class="json-key">"api_calls"</span>: <span class="json-number">{processed_data.llm_usage_stats.get('api_calls', 0)}</span>
+}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return HTMLString(html_content)
+
+
 def _create_agent_processing_visualization(processed_data: ProcessedData, cleaned_data: CleanedConversationData) -> HTMLString:
     """Create HTML visualization for LangGraph agent processing results."""
     total_messages = sum(len(conv.messages) for conv in cleaned_data.conversations)
@@ -413,11 +907,171 @@ def _create_agent_processing_visualization(processed_data: ProcessedData, cleane
     return HTMLString(html_content)
 
 
+def _create_combined_agent_dashboard(architecture_viz: HTMLString, traces_viz: HTMLString, processing_viz: HTMLString) -> HTMLString:
+    """Create a combined dashboard with tabs for all agent visualizations."""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>LangGraph Agent Dashboard - LLM Daily Summarization</title>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }}
+            
+            .dashboard-container {{
+                max-width: 1600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            
+            .dashboard-header {{
+                background: white;
+                border-radius: 15px 15px 0 0;
+                padding: 30px;
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }}
+            
+            .dashboard-header h1 {{
+                margin: 0 0 10px 0;
+                color: #2c3e50;
+                font-size: 2.5em;
+                font-weight: 300;
+            }}
+            
+            .tab-container {{
+                background: white;
+                border-radius: 0 0 15px 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                overflow: hidden;
+            }}
+            
+            .tab-buttons {{
+                display: flex;
+                background: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+            }}
+            
+            .tab-button {{
+                flex: 1;
+                padding: 15px 25px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 1.1em;
+                color: #6c757d;
+                transition: all 0.3s ease;
+                border-right: 1px solid #dee2e6;
+            }}
+            
+            .tab-button:last-child {{
+                border-right: none;
+            }}
+            
+            .tab-button.active {{
+                background: white;
+                color: #2c3e50;
+                font-weight: 600;
+                border-bottom: 3px solid #3498db;
+            }}
+            
+            .tab-button:hover {{
+                background: #e9ecef;
+                color: #2c3e50;
+            }}
+            
+            .tab-content {{
+                display: none;
+                min-height: 600px;
+            }}
+            
+            .tab-content.active {{
+                display: block;
+            }}
+            
+            iframe {{
+                width: 100%;
+                height: 800px;
+                border: none;
+            }}
+        </style>
+        <script>
+            function showTab(tabName, element) {{
+                // Hide all tab contents
+                var tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(function(content) {{
+                    content.classList.remove('active');
+                }});
+                
+                // Remove active class from all buttons
+                var tabButtons = document.querySelectorAll('.tab-button');
+                tabButtons.forEach(function(button) {{
+                    button.classList.remove('active');
+                }});
+                
+                // Show selected tab content
+                document.getElementById(tabName).classList.add('active');
+                element.classList.add('active');
+            }}
+            
+            // Show architecture tab by default
+            window.onload = function() {{
+                document.querySelector('.tab-button').click();
+            }};
+        </script>
+    </head>
+    <body>
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1>🤖 LangGraph Agent Dashboard</h1>
+                <p>Comprehensive visualization of multi-agent workflow execution, architecture, and traces</p>
+                <p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            </div>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button" onclick="showTab('architecture', this)">
+                        🏗️ Agent Architecture
+                    </button>
+                    <button class="tab-button" onclick="showTab('traces', this)">
+                        🔍 Execution Traces
+                    </button>
+                    <button class="tab-button" onclick="showTab('processing', this)">
+                        📊 Processing Results
+                    </button>
+                </div>
+                
+                <div id="architecture" class="tab-content">
+                    <iframe srcdoc="{str(architecture_viz).replace('"', '&quot;')}"></iframe>
+                </div>
+                
+                <div id="traces" class="tab-content">
+                    <iframe srcdoc="{str(traces_viz).replace('"', '&quot;')}"></iframe>
+                </div>
+                
+                <div id="processing" class="tab-content">
+                    <iframe srcdoc="{str(processing_viz).replace('"', '&quot;')}"></iframe>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return HTMLString(html_content)
+
+
 @step
 def langgraph_agent_step(
     cleaned_data: CleanedConversationData,
     model_config: Dict[str, Any]
-) -> Tuple[ProcessedData, HTMLString]:
+) -> Tuple[Annotated[ProcessedData, "processed_data"], Annotated[HTMLString, "processing_visualization"]]:
     """Process cleaned conversation data using LangGraph multi-agent workflow.
     
     Args:
@@ -455,12 +1109,21 @@ def langgraph_agent_step(
         tasks=tasks,
         processing_metadata=final_state["processing_metadata"],
         llm_usage_stats=final_state["llm_usage_stats"],
-        agent_trace_id=orchestrator.trace_id
+        agent_trace_id=orchestrator.trace_id,
+        session_id=orchestrator.session_id
     )
     
     logger.info(f"LangGraph processing complete: {len(summaries)} summaries, {len(tasks)} tasks")
     
-    # Generate HTML visualization
-    html_viz = _create_agent_processing_visualization(processed_data, cleaned_data)
+    # Log Langfuse session metadata to ZenML pipeline
+    log_session_metadata()
     
-    return processed_data, html_viz
+    # Generate comprehensive HTML visualizations
+    architecture_viz = _create_agent_architecture_visualization(processed_data, orchestrator)
+    traces_viz = _create_langgraph_traces_visualization(processed_data, final_state)
+    processing_viz = _create_agent_processing_visualization(processed_data, cleaned_data)
+    
+    # Combine all visualizations into a comprehensive dashboard
+    combined_viz = _create_combined_agent_dashboard(architecture_viz, traces_viz, processing_viz)
+    
+    return processed_data, combined_viz

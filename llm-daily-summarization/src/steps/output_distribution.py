@@ -5,6 +5,7 @@ Output distribution step for delivering summaries and tasks to various platforms
 import os
 from datetime import datetime
 from typing import Any, Dict, List
+from typing_extensions import Annotated
 
 from langfuse import observe
 from zenml import step
@@ -399,7 +400,7 @@ class SlackDeliverer:
 def output_distribution_step(
     processed_data: ProcessedData,
     output_targets: List[str]
-) -> List[DeliveryResult]:
+) -> Annotated[List[DeliveryResult], "delivery_results"]:
     """
     Distribute processed summaries and tasks to specified output targets.
     

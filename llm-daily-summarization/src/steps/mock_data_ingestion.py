@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from typing import List
+from typing_extensions import Annotated
 
 from zenml import step
 from zenml.logger import get_logger
@@ -19,7 +20,7 @@ logger = get_logger(__name__)
 def mock_chat_data_ingestion_step(
     data_sources: List[str],
     sample_data_path: str = "data/sample_conversations.json"
-) -> RawConversationData:
+) -> Annotated[RawConversationData, "raw_data"]:
     """
     Mock data ingestion step using sample data for testing.
     

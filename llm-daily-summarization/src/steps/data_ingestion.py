@@ -4,8 +4,9 @@ Data ingestion step for chat platforms (Discord, Slack).
 
 import asyncio
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Any, Dict, List
+from typing_extensions import Annotated
 
 import discord
 from langfuse import observe
@@ -192,7 +193,7 @@ def chat_data_ingestion_step(
     data_sources: List[str],
     channels_config: Dict[str, List[str]] = None,
     days_back: int = 1
-) -> RawConversationData:
+) -> Annotated[RawConversationData, "raw_data"]:
     """Ingest chat data from specified sources.
     
     Args:
@@ -256,7 +257,7 @@ def chat_data_ingestion_step(
     raw_data = RawConversationData(
         conversations=all_conversations,
         sources=data_sources,
-        collection_timestamp=datetime.utcnow(),
+        collection_timestamp=datetime.now(UTC),
         total_conversations=len(all_conversations)
     )
     

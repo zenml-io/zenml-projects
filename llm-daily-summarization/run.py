@@ -16,6 +16,7 @@ from src.steps.langgraph_processing import langgraph_agent_step
 from src.steps.mock_data_ingestion import mock_chat_data_ingestion_step
 from src.steps.output_distribution import output_distribution_step
 from src.steps.preprocessing import text_preprocessing_step
+from src.steps.trace_retrieval import retrieve_traces_step
 from zenml import pipeline, step
 from zenml.config import DockerSettings
 from zenml.logger import get_logger
@@ -95,7 +96,13 @@ def daily_chat_summarization_pipeline(
         delivery_results=delivery_results
     )
     
-    logger.info("Pipeline completed successfully with embedded visualizations")
+    # Step 6: Retrieve and visualize Langfuse traces from the complete pipeline run
+    traces_viz = retrieve_traces_step(
+        processed_data=summaries_and_tasks,
+        time_window_minutes=30  # Look for traces in the last 30 minutes
+    )
+    
+    logger.info("Pipeline completed successfully with comprehensive observability")
     return evaluation_metrics
 
 
@@ -127,8 +134,7 @@ def main(mock_data: bool):
     
     # Run the pipeline
     try:
-        pipeline_run = daily_chat_summarization_pipeline(**config)
-        logger.info(f"Pipeline run completed: {pipeline_run}")
+        daily_chat_summarization_pipeline(**config)
         
     except Exception as e:
         logger.error(f"Pipeline failed with error: {e}")

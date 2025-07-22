@@ -4,6 +4,7 @@ Text preprocessing step for cleaning and preparing conversation data.
 
 import re
 from typing import List, Set
+from typing_extensions import Annotated
 from datetime import datetime
 
 from zenml import step
@@ -107,7 +108,7 @@ def text_preprocessing_step(
     raw_data: RawConversationData,
     min_message_length: int = 5,
     max_messages_per_conversation: int = 500
-) -> CleanedConversationData:
+) -> Annotated[CleanedConversationData, "cleaned_data"]:
     """
     Preprocess and clean conversation data.
     

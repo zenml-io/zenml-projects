@@ -10,6 +10,7 @@ from langchain_google_vertexai import ChatVertexAI
 from langfuse import observe
 
 from ..utils.models import ConversationData, Summary
+from ..utils.session_manager import get_session_manager
 
 
 class SummarizerAgent:
@@ -41,6 +42,13 @@ class SummarizerAgent:
     @observe(as_type="generation")
     def create_summary(self, conversation: ConversationData) -> Summary:
         """Create a summary for a single conversation."""
+        
+        # Update current trace with session information
+        try:
+            session_manager = get_session_manager()
+            session_manager.update_current_trace_with_session()
+        except Exception:
+            pass  # Continue if session management fails
         
         conversation_text = self._format_conversation_for_prompt(conversation)
         
@@ -170,6 +178,13 @@ Provide a clear, professional summary following the requested format."""
     @observe(as_type="generation")
     def create_multi_conversation_summary(self, conversations: List[ConversationData]) -> Summary:
         """Create a combined summary for multiple conversations."""
+        
+        # Update current trace with session information
+        try:
+            session_manager = get_session_manager()
+            session_manager.update_current_trace_with_session()
+        except Exception:
+            pass  # Continue if session management fails
         
         if len(conversations) == 1:
             return self.create_summary(conversations[0])
