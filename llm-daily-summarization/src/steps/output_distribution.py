@@ -161,6 +161,8 @@ def output_distribution_step(
                     if should_deliver_tasks
                     else None,
                 )
+                # Allow discord.py to finish closing its aiohttp connector
+                await asyncio.sleep(0.1)
                 return [res]
 
             # Execute the batch and extend overall delivery results

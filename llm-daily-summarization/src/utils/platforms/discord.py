@@ -45,48 +45,65 @@ class DiscordDeliverer:
     ) -> bool:
         """
         Post text to Discord, splitting into chunks that respect Discord's
-        2 000-character limit (we default to 1 900 to keep margin).
+        2 000-character limit (defaults to 1 900 to keep margin).
 
         Returns:
             True on success, False otherwise.
         """
+
         intents = discord.Intents.default()
         intents.guilds = True
-        client = discord.Client(intents=intents)
+
+        # ------------------------------------------------------------------#
+        # We create a lightweight subclass so that the on_ready coroutine
+        # can access the posting parameters without resorting to globals.
+        # Using the async-with context guarantees that the aiohttp connector
+        # is closed even if an exception bubbles up.
+        # ------------------------------------------------------------------#
+        class _PosterClient(discord.Client):
+            def __init__(self, *, text: str, chan_id: str, **kwargs):
+                super().__init__(**kwargs)
+                self._text = text
+                self._chan_id = chan_id
+                self.success: bool = False
+
+            async def on_ready(self) -> None:  # noqa: D401
+                try:
+                    channel = await self.fetch_channel(int(self._chan_id))
+
+                    chunks = DiscordDeliverer._split_message_for_discord(
+                        self._text, max_length
+                    )
+                    for idx, chunk in enumerate(chunks):
+                        if idx:  # polite rate-limit
+                            await asyncio.sleep(1)
+                        await channel.send(chunk, suppress_embeds=True)
+                        logger.info(
+                            "Posted chunk %d/%d to Discord channel %s",
+                            idx + 1,
+                            len(chunks),
+                            self._chan_id,
+                        )
+                    self.success = True
+                except Exception as exc:  # pragma: no cover
+                    logger.error("Error posting to Discord: %s", exc)
+                finally:
+                    # Closing here lets the async-with exit immediately
+                    await self.close()
+
+        # ------------------------------------------------------------------#
 
         success = False
-
-        @client.event
-        async def on_ready():
-            nonlocal success
-            try:
-                channel = await client.fetch_channel(int(channel_id))
-
-                chunks = self._split_message_for_discord(text, max_length)
-                for idx, chunk in enumerate(chunks):
-                    if idx:  # polite rate-limit
-                        await asyncio.sleep(1)
-                    await channel.send(chunk, suppress_embeds=True)
-                    logger.info(
-                        "Posted chunk %d/%d to Discord channel %s",
-                        idx + 1,
-                        len(chunks),
-                        channel_id,
-                    )
-                success = True
-            except Exception as exc:  # pragma: no cover
-                logger.error("Error posting to Discord: %s", exc)
-            finally:
-                await client.close()
-                await asyncio.sleep(0.1)
-
         try:
-            await client.start(self.token)
+            async with _PosterClient(
+                text=text, chan_id=channel_id, intents=intents
+            ) as client:
+                await client.start(self.token)
+                success = client.success
+                # Give the loop a moment to finish connector shutdown
+                await asyncio.sleep(0.1)
         except Exception as exc:  # pragma: no cover
             logger.error("Discord client error: %s", exc)
-        finally:
-            if not client.is_closed():
-                await client.close()
 
         return success
 
