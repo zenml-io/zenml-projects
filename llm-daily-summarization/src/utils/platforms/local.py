@@ -234,8 +234,55 @@ class LocalDeliverer:
         today_str = datetime.utcnow().strftime("%Y-%m-%d")
         lines: List[str] = [f"# Daily Conversation Digest – {today_str}\n"]
 
-        # Summaries section
-        for idx, summary in enumerate(summaries, start=1):
+        # --------------------------------------------------------------- #
+        # 1. Separate the master Daily Team Digest (if present)           #
+        # --------------------------------------------------------------- #
+        digest_summary: Optional[Dict[str, Any]] = None
+        other_summaries: List[Dict[str, Any]] = []
+
+        for summary in summaries:
+            title = summary.get("title", "").strip().lower()
+            if title == "daily team digest":
+                digest_summary = summary
+            else:
+                other_summaries.append(summary)
+
+        # --------------------------------------------------------------- #
+        # 2. Render the Daily Team Digest at the very top                 #
+        # --------------------------------------------------------------- #
+        if digest_summary:
+            lines.append("## Daily Team Digest")
+            if key_points := digest_summary.get("key_points"):
+                lines.append("### Key Points")
+                lines.extend([f"- {kp}" for kp in key_points])
+                lines.append("")
+
+            if content := digest_summary.get("content"):
+                lines.append("### Full Summary")
+                lines.append(content)
+                lines.append("")
+
+            # Optional metadata (omit confidence_score & word_count)
+            meta_sections = []
+            if participants := digest_summary.get("participants"):
+                meta_sections.append(
+                    f"**Participants:** {', '.join(participants)}"
+                )
+            if topics := digest_summary.get("topics"):
+                meta_sections.append(f"**Topics:** {', '.join(topics)}")
+
+            if meta_sections:
+                lines.append("### Metadata")
+                lines.extend(meta_sections)
+                lines.append("")
+
+            # Visual separator between digest and individual summaries
+            lines.append("---\n")
+
+        # --------------------------------------------------------------- #
+        # 3. Render individual conversation summaries                     #
+        # --------------------------------------------------------------- #
+        for idx, summary in enumerate(other_summaries, start=1):
             lines.append(
                 f"## {idx}. {summary.get('title', 'Conversation Summary')}"
             )
@@ -249,7 +296,6 @@ class LocalDeliverer:
                 lines.append(content)
                 lines.append("")
 
-            # Metadata (exclude confidence_score & word_count)
             meta_sections = []
             if participants := summary.get("participants"):
                 meta_sections.append(
@@ -263,7 +309,9 @@ class LocalDeliverer:
                 lines.extend(meta_sections)
                 lines.append("")
 
-        # Optional tasks section
+        # --------------------------------------------------------------- #
+        # 4. Render tasks section (unchanged)                             #
+        # --------------------------------------------------------------- #
         if tasks:
             lines.append("## Action Items\n")
             for t_idx, task in enumerate(tasks, start=1):
