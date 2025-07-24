@@ -46,6 +46,7 @@ def daily_chat_summarization_pipeline(
     days_back: int = 1,
     max_messages: Optional[int] = None,
     include_threads: bool = True,
+    extract_tasks: bool = True,  # NEW: controls whether tasks are extracted/delivered
 ) -> None:
     """Daily chat summarization pipeline orchestrating ingestion, processing,
     summarization, distribution and evaluation of chat conversations.
@@ -70,6 +71,8 @@ def daily_chat_summarization_pipeline(
         include_threads: When ``True`` the Discord ingestion logic will also
             collect thread messages in addition to root channel messages.
             Ignored when ``use_mock_data`` is ``True``.
+        extract_tasks: When ``True``, task extraction and delivery are enabled
+            in the LangGraph agent and output distribution steps.
 
     Returns:
         None. The pipeline writes artefacts to the ZenML stack and may return
@@ -108,12 +111,16 @@ def daily_chat_summarization_pipeline(
 
     # Step 3: LangGraph agent processing with Vertex AI
     summaries_and_tasks, _ = langgraph_agent_step(
-        cleaned_data=cleaned_data, model_config=model_config
+        cleaned_data=cleaned_data,
+        model_config=model_config,
+        extract_tasks=extract_tasks,  # NEW
     )
 
     # Step 4: Output distribution to multiple targets
     delivery_results = output_distribution_step(
-        processed_data=summaries_and_tasks, output_targets=output_targets
+        processed_data=summaries_and_tasks,
+        output_targets=output_targets,
+        extract_tasks=extract_tasks,  # NEW
     )
 
     # Step 5: Evaluation and monitoring (with embedded visualization)
@@ -161,6 +168,12 @@ def daily_chat_summarization_pipeline(
     help="Include thread messages when fetching Discord data",
 )
 @click.option(
+    "--task-list/--no-task-list",
+    default=True,
+    show_default=True,
+    help="Enable or disable task extraction and delivery",
+)
+@click.option(
     "--output-targets",
     multiple=True,
     default=["notion"],
@@ -177,6 +190,7 @@ def main(
     days_back: int,
     max_messages: Optional[int],
     include_threads: bool,
+    task_list: bool,
     output_targets: tuple,
     discord_channel_id: Optional[str],
 ):
@@ -218,6 +232,7 @@ def main(
         "days_back": days_back,
         "max_messages": max_messages,
         "include_threads": include_threads,
+        "extract_tasks": task_list,  # NEW
     }
 
     # Run the pipeline

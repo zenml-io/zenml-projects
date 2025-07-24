@@ -40,11 +40,16 @@ class AgentState(TypedDict):
 class LangGraphOrchestrator:
     """Orchestrates the multi-agent workflow using LangGraph."""
 
-    def __init__(self, model_config: Dict[str, Any]):
+    def __init__(
+        self, model_config: Dict[str, Any], *, extract_tasks: bool = True
+    ):
         """Initialize the LangGraph orchestrator."""
         self.model_config = model_config
+        self.extract_tasks = extract_tasks
         self.summarizer_agent = SummarizerAgent(model_config)
-        self.task_extractor_agent = TaskExtractorAgent(model_config)
+        self.task_extractor_agent = (
+            TaskExtractorAgent(model_config) if self.extract_tasks else None
+        )
         self.trace_id = str(uuid.uuid4())
 
         # Get ZenML pipeline run ID for tagging
@@ -63,21 +68,29 @@ class LangGraphOrchestrator:
         """Build the LangGraph workflow."""
         workflow = StateGraph(AgentState)
 
-        # Add nodes (agent functions)
+        # Add nodes
         workflow.add_node("initialize", self._initialize_processing)
         workflow.add_node("summarize", self._summarize_conversations)
-        workflow.add_node("extract_tasks", self._extract_tasks)
+
+        if self.extract_tasks:
+            workflow.add_node("extract_tasks", self._extract_tasks)
+
         workflow.add_node("quality_check", self._quality_check)
         workflow.add_node("finalize", self._finalize_processing)
 
-        # Define the workflow edges
+        # Define edges
         workflow.add_edge("initialize", "summarize")
-        workflow.add_edge("summarize", "extract_tasks")
-        workflow.add_edge("extract_tasks", "quality_check")
+
+        if self.extract_tasks:
+            workflow.add_edge("summarize", "extract_tasks")
+            workflow.add_edge("extract_tasks", "quality_check")
+        else:
+            workflow.add_edge("summarize", "quality_check")
+
         workflow.add_edge("quality_check", "finalize")
         workflow.add_edge("finalize", END)
 
-        # Set entry point
+        # Entry point
         workflow.set_entry_point("initialize")
 
         return workflow.compile()
@@ -220,6 +233,11 @@ class LangGraphOrchestrator:
 
     def _extract_tasks(self, state: AgentState) -> AgentState:
         """Extract tasks from conversations using the task extractor agent."""
+        if not self.extract_tasks:
+            # Skip extraction; ensure tasks key exists
+            state["tasks"] = []
+            return state
+
         logger.info("Starting task extraction")
         state["current_step"] = "extracting_tasks"
 
@@ -1149,7 +1167,9 @@ def _create_combined_agent_dashboard(
 
 @step
 def langgraph_agent_step(
-    cleaned_data: CleanedConversationData, model_config: Dict[str, Any]
+    cleaned_data: CleanedConversationData,
+    model_config: Dict[str, Any],
+    extract_tasks: bool = True,
 ) -> Tuple[
     Annotated[ProcessedData, "processed_data"],
     Annotated[HTMLString, "processing_visualization"],
@@ -1168,7 +1188,9 @@ def langgraph_agent_step(
     )
 
     # Initialize the orchestrator
-    orchestrator = LangGraphOrchestrator(model_config)
+    orchestrator = LangGraphOrchestrator(
+        model_config, extract_tasks=extract_tasks
+    )
 
     # Prepare initial state
     initial_state = AgentState(

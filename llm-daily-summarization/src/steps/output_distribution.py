@@ -22,7 +22,9 @@ logger = get_logger(__name__)
 
 @step
 def output_distribution_step(
-    processed_data: ProcessedData, output_targets: List[str]
+    processed_data: ProcessedData,
+    output_targets: List[str],
+    extract_tasks: bool = True,  # NEW
 ) -> Annotated[List[DeliveryResult], "delivery_results"]:
     """
     Distribute processed summaries and tasks to specified output targets.
@@ -30,12 +32,16 @@ def output_distribution_step(
     Args:
         processed_data: Processed summaries and tasks from LangGraph
         output_targets: List of output destinations (notion, slack, github)
+        extract_tasks: Whether to include tasks in delivery
 
     Returns:
         List[DeliveryResult]: Results from each delivery attempt
     """
 
     logger.info(f"Starting output distribution to targets: {output_targets}")
+
+    # Decide once whether tasks should be delivered
+    should_deliver_tasks = extract_tasks and bool(processed_data.tasks)  # NEW
 
     delivery_results = []
 
@@ -51,7 +57,7 @@ def output_distribution_step(
                 delivery_results.append(result)
 
             # Deliver tasks
-            if processed_data.tasks:
+            if should_deliver_tasks:  # NEW
                 task_result = notion_deliverer.deliver_tasks(
                     [task.model_dump() for task in processed_data.tasks]
                 )
@@ -70,7 +76,7 @@ def output_distribution_step(
             delivery_results.append(result)
 
         # Deliver tasks
-        if processed_data.tasks:
+        if should_deliver_tasks:  # NEW
             task_result = slack_deliverer.deliver_tasks(
                 [task.model_dump() for task in processed_data.tasks]
             )
@@ -148,23 +154,14 @@ def output_distribution_step(
             async def _discord_batch():
                 """Run all Discord deliveries in one event loop to avoid
                 creating multiple connectors which can leak resources."""
-                results: List[DeliveryResult] = []
-
-                # Deliver summaries
-                for summary in processed_data.summaries:
-                    res = await discord_deliverer.deliver_summary(
-                        summary.model_dump()
-                    )
-                    results.append(res)
-
-                # Deliver tasks
-                if processed_data.tasks:
-                    res = await discord_deliverer.deliver_tasks(
-                        [task.model_dump() for task in processed_data.tasks]
-                    )
-                    results.append(res)
-
-                return results
+                # ONE consolidated message for summaries (+ tasks if enabled)
+                res = await discord_deliverer.deliver_consolidated(
+                    [s.model_dump() for s in processed_data.summaries],
+                    [t.model_dump() for t in processed_data.tasks]
+                    if should_deliver_tasks
+                    else None,
+                )
+                return [res]
 
             # Execute the batch and extend overall delivery results
             batch_results = asyncio.run(_discord_batch())
@@ -179,17 +176,15 @@ def output_distribution_step(
         export_dir = os.getenv("LOCAL_OUTPUT_DIR", "discord_summaries")
         local_deliverer = LocalDeliverer(export_dir)
 
-        # Deliver summaries
-        for summary in processed_data.summaries:
-            result = local_deliverer.deliver_summary(summary.model_dump())
-            delivery_results.append(result)
-
-        # Deliver tasks
-        if processed_data.tasks:
-            task_result = local_deliverer.deliver_tasks(
-                [task.model_dump() for task in processed_data.tasks]
-            )
-            delivery_results.append(task_result)
+        # Consolidated delivery (summaries + optional tasks)
+        result = local_deliverer.deliver_consolidated(
+            [s.model_dump() for s in processed_data.summaries],
+            [t.model_dump() for t in processed_data.tasks]
+            if should_deliver_tasks
+            else None,
+            filename_prefix="Daily_Team_Digest",
+        )
+        delivery_results.append(result)
 
     # GitHub delivery
     if "github" in output_targets:

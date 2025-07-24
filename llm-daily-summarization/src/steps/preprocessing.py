@@ -58,9 +58,7 @@ class TextCleaner:
         if not content or not isinstance(content, str):
             return ""
 
-        # Remove URLs
-        content = self.url_pattern.sub("[URL]", content)
-
+        # NOTE: URLs are now preserved.
         # Remove mentions (keep readable placeholder)
         content = self.mention_pattern.sub("@user", content)
         content = self.slack_mention_pattern.sub("@user", content)
@@ -70,8 +68,7 @@ class TextCleaner:
         content = self.code_block_pattern.sub("[CODE_BLOCK]", content)
         content = self.inline_code_pattern.sub("[CODE]", content)
 
-        # Remove custom emoji
-        content = self.emoji_pattern.sub("", content)
+        # NOTE: Custom emojis like :smile: are now preserved.
 
         # Clean up whitespace
         content = re.sub(r"\s+", " ", content).strip()
@@ -88,9 +85,8 @@ class TextCleaner:
             if indicator in content_lower:
                 return True
 
-        # Check if message is too short to be meaningful
-        if len(message.content.strip()) < 3:
-            return True
+        # Removed minimum length filter to allow very short messages
+        # (previously filtered out messages shorter than 3 characters)
 
         # Check if message is mostly special characters
         special_char_ratio = sum(
@@ -112,13 +108,13 @@ class TextCleaner:
         cleaned_content = self.clean_message_content(message.content)
 
         # Keep if cleaned content has meaningful text
-        return len(cleaned_content.strip()) >= 5
+        return len(cleaned_content.strip()) >= 1
 
 
 @step
 def text_preprocessing_step(
     raw_data: RawConversationData,
-    min_message_length: int = 5,
+    min_message_length: int = 1,
     max_messages_per_conversation: int = 500,
 ) -> Annotated[CleanedConversationData, "cleaned_data"]:
     """

@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from zenml.logger import get_logger
 
@@ -99,6 +99,52 @@ class LocalDeliverer:
                 error_message=str(exc),
             )
 
+    def deliver_consolidated(
+        self,
+        summaries: List[Dict[str, Any]],
+        tasks: Optional[List[Dict[str, Any]]] | None = None,
+        filename_prefix: str = "Daily_Team_Digest",
+    ) -> "DeliveryResult":
+        """
+        Write all summaries (and optionally tasks) to a single markdown file.
+
+        Args:
+            summaries: List of summary dictionaries.
+            tasks: Optional list of task dictionaries to include.
+            filename_prefix: Prefix for the generated filename.
+
+        Returns:
+            DeliveryResult indicating success or failure.
+        """
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
+        filename = f"{filename_prefix}_{timestamp}.md"
+        filepath = os.path.join(self.root_dir, filename)
+
+        try:
+            md_content = self._render_consolidated_md(summaries, tasks)
+            with open(filepath, "w", encoding="utf-8") as fp:
+                fp.write(md_content)
+
+            logger.info(f"Consolidated report saved locally: {filepath}")
+            return DeliveryResult(
+                target="local",
+                success=True,
+                delivered_items=[filename],
+                failed_items=[],
+                delivery_url=os.path.abspath(filepath),
+            )
+        except Exception as exc:
+            logger.error(
+                f"Failed to write consolidated report '{filepath}': {exc}"
+            )
+            return DeliveryResult(
+                target="local",
+                success=False,
+                delivered_items=[],
+                failed_items=[filename],
+                error_message=str(exc),
+            )
+
     # --------------------------------------------------------------------- #
     # Helper functions                                                      #
     # --------------------------------------------------------------------- #
@@ -172,5 +218,67 @@ class LocalDeliverer:
             if confidence is not None:
                 lines.append(f"- Confidence: **{confidence:.2f}**")
             lines.append("")
+
+        return "\n".join(lines).strip() + "\n"
+
+    @staticmethod
+    def _render_consolidated_md(
+        summaries: List[Dict[str, Any]],
+        tasks: Optional[List[Dict[str, Any]]] | None = None,
+    ) -> str:
+        """Render summaries (and optionally tasks) into one markdown doc.
+
+        Confidence scores and word counts are intentionally omitted for a
+        cleaner human-facing report.
+        """
+        today_str = datetime.utcnow().strftime("%Y-%m-%d")
+        lines: List[str] = [f"# Daily Conversation Digest – {today_str}\n"]
+
+        # Summaries section
+        for idx, summary in enumerate(summaries, start=1):
+            lines.append(
+                f"## {idx}. {summary.get('title', 'Conversation Summary')}"
+            )
+            if key_points := summary.get("key_points"):
+                lines.append("### Key Points")
+                lines.extend([f"- {kp}" for kp in key_points])
+                lines.append("")
+
+            if content := summary.get("content"):
+                lines.append("### Full Summary")
+                lines.append(content)
+                lines.append("")
+
+            # Metadata (exclude confidence_score & word_count)
+            meta_sections = []
+            if participants := summary.get("participants"):
+                meta_sections.append(
+                    f"**Participants:** {', '.join(participants)}"
+                )
+            if topics := summary.get("topics"):
+                meta_sections.append(f"**Topics:** {', '.join(topics)}")
+
+            if meta_sections:
+                lines.append("### Metadata")
+                lines.extend(meta_sections)
+                lines.append("")
+
+        # Optional tasks section
+        if tasks:
+            lines.append("## Action Items\n")
+            for t_idx, task in enumerate(tasks, start=1):
+                title = task.get("title", f"Task {t_idx}")
+                desc = task.get("description", "")
+                assignee = task.get("assignee") or "Unassigned"
+                priority = task.get("priority", "medium").capitalize()
+                due = task.get("due_date") or "n/a"
+
+                lines.append(f"### {t_idx}. {title}")
+                if desc:
+                    lines.append(desc)
+                lines.append(f"- Assignee: **{assignee}**")
+                lines.append(f"- Priority: **{priority}**")
+                lines.append(f"- Due: **{due}**")
+                lines.append("")
 
         return "\n".join(lines).strip() + "\n"
