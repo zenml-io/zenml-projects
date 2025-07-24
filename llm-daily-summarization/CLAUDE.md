@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development and Testing
 ```bash
-# Install dependencies
+# Install dependencies (use `uv` if available)
 pip install -r requirements.txt
 
 # Basic functionality test (no external dependencies)
@@ -15,15 +15,8 @@ python test_basic.py
 # Run the main pipeline with mock data
 python run.py
 
-# Full test suite (requires setup)
-python -m pytest tests/ -v
-
 # Code formatting
-black src/ tests/
-isort src/ tests/
-
-# Type checking (available via mypy dependency)
-mypy src/
+bash ../scripts/format.sh
 ```
 
 ### Pipeline Execution
