@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 
 class AgentState(TypedDict):
     """State object passed between agents in the LangGraph workflow."""
-    
+
     conversations: List[Dict[str, Any]]
     summaries: List[Dict[str, Any]]
     tasks: List[Dict[str, Any]]
@@ -46,46 +46,48 @@ class LangGraphOrchestrator:
         self.summarizer_agent = SummarizerAgent(model_config)
         self.task_extractor_agent = TaskExtractorAgent(model_config)
         self.trace_id = str(uuid.uuid4())
-        
+
         # Get ZenML pipeline run ID for tagging
         try:
             from zenml import get_step_context
+
             step_context = get_step_context()
             self.run_id = str(step_context.pipeline_run.id)
         except Exception:
             self.run_id = str(uuid.uuid4())
-        
+
         # Build the workflow graph
         self.workflow = self._build_workflow()
-    
+
     def _build_workflow(self) -> StateGraph:
         """Build the LangGraph workflow."""
         workflow = StateGraph(AgentState)
-        
+
         # Add nodes (agent functions)
         workflow.add_node("initialize", self._initialize_processing)
         workflow.add_node("summarize", self._summarize_conversations)
         workflow.add_node("extract_tasks", self._extract_tasks)
         workflow.add_node("quality_check", self._quality_check)
         workflow.add_node("finalize", self._finalize_processing)
-        
+
         # Define the workflow edges
         workflow.add_edge("initialize", "summarize")
         workflow.add_edge("summarize", "extract_tasks")
         workflow.add_edge("extract_tasks", "quality_check")
         workflow.add_edge("quality_check", "finalize")
         workflow.add_edge("finalize", END)
-        
+
         # Set entry point
         workflow.set_entry_point("initialize")
-        
+
         return workflow.compile()
-    
+
     def _initialize_processing(self, state: AgentState) -> AgentState:
         """Initialize the processing workflow."""
-        logger.info(f"Initializing LangGraph processing workflow with ZenML run ID: {self.run_id}")
-        
-        
+        logger.info(
+            f"Initializing LangGraph processing workflow with ZenML run ID: {self.run_id}"
+        )
+
         state["processing_metadata"] = {
             "start_time": datetime.utcnow().isoformat(),
             "trace_id": self.trace_id,
@@ -93,174 +95,217 @@ class LangGraphOrchestrator:
             "zenml_run_name": "unknown",
             "zenml_pipeline_name": "unknown",
             "total_conversations": len(state["conversations"]),
-            "workflow_version": "1.0"
+            "workflow_version": "1.0",
         }
-        
+
         state["llm_usage_stats"] = {
             "total_tokens": 0,
             "summarization_tokens": 0,
             "task_extraction_tokens": 0,
-            "api_calls": 0
+            "api_calls": 0,
         }
-        
+
         state["current_step"] = "initialized"
-        state["messages"].append({
-            "role": "system",
-            "content": f"Initialized processing for {len(state['conversations'])} conversations"
-        })
-        
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Initialized processing for {len(state['conversations'])} conversations",
+            }
+        )
+
         return state
-    
+
     def _summarize_conversations(self, state: AgentState) -> AgentState:
         """Summarize all conversations using the summarizer agent."""
-        logger.info(f"Starting summarization for {len(state['conversations'])} conversations")
+        logger.info(
+            f"Starting summarization for {len(state['conversations'])} conversations"
+        )
         state["current_step"] = "summarizing"
-        
+
         summaries = []
-        
+
         # Convert conversations back to ConversationData objects
         conversation_objects = []
         for conv_data in state["conversations"]:
             # This would require proper deserialization in a real implementation
             # For now, we'll work with the dict data directly
             conversation_objects.append(conv_data)
-        
+
         try:
             # Create individual summaries
             for i, conversation in enumerate(conversation_objects):
-                logger.info(f"Summarizing conversation {i+1}/{len(conversation_objects)}")
-                
+                logger.info(
+                    f"Summarizing conversation {i+1}/{len(conversation_objects)}"
+                )
+
                 # Convert dict back to ConversationData object for agent
                 # In a real implementation, you'd have proper serialization/deserialization
                 from ..utils.models import ChatMessage, ConversationData
-                
+
                 messages = [
-                    ChatMessage(**msg_data) for msg_data in conversation["messages"]
+                    ChatMessage(**msg_data)
+                    for msg_data in conversation["messages"]
                 ]
-                
+
                 conv_obj = ConversationData(
                     messages=messages,
                     channel_name=conversation["channel_name"],
                     source=conversation["source"],
                     date_range=conversation["date_range"],
                     participant_count=conversation["participant_count"],
-                    total_messages=conversation["total_messages"]
+                    total_messages=conversation["total_messages"],
                 )
-                
+
                 summary = self.summarizer_agent.create_summary(conv_obj)
                 summaries.append(summary.dict())
-                
+
                 # Update usage stats
                 state["llm_usage_stats"]["api_calls"] += 1
-                state["llm_usage_stats"]["summarization_tokens"] += len(summary.content.split())
-            
+                state["llm_usage_stats"]["summarization_tokens"] += len(
+                    summary.content.split()
+                )
+
             # Create a combined daily summary if multiple conversations
             if len(conversation_objects) > 1:
                 conv_objs = []
                 for conv_data in conversation_objects:
-                    messages = [ChatMessage(**msg_data) for msg_data in conv_data["messages"]]
+                    messages = [
+                        ChatMessage(**msg_data)
+                        for msg_data in conv_data["messages"]
+                    ]
                     conv_obj = ConversationData(
                         messages=messages,
                         channel_name=conv_data["channel_name"],
                         source=conv_data["source"],
                         date_range=conv_data["date_range"],
                         participant_count=conv_data["participant_count"],
-                        total_messages=conv_data["total_messages"]
+                        total_messages=conv_data["total_messages"],
                     )
                     conv_objs.append(conv_obj)
-                
-                daily_summary = self.summarizer_agent.create_multi_conversation_summary(conv_objs)
+
+                daily_summary = (
+                    self.summarizer_agent.create_multi_conversation_summary(
+                        conv_objs
+                    )
+                )
                 summaries.append(daily_summary.dict())
-                
+
                 state["llm_usage_stats"]["api_calls"] += 1
-                state["llm_usage_stats"]["summarization_tokens"] += len(daily_summary.content.split())
-            
+                state["llm_usage_stats"]["summarization_tokens"] += len(
+                    daily_summary.content.split()
+                )
+
             state["summaries"] = summaries
-            
-            logger.info(f"Summarization complete: {len(summaries)} summaries generated")
-            state["messages"].append({
-                "role": "assistant",
-                "content": f"Generated {len(summaries)} summaries from conversations"
-            })
-            
+
+            logger.info(
+                f"Summarization complete: {len(summaries)} summaries generated"
+            )
+            state["messages"].append(
+                {
+                    "role": "assistant",
+                    "content": f"Generated {len(summaries)} summaries from conversations",
+                }
+            )
+
         except Exception as e:
             logger.error(f"Error during summarization: {e}")
-            state["messages"].append({
-                "role": "system",
-                "content": f"Error during summarization: {str(e)}"
-            })
-        
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": f"Error during summarization: {str(e)}",
+                }
+            )
+
         return state
 
     def _extract_tasks(self, state: AgentState) -> AgentState:
         """Extract tasks from conversations using the task extractor agent."""
         logger.info("Starting task extraction")
         state["current_step"] = "extracting_tasks"
-        
+
         all_tasks = []
-        
+
         try:
             # Convert conversations back to ConversationData objects
             conversation_objects = []
             for conv_data in state["conversations"]:
                 from ..utils.models import ChatMessage, ConversationData
-                
-                messages = [ChatMessage(**msg_data) for msg_data in conv_data["messages"]]
+
+                messages = [
+                    ChatMessage(**msg_data)
+                    for msg_data in conv_data["messages"]
+                ]
                 conv_obj = ConversationData(
                     messages=messages,
                     channel_name=conv_data["channel_name"],
                     source=conv_data["source"],
                     date_range=conv_data["date_range"],
                     participant_count=conv_data["participant_count"],
-                    total_messages=conv_data["total_messages"]
+                    total_messages=conv_data["total_messages"],
                 )
                 conversation_objects.append(conv_obj)
-            
+
             # Extract tasks from all conversations
-            tasks = self.task_extractor_agent.extract_tasks_from_multiple_conversations(conversation_objects)
+            tasks = self.task_extractor_agent.extract_tasks_from_multiple_conversations(
+                conversation_objects
+            )
             all_tasks = [task.dict() for task in tasks]
-            
+
             state["tasks"] = all_tasks
             state["llm_usage_stats"]["api_calls"] += len(conversation_objects)
-            state["llm_usage_stats"]["task_extraction_tokens"] += sum(len(task["description"].split()) for task in all_tasks)
-            
-            logger.info(f"Task extraction complete: {len(all_tasks)} tasks identified")
-            state["messages"].append({
-                "role": "assistant", 
-                "content": f"Extracted {len(all_tasks)} tasks and action items"
-            })
-            
+            state["llm_usage_stats"]["task_extraction_tokens"] += sum(
+                len(task["description"].split()) for task in all_tasks
+            )
+
+            logger.info(
+                f"Task extraction complete: {len(all_tasks)} tasks identified"
+            )
+            state["messages"].append(
+                {
+                    "role": "assistant",
+                    "content": f"Extracted {len(all_tasks)} tasks and action items",
+                }
+            )
+
         except Exception as e:
             logger.error(f"Error during task extraction: {e}")
             state["tasks"] = []
-            state["messages"].append({
-                "role": "system",
-                "content": f"Error during task extraction: {str(e)}"
-            })
-        
+            state["messages"].append(
+                {
+                    "role": "system",
+                    "content": f"Error during task extraction: {str(e)}",
+                }
+            )
+
         return state
 
     def _quality_check(self, state: AgentState) -> AgentState:
         """Perform quality checks on generated summaries and tasks."""
         logger.info("Performing quality checks")
         state["current_step"] = "quality_checking"
-        
+
         quality_issues = []
-        
+
         # Check summary quality
         for summary in state["summaries"]:
             if len(summary["content"]) < 50:
-                quality_issues.append(f"Summary '{summary['title']}' is too short")
+                quality_issues.append(
+                    f"Summary '{summary['title']}' is too short"
+                )
             if summary["confidence_score"] < 0.5:
-                quality_issues.append(f"Low confidence summary: {summary['title']}")
-        
+                quality_issues.append(
+                    f"Low confidence summary: {summary['title']}"
+                )
+
         # Check task quality
         for task in state["tasks"]:
             if len(task["description"]) < 10:
-                quality_issues.append(f"Task '{task['title']}' has insufficient description")
+                quality_issues.append(
+                    f"Task '{task['title']}' has insufficient description"
+                )
             if task["confidence_score"] < 0.3:
                 quality_issues.append(f"Low confidence task: {task['title']}")
-        
+
         # Log quality issues
         if quality_issues:
             logger.warning(f"Quality issues found: {quality_issues}")
@@ -268,45 +313,59 @@ class LangGraphOrchestrator:
         else:
             logger.info("Quality check passed")
             state["processing_metadata"]["quality_issues"] = []
-        
-        state["messages"].append({
-            "role": "system",
-            "content": f"Quality check complete. Found {len(quality_issues)} issues."
-        })
-        
+
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Quality check complete. Found {len(quality_issues)} issues.",
+            }
+        )
+
         return state
 
     def _finalize_processing(self, state: AgentState) -> AgentState:
         """Finalize the processing workflow."""
         logger.info("Finalizing processing")
         state["current_step"] = "completed"
-        
+
         # Calculate final usage statistics
         state["llm_usage_stats"]["total_tokens"] = (
-            state["llm_usage_stats"]["summarization_tokens"] + 
-            state["llm_usage_stats"]["task_extraction_tokens"]
+            state["llm_usage_stats"]["summarization_tokens"]
+            + state["llm_usage_stats"]["task_extraction_tokens"]
         )
-        
-        state["processing_metadata"]["end_time"] = datetime.utcnow().isoformat()
-        
+
+        state["processing_metadata"]["end_time"] = (
+            datetime.utcnow().isoformat()
+        )
+
         # Calculate processing time
-        start_time = datetime.fromisoformat(state["processing_metadata"]["start_time"])
-        end_time = datetime.fromisoformat(state["processing_metadata"]["end_time"])
+        start_time = datetime.fromisoformat(
+            state["processing_metadata"]["start_time"]
+        )
+        end_time = datetime.fromisoformat(
+            state["processing_metadata"]["end_time"]
+        )
         processing_time = (end_time - start_time).total_seconds()
-        state["processing_metadata"]["processing_time_seconds"] = processing_time
-        
+        state["processing_metadata"]["processing_time_seconds"] = (
+            processing_time
+        )
+
         logger.info(f"Processing complete in {processing_time:.2f} seconds")
-        state["messages"].append({
-            "role": "system",
-            "content": f"Processing completed successfully in {processing_time:.2f} seconds"
-        })
-        
+        state["messages"].append(
+            {
+                "role": "system",
+                "content": f"Processing completed successfully in {processing_time:.2f} seconds",
+            }
+        )
+
         return state
 
 
-def _create_agent_architecture_visualization(processed_data: ProcessedData, orchestrator: 'LangGraphOrchestrator') -> HTMLString:
+def _create_agent_architecture_visualization(
+    processed_data: ProcessedData, orchestrator: "LangGraphOrchestrator"
+) -> HTMLString:
     """Create HTML visualization for LangGraph agent architecture."""
-    
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -508,18 +567,26 @@ def _create_agent_architecture_visualization(processed_data: ProcessedData, orch
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
-def _create_langgraph_traces_visualization(processed_data: ProcessedData, final_state: AgentState) -> HTMLString:
+def _create_langgraph_traces_visualization(
+    processed_data: ProcessedData, final_state: AgentState
+) -> HTMLString:
     """Create HTML visualization for LangGraph execution traces."""
-    
+
     # Extract timing and execution data from the final state
-    processing_time = processed_data.processing_metadata.get('processing_time_seconds', 0)
-    start_time = processed_data.processing_metadata.get('start_time', datetime.now().isoformat())
-    end_time = processed_data.processing_metadata.get('end_time', datetime.now().isoformat())
-    
+    processing_time = processed_data.processing_metadata.get(
+        "processing_time_seconds", 0
+    )
+    start_time = processed_data.processing_metadata.get(
+        "start_time", datetime.now().isoformat()
+    )
+    end_time = processed_data.processing_metadata.get(
+        "end_time", datetime.now().isoformat()
+    )
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -783,16 +850,30 @@ def _create_langgraph_traces_visualization(processed_data: ProcessedData, final_
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
-def _create_agent_processing_visualization(processed_data: ProcessedData, cleaned_data: CleanedConversationData) -> HTMLString:
+def _create_agent_processing_visualization(
+    processed_data: ProcessedData, cleaned_data: CleanedConversationData
+) -> HTMLString:
     """Create HTML visualization for LangGraph agent processing results."""
-    total_messages = sum(len(conv.messages) for conv in cleaned_data.conversations)
-    avg_confidence_summaries = sum(s.confidence_score for s in processed_data.summaries) / len(processed_data.summaries) if processed_data.summaries else 0
-    avg_confidence_tasks = sum(t.confidence_score for t in processed_data.tasks) / len(processed_data.tasks) if processed_data.tasks else 0
-    
+    total_messages = sum(
+        len(conv.messages) for conv in cleaned_data.conversations
+    )
+    avg_confidence_summaries = (
+        sum(s.confidence_score for s in processed_data.summaries)
+        / len(processed_data.summaries)
+        if processed_data.summaries
+        else 0
+    )
+    avg_confidence_tasks = (
+        sum(t.confidence_score for t in processed_data.tasks)
+        / len(processed_data.tasks)
+        if processed_data.tasks
+        else 0
+    )
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -898,13 +979,17 @@ def _create_agent_processing_visualization(processed_data: ProcessedData, cleane
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
-def _create_combined_agent_dashboard(architecture_viz: HTMLString, traces_viz: HTMLString, processing_viz: HTMLString) -> HTMLString:
+def _create_combined_agent_dashboard(
+    architecture_viz: HTMLString,
+    traces_viz: HTMLString,
+    processing_viz: HTMLString,
+) -> HTMLString:
     """Create a combined dashboard with tabs for all agent visualizations."""
-    
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -1058,29 +1143,33 @@ def _create_combined_agent_dashboard(architecture_viz: HTMLString, traces_viz: H
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
 @step
 def langgraph_agent_step(
-    cleaned_data: CleanedConversationData,
-    model_config: Dict[str, Any]
-) -> Tuple[Annotated[ProcessedData, "processed_data"], Annotated[HTMLString, "processing_visualization"]]:
+    cleaned_data: CleanedConversationData, model_config: Dict[str, Any]
+) -> Tuple[
+    Annotated[ProcessedData, "processed_data"],
+    Annotated[HTMLString, "processing_visualization"],
+]:
     """Process cleaned conversation data using LangGraph multi-agent workflow.
-    
+
     Args:
         cleaned_data: Cleaned conversation data from preprocessing
         model_config: Configuration for the LLM models
-        
+
     Returns:
         ProcessedData: Processed summaries and tasks from agent workflow
     """
-    logger.info(f"Starting LangGraph agent processing for {len(cleaned_data.conversations)} conversations")
-    
+    logger.info(
+        f"Starting LangGraph agent processing for {len(cleaned_data.conversations)} conversations"
+    )
+
     # Initialize the orchestrator
     orchestrator = LangGraphOrchestrator(model_config)
-    
+
     # Prepare initial state
     initial_state = AgentState(
         conversations=[conv.dict() for conv in cleaned_data.conversations],
@@ -1089,35 +1178,47 @@ def langgraph_agent_step(
         processing_metadata={},
         llm_usage_stats={},
         current_step="",
-        messages=[]
+        messages=[],
     )
-    
+
     # Run the workflow
     final_state = orchestrator.workflow.invoke(initial_state)
-    
+
     # Convert results back to our data models
-    summaries = [Summary(**summary_data) for summary_data in final_state["summaries"]]
+    summaries = [
+        Summary(**summary_data) for summary_data in final_state["summaries"]
+    ]
     tasks = [TaskItem(**task_data) for task_data in final_state["tasks"]]
-    
+
     processed_data = ProcessedData(
         summaries=summaries,
         tasks=tasks,
         processing_metadata=final_state["processing_metadata"],
         llm_usage_stats=final_state["llm_usage_stats"],
         agent_trace_id=orchestrator.trace_id,
-        run_id=orchestrator.run_id
+        run_id=orchestrator.run_id,
     )
-    
-    logger.info(f"LangGraph processing complete: {len(summaries)} summaries, {len(tasks)} tasks")
-    
+
+    logger.info(
+        f"LangGraph processing complete: {len(summaries)} summaries, {len(tasks)} tasks"
+    )
+
     # Log Langfuse session metadata to ZenML pipeline
-    
+
     # Generate comprehensive HTML visualizations
-    architecture_viz = _create_agent_architecture_visualization(processed_data, orchestrator)
-    traces_viz = _create_langgraph_traces_visualization(processed_data, final_state)
-    processing_viz = _create_agent_processing_visualization(processed_data, cleaned_data)
-    
+    architecture_viz = _create_agent_architecture_visualization(
+        processed_data, orchestrator
+    )
+    traces_viz = _create_langgraph_traces_visualization(
+        processed_data, final_state
+    )
+    processing_viz = _create_agent_processing_visualization(
+        processed_data, cleaned_data
+    )
+
     # Combine all visualizations into a comprehensive dashboard
-    combined_viz = _create_combined_agent_dashboard(architecture_viz, traces_viz, processing_viz)
-    
+    combined_viz = _create_combined_agent_dashboard(
+        architecture_viz, traces_viz, processing_viz
+    )
+
     return processed_data, combined_viz

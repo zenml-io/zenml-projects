@@ -6,14 +6,13 @@ import os
 import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from typing_extensions import Annotated
 
-from zenml import step
+from typing_extensions import Annotated
+from zenml import get_step_context, step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from ..utils.models import ProcessedData
-from zenml import get_step_context
 
 logger = get_logger(__name__)
 
@@ -22,20 +21,22 @@ def _generate_langfuse_trace_url(trace_id: str, timestamp: str = None) -> str:
     """Generate direct Langfuse trace URL."""
     try:
         from ..utils.llm_config import get_langfuse_project_id
-        
-        langfuse_host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
+
+        langfuse_host = os.getenv(
+            "LANGFUSE_HOST", "https://cloud.langfuse.com"
+        )
         project_id = get_langfuse_project_id()
-        
+
         if not project_id:
             logger.warning("Could not determine project ID")
             return f"{langfuse_host}/traces/{trace_id}"
-        
+
         # Create direct trace URL
         base_url = f"{langfuse_host}/project/{project_id}/traces/{trace_id}"
         if timestamp:
             return f"{base_url}?timestamp={timestamp}&display=details"
         return f"{base_url}?display=details"
-        
+
     except Exception as e:
         logger.warning(f"Could not generate Langfuse trace URL: {e}")
         return f"{os.getenv('LANGFUSE_HOST', 'https://cloud.langfuse.com')}/traces/{trace_id}"
@@ -43,16 +44,15 @@ def _generate_langfuse_trace_url(trace_id: str, timestamp: str = None) -> str:
 
 @step
 def retrieve_traces_step(
-    processed_data: ProcessedData,
-    time_window_minutes: int = 30
+    processed_data: ProcessedData, time_window_minutes: int = 30
 ) -> Annotated[HTMLString, "traces_visualization"]:
     """
     Retrieve and visualize Langfuse traces from the specific pipeline session.
-    
+
     Args:
         processed_data: Processed data containing trace IDs and session metadata
         time_window_minutes: Fallback time window in minutes if session filtering fails
-        
+
     Returns:
         HTMLString: Comprehensive traces visualization
     """
@@ -64,155 +64,202 @@ def retrieve_traces_step(
         run_name = step_context.pipeline_run.name
     except Exception:
         import uuid
+
         run_id = str(uuid.uuid4())
         pipeline_name = "unknown_pipeline"
         run_name = "unknown_run"
-    
+
     logger.info(f"Starting Langfuse trace retrieval for run ID: {run_id}")
-    
+
     try:
         # Initialize Langfuse client
         from langfuse import Langfuse
+
         langfuse = Langfuse()
-        
+
         # Fetch traces by tag filtering for the specific run ID
         logger.info(f"Fetching traces with tag: run_id:{run_id}")
-        
+
         # Initialize time window variables for fallback
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(minutes=time_window_minutes)
         retrieval_method = "tag"
-        
+
         # Try to fetch traces with the run_id as session_id (more precise)
         traces_response = langfuse.api.trace.list(
             session_id=run_id,
-            limit=20  # Limit to pipeline traces only
+            limit=20,  # Limit to pipeline traces only
         )
-        
+
         # If no traces found by session_id, try user_id matching
         if not traces_response.data:
-            logger.info(f"No traces found with session_id {run_id}, trying user_id filter")
+            logger.info(
+                f"No traces found with session_id {run_id}, trying user_id filter"
+            )
             traces_response = langfuse.api.trace.list(
                 user_id="zenml_pipeline",
                 from_timestamp=start_time,
                 to_timestamp=end_time,
-                limit=20
+                limit=20,
             )
-            
+
         # Final fallback: look for traces with the run_id in the name or metadata
         if not traces_response.data:
-            logger.warning(f"No traces found with session_id or user_id filters, falling back to time-based search")
-            retrieval_method = "time_window"
-            
-            logger.info(f"Fetching traces from {start_time} to {end_time}")
-            
-            traces_response = langfuse.api.trace.list(
-                from_timestamp=start_time,
-                to_timestamp=end_time,
-                limit=20
+            logger.warning(
+                f"No traces found with session_id or user_id filters, falling back to time-based search"
             )
-            
+            retrieval_method = "time_window"
+
+            logger.info(f"Fetching traces from {start_time} to {end_time}")
+
+            traces_response = langfuse.api.trace.list(
+                from_timestamp=start_time, to_timestamp=end_time, limit=20
+            )
+
             # Filter traces to only those related to our pipeline
             if traces_response.data:
                 pipeline_traces = []
                 for trace in traces_response.data:
                     # Check if trace is related to our pipeline run
-                    if (trace.session_id == run_id or 
-                        trace.user_id == "zenml_pipeline" or
-                        (hasattr(trace, 'metadata') and trace.metadata and run_id in str(trace.metadata))):
+                    if (
+                        trace.session_id == run_id
+                        or trace.user_id == "zenml_pipeline"
+                        or (
+                            hasattr(trace, "metadata")
+                            and trace.metadata
+                            and run_id in str(trace.metadata)
+                        )
+                    ):
                         pipeline_traces.append(trace)
-                
+
                 # Create a mock response with filtered traces
                 class MockResponse:
                     def __init__(self, data):
                         self.data = data
-                
+
                 traces_response = MockResponse(pipeline_traces)
-                logger.info(f"Filtered to {len(pipeline_traces)} pipeline-related traces")
+                logger.info(
+                    f"Filtered to {len(pipeline_traces)} pipeline-related traces"
+                )
         else:
-            logger.info(f"Found {len(traces_response.data)} traces with session_id {run_id}")
-        
+            logger.info(
+                f"Found {len(traces_response.data)} traces with session_id {run_id}"
+            )
+
         traces_data = []
         observations_data = []
-        
+
         # Process each trace with rate limiting
         rate_limit_hit = False
         max_observations_per_trace = 5  # Only get essential observations
-        
-        for i, trace in enumerate(traces_response.data[:10]):  # Limit to first 10 traces
+
+        for i, trace in enumerate(
+            traces_response.data[:10]
+        ):  # Limit to first 10 traces
             trace_dict = {
                 "id": trace.id,
                 "name": trace.name,
-                "timestamp": trace.timestamp.isoformat() if trace.timestamp else None,
-                "user_id": getattr(trace, 'user_id', None),
-                "session_id": getattr(trace, 'session_id', None),
-                "tags": getattr(trace, 'tags', []),
-                "metadata": getattr(trace, 'metadata', {}),
-                "input": getattr(trace, 'input', None),
-                "output": getattr(trace, 'output', None),
-                "level": getattr(trace, 'level', 'DEFAULT'),
-                "status_message": getattr(trace, 'status_message', None),
-                "version": getattr(trace, 'version', None)
+                "timestamp": trace.timestamp.isoformat()
+                if trace.timestamp
+                else None,
+                "user_id": getattr(trace, "user_id", None),
+                "session_id": getattr(trace, "session_id", None),
+                "tags": getattr(trace, "tags", []),
+                "metadata": getattr(trace, "metadata", {}),
+                "input": getattr(trace, "input", None),
+                "output": getattr(trace, "output", None),
+                "level": getattr(trace, "level", "DEFAULT"),
+                "status_message": getattr(trace, "status_message", None),
+                "version": getattr(trace, "version", None),
             }
             traces_data.append(trace_dict)
-            
+
             # Skip observation fetching if we've hit rate limits or processed enough traces
-            if rate_limit_hit or i >= 5:  # Limit to first 5 traces to reduce API calls
+            if (
+                rate_limit_hit or i >= 5
+            ):  # Limit to first 5 traces to reduce API calls
                 continue
-                
+
             # Fetch observations for this trace with retry and rate limiting
             try:
                 observations_response = _fetch_observations_with_retry(
                     langfuse, trace.id, max_observations_per_trace
                 )
-                
+
                 if observations_response is None:
                     rate_limit_hit = True
-                    logger.warning(f"Rate limit hit, skipping remaining observation fetches")
+                    logger.warning(
+                        f"Rate limit hit, skipping remaining observation fetches"
+                    )
                     continue
-                
+
                 for obs in observations_response.data:
                     # Filter to only show relevant observations (generations and important spans)
-                    obs_type = getattr(obs, 'type', 'unknown')
-                    obs_name = getattr(obs, 'name', 'Unnamed Observation')
-                    
+                    obs_type = getattr(obs, "type", "unknown")
+                    obs_name = getattr(obs, "name", "Unnamed Observation")
+
                     # Only include observations that are:
                     # 1. Generations (LLM calls)
                     # 2. Observations from our agents (contain "summarize" or "extract" or "agent")
-                    if (obs_type.upper() == 'GENERATION' or 
-                        any(keyword in obs_name.lower() for keyword in ['summarize', 'extract', 'agent', 'conversation', 'task'])):
-                        
+                    if obs_type.upper() == "GENERATION" or any(
+                        keyword in obs_name.lower()
+                        for keyword in [
+                            "summarize",
+                            "extract",
+                            "agent",
+                            "conversation",
+                            "task",
+                        ]
+                    ):
                         obs_dict = {
                             "id": obs.id,
                             "trace_id": trace.id,
                             "name": obs_name,
                             "type": obs_type,
-                            "start_time": obs.start_time.isoformat() if getattr(obs, 'start_time', None) else None,
-                            "end_time": obs.end_time.isoformat() if getattr(obs, 'end_time', None) else None,
-                            "completion_start_time": obs.completion_start_time.isoformat() if getattr(obs, 'completion_start_time', None) else None,
-                            "model": getattr(obs, 'model', None),
-                            "input": getattr(obs, 'input', None),
-                            "output": getattr(obs, 'output', None),
-                            "usage": _serialize_usage(getattr(obs, 'usage', None)),
-                            "level": getattr(obs, 'level', 'DEFAULT'),
-                            "status_message": getattr(obs, 'status_message', None),
-                            "parent_observation_id": getattr(obs, 'parent_observation_id', None),
-                            "metadata": getattr(obs, 'metadata', {}),
-                            "version": getattr(obs, 'version', None)
+                            "start_time": obs.start_time.isoformat()
+                            if getattr(obs, "start_time", None)
+                            else None,
+                            "end_time": obs.end_time.isoformat()
+                            if getattr(obs, "end_time", None)
+                            else None,
+                            "completion_start_time": obs.completion_start_time.isoformat()
+                            if getattr(obs, "completion_start_time", None)
+                            else None,
+                            "model": getattr(obs, "model", None),
+                            "input": getattr(obs, "input", None),
+                            "output": getattr(obs, "output", None),
+                            "usage": _serialize_usage(
+                                getattr(obs, "usage", None)
+                            ),
+                            "level": getattr(obs, "level", "DEFAULT"),
+                            "status_message": getattr(
+                                obs, "status_message", None
+                            ),
+                            "parent_observation_id": getattr(
+                                obs, "parent_observation_id", None
+                            ),
+                            "metadata": getattr(obs, "metadata", {}),
+                            "version": getattr(obs, "version", None),
                         }
                         observations_data.append(obs_dict)
-                    
+
                 # Add small delay between requests to avoid rate limits
-                if i < len(traces_response.data) - 1:  # Don't sleep after the last request
+                if (
+                    i < len(traces_response.data) - 1
+                ):  # Don't sleep after the last request
                     time.sleep(0.1)  # 100ms delay
-                    
+
             except Exception as e:
-                logger.warning(f"Failed to fetch observations for trace {trace.id}: {e}")
+                logger.warning(
+                    f"Failed to fetch observations for trace {trace.id}: {e}"
+                )
                 if "rate limit" in str(e).lower():
                     rate_limit_hit = True
-        
-        logger.info(f"Retrieved {len(traces_data)} traces and {len(observations_data)} observations using {retrieval_method} method")
-        
+
+        logger.info(
+            f"Retrieved {len(traces_data)} traces and {len(observations_data)} observations using {retrieval_method} method"
+        )
+
         # Compile all data
         all_traces_data = {
             "traces": traces_data,
@@ -225,30 +272,34 @@ def retrieve_traces_step(
                 "run_id": run_id,
                 "pipeline_name": pipeline_name,
                 "run_name": run_name,
-                "langfuse_url": _generate_langfuse_trace_url(run_id)
+                "langfuse_url": _generate_langfuse_trace_url(run_id),
             },
             "time_window": {
                 "start": start_time.isoformat(),
                 "end": end_time.isoformat(),
-                "minutes": time_window_minutes
+                "minutes": time_window_minutes,
             },
             "summary": {
                 "total_traces": len(traces_data),
                 "total_observations": len(observations_data),
                 "trace_types": _analyze_trace_types(traces_data),
-                "observation_types": _analyze_observation_types(observations_data)
-            }
+                "observation_types": _analyze_observation_types(
+                    observations_data
+                ),
+            },
         }
-        
+
         # Create visualization
-        traces_viz = _create_traces_visualization(all_traces_data, processed_data)
-        
+        traces_viz = _create_traces_visualization(
+            all_traces_data, processed_data
+        )
+
         logger.info("Trace retrieval and visualization complete")
         return traces_viz
-        
+
     except Exception as e:
         logger.error(f"Error retrieving traces: {e}")
-        
+
         # Return minimal data with error information
         error_data = {
             "traces": [],
@@ -260,40 +311,47 @@ def retrieve_traces_step(
                 "total_traces": 0,
                 "total_observations": 0,
                 "trace_types": {},
-                "observation_types": {}
-            }
+                "observation_types": {},
+            },
         }
-        
+
         error_viz = _create_error_visualization(error_data)
         return error_viz
 
 
-def _fetch_observations_with_retry(langfuse, trace_id: str, limit: int = 10, max_retries: int = 2) -> Optional[Any]:
+def _fetch_observations_with_retry(
+    langfuse, trace_id: str, limit: int = 10, max_retries: int = 2
+) -> Optional[Any]:
     """Fetch observations with retry logic to handle rate limits."""
-    
+
     for attempt in range(max_retries + 1):
         try:
             return langfuse.api.observations.get_many(
-                trace_id=trace_id,
-                limit=limit
+                trace_id=trace_id, limit=limit
             )
         except Exception as e:
             error_msg = str(e).lower()
-            
+
             # Check if it's a rate limit error
             if "rate limit" in error_msg or "429" in error_msg:
                 if attempt < max_retries:
-                    wait_time = (2 ** attempt) * 0.5  # Exponential backoff: 0.5s, 1s, 2s
-                    logger.info(f"Rate limit hit, waiting {wait_time}s before retry {attempt + 1}/{max_retries}")
+                    wait_time = (
+                        2**attempt
+                    ) * 0.5  # Exponential backoff: 0.5s, 1s, 2s
+                    logger.info(
+                        f"Rate limit hit, waiting {wait_time}s before retry {attempt + 1}/{max_retries}"
+                    )
                     time.sleep(wait_time)
                     continue
                 else:
-                    logger.warning(f"Rate limit hit, giving up after {max_retries} retries")
+                    logger.warning(
+                        f"Rate limit hit, giving up after {max_retries} retries"
+                    )
                     return None
             else:
                 # Non-rate-limit error, propagate it
                 raise e
-    
+
     return None
 
 
@@ -301,12 +359,18 @@ def _serialize_usage(usage_obj: Any) -> Optional[Dict[str, Any]]:
     """Convert Langfuse Usage object to a serializable dictionary."""
     if usage_obj is None:
         return None
-    
+
     try:
         # Try to convert to dict if it has the expected attributes
-        if hasattr(usage_obj, '__dict__'):
+        if hasattr(usage_obj, "__dict__"):
             usage_dict = {}
-            for attr in ['prompt_tokens', 'completion_tokens', 'total_tokens', 'total', 'total_cost']:
+            for attr in [
+                "prompt_tokens",
+                "completion_tokens",
+                "total_tokens",
+                "total",
+                "total_cost",
+            ]:
                 if hasattr(usage_obj, attr):
                     value = getattr(usage_obj, attr)
                     # Convert to basic types
@@ -334,7 +398,9 @@ def _analyze_trace_types(traces_data: List[Dict[str, Any]]) -> Dict[str, int]:
     return types_count
 
 
-def _analyze_observation_types(observations_data: List[Dict[str, Any]]) -> Dict[str, int]:
+def _analyze_observation_types(
+    observations_data: List[Dict[str, Any]],
+) -> Dict[str, int]:
     """Analyze observation types and count occurrences."""
     types_count = {}
     for obs in observations_data:
@@ -343,15 +409,17 @@ def _analyze_observation_types(observations_data: List[Dict[str, Any]]) -> Dict[
     return types_count
 
 
-def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: ProcessedData) -> HTMLString:
+def _create_traces_visualization(
+    traces_data: Dict[str, Any], processed_data: ProcessedData
+) -> HTMLString:
     """Create modern, interactive HTML visualization for Langfuse traces."""
-    
+
     traces = traces_data["traces"]
     observations = traces_data["observations"]
     summary = traces_data["summary"]
     run_metadata = traces_data.get("run_metadata", {})
     retrieval_method = traces_data.get("retrieval_method", "unknown")
-    
+
     # Group observations by trace for better organization
     trace_obs_map = {}
     for obs in observations:
@@ -359,13 +427,25 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
         if trace_id not in trace_obs_map:
             trace_obs_map[trace_id] = []
         trace_obs_map[trace_id].append(obs)
-    
+
     # Calculate aggregate statistics
-    total_tokens = sum(obs.get("usage", {}).get("total", 0) if isinstance(obs.get("usage"), dict) else 0 for obs in observations)
-    total_cost = sum(obs.get("usage", {}).get("total_cost", 0.0) if isinstance(obs.get("usage"), dict) else 0.0 for obs in observations)
+    total_tokens = sum(
+        obs.get("usage", {}).get("total", 0)
+        if isinstance(obs.get("usage"), dict)
+        else 0
+        for obs in observations
+    )
+    total_cost = sum(
+        obs.get("usage", {}).get("total_cost", 0.0)
+        if isinstance(obs.get("usage"), dict)
+        else 0.0
+        for obs in observations
+    )
     avg_duration = _calculate_avg_duration(observations)
-    generation_count = len([obs for obs in observations if obs.get("type") == "GENERATION"])
-    
+    generation_count = len(
+        [obs for obs in observations if obs.get("type") == "GENERATION"]
+    )
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -861,21 +941,23 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
                     </div>
                 </div>
     """
-    
+
     if traces:
         html_content += f"""
                 <div class="traces-section">
                     <h2 class="section-title">📋 Trace Execution Flow</h2>
                     <div class="trace-tree">
         """
-        
+
         for i, trace in enumerate(traces):
             trace_observations = trace_obs_map.get(trace["id"], [])
             trace_id_short = trace["id"][:8]
-            
+
             # Sort observations by start time if available
-            trace_observations.sort(key=lambda x: x.get('start_time', ''), reverse=False)
-            
+            trace_observations.sort(
+                key=lambda x: x.get("start_time", ""), reverse=False
+            )
+
             html_content += f"""
                         <div class="trace-node">
                             <div class="trace-header" onclick="toggleTrace('{trace_id_short}')">
@@ -894,24 +976,28 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
                             <div class="trace-content" id="trace-content-{trace_id_short}">
                                 <div class="observations-grid">
             """
-            
+
             for obs in trace_observations:
-                obs_type = obs.get('type', 'unknown').lower()
-                obs_name = obs.get('name', 'Unnamed Operation')
-                model = obs.get('model', 'Not specified')
-                duration = _calculate_duration(obs.get('start_time'), obs.get('end_time'))
-                
+                obs_type = obs.get("type", "unknown").lower()
+                obs_name = obs.get("name", "Unnamed Operation")
+                model = obs.get("model", "Not specified")
+                duration = _calculate_duration(
+                    obs.get("start_time"), obs.get("end_time")
+                )
+
                 # Get usage info
-                usage = obs.get('usage', {})
+                usage = obs.get("usage", {})
                 if isinstance(usage, dict):
-                    prompt_tokens = usage.get('prompt_tokens', 0)
-                    completion_tokens = usage.get('completion_tokens', 0)
-                    total_tokens = usage.get('total', prompt_tokens + completion_tokens)
-                    cost = usage.get('total_cost', 0.0)
+                    prompt_tokens = usage.get("prompt_tokens", 0)
+                    completion_tokens = usage.get("completion_tokens", 0)
+                    total_tokens = usage.get(
+                        "total", prompt_tokens + completion_tokens
+                    )
+                    cost = usage.get("total_cost", 0.0)
                 else:
                     prompt_tokens = completion_tokens = total_tokens = 0
                     cost = 0.0
-                
+
                 html_content += f"""
                                     <div class="observation {obs_type}">
                                         <div class="obs-header">
@@ -938,7 +1024,7 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
                                             </div>
                                         </div>
                 """
-                
+
                 if total_tokens > 0 or cost > 0:
                     html_content += f"""
                                         <div class="usage-stats">
@@ -960,15 +1046,15 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
                                             </div>
                                         </div>
                     """
-                
+
                 html_content += "</div>"
-            
+
             html_content += """
                                 </div>
                             </div>
                         </div>
             """
-        
+
         html_content += """
                     </div>
                 </div>
@@ -987,20 +1073,20 @@ def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: Pr
                     </div>
                 </div>
         """
-    
+
     html_content += """
             </div>
         </div>
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
 def _create_error_visualization(error_data: Dict[str, Any]) -> HTMLString:
     """Create error visualization when trace retrieval fails."""
-    
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -1069,20 +1155,22 @@ def _create_error_visualization(error_data: Dict[str, Any]) -> HTMLString:
     </body>
     </html>
     """
-    
+
     return HTMLString(html_content)
 
 
-def _calculate_duration(start_time: Optional[str], end_time: Optional[str]) -> str:
+def _calculate_duration(
+    start_time: Optional[str], end_time: Optional[str]
+) -> str:
     """Calculate duration between start and end times."""
     if not start_time or not end_time:
         return "Unknown"
-    
+
     try:
-        start = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-        end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        start = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        end = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
         duration = end - start
-        
+
         total_seconds = duration.total_seconds()
         if total_seconds < 1:
             return f"{total_seconds*1000:.0f}ms"
@@ -1091,24 +1179,27 @@ def _calculate_duration(start_time: Optional[str], end_time: Optional[str]) -> s
     except Exception:
         return "Unknown"
 
+
 def _calculate_avg_duration(observations: List[Dict[str, Any]]) -> str:
     """Calculate average duration across all observations."""
     durations = []
     for obs in observations:
-        start_time = obs.get('start_time')
-        end_time = obs.get('end_time')
+        start_time = obs.get("start_time")
+        end_time = obs.get("end_time")
         if start_time and end_time:
             try:
-                start = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-                end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+                start = datetime.fromisoformat(
+                    start_time.replace("Z", "+00:00")
+                )
+                end = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
                 duration = (end - start).total_seconds()
                 durations.append(duration)
             except Exception:
                 continue
-    
+
     if not durations:
         return "Unknown"
-    
+
     avg_seconds = sum(durations) / len(durations)
     if avg_seconds < 1:
         return f"{avg_seconds*1000:.0f}ms"

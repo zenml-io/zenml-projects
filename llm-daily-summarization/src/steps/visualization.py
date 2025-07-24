@@ -12,7 +12,11 @@ from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from src.utils.html_visualization import HTMLVisualizer
-from src.utils.models import ConversationData, CleanedConversationData, ProcessedData
+from src.utils.models import (
+    CleanedConversationData,
+    ConversationData,
+    ProcessedData,
+)
 
 logger = get_logger(__name__)
 
@@ -28,7 +32,7 @@ def generate_html_visualization(
 ) -> HTMLString:
     """
     Generate comprehensive HTML visualization of pipeline results.
-    
+
     This step creates a professional dashboard showing:
     - Pipeline statistics and overview
     - Generated summaries with confidence scores
@@ -36,7 +40,7 @@ def generate_html_visualization(
     - Raw and cleaned conversation data
     - Agent prompts used for processing
     - Evaluation metrics and performance data
-    
+
     Args:
         processed_data: Output from LangGraph agent processing
         raw_conversations: Original conversation data from ingestion
@@ -44,16 +48,16 @@ def generate_html_visualization(
         evaluation_metrics: Optional pipeline evaluation results
         run_metadata: Optional metadata about the pipeline run
         agent_prompts: Optional prompts used by LangGraph agents
-        
+
     Returns:
         HTMLString: Complete HTML dashboard for visualization
     """
     try:
         logger.info("Generating HTML visualization dashboard...")
-        
+
         # Initialize the HTML visualizer
         visualizer = HTMLVisualizer()
-        
+
         # Generate comprehensive dashboard
         html_content = visualizer.generate_pipeline_dashboard(
             processed_data=processed_data,
@@ -63,23 +67,23 @@ def generate_html_visualization(
             evaluation_metrics=evaluation_metrics,
             run_metadata=run_metadata,
         )
-        
+
         # Log statistics for monitoring
         stats = {
-            'conversations': len(raw_conversations),
-            'summaries': len(processed_data.summaries),
-            'tasks': len(processed_data.tasks),
-            'total_tokens': processed_data.usage_stats.get('total_tokens', 0),
-            'estimated_cost': processed_data.usage_stats.get('total_cost', 0),
+            "conversations": len(raw_conversations),
+            "summaries": len(processed_data.summaries),
+            "tasks": len(processed_data.tasks),
+            "total_tokens": processed_data.usage_stats.get("total_tokens", 0),
+            "estimated_cost": processed_data.usage_stats.get("total_cost", 0),
         }
-        
+
         logger.info(f"HTML visualization generated successfully: {stats}")
-        
+
         return HTMLString(html_content)
-        
+
     except Exception as e:
         logger.error(f"Failed to generate HTML visualization: {e}")
-        
+
         # Return a simple error page
         error_html = f"""
         <!DOCTYPE html>
@@ -127,7 +131,7 @@ def generate_html_visualization(
         </body>
         </html>
         """
-        
+
         return HTMLString(error_html)
 
 
@@ -138,31 +142,34 @@ def generate_prompt_visualization(
 ) -> HTMLString:
     """
     Generate focused HTML visualization of agent prompts.
-    
+
     This step creates a dedicated view for examining the prompts used
     by different agents in the LangGraph workflow, useful for prompt
     engineering and debugging.
-    
+
     Args:
         agent_prompts: Dictionary of agent names to their prompts
         run_metadata: Optional metadata about the pipeline run
-        
+
     Returns:
         HTMLString: HTML page showing all agent prompts
     """
     try:
         logger.info("Generating prompt-focused HTML visualization...")
-        
+
         from datetime import datetime
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         # Build prompt sections
         prompt_sections = ""
         for agent_name, prompt in agent_prompts.items():
-            escaped_prompt = (prompt.replace('&', '&amp;')
-                                   .replace('<', '&lt;')
-                                   .replace('>', '&gt;'))
-            
+            escaped_prompt = (
+                prompt.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+            )
+
             prompt_sections += f"""
             <div class="prompt-card">
                 <h2>🎯 {agent_name.replace('_', ' ').title()}</h2>
@@ -176,7 +183,7 @@ def generate_prompt_visualization(
                 </div>
             </div>
             """
-        
+
         html_content = f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -313,10 +320,12 @@ def generate_prompt_visualization(
         </body>
         </html>
         """
-        
-        logger.info(f"Prompt visualization generated for {len(agent_prompts)} agents")
+
+        logger.info(
+            f"Prompt visualization generated for {len(agent_prompts)} agents"
+        )
         return HTMLString(html_content)
-        
+
     except Exception as e:
         logger.error(f"Failed to generate prompt visualization: {e}")
         raise
