@@ -8,15 +8,37 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated
 
-from langfuse import get_client
 from zenml import step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from ..utils.models import ProcessedData
-from ..utils.session_manager import get_session_manager
+from zenml import get_step_context
 
 logger = get_logger(__name__)
+
+
+def _generate_langfuse_trace_url(trace_id: str, timestamp: str = None) -> str:
+    """Generate direct Langfuse trace URL."""
+    try:
+        from ..utils.llm_config import get_langfuse_project_id
+        
+        langfuse_host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
+        project_id = get_langfuse_project_id()
+        
+        if not project_id:
+            logger.warning("Could not determine project ID")
+            return f"{langfuse_host}/traces/{trace_id}"
+        
+        # Create direct trace URL
+        base_url = f"{langfuse_host}/project/{project_id}/traces/{trace_id}"
+        if timestamp:
+            return f"{base_url}?timestamp={timestamp}&display=details"
+        return f"{base_url}?display=details"
+        
+    except Exception as e:
+        logger.warning(f"Could not generate Langfuse trace URL: {e}")
+        return f"{os.getenv('LANGFUSE_HOST', 'https://cloud.langfuse.com')}/traces/{trace_id}"
 
 
 @step
@@ -34,33 +56,52 @@ def retrieve_traces_step(
     Returns:
         HTMLString: Comprehensive traces visualization
     """
-    logger.info(f"Starting Langfuse trace retrieval for session: {processed_data.session_id}")
+    # Get run ID for tag-based filtering
+    try:
+        step_context = get_step_context()
+        run_id = str(step_context.pipeline_run.id)
+        pipeline_name = step_context.pipeline.name
+        run_name = step_context.pipeline_run.name
+    except Exception:
+        import uuid
+        run_id = str(uuid.uuid4())
+        pipeline_name = "unknown_pipeline"
+        run_name = "unknown_run"
     
-    # Get session manager for additional metadata
-    session_manager = get_session_manager()
-    session_metadata = session_manager.get_session_metadata()
+    logger.info(f"Starting Langfuse trace retrieval for run ID: {run_id}")
     
     try:
         # Initialize Langfuse client
-        langfuse = get_client()
+        from langfuse import Langfuse
+        langfuse = Langfuse()
         
-        # First try to fetch traces by session ID
-        logger.info(f"Fetching traces for session ID: {processed_data.session_id}")
+        # Fetch traces by tag filtering for the specific run ID
+        logger.info(f"Fetching traces with tag: run_id:{run_id}")
         
-        # Initialize time window variables (used for metadata regardless of retrieval method)
+        # Initialize time window variables for fallback
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(minutes=time_window_minutes)
-        retrieval_method = "session"
+        retrieval_method = "tag"
         
-        # Fetch traces for the specific session
+        # Try to fetch traces with the run_id as session_id (more precise)
         traces_response = langfuse.api.trace.list(
-            session_id=processed_data.session_id,
-            limit=100  # Should be sufficient for a single pipeline run
+            session_id=run_id,
+            limit=20  # Limit to pipeline traces only
         )
         
-        # If no traces found by session, fallback to time-based search
+        # If no traces found by session_id, try user_id matching
         if not traces_response.data:
-            logger.warning(f"No traces found for session {processed_data.session_id}, falling back to time-based search")
+            logger.info(f"No traces found with session_id {run_id}, trying user_id filter")
+            traces_response = langfuse.api.trace.list(
+                user_id="zenml_pipeline",
+                from_timestamp=start_time,
+                to_timestamp=end_time,
+                limit=20
+            )
+            
+        # Final fallback: look for traces with the run_id in the name or metadata
+        if not traces_response.data:
+            logger.warning(f"No traces found with session_id or user_id filters, falling back to time-based search")
             retrieval_method = "time_window"
             
             logger.info(f"Fetching traces from {start_time} to {end_time}")
@@ -68,19 +109,37 @@ def retrieve_traces_step(
             traces_response = langfuse.api.trace.list(
                 from_timestamp=start_time,
                 to_timestamp=end_time,
-                limit=100
+                limit=20
             )
+            
+            # Filter traces to only those related to our pipeline
+            if traces_response.data:
+                pipeline_traces = []
+                for trace in traces_response.data:
+                    # Check if trace is related to our pipeline run
+                    if (trace.session_id == run_id or 
+                        trace.user_id == "zenml_pipeline" or
+                        (hasattr(trace, 'metadata') and trace.metadata and run_id in str(trace.metadata))):
+                        pipeline_traces.append(trace)
+                
+                # Create a mock response with filtered traces
+                class MockResponse:
+                    def __init__(self, data):
+                        self.data = data
+                
+                traces_response = MockResponse(pipeline_traces)
+                logger.info(f"Filtered to {len(pipeline_traces)} pipeline-related traces")
         else:
-            logger.info(f"Found {len(traces_response.data)} traces for session {processed_data.session_id}")
+            logger.info(f"Found {len(traces_response.data)} traces with session_id {run_id}")
         
         traces_data = []
         observations_data = []
         
         # Process each trace with rate limiting
         rate_limit_hit = False
-        max_observations_per_trace = 10  # Reduce to limit API calls
+        max_observations_per_trace = 5  # Only get essential observations
         
-        for i, trace in enumerate(traces_response.data):
+        for i, trace in enumerate(traces_response.data[:10]):  # Limit to first 10 traces
             trace_dict = {
                 "id": trace.id,
                 "name": trace.name,
@@ -98,7 +157,7 @@ def retrieve_traces_step(
             traces_data.append(trace_dict)
             
             # Skip observation fetching if we've hit rate limits or processed enough traces
-            if rate_limit_hit or i >= 20:  # Limit to first 20 traces to reduce API calls
+            if rate_limit_hit or i >= 5:  # Limit to first 5 traces to reduce API calls
                 continue
                 
             # Fetch observations for this trace with retry and rate limiting
@@ -113,25 +172,35 @@ def retrieve_traces_step(
                     continue
                 
                 for obs in observations_response.data:
-                    obs_dict = {
-                        "id": obs.id,
-                        "trace_id": trace.id,
-                        "name": getattr(obs, 'name', 'Unnamed Observation'),
-                        "type": getattr(obs, 'type', 'unknown'),
-                        "start_time": obs.start_time.isoformat() if getattr(obs, 'start_time', None) else None,
-                        "end_time": obs.end_time.isoformat() if getattr(obs, 'end_time', None) else None,
-                        "completion_start_time": obs.completion_start_time.isoformat() if getattr(obs, 'completion_start_time', None) else None,
-                        "model": getattr(obs, 'model', None),
-                        "input": getattr(obs, 'input', None),
-                        "output": getattr(obs, 'output', None),
-                        "usage": _serialize_usage(getattr(obs, 'usage', None)),
-                        "level": getattr(obs, 'level', 'DEFAULT'),
-                        "status_message": getattr(obs, 'status_message', None),
-                        "parent_observation_id": getattr(obs, 'parent_observation_id', None),
-                        "metadata": getattr(obs, 'metadata', {}),
-                        "version": getattr(obs, 'version', None)
-                    }
-                    observations_data.append(obs_dict)
+                    # Filter to only show relevant observations (generations and important spans)
+                    obs_type = getattr(obs, 'type', 'unknown')
+                    obs_name = getattr(obs, 'name', 'Unnamed Observation')
+                    
+                    # Only include observations that are:
+                    # 1. Generations (LLM calls)
+                    # 2. Observations from our agents (contain "summarize" or "extract" or "agent")
+                    if (obs_type.upper() == 'GENERATION' or 
+                        any(keyword in obs_name.lower() for keyword in ['summarize', 'extract', 'agent', 'conversation', 'task'])):
+                        
+                        obs_dict = {
+                            "id": obs.id,
+                            "trace_id": trace.id,
+                            "name": obs_name,
+                            "type": obs_type,
+                            "start_time": obs.start_time.isoformat() if getattr(obs, 'start_time', None) else None,
+                            "end_time": obs.end_time.isoformat() if getattr(obs, 'end_time', None) else None,
+                            "completion_start_time": obs.completion_start_time.isoformat() if getattr(obs, 'completion_start_time', None) else None,
+                            "model": getattr(obs, 'model', None),
+                            "input": getattr(obs, 'input', None),
+                            "output": getattr(obs, 'output', None),
+                            "usage": _serialize_usage(getattr(obs, 'usage', None)),
+                            "level": getattr(obs, 'level', 'DEFAULT'),
+                            "status_message": getattr(obs, 'status_message', None),
+                            "parent_observation_id": getattr(obs, 'parent_observation_id', None),
+                            "metadata": getattr(obs, 'metadata', {}),
+                            "version": getattr(obs, 'version', None)
+                        }
+                        observations_data.append(obs_dict)
                     
                 # Add small delay between requests to avoid rate limits
                 if i < len(traces_response.data) - 1:  # Don't sleep after the last request
@@ -149,10 +218,15 @@ def retrieve_traces_step(
             "traces": traces_data,
             "observations": observations_data,
             "pipeline_trace_id": processed_data.agent_trace_id,
-            "session_id": processed_data.session_id,
+            "run_id": processed_data.run_id,
             "retrieval_timestamp": datetime.utcnow().isoformat(),
             "retrieval_method": retrieval_method,
-            "session_metadata": session_metadata,
+            "run_metadata": {
+                "run_id": run_id,
+                "pipeline_name": pipeline_name,
+                "run_name": run_name,
+                "langfuse_url": _generate_langfuse_trace_url(run_id)
+            },
             "time_window": {
                 "start": start_time.isoformat(),
                 "end": end_time.isoformat(),
@@ -270,420 +344,652 @@ def _analyze_observation_types(observations_data: List[Dict[str, Any]]) -> Dict[
 
 
 def _create_traces_visualization(traces_data: Dict[str, Any], processed_data: ProcessedData) -> HTMLString:
-    """Create comprehensive HTML visualization for Langfuse traces."""
+    """Create modern, interactive HTML visualization for Langfuse traces."""
     
     traces = traces_data["traces"]
     observations = traces_data["observations"]
     summary = traces_data["summary"]
-    session_metadata = traces_data.get("session_metadata", {})
+    run_metadata = traces_data.get("run_metadata", {})
     retrieval_method = traces_data.get("retrieval_method", "unknown")
     
-    # Calculate some statistics
-    total_tokens = 0
-    total_cost = 0.0
-    
+    # Group observations by trace for better organization
+    trace_obs_map = {}
     for obs in observations:
-        if obs.get("usage"):
-            usage = obs["usage"]
-            if isinstance(usage, dict):
-                total_tokens += usage.get("total", 0)
-                total_cost += usage.get("total_cost", 0.0)
+        trace_id = obs.get("trace_id")
+        if trace_id not in trace_obs_map:
+            trace_obs_map[trace_id] = []
+        trace_obs_map[trace_id].append(obs)
+    
+    # Calculate aggregate statistics
+    total_tokens = sum(obs.get("usage", {}).get("total", 0) if isinstance(obs.get("usage"), dict) else 0 for obs in observations)
+    total_cost = sum(obs.get("usage", {}).get("total_cost", 0.0) if isinstance(obs.get("usage"), dict) else 0.0 for obs in observations)
+    avg_duration = _calculate_avg_duration(observations)
+    generation_count = len([obs for obs in observations if obs.get("type") == "GENERATION"])
     
     html_content = f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Langfuse Traces Dashboard - Pipeline Run</title>
+        <title>🔍 Langfuse Traces - Interactive Dashboard</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            body {{
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            * {{
                 margin: 0;
-                padding: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: #0a0a0a;
+                color: #ffffff;
+                line-height: 1.6;
+                overflow-x: hidden;
+            }}
+            
+            .dashboard {{
                 min-height: 100vh;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                position: relative;
+            }}
+            
+            .dashboard::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: 
+                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+                pointer-events: none;
             }}
             
             .container {{
-                max-width: 1600px;
+                max-width: 1400px;
                 margin: 0 auto;
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                overflow: hidden;
+                padding: 2rem;
+                position: relative;
+                z-index: 1;
             }}
             
             .header {{
-                background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-                color: white;
-                padding: 30px;
                 text-align: center;
+                margin-bottom: 3rem;
+                padding: 3rem 2rem;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             }}
             
             .header h1 {{
-                margin: 0 0 10px 0;
-                font-size: 2.5em;
-                font-weight: 300;
+                font-size: 3.5rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 1rem;
             }}
             
-            .summary-grid {{
+            .header-meta {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                padding: 30px;
-                background: #f8f9fa;
+                gap: 1rem;
+                margin-top: 2rem;
+                font-size: 0.9rem;
+                opacity: 0.9;
             }}
             
-            .summary-card {{
-                background: white;
-                padding: 25px;
-                border-radius: 10px;
-                text-align: center;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            .meta-item {{
+                background: rgba(255, 255, 255, 0.1);
+                padding: 1rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }}
             
-            .summary-value {{
-                font-size: 2.5em;
+            .stats-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem;
+                margin-bottom: 3rem;
+            }}
+            
+            .stat-card {{
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                padding: 2rem;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }}
+            
+            .stat-card::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+                background-size: 200% 100%;
+                animation: shimmer 3s ease-in-out infinite;
+            }}
+            
+            @keyframes shimmer {{
+                0%, 100% {{ background-position: 200% 0; }}
+                50% {{ background-position: -200% 0; }}
+            }}
+            
+            .stat-card:hover {{
+                transform: translateY(-8px);
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+            }}
+            
+            .stat-icon {{
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                opacity: 0.8;
+            }}
+            
+            .stat-value {{
+                font-size: 3rem;
                 font-weight: 700;
-                color: #8b5cf6;
-                margin: 10px 0;
+                margin-bottom: 0.5rem;
+                background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }}
             
-            .summary-label {{
-                color: #666;
-                font-size: 1em;
+            .stat-label {{
+                font-size: 1.1rem;
+                opacity: 0.8;
                 text-transform: uppercase;
                 letter-spacing: 1px;
-            }}
-            
-            .content-section {{
-                padding: 30px;
-            }}
-            
-            .section-title {{
-                color: #2c3e50;
-                font-size: 1.8em;
-                margin-bottom: 20px;
-                border-bottom: 3px solid #8b5cf6;
-                padding-bottom: 10px;
-            }}
-            
-            .trace-timeline {{
-                position: relative;
-                margin: 20px 0;
-            }}
-            
-            .timeline-line {{
-                position: absolute;
-                left: 30px;
-                top: 0;
-                bottom: 0;
-                width: 3px;
-                background: linear-gradient(180deg, #8b5cf6 0%, #06b6d4 100%);
-            }}
-            
-            .trace-item {{
-                position: relative;
-                margin: 0 0 20px 70px;
-                background: #f8f9fa;
-                border-radius: 10px;
-                padding: 20px;
-                border: 1px solid #dee2e6;
-            }}
-            
-            .trace-icon {{
-                position: absolute;
-                left: -55px;
-                top: 20px;
-                width: 30px;
-                height: 30px;
-                background: #8b5cf6;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-                border: 3px solid white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }}
-            
-            .trace-header {{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-            }}
-            
-            .trace-name {{
-                font-size: 1.3em;
-                font-weight: 600;
-                color: #2c3e50;
-            }}
-            
-            .trace-timestamp {{
-                color: #666;
-                font-size: 0.9em;
-            }}
-            
-            .trace-details {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-                margin-top: 15px;
-            }}
-            
-            .detail-item {{
-                background: white;
-                padding: 12px;
-                border-radius: 6px;
-                border: 1px solid #dee2e6;
-            }}
-            
-            .detail-label {{
-                color: #666;
-                font-size: 0.85em;
-                text-transform: uppercase;
-                margin-bottom: 5px;
-            }}
-            
-            .detail-value {{
-                color: #2c3e50;
                 font-weight: 500;
             }}
             
-            .observations-section {{
-                margin-top: 20px;
-                padding: 20px;
-                background: #e3f2fd;
-                border-radius: 8px;
+            .traces-section {{
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                padding: 3rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             }}
             
-            .observation-item {{
-                background: white;
-                margin: 10px 0;
-                padding: 15px;
-                border-radius: 8px;
-                border-left: 4px solid #06b6d4;
+            .section-title {{
+                font-size: 2.5rem;
+                font-weight: 600;
+                margin-bottom: 2rem;
+                background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }}
             
-            .observation-header {{
+            .trace-tree {{
+                position: relative;
+            }}
+            
+            .trace-node {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                margin-bottom: 2rem;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                overflow: hidden;
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+            }}
+            
+            .trace-node:hover {{
+                transform: translateX(8px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }}
+            
+            .trace-header {{
+                padding: 2rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                cursor: pointer;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 10px;
             }}
             
-            .observation-name {{
+            .trace-title {{
+                font-size: 1.4rem;
                 font-weight: 600;
-                color: #0277bd;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
             }}
             
-            .observation-type {{
-                background: #06b6d4;
+            .trace-badge {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 0.8em;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 500;
                 text-transform: uppercase;
+                letter-spacing: 0.5px;
             }}
             
-            .usage-info {{
+            .trace-meta {{
+                display: flex;
+                gap: 2rem;
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }}
+            
+            .trace-content {{
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, padding 0.3s ease;
+            }}
+            
+            .trace-content.expanded {{
+                max-height: 2000px;
+                padding: 2rem;
+            }}
+            
+            .observations-grid {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-                gap: 10px;
-                margin-top: 10px;
+                gap: 1.5rem;
             }}
             
-            .usage-metric {{
+            .observation {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 1.5rem;
+                border-left: 4px solid;
+                position: relative;
+            }}
+            
+            .observation.generation {{
+                border-left-color: #10b981;
+            }}
+            
+            .observation.span {{
+                border-left-color: #3b82f6;
+            }}
+            
+            .observation.event {{
+                border-left-color: #f59e0b;
+            }}
+            
+            .obs-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }}
+            
+            .obs-name {{
+                font-weight: 600;
+                font-size: 1.1rem;
+            }}
+            
+            .obs-type {{
+                padding: 0.25rem 0.75rem;
+                border-radius: 12px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            
+            .obs-type.generation {{
+                background: rgba(16, 185, 129, 0.2);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }}
+            
+            .obs-type.span {{
+                background: rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }}
+            
+            .obs-type.event {{
+                background: rgba(245, 158, 11, 0.2);
+                color: #f59e0b;
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }}
+            
+            .obs-details {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin-top: 1rem;
+            }}
+            
+            .obs-detail {{
+                background: rgba(255, 255, 255, 0.05);
+                padding: 1rem;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            
+            .detail-label {{
+                font-size: 0.8rem;
+                opacity: 0.7;
+                margin-bottom: 0.5rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            
+            .detail-value {{
+                font-weight: 600;
+                font-size: 1rem;
+            }}
+            
+            .usage-stats {{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+            }}
+            
+            .usage-stat {{
                 text-align: center;
-                padding: 8px;
-                background: #f5f5f5;
-                border-radius: 4px;
             }}
             
             .usage-value {{
-                font-weight: bold;
-                color: #06b6d4;
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #10b981;
             }}
             
             .usage-label {{
-                font-size: 0.8em;
-                color: #666;
+                font-size: 0.75rem;
+                opacity: 0.7;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }}
             
-            .no-data {{
+            .expand-btn {{
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 1.5rem;
+                cursor: pointer;
+                transition: transform 0.3s ease, color 0.3s ease;
+            }}
+            
+            .expand-btn.expanded {{
+                transform: rotate(180deg);
+                color: #ffffff;
+            }}
+            
+            .empty-state {{
                 text-align: center;
-                padding: 50px;
-                color: #666;
-                font-size: 1.1em;
+                padding: 4rem 2rem;
+                opacity: 0.7;
             }}
             
-            .metadata {{
-                background: #f8f9fa;
-                padding: 10px;
-                border-radius: 4px;
-                font-family: monospace;
-                font-size: 0.85em;
-                margin-top: 10px;
-                overflow-x: auto;
+            .empty-state h3 {{
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }}
+            
+            .langfuse-link {{
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                text-decoration: none;
+                padding: 1rem 2rem;
+                border-radius: 50px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin-top: 1rem;
+            }}
+            
+            .langfuse-link:hover {{
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            }}
+            
+            @media (max-width: 768px) {{
+                .container {{
+                    padding: 1rem;
+                }}
+                
+                .header h1 {{
+                    font-size: 2.5rem;
+                }}
+                
+                .stats-grid {{
+                    grid-template-columns: 1fr;
+                }}
+                
+                .header-meta {{
+                    grid-template-columns: 1fr;
+                }}
             }}
         </style>
+        <script>
+            function toggleTrace(traceId) {{
+                const content = document.getElementById('trace-content-' + traceId);
+                const btn = document.getElementById('expand-btn-' + traceId);
+                
+                if (content.classList.contains('expanded')) {{
+                    content.classList.remove('expanded');
+                    btn.classList.remove('expanded');
+                }} else {{
+                    content.classList.add('expanded');
+                    btn.classList.add('expanded');
+                }}
+            }}
+        </script>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1>📊 Langfuse Traces Dashboard</h1>
-                <p>Complete Pipeline Run Observability - Session-Based Filtering</p>
-                <p><strong>ZenML Pipeline:</strong> {session_metadata.get('pipeline_name', 'Unknown')} | <strong>Run:</strong> {session_metadata.get('run_name', 'Unknown')}</p>
-                <p><strong>Pipeline Trace ID:</strong> {traces_data['pipeline_trace_id']}</p>
-                <p><strong>Session ID:</strong> {traces_data['session_id'][:16]}... | <strong>Method:</strong> {retrieval_method.title()}</p>
-                {f'<p><a href="{session_metadata.get("langfuse_session_url", "#")}" target="_blank" style="color: #ffffff; text-decoration: underline;">🔗 View in Langfuse</a></p>' if session_metadata.get("langfuse_session_url") else ""}
-                <p><strong>Retrieved:</strong> {datetime.fromisoformat(traces_data['retrieval_timestamp']).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
-            </div>
-            
-            <div class="summary-grid">
-                <div class="summary-card">
-                    <div class="summary-value">{summary['total_traces']}</div>
-                    <div class="summary-label">Total Traces</div>
+        <div class="dashboard">
+            <div class="container">
+                <div class="header">
+                    <h1>🔍 Langfuse Traces</h1>
+                    <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 2rem;">
+                        Real-time observability for your LLM pipeline execution
+                    </p>
+                    
+                    <div class="header-meta">
+                        <div class="meta-item">
+                            <strong>Pipeline:</strong> {run_metadata.get('pipeline_name', 'Unknown')}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Run:</strong> {run_metadata.get('run_name', 'Unknown')}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Method:</strong> {retrieval_method.title()}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Retrieved:</strong> {datetime.fromisoformat(traces_data['retrieval_timestamp']).strftime('%H:%M:%S UTC')}
+                        </div>
+                    </div>
+                    
+                    {f'<a href="{run_metadata.get("langfuse_url", "#")}" target="_blank" class="langfuse-link">🔗 View in Langfuse Dashboard</a>' if run_metadata.get("langfuse_url") else ""}
                 </div>
-                <div class="summary-card">
-                    <div class="summary-value">{summary['total_observations']}</div>
-                    <div class="summary-label">Observations</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value">{len(traces)}</div>
+                        <div class="stat-label">Total Traces</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔬</div>
+                        <div class="stat-value">{len(observations)}</div>
+                        <div class="stat-label">Observations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-value">{generation_count}</div>
+                        <div class="stat-label">Generations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-value">{total_tokens:,}</div>
+                        <div class="stat-label">Total Tokens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">${total_cost:.4f}</div>
+                        <div class="stat-label">Estimated Cost</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-value">{avg_duration}</div>
+                        <div class="stat-label">Avg Duration</div>
+                    </div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-value">{total_tokens:,}</div>
-                    <div class="summary-label">Total Tokens</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">${total_cost:.4f}</div>
-                    <div class="summary-label">Estimated Cost</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">{len(summary['trace_types'])}</div>
-                    <div class="summary-label">Trace Types</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">{traces_data['time_window']['minutes']}min</div>
-                    <div class="summary-label">Time Window</div>
-                </div>
-            </div>
     """
     
     if traces:
         html_content += f"""
-            <div class="content-section">
-                <h2 class="section-title">🔍 Trace Timeline</h2>
-                <div class="trace-timeline">
-                    <div class="timeline-line"></div>
+                <div class="traces-section">
+                    <h2 class="section-title">📋 Trace Execution Flow</h2>
+                    <div class="trace-tree">
         """
         
         for i, trace in enumerate(traces):
-            trace_observations = [obs for obs in observations if obs["trace_id"] == trace["id"]]
+            trace_observations = trace_obs_map.get(trace["id"], [])
+            trace_id_short = trace["id"][:8]
+            
+            # Sort observations by start time if available
+            trace_observations.sort(key=lambda x: x.get('start_time', ''), reverse=False)
             
             html_content += f"""
-                    <div class="trace-item">
-                        <div class="trace-icon">{i+1}</div>
-                        <div class="trace-header">
-                            <div class="trace-name">{trace.get('name', 'Unnamed Trace')}</div>
-                            <div class="trace-timestamp">
-                                {datetime.fromisoformat(trace['timestamp']).strftime('%H:%M:%S') if trace.get('timestamp') else 'No timestamp'}
+                        <div class="trace-node">
+                            <div class="trace-header" onclick="toggleTrace('{trace_id_short}')">
+                                <div class="trace-title">
+                                    <span style="font-size: 1.5rem;">🎯</span>
+                                    <span>{trace.get('name', f'Trace {i+1}')}</span>
+                                    <div class="trace-badge">{len(trace_observations)} observations</div>
+                                </div>
+                                <div class="trace-meta">
+                                    <span>ID: {trace_id_short}...</span>
+                                    <span>{datetime.fromisoformat(trace['timestamp']).strftime('%H:%M:%S') if trace.get('timestamp') else 'No timestamp'}</span>
+                                    <button class="expand-btn" id="expand-btn-{trace_id_short}">▼</button>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="trace-details">
-                            <div class="detail-item">
-                                <div class="detail-label">Trace ID</div>
-                                <div class="detail-value">{trace['id'][:16]}...</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Session ID</div>
-                                <div class="detail-value">{trace.get('session_id', 'None') or 'None'}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">User ID</div>
-                                <div class="detail-value">{trace.get('user_id', 'None') or 'None'}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Level</div>
-                                <div class="detail-value">{trace.get('level', 'Unknown')}</div>
-                            </div>
-                        </div>
+                            
+                            <div class="trace-content" id="trace-content-{trace_id_short}">
+                                <div class="observations-grid">
             """
             
-            if trace.get('tags'):
+            for obs in trace_observations:
+                obs_type = obs.get('type', 'unknown').lower()
+                obs_name = obs.get('name', 'Unnamed Operation')
+                model = obs.get('model', 'Not specified')
+                duration = _calculate_duration(obs.get('start_time'), obs.get('end_time'))
+                
+                # Get usage info
+                usage = obs.get('usage', {})
+                if isinstance(usage, dict):
+                    prompt_tokens = usage.get('prompt_tokens', 0)
+                    completion_tokens = usage.get('completion_tokens', 0)
+                    total_tokens = usage.get('total', prompt_tokens + completion_tokens)
+                    cost = usage.get('total_cost', 0.0)
+                else:
+                    prompt_tokens = completion_tokens = total_tokens = 0
+                    cost = 0.0
+                
                 html_content += f"""
-                        <div class="metadata">
-                            <strong>Tags:</strong> {', '.join(trace['tags'])}
-                        </div>
-                """
-            
-            if trace_observations:
-                html_content += f"""
-                        <div class="observations-section">
-                            <h4>🔬 Observations ({len(trace_observations)})</h4>
+                                    <div class="observation {obs_type}">
+                                        <div class="obs-header">
+                                            <div class="obs-name">{'🤖' if obs_type == 'generation' else '📝' if obs_type == 'span' else '⚡'} {obs_name}</div>
+                                            <div class="obs-type {obs_type}">{obs_type}</div>
+                                        </div>
+                                        
+                                        <div class="obs-details">
+                                            <div class="obs-detail">
+                                                <div class="detail-label">Model</div>
+                                                <div class="detail-value">{model}</div>
+                                            </div>
+                                            <div class="obs-detail">
+                                                <div class="detail-label">Duration</div>
+                                                <div class="detail-value">{duration}</div>
+                                            </div>
+                                            <div class="obs-detail">
+                                                <div class="detail-label">Status</div>
+                                                <div class="detail-value">{obs.get('level', 'DEFAULT')}</div>
+                                            </div>
+                                            <div class="obs-detail">
+                                                <div class="detail-label">Parent</div>
+                                                <div class="detail-value">{'Yes' if obs.get('parent_observation_id') else 'Root'}</div>
+                                            </div>
+                                        </div>
                 """
                 
-                for obs in trace_observations[:10]:  # Limit to first 10 observations
-                    usage_info = ""
-                    if obs.get("usage") and isinstance(obs["usage"], dict):
-                        usage = obs["usage"]
-                        usage_info = f"""
-                            <div class="usage-info">
-                                <div class="usage-metric">
-                                    <div class="usage-value">{usage.get('prompt_tokens', 0)}</div>
-                                    <div class="usage-label">Input</div>
-                                </div>
-                                <div class="usage-metric">
-                                    <div class="usage-value">{usage.get('completion_tokens', 0)}</div>
-                                    <div class="usage-label">Output</div>
-                                </div>
-                                <div class="usage-metric">
-                                    <div class="usage-value">{usage.get('total', 0)}</div>
-                                    <div class="usage-label">Total</div>
-                                </div>
-                                <div class="usage-metric">
-                                    <div class="usage-value">${usage.get('total_cost', 0.0):.4f}</div>
-                                    <div class="usage-label">Cost</div>
-                                </div>
-                            </div>
-                        """
-                    
+                if total_tokens > 0 or cost > 0:
                     html_content += f"""
-                            <div class="observation-item">
-                                <div class="observation-header">
-                                    <div class="observation-name">{obs.get('name', 'Unnamed Observation')}</div>
-                                    <div class="observation-type">{obs.get('type', 'Unknown')}</div>
-                                </div>
-                                <div class="detail-value">
-                                    <strong>Model:</strong> {obs.get('model', 'Not specified')}<br>
-                                    <strong>Duration:</strong> {_calculate_duration(obs.get('start_time'), obs.get('end_time'))}
-                                </div>
-                                {usage_info}
-                            </div>
+                                        <div class="usage-stats">
+                                            <div class="usage-stat">
+                                                <div class="usage-value">{prompt_tokens:,}</div>
+                                                <div class="usage-label">Input Tokens</div>
+                                            </div>
+                                            <div class="usage-stat">
+                                                <div class="usage-value">{completion_tokens:,}</div>
+                                                <div class="usage-label">Output Tokens</div>
+                                            </div>
+                                            <div class="usage-stat">
+                                                <div class="usage-value">{total_tokens:,}</div>
+                                                <div class="usage-label">Total Tokens</div>
+                                            </div>
+                                            <div class="usage-stat">
+                                                <div class="usage-value">${cost:.4f}</div>
+                                                <div class="usage-label">Cost</div>
+                                            </div>
+                                        </div>
                     """
-                
-                if len(trace_observations) > 10:
-                    html_content += f"<p><em>... and {len(trace_observations) - 10} more observations</em></p>"
                 
                 html_content += "</div>"
             
-            html_content += "</div>"
+            html_content += """
+                                </div>
+                            </div>
+                        </div>
+            """
         
         html_content += """
+                    </div>
                 </div>
-            </div>
         """
     else:
         html_content += """
-            <div class="content-section">
-                <div class="no-data">
-                    <h3>No traces found in the specified time window</h3>
-                    <p>Try increasing the time window or check your Langfuse configuration.</p>
+                <div class="traces-section">
+                    <div class="empty-state">
+                        <h3>🔍 No traces found</h3>
+                        <p>No traces were found for this pipeline run. This could mean:</p>
+                        <ul style="text-align: left; display: inline-block; margin-top: 1rem;">
+                            <li>The pipeline hasn't started LLM calls yet</li>
+                            <li>Langfuse integration is not properly configured</li>
+                            <li>The time window is too narrow</li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
         """
     
     html_content += """
+            </div>
         </div>
     </body>
     </html>
@@ -784,3 +1090,27 @@ def _calculate_duration(start_time: Optional[str], end_time: Optional[str]) -> s
             return f"{total_seconds:.2f}s"
     except Exception:
         return "Unknown"
+
+def _calculate_avg_duration(observations: List[Dict[str, Any]]) -> str:
+    """Calculate average duration across all observations."""
+    durations = []
+    for obs in observations:
+        start_time = obs.get('start_time')
+        end_time = obs.get('end_time')
+        if start_time and end_time:
+            try:
+                start = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+                duration = (end - start).total_seconds()
+                durations.append(duration)
+            except Exception:
+                continue
+    
+    if not durations:
+        return "Unknown"
+    
+    avg_seconds = sum(durations) / len(durations)
+    if avg_seconds < 1:
+        return f"{avg_seconds*1000:.0f}ms"
+    else:
+        return f"{avg_seconds:.2f}s"

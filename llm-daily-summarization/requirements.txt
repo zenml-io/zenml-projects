@@ -5,9 +5,10 @@ zenml[server]>=0.84.0
 langgraph>=0.2.0
 langchain>=0.3.0
 langchain-google-vertexai>=2.0.0
+litellm>=1.70.0
 
 # Observability and Monitoring
-langfuse>=2.0.0
+langfuse>=2.47.0
 
 # Google Cloud / Vertex AI
 google-cloud-aiplatform>=1.70.0

@@ -80,7 +80,7 @@ class ProcessedData(BaseModel):
     processing_metadata: Dict[str, Any] = Field(description="Processing metadata")
     llm_usage_stats: Dict[str, Any] = Field(description="LLM usage statistics")
     agent_trace_id: str = Field(description="LangGraph trace identifier")
-    session_id: str = Field(description="Langfuse session identifier for this pipeline run")
+    run_id: str = Field(description="ZenML pipeline run identifier for trace tagging")
 
 
 class DeliveryResult(BaseModel):

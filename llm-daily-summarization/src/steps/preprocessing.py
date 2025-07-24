@@ -10,8 +10,6 @@ from datetime import datetime
 from zenml import step
 from zenml.logger import get_logger
 
-from langfuse import observe
-
 from ..utils.models import RawConversationData, CleanedConversationData, ConversationData, ChatMessage
 
 logger = get_logger(__name__)
@@ -41,7 +39,6 @@ class TextCleaner:
             'uploaded a file'
         ]
     
-    @observe(as_type="preprocessing")
     def clean_message_content(self, content: str) -> str:
         """Clean individual message content."""
         

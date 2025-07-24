@@ -6,7 +6,6 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
-from langfuse import observe
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 from typing_extensions import Annotated, TypedDict
@@ -22,7 +21,6 @@ from ..utils.models import (
     Summary,
     TaskItem,
 )
-from ..utils.session_manager import get_session_manager, log_session_metadata
 
 logger = get_logger(__name__)
 
@@ -49,9 +47,13 @@ class LangGraphOrchestrator:
         self.task_extractor_agent = TaskExtractorAgent(model_config)
         self.trace_id = str(uuid.uuid4())
         
-        # Use ZenML pipeline run UUID as Langfuse session ID
-        self.session_manager = get_session_manager()
-        self.session_id = self.session_manager.session_id
+        # Get ZenML pipeline run ID for tagging
+        try:
+            from zenml import get_step_context
+            step_context = get_step_context()
+            self.run_id = str(step_context.pipeline_run.id)
+        except Exception:
+            self.run_id = str(uuid.uuid4())
         
         # Build the workflow graph
         self.workflow = self._build_workflow()
@@ -79,20 +81,17 @@ class LangGraphOrchestrator:
         
         return workflow.compile()
     
-    @observe(as_type="span")
     def _initialize_processing(self, state: AgentState) -> AgentState:
         """Initialize the processing workflow."""
-        logger.info(f"Initializing LangGraph processing workflow with ZenML session ID: {self.session_id}")
+        logger.info(f"Initializing LangGraph processing workflow with ZenML run ID: {self.run_id}")
         
-        # Update current Langfuse trace with session information
-        self.session_manager.update_current_trace_with_session()
         
         state["processing_metadata"] = {
             "start_time": datetime.utcnow().isoformat(),
             "trace_id": self.trace_id,
-            "session_id": self.session_id,
-            "zenml_run_name": self.session_manager.run_name,
-            "zenml_pipeline_name": self.session_manager.pipeline_name,
+            "run_id": self.run_id,
+            "zenml_run_name": "unknown",
+            "zenml_pipeline_name": "unknown",
             "total_conversations": len(state["conversations"]),
             "workflow_version": "1.0"
         }
@@ -112,7 +111,6 @@ class LangGraphOrchestrator:
         
         return state
     
-    @observe(as_type="span")
     def _summarize_conversations(self, state: AgentState) -> AgentState:
         """Summarize all conversations using the summarizer agent."""
         logger.info(f"Starting summarization for {len(state['conversations'])} conversations")
@@ -193,8 +191,7 @@ class LangGraphOrchestrator:
             })
         
         return state
-    
-    @observe(as_type="span")
+
     def _extract_tasks(self, state: AgentState) -> AgentState:
         """Extract tasks from conversations using the task extractor agent."""
         logger.info("Starting task extraction")
@@ -242,8 +239,7 @@ class LangGraphOrchestrator:
             })
         
         return state
-    
-    @observe(as_type="span")
+
     def _quality_check(self, state: AgentState) -> AgentState:
         """Perform quality checks on generated summaries and tasks."""
         logger.info("Performing quality checks")
@@ -279,8 +275,7 @@ class LangGraphOrchestrator:
         })
         
         return state
-    
-    @observe(as_type="span")
+
     def _finalize_processing(self, state: AgentState) -> AgentState:
         """Finalize the processing workflow."""
         logger.info("Finalizing processing")
@@ -476,7 +471,7 @@ def _create_agent_architecture_visualization(processed_data: ProcessedData, orch
             <div class="agents-section">
                 <div class="agent-card summarizer-agent">
                     <h3>📝 Summarizer Agent</h3>
-                    <p><strong>Model:</strong> {orchestrator.model_config.get('model_name', 'gemini-1.5-flash')}</p>
+                    <p><strong>Model:</strong> {orchestrator.model_config.get('model_name', 'gemini-2.5-flash')}</p>
                     <p><strong>Temperature:</strong> {orchestrator.model_config.get('temperature', 0.1)}</p>
                     <p><strong>Max Tokens:</strong> {orchestrator.model_config.get('max_tokens', 4000)}</p>
                     <p><strong>Features:</strong> Multi-conversation processing, structured output parsing, confidence scoring</p>
@@ -1110,13 +1105,12 @@ def langgraph_agent_step(
         processing_metadata=final_state["processing_metadata"],
         llm_usage_stats=final_state["llm_usage_stats"],
         agent_trace_id=orchestrator.trace_id,
-        session_id=orchestrator.session_id
+        run_id=orchestrator.run_id
     )
     
     logger.info(f"LangGraph processing complete: {len(summaries)} summaries, {len(tasks)} tasks")
     
     # Log Langfuse session metadata to ZenML pipeline
-    log_session_metadata()
     
     # Generate comprehensive HTML visualizations
     architecture_viz = _create_agent_architecture_visualization(processed_data, orchestrator)

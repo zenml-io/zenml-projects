@@ -4,13 +4,15 @@ Summarizer agent for creating conversation summaries using Vertex AI.
 
 from datetime import datetime
 from typing import Any, Dict, List
+import os
 
-from langchain.schema import HumanMessage, SystemMessage
-from langchain_google_vertexai import ChatVertexAI
-from langfuse import observe
+import litellm
+
+from zenml import get_step_context
 
 from ..utils.models import ConversationData, Summary
-from ..utils.session_manager import get_session_manager
+from ..utils.llm_config import initialize_litellm_langfuse, get_pipeline_run_id, generate_trace_url
+from ..utils.manual_langfuse_logger import get_manual_langfuse_logger
 
 
 class SummarizerAgent:
@@ -18,12 +20,16 @@ class SummarizerAgent:
     
     def __init__(self, model_config: Dict[str, Any]):
         self.model_config = model_config
-        self.llm = ChatVertexAI(
-            model_name=model_config.get("model_name", "gemini-1.5-flash"),
-            max_output_tokens=model_config.get("max_tokens", 4000),
-            temperature=model_config.get("temperature", 0.1),
-            top_p=model_config.get("top_p", 0.95)
-        )
+        self.model_name = f"vertex_ai/{model_config.get('model_name', 'gemini-2.5-flash')}"
+        self.max_tokens = model_config.get("max_tokens", 4000)
+        self.temperature = model_config.get("temperature", 0.1)
+        self.top_p = model_config.get("top_p", 0.95)
+        
+        # Initialize LiteLLM-Langfuse integration (may fail due to version conflicts)
+        self.langfuse_enabled = initialize_litellm_langfuse()
+        
+        # Initialize manual Langfuse logger as fallback
+        self.manual_logger = get_manual_langfuse_logger()
     
     def _format_conversation_for_prompt(self, conversation: ConversationData) -> str:
         """Format conversation data into a readable text for the LLM."""
@@ -39,16 +45,17 @@ class SummarizerAgent:
         
         return formatted_text
     
-    @observe(as_type="generation")
+    def _get_run_id_tag(self) -> str:
+        """Get ZenML run ID for tagging LLM calls."""
+        try:
+            step_context = get_step_context()
+            return str(step_context.pipeline_run.id)
+        except Exception:
+            import uuid
+            return str(uuid.uuid4())
+
     def create_summary(self, conversation: ConversationData) -> Summary:
         """Create a summary for a single conversation."""
-        
-        # Update current trace with session information
-        try:
-            session_manager = get_session_manager()
-            session_manager.update_current_trace_with_session()
-        except Exception:
-            pass  # Continue if session management fails
         
         conversation_text = self._format_conversation_for_prompt(conversation)
         
@@ -74,13 +81,70 @@ TOPICS: [Main topics discussed]"""
 
 Provide a clear, professional summary following the requested format."""
 
+        run_id = self._get_run_id_tag()
+        
         messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt)
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": human_prompt}
         ]
         
-        response = self.llm.invoke(messages)
-        summary_text = response.content
+        # Get pipeline run ID for tracing
+        trace_id = get_pipeline_run_id()
+        
+        # Generate timestamp for trace URL
+        from datetime import datetime
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        
+        metadata = {
+            "trace_id": trace_id,
+            "generation_name": f"Summarize {conversation.channel_name} conversation ({len(conversation.messages)} messages)",
+            "tags": ["summarizer_agent", "conversation_summary", f"channel:{conversation.channel_name}"],
+            "session_id": trace_id,
+            "user_id": "zenml_pipeline",
+            "trace_metadata": {
+                "channel": conversation.channel_name,
+                "source": conversation.source,
+                "participant_count": conversation.participant_count,
+                "message_count": len(conversation.messages),
+                "trace_url": generate_trace_url(trace_id, timestamp)
+            }
+        }
+        
+        import time
+        start_time = time.time()
+
+        # Make LLM call without metadata if Langfuse integration failed
+        response = litellm.completion(
+            model=self.model_name,
+            messages=messages,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            metadata=metadata if self.langfuse_enabled else {}
+        )
+        end_time = time.time()
+        summary_text = response.choices[0].message.content
+        
+        # Manual logging if built-in integration failed
+        if not False:  # self.langfuse_enabled:
+            usage = getattr(response, 'usage', None)
+            usage_dict = None
+            if usage:
+                usage_dict = {
+                    "input_tokens": getattr(usage, 'prompt_tokens', 0),
+                    "output_tokens": getattr(usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(usage, 'total_tokens', 0)
+                }
+            
+            self.manual_logger.log_llm_call(
+                messages=messages,
+                response_content=summary_text,
+                metadata=metadata,
+                model=self.model_name,
+                usage=usage_dict,
+                start_time=start_time,
+                end_time=end_time
+            )
         
         # Parse the response to extract structured data
         parsed_summary = self._parse_summary_response(summary_text, conversation)
@@ -175,16 +239,8 @@ Provide a clear, professional summary following the requested format."""
         
         return min(score, 1.0)
     
-    @observe(as_type="generation")
     def create_multi_conversation_summary(self, conversations: List[ConversationData]) -> Summary:
         """Create a combined summary for multiple conversations."""
-        
-        # Update current trace with session information
-        try:
-            session_manager = get_session_manager()
-            session_manager.update_current_trace_with_session()
-        except Exception:
-            pass  # Continue if session management fails
         
         if len(conversations) == 1:
             return self.create_summary(conversations[0])
@@ -215,12 +271,60 @@ Your combined summary should:
 
 Provide a comprehensive daily overview that synthesizes the key information."""
 
+        run_id = self._get_run_id_tag()
+        
         messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt)
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": human_prompt}
         ]
         
-        response = self.llm.invoke(messages)
+        metadata = {
+            "tags": [f"run_id:{run_id}", "summarizer_agent", "multi_conversation_summary"],
+            "trace_name": "daily-digest",
+            "session_id": run_id,
+            "trace_user_id": "zenml_pipeline",
+            "generation_name": "daily_digest",
+            "trace_metadata": {
+                "total_conversations": len(conversations),
+                "channels": [c.channel_name for c in conversations],
+                "sources": list(set(c.source for c in conversations))
+            }
+        }
+        
+        import time
+        start_time = time.time()
+        
+        response = litellm.completion(
+            model=self.model_name,
+            messages=messages,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            metadata=metadata if self.langfuse_enabled else {}
+        )
+        
+        end_time = time.time()
+        
+        # Manual logging if built-in integration failed
+        if not self.langfuse_enabled:
+            usage = getattr(response, 'usage', None)
+            usage_dict = None
+            if usage:
+                usage_dict = {
+                    "input_tokens": getattr(usage, 'prompt_tokens', 0),
+                    "output_tokens": getattr(usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(usage, 'total_tokens', 0)
+                }
+            
+            self.manual_logger.log_llm_call(
+                messages=messages,
+                response_content=response.choices[0].message.content,
+                metadata=metadata,
+                model=self.model_name,
+                usage=usage_dict,
+                start_time=start_time,
+                end_time=end_time
+            )
         
         # Combine metadata from all conversations
         all_participants = set()
@@ -231,10 +335,10 @@ Provide a comprehensive daily overview that synthesizes the key information."""
         
         return Summary(
             title="Daily Team Digest",
-            content=response.content,
+            content=response.choices[0].message.content,
             key_points=[],  # Could extract from combined summary
             participants=list(all_participants),
             topics=list(set(all_topics)),  # Remove duplicates
-            word_count=len(response.content.split()),
+            word_count=len(response.choices[0].message.content.split()),
             confidence_score=0.8  # Default confidence for combined summaries
         )

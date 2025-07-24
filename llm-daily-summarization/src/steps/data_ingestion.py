@@ -9,7 +9,6 @@ from typing import Any, Dict, List
 from typing_extensions import Annotated
 
 import discord
-from langfuse import observe
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from zenml import step
@@ -28,7 +27,6 @@ class DiscordClient:
         self.token = token
         self.client = None
     
-    @observe(as_type="retrieval")
     async def fetch_messages(self, channels: List[str], days_back: int = 1) -> List[ConversationData]:
         """Fetch messages from Discord channels."""
         intents = discord.Intents.default()
@@ -110,7 +108,6 @@ class SlackClient:
         """Initialize Slack client."""
         self.client = WebClient(token=token)
     
-    @observe(as_type="retrieval")
     def fetch_messages(self, channels: List[str], days_back: int = 1) -> List[ConversationData]:
         """Fetch messages from Slack channels."""
         conversations = []

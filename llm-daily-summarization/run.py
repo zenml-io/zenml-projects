@@ -56,7 +56,7 @@ def daily_chat_summarization_pipeline(
     """
     if model_config is None:
         model_config = {
-            "model_name": "gemini-1.5-flash",
+            "model_name": "gemini-2.5-flash",
             "max_tokens": 4000,
             "temperature": 0.1
         }
@@ -124,7 +124,7 @@ def main(mock_data: bool):
             "slack": []
         },
         "model_config": {
-            "model_name": "gemini-1.5-flash",
+            "model_name": "gemini-2.5-flash",
             "max_tokens": 4000,
             "temperature": 0.1,
             "top_p": 0.95

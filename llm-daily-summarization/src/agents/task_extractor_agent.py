@@ -5,24 +5,29 @@ Task extractor agent for identifying action items and tasks from conversations.
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
-from langchain_google_vertexai import ChatVertexAI
-from langchain.schema import HumanMessage, SystemMessage
-from langfuse import observe
+import litellm
+
+from zenml import get_step_context
 
 from ..utils.models import ConversationData, TaskItem
-from ..utils.session_manager import get_session_manager
+from ..utils.llm_config import initialize_litellm_langfuse, get_pipeline_run_id, generate_trace_url
+from ..utils.manual_langfuse_logger import get_manual_langfuse_logger
 
 class TaskExtractorAgent:
     """Agent responsible for extracting tasks and action items from conversations."""
     
     def __init__(self, model_config: Dict[str, Any]):
         self.model_config = model_config
-        self.llm = ChatVertexAI(
-            model_name=model_config.get("model_name", "gemini-1.5-flash"),
-            max_output_tokens=model_config.get("max_tokens", 2000),
-            temperature=model_config.get("temperature", 0.1),
-            top_p=model_config.get("top_p", 0.95)
-        )
+        self.model_name = f"vertex_ai/{model_config.get('model_name', 'gemini-2.5-flash')}"
+        self.max_tokens = model_config.get("max_tokens", 2000)
+        self.temperature = model_config.get("temperature", 0.1)
+        self.top_p = model_config.get("top_p", 0.95)
+        
+        # Initialize LiteLLM-Langfuse integration (may fail due to version conflicts)
+        self.langfuse_enabled = initialize_litellm_langfuse()
+        
+        # Initialize manual Langfuse logger as fallback
+        self.manual_logger = get_manual_langfuse_logger()
         
         # Task indication keywords
         self.task_indicators = [
@@ -45,16 +50,17 @@ class TaskExtractorAgent:
         
         return formatted_text
     
-    @observe(as_type="generation")
+    def _get_run_id_tag(self) -> str:
+        """Get ZenML run ID for tagging LLM calls."""
+        try:
+            step_context = get_step_context()
+            return str(step_context.pipeline_run.id)
+        except Exception:
+            import uuid
+            return str(uuid.uuid4())
+    
     def extract_tasks(self, conversation: ConversationData) -> List[TaskItem]:
         """Extract tasks and action items from a conversation."""
-        
-        # Update current trace with session information
-        try:
-            session_manager = get_session_manager()
-            session_manager.update_current_trace_with_session()
-        except Exception:
-            pass  # Continue if session management fails
         
         conversation_text = self._format_conversation_for_prompt(conversation)
         
@@ -92,13 +98,71 @@ TASK_END"""
 
 Be thorough but only include genuine action items that require follow-up. Ignore casual mentions or hypothetical discussions."""
 
+        run_id = self._get_run_id_tag()
+        
         messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt)
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": human_prompt}
         ]
         
-        response = self.llm.invoke(messages)
-        tasks = self._parse_task_response(response.content, conversation)
+        # Get pipeline run ID for tracing
+        trace_id = get_pipeline_run_id()
+        
+        # Generate timestamp for trace URL
+        from datetime import datetime
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        
+        metadata = {
+            "trace_id": trace_id,
+            "generation_name": f"Extract tasks from {conversation.channel_name} ({len(conversation.messages)} messages)",
+            "tags": ["task_extractor_agent", "task_extraction", f"channel:{conversation.channel_name}"],
+            "session_id": trace_id,
+            "user_id": "zenml_pipeline",
+            "trace_metadata": {
+                "channel": conversation.channel_name,
+                "source": conversation.source,
+                "participant_count": conversation.participant_count,
+                "message_count": len(conversation.messages),
+                "trace_url": generate_trace_url(trace_id, timestamp)
+            }
+        }
+        
+        import time
+        start_time = time.time()
+        
+        response = litellm.completion(
+            model=self.model_name,
+            messages=messages,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            metadata=metadata if self.langfuse_enabled else {}
+        )
+        
+        end_time = time.time()
+        response_content = response.choices[0].message.content
+        
+        # Manual logging if built-in integration failed
+        if not self.langfuse_enabled:
+            usage = getattr(response, 'usage', None)
+            usage_dict = None
+            if usage:
+                usage_dict = {
+                    "input_tokens": getattr(usage, 'prompt_tokens', 0),
+                    "output_tokens": getattr(usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(usage, 'total_tokens', 0)
+                }
+            
+            self.manual_logger.log_llm_call(
+                messages=messages,
+                response_content=response_content,
+                metadata=metadata,
+                model=self.model_name,
+                usage=usage_dict,
+                start_time=start_time,
+                end_time=end_time
+            )
+        tasks = self._parse_task_response(response_content, conversation)
         
         return tasks
     
@@ -216,16 +280,8 @@ Be thorough but only include genuine action items that require follow-up. Ignore
         
         return None
     
-    @observe(as_type="generation")
     def extract_tasks_from_multiple_conversations(self, conversations: List[ConversationData]) -> List[TaskItem]:
         """Extract tasks from multiple conversations."""
-        
-        # Update current trace with session information
-        try:
-            session_manager = get_session_manager()
-            session_manager.update_current_trace_with_session()
-        except Exception:
-            pass  # Continue if session management fails
         
         all_tasks = []
         

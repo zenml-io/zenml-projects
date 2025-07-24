@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import Any, Dict, List
 from typing_extensions import Annotated
 
-from langfuse import observe
 from zenml import step
 from zenml.logger import get_logger
 
@@ -29,7 +28,6 @@ class NotionDeliverer:
             logger.warning("notion-client not installed, using mock implementation")
             self.notion = None
     
-    @observe(as_type="span")
     def deliver_summary(self, summary_data: Dict[str, Any]) -> DeliveryResult:
         """Deliver summary to Notion as a page."""
         try:
@@ -152,7 +150,6 @@ class NotionDeliverer:
             error_message=None
         )
     
-    @observe(as_type="span")
     def deliver_tasks(self, tasks: List[Dict[str, Any]]) -> DeliveryResult:
         """Deliver tasks to Notion as database entries."""
         try:
@@ -289,7 +286,6 @@ class SlackDeliverer:
     def __init__(self, webhook_url: str = None):
         self.webhook_url = webhook_url
     
-    @observe(as_type="span")
     def deliver_summary(self, summary_data: Dict[str, Any]) -> DeliveryResult:
         """Deliver summary to Slack."""
         
@@ -339,7 +335,6 @@ class SlackDeliverer:
         
         return message
     
-    @observe(as_type="span")
     def deliver_tasks(self, tasks: List[Dict[str, Any]]) -> DeliveryResult:
         """Deliver tasks to Slack."""
         

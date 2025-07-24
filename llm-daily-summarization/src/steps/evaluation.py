@@ -10,8 +10,6 @@ from zenml import step
 from zenml.logger import get_logger
 from zenml.types import HTMLString
 
-from langfuse import observe
-
 from ..utils.models import (
     ProcessedData, 
     RawConversationData, 
@@ -25,7 +23,6 @@ logger = get_logger(__name__)
 class PipelineEvaluator:
     """Evaluates the quality and performance of the pipeline."""
     
-    @observe(as_type="evaluation")
     def evaluate_summary_quality(self, processed_data: ProcessedData) -> float:
         """Evaluate the quality of generated summaries."""
         
@@ -61,7 +58,6 @@ class PipelineEvaluator:
         
         return total_score / len(processed_data.summaries)
     
-    @observe(as_type="evaluation")
     def evaluate_task_extraction_accuracy(self, processed_data: ProcessedData) -> float:
         """Evaluate the accuracy of task extraction."""
         
