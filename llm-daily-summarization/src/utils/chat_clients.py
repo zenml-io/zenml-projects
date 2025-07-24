@@ -73,7 +73,9 @@ class DiscordClient:
         async def on_ready():
             logger.info(f"Discord client logged in as {self.client.user}")
 
-            cutoff_time = datetime.now(timezone.utc) - timedelta(days=days_back)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(
+                days=days_back
+            )
 
             for channel_name in channels:
                 try:
@@ -281,16 +283,24 @@ class DiscordClient:
                 channel = await self.client.fetch_channel(int(channel_id))
 
                 # Split the summary into chunks if needed
-                chunks = self._split_summary_for_discord(summary_text, max_length)
+                chunks = self._split_summary_for_discord(
+                    summary_text, max_length
+                )
 
                 for i, chunk in enumerate(chunks):
                     if i > 0:
-                        await asyncio.sleep(1)  # Rate limiting between messages
+                        await asyncio.sleep(
+                            1
+                        )  # Rate limiting between messages
                     await channel.send(chunk, suppress_embeds=True)
-                    logger.info(f"Posted chunk {i+1}/{len(chunks)} to Discord channel {channel_id}")
+                    logger.info(
+                        f"Posted chunk {i+1}/{len(chunks)} to Discord channel {channel_id}"
+                    )
 
                 success = True
-                logger.info(f"Successfully posted summary to Discord channel {channel_id} ({len(chunks)} message(s))")
+                logger.info(
+                    f"Successfully posted summary to Discord channel {channel_id} ({len(chunks)} message(s))"
+                )
 
             except Exception as e:
                 logger.error(f"Error posting summary to Discord: {e}")
@@ -305,7 +315,9 @@ class DiscordClient:
 
         return success
 
-    def _split_summary_for_discord(self, text: str, max_length: int) -> List[str]:
+    def _split_summary_for_discord(
+        self, text: str, max_length: int
+    ) -> List[str]:
         """Split text into chunks that fit within Discord's message limit.
 
         Attempts to split intelligently by sections and bullet points.
@@ -371,7 +383,11 @@ class DiscordClient:
             chunks.append(current_chunk)
 
         # Clean up any empty or very short chunks
-        return [chunk for chunk in chunks if chunk.strip() and len(chunk.strip()) > 10]
+        return [
+            chunk
+            for chunk in chunks
+            if chunk.strip() and len(chunk.strip()) > 10
+        ]
 
 
 class SlackClient:

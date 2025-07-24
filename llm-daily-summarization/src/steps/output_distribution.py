@@ -516,7 +516,12 @@ class SlackDeliverer:
 class DiscordDeliverer:
     """Delivers content to Discord channels."""
 
-    def __init__(self, token: str, channel_id: str, summary_config: Dict[str, Any] = None):
+    def __init__(
+        self,
+        token: str,
+        channel_id: str,
+        summary_config: Dict[str, Any] = None,
+    ):
         """Initialize Discord deliverer.
 
         Args:
@@ -527,37 +532,47 @@ class DiscordDeliverer:
         self.token = token
         self.channel_id = channel_id
         self.summary_config = summary_config or {}
-        
+
         # Import here to avoid import errors if discord.py is not installed
         try:
             from ..utils.chat_clients import DiscordClient
+
             self.discord_client = DiscordClient(token)
         except ImportError:
-            logger.warning("discord.py not installed, using mock implementation")
+            logger.warning(
+                "discord.py not installed, using mock implementation"
+            )
             self.discord_client = None
 
-    async def deliver_summary(self, summary_data: Dict[str, Any]) -> DeliveryResult:
+    async def deliver_summary(
+        self, summary_data: Dict[str, Any]
+    ) -> DeliveryResult:
         """Deliver summary to Discord channel."""
         try:
-            logger.info(f"Delivering summary to Discord channel {self.channel_id}: {summary_data['title']}")
+            logger.info(
+                f"Delivering summary to Discord channel {self.channel_id}: {summary_data['title']}"
+            )
 
             if self.discord_client is None:
-                logger.warning("Using mock implementation - discord.py not available")
+                logger.warning(
+                    "Using mock implementation - discord.py not available"
+                )
                 return self._mock_summary_delivery(summary_data)
 
             # Format summary for Discord
             discord_message = self._format_summary_for_discord(summary_data)
-            
+
             # Apply any length constraints from config
             max_length = self.summary_config.get("max_length", 1900)
-            if self.summary_config.get("truncate_to_limit", False) and len(discord_message) > max_length:
-                discord_message = discord_message[:max_length - 3] + "..."
+            if (
+                self.summary_config.get("truncate_to_limit", False)
+                and len(discord_message) > max_length
+            ):
+                discord_message = discord_message[: max_length - 3] + "..."
 
             # Post to Discord
             success = await self.discord_client.post_summary(
-                self.channel_id,
-                discord_message,
-                max_length=max_length
+                self.channel_id, discord_message, max_length=max_length
             )
 
             if success:
@@ -596,28 +611,32 @@ class DiscordDeliverer:
         if self.summary_config.get("format", "full") == "compact":
             # Compact format - just key points
             message = f"📝 **{summary_data['title']}**\n\n"
-            
+
             if summary_data.get("key_points"):
                 message += "**Key Points:**\n"
                 max_points = self.summary_config.get("max_key_points", 5)
                 for point in summary_data["key_points"][:max_points]:
                     message += f"• {point}\n"
-            
+
             return message
 
         # Full format (default)
         message = f"📝 **{summary_data['title']}**\n\n"
-        
+
         # Include summary content if configured
         if self.summary_config.get("include_content", True):
-            content = summary_data['content']
-            max_content_length = self.summary_config.get("max_content_length", 800)
+            content = summary_data["content"]
+            max_content_length = self.summary_config.get(
+                "max_content_length", 800
+            )
             if len(content) > max_content_length:
-                content = content[:max_content_length - 3] + "..."
+                content = content[: max_content_length - 3] + "..."
             message += f"{content}\n\n"
 
         # Add key points if available
-        if summary_data.get("key_points") and self.summary_config.get("include_key_points", True):
+        if summary_data.get("key_points") and self.summary_config.get(
+            "include_key_points", True
+        ):
             message += "**Key Points:**\n"
             max_points = self.summary_config.get("max_key_points", 5)
             for point in summary_data["key_points"][:max_points]:
@@ -627,26 +646,38 @@ class DiscordDeliverer:
         # Add metadata based on config
         if self.summary_config.get("include_metadata", True):
             metadata_items = []
-            
-            if summary_data.get("participants") and self.summary_config.get("show_participants", True):
-                participants = ", ".join(summary_data['participants'][:5])
-                if len(summary_data['participants']) > 5:
-                    participants += f" (+{len(summary_data['participants']) - 5} more)"
+
+            if summary_data.get("participants") and self.summary_config.get(
+                "show_participants", True
+            ):
+                participants = ", ".join(summary_data["participants"][:5])
+                if len(summary_data["participants"]) > 5:
+                    participants += (
+                        f" (+{len(summary_data['participants']) - 5} more)"
+                    )
                 metadata_items.append(f"👥 **Participants:** {participants}")
-            
-            if summary_data.get("topics") and self.summary_config.get("show_topics", True):
-                topics = ", ".join(summary_data['topics'][:3])
+
+            if summary_data.get("topics") and self.summary_config.get(
+                "show_topics", True
+            ):
+                topics = ", ".join(summary_data["topics"][:3])
                 metadata_items.append(f"🏷️ **Topics:** {topics}")
-            
-            if summary_data.get("word_count") and self.summary_config.get("show_stats", False):
-                metadata_items.append(f"📊 **Words:** {summary_data['word_count']}")
-            
+
+            if summary_data.get("word_count") and self.summary_config.get(
+                "show_stats", False
+            ):
+                metadata_items.append(
+                    f"📊 **Words:** {summary_data['word_count']}"
+                )
+
             if metadata_items:
                 message += "\n".join(metadata_items) + "\n"
 
         return message.strip()
 
-    def _mock_summary_delivery(self, summary_data: Dict[str, Any]) -> DeliveryResult:
+    def _mock_summary_delivery(
+        self, summary_data: Dict[str, Any]
+    ) -> DeliveryResult:
         """Mock implementation for summary delivery."""
         return DeliveryResult(
             target="discord",
@@ -657,26 +688,30 @@ class DiscordDeliverer:
             error_message=None,
         )
 
-    async def deliver_tasks(self, tasks: List[Dict[str, Any]]) -> DeliveryResult:
+    async def deliver_tasks(
+        self, tasks: List[Dict[str, Any]]
+    ) -> DeliveryResult:
         """Deliver tasks to Discord channel."""
         try:
-            logger.info(f"Delivering {len(tasks)} tasks to Discord channel {self.channel_id}")
+            logger.info(
+                f"Delivering {len(tasks)} tasks to Discord channel {self.channel_id}"
+            )
 
             if self.discord_client is None:
-                logger.warning("Using mock implementation - discord.py not available")
+                logger.warning(
+                    "Using mock implementation - discord.py not available"
+                )
                 return self._mock_tasks_delivery(tasks)
 
             # Format tasks for Discord
             discord_message = self._format_tasks_for_discord(tasks)
-            
+
             # Apply any length constraints from config
             max_length = self.summary_config.get("max_length", 1900)
 
             # Post to Discord
             success = await self.discord_client.post_summary(
-                self.channel_id,
-                discord_message,
-                max_length=max_length
+                self.channel_id, discord_message, max_length=max_length
             )
 
             if success:
@@ -724,21 +759,27 @@ class DiscordDeliverer:
             priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
                 task.get("priority", "medium"), "⚪"
             )
-            
+
             message += f"{i}. {priority_emoji} **{task['title']}**\n"
-            
+
             if self.summary_config.get("include_task_details", True):
                 # Truncate description if needed
-                description = task['description']
-                max_desc_length = self.summary_config.get("max_task_description_length", 100)
+                description = task["description"]
+                max_desc_length = self.summary_config.get(
+                    "max_task_description_length", 100
+                )
                 if len(description) > max_desc_length:
-                    description = description[:max_desc_length - 3] + "..."
+                    description = description[: max_desc_length - 3] + "..."
                 message += f"   {description}\n"
 
-                if task.get("assignee") and self.summary_config.get("show_assignees", True):
+                if task.get("assignee") and self.summary_config.get(
+                    "show_assignees", True
+                ):
                     message += f"   👤 Assigned to: {task['assignee']}\n"
 
-                if task.get("due_date") and self.summary_config.get("show_due_dates", False):
+                if task.get("due_date") and self.summary_config.get(
+                    "show_due_dates", False
+                ):
                     message += f"   📅 Due: {task['due_date']}\n"
 
             message += "\n"
@@ -748,7 +789,9 @@ class DiscordDeliverer:
 
         return message.strip()
 
-    def _mock_tasks_delivery(self, tasks: List[Dict[str, Any]]) -> DeliveryResult:
+    def _mock_tasks_delivery(
+        self, tasks: List[Dict[str, Any]]
+    ) -> DeliveryResult:
         """Mock implementation for task delivery."""
         return DeliveryResult(
             target="discord",
@@ -819,46 +862,91 @@ def output_distribution_step(
     # Discord delivery
     if "discord" in output_targets:
         discord_token = os.getenv("DISCORD_BOT_TOKEN")
-        discord_channel_id = os.getenv("DISCORD_SUMMARY_CHANNEL_ID", "908270509127499776")
-        
+        discord_channel_id = os.getenv(
+            "DISCORD_SUMMARY_CHANNEL_ID", "908270509127499776"
+        )
+
         if discord_token:
             # Load Discord summary configuration
             discord_summary_config = {
-                "format": os.getenv("DISCORD_SUMMARY_FORMAT", "full"),  # full or compact
-                "max_length": int(os.getenv("DISCORD_MAX_MESSAGE_LENGTH", "1900")),
-                "include_content": os.getenv("DISCORD_INCLUDE_CONTENT", "true").lower() == "true",
-                "include_key_points": os.getenv("DISCORD_INCLUDE_KEY_POINTS", "true").lower() == "true",
-                "include_metadata": os.getenv("DISCORD_INCLUDE_METADATA", "true").lower() == "true",
-                "max_key_points": int(os.getenv("DISCORD_MAX_KEY_POINTS", "5")),
-                "max_content_length": int(os.getenv("DISCORD_MAX_CONTENT_LENGTH", "800")),
-                "show_participants": os.getenv("DISCORD_SHOW_PARTICIPANTS", "true").lower() == "true",
-                "show_topics": os.getenv("DISCORD_SHOW_TOPICS", "true").lower() == "true",
-                "show_stats": os.getenv("DISCORD_SHOW_STATS", "false").lower() == "true",
-                "include_task_details": os.getenv("DISCORD_INCLUDE_TASK_DETAILS", "true").lower() == "true",
-                "max_tasks_display": int(os.getenv("DISCORD_MAX_TASKS_DISPLAY", "10")),
-                "max_task_description_length": int(os.getenv("DISCORD_MAX_TASK_DESC_LENGTH", "100")),
-                "show_assignees": os.getenv("DISCORD_SHOW_ASSIGNEES", "true").lower() == "true",
-                "show_due_dates": os.getenv("DISCORD_SHOW_DUE_DATES", "false").lower() == "true",
+                "format": os.getenv(
+                    "DISCORD_SUMMARY_FORMAT", "full"
+                ),  # full or compact
+                "max_length": int(
+                    os.getenv("DISCORD_MAX_MESSAGE_LENGTH", "1900")
+                ),
+                "include_content": os.getenv(
+                    "DISCORD_INCLUDE_CONTENT", "true"
+                ).lower()
+                == "true",
+                "include_key_points": os.getenv(
+                    "DISCORD_INCLUDE_KEY_POINTS", "true"
+                ).lower()
+                == "true",
+                "include_metadata": os.getenv(
+                    "DISCORD_INCLUDE_METADATA", "true"
+                ).lower()
+                == "true",
+                "max_key_points": int(
+                    os.getenv("DISCORD_MAX_KEY_POINTS", "5")
+                ),
+                "max_content_length": int(
+                    os.getenv("DISCORD_MAX_CONTENT_LENGTH", "800")
+                ),
+                "show_participants": os.getenv(
+                    "DISCORD_SHOW_PARTICIPANTS", "true"
+                ).lower()
+                == "true",
+                "show_topics": os.getenv("DISCORD_SHOW_TOPICS", "true").lower()
+                == "true",
+                "show_stats": os.getenv("DISCORD_SHOW_STATS", "false").lower()
+                == "true",
+                "include_task_details": os.getenv(
+                    "DISCORD_INCLUDE_TASK_DETAILS", "true"
+                ).lower()
+                == "true",
+                "max_tasks_display": int(
+                    os.getenv("DISCORD_MAX_TASKS_DISPLAY", "10")
+                ),
+                "max_task_description_length": int(
+                    os.getenv("DISCORD_MAX_TASK_DESC_LENGTH", "100")
+                ),
+                "show_assignees": os.getenv(
+                    "DISCORD_SHOW_ASSIGNEES", "true"
+                ).lower()
+                == "true",
+                "show_due_dates": os.getenv(
+                    "DISCORD_SHOW_DUE_DATES", "false"
+                ).lower()
+                == "true",
             }
-            
-            discord_deliverer = DiscordDeliverer(discord_token, discord_channel_id, discord_summary_config)
-            
+
+            discord_deliverer = DiscordDeliverer(
+                discord_token, discord_channel_id, discord_summary_config
+            )
+
             # Handle async Discord delivery
             import asyncio
-            
+
             # Deliver summaries
             for summary in processed_data.summaries:
-                result = asyncio.run(discord_deliverer.deliver_summary(summary.model_dump()))
+                result = asyncio.run(
+                    discord_deliverer.deliver_summary(summary.model_dump())
+                )
                 delivery_results.append(result)
-            
+
             # Deliver tasks
             if processed_data.tasks:
-                task_result = asyncio.run(discord_deliverer.deliver_tasks(
-                    [task.model_dump() for task in processed_data.tasks]
-                ))
+                task_result = asyncio.run(
+                    discord_deliverer.deliver_tasks(
+                        [task.model_dump() for task in processed_data.tasks]
+                    )
+                )
                 delivery_results.append(task_result)
         else:
-            logger.warning("DISCORD_BOT_TOKEN not found, skipping Discord delivery")
+            logger.warning(
+                "DISCORD_BOT_TOKEN not found, skipping Discord delivery"
+            )
 
     # GitHub delivery
     if "github" in output_targets:
