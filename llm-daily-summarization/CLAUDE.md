@@ -15,8 +15,8 @@ python test_basic.py
 # Run the main pipeline with mock data
 python run.py
 
-# Code formatting
-bash ../scripts/format.sh
+# Code formatting (only for the current directory)
+bash ../scripts/format.sh .
 ```
 
 ### Pipeline Execution
