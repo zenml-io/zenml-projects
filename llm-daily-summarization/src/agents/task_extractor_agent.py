@@ -14,7 +14,6 @@ from ..utils.llm_config import (
     get_pipeline_run_id,
     initialize_litellm_langfuse,
 )
-from ..utils.manual_langfuse_logger import get_manual_langfuse_logger
 from ..utils.models import ConversationData, TaskItem
 
 
@@ -32,9 +31,6 @@ class TaskExtractorAgent:
 
         # Initialize LiteLLM-Langfuse integration (may fail due to version conflicts)
         self.langfuse_enabled = initialize_litellm_langfuse()
-
-        # Initialize manual Langfuse logger as fallback
-        self.manual_logger = get_manual_langfuse_logger()
 
         # Task indication keywords
         self.task_indicators = [
@@ -137,10 +133,6 @@ class TaskExtractorAgent:
             },
         }
 
-        import time
-
-        start_time = time.time()
-
         response = litellm.completion(
             model=self.model_name,
             messages=messages,
@@ -149,30 +141,8 @@ class TaskExtractorAgent:
             top_p=self.top_p,
             metadata=metadata if self.langfuse_enabled else {},
         )
-
-        end_time = time.time()
         response_content = response.choices[0].message.content
 
-        # Manual logging if built-in integration failed
-        if not self.langfuse_enabled:
-            usage = getattr(response, "usage", None)
-            usage_dict = None
-            if usage:
-                usage_dict = {
-                    "input_tokens": getattr(usage, "prompt_tokens", 0),
-                    "output_tokens": getattr(usage, "completion_tokens", 0),
-                    "total_tokens": getattr(usage, "total_tokens", 0),
-                }
-
-            self.manual_logger.log_llm_call(
-                messages=messages,
-                response_content=response_content,
-                metadata=metadata,
-                model=self.model_name,
-                usage=usage_dict,
-                start_time=start_time,
-                end_time=end_time,
-            )
         tasks = self._parse_task_response(response_content, conversation)
 
         return tasks
