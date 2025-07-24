@@ -177,3 +177,4 @@ deep_research/design
 
 llm-daily-summarization/.env
 llm-daily-summarization/zenml-vertex-ai-agents.json
+llm-daily-summarization/discord_summaries/*.md
