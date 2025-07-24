@@ -8,12 +8,10 @@ import pytest
 from src.agents.summarizer_agent import SummarizerAgent
 from src.agents.task_extractor_agent import TaskExtractorAgent
 from src.steps.mock_data_ingestion import mock_chat_data_ingestion_step
-from src.steps.preprocessing import text_preprocessing_step
 
 # Import our models and steps
 from src.utils.models import (
     ChatMessage,
-    CleanedConversationData,
     ConversationData,
     RawConversationData,
 )
@@ -105,35 +103,6 @@ class TestMockDataIngestion:
         assert "slack" in sources
 
 
-class TestTextPreprocessing:
-    """Test the text preprocessing step."""
-
-    def test_text_preprocessing(self):
-        """Test text preprocessing functionality."""
-
-        # First get some raw data
-        raw_data = mock_chat_data_ingestion_step(
-            data_sources=["discord"],
-            sample_data_path="data/sample_conversations.json",
-        )
-
-        # Preprocess it
-        cleaned_data = text_preprocessing_step(raw_data=raw_data)
-
-        assert isinstance(cleaned_data, CleanedConversationData)
-        assert len(cleaned_data.conversations) > 0
-        assert cleaned_data.word_count > 0
-
-        # Check that messages were actually cleaned
-        for conversation in cleaned_data.conversations:
-            for message in conversation.messages:
-                # Content should be non-empty and cleaned
-                assert len(message.content.strip()) > 0
-                # Should not contain raw URLs (they should be replaced with [URL])
-                assert "http://" not in message.content
-                assert "https://" not in message.content
-
-
 class TestAgents:
     """Test the LangGraph agents (without actual LLM calls)."""
 
@@ -179,54 +148,6 @@ class TestAgents:
             )
 
 
-class TestDataFlow:
-    """Test the overall data flow through pipeline steps."""
-
-    def test_mock_to_preprocessing_flow(self):
-        """Test data flow from mock ingestion to preprocessing."""
-
-        # Step 1: Mock data ingestion
-        raw_data = mock_chat_data_ingestion_step(
-            data_sources=["discord", "slack"],
-            sample_data_path="data/sample_conversations.json",
-        )
-
-        # Step 2: Preprocessing
-        cleaned_data = text_preprocessing_step(raw_data=raw_data)
-
-        # Validate data flow
-        assert isinstance(raw_data, RawConversationData)
-        assert isinstance(cleaned_data, CleanedConversationData)
-
-        # Should have preserved conversation structure
-        assert len(cleaned_data.conversations) > 0
-
-        # Word count should be calculated
-        assert cleaned_data.word_count > 0
-
-        # Processing notes should be present
-        assert len(cleaned_data.processing_notes) > 0
-
-    def test_conversation_data_consistency(self):
-        """Test that conversation data remains consistent through transformations."""
-
-        raw_data = mock_chat_data_ingestion_step(
-            data_sources=["discord"],
-            sample_data_path="data/sample_conversations.json",
-        )
-
-        cleaned_data = text_preprocessing_step(raw_data=raw_data)
-
-        # Check consistency
-        for raw_conv, cleaned_conv in zip(
-            raw_data.conversations, cleaned_data.conversations
-        ):
-            assert raw_conv.channel_name == cleaned_conv.channel_name
-            assert raw_conv.source == cleaned_conv.source
-            # Message count might be different due to filtering
-            assert cleaned_conv.total_messages <= raw_conv.total_messages
-
-
 # Integration test that requires actual LLM access
 @pytest.mark.integration
 class TestWithLLM:
@@ -254,19 +175,10 @@ if __name__ == "__main__":
     test_ingestion.test_mock_data_ingestion_multiple_sources()
     print("✓ Mock data ingestion tests passed")
 
-    test_preprocessing = TestTextPreprocessing()
-    test_preprocessing.test_text_preprocessing()
-    print("✓ Text preprocessing tests passed")
-
     test_agents = TestAgents()
     test_agents.test_summarizer_agent_initialization()
     test_agents.test_task_extractor_agent_initialization()
     print("✓ Agent initialization tests passed")
-
-    test_flow = TestDataFlow()
-    test_flow.test_mock_to_preprocessing_flow()
-    test_flow.test_conversation_data_consistency()
-    print("✓ Data flow tests passed")
 
     print(
         "\n🎉 All basic tests passed! The pipeline structure is working correctly."

@@ -126,15 +126,14 @@ from src.steps.data_ingestion import chat_data_ingestion_step
 ### 1. Data Flow
 
 ```
-Discord/Slack → Ingestion → Preprocessing → LangGraph → Output → Evaluation
-     ↓             ↓           ↓           ↓         ↓        ↓
-Sample Data → Mock Step → Text Cleaning → Agents → Slack → Metrics
+Discord/Slack → Ingestion → LangGraph → Output → Evaluation
+     ↓             ↓           ↓         ↓        ↓
+Sample Data → Mock Step → Agents → Slack → Metrics
 ```
 
 ### 2. Key Components
 
 - **Data Ingestion**: Fetches chat messages from Discord/Slack APIs
-- **Preprocessing**: Cleans and filters messages 
 - **LangGraph Agents**: Multi-agent workflow with Summarizer and Task Extractor
 - **Output Distribution**: Delivers results to Slack, Notion, GitHub
 - **Evaluation**: Tracks quality metrics and costs

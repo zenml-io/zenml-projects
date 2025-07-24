@@ -123,44 +123,6 @@ def test_sample_data():
     return True
 
 
-def test_text_processing():
-    """Test basic text processing functionality."""
-
-    print("\nTesting text processing...")
-
-    # Import text cleaner
-    from steps.preprocessing import TextCleaner
-
-    cleaner = TextCleaner()
-
-    # Test URL removal
-    text_with_url = (
-        "Check out this link: https://example.com and this one http://test.com"
-    )
-    cleaned = cleaner.clean_message_content(text_with_url)
-    print(f"✓ URL removal: '{text_with_url}' -> '{cleaned}'")
-
-    # Test mention removal
-    text_with_mentions = "Hey <@123456> and <@!789012> what do you think?"
-    cleaned = cleaner.clean_message_content(text_with_mentions)
-    print(f"✓ Mention removal: '{text_with_mentions}' -> '{cleaned}'")
-
-    # Test system message detection
-    from utils.models import ChatMessage
-
-    system_msg = ChatMessage(
-        id="sys_001",
-        author="System",
-        content="User joined the server",
-        timestamp=datetime.now(),
-        channel="test",
-        source="test",
-    )
-
-    is_system = cleaner.is_system_message(system_msg)
-    print(f"✓ System message detection: '{system_msg.content}' -> {is_system}")
-
-
 def main():
     """Run all tests."""
 
@@ -168,9 +130,7 @@ def main():
 
     try:
         test_models()
-
-        if test_sample_data():
-            test_text_processing()
+        test_sample_data()
 
         print(
             "\n🎉 All tests passed! Basic functionality is working correctly."

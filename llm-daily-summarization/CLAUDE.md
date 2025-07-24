@@ -42,9 +42,9 @@ This is a **production-ready LLMOps pipeline** that processes team conversations
 
 ### Pipeline Flow
 ```
-Data Sources → Ingestion → Preprocessing → LangGraph Agents → Output Distribution → Evaluation
-    ↓             ↓           ↓              ↓                    ↓                ↓
-Discord/Slack → Mock/Real → Text Clean → Summarizer/Tasks → Slack/Notion → Metrics
+Data Sources → Ingestion → LangGraph Agents → Output Distribution → Evaluation
+    ↓             ↓              ↓               ↓                ↓
+Discord/Slack → Mock/Real → Summarizer/Tasks → Slack/Notion → Metrics
 ```
 
 ### Key Components
@@ -52,7 +52,6 @@ Discord/Slack → Mock/Real → Text Clean → Summarizer/Tasks → Slack/Notion
 1. **ZenML Pipeline Steps** (`src/steps/`):
    - `data_ingestion.py` - Discord/Slack API clients
    - `mock_data_ingestion.py` - Testing with sample data (default)
-   - `preprocessing.py` - Text cleaning and filtering
    - `langgraph_processing.py` - Multi-agent orchestration hub
    - `output_distribution.py` - Multi-platform delivery
    - `evaluation.py` - Quality metrics and monitoring
@@ -89,7 +88,6 @@ Always start with `python test_basic.py` to verify core functionality before att
 
 Uses Pydantic models for type safety:
 - `ConversationData` - Raw chat message structure
-- `CleanedConversationData` - Processed conversation data
 - `Summary` - Generated summary with metadata
 - `TaskItem` - Extracted tasks with assignments
 - `ProcessedData` - Complete pipeline output
@@ -101,3 +99,5 @@ Every LLM call and agent decision is traced through Langfuse using `@observe` de
 - Processing time and success rates
 - Quality metrics and evaluation scores
 - Complete agent workflow execution traces
+
+```

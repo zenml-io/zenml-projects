@@ -16,8 +16,7 @@ This project demonstrates a complete LLMOps pipeline that automatically processe
 ```mermaid
 graph LR
     A[Discord/Slack] → B[Data Ingestion]
-    B → C[Text Preprocessing] 
-    C → D[LangGraph Agents]
+    B → D[LangGraph Agents]
     D → E[Summarizer Agent]
     D → F[Task Extractor Agent]
     E → G[Output Distribution]
@@ -26,14 +25,13 @@ graph LR
     
     I[Langfuse] ← D
     J[ZenML] ← B
-    J ← C
     J ← D
     J ← G
 ```
 
 **Core Components:**
 - **ZenML Pipeline**: Orchestration and artifact management
-- **LangGraph Workflow**: Multi-agent coordination and state management  
+- **LangGraph Workflow**: Multi-agent coordination and state management (directly fed from the Data Ingestion step)
 - **Vertex AI**: Gemini 2.5 Flash for high-quality, cost-effective processing
 - **Langfuse**: Complete LLM observability and evaluation
 - **Multiple Integrations**: Discord, Slack, Notion, GitHub APIs
@@ -46,7 +44,6 @@ llm-summarization-pipeline/
 │   ├── steps/              # ZenML pipeline steps
 │   │   ├── data_ingestion.py        # Discord/Slack API clients
 │   │   ├── mock_data_ingestion.py   # Testing with sample data
-│   │   ├── preprocessing.py         # Text cleaning and filtering
 │   │   ├── langgraph_processing.py  # Multi-agent orchestration
 │   │   ├── output_distribution.py   # Multi-platform delivery
 │   │   └── evaluation.py            # Quality metrics and monitoring
@@ -89,6 +86,25 @@ See [SETUP.md](SETUP.md) for complete configuration instructions including:
 - Langfuse account configuration  
 - Discord/Slack API access
 - Production deployment guidelines
+
+## 🛠️ CLI Flags
+
+The `run.py` entrypoint exposes several command-line flags to customise what
+the pipeline produces. Run `python run.py --help` for the authoritative list.
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--no-task-list` | Skip the Task Extractor agent; generate only summaries | _False_ |
+| `--no-summary` | Skip the Summarizer agent; generate only task lists | _False_ |
+| `--data-sources discord,slack` | Comma-separated list of chat sources to ingest | `discord,slack` |
+| `--output slack` | Output channels (slack, notion, github, discord) | `slack` |
+| `--debug` | Enable verbose logging (`ZENML_LOGGING_VERBOSITY=DEBUG`) | _False_ |
+
+Combine flags as needed, e.g.:
+
+```bash
+python run.py --no-task-list --output notion,slack
+```
 
 ## ✨ Key Features
 

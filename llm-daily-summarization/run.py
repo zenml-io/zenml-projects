@@ -14,7 +14,6 @@ from src.steps.evaluation import evaluation_step
 from src.steps.langgraph_processing import langgraph_agent_step
 from src.steps.mock_data_ingestion import mock_chat_data_ingestion_step
 from src.steps.output_distribution import output_distribution_step
-from src.steps.preprocessing import text_preprocessing_step
 from src.steps.trace_retrieval import retrieve_traces_step
 from zenml import pipeline
 from zenml.config import DockerSettings
@@ -106,31 +105,28 @@ def daily_chat_summarization_pipeline(
             include_threads=include_threads,
         )
 
-    # Step 2: Text preprocessing and cleaning
-    cleaned_data = text_preprocessing_step(raw_data=raw_conversations)
-
-    # Step 3: LangGraph agent processing with Vertex AI
+    # Step 2: LangGraph agent processing with Vertex AI
     summaries_and_tasks, _ = langgraph_agent_step(
-        cleaned_data=cleaned_data,
+        raw_data=raw_conversations,
         model_config=model_config,
-        extract_tasks=extract_tasks,  # NEW
+        extract_tasks=extract_tasks,
     )
 
-    # Step 4: Output distribution to multiple targets
+    # Step 3: Output distribution to multiple targets
     delivery_results = output_distribution_step(
         processed_data=summaries_and_tasks,
         output_targets=output_targets,
         extract_tasks=extract_tasks,  # NEW
     )
 
-    # Step 5: Evaluation and monitoring (with embedded visualization)
+    # Step 4: Evaluation and monitoring (with embedded visualization)
     evaluation_metrics, _ = evaluation_step(
         summaries_and_tasks=summaries_and_tasks,
         raw_conversations=raw_conversations,
         delivery_results=delivery_results,
     )
 
-    # Step 6: Retrieve and visualize Langfuse traces from the complete pipeline run
+    # Step 5: Retrieve and visualize Langfuse traces from the complete pipeline run
     traces_viz = retrieve_traces_step(
         processed_data=summaries_and_tasks,
         time_window_minutes=30,  # Look for traces in the last 30 minutes

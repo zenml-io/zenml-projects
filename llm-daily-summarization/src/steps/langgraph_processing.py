@@ -16,8 +16,8 @@ from zenml.types import HTMLString
 from ..agents.summarizer_agent import SummarizerAgent
 from ..agents.task_extractor_agent import TaskExtractorAgent
 from ..utils.models import (
-    CleanedConversationData,
     ProcessedData,
+    RawConversationData,
     Summary,
     TaskItem,
 )
@@ -873,12 +873,10 @@ def _create_langgraph_traces_visualization(
 
 
 def _create_agent_processing_visualization(
-    processed_data: ProcessedData, cleaned_data: CleanedConversationData
+    processed_data: ProcessedData, raw_data: RawConversationData
 ) -> HTMLString:
     """Create HTML visualization for LangGraph agent processing results."""
-    total_messages = sum(
-        len(conv.messages) for conv in cleaned_data.conversations
-    )
+    total_messages = sum(len(conv.messages) for conv in raw_data.conversations)
     avg_confidence_summaries = (
         sum(s.confidence_score for s in processed_data.summaries)
         / len(processed_data.summaries)
@@ -929,7 +927,7 @@ def _create_agent_processing_visualization(
                     </div>
                     <div class="metric">
                         <span>Conversations:</span>
-                        <span class="metric-value">{len(cleaned_data.conversations)}</span>
+                        <span class="metric-value">{len(raw_data.conversations)}</span>
                     </div>
                     <div class="metric">
                         <span>Summaries Generated:</span>
@@ -970,7 +968,7 @@ def _create_agent_processing_visualization(
                 <h2>📝 Generated Summaries</h2>
                 {''.join([f'''
                 <div class="summary-item">
-                    <h3>{cleaned_data.conversations[i].channel_name if i < len(cleaned_data.conversations) else "Unknown Channel"} Summary <span class="confidence">{summary.confidence_score:.1%} confidence</span></h3>
+                    <h3>{raw_data.conversations[i].channel_name if i < len(raw_data.conversations) else "Unknown Channel"} Summary <span class="confidence">{summary.confidence_score:.1%} confidence</span></h3>
                     <p><strong>Topics:</strong> {', '.join(summary.topics[:3])}{'...' if len(summary.topics) > 3 else ''}</p>
                     <p><strong>Key Points:</strong> {len(summary.key_points)} identified</p>
                     <p><strong>Participants:</strong> {', '.join(summary.participants[:5])}{'...' if len(summary.participants) > 5 else ''}</p>
@@ -1167,24 +1165,24 @@ def _create_combined_agent_dashboard(
 
 @step
 def langgraph_agent_step(
-    cleaned_data: CleanedConversationData,
+    raw_data: RawConversationData,
     model_config: Dict[str, Any],
     extract_tasks: bool = True,
 ) -> Tuple[
     Annotated[ProcessedData, "processed_data"],
     Annotated[HTMLString, "processing_visualization"],
 ]:
-    """Process cleaned conversation data using LangGraph multi-agent workflow.
+    """Process raw conversation data using LangGraph multi-agent workflow.
 
     Args:
-        cleaned_data: Cleaned conversation data from preprocessing
+        raw_data: Raw conversation data from ingestion
         model_config: Configuration for the LLM models
 
     Returns:
         ProcessedData: Processed summaries and tasks from agent workflow
     """
     logger.info(
-        f"Starting LangGraph agent processing for {len(cleaned_data.conversations)} conversations"
+        f"Starting LangGraph agent processing for {len(raw_data.conversations)} conversations"
     )
 
     # Initialize the orchestrator
@@ -1194,7 +1192,7 @@ def langgraph_agent_step(
 
     # Prepare initial state
     initial_state = AgentState(
-        conversations=[conv.dict() for conv in cleaned_data.conversations],
+        conversations=[conv.dict() for conv in raw_data.conversations],
         summaries=[],
         tasks=[],
         processing_metadata={},
@@ -1235,7 +1233,7 @@ def langgraph_agent_step(
         processed_data, final_state
     )
     processing_viz = _create_agent_processing_visualization(
-        processed_data, cleaned_data
+        processed_data, raw_data
     )
 
     # Combine all visualizations into a comprehensive dashboard
