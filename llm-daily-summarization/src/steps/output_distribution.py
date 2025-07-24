@@ -928,21 +928,30 @@ def output_distribution_step(
             # Handle async Discord delivery
             import asyncio
 
-            # Deliver summaries
-            for summary in processed_data.summaries:
-                result = asyncio.run(
-                    discord_deliverer.deliver_summary(summary.model_dump())
-                )
-                delivery_results.append(result)
+            async def _discord_batch():
+                """Run all Discord deliveries in one event loop to avoid
+                creating multiple connectors which can leak resources."""
+                results: List[DeliveryResult] = []
 
-            # Deliver tasks
-            if processed_data.tasks:
-                task_result = asyncio.run(
-                    discord_deliverer.deliver_tasks(
+                # Deliver summaries
+                for summary in processed_data.summaries:
+                    res = await discord_deliverer.deliver_summary(
+                        summary.model_dump()
+                    )
+                    results.append(res)
+
+                # Deliver tasks
+                if processed_data.tasks:
+                    res = await discord_deliverer.deliver_tasks(
                         [task.model_dump() for task in processed_data.tasks]
                     )
-                )
-                delivery_results.append(task_result)
+                    results.append(res)
+
+                return results
+
+            # Execute the batch and extend overall delivery results
+            batch_results = asyncio.run(_discord_batch())
+            delivery_results.extend(batch_results)
         else:
             logger.warning(
                 "DISCORD_BOT_TOKEN not found, skipping Discord delivery"

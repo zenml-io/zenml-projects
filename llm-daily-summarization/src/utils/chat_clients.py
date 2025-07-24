@@ -34,6 +34,32 @@ class DiscordClient:
         self.client = None
         self.default_max_messages = default_max_messages
 
+    # ------------------------------------------------------------------
+    # Cleanup / context-manager helpers
+    # ------------------------------------------------------------------
+    async def shutdown(self) -> None:
+        """Ensure the underlying discord.Client (and its aiohttp connector)
+        is properly closed.
+
+        Calling this multiple times is safe because discord.Client.close()
+        is idempotent.
+        """
+        if self.client and not self.client.is_closed():
+            try:
+                await self.client.close()
+            except Exception as e:  # pragma: no cover
+                logger.debug(
+                    f"Ignoring exception during Discord shutdown: {e}"
+                )
+
+    async def __aenter__(self) -> "DiscordClient":  # noqa: D401
+        """Enter async context manager."""
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:  # noqa: D401
+        """Exit async context manager and guarantee cleanup."""
+        await self.shutdown()
+
     async def fetch_messages(
         self,
         channels: List[str],
@@ -243,13 +269,14 @@ class DiscordClient:
                         f"Error fetching from channel {channel_name}: {e}"
                     )
 
-            await self.client.close()
+            await self.shutdown()
 
         try:
             await self.client.start(self.token)
         except Exception as e:
             logger.error(f"Failed to connect to Discord: {e}")
-            await self.client.close()
+        finally:
+            await self.shutdown()
 
         return conversations
 
@@ -305,13 +332,15 @@ class DiscordClient:
             except Exception as e:
                 logger.error(f"Error posting summary to Discord: {e}")
             finally:
-                await self.client.close()
+                await self.shutdown()
                 await asyncio.sleep(0.1)  # Small delay to ensure cleanup
 
         try:
             await self.client.start(self.token)
         except Exception as e:
             logger.error(f"Error during Discord client execution: {e}")
+        finally:
+            await self.shutdown()
 
         return success
 

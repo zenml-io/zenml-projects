@@ -57,15 +57,19 @@ def chat_data_ingestion_step(
             logger.warning("DISCORD_BOT_TOKEN not found, skipping Discord")
         else:
             try:
-                discord_client = DiscordClient(discord_token)
-                discord_conversations = asyncio.run(
-                    discord_client.fetch_messages(
-                        channels=channels_config.get("discord", []),
-                        days_back=days_back,
-                        max_messages=max_messages,
-                        include_threads=include_threads,
-                    )
-                )
+
+                async def _fetch_discord() -> List["ConversationData"]:
+                    """Helper coroutine that fetches Discord messages and
+                    guarantees cleanup via DiscordClient's context-manager."""
+                    async with DiscordClient(discord_token) as discord_client:
+                        return await discord_client.fetch_messages(
+                            channels=channels_config.get("discord", []),
+                            days_back=days_back,
+                            max_messages=max_messages,
+                            include_threads=include_threads,
+                        )
+
+                discord_conversations = asyncio.run(_fetch_discord())
                 all_conversations.extend(discord_conversations)
                 logger.info(
                     f"Successfully fetched {len(discord_conversations)} Discord conversations"
