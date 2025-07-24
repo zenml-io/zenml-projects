@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 import litellm
 from zenml import get_step_context
 
+from ..prompts import TASK_EXTRACTOR_HUMAN_PROMPT, TASK_EXTRACTOR_SYSTEM_PROMPT
 from ..utils.llm_config import (
     generate_trace_url,
     get_pipeline_run_id,
@@ -99,39 +100,10 @@ class TaskExtractorAgent:
 
         conversation_text = self._format_conversation_for_prompt(conversation)
 
-        system_prompt = """You are an expert at identifying tasks, action items, and commitments in team conversations. Look for:
-
-1. Explicit tasks ("I'll do X", "Can you handle Y", "We need to Z")
-2. Commitments with deadlines ("by Friday", "next week", "before the meeting")
-3. Assignments to specific people
-4. Follow-up items that were mentioned
-5. Decisions that require implementation
-
-For each task you identify, provide:
-- TITLE: Brief descriptive title
-- DESCRIPTION: Clear description of what needs to be done
-- ASSIGNEE: Person responsible (if mentioned)
-- PRIORITY: high/medium/low based on urgency and importance
-- DUE_DATE: Any mentioned deadlines (use format: YYYY-MM-DD)
-- SOURCE_MESSAGES: The author names who mentioned this task
-- CONFIDENCE: Your confidence in this being a real task (0.0-1.0)
-
-Format each task as:
-TASK_START
-TITLE: [title]
-DESCRIPTION: [description]
-ASSIGNEE: [person or "unassigned"]
-PRIORITY: [high/medium/low]
-DUE_DATE: [date or "none"]
-SOURCE_MESSAGES: [author names]
-CONFIDENCE: [0.0-1.0]
-TASK_END"""
-
-        human_prompt = f"""Please extract all tasks and action items from this conversation:
-
-{conversation_text}
-
-Be thorough but only include genuine action items that require follow-up. Ignore casual mentions or hypothetical discussions."""
+        system_prompt = TASK_EXTRACTOR_SYSTEM_PROMPT
+        human_prompt = TASK_EXTRACTOR_HUMAN_PROMPT.format(
+            conversation_text=conversation_text
+        )
 
         run_id = self._get_run_id_tag()
 

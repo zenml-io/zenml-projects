@@ -7,6 +7,12 @@ from typing import Any, Dict, List
 import litellm
 from zenml import get_step_context
 
+from ..prompts import (
+    DAILY_DIGEST_HUMAN_PROMPT,
+    DAILY_DIGEST_SYSTEM_PROMPT,
+    SUMMARIZER_HUMAN_PROMPT,
+    SUMMARIZER_SYSTEM_PROMPT,
+)
 from ..utils.llm_config import (
     generate_trace_url,
     get_pipeline_run_id,
@@ -71,27 +77,10 @@ class SummarizerAgent:
 
         conversation_text = self._format_conversation_for_prompt(conversation)
 
-        system_prompt = """You are an expert at summarizing team conversations. Create a concise, informative summary that captures the key discussion points, decisions, and outcomes.
-
-Your summary should:
-1. Be clear and professional
-2. Highlight key topics and decisions
-3. Identify main participants and their contributions
-4. Note any important outcomes or next steps
-5. Be concise but comprehensive
-
-Format your response as follows:
-TITLE: [Brief title for the conversation]
-SUMMARY: [2-3 paragraph summary]
-KEY_POINTS: [Bullet points of main discussion points]
-PARTICIPANTS: [Key participants who contributed significantly]
-TOPICS: [Main topics discussed]"""
-
-        human_prompt = f"""Please summarize the following team conversation:
-
-{conversation_text}
-
-Provide a clear, professional summary following the requested format."""
+        system_prompt = SUMMARIZER_SYSTEM_PROMPT
+        human_prompt = SUMMARIZER_HUMAN_PROMPT.format(
+            conversation_text=conversation_text
+        )
 
         run_id = self._get_run_id_tag()
 
@@ -296,19 +285,10 @@ Provide a clear, professional summary following the requested format."""
             ]
         )
 
-        system_prompt = """You are creating a daily digest from multiple team conversations. Combine the individual channel summaries into a cohesive daily overview that highlights cross-channel themes, important decisions, and key outcomes.
-
-Your combined summary should:
-1. Identify common themes across channels
-2. Highlight the most important decisions and outcomes
-3. Note any cross-team collaboration or dependencies
-4. Provide a clear daily overview for team members"""
-
-        human_prompt = f"""Please create a daily digest from these channel summaries:
-
-{combined_text}
-
-Provide a comprehensive daily overview that synthesizes the key information."""
+        system_prompt = DAILY_DIGEST_SYSTEM_PROMPT
+        human_prompt = DAILY_DIGEST_HUMAN_PROMPT.format(
+            combined_text=combined_text
+        )
 
         run_id = self._get_run_id_tag()
 
