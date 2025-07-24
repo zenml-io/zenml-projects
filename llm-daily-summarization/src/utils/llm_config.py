@@ -1,6 +1,7 @@
 """LLM configuration for LiteLLM and Langfuse integration."""
 
 import os
+import uuid
 
 import litellm
 from zenml import get_step_context
@@ -49,8 +50,6 @@ def get_pipeline_run_id():
         return str(step_context.step_run.pipeline_run_id)
     except Exception:
         # Fallback for when not in a ZenML step context
-        import uuid
-
         return str(uuid.uuid4())
 
 

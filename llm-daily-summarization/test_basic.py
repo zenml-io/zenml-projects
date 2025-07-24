@@ -6,6 +6,7 @@ Basic test script to validate core functionality without external dependencies.
 import os
 import re
 import sys
+import traceback
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -195,8 +196,6 @@ def main():
 
     except Exception as e:
         print(f"\n❌ Test failed with error: {e}")
-        import traceback
-
         traceback.print_exc()
         return 1
 

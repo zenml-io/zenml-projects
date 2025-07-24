@@ -2,6 +2,8 @@
 Summarizer agent for creating conversation summaries using Vertex AI.
 """
 
+import uuid
+from datetime import datetime
 from typing import Any, Dict, List
 
 import litellm
@@ -64,8 +66,6 @@ class SummarizerAgent:
             step_context = get_step_context()
             return str(step_context.pipeline_run.id)
         except Exception:
-            import uuid
-
             return str(uuid.uuid4())
 
     def create_summary(self, conversation: ConversationData) -> Summary:
@@ -87,8 +87,6 @@ class SummarizerAgent:
         trace_id = get_pipeline_run_id()
 
         # Generate timestamp for trace URL
-        from datetime import datetime
-
         timestamp = datetime.utcnow().isoformat() + "Z"
 
         metadata = {

@@ -2,6 +2,7 @@
 Output distribution step for delivering summaries and tasks to various platforms.
 """
 
+import asyncio
 import os
 from typing import List
 
@@ -149,8 +150,6 @@ def output_distribution_step(
             )
 
             # Handle async Discord delivery
-            import asyncio
-
             async def _discord_batch():
                 """Run all Discord deliveries in one event loop to avoid
                 creating multiple connectors which can leak resources."""

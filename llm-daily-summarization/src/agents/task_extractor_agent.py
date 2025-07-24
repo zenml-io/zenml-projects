@@ -2,6 +2,7 @@
 Task extractor agent for identifying action items and tasks from conversations.
 """
 
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
@@ -87,8 +88,6 @@ class TaskExtractorAgent:
             step_context = get_step_context()
             return str(step_context.pipeline_run.id)
         except Exception:
-            import uuid
-
             return str(uuid.uuid4())
 
     def extract_tasks(self, conversation: ConversationData) -> List[TaskItem]:
@@ -110,8 +109,6 @@ class TaskExtractorAgent:
         trace_id = get_pipeline_run_id()
 
         # Generate timestamp for trace URL
-        from datetime import datetime
-
         timestamp = datetime.utcnow().isoformat() + "Z"
 
         metadata = {

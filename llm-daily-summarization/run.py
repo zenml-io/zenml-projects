@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import click
+from dotenv import load_dotenv
 from src.steps.data_ingestion import chat_data_ingestion_step
 from src.steps.evaluation import evaluation_step
 from src.steps.langgraph_processing import langgraph_agent_step
@@ -192,8 +193,6 @@ def main(
 ):
     """Main function to run the pipeline with default configuration."""
     # Load environment variables
-    from dotenv import load_dotenv
-
     load_dotenv()
 
     # Override Discord channel ID if provided via CLI
