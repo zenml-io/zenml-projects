@@ -416,7 +416,6 @@ def _create_traces_visualization(
 
     traces = traces_data["traces"]
     observations = traces_data["observations"]
-    summary = traces_data["summary"]
     run_metadata = traces_data.get("run_metadata", {})
     retrieval_method = traces_data.get("retrieval_method", "unknown")
 

@@ -11,8 +11,8 @@ from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
-from ..utils.chat_clients import DiscordClient, SlackClient
 from ..utils.models import RawConversationData
+from ..utils.platforms import DiscordClient, SlackClient  # NEW import path
 
 logger = get_logger(__name__)
 

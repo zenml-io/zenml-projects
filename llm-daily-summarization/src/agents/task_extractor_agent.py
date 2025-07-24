@@ -105,8 +105,6 @@ class TaskExtractorAgent:
             conversation_text=conversation_text
         )
 
-        run_id = self._get_run_id_tag()
-
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": human_prompt},

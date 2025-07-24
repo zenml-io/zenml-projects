@@ -78,7 +78,7 @@ class ManualLangfuseLogger:
             )
 
             # Create generation
-            generation = trace.generation(
+            trace.generation(
                 name=generation_name,
                 model=model,
                 input=messages,

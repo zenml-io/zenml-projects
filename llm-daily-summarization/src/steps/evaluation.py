@@ -110,7 +110,6 @@ class PipelineEvaluator:
         # Input: ~$0.30 per 1M tokens, Output: ~$2.50 per 1M tokens
 
         total_tokens = processed_data.llm_usage_stats.get("total_tokens", 0)
-        api_calls = processed_data.llm_usage_stats.get("api_calls", 0)
 
         # Estimate input tokens (conversation data + prompts)
         estimated_input_tokens = total_tokens * 3  # Rough multiplier for input
