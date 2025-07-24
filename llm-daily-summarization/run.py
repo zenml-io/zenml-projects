@@ -124,7 +124,7 @@ def daily_chat_summarization_pipeline(
     )
 
     # Step 6: Retrieve and visualize Langfuse traces from the complete pipeline run
-    retrieve_traces_step(
+    traces_viz = retrieve_traces_step(
         processed_data=summaries_and_tasks,
         time_window_minutes=30,  # Look for traces in the last 30 minutes
     )
@@ -165,7 +165,7 @@ def daily_chat_summarization_pipeline(
     multiple=True,
     default=["notion"],
     show_default=True,
-    help="Output targets for summaries (notion, slack, discord)",
+    help="Output targets for summaries (notion, slack, discord, local)",
 )
 @click.option(
     "--discord-channel-id",

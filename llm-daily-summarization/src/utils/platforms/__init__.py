@@ -15,6 +15,7 @@ from ..chat_clients import DiscordClient, SlackClient  # noqa: E402
 
 # Local deliverers (defined in sibling modules)
 from .discord import DiscordDeliverer
+from .local import LocalDeliverer
 from .notion import NotionDeliverer
 from .slack import SlackDeliverer
 
@@ -22,6 +23,7 @@ __all__ = [
     "DiscordDeliverer",
     "SlackDeliverer",
     "NotionDeliverer",
+    "LocalDeliverer",
     "DiscordClient",
     "SlackClient",
 ]

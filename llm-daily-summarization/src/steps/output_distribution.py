@@ -10,7 +10,12 @@ from zenml import step
 from zenml.logger import get_logger
 
 from ..utils.models import DeliveryResult, ProcessedData
-from ..utils.platforms import DiscordDeliverer, NotionDeliverer, SlackDeliverer
+from ..utils.platforms import (
+    DiscordDeliverer,
+    LocalDeliverer,
+    NotionDeliverer,
+    SlackDeliverer,
+)
 
 logger = get_logger(__name__)
 
@@ -168,6 +173,23 @@ def output_distribution_step(
             logger.warning(
                 "DISCORD_BOT_TOKEN not found, skipping Discord delivery"
             )
+
+    # Local markdown delivery
+    if "local" in output_targets:
+        export_dir = os.getenv("LOCAL_OUTPUT_DIR", "discord_summaries")
+        local_deliverer = LocalDeliverer(export_dir)
+
+        # Deliver summaries
+        for summary in processed_data.summaries:
+            result = local_deliverer.deliver_summary(summary.model_dump())
+            delivery_results.append(result)
+
+        # Deliver tasks
+        if processed_data.tasks:
+            task_result = local_deliverer.deliver_tasks(
+                [task.model_dump() for task in processed_data.tasks]
+            )
+            delivery_results.append(task_result)
 
     # GitHub delivery
     if "github" in output_targets:

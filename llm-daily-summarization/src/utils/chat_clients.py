@@ -124,6 +124,11 @@ class DiscordClient:
                     ):
                         if message.author.bot:
                             continue  # Skip bot messages
+                        if message.created_at is None:  # Guard added
+                            logger.debug(  # Guard added
+                                f"Skipping message {message.id} in #{channel_name} because created_at is None"  # Guard added
+                            )  # Guard added
+                            continue  # Guard added
 
                         chat_message = ChatMessage(
                             id=str(message.id),
@@ -183,6 +188,11 @@ class DiscordClient:
 
                         for thread in thread_objs:
                             # Respect days_back on thread creation date
+                            if thread.created_at is None:  # Guard added
+                                logger.debug(  # Guard added
+                                    f"Skipping thread '{thread.name}' in #{channel_name} because created_at is None"  # Guard added
+                                )  # Guard added
+                                continue  # Guard added
                             if thread.created_at < cutoff_time:
                                 logger.debug(
                                     f"Skipping thread '{thread.name}' - created at {thread.created_at} is before cutoff {cutoff_time}"
@@ -198,6 +208,11 @@ class DiscordClient:
                                 ):
                                     if tmsg.author.bot:
                                         continue
+                                    if tmsg.created_at is None:  # Guard added
+                                        logger.debug(  # Guard added
+                                            f"Skipping message {tmsg.id} in thread '{thread.name}' because created_at is None"  # Guard added
+                                        )  # Guard added
+                                        continue  # Guard added
 
                                     thread_messages.append(
                                         ChatMessage(
