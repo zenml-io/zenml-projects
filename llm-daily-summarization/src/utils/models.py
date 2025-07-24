@@ -16,6 +16,10 @@ class ChatMessage(BaseModel):
     content: str = Field(description="Message content")
     timestamp: datetime = Field(description="Message timestamp")
     channel: str = Field(description="Channel or conversation name")
+    thread_id: Optional[str] = Field(
+        default=None,
+        description="Thread identifier if the message belongs to a Discord thread",
+    )
     source: str = Field(description="Source platform (discord, slack)")
     metadata: Dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
@@ -27,6 +31,10 @@ class ConversationData(BaseModel):
 
     messages: List[ChatMessage] = Field(description="List of chat messages")
     channel_name: str = Field(description="Channel or conversation name")
+    thread_name: Optional[str] = Field(
+        default=None,
+        description="Name of the Discord thread if applicable",
+    )
     source: str = Field(description="Source platform")
     date_range: Dict[str, datetime] = Field(
         description="Start and end timestamps"

@@ -4,8 +4,9 @@ LLM Summarization Pipeline - Main Entry Point
 This module defines and runs the daily chat summarization pipeline using ZenML.
 """
 
+import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import click
 from src.steps.data_ingestion import chat_data_ingestion_step
@@ -42,15 +43,37 @@ def daily_chat_summarization_pipeline(
     channels_config: Dict[str, List[str]] | None = None,
     model_config: Dict[str, Any] = {},
     use_mock_data: bool = True,
+    days_back: int = 1,
+    max_messages: Optional[int] = None,
+    include_threads: bool = True,
 ) -> None:
-    """Daily chat summarization pipeline using LangGraph agents and Vertex AI.
+    """Daily chat summarization pipeline orchestrating ingestion, processing,
+    summarization, distribution and evaluation of chat conversations.
 
     Args:
-        data_sources: List of data sources to process (discord, slack)
-        output_targets: List of output destinations (notion, slack, github)
-        channels_config: Dict mapping source to list of channels
-        model_config: Configuration for the LLM model
-        use_mock_data: If True, uses mock data; if False, uses real chat APIs
+        data_sources: List of chat platforms to ingest from
+            (e.g. ``["discord", "slack"]``).
+        output_targets: Destinations for the generated summaries
+            (e.g. ``["notion", "slack", "github"]``).
+        channels_config: Mapping from each source to the channels that should
+            be fetched. If ``None`` a sensible default is applied.
+        model_config: Configuration dictionary for the LLM agent
+            (model name, temperature, max tokens, etc.).
+        use_mock_data: When ``True`` the pipeline runs against a local JSON
+            fixture instead of calling live APIs.
+        days_back: The number of whole days of history to retrieve for each
+            channel when **live** data is used. A value of ``1`` means "today
+            and yesterday".
+        max_messages: Upper limit on the number of messages to fetch per
+            channel or thread. ``None`` disables the limit. This only applies
+            when ``use_mock_data`` is ``False``.
+        include_threads: When ``True`` the Discord ingestion logic will also
+            collect thread messages in addition to root channel messages.
+            Ignored when ``use_mock_data`` is ``True``.
+
+    Returns:
+        None. The pipeline writes artefacts to the ZenML stack and may return
+        evaluation metrics for further inspection.
     """
     if model_config is None:
         model_config = {
@@ -65,12 +88,19 @@ def daily_chat_summarization_pipeline(
 
     # Step 1: Data ingestion from Discord/Slack
     if use_mock_data:
+        logger.info(
+            "Using mock data - ignoring days_back, max_messages, and include_threads parameters"
+        )
         raw_conversations = mock_chat_data_ingestion_step(
             data_sources=data_sources
         )
     else:
         raw_conversations = chat_data_ingestion_step(
-            data_sources=data_sources, channels_config=channels_config
+            data_sources=data_sources,
+            channels_config=channels_config,
+            days_back=days_back,
+            max_messages=max_messages,
+            include_threads=include_threads,
         )
 
     # Step 2: Text preprocessing and cleaning
@@ -111,18 +141,73 @@ def daily_chat_summarization_pipeline(
     default=True,
     help="Use mock data (default) or real chat APIs",
 )
-def main(mock_data: bool):
+@click.option(
+    "--days-back",
+    default=1,
+    show_default=True,
+    type=int,
+    help="Number of days to look back when fetching messages",
+)
+@click.option(
+    "--max-messages",
+    default=None,
+    type=int,
+    help="Maximum messages to fetch per channel/thread (None for unlimited)",
+)
+@click.option(
+    "--include-threads/--no-threads",
+    default=True,
+    show_default=True,
+    help="Include thread messages when fetching Discord data",
+)
+@click.option(
+    "--output-targets",
+    multiple=True,
+    default=["notion"],
+    show_default=True,
+    help="Output targets for summaries (notion, slack, discord)",
+)
+@click.option(
+    "--discord-channel-id",
+    default=None,
+    help="Discord channel ID for posting summaries (overrides env var)",
+)
+def main(
+    mock_data: bool,
+    days_back: int,
+    max_messages: Optional[int],
+    include_threads: bool,
+    output_targets: tuple,
+    discord_channel_id: Optional[str],
+):
     """Main function to run the pipeline with default configuration."""
     # Load environment variables
     from dotenv import load_dotenv
 
     load_dotenv()
 
+    # Override Discord channel ID if provided via CLI
+    if discord_channel_id:
+        os.environ["DISCORD_SUMMARY_CHANNEL_ID"] = discord_channel_id
+
     # Default configuration
     config = {
         "data_sources": ["discord"],  # Start with Discord only
-        "output_targets": ["notion"],  # Start with Notion output
-        "channels_config": {"discord": ["panagent-team"], "slack": []},
+        "output_targets": list(output_targets)
+        if output_targets
+        else ["notion"],
+        "channels_config": {
+            "discord": [
+                "panagent-team",
+                "growth-team",
+                "product-team",
+                "marketing-team",
+                "internal-team",
+                "help-me",
+                "random",
+            ],
+            "slack": [],
+        },
         "model_config": {
             "model_name": "gemini-2.5-flash",
             "max_tokens": 4000,
@@ -130,6 +215,9 @@ def main(mock_data: bool):
             "top_p": 0.95,
         },
         "use_mock_data": mock_data,
+        "days_back": days_back,
+        "max_messages": max_messages,
+        "include_threads": include_threads,
     }
 
     # Run the pipeline

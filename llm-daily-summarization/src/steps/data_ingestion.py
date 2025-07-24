@@ -5,7 +5,7 @@ Data ingestion step for chat platforms (Discord, Slack).
 import asyncio
 import os
 from datetime import UTC, datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from typing_extensions import Annotated
 from zenml import step
@@ -22,6 +22,8 @@ def chat_data_ingestion_step(
     data_sources: List[str],
     channels_config: Dict[str, List[str]] = None,
     days_back: int = 1,
+    max_messages: Optional[int] = None,
+    include_threads: bool = True,
 ) -> Annotated[RawConversationData, "raw_data"]:
     """Ingest chat data from specified sources.
 
@@ -29,6 +31,8 @@ def chat_data_ingestion_step(
         data_sources: List of sources to fetch from (discord, slack)
         channels_config: Dict mapping source to list of channels
         days_back: Number of days to look back for messages
+        max_messages: Max messages per history request (None for unlimited)
+        include_threads: When True, fetch Discord thread messages
 
     Returns:
         RawConversationData: Collected conversations from all sources
@@ -37,7 +41,12 @@ def chat_data_ingestion_step(
 
     if channels_config is None:
         # Default channel configuration
-        channels_config = {"discord": ["panagent-team"], "slack": []}
+        channels_config = {
+            "discord": [
+                "panagent-team",
+            ],
+            "slack": [],
+        }
 
     all_conversations = []
 
@@ -53,6 +62,8 @@ def chat_data_ingestion_step(
                     discord_client.fetch_messages(
                         channels=channels_config.get("discord", []),
                         days_back=days_back,
+                        max_messages=max_messages,
+                        include_threads=include_threads,
                     )
                 )
                 all_conversations.extend(discord_conversations)
