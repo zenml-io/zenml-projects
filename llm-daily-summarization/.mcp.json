@@ -1,5 +1,11 @@
 {
     "permissions": {
+      "additionalDirectories": ["../scripts/"],
+      "env": {
+        "ZENML_ANALYTICS_OPT_IN": 0,
+        "ZENML_ENABLE_RICH_TRACEBACK": 0
+      },
+      "includeCoAuthoredBy": false,
       "allow": [
       "Read(**)",
       "Glob(**)",
