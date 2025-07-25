@@ -83,6 +83,7 @@ def daily_chat_summarization_pipeline(
             "model_name": "gemini-2.5-flash",
             "max_tokens": 4000,
             "temperature": 0.1,
+            "max_workers": 4,  # default parallel workers
         }
 
     logger.info(f"Starting daily summarization pipeline at {datetime.now()}")
@@ -222,6 +223,7 @@ def main(
             "max_tokens": 4000,
             "temperature": 0.1,
             "top_p": 0.95,
+            "max_workers": 4,  # default parallel workers
         },
         "use_mock_data": mock_data,
         "days_back": days_back,

@@ -2,9 +2,11 @@
 Task extractor agent for identifying action items and tasks from conversations.
 """
 
+import concurrent.futures
+import threading
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import litellm
 from zenml import get_step_context
@@ -21,7 +23,7 @@ from ..utils.models import ConversationData, TaskItem
 class TaskExtractorAgent:
     """Agent responsible for extracting tasks and action items from conversations."""
 
-    def __init__(self, model_config: Dict[str, Any]):
+    def __init__(self, model_config: Dict[str, Any], max_workers: int = 4):
         self.model_config = model_config
         self.model_name = (
             f"vertex_ai/{model_config.get('model_name', 'gemini-2.5-flash')}"
@@ -29,6 +31,10 @@ class TaskExtractorAgent:
         self.max_tokens = model_config.get("max_tokens", 2000)
         self.temperature = model_config.get("temperature", 0.1)
         self.top_p = model_config.get("top_p", 0.95)
+
+        # Parallelism / rate limiting
+        self.max_workers = model_config.get("max_workers", max_workers)
+        self._semaphore = threading.Semaphore(self.max_workers)
 
         # Initialize LiteLLM-Langfuse integration (may fail due to version conflicts)
         self.langfuse_enabled = initialize_litellm_langfuse()
@@ -281,21 +287,66 @@ class TaskExtractorAgent:
 
         return None
 
+    def _safe_extract_tasks(
+        self, conversation: ConversationData
+    ) -> Tuple[List[TaskItem] | None, str | None]:
+        """Thread-safe wrapper around extract_tasks capturing errors.
+
+        Returns:
+            (tasks | None, error | None)
+        """
+        self._semaphore.acquire()
+        try:
+            tasks = self.extract_tasks(conversation)
+            return tasks, None
+        except Exception as e:
+            return (
+                None,
+                f"Error extracting tasks from {conversation.channel_name}: {e}",
+            )
+        finally:
+            self._semaphore.release()
+
     def extract_tasks_from_multiple_conversations(
         self, conversations: List[ConversationData]
-    ) -> List[TaskItem]:
-        """Extract tasks from multiple conversations."""
+    ) -> Tuple[List[TaskItem], List[str]]:
+        """Extract tasks from many conversations concurrently.
 
-        all_tasks = []
+        Args:
+            conversations: List of conversations.
 
-        for conversation in conversations:
-            conversation_tasks = self.extract_tasks(conversation)
-            all_tasks.extend(conversation_tasks)
+        Returns:
+            Tuple of (deduplicated_tasks, errors)
+        """
 
-        # Deduplicate similar tasks
+        # Short-circuit single conversation to preserve existing behaviour
+        if len(conversations) == 1:
+            tasks = self.extract_tasks(conversations[0])
+            deduped = self._deduplicate_tasks(tasks)
+            return deduped, []
+
+        all_tasks: List[TaskItem] = []
+        errors: List[str] = []
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.max_workers
+        ) as executor:
+            futures = {
+                executor.submit(self._safe_extract_tasks, conv): conv
+                for conv in conversations
+            }
+
+            for future in concurrent.futures.as_completed(futures):
+                tasks_result, err = future.result()
+                if tasks_result:
+                    all_tasks.extend(tasks_result)
+                if err:
+                    errors.append(err)
+
+        # Deduplicate only successful extractions
         deduplicated_tasks = self._deduplicate_tasks(all_tasks)
 
-        return deduplicated_tasks
+        return deduplicated_tasks, errors
 
     def _deduplicate_tasks(self, tasks: List[TaskItem]) -> List[TaskItem]:
         """Remove duplicate or very similar tasks."""

@@ -2,9 +2,11 @@
 Summarizer agent for creating conversation summaries using Vertex AI.
 """
 
+import concurrent.futures
+import threading
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import litellm
 from zenml import get_step_context
@@ -26,7 +28,7 @@ from ..utils.models import ConversationData, Summary
 class SummarizerAgent:
     """Agent responsible for creating conversation summaries."""
 
-    def __init__(self, model_config: Dict[str, Any]):
+    def __init__(self, model_config: Dict[str, Any], max_workers: int = 4):
         self.model_config = model_config
         self.model_name = (
             f"vertex_ai/{model_config.get('model_name', 'gemini-2.5-flash')}"
@@ -34,6 +36,11 @@ class SummarizerAgent:
         self.max_tokens = model_config.get("max_tokens", 4000)
         self.temperature = model_config.get("temperature", 0.1)
         self.top_p = model_config.get("top_p", 0.95)
+
+        # Parallelism / rate-limiting parameters
+        self.max_workers = model_config.get("max_workers", max_workers)
+        # Semaphore ensures we never have more than max_workers LLM calls in-flight
+        self._semaphore = threading.Semaphore(self.max_workers)
 
         # Initialize LiteLLM-Langfuse integration (may fail due to version conflicts)
         self.langfuse_enabled = initialize_litellm_langfuse()
@@ -229,27 +236,75 @@ class SummarizerAgent:
 
         return min(score, 1.0)
 
+    def _safe_create_summary(
+        self, conversation: ConversationData
+    ) -> Tuple[Summary | None, str | None]:
+        """Thread-safe wrapper around create_summary that captures errors.
+
+        Returns:
+            (Summary | None, str | None): Tuple where the first element is the
+            generated Summary (or None if failed) and the second element is an
+            error message (or None if successful).
+        """
+        # Acquire the semaphore to respect the concurrency cap
+        self._semaphore.acquire()
+        try:
+            summary = self.create_summary(conversation)
+            return summary, None
+        except Exception as e:
+            return None, f"Error summarizing {conversation.channel_name}: {e}"
+        finally:
+            # Always release so other threads can proceed
+            self._semaphore.release()
+
     def create_multi_conversation_summary(
         self, conversations: List[ConversationData]
-    ) -> Summary:
-        """Create a combined summary for multiple conversations."""
+    ) -> Tuple[Summary, List[str]]:
+        """Create a combined summary for multiple conversations (parallel).
 
+        NOTE: Method now returns a tuple (combined_summary, errors). Down-stream
+        callers must handle the additional error list.
+        """
+
+        # Single conversation shortcut (maintain existing behaviour)
         if len(conversations) == 1:
-            return self.create_summary(conversations[0])
+            summary = self.create_summary(conversations[0])
+            return summary, []
 
-        # Create individual summaries first
-        individual_summaries = []
-        for conversation in conversations:
-            summary = self.create_summary(conversation)
-            individual_summaries.append(summary)
+        # Parallel summarization of individual conversations
+        individual_summaries: List[Summary] = []
+        errors: List[str] = []
 
-        # Combine summaries
-        combined_text = "\n\n".join(
-            [
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.max_workers
+        ) as executor:
+            # Map conversations to _safe_create_summary
+            futures = {
+                executor.submit(self._safe_create_summary, conv): conv
+                for conv in conversations
+            }
+
+            for future in concurrent.futures.as_completed(futures):
+                summary, error = future.result()
+                if summary:
+                    individual_summaries.append(summary)
+                if error:
+                    errors.append(error)
+
+        # If no successful summaries, we cannot build a combined summary
+        if not individual_summaries:
+            raise RuntimeError(
+                "Failed to create any conversation summaries. "
+                f"Errors: {errors}"
+            )
+
+        # Combine successful summaries
+        combined_text_parts = []
+        for conv, summary in zip(conversations, individual_summaries):
+            combined_text_parts.append(
                 f"#{conv.channel_name} ({conv.source}): {summary.content}"
-                for conv, summary in zip(conversations, individual_summaries)
-            ]
-        )
+            )
+        combined_text = "\n\n".join(combined_text_parts)
 
         system_prompt = DAILY_DIGEST_SYSTEM_PROMPT
         human_prompt = DAILY_DIGEST_HUMAN_PROMPT.format(
@@ -274,7 +329,7 @@ class SummarizerAgent:
             "trace_user_id": "zenml_pipeline",
             "generation_name": "daily_digest",
             "trace_metadata": {
-                "total_conversations": len(conversations),
+                "total_conversations": len(individual_summaries),
                 "channels": [c.channel_name for c in conversations],
                 "sources": list(set(c.source for c in conversations)),
             },
@@ -289,14 +344,14 @@ class SummarizerAgent:
             metadata=metadata if self.langfuse_enabled else {},
         )
 
-        # Combine metadata from all conversations
+        # Combine metadata from all individual summaries
         all_participants = set()
         all_topics = []
         for summary in individual_summaries:
             all_participants.update(summary.participants)
             all_topics.extend(summary.topics)
 
-        return Summary(
+        combined_summary = Summary(
             title="Daily Team Digest",
             content=response.choices[0].message.content,
             key_points=[],  # Could extract from combined summary
@@ -305,3 +360,6 @@ class SummarizerAgent:
             word_count=len(response.choices[0].message.content.split()),
             confidence_score=0.8,  # Default confidence for combined summaries
         )
+
+        # Return both combined summary and list of individual errors
+        return combined_summary, errors

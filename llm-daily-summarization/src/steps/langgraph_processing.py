@@ -34,6 +34,7 @@ class AgentState(TypedDict):
     processing_metadata: Dict[str, Any]
     llm_usage_stats: Dict[str, Any]
     current_step: str
+    errors: List[str]  # NEW: collect non-fatal errors
     messages: Annotated[list, add_messages]
 
 
@@ -41,14 +42,25 @@ class LangGraphOrchestrator:
     """Orchestrates the multi-agent workflow using LangGraph."""
 
     def __init__(
-        self, model_config: Dict[str, Any], *, extract_tasks: bool = True
+        self,
+        model_config: Dict[str, Any],
+        *,
+        extract_tasks: bool = True,
+        max_workers: int = 4,
     ):
         """Initialize the LangGraph orchestrator."""
         self.model_config = model_config
         self.extract_tasks = extract_tasks
-        self.summarizer_agent = SummarizerAgent(model_config)
+        self.max_workers = max_workers
+
+        # Pass concurrency limits down to the agents
+        self.summarizer_agent = SummarizerAgent(
+            model_config, max_workers=max_workers
+        )
         self.task_extractor_agent = (
-            TaskExtractorAgent(model_config) if self.extract_tasks else None
+            TaskExtractorAgent(model_config, max_workers=max_workers)
+            if self.extract_tasks
+            else None
         )
         self.trace_id = str(uuid.uuid4())
 
@@ -136,6 +148,7 @@ class LangGraphOrchestrator:
         state["current_step"] = "summarizing"
 
         summaries = []
+        summarize_errors: List[str] = []  # NEW
 
         # Convert conversations back to ConversationData objects
         conversation_objects = []
@@ -196,19 +209,22 @@ class LangGraphOrchestrator:
                     )
                     conv_objs.append(conv_obj)
 
-                daily_summary = (
+                combined_summary, errors = (
                     self.summarizer_agent.create_multi_conversation_summary(
                         conv_objs
                     )
                 )
-                summaries.append(daily_summary.dict())
+                summaries.append(combined_summary.dict())
+                summarize_errors.extend(errors)  # NEW collect any errors
 
                 state["llm_usage_stats"]["api_calls"] += 1
                 state["llm_usage_stats"]["summarization_tokens"] += len(
-                    daily_summary.content.split()
+                    combined_summary.content.split()
                 )
 
             state["summaries"] = summaries
+            # Merge newly gathered errors into state
+            state.setdefault("errors", []).extend(summarize_errors)  # NEW
 
             logger.info(
                 f"Summarization complete: {len(summaries)} summaries generated"
@@ -242,6 +258,7 @@ class LangGraphOrchestrator:
         state["current_step"] = "extracting_tasks"
 
         all_tasks = []
+        extraction_errors: List[str] = []  # NEW
 
         try:
             # Convert conversations back to ConversationData objects
@@ -264,16 +281,22 @@ class LangGraphOrchestrator:
                 conversation_objects.append(conv_obj)
 
             # Extract tasks from all conversations
-            tasks = self.task_extractor_agent.extract_tasks_from_multiple_conversations(
-                conversation_objects
+            tasks, errors = (
+                self.task_extractor_agent.extract_tasks_from_multiple_conversations(  # type: ignore
+                    conversation_objects
+                )
             )
             all_tasks = [task.dict() for task in tasks]
+            extraction_errors.extend(errors)  # NEW
 
             state["tasks"] = all_tasks
             state["llm_usage_stats"]["api_calls"] += len(conversation_objects)
             state["llm_usage_stats"]["task_extraction_tokens"] += sum(
                 len(task["description"].split()) for task in all_tasks
             )
+
+            # Append newly collected errors
+            state.setdefault("errors", []).extend(extraction_errors)  # NEW
 
             logger.info(
                 f"Task extraction complete: {len(all_tasks)} tasks identified"
@@ -1185,9 +1208,12 @@ def langgraph_agent_step(
         f"Starting LangGraph agent processing for {len(raw_data.conversations)} conversations"
     )
 
-    # Initialize the orchestrator
+    # Initialize the orchestrator with max_workers from config
+    max_workers = model_config.get("max_workers", 4)
     orchestrator = LangGraphOrchestrator(
-        model_config, extract_tasks=extract_tasks
+        model_config,
+        extract_tasks=extract_tasks,
+        max_workers=max_workers,
     )
 
     # Prepare initial state
@@ -1198,6 +1224,7 @@ def langgraph_agent_step(
         processing_metadata={},
         llm_usage_stats={},
         current_step="",
+        errors=[],  # NEW
         messages=[],
     )
 
@@ -1217,6 +1244,7 @@ def langgraph_agent_step(
         llm_usage_stats=final_state["llm_usage_stats"],
         agent_trace_id=orchestrator.trace_id,
         run_id=orchestrator.run_id,
+        errors=final_state.get("errors", []),  # NEW: propagate errors
     )
 
     logger.info(

@@ -110,6 +110,10 @@ class ProcessedData(BaseModel):
     run_id: str = Field(
         description="ZenML pipeline run identifier for trace tagging"
     )
+    errors: List[str] = Field(  # New
+        default_factory=list,
+        description="Non-fatal errors encountered during processing",
+    )
 
 
 class DeliveryResult(BaseModel):

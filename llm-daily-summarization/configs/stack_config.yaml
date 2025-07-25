@@ -54,6 +54,8 @@ model_config:
   max_tokens: 4000
   temperature: 0.1
   top_p: 0.95
+  # Parallel processing configuration
+  max_workers: 4  # Number of concurrent API calls for summarization/task extraction
 
 # Data ingestion configuration
 data_config:
