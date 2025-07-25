@@ -1,6 +1,4 @@
-"""
-Centralized prompts for all LLM agents in the daily summarization pipeline.
-"""
+"""Centralized prompts for all LLM agents in the daily summarization pipeline."""
 
 # Summarizer Agent Prompts
 SUMMARIZER_SYSTEM_PROMPT = """You are an expert at summarizing team conversations. Create a concise, informative summary that captures the key discussion points, decisions, and outcomes.
