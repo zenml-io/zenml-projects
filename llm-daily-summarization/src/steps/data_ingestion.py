@@ -11,13 +11,16 @@ from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
+from ..materializers import (
+    RawConversationDataMaterializer,  # HTML visualization
+)
 from ..utils.models import RawConversationData
 from ..utils.platforms import DiscordClient, SlackClient  # NEW import path
 
 logger = get_logger(__name__)
 
 
-@step
+@step(output_materializers=RawConversationDataMaterializer)
 def chat_data_ingestion_step(
     data_sources: List[str],
     channels_config: Dict[str, List[str]] = None,

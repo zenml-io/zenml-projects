@@ -1,1 +1,2 @@
 # Custom materializers for ZenML artifacts
+from .raw_conversation_data_materializer import RawConversationDataMaterializer

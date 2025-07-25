@@ -11,12 +11,15 @@ from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
+from ..materializers import (
+    RawConversationDataMaterializer,  # HTML visualization
+)
 from ..utils.models import ChatMessage, ConversationData, RawConversationData
 
 logger = get_logger(__name__)
 
 
-@step
+@step(output_materializers=RawConversationDataMaterializer)
 def mock_chat_data_ingestion_step(
     data_sources: List[str],
     sample_data_path: str = "data/sample_conversations.json",
