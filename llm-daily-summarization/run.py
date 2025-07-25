@@ -106,7 +106,7 @@ def daily_chat_summarization_pipeline(
             include_threads=include_threads,
         )
 
-    # Step 2: LangGraph agent processing with Vertex AI
+    # Step 2: LangGraph agent processing
     summaries_and_tasks, _ = langgraph_agent_step(
         raw_data=raw_conversations,
         model_config=model_config,
