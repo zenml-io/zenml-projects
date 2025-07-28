@@ -40,3 +40,6 @@ mypy>=1.11.0
 # Optional: For enhanced logging and debugging
 rich>=13.0.0
 structlog>=24.0.0
+
+# Annotation interface
+python-fasthtml[full]
