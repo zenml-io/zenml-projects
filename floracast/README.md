@@ -27,11 +27,6 @@ The training pipeline handles the complete ML workflow:
 2. **Preprocessing** - Converts to Darts TimeSeries with train/validation split  
 3. **Model Training** - Trains TFT model with configurable parameters
 4. **Evaluation** - Computes SMAPE metrics on validation set
-5. **Model Registration** - Registers model artifacts for tracking
-
-```bash
-python run.py --config configs/training.yaml --pipeline train
-```
 
 ### 2. Batch Inference Pipeline
 
@@ -39,19 +34,15 @@ The inference pipeline generates predictions using trained models:
 
 1. **Data Ingestion** - Loads new data for predictions
 2. **Preprocessing** - Applies same transformations as training
-3. **Model Loading** - Loads most recent trained model
-4. **Batch Inference** - Generates forecasts and saves to CSV
+3. **Batch Inference** - Generates forecasts and saves to CSV
 
-```bash
-python run.py --config configs/inference.yaml --pipeline inference
-```
 
 ## 📦 Installation
 
 ### Prerequisites
 
-- Python 3.8+
-- ZenML account (optional for cloud features)
+- Python 3.9+
+- [Deployed ZenML](https://docs.zenml.io/deploying-zenml/deploying-zenml)
 - Virtual environment (recommended)
 
 ### Setup
@@ -70,12 +61,6 @@ source venv/bin/activate  # On Windows: venv\\Scripts\\activate
 3. **Install dependencies**:
 ```bash
 pip install -r requirements.txt
-```
-
-4. **Configure environment** (optional):
-```bash
-cp .env.example .env
-# Edit .env with your configuration
 ```
 
 ## ⚡ Quick Start
@@ -114,22 +99,6 @@ Edit the appropriate config file to customize:
 - **Evaluation**: Forecasting horizon, metrics
 - **Output**: File paths and formats
 
-Example configuration:
-```yaml
-model:
-  name: "TFTModel"
-  params:
-    input_chunk_length: 30
-    output_chunk_length: 7
-    hidden_size: 32
-    n_epochs: 10
-    add_relative_index: true
-
-evaluation:
-  horizon: 7
-  metric: "smape"
-```
-
 ## 🔧 Architecture
 
 ### Directory Structure
@@ -144,7 +113,6 @@ floracast/
 │   ├── inference.yaml      # Inference pipeline config  
 ├── data/
 │   └── ecommerce_daily.csv # Generated sample data
-├── outputs/                # Inference results
 ├── pipelines/
 │   ├── train_forecast_pipeline.py
 │   └── batch_inference_pipeline.py
@@ -157,7 +125,8 @@ floracast/
 │   ├── batch_infer.py     # Batch predictions
 │   └── load_model.py      # Model loading utilities
 ├── materializers/
-│   └── darts_materializer.py  # Custom TimeSeries materializer
+│   └── tft_materializer.py         # Custom TFTModel materializer
+|   └── timeseries_materializer.py  # Custom TimeSeries materializer
 ├── utils/
 │   └── metrics.py         # Forecasting metrics
 └── run.py                 # Main entry point
@@ -169,29 +138,6 @@ floracast/
 - **Flexible Models**: TFT primary, ExponentialSmoothing fallback
 - **Comprehensive Logging**: Detailed pipeline execution tracking
 - **Artifact Naming**: Clear, descriptive names for all pipeline outputs
-
-## 📊 Features in Detail
-
-### Time Series Forecasting
-
-- **Multiple Models**: TFT (Temporal Fusion Transformer) and ExponentialSmoothing
-- **Automated Feature Engineering**: Relative index encoding for TFT
-- **Flexible Horizons**: Configurable forecasting windows
-- **Performance Metrics**: SMAPE evaluation with fallback handling
-
-### MLOps Best Practices
-
-- **Artifact Versioning**: Every model run is tracked and versioned
-- **Pipeline Caching**: Intelligent caching to avoid redundant computation  
-- **Configuration Management**: Environment-specific YAML configs
-- **Error Handling**: Graceful fallbacks and comprehensive logging
-
-### Production Ready
-
-- **Custom Materializers**: Production-grade artifact serialization
-- **Visualization Support**: Built-in time series plots in ZenML dashboard
-- **Metadata Tracking**: Rich metadata for all artifacts and models
-- **Scalable Architecture**: Ready for cloud deployment
 
 ## 🚀 Production Deployment
 
@@ -241,20 +187,6 @@ Read more:
 - **AzureML Step Operator**: [Docs](https://docs.zenml.io/stacks/stack-components/step-operators/azureml)
 - **Terraform stack recipe for Azure**: [Hashicorp Registry](https://registry.terraform.io/modules/zenml-io/zenml-stack/azure/latest)
 
-### Azure Kubernetes Service (AKS)
-
-The project includes configuration for AKS deployment:
-
-**Prerequisites**:
-   - AKS cluster configured
-   - Azure Container Registry (ACR)  
-   - Azure Blob Storage for artifacts
-
-### Scaling Considerations
-
-- **Model Parameters**: AKS config uses larger model sizes and longer training
-- **Resource Allocation**: Configure memory/CPU limits for forecasting workloads
-- **Storage**: Use Azure Blob for artifact persistence across pipeline runs
 
 ## 🔬 Advanced Usage
 
@@ -264,11 +196,36 @@ Replace the default ecommerce data:
 
 1. **Update configuration**:
 ```yaml
-data:
-  source: "csv"
-  path: "path/to/your/data.csv"
-  datetime_col: "timestamp"
-  target_col: "sales"
+# configs/training.yaml
+steps:
+  ingest_data:
+    parameters:
+      data_source: "csv"          # or "ecommerce_default"
+      data_path: "path/to/your/data.csv"
+      datetime_col: "timestamp"
+      target_col: "sales"
+  preprocess_for_training:
+    parameters:
+      datetime_col: "timestamp"
+      target_col: "sales"
+      freq: "D"
+      val_ratio: 0.2
+```
+
+```yaml
+# configs/inference.yaml
+steps:
+  ingest_data:
+    parameters:
+      data_source: "csv"
+      data_path: "path/to/your/data.csv"
+      datetime_col: "timestamp"
+      target_col: "sales"
+  preprocess_for_inference:
+    parameters:
+      datetime_col: "timestamp"
+      target_col: "sales"
+      freq: "D"
 ```
 
 2. **Ensure data format**:
@@ -281,10 +238,12 @@ data:
 Try different forecasting models by updating the config:
 
 ```yaml
-model:
-  name: "ExponentialSmoothing"  # Fallback model
-  params:
-    seasonal_periods: 7
+# configs/training.yaml
+steps:
+  train_model:
+    parameters:
+      model_name: "ExponentialSmoothing"  # Switch from TFT to ES
+      # Note: ExponentialSmoothing uses default params in code currently
 ```
 
 ### Custom Metrics
@@ -292,9 +251,38 @@ model:
 Extend `utils/metrics.py` to add additional forecasting metrics:
 
 ```python
-def mase(actual: TimeSeries, predicted: TimeSeries) -> float:
-    # Mean Absolute Scaled Error implementation
-    pass
+from typing import Union
+import numpy as np
+from darts import TimeSeries
+
+def mase(actual: Union[TimeSeries, np.ndarray], predicted: Union[TimeSeries, np.ndarray]) -> float:
+    """Mean Absolute Scaled Error (example stub)."""
+    # Implement MASE here
+    return 0.0
+```
+
+Update `steps/evaluate.py` to import and route to the new metric:
+
+```python
+from utils.metrics import smape, mase
+
+# ... inside evaluate(...)
+if metric == "smape":
+    score = smape(actual, predictions_for_eval)
+elif metric == "mase":
+    score = mase(actual, predictions_for_eval)
+else:
+    raise ValueError(f"Unknown metric: {metric}")
+```
+
+Then configure the metric in your training config (after updating `evaluate`):
+
+```yaml
+# configs/training.yaml
+steps:
+  evaluate:
+    parameters:
+      metric: "mase"
 ```
 
 ## 🤝 Contributing
@@ -314,7 +302,6 @@ After running FloraCast successfully:
 2. **Experiment with Models**: Try different TFT configurations
 3. **Add Real Data**: Replace synthetic data with your forecasting use case
 4. **Deploy to Production**: Use AKS configuration for scale
-5. **Model Registry**: Implement proper model promotion workflows
 
 ## 🆘 Troubleshooting
 

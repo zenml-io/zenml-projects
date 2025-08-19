@@ -20,8 +20,6 @@ def train_forecast_pipeline() -> None:
     Training pipeline that ingests data, preprocesses it, trains a model,
     evaluates it, and promotes it via ZenML Model Control Plane.
     """
-    logger.info("Starting FloraCast training pipeline")
-
     # Step 1: Ingest data
     raw_data = ingest_data()
 
@@ -37,6 +35,4 @@ def train_forecast_pipeline() -> None:
     )
 
     # Step 5: Register model and promote if better
-    promotion_status = promote_model(current_score=score)
-
-    logger.info(f"Training pipeline completed: {promotion_status}")
+    _ = promote_model(current_score=score)
