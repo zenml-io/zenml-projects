@@ -48,8 +48,12 @@ The inference pipeline generates predictions using trained models:
 
 ### 🔧 Architecture
 
+![FloraCast Architecture](assets/architecture.png)
+*Complete system architecture showing data flow through ZenML pipelines, from raw data ingestion to model training, evaluation, and automated batch inference.*
+
 ![ZenML Model Control Plane](assets/mcp_floracast.png)
 *FloraCast leverages ZenML's Model Control Plane for enterprise-grade model versioning, lineage tracking, and automated deployment workflows.*
+
 
 
 ## 📦 Installation
@@ -114,7 +118,7 @@ Edit the appropriate config file to customize:
 - **Evaluation**: Forecasting horizon, metrics
 - **Output**: File paths and formats
 
-### Directory Structure
+
 
 ```
 floracast/
