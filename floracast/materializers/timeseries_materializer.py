@@ -210,8 +210,9 @@ class DartsTimeSeriesMaterializer(BaseMaterializer):
         with fileio.open(metadata_path, "w") as f:
             json.dump(metadata, f)
 
-        # Create a lightweight preview plot
+        # Create a lightweight preview plot and visualizations bundle
         try:
+            # Save a standalone preview image at the artifact root
             preview_path = os.path.join(self.uri, "preview.png")
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 fig, ax = plt.subplots(figsize=(8, 3))
@@ -229,9 +230,77 @@ class DartsTimeSeriesMaterializer(BaseMaterializer):
                 with open(tmp.name, "rb") as src_f:
                     with fileio.open(preview_path, "wb") as dst_f:
                         dst_f.write(src_f.read())
+            logger.info(f"Saved TimeSeries preview to {preview_path}")
+
+            # Also store under a standard 'visualizations' folder with an index.html
+            viz_dir = os.path.join(self.uri, "visualizations")
+            viz_img_path = os.path.join(viz_dir, "preview.png")
+            viz_index_path = os.path.join(viz_dir, "index.html")
+
+            # Write the image
+            with fileio.open(preview_path, "rb") as src_f:
+                with fileio.open(viz_img_path, "wb") as dst_f:
+                    dst_f.write(src_f.read())
+
+            # Write a simple HTML wrapper
+            html = (
+                "<html><head><meta charset='utf-8'><title>TimeSeries Preview"
+                '</title></head><body style="margin:0;padding:0;">'
+                "<img src='preview.png' style='max-width:100%;height:auto;'/></body></html>"
+            )
+            with fileio.open(viz_index_path, "w") as f:
+                f.write(html)
         except Exception as e:
             # Best-effort; do not fail the materialization for plotting issues
             logger.warning(f"Failed to create TimeSeries preview plot: {e}")
+
+        # Attempt to let the base implementation pick up visualizations (best-effort)
+        try:
+            self.save_visualizations(data)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+    def save_visualizations(self, data: Any) -> None:
+        """Save standard visualizations that ZenML UIs can render.
+
+        Creates a 'visualizations' directory with a preview image and index.html.
+        """
+        try:
+            df = data.pd_dataframe()
+            df_reset = df.reset_index()
+            time_col_name = df_reset.columns[0]
+            value_cols = list(df_reset.columns[1:])
+
+            viz_dir = os.path.join(self.uri, "visualizations")
+            viz_img_path = os.path.join(viz_dir, "preview.png")
+            viz_index_path = os.path.join(viz_dir, "index.html")
+
+            with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+                fig, ax = plt.subplots(figsize=(8, 3))
+                x_vals = df_reset[time_col_name]
+                for col in value_cols:
+                    ax.plot(x_vals, df_reset[col], label=col, linewidth=1)
+                ax.set_title("TimeSeries Preview")
+                ax.set_xlabel(str(time_col_name))
+                ax.set_ylabel("value")
+                if len(value_cols) > 1:
+                    ax.legend(loc="upper right", fontsize=8)
+                fig.tight_layout()
+                fig.savefig(tmp.name, dpi=120)
+                plt.close(fig)
+                with open(tmp.name, "rb") as src_f:
+                    with fileio.open(viz_img_path, "wb") as dst_f:
+                        dst_f.write(src_f.read())
+
+            html = (
+                "<html><head><meta charset='utf-8'><title>TimeSeries Preview"
+                '</title></head><body style="margin:0;padding:0;">'
+                "<img src='preview.png' style='max-width:100%;height:auto;'/></body></html>"
+            )
+            with fileio.open(viz_index_path, "w") as f:
+                f.write(html)
+        except Exception as e:
+            logger.warning(f"Failed to write visualizations bundle: {e}")
 
     def extract_metadata(self, data: Any) -> Dict[str, MetadataType]:
         """Extract lightweight metadata from a TimeSeries."""
