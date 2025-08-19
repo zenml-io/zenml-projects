@@ -1,15 +1,17 @@
 # 🌸 FloraCast
 
-A production-ready MLOps pipeline for time series forecasting using ZenML and Darts, designed for DFG's forecasting needs.
+A production-ready MLOps pipeline for **timeseries prediction** and **forecasting** using ZenML and [Darts](https://unit8co.github.io/darts/index.html), designed for enterprise demand and sales forecasting across retail, e-commerce, and supply chain use cases.
 
 ## 🚀 Product Overview
 
 FloraCast demonstrates how to build end-to-end MLOps workflows for time series forecasting. Built with ZenML's robust framework, it showcases enterprise-grade machine learning pipelines that can be deployed in both development and production environments.
 
+Focus: **Timeseries Prediction** and **Forecasting**.
+
 ### Key Features
 
-- **End-to-End Forecasting Pipeline**: From data ingestion to model deployment
-- **Darts Integration**: Support for advanced forecasting models like TFT (Temporal Fusion Transformer)
+- **End-to-End Timeseries Prediction & Forecasting Pipeline**: From data ingestion to batch inference on a schedule.
+- **Darts Integration**: Support for advanced forecasting models like [TFT (Temporal Fusion Transformer)](https://unit8co.github.io/darts/generated_api/darts.models.forecasting.tft_model.html)
 - **Custom Materializers**: Production-ready artifact handling with visualizations
 - **Model Versioning**: Track and compare different model versions
 - **Flexible Configuration**: YAML-based configuration for different environments
