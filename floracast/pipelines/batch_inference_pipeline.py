@@ -16,12 +16,8 @@ def batch_inference_pipeline() -> None:
     """
     Batch inference pipeline that loads model from Model Control Plane and generates predictions.
     """
-    logger.info("Starting FloraCast batch inference pipeline")
-
     # Step 1: Ingest data (simulate real-time data sources)
     raw_data = ingest_data(infer=True)
 
     # Step 2: Generate predictions using model from MCP (with scaling handled internally)
     batch_inference_predict(df=raw_data)
-
-    logger.info("Batch inference completed. Returning predictions DataFrame.")

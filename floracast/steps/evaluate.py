@@ -236,7 +236,7 @@ def create_evaluation_visualization(
         return HTMLString(error_html)
 
 
-@step
+@step(enable_cache=False)
 def evaluate(
     model: object,
     train_series: TimeSeries,

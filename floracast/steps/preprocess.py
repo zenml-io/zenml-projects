@@ -75,6 +75,70 @@ def preprocess_data(
     train_series = train_series.astype(np.float32)
     val_series = val_series.astype(np.float32)
 
+    # Check for NaN/inf values in scaled data
+    train_values = train_series.pd_dataframe().values
+    val_values = val_series.pd_dataframe().values
+
+    train_nan_count = np.isnan(train_values).sum()
+    train_inf_count = np.isinf(train_values).sum()
+    val_nan_count = np.isnan(val_values).sum()
+    val_inf_count = np.isinf(val_values).sum()
+
+    logger.info(
+        f"Data quality check - Train NaN: {train_nan_count}, Train Inf: {train_inf_count}"
+    )
+    logger.info(
+        f"Data quality check - Val NaN: {val_nan_count}, Val Inf: {val_inf_count}"
+    )
+
+    # Check for extreme values that could cause numerical instability
+    train_min, train_max = train_values.min(), train_values.max()
+    val_min, val_max = val_values.min(), val_values.max()
+    logger.info(
+        f"Value ranges - Train: [{train_min:.6f}, {train_max:.6f}], Val: [{val_min:.6f}, {val_max:.6f}]"
+    )
+
+    # Flag potentially problematic values
+    needs_cleaning = (
+        train_nan_count > 0
+        or train_inf_count > 0
+        or val_nan_count > 0
+        or val_inf_count > 0
+        or abs(train_min) > 1e6
+        or abs(train_max) > 1e6
+        or abs(val_min) > 1e6
+        or abs(val_max) > 1e6
+    )
+
+    if needs_cleaning:
+        logger.warning(
+            "Found potentially problematic values in scaled data - cleaning..."
+        )
+
+        # Replace NaN/Inf and clip extreme values
+        train_df = train_series.pd_dataframe()
+        val_df = val_series.pd_dataframe()
+
+        # Handle NaN/Inf
+        train_df = train_df.replace([np.inf, -np.inf], np.nan)
+        val_df = val_df.replace([np.inf, -np.inf], np.nan)
+
+        train_df = train_df.fillna(0.0)
+        val_df = val_df.fillna(0.0)
+
+        # Clip extreme values to reasonable range
+        train_df = train_df.clip(-10.0, 10.0)
+        val_df = val_df.clip(-10.0, 10.0)
+
+        train_series = TimeSeries.from_dataframe(train_df).astype(np.float32)
+        val_series = TimeSeries.from_dataframe(val_df).astype(np.float32)
+
+        logger.info(
+            "Cleaned data - replaced NaN/Inf and clipped to [-10, 10] range"
+        )
+    else:
+        logger.info("Data quality check passed - no problematic values found")
+
     # Return fitted scaler as artifact for inference use
     logger.info("Returning fitted scaler as artifact for inference use")
 

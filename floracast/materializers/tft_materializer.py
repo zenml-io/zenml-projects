@@ -32,22 +32,30 @@ class TFTModelMaterializer(BaseMaterializer):
         """Load a TFT model using enhanced reconstruction strategy."""
         # using top-level TFTModel import
 
-        # Check what save strategies were used
-        strategy_info = self._load_strategy_info()
+        # Set PyTorch default dtype to float32 for consistent precision
+        original_dtype = torch.get_default_dtype()
+        torch.set_default_dtype(torch.float32)
 
-        # Try enhanced reconstruction if PyTorch state was saved
-        if strategy_info.get("pytorch_model_saved", False):
-            try:
-                return self._load_with_pytorch_state()
-            except Exception as e:
-                logger.warning(f"Enhanced reconstruction failed: {e}")
-
-        # Fallback to pickle loading
         try:
-            return self._load_pickle_format()
-        except Exception as e:
-            logger.error(f"All loading strategies failed: {e}")
-            raise
+            # Check what save strategies were used
+            strategy_info = self._load_strategy_info()
+
+            # Try enhanced reconstruction if PyTorch state was saved
+            if strategy_info.get("pytorch_model_saved", False):
+                try:
+                    return self._load_with_pytorch_state()
+                except Exception as e:
+                    logger.warning(f"Enhanced reconstruction failed: {e}")
+
+            # Fallback to pickle loading
+            try:
+                return self._load_pickle_format()
+            except Exception as e:
+                logger.error(f"All loading strategies failed: {e}")
+                raise
+        finally:
+            # Restore original PyTorch dtype
+            torch.set_default_dtype(original_dtype)
 
     def _load_native_format(self) -> Any:
         """Load TFT model using native Darts save format."""
@@ -206,10 +214,10 @@ class TFTModelMaterializer(BaseMaterializer):
         with fileio.open(pickle_path, "rb") as f:
             model = pickle.load(f)
 
-        logger.warning(
-            "Loaded from pickle - internal PyTorch model may be None"
-        )
-        return model
+            logger.warning(
+                "Loaded from pickle - internal PyTorch model may be None"
+            )
+            return model
 
     def save(self, data: Any) -> None:
         """Save TFT model using enhanced strategy that preserves internal PyTorch model."""

@@ -13,6 +13,7 @@ import tempfile
 from typing import Any, Dict, Type
 
 import pandas as pd
+import numpy as np
 import matplotlib
 
 # Use a non-interactive backend for headless environments
@@ -101,6 +102,12 @@ class DartsTimeSeriesMaterializer(BaseMaterializer):
         ts = TimeSeries.from_dataframe(
             df, time_col=time_col, value_cols=value_cols, freq=freq
         )
+
+        # Convert to float32 for hardware compatibility (MPS, mixed precision training)
+        logger.debug(
+            "Converting TimeSeries to float32 for hardware compatibility"
+        )
+        ts = ts.astype(np.float32)
 
         # Restore static covariates if present
         if fileio.exists(static_covariates_path):

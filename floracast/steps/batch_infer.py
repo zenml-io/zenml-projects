@@ -2,7 +2,7 @@
 Batch inference step for FloraCast using ZenML Model Control Plane.
 """
 
-from typing import Annotated
+from typing import Annotated, Tuple
 import pandas as pd
 import numpy as np
 from darts import TimeSeries
@@ -10,18 +10,26 @@ from zenml import step, get_step_context, log_metadata
 from zenml.logger import get_logger
 from zenml.client import Client
 from utils.prediction import iterative_predict
+from materializers.timeseries_materializer import DartsTimeSeriesMaterializer
 
 logger = get_logger(__name__)
 
 
-@step
+@step(
+    output_materializers={
+        "prediction_series": DartsTimeSeriesMaterializer,
+    }
+)
 def batch_inference_predict(
     df: pd.DataFrame,
     datetime_col: str = "ds",
     target_col: str = "y",
     freq: str = "D",
     horizon: int = 14,
-) -> Annotated[pd.DataFrame, "predictions"]:
+) -> Tuple[
+    Annotated[pd.DataFrame, "predictions"],
+    Annotated[TimeSeries, "prediction_series"],
+]:
     """
     Perform batch inference using the trained model from Model Control Plane.
 
@@ -34,19 +42,16 @@ def batch_inference_predict(
 
     Returns:
         DataFrame containing forecast results with columns ['ds', 'yhat']
+        TimeSeries containing the forecast results
     """
     logger.info(f"Performing batch inference with horizon: {horizon}")
 
     try:
-        # Convert DataFrame to TimeSeries
+        # Convert DataFrame to TimeSeries and cast to float32 for consistency
         logger.info("Converting DataFrame to TimeSeries")
         series = TimeSeries.from_dataframe(
             df, time_col=datetime_col, value_cols=target_col, freq=freq
-        )
-
-        # Cast to float32 for consistency with training data
-        logger.info("Converting TimeSeries to float32 for consistency")
-        series = series.astype(np.float32)
+        ).astype(np.float32)
 
         logger.info(f"Created TimeSeries with {len(series)} points")
         logger.info(
@@ -167,7 +172,7 @@ def batch_inference_predict(
             }
         )
 
-        return pred_df
+        return pred_df, predictions
 
     except Exception as e:
         logger.error(f"Batch inference failed: {str(e)}")

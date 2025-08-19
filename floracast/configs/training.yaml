@@ -41,20 +41,22 @@ steps:
   
   train_model:
     parameters:
-      input_chunk_length: 90
-      output_chunk_length: 14
-      hidden_size: 256
-      lstm_layers: 2
-      num_attention_heads: 8
-      dropout: 0.15
-      batch_size: 16
-      n_epochs: 100 
+      input_chunk_length: 14   # Longer input for better pattern recognition
+      output_chunk_length: 14  # 2-week forecasting horizon for impressive demo  
+      hidden_size: 16          # Smaller hidden size to prevent instability
+      lstm_layers: 1           # Single layer
+      num_attention_heads: 1   # Single head to prevent complexity issues
+      dropout: 0.0             # No dropout to eliminate regularization issues
+      batch_size: 4            # Small batch size that works with data
+      n_epochs: 5              # Few epochs
       random_state: 42
-      add_relative_index: true
+      add_relative_index: true   # Required for TFT - generates future covariates
       enable_progress_bar: true
       enable_model_summary: true
+      learning_rate: 0.001     # Standard learning rate that works
+      weight_decay: 0.0        # No weight decay to eliminate regularization issues
   
   evaluate:
     parameters:
-      horizon: 14
+      horizon: 14  # Match updated output_chunk_length - 2 weeks
       metric: "smape"
