@@ -1,0 +1,29 @@
+# FloraCast Inference Configuration
+experiment_name: "floracast_inference"
+
+model:
+  name: floracast_tft
+  version: production  # Use production model for inference
+
+steps:
+  ingest_data:
+    parameters:
+      data_source: "ecommerce_default"
+      data_path: null
+      datetime_col: "ds"
+      target_col: "y"
+  
+  preprocess:
+    parameters:
+      datetime_col: "ds"
+      target_col: "y"
+      freq: "D"
+      val_ratio: 0.2
+  
+  batch_inference_predict:
+    parameters:
+      horizon: 14
+      output_path: "outputs/forecast_inference.csv"
+
+tracking:
+  experiment_tracker: "mlflow"

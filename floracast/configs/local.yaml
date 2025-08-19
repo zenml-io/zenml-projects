@@ -1,0 +1,68 @@
+# FloraCast Local Configuration
+experiment_name: "floracast_local"
+
+model:
+  name: floracast_tft
+  license: apache
+  description: "TFT model for DFG time series forecasting use case"
+  audience: "DFG forecasting team"
+  use_cases: >
+    Demonstrates ZenML MLOps capabilities for time series forecasting using 
+    Temporal Fusion Transformer with custom Darts materializers and proper 
+    artifact management for production forecasting workflows.
+  ethics: "No ethical concerns - synthetic ecommerce data for demonstration"
+  tags:
+    - forecasting
+    - tft
+    - darts
+    - time-series
+    - production
+    - dfg
+
+tracking:
+  experiment_tracker: "mlflow"
+
+steps:
+  ingest_data:
+    parameters:
+      data_source: "ecommerce_default"
+      data_path: null
+      datetime_col: "ds"
+      target_col: "y"
+  
+  preprocess:
+    parameters:
+      datetime_col: "ds"
+      target_col: "y"
+      freq: "D"
+      val_ratio: 0.2
+  
+  train_model:
+    parameters:
+      model_name: "TFTModel"
+      input_chunk_length: 30
+      output_chunk_length: 7
+      hidden_size: 32
+      lstm_layers: 1
+      num_attention_heads: 2
+      dropout: 0.1
+      batch_size: 16
+      n_epochs: 5
+      random_state: 42
+      add_relative_index: true
+      enable_progress_bar: false
+      enable_model_summary: false
+  
+  evaluate:
+    parameters:
+      horizon: 7
+      metric: "smape"
+  
+  promote_model:
+    parameters:
+      model_name: "floracast_tft"
+  
+  batch_inference_predict:
+    parameters:
+      horizon: 14
+      output_path: "outputs/forecast_local.csv"

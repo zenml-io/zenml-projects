@@ -1,0 +1,66 @@
+# FloraCast Azure Kubernetes Service Configuration
+experiment_name: "floracast_aks"
+
+model:
+  name: floracast_tft
+  license: apache
+  description: "Production TFT model for DFG time series forecasting on AKS"
+  audience: "DFG production forecasting team"
+  use_cases: >
+    Production deployment of ZenML MLOps pipeline for time series forecasting
+    using Temporal Fusion Transformer on Azure Kubernetes Service with
+    scalable compute resources and automated model lifecycle management.
+  ethics: "No ethical concerns - production forecasting for business operations"
+  tags:
+    - forecasting
+    - tft
+    - production
+    - aks
+    - azure
+    - scalable
+    - dfg
+
+tracking:
+  experiment_tracker: "mlflow"
+
+data:
+  source: "ecommerce_default"  # or "csv"
+  path: null  # Used when source is "csv"
+  datetime_col: "ds"
+  target_col: "y"
+  freq: "D"  # Daily frequency
+  val_ratio: 0.2  # 20% for validation
+
+training_model:
+  name: "TFTModel"
+  params:
+    # Production-ready params for AKS deployment
+    input_chunk_length: 60
+    output_chunk_length: 14
+    hidden_size: 128
+    lstm_layers: 2
+    num_attention_heads: 4
+    dropout: 0.2
+    batch_size: 32
+    n_epochs: 50
+    random_state: 42
+    add_relative_index: true
+    pl_trainer_kwargs:
+      enable_progress_bar: false
+      enable_model_summary: false
+      accelerator: "auto"
+
+evaluation:
+  horizon: 14
+  metric: "smape"
+
+inference:
+  horizon: 30
+  output_path: "outputs/forecast_aks.csv"
+
+# Scheduling examples (documented in README)
+scheduling:
+  training:
+    cron: "0 2 * * 1"  # Weekly Monday at 2 AM
+  inference:
+    cron: "0 6 * * *"  # Daily at 6 AM
