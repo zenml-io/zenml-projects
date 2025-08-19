@@ -1,5 +1,7 @@
 # Adding Projects to ZenML Projects Repository
 
+<!-- Note: This guide is primarily for ZenML internal development use -->
+
 This guide explains how to add your ZenML project to this repository and make it available through the ZenML Projects platform.
 
 ## 📋 Requirements
@@ -101,9 +103,9 @@ stack:
   # Add other stack components if needed
 
 tags:
-- Domain (e.g., LLMOps, Computer Vision, MLOps)
-- Technology (e.g., PyTorch, TensorFlow, Hugging Face)
-- Use Case (e.g., Classification, Forecasting, NLP)
+- domain (e.g., llmops, cv, mlops)
+- technology (e.g., pytorch, tensorflow, hugging-face)
+- use-case (e.g., classification, forecasting, nlp)
 
 tools_used:
 - zenml

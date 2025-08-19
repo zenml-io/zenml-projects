@@ -86,6 +86,8 @@ installation details.
 We welcome contributions from anyone to showcase your project built using ZenML.
 See our [contributing guide](./CONTRIBUTING.md) to start.
 
+For information on working with this codebase, see [CLAUDE.md](./CLAUDE.md) for development guidance.
+
 ## Code Quality
 
 All code contributions must pass our automated code quality checks:
