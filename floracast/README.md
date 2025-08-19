@@ -21,7 +21,7 @@ Focus: **Timeseries Prediction** and **Forecasting**.
 
 FloraCast consists of two main pipelines:
 
-### 1. Training Pipeline
+#### 1. Training Pipeline
 
 The training pipeline handles the complete ML workflow:
 
@@ -30,13 +30,24 @@ The training pipeline handles the complete ML workflow:
 3. **Model Training** - Trains TFT model with configurable parameters
 4. **Evaluation** - Computes SMAPE metrics on validation set
 
-### 2. Batch Inference Pipeline
+![Model Evaluation Results](assets/eval_vis.png)
+*FloraCast achieves excellent forecasting performance with SMAPE scores under 13, showing AI predictions closely tracking ground truth data.*
+
+#### 2. Batch Inference Pipeline
 
 The inference pipeline generates predictions using trained models:
 
 1. **Data Ingestion** - Loads new data for predictions
 2. **Preprocessing** - Applies same transformations as training
 3. **Batch Inference** - Generates forecasts and saves to CSV
+
+![Batch Inference Visualization](assets/batch_inference_timeseries_viz.png)
+*Automated batch inference generates future predictions on a schedule, enabling proactive business planning and inventory management.*
+
+### 🔧 Architecture
+
+![ZenML Model Control Plane](assets/mcp_floracast.png)
+*FloraCast leverages ZenML's Model Control Plane for enterprise-grade model versioning, lineage tracking, and automated deployment workflows.*
 
 
 ## 📦 Installation
@@ -100,8 +111,6 @@ Edit the appropriate config file to customize:
 - **Data settings**: Date columns, frequency, validation split
 - **Evaluation**: Forecasting horizon, metrics
 - **Output**: File paths and formats
-
-## 🔧 Architecture
 
 ### Directory Structure
 
