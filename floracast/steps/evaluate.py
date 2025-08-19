@@ -52,53 +52,59 @@ def create_evaluation_visualization(
         pred_df = predictions.pd_dataframe()
         actual_df = actual.pd_dataframe()
 
-        # Plot training data
+        # Plot training data (lighter for context)
         ax.plot(
             train_df.index,
             train_df.iloc[:, 0],
             label="Training Data",
-            color="blue",
-            alpha=0.7,
-            linewidth=1.5,
+            color="lightblue",
+            alpha=0.5,
+            linewidth=1,
         )
 
-        # Plot validation data
+        # Plot validation data (prominent)
         ax.plot(
             val_df.index,
             val_df.iloc[:, 0],
-            label="Validation Data",
-            color="green",
-            alpha=0.7,
-            linewidth=1.5,
+            label="Validation Data (Ground Truth)",
+            color="darkgreen",
+            alpha=0.9,
+            linewidth=3,
         )
 
-        # Plot predictions
+        # Plot predictions (prominent with different style)
         ax.plot(
             pred_df.index,
             pred_df.iloc[:, 0],
-            label="Predictions",
+            label="🤖 Model Predictions",
             color="red",
-            alpha=0.8,
-            linewidth=2,
+            alpha=0.9,
+            linewidth=3,
             linestyle="--",
         )
 
-        # Plot actual values used for evaluation (subset of validation)
-        ax.plot(
-            actual_df.index,
-            actual_df.iloc[:, 0],
-            label="Actual (Eval)",
-            color="orange",
-            alpha=0.9,
-            linewidth=2,
-            marker="o",
-            markersize=4,
+        # Add shaded region to highlight prediction period
+        ax.axvspan(
+            pred_df.index.min(),
+            pred_df.index.max(),
+            alpha=0.1,
+            color="yellow",
+            label="Prediction Period",
         )
 
+        # Add better title with success indicator
+        title_color = (
+            "green" if score < 20 else "orange" if score < 40 else "red"
+        )
         ax.set_title(
-            f"Model Evaluation Results\\n{metric.upper()}: {score:.4f}",
-            fontsize=14,
+            f"🎯 FloraCast Model Performance\\n✅ {metric.upper()}: {score:.2f} (Excellent!)"
+            if score < 20
+            else f"🎯 FloraCast Model Performance\\n⚠️ {metric.upper()}: {score:.2f} (Good)"
+            if score < 40
+            else f"🎯 FloraCast Model Performance\\n❌ {metric.upper()}: {score:.2f} (Needs Improvement)",
+            fontsize=16,
             fontweight="bold",
+            color=title_color,
         )
         ax.set_xlabel("Time", fontsize=12)
         ax.set_ylabel("Value", fontsize=12)

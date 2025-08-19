@@ -14,7 +14,7 @@ from steps.promote import promote_model
 logger = get_logger(__name__)
 
 
-@pipeline(enable_cache=False)
+@pipeline(enable_cache=True)
 def train_forecast_pipeline() -> None:
     """
     Training pipeline that ingests data, preprocesses it, trains a model,
