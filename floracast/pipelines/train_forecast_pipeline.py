@@ -30,9 +30,10 @@ def train_forecast_pipeline() -> None:
     trained_model = train_model(train_series=train_series)
 
     # Step 4: Evaluate the model
-    score, _ = evaluate(
+    evaluation_results = evaluate(
         model=trained_model, train_series=train_series, val_series=val_series
     )
+    score = evaluation_results[0]
 
     # Step 5: Register model and promote if better
     _ = promote_model(current_score=score)

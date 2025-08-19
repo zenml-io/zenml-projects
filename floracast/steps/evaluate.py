@@ -3,7 +3,7 @@ Model evaluation step for FloraCast.
 """
 
 from typing import Annotated, Tuple
-import random
+import pandas as pd
 import tempfile
 import base64
 import matplotlib
@@ -43,77 +43,119 @@ def create_evaluation_visualization(
         HTMLString with embedded plot visualization
     """
     try:
-        # Create the plot
-        fig, ax = plt.subplots(figsize=(12, 6))
+        # Create the plot with modern styling
+        plt.style.use('default')  # Reset to clean style
+        fig, ax = plt.subplots(figsize=(14, 8))
+        fig.patch.set_facecolor('white')
 
         # Convert to pandas for easier plotting
         train_df = train_series.pd_dataframe()
         val_df = val_series.pd_dataframe()
         pred_df = predictions.pd_dataframe()
-        actual_df = actual.pd_dataframe()
 
-        # Plot training data (lighter for context)
+        # Define modern color palette
+        colors = {
+            'train': '#E8F4FD',      # Very light blue
+            'val': '#2E86AB',        # Modern blue 
+            'pred': '#F18F01',       # Vibrant orange
+            'highlight': '#FFE66D'   # Soft yellow
+        }
+
+        # Focus zoom: show last 3 months of training + all validation + prediction period
+        zoom_start = pred_df.index.min() - pd.Timedelta(days=90)
+        
+        # Filter data for zoom
+        train_zoom = train_df[train_df.index >= zoom_start] if len(train_df[train_df.index >= zoom_start]) > 0 else train_df.tail(90)
+        
+        # Plot training data (minimal context)
         ax.plot(
-            train_df.index,
-            train_df.iloc[:, 0],
-            label="Training Data",
-            color="lightblue",
-            alpha=0.5,
-            linewidth=1,
+            train_zoom.index,
+            train_zoom.iloc[:, 0],
+            label="Training Data (Last 90 days)",
+            color='#7FB3D3',  # More solid blue instead of very light
+            alpha=0.8,        # More opaque
+            linewidth=2,      # Slightly thicker
         )
 
-        # Plot validation data (prominent)
+        # Plot validation data 
         ax.plot(
             val_df.index,
             val_df.iloc[:, 0],
-            label="Validation Data (Ground Truth)",
-            color="darkgreen",
+            label="Ground Truth",
+            color=colors['val'],
             alpha=0.9,
             linewidth=3,
+            zorder=3
         )
 
-        # Plot predictions (prominent with different style)
+        # Plot predictions with modern style
         ax.plot(
             pred_df.index,
             pred_df.iloc[:, 0],
-            label="🤖 Model Predictions",
-            color="red",
-            alpha=0.9,
-            linewidth=3,
-            linestyle="--",
+            label="AI Predictions",
+            color=colors['pred'],
+            alpha=0.95,
+            linewidth=4,
+            linestyle="-",
+            zorder=4,
+            marker='o',
+            markersize=3,
+            markeredgewidth=0
         )
 
-        # Add shaded region to highlight prediction period
+        # Add subtle shaded region
         ax.axvspan(
             pred_df.index.min(),
             pred_df.index.max(),
-            alpha=0.1,
-            color="yellow",
-            label="Prediction Period",
+            alpha=0.08,
+            color=colors['highlight'],
+            zorder=1
         )
+        
+        # Focus the x-axis on the interesting period
+        ax.set_xlim(zoom_start, val_df.index.max())
 
-        # Add better title with success indicator
-        title_color = (
-            "green" if score < 20 else "orange" if score < 40 else "red"
-        )
+        # Modern title styling
+        performance_text = "Excellent" if score < 20 else "Good" if score < 40 else "Needs Improvement"
+        
         ax.set_title(
-            f"🎯 FloraCast Model Performance\\n✅ {metric.upper()}: {score:.2f} (Excellent!)"
-            if score < 20
-            else f"🎯 FloraCast Model Performance\\n⚠️ {metric.upper()}: {score:.2f} (Good)"
-            if score < 40
-            else f"🎯 FloraCast Model Performance\\n❌ {metric.upper()}: {score:.2f} (Needs Improvement)",
-            fontsize=16,
-            fontweight="bold",
-            color=title_color,
+            f"FloraCast AI Forecasting Model\\n{metric.upper()}: {score:.2f} ({performance_text})",
+            fontsize=18,
+            fontweight='600',
+            color='#2C3E50',
+            pad=20
         )
-        ax.set_xlabel("Time", fontsize=12)
-        ax.set_ylabel("Value", fontsize=12)
-        ax.legend(fontsize=10)
-        ax.grid(True, alpha=0.3)
-
-        # Rotate x-axis labels for better readability
-        plt.xticks(rotation=45)
-        plt.tight_layout()
+        
+        # Modern axis styling  
+        ax.set_xlabel("Date", fontsize=14, color='#34495E', fontweight='500')
+        ax.set_ylabel("Normalized Value", fontsize=14, color='#34495E', fontweight='500')
+        
+        # Clean legend
+        legend = ax.legend(
+            fontsize=12, 
+            frameon=True, 
+            fancybox=True, 
+            shadow=True,
+            framealpha=0.95,
+            edgecolor='none'
+        )
+        legend.get_frame().set_facecolor('#FAFAFA')
+        
+        # Modern grid
+        ax.grid(True, alpha=0.2, linestyle='-', linewidth=0.5, color='#BDC3C7')
+        ax.set_facecolor('#FEFEFE')
+        
+        # Clean up axes
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#BDC3C7')
+        ax.spines['bottom'].set_color('#BDC3C7')
+        
+        # Better tick formatting
+        plt.xticks(rotation=45, ha='right', fontsize=11, color='#34495E')
+        plt.yticks(fontsize=11, color='#34495E')
+        
+        plt.tight_layout(pad=2.0)
 
         # Save plot to base64 string
         with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
@@ -206,12 +248,12 @@ def evaluate(
         Evaluation metric score (lower is better for SMAPE)
     """
 
-    logger.info(f"Evaluating model with horizon={horizon}, metric={metric}")
+    logger.info(f"Evaluating with horizon: {horizon}, metric: {metric}")
 
     try:
         # Generate predictions using TFT model
         # TFT requires the series parameter to generate predictions
-        logger.info(f"Generating predictions for horizon {horizon}")
+        logger.info(f"Generating predictions for horizon: {horizon}")
 
         # For TFT models, we need to provide the series parameter
         if hasattr(model, "predict"):
