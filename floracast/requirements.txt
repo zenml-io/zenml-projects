@@ -1,6 +1,5 @@
 # ZenML and Core MLOps
 zenml>=0.84.2
-mlflow>=2.12.0,<3.0.0
 
 # Forecasting and ML
 u8darts[torch]>=0.29.0,<0.32.0

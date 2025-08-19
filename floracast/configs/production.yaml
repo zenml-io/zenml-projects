@@ -1,5 +1,5 @@
-# FloraCast Azure Kubernetes Service Configuration
-experiment_name: "floracast_aks"
+# FloraCast Production Configuration
+# This config is designed for production deployment on Azure Kubernetes Service
 
 model:
   name: floracast_tft
@@ -19,9 +19,6 @@ model:
     - azure
     - scalable
     - dfg
-
-tracking:
-  experiment_tracker: "mlflow"
 
 data:
   source: "ecommerce_default"  # or "csv"

@@ -13,7 +13,7 @@ FloraCast demonstrates how to build end-to-end MLOps workflows for time series f
 - **Custom Materializers**: Production-ready artifact handling with visualizations
 - **Model Versioning**: Track and compare different model versions
 - **Flexible Configuration**: YAML-based configuration for different environments
-- **Azure Cloud Ready**: Built with AKS deployment in mind
+- **Cloud Ready**: Built with EKS/GKE/AKS deployment in mind
 
 ## 💡 How It Works
 
@@ -29,8 +29,8 @@ The training pipeline handles the complete ML workflow:
 4. **Evaluation** - Computes SMAPE metrics on validation set
 5. **Model Registration** - Registers model artifacts for tracking
 
-```python
-python run.py --config configs/local.yaml --pipeline train
+```bash
+python run.py --config configs/training.yaml --pipeline train
 ```
 
 ### 2. Batch Inference Pipeline
@@ -42,8 +42,8 @@ The inference pipeline generates predictions using trained models:
 3. **Model Loading** - Loads most recent trained model
 4. **Batch Inference** - Generates forecasts and saves to CSV
 
-```python
-python run.py --config configs/local.yaml --pipeline inference
+```bash
+python run.py --config configs/inference.yaml --pipeline inference
 ```
 
 ## 📦 Installation
@@ -84,21 +84,31 @@ cp .env.example .env
 
 1. **Run training pipeline**:
 ```bash
-python run.py --config configs/local.yaml --pipeline train
+python run.py --config configs/training.yaml --pipeline train
 ```
 
 2. **Run inference pipeline**:
 ```bash  
-python run.py --config configs/local.yaml --pipeline inference
+python run.py --config configs/inference.yaml --pipeline inference
 ```
 
 3. **View results**:
-- Check `outputs/forecast_local.csv` for predictions
+- Check `outputs/forecast_inference.csv` for predictions
 - Use ZenML dashboard to view artifacts and metrics
 
-### Configuration
+## ⚙️ Configuration Files
 
-Edit `configs/local.yaml` or `configs/aks.yaml` to customize:
+FloraCast uses semantically named configuration files for different deployment scenarios:
+
+### Available Configurations
+
+- **`configs/training.yaml`** - Local development and training pipeline configuration
+- **`configs/inference.yaml`** - Batch inference pipeline configuration for production models  
+- **`configs/production.yaml`** - Production deployment configuration for Azure Kubernetes Service
+
+### Customization Options
+
+Edit the appropriate config file to customize:
 
 - **Model parameters**: TFT hyperparameters, training epochs
 - **Data settings**: Date columns, frequency, validation split
@@ -131,8 +141,9 @@ floracast/
 ├── requirements.txt
 ├── .env.example
 ├── configs/
-│   ├── local.yaml          # Local development config
-│   └── aks.yaml            # Azure production config
+│   ├── training.yaml       # Training pipeline config
+│   ├── inference.yaml      # Inference pipeline config  
+│   └── production.yaml     # Azure production config
 ├── data/
 │   └── ecommerce_daily.csv # Generated sample data
 ├── outputs/                # Inference results
@@ -186,6 +197,52 @@ floracast/
 
 ## 🚀 Production Deployment
 
+### ZenML Azure Stack Setup
+
+To run FloraCast on Azure with ZenML, set up a ZenML stack backed by Azure services:
+
+- **Artifact Store**: Azure Blob Storage
+- **Container Registry**: Azure Container Registry (ACR)
+- **Orchestrator**: Kubernetes Orchestrator targeting AKS
+- **Optional**: AzureML Step Operator for managed training; Azure Key Vault for secrets
+
+Quick start (CLI):
+
+```bash
+# Artifact Store (Azure Blob)
+zenml artifact-store register azure_store --flavor=azure \
+  --account_name=<AZURE_STORAGE_ACCOUNT> \
+  --container=<AZURE_STORAGE_CONTAINER>
+
+# Container Registry (ACR)
+zenml container-registry register azure_acr --flavor=azure \
+  --uri=<ACR_LOGIN_SERVER>
+
+# Orchestrator (AKS via Kubernetes)
+zenml orchestrator register aks_k8s --flavor=kubernetes \
+  --kubernetes_context=<AKS_KUBE_CONTEXT> \
+  --namespace=<NAMESPACE>
+
+# (Optional) AzureML Step Operator
+zenml step-operator register azureml_ops --flavor=azureml \
+  --subscription_id=<SUBSCRIPTION_ID> \
+  --resource_group=<RESOURCE_GROUP> \
+  --workspace_name=<AML_WORKSPACE>
+
+# Compose the stack
+zenml stack register azure_aks_stack \
+  -a azure_store -c azure_acr -o aks_k8s --set
+```
+
+Read more:
+
+- **Set up an MLOps stack on Azure**: [ZenML Azure guide](https://docs.zenml.io/stacks/popular-stacks/azure-guide)
+- **Kubernetes Orchestrator (AKS)**: [Docs](https://docs.zenml.io/stacks/stack-components/orchestrators/kubernetes)
+- **Azure Blob Artifact Store**: [Docs](https://docs.zenml.io/stacks/stack-components/artifact-stores/azuree)
+- **Azure Container Registry**: [Docs](https://docs.zenml.io/stacks/stack-components/container-registries/azure)
+- **AzureML Step Operator**: [Docs](https://docs.zenml.io/stacks/stack-components/step-operators/azureml)
+- **Terraform stack recipe for Azure**: [Hashicorp Registry](https://registry.terraform.io/modules/zenml-io/zenml-stack/azure/latest)
+
 ### Azure Kubernetes Service (AKS)
 
 The project includes configuration for AKS deployment:
@@ -197,7 +254,7 @@ The project includes configuration for AKS deployment:
 
 2. **Configuration**:
    - Set environment variables in `.env`
-   - Use `configs/aks.yaml` for production parameters
+   - Use `configs/production.yaml` for production parameters
 
 3. **Deployment**:
    - Pipelines will automatically run on AKS
@@ -294,4 +351,4 @@ After running FloraCast successfully:
 
 ---
 
-Built with ❤️ using [ZenML](https://zenml.io) - *The MLOps Framework for Production*
+Built with ❤️ using [ZenML](https://zenml.io) - *The MLOps Framework for Production AI*

@@ -1,5 +1,5 @@
 # FloraCast Inference Configuration
-experiment_name: "floracast_inference"
+# This config is used for running batch inference with production models
 
 model:
   name: floracast_tft
@@ -24,6 +24,3 @@ steps:
     parameters:
       horizon: 14
       output_path: "outputs/forecast_inference.csv"
-
-tracking:
-  experiment_tracker: "mlflow"
