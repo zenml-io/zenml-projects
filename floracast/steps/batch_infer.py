@@ -2,14 +2,15 @@
 
 from typing import Annotated, Tuple
 
+from darts import TimeSeries
 import numpy as np
 import pandas as pd
-from darts import TimeSeries
-from materializers.timeseries_materializer import DartsTimeSeriesMaterializer
-from utils.prediction import iterative_predict
 from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.logger import get_logger
+
+from materializers.timeseries_materializer import DartsTimeSeriesMaterializer
+from utils.prediction import iterative_predict
 
 
 logger = get_logger(__name__)
