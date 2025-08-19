@@ -19,6 +19,8 @@ Focus: **Timeseries Prediction** and **Forecasting**.
 
 ## 💡 How It Works
 
+### ✈️ Pipelines 
+
 FloraCast consists of two main pipelines:
 
 #### 1. Training Pipeline
