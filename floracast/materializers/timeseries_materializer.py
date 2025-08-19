@@ -229,7 +229,7 @@ class DartsTimeSeriesMaterializer(BaseMaterializer):
                 with open(tmp.name, "rb") as src_f:
                     with fileio.open(preview_path, "wb") as dst_f:
                         dst_f.write(src_f.read())
-            logger.info(f"Saved TimeSeries preview to {preview_path}")
+            logger.debug(f"Saved TimeSeries preview to {preview_path}")
         except Exception as e:
             # Best-effort; do not fail the materialization for plotting issues
             logger.warning(f"Failed to create TimeSeries preview plot: {e}")

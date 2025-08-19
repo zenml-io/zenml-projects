@@ -2,9 +2,7 @@
 Model training step for FloraCast.
 """
 
-import os
-import pickle
-from typing import Tuple, Annotated
+from typing import Annotated
 from darts import TimeSeries
 from darts.models import TFTModel, ExponentialSmoothing
 from zenml import step
