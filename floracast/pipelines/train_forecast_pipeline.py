@@ -30,7 +30,7 @@ def train_forecast_pipeline() -> None:
     trained_model = train_model(train_series=train_series)
 
     # Step 4: Evaluate the model
-    score = evaluate(
+    score, _ = evaluate(
         model=trained_model, train_series=train_series, val_series=val_series
     )
 

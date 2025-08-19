@@ -72,9 +72,41 @@ def batch_inference_predict(
             f"Loaded model from Model Control Plane: {type(trained_model).__name__}"
         )
 
-        # Generate predictions using the loaded model
-        predictions = trained_model.predict(n=horizon, series=series)
-        logger.info(f"Generated {len(predictions)} predictions")
+        # Generate predictions using improved multi-step approach (same as evaluation)
+        logger.info(
+            f"Using iterative multi-step prediction for horizon={horizon}"
+        )
+
+        # Use multiple prediction steps for better long-term accuracy
+        predictions_list = []
+        context_series = series
+
+        # Predict in chunks of output_chunk_length (14 days)
+        remaining_steps = horizon
+        while remaining_steps > 0:
+            chunk_size = min(
+                14, remaining_steps
+            )  # Model's output_chunk_length
+            chunk_pred = trained_model.predict(
+                n=chunk_size, series=context_series
+            )
+            predictions_list.append(chunk_pred)
+
+            # Extend context with the prediction for next iteration
+            context_series = context_series.concatenate(chunk_pred)
+            remaining_steps -= chunk_size
+
+        # Combine all predictions
+        if len(predictions_list) == 1:
+            predictions = predictions_list[0]
+        else:
+            predictions = predictions_list[0]
+            for pred_chunk in predictions_list[1:]:
+                predictions = predictions.concatenate(pred_chunk)
+
+        logger.info(
+            f"Generated {len(predictions)} predictions using multi-step approach"
+        )
 
         # Convert to DataFrame
         pred_df = predictions.pd_dataframe().reset_index()

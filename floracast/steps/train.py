@@ -25,7 +25,7 @@ def train_model(
     num_attention_heads: int = 2,
     dropout: float = 0.1,
     batch_size: int = 16,
-    n_epochs: int = 5,
+    n_epochs: int = 20,
     random_state: int = 42,
     add_relative_index: bool = True,
     enable_progress_bar: bool = False,
@@ -91,13 +91,43 @@ def train_model(
 
     # Train the model
     try:
+        logger.info(f"Starting TFT training with {len(train_series)} points")
+        # Get basic stats from the pandas dataframe
+        df_stats = train_series.pd_dataframe().iloc[:, 0]
+        logger.info(
+            f"Train series stats: min={df_stats.min():.2f}, max={df_stats.max():.2f}, mean={df_stats.mean():.2f}"
+        )
+
         model.fit(train_series)
-        logger.info("Model training completed successfully")
+        logger.info("TFT Model training completed successfully")
+
+        # Test prediction to verify model works
+        test_pred = model.predict(n=1, series=train_series)
+        logger.info(
+            f"Test prediction: {test_pred.pd_dataframe().iloc[0, 0]:.2f} (should be similar to training data range)"
+        )
+
     except Exception as e:
-        logger.error(f"Training failed: {str(e)}")
-        # Fallback to simpler model
+        logger.error(f"TFT Training failed with error: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+
+        # Fallback to simpler model with proper parameters
         logger.info("Falling back to ExponentialSmoothing model")
-        model = ExponentialSmoothing()
+        from darts.models import ExponentialSmoothing
+
+        model = ExponentialSmoothing(
+            seasonal_periods=7  # Weekly seasonality
+        )
         model.fit(train_series)
+        logger.info("Fallback ExponentialSmoothing model training completed")
+
+        # Test fallback prediction (ExponentialSmoothing doesn't need series parameter)
+        test_pred = model.predict(n=1)
+        logger.info(
+            f"Fallback test prediction: {test_pred.pd_dataframe().iloc[0, 0]:.2f}"
+        )
 
     return model

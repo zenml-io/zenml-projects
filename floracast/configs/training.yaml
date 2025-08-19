@@ -42,14 +42,14 @@ steps:
   train_model:
     parameters:
       model_name: "TFTModel"
-      input_chunk_length: 30
-      output_chunk_length: 7
-      hidden_size: 32
-      lstm_layers: 1
-      num_attention_heads: 2
-      dropout: 0.1
+      input_chunk_length: 90
+      output_chunk_length: 14
+      hidden_size: 256
+      lstm_layers: 2
+      num_attention_heads: 8
+      dropout: 0.15
       batch_size: 16
-      n_epochs: 20
+      n_epochs: 100 
       random_state: 42
       add_relative_index: true
       enable_progress_bar: true

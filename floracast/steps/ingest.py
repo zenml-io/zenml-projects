@@ -13,7 +13,7 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-def generate_ecommerce_data(num_days: int = 180) -> pd.DataFrame:
+def generate_ecommerce_data(num_days: int = 730) -> pd.DataFrame:
     """
     Generate synthetic ecommerce daily sales data with realistic patterns.
 
@@ -29,8 +29,13 @@ def generate_ecommerce_data(num_days: int = 180) -> pd.DataFrame:
     start_date = datetime.now() - timedelta(days=num_days)
     dates = pd.date_range(start=start_date, periods=num_days, freq="D")
 
-    # Base trend (slight upward trend)
-    trend = np.linspace(100, 150, num_days)
+    # Base trend with multiple components
+    base_trend = np.linspace(100, 200, num_days)
+
+    # Add yearly seasonality (higher in winter/holidays)
+    yearly_cycle = 20 * np.sin(
+        2 * np.pi * np.arange(num_days) / 365.25 - np.pi / 2
+    )
 
     # Weekly seasonality (higher sales on weekends)
     weekly_pattern = np.array(
@@ -40,13 +45,26 @@ def generate_ecommerce_data(num_days: int = 180) -> pd.DataFrame:
         :num_days
     ]
 
-    # Add some noise
-    np.random.seed(42)  # For reproducibility
-    noise = np.random.normal(0, 10, num_days)
+    # Monthly cycle (end of month sales bumps)
+    days_in_month = pd.date_range(
+        start=start_date, periods=num_days, freq="D"
+    ).day
+    monthly_boost = np.where(
+        (days_in_month >= 28) | (days_in_month <= 3), 1.2, 1.0
+    )
 
-    # Combine components
-    sales = trend * weekly_seasonality + noise
-    sales = np.maximum(sales, 10)  # Ensure positive values
+    # Add some autocorrelated noise for realism
+    np.random.seed(42)
+    noise = np.random.normal(0, 8, num_days)
+    # Add some persistence to noise
+    for i in range(1, num_days):
+        noise[i] = 0.3 * noise[i - 1] + 0.7 * noise[i]
+
+    # Combine all components
+    sales = (
+        base_trend + yearly_cycle
+    ) * weekly_seasonality * monthly_boost + noise
+    sales = np.maximum(sales, 20)  # Ensure positive values
     sales = sales.astype(int)
 
     return pd.DataFrame({"ds": dates, "y": sales})
