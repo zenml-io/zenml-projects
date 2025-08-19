@@ -44,9 +44,9 @@ def create_evaluation_visualization(
     """
     try:
         # Create the plot with modern styling
-        plt.style.use('default')  # Reset to clean style
+        plt.style.use("default")  # Reset to clean style
         fig, ax = plt.subplots(figsize=(14, 8))
-        fig.patch.set_facecolor('white')
+        fig.patch.set_facecolor("white")
 
         # Convert to pandas for easier plotting
         train_df = train_series.pd_dataframe()
@@ -55,37 +55,41 @@ def create_evaluation_visualization(
 
         # Define modern color palette
         colors = {
-            'train': '#E8F4FD',      # Very light blue
-            'val': '#2E86AB',        # Modern blue 
-            'pred': '#F18F01',       # Vibrant orange
-            'highlight': '#FFE66D'   # Soft yellow
+            "train": "#E8F4FD",  # Very light blue
+            "val": "#2E86AB",  # Modern blue
+            "pred": "#F18F01",  # Vibrant orange
+            "highlight": "#FFE66D",  # Soft yellow
         }
 
         # Focus zoom: show last 3 months of training + all validation + prediction period
         zoom_start = pred_df.index.min() - pd.Timedelta(days=90)
-        
+
         # Filter data for zoom
-        train_zoom = train_df[train_df.index >= zoom_start] if len(train_df[train_df.index >= zoom_start]) > 0 else train_df.tail(90)
-        
+        train_zoom = (
+            train_df[train_df.index >= zoom_start]
+            if len(train_df[train_df.index >= zoom_start]) > 0
+            else train_df.tail(90)
+        )
+
         # Plot training data (minimal context)
         ax.plot(
             train_zoom.index,
             train_zoom.iloc[:, 0],
             label="Training Data (Last 90 days)",
-            color='#7FB3D3',  # More solid blue instead of very light
-            alpha=0.8,        # More opaque
-            linewidth=2,      # Slightly thicker
+            color="#7FB3D3",  # More solid blue instead of very light
+            alpha=0.8,  # More opaque
+            linewidth=2,  # Slightly thicker
         )
 
-        # Plot validation data 
+        # Plot validation data
         ax.plot(
             val_df.index,
             val_df.iloc[:, 0],
             label="Ground Truth",
-            color=colors['val'],
+            color=colors["val"],
             alpha=0.9,
             linewidth=3,
-            zorder=3
+            zorder=3,
         )
 
         # Plot predictions with modern style
@@ -93,14 +97,14 @@ def create_evaluation_visualization(
             pred_df.index,
             pred_df.iloc[:, 0],
             label="AI Predictions",
-            color=colors['pred'],
+            color=colors["pred"],
             alpha=0.95,
             linewidth=4,
             linestyle="-",
             zorder=4,
-            marker='o',
+            marker="o",
             markersize=3,
-            markeredgewidth=0
+            markeredgewidth=0,
         )
 
         # Add subtle shaded region
@@ -108,53 +112,61 @@ def create_evaluation_visualization(
             pred_df.index.min(),
             pred_df.index.max(),
             alpha=0.08,
-            color=colors['highlight'],
-            zorder=1
+            color=colors["highlight"],
+            zorder=1,
         )
-        
+
         # Focus the x-axis on the interesting period
         ax.set_xlim(zoom_start, val_df.index.max())
 
         # Modern title styling
-        performance_text = "Excellent" if score < 20 else "Good" if score < 40 else "Needs Improvement"
-        
+        performance_text = (
+            "Excellent"
+            if score < 20
+            else "Good"
+            if score < 40
+            else "Needs Improvement"
+        )
+
         ax.set_title(
             f"FloraCast AI Forecasting Model\\n{metric.upper()}: {score:.2f} ({performance_text})",
             fontsize=18,
-            fontweight='600',
-            color='#2C3E50',
-            pad=20
+            fontweight="600",
+            color="#2C3E50",
+            pad=20,
         )
-        
-        # Modern axis styling  
-        ax.set_xlabel("Date", fontsize=14, color='#34495E', fontweight='500')
-        ax.set_ylabel("Normalized Value", fontsize=14, color='#34495E', fontweight='500')
-        
+
+        # Modern axis styling
+        ax.set_xlabel("Date", fontsize=14, color="#34495E", fontweight="500")
+        ax.set_ylabel(
+            "Normalized Value", fontsize=14, color="#34495E", fontweight="500"
+        )
+
         # Clean legend
         legend = ax.legend(
-            fontsize=12, 
-            frameon=True, 
-            fancybox=True, 
+            fontsize=12,
+            frameon=True,
+            fancybox=True,
             shadow=True,
             framealpha=0.95,
-            edgecolor='none'
+            edgecolor="none",
         )
-        legend.get_frame().set_facecolor('#FAFAFA')
-        
+        legend.get_frame().set_facecolor("#FAFAFA")
+
         # Modern grid
-        ax.grid(True, alpha=0.2, linestyle='-', linewidth=0.5, color='#BDC3C7')
-        ax.set_facecolor('#FEFEFE')
-        
+        ax.grid(True, alpha=0.2, linestyle="-", linewidth=0.5, color="#BDC3C7")
+        ax.set_facecolor("#FEFEFE")
+
         # Clean up axes
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color('#BDC3C7')
-        ax.spines['bottom'].set_color('#BDC3C7')
-        
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_color("#BDC3C7")
+        ax.spines["bottom"].set_color("#BDC3C7")
+
         # Better tick formatting
-        plt.xticks(rotation=45, ha='right', fontsize=11, color='#34495E')
-        plt.yticks(fontsize=11, color='#34495E')
-        
+        plt.xticks(rotation=45, ha="right", fontsize=11, color="#34495E")
+        plt.yticks(fontsize=11, color="#34495E")
+
         plt.tight_layout(pad=2.0)
 
         # Save plot to base64 string
