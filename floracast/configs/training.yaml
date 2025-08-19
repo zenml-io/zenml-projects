@@ -49,11 +49,11 @@ steps:
       num_attention_heads: 2
       dropout: 0.1
       batch_size: 16
-      n_epochs: 3
+      n_epochs: 20
       random_state: 42
       add_relative_index: true
-      enable_progress_bar: false
-      enable_model_summary: false
+      enable_progress_bar: true
+      enable_model_summary: true
   
   evaluate:
     parameters:
