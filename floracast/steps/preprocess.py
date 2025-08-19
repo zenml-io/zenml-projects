@@ -1,5 +1,5 @@
 """
-Data preprocessing step for FloraCast.
+Data preprocessing steps for FloraCast.
 """
 
 from typing import Tuple, Annotated
@@ -7,13 +7,19 @@ import pandas as pd
 from darts import TimeSeries
 from zenml import step
 from zenml.logger import get_logger
+from materializers.timeseries_materializer import DartsTimeSeriesMaterializer
 
 
 logger = get_logger(__name__)
 
 
-@step
-def preprocess(
+@step(
+    output_materializers={
+        "train_series": DartsTimeSeriesMaterializer,
+        "val_series": DartsTimeSeriesMaterializer,
+    }
+)
+def preprocess_for_training(
     df: pd.DataFrame,
     datetime_col: str = "ds",
     target_col: str = "y",
@@ -23,7 +29,7 @@ def preprocess(
     Annotated[TimeSeries, "train_series"], Annotated[TimeSeries, "val_series"]
 ]:
     """
-    Preprocess data and convert to Darts TimeSeries format.
+    Preprocess data for training - splits into train/val sets.
 
     Args:
         df: Raw DataFrame with datetime and target columns
@@ -35,8 +41,10 @@ def preprocess(
     Returns:
         Tuple of (train_series, val_series)
     """
-
-    logger.info(f"Converting to Darts TimeSeries with frequency: {freq}")
+    logger.info(
+        "🎯 TRAINING MODE: Converting to Darts TimeSeries and splitting data"
+    )
+    logger.info(f"Converting to TimeSeries with frequency: {freq}")
 
     # Create Darts TimeSeries
     series = TimeSeries.from_dataframe(
@@ -60,3 +68,44 @@ def preprocess(
     )
 
     return train_series, val_series
+
+
+@step(
+    output_materializers={
+        "full_series": DartsTimeSeriesMaterializer,
+    }
+)
+def preprocess_for_inference(
+    df: pd.DataFrame,
+    datetime_col: str = "ds",
+    target_col: str = "y",
+    freq: str = "D",
+) -> Annotated[TimeSeries, "full_series"]:
+    """
+    Preprocess data for inference - returns full series as context.
+
+    Args:
+        df: Raw DataFrame with datetime and target columns
+        datetime_col: Name of datetime column
+        target_col: Name of target column
+        freq: Frequency string for time series
+
+    Returns:
+        Full TimeSeries for forecasting context
+    """
+    logger.info(
+        "🔮 INFERENCE MODE: Converting to Darts TimeSeries for forecasting context"
+    )
+    logger.info(f"Converting to TimeSeries with frequency: {freq}")
+
+    # Create Darts TimeSeries
+    series = TimeSeries.from_dataframe(
+        df, time_col=datetime_col, value_cols=target_col, freq=freq
+    )
+
+    logger.info(f"Created TimeSeries with {len(series)} points")
+    logger.info(f"Series range: {series.start_time()} to {series.end_time()}")
+    logger.info("📈 Using full historical data as context for forecasting")
+    logger.info(f"Full series: {len(series)} points for forecasting context")
+
+    return series

@@ -4,12 +4,9 @@ Entry point for running FloraCast pipelines using ZenML e2e pattern.
 
 import click
 from datetime import datetime
+from pathlib import Path
 from pipelines import batch_inference_pipeline, train_forecast_pipeline
 from zenml.logger import get_logger
-
-# Import materializers to ensure they're registered before pipeline execution
-# Ensure custom materializers are imported so ZenML registers them
-from materializers import TFTModelMaterializer  # noqa: F401
 
 logger = get_logger(__name__)
 
@@ -19,8 +16,12 @@ logger = get_logger(__name__)
     "--config",
     "-c",
     type=click.Path(exists=True, dir_okay=False),
-    default="configs/training.yaml",
-    help="Path to configuration YAML file",
+    default=None,
+    required=False,
+    help=(
+        "Path to configuration YAML file. If not provided, selects a sensible default "
+        "based on the chosen pipeline (training.yaml for train, inference.yaml for inference)."
+    ),
 )
 @click.option(
     "--pipeline",
@@ -29,28 +30,34 @@ logger = get_logger(__name__)
     default="train",
     help="Pipeline to run",
 )
-def main(config: str, pipeline: str):
-    """Run FloraCast forecasting pipelines using ZenML with_options pattern."""
+def main(config: str | None, pipeline: str):
+    """Run FloraCast forecasting pipelines using ZenML with_options pattern.
 
-    # Generate run name with timestamp
-    run_name = f"floracast_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+    When --config is omitted, a default is chosen per pipeline:
+    - train: floracast/configs/training.yaml
+    - inference: floracast/configs/inference.yaml
+    - both: training uses training.yaml, inference uses inference.yaml
+    """
 
-    logger.info(f"Starting FloraCast run: {run_name}")
-    logger.info(f"Using configuration: {config}")
+    project_root = Path(__file__).parent
+    default_training_config = project_root / "configs" / "training.yaml"
+    default_inference_config = project_root / "configs" / "inference.yaml"
 
     try:
         if pipeline in ["train", "both"]:
-            logger.info("Starting training pipeline...")
-            train_forecast_pipeline.with_options(
-                config_path=config, run_name=f"{run_name}_train"
-            )()
+            chosen_config = config or str(default_training_config)
+            logger.info(
+                f"Starting training pipeline with config: {chosen_config}"
+            )
+            train_forecast_pipeline.with_options(config_path=chosen_config)()
             logger.info("Training pipeline completed successfully!")
 
         if pipeline in ["inference", "both"]:
-            logger.info("Starting batch inference pipeline...")
-            batch_inference_pipeline.with_options(
-                config_path=config, run_name=f"{run_name}_inference"
-            )()
+            chosen_config = config or str(default_inference_config)
+            logger.info(
+                f"Starting batch inference pipeline with config: {chosen_config}"
+            )
+            batch_inference_pipeline.with_options(config_path=chosen_config)()
             logger.info("Batch inference pipeline completed successfully!")
 
     except Exception as e:

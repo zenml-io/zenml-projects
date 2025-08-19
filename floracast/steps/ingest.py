@@ -58,6 +58,7 @@ def ingest_data(
     data_path: Optional[str] = None,
     datetime_col: str = "ds",
     target_col: str = "y",
+    infer: bool = False,
 ) -> Annotated[pd.DataFrame, "raw_data"]:
     """
     Ingest data based on configuration parameters.
@@ -67,6 +68,7 @@ def ingest_data(
         data_path: Path to CSV file (when data_source is "csv")
         datetime_col: Name of datetime column
         target_col: Name of target column
+        infer: If True, simulate real-time data ingestion for inference
 
     Returns:
         DataFrame with datetime and target columns
@@ -86,9 +88,24 @@ def ingest_data(
                 f"Generated and saved ecommerce data to {csv_file_path}"
             )
         else:
-            logger.info(
-                f"Loading existing ecommerce data from {csv_file_path}"
-            )
+            if infer:
+                logger.info(
+                    f"🔄 INFERENCE MODE: Simulating real-time data ingestion from {csv_file_path}"
+                )
+                logger.info(
+                    "📡 In production, this would connect to real-time data sources like:"
+                )
+                logger.info("   - Database queries for latest sales data")
+                logger.info("   - API calls to fetch recent transactions")
+                logger.info("   - Stream processing from Kafka/Kinesis")
+                logger.info("   - Data lake queries for updated metrics")
+                logger.info(
+                    "📊 For demo purposes, loading same data as training to show inference workflow"
+                )
+            else:
+                logger.info(
+                    f"Loading existing ecommerce data from {csv_file_path}"
+                )
             df = pd.read_csv(csv_file_path, parse_dates=["ds"])
 
     elif data_source == "csv":

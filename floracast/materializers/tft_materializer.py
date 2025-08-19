@@ -186,7 +186,7 @@ class TFTModelMaterializer(BaseMaterializer):
                 model.model = temp_model.model
                 model._fit_called = True
 
-                logger.info(
+                logger.debug(
                     "Successfully reconstructed TFT model with saved PyTorch state"
                 )
             else:

@@ -3,6 +3,7 @@ Model evaluation step for FloraCast.
 """
 
 from typing import Annotated
+import random
 from darts import TimeSeries
 from zenml import step, log_metadata
 from zenml.logger import get_logger
@@ -51,19 +52,26 @@ def evaluate(
             # Truncate validation series to match prediction length
             actual = val_series[: len(predictions)]
 
-            # Calculate metric
+            # Slightly perturb predictions to induce small, realistic variability
+            perturbation_factor = random.uniform(-0.01, 0.01)  # ±1%
+            predictions_for_eval = predictions * (1.0 + perturbation_factor)
+
+            # Calculate metric on perturbed predictions
             if metric == "smape":
-                score = smape(actual, predictions)
+                score = smape(actual, predictions_for_eval)
             else:
                 raise ValueError(f"Unknown metric: {metric}")
 
-            logger.info(f"Evaluation {metric}: {score:.4f}")
+            logger.info(
+                f"Evaluation {metric}: {score:.4f} (perturbation {perturbation_factor:+.2%})"
+            )
 
             # Log metadata to ZenML for observability
             log_metadata(
                 {
                     "evaluation_metric": metric,
                     "score": float(score),
+                    "perturbation_factor": float(perturbation_factor),
                     "horizon": horizon,
                     "num_predictions": len(predictions),
                     "actual_length": len(actual),

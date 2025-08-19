@@ -1,6 +1,11 @@
 # FloraCast Inference Configuration
 # This config is used for running batch inference with production models
 
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: uv
+
 model:
   name: floracast_tft
   version: production  # Use production model for inference
@@ -13,14 +18,12 @@ steps:
       datetime_col: "ds"
       target_col: "y"
   
-  preprocess:
+  preprocess_for_inference:
     parameters:
       datetime_col: "ds"
       target_col: "y"
       freq: "D"
-      val_ratio: 0.2
   
   batch_inference_predict:
     parameters:
       horizon: 14
-      output_path: "outputs/forecast_inference.csv"

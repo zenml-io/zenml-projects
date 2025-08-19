@@ -6,7 +6,7 @@ from zenml import pipeline
 from zenml.logger import get_logger
 
 from steps.ingest import ingest_data
-from steps.preprocess import preprocess
+from steps.preprocess import preprocess_for_training
 from steps.train import train_model
 from steps.evaluate import evaluate
 from steps.promote import promote_model
@@ -25,13 +25,11 @@ def train_forecast_pipeline() -> None:
     # Step 1: Ingest data
     raw_data = ingest_data()
 
-    # Step 2: Preprocess data into Darts TimeSeries
-    train_series, val_series = preprocess(df=raw_data)
+    # Step 2: Preprocess data into Darts TimeSeries with train/val split
+    train_series, val_series = preprocess_for_training(df=raw_data)
 
     # Step 3: Train the forecasting model
-    trained_model, artifact_uri, model_class = train_model(
-        train_series=train_series
-    )
+    trained_model = train_model(train_series=train_series)
 
     # Step 4: Evaluate the model
     score = evaluate(

@@ -104,7 +104,6 @@ FloraCast uses semantically named configuration files for different deployment s
 
 - **`configs/training.yaml`** - Local development and training pipeline configuration
 - **`configs/inference.yaml`** - Batch inference pipeline configuration for production models  
-- **`configs/production.yaml`** - Production deployment configuration for Azure Kubernetes Service
 
 ### Customization Options
 
@@ -143,7 +142,6 @@ floracast/
 ├── configs/
 │   ├── training.yaml       # Training pipeline config
 │   ├── inference.yaml      # Inference pipeline config  
-│   └── production.yaml     # Azure production config
 ├── data/
 │   └── ecommerce_daily.csv # Generated sample data
 ├── outputs/                # Inference results
@@ -247,19 +245,10 @@ Read more:
 
 The project includes configuration for AKS deployment:
 
-1. **Prerequisites**:
+**Prerequisites**:
    - AKS cluster configured
    - Azure Container Registry (ACR)  
    - Azure Blob Storage for artifacts
-
-2. **Configuration**:
-   - Set environment variables in `.env`
-   - Use `configs/production.yaml` for production parameters
-
-3. **Deployment**:
-   - Pipelines will automatically run on AKS
-   - Artifacts stored in Azure Blob Storage
-   - Container images built and pushed to ACR
 
 ### Scaling Considerations
 

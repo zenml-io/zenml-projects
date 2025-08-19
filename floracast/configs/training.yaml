@@ -1,6 +1,11 @@
 # FloraCast Training Configuration
 # This config is used for local development and training
 
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: uv
+
 model:
   name: floracast_tft
   license: apache
@@ -27,7 +32,7 @@ steps:
       datetime_col: "ds"
       target_col: "y"
   
-  preprocess:
+  preprocess_for_training:
     parameters:
       datetime_col: "ds"
       target_col: "y"
@@ -54,8 +59,3 @@ steps:
     parameters:
       horizon: 7
       metric: "smape"
-  
-  batch_inference_predict:
-    parameters:
-      horizon: 14
-      output_path: "outputs/forecast_local.csv"

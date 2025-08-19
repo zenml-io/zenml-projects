@@ -32,11 +32,7 @@ def train_model(
     add_relative_index: bool = True,
     enable_progress_bar: bool = False,
     enable_model_summary: bool = False,
-) -> Tuple[
-    Annotated[TFTModel, "trained_model"],
-    Annotated[str, "artifact_uri"],
-    Annotated[str, "model_class"],
-]:
+) -> Annotated[TFTModel, "trained_model"]:
     """
     Train a forecasting model.
 
@@ -105,18 +101,5 @@ def train_model(
         logger.info("Falling back to ExponentialSmoothing model")
         model = ExponentialSmoothing()
         model.fit(train_series)
-        model_name = "ExponentialSmoothing"
 
-    # Save model artifacts
-    os.makedirs("model_artifacts", exist_ok=True)
-    model_path = f"model_artifacts/model_{model_name.lower()}.pkl"
-
-    with open(model_path, "wb") as f:
-        pickle.dump(model, f)
-
-    # Get absolute path for artifact URI
-    artifact_uri = os.path.abspath(model_path)
-
-    logger.info(f"Model saved to: {artifact_uri}")
-
-    return model, artifact_uri, model_name
+    return model
