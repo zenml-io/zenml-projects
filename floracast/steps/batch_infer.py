@@ -1,16 +1,16 @@
-"""
-Batch inference step for FloraCast using ZenML Model Control Plane.
-"""
+"""Batch inference step for FloraCast using ZenML Model Control Plane."""
 
 from typing import Annotated, Tuple
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 from darts import TimeSeries
-from zenml import step, get_step_context, log_metadata
-from zenml.logger import get_logger
-from zenml.client import Client
-from utils.prediction import iterative_predict
 from materializers.timeseries_materializer import DartsTimeSeriesMaterializer
+from utils.prediction import iterative_predict
+from zenml import get_step_context, log_metadata, step
+from zenml.client import Client
+from zenml.logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -30,8 +30,7 @@ def batch_inference_predict(
     Annotated[pd.DataFrame, "predictions"],
     Annotated[TimeSeries, "prediction_series"],
 ]:
-    """
-    Perform batch inference using the trained model from Model Control Plane.
+    """Perform batch inference using the trained model from Model Control Plane.
 
     Args:
         df: Raw DataFrame with datetime and target columns
