@@ -16,6 +16,7 @@ from zenml.logger import get_logger
 from zenml.types import HTMLString
 
 from utils.metrics import smape
+from utils.prediction import iterative_predict
 
 logger = get_logger(__name__)
 
@@ -271,35 +272,11 @@ def evaluate(
         if hasattr(model, "predict"):
             # Generate predictions using iterative multi-step approach for longer horizons
             # This is better than single-shot prediction for long horizons
-            n_predict = min(
-                len(val_series), 42
-            )  # Cap at 6 weeks for reasonable evaluation
+            # Respect the requested horizon but do not exceed validation length
+            n_predict = min(len(val_series), horizon)
 
-            # Use multiple prediction steps for better long-term accuracy
-            predictions_list = []
-            context_series = train_series
-
-            # Predict in chunks of output_chunk_length (14 days)
-            remaining_steps = n_predict
-            while remaining_steps > 0:
-                chunk_size = min(
-                    14, remaining_steps
-                )  # Model's output_chunk_length
-                chunk_pred = model.predict(n=chunk_size, series=context_series)
-                predictions_list.append(chunk_pred)
-
-                # Extend context with the prediction for next iteration
-                context_series = context_series.concatenate(chunk_pred)
-                remaining_steps -= chunk_size
-
-            # Combine all predictions
-            if len(predictions_list) == 1:
-                predictions = predictions_list[0]
-            else:
-                predictions = predictions_list[0]
-                for pred_chunk in predictions_list[1:]:
-                    predictions = predictions.concatenate(pred_chunk)
-            logger.info(f"Generated {len(predictions)} predictions")
+            # Use utility function for prediction
+            predictions = iterative_predict(model, train_series, n_predict)
 
             # Truncate validation series to match prediction length
             actual = val_series[: len(predictions)]

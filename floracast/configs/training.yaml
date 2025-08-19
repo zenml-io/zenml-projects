@@ -32,7 +32,7 @@ steps:
       datetime_col: "ds"
       target_col: "y"
   
-  preprocess_for_training:
+  preprocess_data:
     parameters:
       datetime_col: "ds"
       target_col: "y"
@@ -41,7 +41,6 @@ steps:
   
   train_model:
     parameters:
-      model_name: "TFTModel"
       input_chunk_length: 90
       output_chunk_length: 14
       hidden_size: 256
@@ -57,5 +56,5 @@ steps:
   
   evaluate:
     parameters:
-      horizon: 7
+      horizon: 14
       metric: "smape"

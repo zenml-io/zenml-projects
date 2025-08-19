@@ -32,8 +32,15 @@ def smape(
     actual = actual[:min_len]
     predicted = predicted[:min_len]
 
-    # Calculate SMAPE
+    # Calculate SMAPE with zero-denominator guard
     denominator = (np.abs(actual) + np.abs(predicted)) / 2.0
-    smape_value = np.mean(np.abs(actual - predicted) / denominator) * 100.0
+    errors = np.zeros_like(denominator, dtype=float)
+    non_zero_mask = denominator != 0
+    if np.any(non_zero_mask):
+        errors[non_zero_mask] = (
+            np.abs(actual[non_zero_mask] - predicted[non_zero_mask])
+            / denominator[non_zero_mask]
+        )
+    smape_value = np.mean(errors) * 100.0
 
     return float(smape_value)

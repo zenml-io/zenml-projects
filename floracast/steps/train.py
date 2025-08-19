@@ -3,8 +3,9 @@ Model training step for FloraCast.
 """
 
 from typing import Annotated
+import torch
 from darts import TimeSeries
-from darts.models import TFTModel, ExponentialSmoothing
+from darts.models import TFTModel
 from zenml import step
 from zenml.logger import get_logger
 from materializers.tft_materializer import (
@@ -17,7 +18,6 @@ logger = get_logger(__name__)
 @step(output_materializers={"trained_model": TFTModelMaterializer})
 def train_model(
     train_series: TimeSeries,
-    model_name: str = "TFTModel",
     input_chunk_length: int = 30,
     output_chunk_length: int = 7,
     hidden_size: int = 32,
@@ -31,12 +31,10 @@ def train_model(
     enable_progress_bar: bool = False,
     enable_model_summary: bool = False,
 ) -> Annotated[TFTModel, "trained_model"]:
-    """
-    Train a forecasting model.
+    """Train a TFT forecasting model.
 
     Args:
         train_series: Training time series
-        model_name: Name of the model class to use
         input_chunk_length: Number of time steps to use as input
         output_chunk_length: Number of time steps to predict
         hidden_size: Size of hidden layers
@@ -51,9 +49,9 @@ def train_model(
         enable_model_summary: Whether to show model summary
 
     Returns:
-        Tuple of (fitted_model, artifact_uri, model_class)
+        Trained TFT model
     """
-    # Build model parameters dict
+    # Build TFT model parameters
     model_params = {
         "input_chunk_length": input_chunk_length,
         "output_chunk_length": output_chunk_length,
@@ -68,66 +66,28 @@ def train_model(
         "pl_trainer_kwargs": {
             "enable_progress_bar": enable_progress_bar,
             "enable_model_summary": enable_model_summary,
+            "precision": "32-true",  # Use 32-bit precision for better hardware compatibility
         },
     }
 
-    logger.info(f"Training {model_name} with params: {model_params}")
+    logger.info(f"Training TFT model with params: {model_params}")
 
-    # Initialize model based on configuration
-    if model_name == "TFTModel":
-        model = TFTModel(**model_params)
-    elif model_name == "ExponentialSmoothing":
-        # Fallback model with simpler parameters
-        fallback_params = {
-            k: v
-            for k, v in model_params.items()
-            if k in ["seasonal_periods", "trend", "seasonal"]
-        }
-        model = ExponentialSmoothing(**fallback_params)
-    else:
-        raise ValueError(f"Unknown model name: {model_name}")
+    # Initialize TFT model
+    model = TFTModel(**model_params)
+    logger.info(f"Starting TFT training with {len(train_series)} data points")
 
-    logger.info(f"Starting training with {len(train_series)} data points")
+    # Train the TFT model
+    # Get basic stats from the pandas dataframe
+    df_stats = train_series.pd_dataframe().iloc[:, 0]
+    logger.info(
+        f"Train series stats: min={df_stats.min():.2f}, max={df_stats.max():.2f}, mean={df_stats.mean():.2f}"
+    )
 
-    # Train the model
-    try:
-        logger.info(f"Starting TFT training with {len(train_series)} points")
-        # Get basic stats from the pandas dataframe
-        df_stats = train_series.pd_dataframe().iloc[:, 0]
-        logger.info(
-            f"Train series stats: min={df_stats.min():.2f}, max={df_stats.max():.2f}, mean={df_stats.mean():.2f}"
-        )
+    model.fit(train_series)
+    logger.info("TFT model training completed successfully")
 
-        model.fit(train_series)
-        logger.info("TFT Model training completed successfully")
-
-        # Test prediction to verify model works
-        test_pred = model.predict(n=1, series=train_series)
-        logger.info(
-            f"Test prediction: {test_pred.pd_dataframe().iloc[0, 0]:.2f} (should be similar to training data range)"
-        )
-
-    except Exception as e:
-        logger.error(f"TFT Training failed with error: {str(e)}")
-        logger.error(f"Error type: {type(e).__name__}")
-        import traceback
-
-        logger.error(f"Full traceback: {traceback.format_exc()}")
-
-        # Fallback to simpler model with proper parameters
-        logger.info("Falling back to ExponentialSmoothing model")
-        from darts.models import ExponentialSmoothing
-
-        model = ExponentialSmoothing(
-            seasonal_periods=7  # Weekly seasonality
-        )
-        model.fit(train_series)
-        logger.info("Fallback ExponentialSmoothing model training completed")
-
-        # Test fallback prediction (ExponentialSmoothing doesn't need series parameter)
-        test_pred = model.predict(n=1)
-        logger.info(
-            f"Fallback test prediction: {test_pred.pd_dataframe().iloc[0, 0]:.2f}"
-        )
+    # Test prediction to verify model works
+    test_pred = model.predict(n=1, series=train_series)
+    logger.info(f"Test prediction: {test_pred.pd_dataframe().iloc[0, 0]:.2f}")
 
     return model

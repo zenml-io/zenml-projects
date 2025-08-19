@@ -3,7 +3,6 @@ Entry point for running FloraCast pipelines using ZenML e2e pattern.
 """
 
 import click
-from datetime import datetime
 from pathlib import Path
 from pipelines import batch_inference_pipeline, train_forecast_pipeline
 from zenml.logger import get_logger

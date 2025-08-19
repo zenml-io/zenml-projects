@@ -18,12 +18,9 @@ steps:
       datetime_col: "ds"
       target_col: "y"
   
-  preprocess_for_inference:
+  batch_inference_predict:
     parameters:
       datetime_col: "ds"
       target_col: "y"
       freq: "D"
-  
-  batch_inference_predict:
-    parameters:
       horizon: 14

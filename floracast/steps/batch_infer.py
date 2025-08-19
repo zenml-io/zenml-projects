@@ -4,24 +4,32 @@ Batch inference step for FloraCast using ZenML Model Control Plane.
 
 from typing import Annotated
 import pandas as pd
+import numpy as np
 from darts import TimeSeries
 from zenml import step, get_step_context, log_metadata
 from zenml.logger import get_logger
 from zenml.client import Client
+from utils.prediction import iterative_predict
 
 logger = get_logger(__name__)
 
 
 @step
 def batch_inference_predict(
-    series: TimeSeries,
+    df: pd.DataFrame,
+    datetime_col: str = "ds",
+    target_col: str = "y",
+    freq: str = "D",
     horizon: int = 14,
 ) -> Annotated[pd.DataFrame, "predictions"]:
     """
     Perform batch inference using the trained model from Model Control Plane.
 
     Args:
-        series: Time series data for forecasting
+        df: Raw DataFrame with datetime and target columns
+        datetime_col: Name of datetime column
+        target_col: Name of target column
+        freq: Frequency string for time series
         horizon: Number of time steps to forecast
 
     Returns:
@@ -30,6 +38,21 @@ def batch_inference_predict(
     logger.info(f"Performing batch inference with horizon: {horizon}")
 
     try:
+        # Convert DataFrame to TimeSeries
+        logger.info("Converting DataFrame to TimeSeries")
+        series = TimeSeries.from_dataframe(
+            df, time_col=datetime_col, value_cols=target_col, freq=freq
+        )
+
+        # Cast to float32 for consistency with training data
+        logger.info("Converting TimeSeries to float32 for consistency")
+        series = series.astype(np.float32)
+
+        logger.info(f"Created TimeSeries with {len(series)} points")
+        logger.info(
+            f"Series range: {series.start_time()} to {series.end_time()}"
+        )
+
         # Get the model from Model Control Plane
         context = get_step_context()
         if not context.model:
@@ -72,41 +95,48 @@ def batch_inference_predict(
             f"Loaded model from Model Control Plane: {type(trained_model).__name__}"
         )
 
-        # Generate predictions using improved multi-step approach (same as evaluation)
-        logger.info(
-            f"Using iterative multi-step prediction for horizon={horizon}"
-        )
+        # Load the fitted scaler artifact
+        fitted_scaler = None
+        try:
+            scaler_artifact = context.model.get_artifact("fitted_scaler")
+            if scaler_artifact is None:
+                raise ValueError(
+                    "fitted_scaler artifact not found in model version"
+                )
+            fitted_scaler = scaler_artifact.load()
+            logger.info("Loaded fitted scaler artifact from model version")
 
-        # Use multiple prediction steps for better long-term accuracy
-        predictions_list = []
-        context_series = series
-
-        # Predict in chunks of output_chunk_length (14 days)
-        remaining_steps = horizon
-        while remaining_steps > 0:
-            chunk_size = min(
-                14, remaining_steps
-            )  # Model's output_chunk_length
-            chunk_pred = trained_model.predict(
-                n=chunk_size, series=context_series
+            # Apply scaling to the input series
+            logger.info("Applying scaling to input series for inference")
+            series = fitted_scaler.transform(series)
+            logger.info("Scaling applied successfully")
+        except Exception as scaler_error:
+            logger.error(f"Failed to load or apply scaler: {scaler_error}")
+            logger.warning(
+                "Proceeding without scaling - predictions may be incorrect!"
             )
-            predictions_list.append(chunk_pred)
+            # Continue without scaling for backward compatibility
 
-            # Extend context with the prediction for next iteration
-            context_series = context_series.concatenate(chunk_pred)
-            remaining_steps -= chunk_size
+        # Generate predictions using improved multi-step approach
+        predictions = iterative_predict(trained_model, series, horizon)
 
-        # Combine all predictions
-        if len(predictions_list) == 1:
-            predictions = predictions_list[0]
+        # Inverse transform predictions back to original scale
+        if fitted_scaler is not None:
+            try:
+                logger.info(
+                    "Inverse transforming predictions back to original scale"
+                )
+                predictions = fitted_scaler.inverse_transform(predictions)
+                logger.info("Inverse transformation applied successfully")
+            except Exception as inverse_error:
+                logger.error(
+                    f"Failed to inverse transform predictions: {inverse_error}"
+                )
+                logger.warning("Predictions remain in scaled format!")
         else:
-            predictions = predictions_list[0]
-            for pred_chunk in predictions_list[1:]:
-                predictions = predictions.concatenate(pred_chunk)
-
-        logger.info(
-            f"Generated {len(predictions)} predictions using multi-step approach"
-        )
+            logger.warning(
+                "No scaler available - predictions remain in original format"
+            )
 
         # Convert to DataFrame
         pred_df = predictions.pd_dataframe().reset_index()

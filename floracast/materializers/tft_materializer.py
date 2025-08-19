@@ -168,12 +168,12 @@ class TFTModelMaterializer(BaseMaterializer):
             )
 
             dates = pd.date_range("2020-01-01", periods=dummy_length, freq="D")
-            values = np.random.randn(dummy_length)
+            values = np.random.randn(dummy_length).astype(np.float32)
             dummy_series = TimeSeries.from_dataframe(
                 pd.DataFrame({"ds": dates, "y": values}),
                 time_col="ds",
                 value_cols="y",
-            )
+            ).astype(np.float32)
 
             # Partially fit to create the internal model structure
             temp_model.fit(dummy_series, epochs=1, verbose=False)

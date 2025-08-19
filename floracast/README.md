@@ -97,7 +97,7 @@ python run.py --config configs/inference.yaml --pipeline inference
 ```
 
 3. **View results**:
-- Check `outputs/forecast_inference.csv` for predictions
+- Check the predictions artifact for predictions
 - Use ZenML dashboard to view artifacts and metrics
 
 ## ⚙️ Configuration Files
@@ -118,35 +118,33 @@ Edit the appropriate config file to customize:
 - **Evaluation**: Forecasting horizon, metrics
 - **Output**: File paths and formats
 
-
-
 ```
 floracast/
 ├── README.md
 ├── requirements.txt
 ├── .env.example
 ├── configs/
-│   ├── training.yaml       # Training pipeline config
-│   ├── inference.yaml      # Inference pipeline config  
+│   ├── training.yaml            # Training pipeline config
+│   └── inference.yaml           # Inference pipeline config
 ├── data/
-│   └── ecommerce_daily.csv # Generated sample data
+│   └── ecommerce_daily.csv      # Example input data
 ├── pipelines/
-│   ├── train_forecast_pipeline.py
-│   └── batch_inference_pipeline.py
+│   ├── train_forecast_pipeline.py      # Training pipeline definition
+│   └── batch_inference_pipeline.py     # Batch inference pipeline definition
 ├── steps/
-│   ├── ingest.py          # Data loading
-│   ├── preprocess.py      # Time series preprocessing  
-│   ├── train.py           # Model training
-│   ├── evaluate.py        # Model evaluation
-│   ├── promote.py         # Model registration
-│   ├── batch_infer.py     # Batch predictions
-│   └── load_model.py      # Model loading utilities
+│   ├── ingest.py                # Data ingestion step
+│   ├── preprocess.py            # Preprocessing step (train/val split, scaling)
+│   ├── train.py                 # Model training step
+│   ├── evaluate.py              # Model evaluation step
+│   ├── promote.py               # Model registration/promotion step
+│   ├── batch_infer.py           # Batch inference step
+│   └── load_model.py            # Model loading utilities
 ├── materializers/
-│   └── tft_materializer.py         # Custom TFTModel materializer
-|   └── timeseries_materializer.py  # Custom TimeSeries materializer
+│   ├── tft_materializer.py              # Custom TFTModel materializer
+│   └── timeseries_materializer.py       # Custom TimeSeries materializer
 ├── utils/
-│   └── metrics.py         # Forecasting metrics
-└── run.py                 # Main entry point
+│   └── metrics.py               # Forecasting metrics (e.g., SMAPE)
+└── run.py                      # CLI entry point for running pipelines
 ```
 
 ### Key Components
@@ -199,7 +197,7 @@ Read more:
 
 - **Set up an MLOps stack on Azure**: [ZenML Azure guide](https://docs.zenml.io/stacks/popular-stacks/azure-guide)
 - **Kubernetes Orchestrator (AKS)**: [Docs](https://docs.zenml.io/stacks/stack-components/orchestrators/kubernetes)
-- **Azure Blob Artifact Store**: [Docs](https://docs.zenml.io/stacks/stack-components/artifact-stores/azuree)
+- **Azure Blob Artifact Store**: [Docs](https://docs.zenml.io/stacks/stack-components/artifact-stores/azure)
 - **Azure Container Registry**: [Docs](https://docs.zenml.io/stacks/stack-components/container-registries/azure)
 - **AzureML Step Operator**: [Docs](https://docs.zenml.io/stacks/stack-components/step-operators/azureml)
 - **Terraform stack recipe for Azure**: [Hashicorp Registry](https://registry.terraform.io/modules/zenml-io/zenml-stack/azure/latest)

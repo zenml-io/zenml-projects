@@ -20,4 +20,3 @@ azure-storage-blob>=12.20.0,<13.0.0
 
 # Utilities
 matplotlib>=3.7.0,<4.0.0
-seaborn>=0.12.0,<0.14.0
