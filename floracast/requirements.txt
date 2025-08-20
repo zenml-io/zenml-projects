@@ -1,0 +1,22 @@
+# ZenML and Core MLOps
+zenml>=0.84.2
+
+# Forecasting and ML
+u8darts[torch]>=0.29.0,<0.32.0
+torch>=2.2.0,<2.5.0
+scikit-learn>=1.4.0,<1.6.0
+
+# Data Processing
+pandas>=2.1.0,<2.3.0
+numpy>=1.24.0,<1.27.0
+
+# Configuration and Environment
+pyyaml>=6.0,<7.0
+python-dotenv>=1.0.1,<2.0.0
+
+# Azure Integration (optional for AKS deployment)
+azure-identity>=1.16.0,<2.0.0
+azure-storage-blob>=12.20.0,<13.0.0
+
+# Utilities
+matplotlib>=3.7.0,<4.0.0

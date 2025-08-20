@@ -69,6 +69,7 @@ etc.
 | [Vertex Registry and Deployer](vertex-registry-and-deployer) | 🚀 MLOps  | 📦 Model Registry, 🚀 Deployment                            | vertex, gcp, zenml                   |
 | [Eurorate Predictor](eurorate-predictor)                     | 📊 Data   | ⏱️ Time Series, 🧹 ETL                                      | airflow, bigquery, xgboost           |
 | [RetailForecast](retail-forecast)                            | 📊 Data   | ⏱️ Time Series, 📈 Forecasting, 🔄 Multi-Model              | prophet, zenml, pandas               |
+| [FloraCast](floracast)                                       | 📊 Data   | ⏱️ Timeseries Prediction, 📈 Forecasting, 🔄 Batch Inference | darts, pytorch, zenml, pandas        |
 | [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data   | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml               |
 | [Credit Scorer](credit-scorer)                               | 📊 Data   | 💰 Credit Risk, 📊 Explainability, 🇪🇺 EU AI Act             | scikit-learn, fairlearn, zenml       |
 

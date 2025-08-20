@@ -175,7 +175,7 @@ def generate_enhanced_annex_iv_html(
         "name", "Credit Scoring Pipeline"
     )
     pipeline_version = metadata.get("pipeline", {}).get("version", "Unknown")
-    pipeline_run = metadata.get("pipeline_run", {})
+    _ = metadata.get("pipeline_run", {})
     stack_info = metadata.get("stack", {})
     git_info = metadata.get("git_info", {})
 
