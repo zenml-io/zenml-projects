@@ -1,4 +1,4 @@
-# 🌸 FloraCast
+# 🌸 FloraCast: Building a Forecasting Platform, Not Just Models
 
 A production-ready MLOps pipeline for **timeseries prediction** and **forecasting** using ZenML and [Darts](https://unit8co.github.io/darts/index.html), designed for enterprise demand and sales forecasting across retail, e-commerce, and supply chain use cases.
 
