@@ -53,9 +53,6 @@ The inference pipeline generates predictions using trained models:
 
 ![ZenML Model Control Plane](assets/mcp_floracast.png)
 *FloraCast leverages ZenML's Model Control Plane for enterprise-grade model versioning, lineage tracking, and automated deployment workflows.*
-
-
-
 ## 📦 Installation
 
 ### Prerequisites
