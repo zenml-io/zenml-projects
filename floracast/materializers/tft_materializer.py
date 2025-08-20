@@ -2,21 +2,22 @@
 Custom materializer for Darts TFT model objects using io_utils approach.
 """
 
-import os
-import tempfile
-import pickle
 import json
-import pandas as pd
+import os
+import pickle
+import tempfile
+from typing import Any, Dict, Type
+
 import numpy as np
+import pandas as pd
 import torch
-from typing import Type, Any, Dict
-from darts.models import TFTModel
 from darts import TimeSeries
-from zenml.materializers.base_materializer import BaseMaterializer
+from darts.models import TFTModel
 from zenml.enums import ArtifactType
-from zenml.metadata.metadata_types import MetadataType
 from zenml.io import fileio
 from zenml.logger import get_logger
+from zenml.materializers.base_materializer import BaseMaterializer
+from zenml.metadata.metadata_types import MetadataType
 
 logger = get_logger(__name__)
 

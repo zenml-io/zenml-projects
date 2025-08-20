@@ -2,21 +2,21 @@
 Model evaluation step for FloraCast.
 """
 
-from typing import Annotated, Tuple
-import pandas as pd
-import tempfile
 import base64
+import tempfile
+from typing import Annotated, Tuple
+
 import matplotlib
+import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from darts import TimeSeries
-from zenml import step, log_metadata
-from zenml.logger import get_logger
-from zenml.types import HTMLString
-
 from utils.metrics import smape
 from utils.prediction import iterative_predict
+from zenml import log_metadata, step
+from zenml.logger import get_logger
+from zenml.types import HTMLString
 
 logger = get_logger(__name__)
 

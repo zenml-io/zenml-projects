@@ -2,8 +2,9 @@
 Utility functions for computing forecasting metrics.
 """
 
-import numpy as np
 from typing import Union
+
+import numpy as np
 from darts import TimeSeries
 
 

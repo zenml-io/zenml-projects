@@ -3,7 +3,8 @@ Model promotion step using ZenML Model Control Plane.
 """
 
 from typing import Annotated, Optional
-from zenml import step, get_step_context, log_metadata
+
+from zenml import get_step_context, log_metadata, step
 from zenml.client import Client
 from zenml.enums import ModelStages
 from zenml.logger import get_logger

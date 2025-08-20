@@ -3,10 +3,11 @@ Data ingestion step for FloraCast.
 """
 
 import os
-from typing import Optional, Annotated
-import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
+from typing import Annotated, Optional
+
+import numpy as np
+import pandas as pd
 from zenml import step
 from zenml.logger import get_logger
 

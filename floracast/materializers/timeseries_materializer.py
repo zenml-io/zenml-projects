@@ -7,26 +7,24 @@ This materializer saves a `darts.TimeSeries` as:
 - static_covariates.csv (optional): static covariates if present
 """
 
-import os
 import json
+import os
 import tempfile
 from typing import Any, Dict, Type
 
-import pandas as pd
-import numpy as np
 import matplotlib
+import numpy as np
+import pandas as pd
 
 # Use a non-interactive backend for headless environments
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from darts import TimeSeries
-from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.enums import ArtifactType, VisualizationType
-from zenml.metadata.metadata_types import MetadataType
 from zenml.io import fileio
 from zenml.logger import get_logger
-
+from zenml.materializers.base_materializer import BaseMaterializer
+from zenml.metadata.metadata_types import MetadataType
 
 logger = get_logger(__name__)
 
@@ -67,7 +65,7 @@ class DartsTimeSeriesMaterializer(BaseMaterializer):
         time_col = metadata.get("time_col", "time")
         value_cols = metadata.get("value_cols")
         freq = metadata.get("freq")
-        time_index_type = metadata.get("time_index_type")
+        _ = metadata.get("time_index_type")
         time_tz = metadata.get("time_tz")
         dtypes_map = metadata.get("dtypes") or {}
 

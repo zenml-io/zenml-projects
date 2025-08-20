@@ -3,14 +3,15 @@ Model training step for FloraCast.
 """
 
 from typing import Annotated
+
 import torch
 from darts import TimeSeries
-from darts.models import TFTModel, RNNModel
-from zenml import step
-from zenml.logger import get_logger
+from darts.models import TFTModel
 from materializers.tft_materializer import (
     TFTModelMaterializer,
 )  # Import for explicit usage
+from zenml import step
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

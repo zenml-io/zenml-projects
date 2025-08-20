@@ -2,14 +2,13 @@
 Training pipeline for FloraCast forecasting models.
 """
 
-from zenml import pipeline
-from zenml.logger import get_logger
-
+from steps.evaluate import evaluate
 from steps.ingest import ingest_data
 from steps.preprocess import preprocess_data
-from steps.train import train_model
-from steps.evaluate import evaluate
 from steps.promote import promote_model
+from steps.train import train_model
+from zenml import pipeline
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 

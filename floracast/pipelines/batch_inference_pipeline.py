@@ -2,11 +2,10 @@
 Batch inference pipeline for FloraCast forecasting models.
 """
 
+from steps.batch_infer import batch_inference_predict
+from steps.ingest import ingest_data
 from zenml import pipeline
 from zenml.logger import get_logger
-
-from steps.ingest import ingest_data
-from steps.batch_infer import batch_inference_predict
 
 logger = get_logger(__name__)
 
