@@ -1,0 +1,42 @@
+# QualityFlow Strict Experiment Configuration
+# Higher quality gates and strict prompt for comprehensive testing
+
+# Pipeline configuration
+name: "generate_and_evaluate"
+version: "1.0"
+
+# Source configuration
+steps:
+  select_input:
+    parameters:
+      repo_url: "https://github.com/psf/requests.git"
+      ref: "main"
+      target_glob: "src/**/*.py,tests/**/*.py"
+  
+  analyze_code:
+    parameters:
+      strategy: "low_coverage"
+      max_files: 5  # Fewer files for more thorough testing
+  
+  # LLM generation with strict prompt
+  gen_tests_agent:
+    parameters:
+      provider: "openai"  # openai | anthropic | fake
+      model: "gpt-4o"  # More powerful model
+      prompt_path: "prompts/unit_test_strict_v2.jinja"
+      max_tests_per_file: 5  # More tests per file
+      max_files: 5  # Match analyze_code for consistency
+  
+  # Baseline test generation
+  gen_tests_baseline:
+    parameters:
+      enabled: true
+      max_files: 5  # Match agent for fair comparison
+
+# Resource configuration with higher limits
+settings:
+  docker:
+    requirements: requirements.txt
+    resource_settings:
+      memory: "4Gi"
+      cpu_count: 2.0

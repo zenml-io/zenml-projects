@@ -1,0 +1,41 @@
+# QualityFlow Default Experiment Configuration
+# Production-ready template for automated test generation & validation
+
+# Pipeline configuration
+name: "generate_and_evaluate"
+version: "1.0"
+
+# Source configuration
+steps:
+  select_input:
+    parameters:
+      repo_url: "https://github.com/psf/requests.git"
+      ref: "main"
+      target_glob: "src/**/*.py"
+  
+  analyze_code:
+    parameters:
+      strategy: "low_coverage"  # low_coverage | changed_files | all
+      max_files: 3  # Reduced for faster testing
+  
+  # LLM generation configuration
+  gen_tests_agent:
+    parameters:
+      provider: "openai"  # openai | anthropic | fake
+      model: "gpt-4o-mini"
+      prompt_path: "prompts/unit_test_v1.jinja"
+      max_tests_per_file: 3
+      max_files: 2  # Limit files for faster testing
+  
+  # Baseline test generation
+  gen_tests_baseline:
+    parameters:
+      enabled: true
+      max_files: 2  # Match agent max_files for consistency
+  
+  # No more evaluation gates or promotion - just simple coverage comparison
+
+# Resource configuration
+settings:
+  docker:
+    requirements: requirements.txt
