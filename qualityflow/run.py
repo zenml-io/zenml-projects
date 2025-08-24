@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 @click.command()
 @click.option(
     "--config",
-    "-c", 
+    "-c",
     type=click.Path(exists=True, dir_okay=False),
     default=None,
     required=False,
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 )
 def main(config: str | None, no_cache: bool):
     """Run QualityFlow test generation and coverage analysis pipeline.
-    
+
     Simple pipeline that generates tests using LLM, runs them, measures coverage,
     and compares results against baseline approaches.
     """
@@ -38,10 +38,11 @@ def main(config: str | None, no_cache: bool):
     chosen_config = config or str(default_config)
 
     try:
-        logger.info(f"Starting QualityFlow pipeline with config: {chosen_config}")
+        logger.info(
+            f"Starting QualityFlow pipeline with config: {chosen_config}"
+        )
         pipeline_instance = generate_and_evaluate.with_options(
-            config_path=chosen_config, 
-            enable_cache=not no_cache
+            config_path=chosen_config, enable_cache=not no_cache
         )
         pipeline_instance()
         logger.info("QualityFlow pipeline completed successfully!")

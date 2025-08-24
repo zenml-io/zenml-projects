@@ -10,25 +10,33 @@ class Calculator:
         """Initialize calculator with empty history."""
         self.history = []
 
-    def add(self, a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    def add(
+        self, a: Union[int, float], b: Union[int, float]
+    ) -> Union[int, float]:
         """Add two numbers."""
         result = a + b
         self.history.append(f"{a} + {b} = {result}")
         return result
 
-    def subtract(self, a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    def subtract(
+        self, a: Union[int, float], b: Union[int, float]
+    ) -> Union[int, float]:
         """Subtract second number from first."""
         result = a - b
         self.history.append(f"{a} - {b} = {result}")
         return result
 
-    def multiply(self, a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    def multiply(
+        self, a: Union[int, float], b: Union[int, float]
+    ) -> Union[int, float]:
         """Multiply two numbers."""
         result = a * b
         self.history.append(f"{a} * {b} = {result}")
         return result
 
-    def divide(self, a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    def divide(
+        self, a: Union[int, float], b: Union[int, float]
+    ) -> Union[int, float]:
         """Divide first number by second."""
         if b == 0:
             raise ValueError("Cannot divide by zero")
@@ -36,9 +44,11 @@ class Calculator:
         self.history.append(f"{a} / {b} = {result}")
         return result
 
-    def power(self, base: Union[int, float], exponent: Union[int, float]) -> Union[int, float]:
+    def power(
+        self, base: Union[int, float], exponent: Union[int, float]
+    ) -> Union[int, float]:
         """Raise base to the power of exponent."""
-        result = base ** exponent
+        result = base**exponent
         self.history.append(f"{base} ** {exponent} = {result}")
         return result
 
