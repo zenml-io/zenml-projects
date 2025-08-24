@@ -62,19 +62,24 @@ def gen_tests_agent(
     tests_dir = tempfile.mkdtemp(prefix="qualityflow_agent_tests_")
     tests_path = Path(tests_dir)
 
-    # Load prompt template
-    workspace_path = Path(workspace_dir)
-    prompt_file = workspace_path / prompt_path
+    # Load prompt template from QualityFlow project directory
+    # Note: workspace_dir is the cloned repo, but prompts are in QualityFlow project
+    project_root = Path(__file__).parent.parent  # Go up from steps/ to project root
+    prompt_file = project_root / prompt_path
 
     if prompt_file.exists():
         with open(prompt_file, "r") as f:
             prompt_template = f.read()
+        logger.info(f"Loaded prompt template from {prompt_file}")
     else:
         # Use default template if file doesn't exist
         prompt_template = _get_default_prompt_template()
-        logger.info(f"Using default prompt template, {prompt_path} not found")
+        logger.info(f"Using default prompt template, {prompt_path} not found at {prompt_file}")
 
     template = Template(prompt_template)
+    
+    # Keep workspace_path for reading source files
+    workspace_path = Path(workspace_dir)
 
     total_tokens_in = 0
     total_tokens_out = 0
