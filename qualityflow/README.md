@@ -97,6 +97,16 @@ python run.py
 - Compare LLM vs baseline test approaches
 - Experiment with different configurations
 
+### Local Testing Option
+
+For offline development or controlled testing, use the local examples:
+
+```bash
+python run.py --config configs/experiment.local.yaml
+```
+
+This uses the included `examples/toy_lib/` code instead of cloning external repositories.
+
 ## ⚙️ Configuration
 
 ### Key Parameters
@@ -125,14 +135,17 @@ steps:
 ### Pipeline Options
 
 ```bash
-# Use fake provider (no API key needed)
-python run.py  # Uses config defaults
+# Default: uses remote repository (requests library)
+python run.py  
+
+# Local testing with included examples
+python run.py --config configs/experiment.local.yaml
+
+# High-quality test generation
+python run.py --config configs/experiment.strict.yaml
 
 # Force fresh execution (no caching) 
 python run.py --no-cache
-
-# Use different config
-python run.py --config configs/experiment.strict.yaml
 ```
 
 ## 🔬 Advanced Usage
@@ -213,7 +226,8 @@ qualityflow/
 │
 ├── configs/                          # Pipeline configurations
 │   ├── experiment.default.yaml       # Standard experiment settings
-│   └── experiment.strict.yaml        # High-quality gates
+│   ├── experiment.strict.yaml        # High-quality gates
+│   └── experiment.local.yaml         # Local examples testing
 │
 ├── pipelines/                        # Pipeline definitions
 │   └── generate_and_evaluate.py      # Main pipeline
@@ -233,9 +247,9 @@ qualityflow/
 │   └── unit_test_strict_v2.jinja    # Comprehensive test generation
 │
 ├── examples/                         # Demo code for testing
-│   └── toy_lib/                     # Sample library
-│       ├── calculator.py
-│       └── string_utils.py
+│   └── toy_lib/                     # Sample library with test-friendly code
+│       ├── calculator.py           # Calculator class with edge cases
+│       └── string_utils.py         # String utilities with validation
 │
 └── run.py                           # Main entry point
 ```
@@ -246,6 +260,7 @@ qualityflow/
 - **Prompt Templates**: Jinja2 templates for LLM test generation  
 - **Configuration**: YAML-driven experiment settings
 - **Test Generation**: Both LLM-based and heuristic approaches for comparison
+- **Example Code**: Sample Python modules (`toy_lib`) designed for effective test generation demonstration
 
 ## 🚀 Production Deployment
 

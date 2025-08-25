@@ -32,10 +32,12 @@ def generate_and_evaluate() -> None:
     workspace_dir, commit_sha = fetch_source(spec)
 
     # Step 3: Analyze and select code files
-    code_summary = analyze_code(workspace_dir, commit_sha)
+    code_summary = analyze_code(workspace_dir, commit_sha, spec)
 
     # Step 4: Generate tests using LLM agent
-    agent_tests_dir, prompt_used = gen_tests_agent(workspace_dir, code_summary)
+    agent_tests_dir, test_summary = gen_tests_agent(
+        workspace_dir, code_summary
+    )
 
     # Step 5: Generate baseline tests (optional)
     baseline_tests_dir = gen_tests_baseline(workspace_dir, code_summary)
@@ -52,7 +54,7 @@ def generate_and_evaluate() -> None:
     report(
         workspace_dir,
         commit_sha,
-        prompt_used,
+        test_summary,
         agent_results,
         baseline_results,
     )

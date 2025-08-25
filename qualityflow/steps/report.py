@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 def report(
     workspace_dir: Path,
     commit_sha: str,
-    prompt_used: str,
+    test_summary: MarkdownString,
     agent_results: Dict,
     baseline_results: Optional[Dict],
 ) -> Annotated[MarkdownString, "final_report"]:
@@ -32,12 +32,12 @@ def report(
     Args:
         workspace_dir: Workspace directory path
         commit_sha: Git commit SHA
-        prompt_used: Prompt template used
+        test_summary: Test generation summary with snippets
         agent_results: Agent test results
         baseline_results: Baseline test results (optional)
 
     Returns:
-        Path to generated markdown report
+        Markdown report as string
     """
     logger.info("Generating pipeline execution report")
 
@@ -55,7 +55,7 @@ def report(
     report_content = _generate_report_content(
         workspace_dir,
         commit_sha,
-        prompt_used,
+        test_summary,
         agent_results,
         baseline_results,
         evaluation_metrics,
@@ -131,7 +131,7 @@ def _evaluate_coverage_metrics(
 def _generate_report_content(
     workspace_dir: Path,
     commit_sha: str,
-    prompt_used: str,
+    test_summary: MarkdownString,
     agent_results: Dict,
     baseline_results: Optional[Dict],
     evaluation_metrics: Dict,
@@ -236,15 +236,10 @@ Workspace: `{workspace_dir}`
     else:
         report += "📉 **Baseline performs as well or better** - review agent configuration.\n"
 
-    # Configuration section
-    report += """## Configuration
+    # Test generation details section
+    report += f"""## Test Generation Details
 
-### Prompt Template
-```
-"""
-    report += prompt_used[:500] + ("..." if len(prompt_used) > 500 else "")
-    report += """
-```
+{test_summary}
 
 ### File Coverage Details
 """

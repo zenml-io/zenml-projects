@@ -250,8 +250,6 @@ def _parse_coverage_xml(coverage_file: Path) -> tuple[float, Dict[str, float]]:
 
         # If still no coverage found, try branches-valid attribute (alternative format)
         if coverage_total == 0.0:
-            branches_valid = root.get("branches-valid", "0")
-            branches_covered = root.get("branches-covered", "0")
             lines_valid = root.get("lines-valid", "0")
             lines_covered = root.get("lines-covered", "0")
 

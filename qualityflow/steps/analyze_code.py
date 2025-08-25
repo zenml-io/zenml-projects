@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 def analyze_code(
     workspace_dir: Path,
     commit_sha: str,
-    target_glob: str = "src/**/*.py",
+    source_spec: Dict[str, str],
     strategy: SelectionStrategy = SelectionStrategy.LOW_COVERAGE,
     max_files: int = 10,
 ) -> Annotated[Dict, "code_summary"]:
@@ -38,14 +38,19 @@ def analyze_code(
     Args:
         workspace_dir: Path to workspace directory
         commit_sha: Git commit SHA
-        target_glob: Glob pattern for target files
+        source_spec: Source specification containing target_glob and other settings
         strategy: File selection strategy
         max_files: Maximum number of files to select
 
     Returns:
         Code summary dictionary containing selected files and metadata
     """
-    logger.info(f"Analyzing code in {workspace_dir} with strategy {strategy}")
+    # Extract target_glob from source spec
+    target_glob = source_spec.get("target_glob", "src/**/*.py")
+
+    logger.info(
+        f"Analyzing code in {workspace_dir} with strategy {strategy} and glob {target_glob}"
+    )
 
     workspace_path = Path(workspace_dir)
 

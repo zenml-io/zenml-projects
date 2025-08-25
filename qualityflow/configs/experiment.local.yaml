@@ -1,0 +1,40 @@
+# QualityFlow Local Examples Configuration
+# Use local toy_lib examples instead of remote repositories
+
+# Pipeline configuration
+name: "generate_and_evaluate"
+version: "1.0"
+
+# Source configuration - using local examples
+steps:
+  select_input:
+    parameters:
+      # Use local examples instead of remote repo
+      repo_url: "local"
+      ref: "main"
+      target_glob: "examples/**/*.py"  # Target the toy_lib examples
+  
+  analyze_code:
+    parameters:
+      strategy: "all"  # Include all example files
+      max_files: 5  # Process all toy_lib files
+  
+  # LLM generation configuration
+  gen_tests_agent:
+    parameters:
+      provider: "fake"  # Use fake provider by default for local testing
+      model: "gpt-4o-mini"
+      prompt_path: "prompts/unit_test_v1.jinja"
+      max_tests_per_file: 3
+      max_files: 5  # Process all toy_lib files
+  
+  # Baseline test generation
+  gen_tests_baseline:
+    parameters:
+      enabled: true
+      max_files: 5  # Match agent max_files
+
+# Resource configuration
+settings:
+  docker:
+    requirements: requirements.txt

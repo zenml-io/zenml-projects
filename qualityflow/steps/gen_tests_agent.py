@@ -10,6 +10,7 @@ from typing import Annotated, Dict, Tuple
 from jinja2 import Template
 from zenml import log_metadata, step
 from zenml.logger import get_logger
+from zenml.types import MarkdownString
 
 
 class GenerationProvider(str, Enum):
@@ -32,7 +33,10 @@ def gen_tests_agent(
     prompt_path: str = "prompts/unit_test_v1.jinja",
     max_tests_per_file: int = 3,
     max_files: int = 10,
-) -> Tuple[Annotated[Path, "agent_tests_dir"], Annotated[str, "prompt_used"]]:
+) -> Tuple[
+    Annotated[Path, "agent_tests_dir"],
+    Annotated[MarkdownString, "test_summary"],
+]:
     """Generate tests using LLM agent.
 
     Args:
@@ -45,7 +49,7 @@ def gen_tests_agent(
         max_files: Maximum number of files to process (for speed control)
 
     Returns:
-        Tuple of test directory and prompt used
+        Tuple of test directory and test generation summary
     """
     # Extract selected files from code summary
     selected_files = code_summary.get("selected_files", [])
@@ -67,7 +71,9 @@ def gen_tests_agent(
     try:
         # Try to resolve project root more robustly
         current_file = Path(__file__).resolve()
-        project_root = current_file.parent.parent  # Go up from steps/ to project root
+        project_root = (
+            current_file.parent.parent
+        )  # Go up from steps/ to project root
         prompt_file = project_root / prompt_path
     except Exception:
         # Fallback to current working directory if path resolution fails
@@ -80,16 +86,19 @@ def gen_tests_agent(
     else:
         # Use default template if file doesn't exist
         prompt_template = _get_default_prompt_template()
-        logger.info(f"Using default prompt template, {prompt_path} not found at {prompt_file}")
+        logger.info(
+            f"Using default prompt template, {prompt_path} not found at {prompt_file}"
+        )
 
     template = Template(prompt_template)
-    
+
     # Keep workspace_path for reading source files
     workspace_path = Path(workspace_dir)
 
     total_tokens_in = 0
     total_tokens_out = 0
-    materialized_prompts = {}  # Store materialized prompts per file
+    test_snippets = {}  # Store test snippets per file
+    test_stats = {}  # Store test statistics per file
 
     for file_path in files_to_process:
         logger.info(f"Generating tests for {file_path}")
@@ -109,8 +118,15 @@ def gen_tests_agent(
             ),
         )
 
-        # Store the materialized prompt for this file
-        materialized_prompts[file_path] = materialized_prompt
+        # Store test generation info for this file
+        test_stats[file_path] = {
+            "provider": provider.value,
+            "model": model,
+            "max_tests": max_tests_per_file,
+            "complexity_score": code_summary.get("complexity_scores", {}).get(
+                file_path, 0
+            ),
+        }
 
         # Generate tests using provider
         if provider == GenerationProvider.FAKE:
@@ -138,9 +154,26 @@ def gen_tests_agent(
         with open(test_file_path, "w") as f:
             f.write(generated_tests)
 
+        # Store test snippet for summary (first 20 lines)
+        test_lines = generated_tests.split("\n")
+        snippet_lines = test_lines[:20]
+        if len(test_lines) > 20:
+            snippet_lines.append("... (truncated)")
+        test_snippets[file_path] = "\n".join(snippet_lines)
+
+        # Update test stats with actual counts
+        test_stats[file_path]["lines_generated"] = len(test_lines)
+        test_stats[file_path]["test_functions"] = len(
+            [
+                line
+                for line in test_lines
+                if line.strip().startswith("def test_")
+            ]
+        )
+
         logger.info(f"Generated tests saved to {test_file_path}")
 
-    # Log comprehensive metadata including materialized prompts
+    # Log comprehensive metadata
     metadata = {
         "token_usage": {
             "tokens_in": total_tokens_in,
@@ -156,8 +189,7 @@ def gen_tests_agent(
             "max_tests_per_file": max_tests_per_file,
             "files_processed": len(files_to_process),
         },
-        "materialized_prompts": materialized_prompts,
-        "prompt_template": prompt_template,
+        "test_stats": test_stats,
     }
 
     log_metadata(metadata)
@@ -165,11 +197,104 @@ def gen_tests_agent(
         f"Test generation complete. Files: {len(files_to_process)}, Tokens: {total_tokens_in} in / {total_tokens_out} out"
     )
 
-    # Create a better prompt summary for the report
-    prompt_summary = f"Template: {prompt_path}\nProvider: {provider.value}\nModel: {model}\nFiles processed: {len(files_to_process)}"
+    # Create test generation summary
+    test_summary = _create_test_summary(
+        provider,
+        model,
+        prompt_path,
+        files_to_process,
+        test_snippets,
+        test_stats,
+        total_tokens_in,
+        total_tokens_out,
+    )
 
     # Return Path object - ZenML will automatically materialize the folder
-    return Path(tests_dir), prompt_summary
+    return Path(tests_dir), test_summary
+
+
+def _create_test_summary(
+    provider: GenerationProvider,
+    model: str,
+    prompt_path: str,
+    files_processed: list,
+    test_snippets: Dict[str, str],
+    test_stats: Dict[str, Dict],
+    total_tokens_in: int,
+    total_tokens_out: int,
+) -> MarkdownString:
+    """Create a markdown summary of test generation results."""
+
+    # Calculate totals
+    total_lines = sum(
+        stats.get("lines_generated", 0) for stats in test_stats.values()
+    )
+    total_test_functions = sum(
+        stats.get("test_functions", 0) for stats in test_stats.values()
+    )
+
+    # Handle edge case of no files processed
+    if len(files_processed) == 0:
+        summary = f"""# 🧪 Test Generation Summary
+
+## Configuration
+- **Provider**: {provider.value}
+- **Model**: {model}
+- **Prompt Template**: {prompt_path}
+- **Files Processed**: 0
+
+## Generation Statistics
+⚠️ **No files were processed for test generation.**
+
+This could happen if:
+- No files matched the target glob pattern
+- All files were filtered out during analysis
+- Max files limit was set to 0
+
+**Token Usage**: {total_tokens_in:,} in / {total_tokens_out:,} out
+"""
+        return MarkdownString(summary)
+
+    # Build markdown content for successful processing
+    avg_tests = total_test_functions / len(files_processed)
+    summary = f"""# 🧪 Test Generation Summary
+
+## Configuration
+- **Provider**: {provider.value}
+- **Model**: {model}
+- **Prompt Template**: {prompt_path}
+- **Files Processed**: {len(files_processed)}
+
+## Generation Statistics
+- **Total Lines Generated**: {total_lines:,}
+- **Total Test Functions**: {total_test_functions}
+- **Average Tests per File**: {avg_tests:.1f}
+- **Token Usage**: {total_tokens_in:,} in / {total_tokens_out:,} out
+
+## Generated Tests by File
+
+"""
+
+    for file_path in files_processed:
+        stats = test_stats.get(file_path, {})
+        snippet = test_snippets.get(file_path, "")
+
+        complexity = stats.get("complexity_score", 0)
+        lines = stats.get("lines_generated", 0)
+        test_count = stats.get("test_functions", 0)
+
+        summary += f"""### 📄 `{file_path}`
+**Complexity Score**: {complexity:.1f} | **Lines**: {lines} | **Test Functions**: {test_count}
+
+```
+{snippet}
+```
+
+---
+
+"""
+
+    return MarkdownString(summary)
 
 
 def _get_default_prompt_template() -> str:
@@ -197,9 +322,6 @@ def _generate_fake_tests(
     file_path: str, source_code: str, max_tests: int
 ) -> Tuple[str, Dict]:
     """Generate fake/mock tests for development/testing."""
-    # Create a simple module name from file path
-    module_name = file_path.replace("/", ".").replace(".py", "")
-
     test_content = f'''"""
 Generated tests for {file_path}
 """

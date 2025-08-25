@@ -40,7 +40,7 @@ def main(config: Union[str, None], no_cache: bool):
     except Exception:
         # Fallback to current working directory
         default_config = Path.cwd() / "configs" / "experiment.default.yaml"
-    
+
     chosen_config = config or str(default_config)
 
     try:
