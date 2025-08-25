@@ -63,37 +63,39 @@ The main pipeline handles the complete test generation workflow:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 📦 Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
+Get QualityFlow running in 3 simple steps:
 
-- Python 3.9+
-- ZenML installed (`pip install zenml`)
-- Git
-- OpenAI API key (optional, can use fake provider)
-
-### Setup
-
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Set up OpenAI (optional)**:
+### 2. Optional: Set up OpenAI API Key
 ```bash
 export OPENAI_API_KEY="your-api-key-here"
 ```
+*Skip this step to use the fake provider for testing*
 
-3. **Run the pipeline**:
+### 3. Run the Pipeline
 ```bash
 python run.py
 ```
 
-That's it! The pipeline will:
-- Clone the configured repository (default: requests library)
-- Analyze Python files and select candidates
-- Generate tests using OpenAI (or fake provider if no API key)
+**That's it!** The pipeline will automatically:
+- Clone a sample repository (requests library by default)
+- Analyze Python files and select test candidates
+- Generate tests using LLM or fake provider
 - Run tests and measure coverage
-- Generate a comprehensive report comparing approaches
+- Create a detailed comparison report
+
+### What Happens Next?
+
+- Check the ZenML dashboard to see pipeline results
+- View generated test files and coverage reports
+- Compare LLM vs baseline test approaches
+- Experiment with different configurations
 
 ## ⚙️ Configuration
 
@@ -171,18 +173,17 @@ Requirements:
 
 ### A/B Testing Experiments
 
-Use run templates for systematic comparisons:
+Compare different configurations by running with different config files:
 
 ```bash
 # Compare prompt versions
-python scripts/run_experiment.py --config configs/experiment.default.yaml
-python scripts/run_experiment.py --config configs/experiment.strict.yaml
+python run.py --config configs/experiment.default.yaml
+python run.py --config configs/experiment.strict.yaml
 
-# Compare in ZenML dashboard:
+# Compare results in ZenML dashboard:
 # - Coverage metrics
 # - Test quality scores  
 # - Token usage and cost
-# - Promotion decisions
 ```
 
 ### Production Deployment
@@ -199,36 +200,23 @@ zenml stack register production_stack \
   -a s3_store -c ecr_registry -o k8s_orchestrator --set
 ```
 
-### Scheduled Regression
+### Scheduled Execution
 
-Register batch regression for daily execution:
-
-```bash
-python scripts/run_batch.py --config configs/schedule.batch.yaml --schedule
-```
+For automated runs, set up scheduled execution using your preferred orchestration tool or ZenML's scheduling features.
 
 ## 🏗️ Project Structure
 
 ```
 qualityflow/
 ├── README.md
-├── pyproject.toml
 ├── requirements.txt
-├── .env.example
-├── zenml.yaml
 │
 ├── configs/                          # Pipeline configurations
 │   ├── experiment.default.yaml       # Standard experiment settings
-│   ├── experiment.strict.yaml        # High-quality gates
-│   └── schedule.batch.yaml           # Batch regression schedule
-│
-├── domain/                           # Core data models
-│   ├── schema.py                     # Pydantic models
-│   └── stages.py                     # Deployment stages
+│   └── experiment.strict.yaml        # High-quality gates
 │
 ├── pipelines/                        # Pipeline definitions
-│   ├── generate_and_evaluate.py      # Experiment pipeline
-│   └── batch_regression.py           # Scheduled regression
+│   └── generate_and_evaluate.py      # Main pipeline
 │
 ├── steps/                            # Pipeline steps
 │   ├── select_input.py               # Source specification
@@ -237,43 +225,27 @@ qualityflow/
 │   ├── gen_tests_agent.py            # LLM test generation
 │   ├── gen_tests_baseline.py         # Heuristic test generation
 │   ├── run_tests.py                  # Test execution & coverage
-│   ├── evaluate_coverage.py          # Metrics & gate evaluation
-│   ├── compare_and_promote.py        # Model registry promotion
-│   ├── resolve_test_pack.py          # Test pack resolution
+│   ├── evaluate_coverage.py          # Metrics evaluation
 │   └── report.py                     # Report generation
 │
 ├── prompts/                          # Jinja2 prompt templates
 │   ├── unit_test_v1.jinja           # Standard test generation
 │   └── unit_test_strict_v2.jinja    # Comprehensive test generation
 │
-├── materializers/                    # Custom artifact handling
-├── utils/                           # Utility functions
+├── examples/                         # Demo code for testing
+│   └── toy_lib/                     # Sample library
+│       ├── calculator.py
+│       └── string_utils.py
 │
-├── registry/                        # Test Pack registry docs
-│   └── README.md
-│
-├── run_templates/                   # Experiment templates
-│   ├── ab_agent_vs_strict.json    # A/B testing configuration
-│   └── baseline_only.json         # Baseline establishment
-│
-├── scripts/                        # CLI scripts
-│   ├── run_experiment.py          # Experiment runner
-│   └── run_batch.py              # Batch regression runner
-│
-└── examples/                       # Demo code for testing
-    └── toy_lib/                   # Sample library
-        ├── calculator.py
-        └── string_utils.py
+└── run.py                           # Main entry point
 ```
 
 ### Key Components
 
-- **Domain Models**: Pydantic schemas for type safety and validation
 - **Pipeline Steps**: Modular, reusable components with clear interfaces
 - **Prompt Templates**: Jinja2 templates for LLM test generation  
-- **Configuration**: YAML-driven experiment and deployment settings
-- **Quality Gates**: Configurable thresholds for coverage and promotion
-- **Model Registry**: ZenML Model Registry integration for test pack versioning
+- **Configuration**: YAML-driven experiment settings
+- **Test Generation**: Both LLM-based and heuristic approaches for comparison
 
 ## 🚀 Production Deployment
 
@@ -295,17 +267,7 @@ zenml stack register production \
 
 ### Scheduled Execution
 
-Set up automated regression testing:
-
-```bash
-# Register schedule (example with ZenML Cloud)
-python scripts/run_batch.py --config configs/schedule.batch.yaml --schedule
-
-# Monitor via dashboard:
-# - Daily regression results
-# - Coverage trend analysis  
-# - Test pack performance
-```
+Set up automated regression testing using ZenML's scheduling capabilities or your preferred orchestration platform.
 
 ## 🤝 Contributing
 
@@ -344,7 +306,7 @@ Run with debug logging:
 
 ```bash
 export ZENML_LOGGING_VERBOSITY=DEBUG
-python scripts/run_experiment.py --config configs/experiment.default.yaml
+python run.py --config configs/experiment.default.yaml
 ```
 
 ## 📚 Resources

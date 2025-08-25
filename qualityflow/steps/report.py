@@ -1,5 +1,9 @@
 """
 Generate comprehensive pipeline report.
+
+This module creates detailed markdown reports comparing LLM-generated tests
+against baseline tests, including coverage metrics, quality assessments,
+and recommendations for improvement.
 """
 
 import tempfile

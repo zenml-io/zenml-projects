@@ -1,5 +1,8 @@
 """
 Fetch source code workspace step.
+
+This module provides functionality to clone Git repositories and prepare
+workspaces for code analysis and test generation.
 """
 
 import subprocess

@@ -64,8 +64,14 @@ def gen_tests_agent(
 
     # Load prompt template from QualityFlow project directory
     # Note: workspace_dir is the cloned repo, but prompts are in QualityFlow project
-    project_root = Path(__file__).parent.parent  # Go up from steps/ to project root
-    prompt_file = project_root / prompt_path
+    try:
+        # Try to resolve project root more robustly
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent  # Go up from steps/ to project root
+        prompt_file = project_root / prompt_path
+    except Exception:
+        # Fallback to current working directory if path resolution fails
+        prompt_file = Path.cwd() / prompt_path
 
     if prompt_file.exists():
         with open(prompt_file, "r") as f:

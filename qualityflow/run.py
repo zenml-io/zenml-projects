@@ -3,6 +3,7 @@ Entry point for running QualityFlow test generation pipeline.
 """
 
 from pathlib import Path
+from typing import Union
 
 import click
 from pipelines import generate_and_evaluate
@@ -26,15 +27,20 @@ logger = get_logger(__name__)
     default=False,
     help="Disable pipeline caching and force fresh execution",
 )
-def main(config: str | None, no_cache: bool):
+def main(config: Union[str, None], no_cache: bool):
     """Run QualityFlow test generation and coverage analysis pipeline.
 
     Simple pipeline that generates tests using LLM, runs them, measures coverage,
     and compares results against baseline approaches.
     """
 
-    project_root = Path(__file__).parent
-    default_config = project_root / "configs" / "experiment.default.yaml"
+    try:
+        project_root = Path(__file__).resolve().parent
+        default_config = project_root / "configs" / "experiment.default.yaml"
+    except Exception:
+        # Fallback to current working directory
+        default_config = Path.cwd() / "configs" / "experiment.default.yaml"
+    
     chosen_config = config or str(default_config)
 
     try:

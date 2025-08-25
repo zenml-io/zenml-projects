@@ -1,5 +1,9 @@
 """
 Generate baseline/skeleton tests using heuristics.
+
+This module creates simple test templates by analyzing Python AST to identify
+functions and classes, generating skeleton test code for comparison with
+LLM-generated tests.
 """
 
 import ast
