@@ -289,7 +289,6 @@ Set up automated regression testing using ZenML's scheduling capabilities or you
 QualityFlow follows ZenML best practices and is designed to be extended:
 
 1. **Add New LLM Providers**: Extend `gen_tests_agent.py` with new provider integrations
-2. **Custom Materializers**: Create materializers for new artifact types
 3. **Additional Metrics**: Expand evaluation capabilities with new quality metrics
 4. **Selection Strategies**: Add new code selection algorithms
 
@@ -327,8 +326,6 @@ python run.py --config configs/experiment.default.yaml
 ## 📚 Resources
 
 - [ZenML Documentation](https://docs.zenml.io/)
-- [Model Control Plane](https://docs.zenml.io/user-guide/model-control-plane)
-- [Kubernetes Orchestrator](https://docs.zenml.io/stacks/stack-components/orchestrators/kubernetes)
 
 ---
 

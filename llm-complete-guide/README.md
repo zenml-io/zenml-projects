@@ -235,7 +235,7 @@ python run.py synthetic
 
 You will also need to have set up and connected to an Argilla instance for this
 to work. Please follow the instructions in the [Argilla
-documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+documentation](https://docs.v1.argilla.io/en/latest/)
 to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
 Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)
@@ -254,7 +254,7 @@ zenml secret update llm-complete -v '{"argilla_api_key": "YOUR_ARGILLA_API_KEY",
 
 As with the previous pipeline, you will need to have set up and connected to an Argilla instance for this
 to work. Please follow the instructions in the [Argilla
-documentation](https://docs.argilla.io/latest/getting_started/quickstart/)
+documentation](https://docs.v1.argilla.io/en/latest/)
 to set up and connect to an Argilla instance on the Hugging Face Hub. [ZenML's
 Argilla integration
 documentation](https://docs.zenml.io/v/docs/stack-components/annotators/argilla)

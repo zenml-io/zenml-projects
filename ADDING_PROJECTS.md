@@ -57,7 +57,7 @@ ENV ZENML_ENABLE_TUTORIAL=true
 ### When No Dockerfile is Needed
 
 If your project only requires Python dependencies listed in `requirements.txt`, **do not include a Dockerfile**. The projects backend will automatically build your project using the generic Dockerfile available at:
-[https://github.com/zenml-io/zenml-projects-backend/blob/main/.docker/project.Dockerfile](https://github.com/zenml-io/zenml-projects-backend/blob/main/.docker/project.Dockerfile)
+[https://raw.githubusercontent.com/zenml-io/zenml-projects-backend/refs/heads/main/.docker/project.Dockerfile?token=GHSAT0AAAAAADISFM36XGBCROFV7ZUEFSUK2FMHITA](https://raw.githubusercontent.com/zenml-io/zenml-projects-backend/refs/heads/main/.docker/project.Dockerfile?token=GHSAT0AAAAAADISFM36XGBCROFV7ZUEFSUK2FMHITA)
 
 ## 🔧 Backend Integration
 
