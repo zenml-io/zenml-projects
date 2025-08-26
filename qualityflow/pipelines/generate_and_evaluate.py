@@ -3,6 +3,7 @@ QualityFlow experiment pipeline for test generation and evaluation.
 """
 
 from steps.analyze_code import analyze_code
+from steps.evaluate_coverage import evaluate_coverage
 from steps.fetch_source import fetch_source
 from steps.gen_tests_agent import gen_tests_agent
 from steps.gen_tests_baseline import gen_tests_baseline
@@ -23,7 +24,8 @@ def generate_and_evaluate() -> None:
     1. Analyze code to find files needing tests
     2. Generate tests using LLM and baseline approaches
     3. Run tests and measure coverage
-    4. Report results for comparison
+    4. Evaluate and compare coverage metrics
+    5. Report results for comparison
     """
     # Step 1: Resolve source specification
     spec = select_input()
@@ -50,11 +52,19 @@ def generate_and_evaluate() -> None:
         workspace_dir, baseline_tests_dir, label="baseline"
     )
 
-    # Step 8: Generate comprehensive report (includes evaluation)
+    # Step 8: Evaluate coverage metrics
+    evaluation_metrics = evaluate_coverage(
+        agent_results,
+        baseline_results,
+        commit_sha,
+    )
+
+    # Step 9: Generate comprehensive report
     report(
         workspace_dir,
         commit_sha,
         test_summary,
         agent_results,
         baseline_results,
+        evaluation_metrics,
     )

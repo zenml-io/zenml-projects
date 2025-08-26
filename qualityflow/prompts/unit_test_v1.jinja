@@ -44,8 +44,8 @@ import pytest
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 
-# Import the module under test
-# from {{ file_path.replace('/', '.').replace('.py', '') }} import *
+# Import the module under test (uncomment and adjust as needed)
+from {{ file_path.replace('/', '.').replace('.py', '') }} import *
 
 class TestModule(unittest.TestCase):
     """Test suite for {{ file_path }}."""

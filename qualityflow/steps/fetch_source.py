@@ -70,6 +70,18 @@ def fetch_source(
 
         except Exception as e:
             logger.error(f"Failed to set up local workspace: {e}")
+            # Clean up any partial workspace on error
+            if "workspace_dir" in locals():
+                try:
+                    import shutil
+
+                    shutil.rmtree(workspace_dir, ignore_errors=True)
+                    logger.info(
+                        f"Cleaned up partial workspace after error: {workspace_dir}"
+                    )
+                except Exception:
+                    pass
+
             # Fallback to current working directory
             workspace_dir = tempfile.mkdtemp(
                 prefix="qualityflow_fallback_workspace_"

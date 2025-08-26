@@ -69,8 +69,8 @@ import tempfile
 import os
 from contextlib import contextmanager
 
-# Import the module under test
-# from {{ file_path.replace('/', '.').replace('.py', '') }} import *
+# Import the module under test (adjust import paths as needed)
+from {{ file_path.replace('/', '.').replace('.py', '') }} import *
 
 class Test{{ file_path.split('/')[-1].replace('.py', '').title() }}(unittest.TestCase):
     """Comprehensive test suite for {{ file_path }}."""

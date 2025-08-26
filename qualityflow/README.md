@@ -33,8 +33,10 @@ The main pipeline handles the complete test generation workflow:
 3. **Code Analysis** - Select files for testing (with max_files limit)
 4. **LLM Test Generation** - Generate tests using OpenAI/Anthropic/fake providers
 5. **Baseline Generation** - Create simple heuristic tests for comparison
-6. **Test Execution** - Run both test suites with coverage analysis
-7. **Report Generation** - Compare results and generate markdown reports
+6. **Agent Test Execution** - Run LLM-generated tests with coverage analysis
+7. **Baseline Test Execution** - Run baseline tests with coverage analysis
+8. **Coverage Evaluation** - Compare and analyze coverage metrics between approaches
+9. **Report Generation** - Generate comprehensive markdown reports with comparisons
 
 ### 🔧 Architecture
 
@@ -55,13 +57,17 @@ The main pipeline handles the complete test generation workflow:
 │  │                Generate & Evaluate                      │   │
 │  │                                                         │   │
 │  │ 1. Select Input    → 2. Fetch Source    → 3. Analyze   │   │
-│  │ 4. Generate (LLM)  → 5. Generate (Base) → 6. Run Tests │   │
-│  │ 7. Run Tests       → 8. Report & Compare               │   │
+│  │ 4. Generate (LLM)  → 5. Generate (Base) → 6. Run Agent │   │
+│  │ 7. Run Baseline    → 8. Evaluate        → 9. Report   │   │
 │  │                                                         │   │
 │  │ Features: max_files control, Path artifacts, metadata  │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+<p align="center">
+  <img src="assets/architecture.png" alt="QualityFlow Architecture" width="900" />
+</p>
 
 ## 🚀 Quick Start
 
@@ -301,6 +307,10 @@ After running QualityFlow successfully:
 3. **Add Real Codebases**: Replace toy examples with your production code
 4. **Deploy to Production**: Use cloud orchestration for scale
 5. **Set Up Monitoring**: Configure alerts for regression detection
+
+## ⚠️ Known Limitations
+
+- **CHANGED_FILES Strategy**: The `CHANGED_FILES` selection strategy in `analyze_code.py` is currently a stub implementation that falls back to selecting all files. In production, this should use `git diff` to identify modified files for targeted test generation.
 
 ## 🆘 Troubleshooting
 
