@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 @step
 def analyze_code(
     workspace_dir: Path,
-    commit_sha: str,
+    commit_sha: str,  # Used in code_summary for metadata
     source_spec: Dict[str, str],
     strategy: SelectionStrategy = SelectionStrategy.LOW_COVERAGE,
     max_files: int = 10,
@@ -102,6 +102,7 @@ def analyze_code(
         "total_files": len(valid_files),
         "selection_reason": f"Selected top {len(selected_files)} files using {strategy} strategy",
         "complexity_scores": {f: complexity_scores[f] for f in selected_files},
+        "commit_sha": commit_sha,  # Include commit_sha in metadata
     }
 
     logger.info(f"Selected {len(selected_files)} files: {selected_files}")
@@ -157,11 +158,16 @@ def _select_files(
         return sorted_files[:max_files]
 
     elif strategy == SelectionStrategy.CHANGED_FILES:
-        # For this demo, just return all files (in real implementation, would use git diff)
+        # NOTE: CHANGED_FILES strategy is currently a stub implementation
+        # In production, this should use git diff to identify changed files:
+        # - Compare current commit against base branch (e.g., main)
+        # - Filter for Python files that have been modified/added
+        # - Prioritize files based on change size and complexity
         logger.warning(
-            "CHANGED_FILES strategy not fully implemented, falling back to ALL"
+            "CHANGED_FILES strategy not fully implemented, falling back to ALL strategy. "
+            "To implement: use 'git diff --name-only HEAD~1..HEAD' or similar to identify changed files."
         )
         return files[:max_files]
 
-    else:
-        raise ValueError(f"Unknown selection strategy: {strategy}")
+    # This should never be reached due to enum validation, but kept for safety
+    raise ValueError(f"Unknown selection strategy: {strategy}")

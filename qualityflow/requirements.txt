@@ -10,6 +10,7 @@ jinja2>=3.0.0,<4.0.0
 pytest>=7.0.0,<8.0.0
 pytest-cov>=4.0.0,<5.0.0
 coverage>=7.0.0,<8.0.0
+hypothesis>=6.0.0,<7.0.0
 
 # Code Analysis
 # ast is built-in, no need to install
@@ -17,6 +18,7 @@ coverage>=7.0.0,<8.0.0
 # Git Integration
 gitpython>=3.1.0,<4.0.0
 
-# LLM Integration (optional)
-openai>=1.0.0,<2.0.0  # for OpenAI provider
-anthropic>=0.25.0,<1.0.0  # for Anthropic provider
+# LLM Integration (optional - code gracefully handles absence)
+# Uncomment and install only if using real LLM providers:
+# openai>=1.0.0,<2.0.0  # for OpenAI provider
+# anthropic>=0.25.0,<1.0.0  # for Anthropic provider

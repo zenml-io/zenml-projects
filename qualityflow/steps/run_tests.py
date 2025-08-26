@@ -61,7 +61,25 @@ def run_tests(
     shutil.copytree(tests_dir, workspace_tests_dir)
 
     try:
-        # Run pytest with coverage
+        # Create a temporary coverage config to exclude test directories from coverage
+        coverage_config_file = output_path / ".coveragerc"
+        with open(coverage_config_file, "w") as f:
+            f.write(f"""[run]
+omit = 
+    */tests_*/*
+    *test_*.py
+    */test_*
+    {workspace_tests_dir}/*
+    
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+""")
+
+        # Run pytest with coverage - use custom config to exclude generated tests
         pytest_cmd = [
             "python",
             "-m",
@@ -75,6 +93,8 @@ def run_tests(
             f"xml:{coverage_file}",
             "--cov-report",
             "term",
+            "--cov-config",
+            str(coverage_config_file),
             "-v",
         ]
 
@@ -128,6 +148,18 @@ def run_tests(
 
     except subprocess.TimeoutExpired:
         logger.error(f"Test run for {label} timed out after 5 minutes")
+        # Clean up workspace tests immediately on timeout
+        if workspace_tests_dir.exists():
+            try:
+                shutil.rmtree(workspace_tests_dir)
+                logger.info(
+                    f"Cleaned up test directory after timeout: {workspace_tests_dir}"
+                )
+            except Exception as cleanup_error:
+                logger.warning(
+                    f"Failed to clean up test directory after timeout: {cleanup_error}"
+                )
+
         return {
             "label": label,
             "tests_passed": 0,
@@ -144,6 +176,18 @@ def run_tests(
 
     except Exception as e:
         logger.error(f"Failed to run tests for {label}: {e}")
+        # Clean up workspace tests immediately on error
+        if workspace_tests_dir.exists():
+            try:
+                shutil.rmtree(workspace_tests_dir)
+                logger.info(
+                    f"Cleaned up test directory after error: {workspace_tests_dir}"
+                )
+            except Exception as cleanup_error:
+                logger.warning(
+                    f"Failed to clean up test directory after error: {cleanup_error}"
+                )
+
         return {
             "label": label,
             "tests_passed": 0,
@@ -159,9 +203,28 @@ def run_tests(
         }
 
     finally:
-        # Clean up copied tests
+        # Clean up copied tests - use try/except instead of ignore_errors for better logging
         if workspace_tests_dir.exists():
-            shutil.rmtree(workspace_tests_dir, ignore_errors=True)
+            try:
+                shutil.rmtree(workspace_tests_dir)
+                logger.info(
+                    f"Successfully cleaned up test directory: {workspace_tests_dir}"
+                )
+            except Exception as cleanup_error:
+                logger.error(
+                    f"Failed to clean up test directory {workspace_tests_dir}: {cleanup_error}"
+                )
+                # Still try to clean up individual files if directory removal failed
+                try:
+                    for item in workspace_tests_dir.iterdir():
+                        if item.is_file():
+                            item.unlink(missing_ok=True)
+                        elif item.is_dir():
+                            shutil.rmtree(item, ignore_errors=True)
+                except Exception:
+                    logger.warning(
+                        f"Could not clean up individual items in {workspace_tests_dir}"
+                    )
 
 
 def _parse_test_results(
@@ -173,27 +236,37 @@ def _parse_test_results(
 ) -> Dict:
     """Parse test execution results."""
 
-    # Parse pytest output for basic stats
+    # Parse junit.xml first (preferred method), fallback to stdout parsing
     tests_passed = 0
     tests_failed = 0
 
-    if result.stdout:
-        lines = result.stdout.split("\n")
-        for line in lines:
-            if " passed" in line and " failed" in line:
-                # Line like "2 failed, 3 passed in 1.23s"
-                parts = line.split()
-                for i, part in enumerate(parts):
-                    if part == "passed" and i > 0:
-                        tests_passed = int(parts[i - 1])
-                    elif part == "failed" and i > 0:
-                        tests_failed = int(parts[i - 1])
-            elif " passed" in line and "failed" not in line:
-                # Line like "5 passed in 1.23s"
-                parts = line.split()
-                for i, part in enumerate(parts):
-                    if part == "passed" and i > 0:
-                        tests_passed = int(parts[i - 1])
+    if junit_file.exists():
+        tests_passed, tests_failed = _parse_junit_xml(junit_file)
+        logger.info(
+            f"Parsed test results from junit.xml: {tests_passed} passed, {tests_failed} failed"
+        )
+    else:
+        # Fallback to stdout parsing if junit.xml is not available
+        logger.warning(
+            f"junit.xml not found at {junit_file}, falling back to stdout parsing"
+        )
+        if result.stdout:
+            lines = result.stdout.split("\n")
+            for line in lines:
+                if " passed" in line and " failed" in line:
+                    # Line like "2 failed, 3 passed in 1.23s"
+                    parts = line.split()
+                    for i, part in enumerate(parts):
+                        if part == "passed" and i > 0:
+                            tests_passed = int(parts[i - 1])
+                        elif part == "failed" and i > 0:
+                            tests_failed = int(parts[i - 1])
+                elif " passed" in line and "failed" not in line:
+                    # Line like "5 passed in 1.23s"
+                    parts = line.split()
+                    for i, part in enumerate(parts):
+                        if part == "passed" and i > 0:
+                            tests_passed = int(parts[i - 1])
 
     # Parse coverage from XML if available
     coverage_total = 0.0
@@ -215,6 +288,60 @@ def _parse_test_results(
         "logs_path": str(logs_file),
         "return_code": result.returncode,
     }
+
+
+def _parse_junit_xml(junit_file: Path) -> tuple[int, int]:
+    """Parse junit.xml file for test results.
+
+    Returns:
+        Tuple of (tests_passed, tests_failed)
+    """
+    try:
+        import xml.etree.ElementTree as ET
+
+        tree = ET.parse(junit_file)
+        root = tree.getroot()
+
+        # JUnit XML can have different formats, handle common ones
+        tests_passed = 0
+        tests_failed = 0
+
+        # Look for testsuite elements
+        for testsuite in root.findall(".//testsuite"):
+            # Get attributes from testsuite
+            passed = (
+                int(testsuite.get("tests", 0))
+                - int(testsuite.get("failures", 0))
+                - int(testsuite.get("errors", 0))
+                - int(testsuite.get("skipped", 0))
+            )
+            failed = int(testsuite.get("failures", 0)) + int(
+                testsuite.get("errors", 0)
+            )
+
+            tests_passed += max(0, passed)  # Ensure non-negative
+            tests_failed += failed
+
+        # If no testsuite found, look for testcases directly
+        if tests_passed == 0 and tests_failed == 0:
+            for testcase in root.findall(".//testcase"):
+                # Check if testcase has failure or error children
+                if (
+                    testcase.find("failure") is not None
+                    or testcase.find("error") is not None
+                ):
+                    tests_failed += 1
+                else:
+                    tests_passed += 1
+
+        logger.info(
+            f"Parsed junit.xml: {tests_passed} passed, {tests_failed} failed"
+        )
+        return tests_passed, tests_failed
+
+    except Exception as e:
+        logger.warning(f"Failed to parse junit.xml: {e}")
+        return 0, 0
 
 
 def _parse_coverage_xml(coverage_file: Path) -> tuple[float, Dict[str, float]]:
