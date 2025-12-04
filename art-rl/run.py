@@ -6,6 +6,7 @@ This script provides commands to run the different pipelines:
 - train: Train the agent using ART with GRPO and RULER
 - eval: Evaluate a trained model on test scenarios
 - all: Run the complete workflow (data → train → eval)
+- deploy: Deploy the inference pipeline as an HTTP service
 
 Examples:
     # Prepare data (run once, artifacts are cached)
@@ -22,6 +23,9 @@ Examples:
 
     # Run complete workflow
     python run.py --pipeline all
+
+    # Deploy as HTTP service
+    python run.py --pipeline deploy --name my-agent-service
 """
 
 import argparse
@@ -236,6 +240,45 @@ def run_all_pipelines(config_path: Optional[str] = None):
     print("=" * 60)
 
 
+def run_deploy(
+    deployment_name: str = "art-email-agent",
+    config_path: Optional[str] = None,
+):
+    """Deploy the inference pipeline as an HTTP service."""
+    from pipelines.inference import inference_pipeline
+
+    print("=" * 60)
+    print("Deploying Inference Pipeline")
+    print("=" * 60)
+
+    pipeline_instance = inference_pipeline
+
+    if config_path:
+        pipeline_instance = pipeline_instance.with_options(
+            config_path=config_path
+        )
+
+    # Deploy the pipeline as an HTTP service
+    deployment = pipeline_instance.deploy(deployment_name=deployment_name)
+
+    print(f"\nDeployment '{deployment_name}' created successfully!")
+    print(f"URL: {deployment.url}")
+    print("\nExample invocation:")
+    print(f"  curl -X POST {deployment.url}/invoke \\")
+    print('    -H "Content-Type: application/json" \\')
+    print("    -d '{")
+    print('      "parameters": {')
+    print('        "question": "What meeting is scheduled?",')
+    print('        "inbox_address": "john.smith@enron.com",')
+    print('        "query_date": "2001-05-15"')
+    print("      }")
+    print("    }'")
+    print("\nManagement commands:")
+    print(f"  zenml deployment describe {deployment_name}")
+    print(f"  zenml deployment logs {deployment_name} -f")
+    print(f"  zenml deployment deprovision {deployment_name}")
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -247,7 +290,7 @@ def main():
     parser.add_argument(
         "--pipeline",
         "-p",
-        choices=["data", "train", "eval", "all"],
+        choices=["data", "train", "eval", "all", "deploy"],
         required=True,
         help="Pipeline to run",
     )
@@ -269,6 +312,13 @@ def main():
         "--checkpoint",
         type=str,
         help="Path to model checkpoint (for eval pipeline)",
+    )
+
+    parser.add_argument(
+        "--name",
+        type=str,
+        default="art-email-agent",
+        help="Deployment name (for deploy pipeline)",
     )
 
     args = parser.parse_args()
@@ -294,6 +344,12 @@ def main():
 
     elif args.pipeline == "all":
         run_all_pipelines(config_path=args.config)
+
+    elif args.pipeline == "deploy":
+        run_deploy(
+            deployment_name=args.name,
+            config_path=args.config,
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,63 @@
+# Deployment configuration for the inference pipeline
+#
+# Deploy the trained agent as an HTTP service for real-time queries.
+#
+# Usage:
+#   # Deploy locally
+#   python run.py --pipeline deploy
+#
+#   # Or using ZenML CLI directly
+#   zenml pipeline deploy pipelines.inference.inference_pipeline --name art-email-agent
+#
+#   # Invoke the deployed service
+#   curl -X POST http://localhost:8080/invoke \
+#     -H "Content-Type: application/json" \
+#     -d '{
+#       "parameters": {
+#         "question": "What meeting is scheduled for next week?",
+#         "inbox_address": "john.smith@enron.com",
+#         "query_date": "2001-05-15"
+#       }
+#     }'
+
+model:
+  name: art-email-agent
+  description: "Email search agent deployed as HTTP service"
+  tags:
+    - art
+    - langgraph
+    - email-agent
+    - deployment
+    - inference
+
+parameters:
+  checkpoint_path: "./.art/checkpoints/latest"
+  db_path: "./enron_emails.db"
+  judge_model: "openai/gpt-4.1"
+  model_name: "art-email-agent"
+  project_name: "email-search-agent"
+  art_path: "./.art"
+
+settings:
+  deployment:
+    app_title: "ART Email Search Agent"
+    app_description: >-
+      Email search agent trained with OpenPipe ART + LangGraph.
+      Answers questions about emails using a ReAct agent pattern.
+    app_version: "1.0.0"
+    docs_url_path: "/docs"
+    invoke_url_path: "/invoke"
+    health_url_path: "/health"
+    cors:
+      allow_origins: ["*"]
+      allow_methods: ["GET", "POST", "OPTIONS"]
+      allow_headers: ["*"]
+    uvicorn_host: "0.0.0.0"
+    uvicorn_port: 8080
+
+  docker:
+    parent_image: pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
+    requirements: requirements.txt
+    python_package_installer: uv
+    apt_packages:
+      - git

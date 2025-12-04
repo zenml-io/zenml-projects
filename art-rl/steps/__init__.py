@@ -5,6 +5,7 @@ from steps.data import (
     load_scenarios,
 )
 from steps.evaluation import compute_metrics, load_trained_model, run_inference
+from steps.inference import run_single_inference
 from steps.training import setup_art_model, train_agent
 
 __all__ = [
@@ -19,4 +20,6 @@ __all__ = [
     "load_trained_model",
     "run_inference",
     "compute_metrics",
+    # Inference steps
+    "run_single_inference",
 ]

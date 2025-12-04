@@ -10,6 +10,7 @@ This project demonstrates how to:
 - **Track artifacts** including scenarios, model checkpoints, and training metrics
 - **Orchestrate on Kubernetes** with GPU step operators for training
 - **Evaluate models** with automated correctness judging
+- **Deploy as HTTP service** using ZenML Pipeline Deployments
 
 The agent learns to search through emails and answer questions using LangGraph's ReAct pattern, starting from a Qwen 2.5 7B base model.
 
@@ -39,6 +40,12 @@ The agent learns to search through emails and answer questions using LangGraph's
 │  │ load_trained │─▶│ run_         │─▶│ compute_     │              │
 │  │ _model       │  │ inference    │  │ metrics      │              │
 │  └──────────────┘  └──────────────┘  └──────────────┘              │
+│                                                                     │
+│  inference_pipeline (HTTP Deployment)                               │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ POST /invoke                                                │    │
+│  │   → run_single_inference → { answer, source_ids }          │    │
+│  └────────────────────────────────────────────────────────────┘    │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -96,15 +103,18 @@ art-rl/
 │   ├── data_prep.yaml        # Data preparation config
 │   ├── training_local.yaml   # Local GPU training
 │   ├── training_k8s.yaml     # Kubernetes training
-│   └── evaluation.yaml       # Evaluation config
+│   ├── evaluation.yaml       # Evaluation config
+│   └── deployment.yaml       # HTTP deployment config
 ├── pipelines/
 │   ├── data_preparation.py   # Data pipeline
 │   ├── training.py           # Training pipeline
-│   └── evaluation.py         # Evaluation pipeline
+│   ├── evaluation.py         # Evaluation pipeline
+│   └── inference.py          # Inference pipeline (deployable)
 ├── steps/
 │   ├── data/                 # Data preparation steps
 │   ├── training/             # Training steps
-│   └── evaluation/           # Evaluation steps
+│   ├── evaluation/           # Evaluation steps
+│   └── inference/            # Inference steps
 ├── environment/
 │   ├── models.py             # Pydantic data models
 │   ├── email_db.py           # SQLite database operations
@@ -169,6 +179,50 @@ The config includes:
 - Resource requests/limits
 - Shared memory volume for PyTorch
 
+### Deploying as HTTP Service
+
+After training, deploy the agent as a real-time HTTP service:
+
+```bash
+# Deploy the inference pipeline
+python run.py --pipeline deploy --name my-email-agent
+
+# Or use ZenML CLI directly
+zenml pipeline deploy pipelines.inference.inference_pipeline --name my-email-agent
+```
+
+Once deployed, invoke the service via HTTP:
+
+```bash
+curl -X POST http://localhost:8080/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "parameters": {
+      "question": "What meeting is scheduled for next week?",
+      "inbox_address": "john.smith@enron.com",
+      "query_date": "2001-05-15"
+    }
+  }'
+```
+
+Response:
+```json
+{
+  "question": "What meeting is scheduled for next week?",
+  "answer": "There is a team sync scheduled for Monday at 10am.",
+  "source_ids": ["<message-id-123>"],
+  "success": true
+}
+```
+
+Manage deployments:
+```bash
+zenml deployment list                    # List all deployments
+zenml deployment describe my-email-agent # Show deployment details
+zenml deployment logs my-email-agent -f  # Stream logs
+zenml deployment deprovision my-email-agent # Stop deployment
+```
+
 ## ZenML Features Used
 
 - **Artifact Tracking**: Scenarios, checkpoints, and metrics are versioned
@@ -176,6 +230,7 @@ The config includes:
 - **Docker Settings**: Custom images with CUDA and dependencies
 - **Pipeline Caching**: Data preparation runs once, reused for training
 - **Kubernetes Orchestration**: GPU pod settings for training steps
+- **Pipeline Deployments**: Deploy inference pipelines as HTTP services
 
 ## Dataset
 
@@ -187,6 +242,7 @@ This project uses the [Enron Email Dataset](https://huggingface.co/datasets/corb
 - [LangGraph Integration](https://art.openpipe.ai/integrations/langgraph-integration)
 - [RULER Documentation](https://art.openpipe.ai/fundamentals/ruler)
 - [ZenML Documentation](https://docs.zenml.io/)
+- [ZenML Pipeline Deployments](https://docs.zenml.io/concepts/deployment)
 - [Original ART Notebook](https://github.com/openpipe/art)
 
 ## License
