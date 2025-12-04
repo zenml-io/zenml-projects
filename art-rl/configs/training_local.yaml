@@ -1,0 +1,34 @@
+# Local GPU training configuration
+#
+# For development and testing on a local machine with GPU.
+# Uses smaller batch sizes and fewer steps for faster iteration.
+#
+# Usage:
+#   python run.py --pipeline train --config configs/training_local.yaml
+
+model:
+  name: art-email-agent
+  description: "Email search agent trained with ART + LangGraph"
+  tags:
+    - art
+    - langgraph
+    - email-agent
+    - rl
+    - local
+
+parameters:
+  model_name: "art-email-agent-local"
+  project_name: "email-search-agent"
+  base_model: "Qwen/Qwen2.5-7B-Instruct"
+  groups_per_step: 2
+  num_epochs: 5
+  rollouts_per_group: 4
+  learning_rate: 1.0e-5
+  max_steps: 10
+  ruler_model: "openai/o4-mini"
+  art_path: "./.art"
+
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: uv

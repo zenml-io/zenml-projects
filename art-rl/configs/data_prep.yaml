@@ -1,0 +1,21 @@
+# Data preparation pipeline configuration
+#
+# This pipeline downloads the Enron email dataset and creates
+# a searchable SQLite database. Run once before training.
+#
+# Usage:
+#   python run.py --pipeline data --config configs/data_prep.yaml
+
+parameters:
+  db_path: "./enron_emails.db"
+  max_body_length: 5000
+  max_recipients: 30
+  train_limit: 50
+  test_limit: 20
+  max_messages: 1
+  seed: 42
+
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: uv
