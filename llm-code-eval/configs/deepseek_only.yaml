@@ -1,0 +1,36 @@
+enable_cache: true
+
+parameters:
+  models:
+    - "deepseek/deepseek-chat"
+  judge_model: "anthropic/claude-sonnet-4-5-20250514"
+  report_title: "DeepSeek Quick Evaluation"
+
+steps:
+  load_test_cases:
+    parameters:
+      sample_size: 5
+      seed: 42
+      min_hard: 1
+
+  run_inference:
+    parameters:
+      temperature: 0.0
+      max_tokens: 1024
+      timeout_s: 120
+
+  evaluate_outputs:
+    parameters:
+      temperature: 0.0
+      max_tokens: 512
+
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: "uv"
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_HOST: ${LANGFUSE_HOST}

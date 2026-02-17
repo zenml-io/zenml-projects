@@ -1,0 +1,86 @@
+[
+  {
+    "task_id": "HumanEval/0",
+    "prompt": "from typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.9, 4.0, 5.0, 2.2], 0.3)\n    True\n    >>> has_close_elements([1.0, 2.0, 3.9, 4.0, 5.0, 2.2], 0.05)\n    False\n    \"\"\"\n",
+    "canonical_solution": "    for idx, elem in enumerate(numbers):\n        for idx2, elem2 in enumerate(numbers):\n            if idx != idx2:\n                distance = abs(elem - elem2)\n                if distance < threshold:\n                    return True\n\n    return False\n",
+    "entry_point": "has_close_elements",
+    "difficulty": "easy"
+  },
+  {
+    "task_id": "HumanEval/1",
+    "prompt": "from typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into separate strings and return the list of those.\n    Separate groups are balanced (each open brace is properly closed) and not nested within each other\n    Ignore any spaces in the input string.\n    >>> separate_paren_groups('( ) (( )) (( )( ))')\n    ['()', '(())', '(()())']\n    \"\"\"\n",
+    "canonical_solution": "    result = []\n    current_string = []\n    current_depth = 0\n\n    for c in paren_string:\n        if c == '(':\n            current_depth += 1\n            current_string.append(c)\n        elif c == ')':\n            current_depth -= 1\n            current_string.append(c)\n\n            if current_depth == 0:\n                result.append(''.join(current_string))\n                current_string.clear()\n\n    return result\n",
+    "entry_point": "separate_paren_groups",
+    "difficulty": "easy"
+  },
+  {
+    "task_id": "HumanEval/2",
+    "prompt": "\n\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n",
+    "canonical_solution": "    return number % 1.0\n",
+    "entry_point": "truncate_number",
+    "difficulty": "easy"
+  },
+  {
+    "task_id": "HumanEval/5",
+    "prompt": "from typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 2, 4, 3]\n    \"\"\"\n",
+    "canonical_solution": "    if not numbers:\n        return []\n\n    result = []\n\n    for n in numbers[:-1]:\n        result.append(n)\n        result.append(delimeter)\n\n    result.append(numbers[-1])\n\n    return result\n",
+    "entry_point": "intersperse",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/10",
+    "prompt": "\n\ndef is_palindrome(string: str) -> bool:\n    \"\"\" Test if given string is a palindrome \"\"\"\n    return string == string[::-1]\n\n\ndef make_palindrome(string: str) -> str:\n    \"\"\" Find the shortest palindrome that begins with a supplied string.\n    Algorithm idea is simple:\n    - Find the longest postfix of supplied string that is a palindrome.\n    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.\n    >>> make_palindrome('')\n    ''\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cata')\n    'catac'\n    \"\"\"\n",
+    "canonical_solution": "    if not string:\n        return ''\n\n    beginning_of_suffix = 0\n\n    while not is_palindrome(string[beginning_of_suffix:]):\n        beginning_of_suffix += 1\n\n    return string + string[:beginning_of_suffix][::-1]\n",
+    "entry_point": "make_palindrome",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/14",
+    "prompt": "from typing import List\n\n\ndef all_prefixes(string: str) -> List[str]:\n    \"\"\" Return list of all prefixes from shortest to longest of the input string\n    >>> all_prefixes('abc')\n    ['a', 'ab', 'abc']\n    \"\"\"\n",
+    "canonical_solution": "    result = []\n\n    for i in range(len(string)):\n        result.append(string[:i+1])\n    return result\n",
+    "entry_point": "all_prefixes",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/22",
+    "prompt": "from typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n",
+    "canonical_solution": "    return [x for x in values if isinstance(x, int)]\n",
+    "entry_point": "filter_integers",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/28",
+    "prompt": "from typing import List\n\n\ndef concatenate(strings: List[str]) -> str:\n    \"\"\" Concatenate list of strings into a single string\n    >>> concatenate([])\n    ''\n    >>> concatenate(['a', 'b', 'c'])\n    'abc'\n    \"\"\"\n",
+    "canonical_solution": "    return ''.join(strings)\n",
+    "entry_point": "concatenate",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/34",
+    "prompt": "\n\ndef unique(l: list):\n    \"\"\"Return sorted unique elements in a list\n    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])\n    [0, 2, 3, 5, 9, 123]\n    \"\"\"\n",
+    "canonical_solution": "    return sorted(list(set(l)))\n",
+    "entry_point": "unique",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/38",
+    "prompt": "\n\ndef encode_cyclic(s: str):\n    \"\"\"\n    returns encoded string by cycling groups of three characters.\n    \"\"\"\n    # split string to groups. Each of length 3.\n    groups = [s[(3 * i):min((3 * i + 3), len(s))] for i in range((len(s) + 2) // 3)]\n    # cycle elements in each group. Unless group has fewer elements than 3.\n    groups = [(group[1:] + group[0]) if len(group) == 3 else group for group in groups]\n    return \"\".join(groups)\n\n\ndef decode_cyclic(s: str):\n    \"\"\"\n    takes as input string which is encoded with encode_cyclic function. Returns decoded string.\n    \"\"\"\n",
+    "canonical_solution": "    return encode_cyclic(encode_cyclic(s))\n",
+    "entry_point": "decode_cyclic",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/43",
+    "prompt": "\n\ndef pairs_sum_to_zero(l):\n    \"\"\"\n    pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinct elements in the list that\n    sum to zero, and False otherwise.\n    >>> pairs_sum_to_zero([1, 3, 5, 0])\n    False\n    >>> pairs_sum_to_zero([1, 3, -2, 1])\n    False\n    >>> pairs_sum_to_zero([1, 2, 3, 7])\n    False\n    >>> pairs_sum_to_zero([2, 4, -5, 3, 5, 7])\n    True\n    >>> pairs_sum_to_zero([1])\n    False\n    \"\"\"\n",
+    "canonical_solution": "    for i, l1 in enumerate(l):\n        for j in range(i + 1, len(l)):\n            if l1 + l[j] == 0:\n                return True\n    return False\n",
+    "entry_point": "pairs_sum_to_zero",
+    "difficulty": "medium"
+  },
+  {
+    "task_id": "HumanEval/53",
+    "prompt": "\n\ndef add(x: int, y: int) -> int:\n    \"\"\"Add two numbers x and y\n    >>> add(2, 3)\n    5\n    >>> add(5, 7)\n    12\n    \"\"\"\n",
+    "canonical_solution": "    return x + y\n",
+    "entry_point": "add",
+    "difficulty": "easy"
+  }
+]
