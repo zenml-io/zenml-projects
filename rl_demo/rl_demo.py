@@ -62,6 +62,10 @@ from pufferlib.pufferl import PuffeRL
 import pufferlib.pufferl as pufferl
 from pufferlib.pytorch import layer_init
 
+# ─── Docker / K8s settings ───────────────────────────────────────────
+from zenml.config import DockerSettings
+from zenml.integrations.kubernetes.flavors.kubernetes_orchestrator_flavor import KubernetesOrchestratorSettings
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # DATA CLASSES — Pydantic models (avoids ZenML/Pydantic dataclass Field conflict)
@@ -76,9 +80,6 @@ class EnvConfig(BaseModel):
     learning_rate: float = 3e-4
     batch_size: int = 8192
     total_timesteps: int = 100_000
-    gamma: float = 0.99
-    gae_lambda: float = 0.95
-    clip_coef: float = 0.2
     update_epochs: int = 3
     device: str = "cuda"
     tag: str = ""
@@ -124,7 +125,6 @@ class DatasetMetadata(BaseModel):
     data_source: str
     domain: str
     env_names: list[str]
-    num_configs: int
     description: str = ""
 
 
@@ -264,7 +264,6 @@ def load_training_data(
         data_source=data_source,
         domain=domain,
         env_names=env_names,
-        num_configs=len(env_names),
         description=f"Training data for {len(env_names)} environments, "
                     f"client={client_id}, project={project}",
     )
@@ -651,18 +650,33 @@ def promote_best_policy(
 # THE DYNAMIC PIPELINE — This is where the magic happens
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-from zenml.config import DockerSettings
 docker_settings = DockerSettings(
-    python_package_installer="uv",
-    requirements="requirements.txt",
-    prevent_build_reuse=True,
+    dockerfile="Dockerfile",
+    python_package_installer="pip",
+)
+
+kubernetes_settings = KubernetesOrchestratorSettings(
+    pod_settings={
+        "resources": {
+            "requests": {
+                "cpu": "2",
+                "memory": "8Gi",
+                "ephemeral-storage": "20Gi",
+            },
+            "limits": {
+                "cpu": "4",
+                "memory": "16Gi",
+                "ephemeral-storage": "30Gi",
+            },
+        },
+    },
 )
 
 @pipeline(
     dynamic=True,
     enable_cache=False,
     model=Model(name="rl_policy", license="MIT", description="PufferLib RL agents across multiple environments"),
-    settings={"docker": docker_settings},
+    settings={"docker": docker_settings, "orchestrator": kubernetes_settings},
 )
 def rl_environment_sweep(
     env_names: list[str],
