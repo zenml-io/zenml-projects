@@ -43,6 +43,7 @@ Architecture:
 
 import base64
 import io
+import sys
 import tempfile
 from pathlib import Path
 from typing import Annotated
@@ -173,7 +174,15 @@ def _puffer_env_name(name: str) -> str:
 def _make_vecenv(env_name: str, **overrides):
     """Create a PufferLib vectorized env with config overrides."""
     puffer_name = _puffer_env_name(env_name)
-    args = pufferl.load_config(puffer_name)
+    # PufferLib's load_config calls argparse.parse_args() which reads sys.argv.
+    # In ZenML K8s pods, sys.argv contains ZenML entrypoint args that PufferLib
+    # doesn't understand. Temporarily clear argv so load_config gets defaults.
+    original_argv = sys.argv
+    sys.argv = [sys.argv[0]]
+    try:
+        args = pufferl.load_config(puffer_name)
+    finally:
+        sys.argv = original_argv
     for section, updates in overrides.items():
         args[section].update(updates)
     return pufferl.load_env(puffer_name, args), puffer_name, args
@@ -656,6 +665,20 @@ docker_settings = DockerSettings(
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
+    orchestrator_pod_settings={
+        "resources": {
+            "requests": {
+                "cpu": "1",
+                "memory": "4Gi",
+                "ephemeral-storage": "20Gi",
+            },
+            "limits": {
+                "cpu": "2",
+                "memory": "8Gi",
+                "ephemeral-storage": "30Gi",
+            },
+        },
+    },
     pod_settings={
         "resources": {
             "requests": {
@@ -755,8 +778,9 @@ def rl_environment_sweep(
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 if __name__ == "__main__":
-    # Device: cuda on GPU, mps on Apple Silicon, else cpu
-    device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+    # Device: detect locally but note that remote K8s pods will use whatever
+    # value is passed here. Use "cpu" unless your cluster has GPU nodes.
+    device = "cpu"
 
     # ── Example: sweep across 3 environments × 2 learning rates ───
     # This creates 6 parallel training runs dynamically.
