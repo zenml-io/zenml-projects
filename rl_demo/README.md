@@ -105,10 +105,10 @@ uv pip install -r requirements.txt
 
 ```bash
 # With your venv activated (direnv or manually)
-python rl_demo.py
+python run.py
 
 # Or with uv
-uv run --active python rl_demo.py
+uv run --active python run.py
 ```
 
 ### Before running
@@ -125,14 +125,14 @@ uv run --active python rl_demo.py
 
 ### Example runs
 
-Default run (in `rl_demo.py`):
+Default run (in `run.py`):
 
-- 3 environments: `ocean-pong`, `ocean-breakout`, `ocean-connect4`
-- 2 learning rates: `3e-4`, `1e-3`
+- 1 environment: `ocean-connect4`
+- 5 learning rates: `1e-4`, `3e-4`, `1e-3`, `3e-3`, `1e-2`
 - 100K timesteps each
 - Device: cuda / mps (Apple Silicon) / cpu
 
-Custom sweep:
+Custom sweep: edit `run.py` and call:
 
 ```python
 rl_environment_sweep(
@@ -160,9 +160,25 @@ The pipeline code stays the same; only the stack definition changes.
 
 ```
 rl_demo/
-├── rl_demo.py      # Pipeline, steps, policy, helpers
+├── run.py              # Entry point — run the pipeline
+├── pipelines/          # Pipeline definitions
+│   ├── __init__.py
+│   └── rl_sweep.py
+├── steps/              # Pipeline steps
+│   ├── __init__.py
+│   ├── models.py       # Data classes (EnvConfig, TrainingResult, etc.)
+│   ├── helpers.py      # Policy, PufferLib env helpers
+│   ├── load_data.py
+│   ├── configure_sweep.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── report.py
+│   └── promote.py
+├── materializers/      # Custom ZenML materializers
+│   ├── __init__.py
+│   └── policy_checkpoint_materializer.py
 ├── requirements.txt
-├── .envrc          # direnv: source .venv/bin/activate
+├── .envrc              # direnv: source .venv/bin/activate
 └── README.md
 ```
 
