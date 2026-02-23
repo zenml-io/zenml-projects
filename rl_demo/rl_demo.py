@@ -41,10 +41,9 @@ Architecture:
     └─────────────────┘     (Model Control Plane with full lineage)
 """
 
-import base64
-import io
 import sys
 import tempfile
+import threading
 from pathlib import Path
 from typing import Annotated
 
@@ -65,6 +64,7 @@ from pufferlib.pytorch import layer_init
 
 # ─── Docker / K8s settings ───────────────────────────────────────────
 from zenml.config import DockerSettings
+from zenml.config.docker_settings import DockerBuildConfig, DockerBuildOptions
 from zenml.integrations.kubernetes.flavors.kubernetes_orchestrator_flavor import KubernetesOrchestratorSettings
 
 
@@ -171,18 +171,23 @@ def _puffer_env_name(name: str) -> str:
     return name
 
 
+_argv_lock = threading.Lock()
+
+
 def _make_vecenv(env_name: str, **overrides):
     """Create a PufferLib vectorized env with config overrides."""
     puffer_name = _puffer_env_name(env_name)
     # PufferLib's load_config calls argparse.parse_args() which reads sys.argv.
     # In ZenML K8s pods, sys.argv contains ZenML entrypoint args that PufferLib
-    # doesn't understand. Temporarily clear argv so load_config gets defaults.
-    original_argv = sys.argv
-    sys.argv = [sys.argv[0]]
-    try:
-        args = pufferl.load_config(puffer_name)
-    finally:
-        sys.argv = original_argv
+    # doesn't understand. Lock + clear argv so concurrent threads (from
+    # dynamic pipeline's thread pool) don't race on sys.argv.
+    with _argv_lock:
+        original_argv = sys.argv
+        sys.argv = [sys.argv[0]]
+        try:
+            args = pufferl.load_config(puffer_name)
+        finally:
+            sys.argv = original_argv
     for section, updates in overrides.items():
         args[section].update(updates)
     return pufferl.load_env(puffer_name, args), puffer_name, args
@@ -512,17 +517,11 @@ def create_sweep_report(
     eval_results: list[EvalResult],
 ) -> Annotated[HTMLString, "sweep_report"]:
     """
-    Create an HTML visualization report: leaderboard table + training curves.
+    Create an interactive HTML report: leaderboard table + Plotly training curves.
 
     Returns HTMLString for display in the ZenML dashboard.
     """
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        has_plt = True
-    except ImportError:
-        has_plt = False
+    import plotly.graph_objects as go
 
     # ── Leaderboard table ─────────────────────────────────────────
     sorted_evals = sorted(eval_results, key=lambda r: -r.eval_mean_reward)
@@ -535,44 +534,72 @@ def create_sweep_report(
         )
     table_rows = "\n".join(rows)
 
-    # ── Training curves (matplotlib → base64) ────────────────────────
-    curve_html = ""
-    if has_plt and training_results:
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-
+    # ── Interactive training curves (Plotly) ──────────────────────
+    curves_html = ""
+    if training_results:
+        # Chart 1: Mean Reward
+        fig_reward = go.Figure()
         for result in training_results:
             hist = result.metrics_history or []
             if not hist:
                 continue
             iters = [h.get("iteration", i) for i, h in enumerate(hist)]
             rewards = [h.get("mean_reward", 0) for h in hist]
+            fig_reward.add_trace(go.Scatter(
+                x=iters, y=rewards, mode="lines", name=result.tag, opacity=0.8,
+            ))
+        fig_reward.update_layout(
+            title="Training: Mean Reward",
+            xaxis_title="Iteration", yaxis_title="Mean Reward",
+            height=400, template="plotly_white",
+        )
+
+        # Chart 2: Steps per Second
+        fig_sps = go.Figure()
+        for result in training_results:
+            hist = result.metrics_history or []
+            if not hist:
+                continue
+            iters = [h.get("iteration", i) for i, h in enumerate(hist)]
             sps = [h.get("sps", 0) for h in hist]
-            axes[0].plot(iters, rewards, label=result.tag, alpha=0.8)
-            axes[1].plot(iters, sps, label=result.tag, alpha=0.8)
+            fig_sps.add_trace(go.Scatter(
+                x=iters, y=sps, mode="lines", name=result.tag, opacity=0.8,
+            ))
+        fig_sps.update_layout(
+            title="Training: Steps per Second",
+            xaxis_title="Iteration", yaxis_title="Steps/sec",
+            height=400, template="plotly_white",
+        )
 
-        axes[0].set_xlabel("Iteration")
-        axes[0].set_ylabel("Mean reward")
-        axes[0].set_title("Training: Mean Reward")
-        axes[0].legend(loc="lower right", fontsize=8)
-        axes[0].grid(alpha=0.3)
+        # Chart 3: Loss Curves (policy_loss, value_loss, entropy)
+        fig_loss = go.Figure()
+        for result in training_results:
+            hist = result.metrics_history or []
+            if not hist:
+                continue
+            iters = [h.get("iteration", i) for i, h in enumerate(hist)]
+            for metric, dash in [("policy_loss", None), ("value_loss", "dash"), ("entropy", "dot")]:
+                vals = [h.get(metric, 0) for h in hist]
+                fig_loss.add_trace(go.Scatter(
+                    x=iters, y=vals, mode="lines",
+                    name=f"{result.tag} — {metric}",
+                    line=dict(dash=dash), opacity=0.8,
+                ))
+        fig_loss.update_layout(
+            title="Training: Loss Curves",
+            xaxis_title="Iteration", yaxis_title="Value",
+            height=400, template="plotly_white",
+        )
 
-        axes[1].set_xlabel("Iteration")
-        axes[1].set_ylabel("Steps/sec")
-        axes[1].set_title("Training: Steps per Second")
-        axes[1].legend(loc="upper right", fontsize=8)
-        axes[1].grid(alpha=0.3)
-
-        plt.tight_layout()
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png", bbox_inches="tight", dpi=120)
-        plt.close(fig)
-        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-        curve_html = f'''
+        reward_html = fig_reward.to_html(full_html=False, include_plotlyjs="cdn")
+        sps_html = fig_sps.to_html(full_html=False, include_plotlyjs=False)
+        loss_html = fig_loss.to_html(full_html=False, include_plotlyjs=False)
+        curves_html = f"""
         <h3>Training Curves</h3>
-        <div style="margin: 1rem 0;">
-            <img src="data:image/png;base64,{img_b64}" style="max-width: 100%; height: auto;">
-        </div>
-        '''
+        <div style="margin: 1rem 0;">{reward_html}</div>
+        <div style="margin: 1rem 0;">{sps_html}</div>
+        <div style="margin: 1rem 0;">{loss_html}</div>
+        """
 
     html = f"""
     <div style="font-family: system-ui, sans-serif; padding: 1.5rem; max-width: 900px;">
@@ -591,7 +618,7 @@ def create_sweep_report(
                 {table_rows}
             </tbody>
         </table>
-        {curve_html}
+        {curves_html}
     </div>
     """
     return HTMLString(html)
@@ -662,6 +689,9 @@ def promote_best_policy(
 docker_settings = DockerSettings(
     dockerfile="Dockerfile",
     python_package_installer="pip",
+    parent_image_build_config=DockerBuildConfig(
+        build_options=DockerBuildOptions(platform="linux/amd64"),
+    ),
 )
 
 kubernetes_settings = KubernetesOrchestratorSettings(
