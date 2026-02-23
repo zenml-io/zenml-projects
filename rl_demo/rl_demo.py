@@ -29,7 +29,7 @@ Architecture:
     │  train_agent     │    artifacts, logs, metadata, and retries
     │  train_agent     │
     └────────┬────────┘
-             │ list[TrainingResult]
+             │ list[TrainingResult] + list[PolicyCheckpoint]
              ▼
     ┌─────────────────┐
     │  evaluate_agents │  ← Fan-in: compare all policies
@@ -45,16 +45,19 @@ import base64
 import io
 import tempfile
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Tuple
 
 from pydantic import BaseModel
 import torch
 import torch.nn as nn
 
 # ─── ZenML imports ───────────────────────────────────────────────────
-from zenml import Model, pipeline, step, log_metadata
+from zenml import ArtifactConfig, Model, log_metadata, pipeline, step
 from zenml.client import Client
-from zenml.enums import ModelStages
+from zenml.enums import ArtifactType, ModelStages
+from zenml.io import fileio
+from zenml.materializers import PydanticMaterializer
+from zenml.materializers.base_materializer import BaseMaterializer
 from zenml.types import HTMLString
 
 # ─── PufferLib imports ───────────────────────────────────────────────
@@ -76,7 +79,8 @@ class EnvConfig(BaseModel):
     """Configuration for a single RL environment + hyperparameter combo."""
     env_name: str
     num_envs: int = 64
-    num_workers: int = 2
+    num_workers: int = 1  # 1=Serial (avoids spawn); 2+=Multiprocessing. Use 1 if ZenML
+    # materializer resolution fails in subprocesses when re-importing the module.
     learning_rate: float = 3e-4
     batch_size: int = 8192
     total_timesteps: int = 100_000
@@ -96,7 +100,6 @@ class TrainingResult(BaseModel):
     policy_loss: float
     value_loss: float
     entropy: float
-    checkpoint_path: str
     config: dict
     metrics_history: list[dict] = []
 
@@ -108,8 +111,13 @@ class EvalResult(BaseModel):
     eval_mean_reward: float
     eval_std_reward: float
     eval_episodes: int
-    checkpoint_path: str
     is_best: bool = False
+
+
+# PolicyCheckpoint: dict with model_state_dict, config, metrics_history
+# Used as a dedicated artifact so checkpoints can be passed downstream and
+# linked to the model in the promote step.
+PolicyCheckpoint = dict  # {"model_state_dict":..., "config":..., "metrics_history":...}
 
 
 class DatasetMetadata(BaseModel):
@@ -126,6 +134,31 @@ class DatasetMetadata(BaseModel):
     domain: str
     env_names: list[str]
     description: str = ""
+
+
+class PolicyCheckpointMaterializer(BaseMaterializer):
+    """Materializer for PyTorch policy checkpoints (model_state_dict + config)."""
+    ASSOCIATED_TYPES = (dict,)
+
+    def load(self, data_type: type) -> PolicyCheckpoint:
+        """Load checkpoint from artifact store."""
+        import os
+        path = os.path.join(self.uri, "checkpoint.pt")
+        with fileio.open(path, "rb") as f:
+            buffer = io.BytesIO(f.read())
+        return torch.load(buffer, weights_only=False)
+
+    def save(self, data: PolicyCheckpoint) -> None:
+        """Save checkpoint to artifact store."""
+        import os
+        fileio.makedirs(self.uri)
+        path = os.path.join(self.uri, "checkpoint.pt")
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
+            torch.save(data, tmp.name)
+        try:
+            fileio.copy(tmp.name, path, overwrite=True)
+        finally:
+            Path(tmp.name).unlink(missing_ok=True)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -179,13 +212,16 @@ def _make_vecenv(env_name: str, **overrides):
     return pufferl.load_env(puffer_name, args), puffer_name, args
 
 
-def _make_policy(vecenv, device: str = "cpu", checkpoint_path: str = None):
-    """Create an RLPolicy from vecenv spaces, optionally loading a checkpoint."""
+def _make_policy(vecenv, device: str = "cpu", checkpoint: PolicyCheckpoint | None = None):
+    """Create an RLPolicy from vecenv spaces, optionally loading a checkpoint.
+
+    checkpoint: PolicyCheckpoint dict (model_state_dict, config, metrics_history)
+    or None for fresh training.
+    """
     obs_dim = vecenv.single_observation_space.shape[0]
     act_dim = vecenv.single_action_space.n
     policy = RLPolicy(obs_dim, act_dim)
-    if checkpoint_path:
-        checkpoint = torch.load(checkpoint_path, weights_only=False)
+    if checkpoint:
         policy.load_state_dict(checkpoint["model_state_dict"])
         policy.eval()
     else:
@@ -340,10 +376,18 @@ def configure_sweep(
     return configs
 
 
-@step
+@step(
+    output_materializers={
+        "training_result": PydanticMaterializer,
+        "policy_checkpoint": PolicyCheckpointMaterializer,
+    },
+)
 def train_agent(
     config: EnvConfig,
-) -> Annotated[TrainingResult, "training_result"]:
+) -> Tuple[
+    Annotated[TrainingResult, "training_result"],
+    Annotated[PolicyCheckpoint, ArtifactConfig(name="policy_checkpoint", artifact_type=ArtifactType.DATA)],
+]:
     """
     Train a single RL agent using PufferLib's PuffeRL trainer.
 
@@ -402,13 +446,12 @@ def train_agent(
     trainer.utilization.stop()
     vecenv.close()
 
-    # ── Save checkpoint ───────────────────────────────────────────
-    checkpoint_path = Path(tempfile.mkdtemp()) / f"{config.tag}_policy.pt"
-    torch.save({
+    # Checkpoint as dedicated artifact — materializer stores in artifact store
+    checkpoint: PolicyCheckpoint = {
         "model_state_dict": policy.state_dict(),
         "config": config.model_dump(),
         "metrics_history": metrics_history,
-    }, checkpoint_path)
+    }
 
     final = metrics_history[-1] if metrics_history else {}
     result = TrainingResult(
@@ -421,7 +464,6 @@ def train_agent(
         policy_loss=final.get("policy_loss", 0),
         value_loss=final.get("value_loss", 0),
         entropy=final.get("entropy", 0),
-        checkpoint_path=str(checkpoint_path),
         config=config.model_dump(),
         metrics_history=metrics_history,
     )
@@ -433,34 +475,37 @@ def train_agent(
             "total_steps": int(total_steps),
             "learning_rate": float(config.learning_rate),
         },
+        artifact_name="training_result",
         infer_artifact=True,
     )
 
     print(f"✅ {config.tag} → best reward: {best_reward:.2f}")
-    return result
+    return result, checkpoint
 
 
 @step
 def evaluate_agents(
-    results: list[TrainingResult],
+    training_results: list[TrainingResult],
+    policy_checkpoints: list[PolicyCheckpoint],
     eval_episodes: int = 100,
 ) -> Annotated[list[EvalResult], "eval_results"]:
     """
     Evaluate all trained policies and rank them.
 
-    Fan-in step: receives ALL training results, loads each checkpoint,
+    Fan-in step: receives ALL training results and checkpoints as artifacts,
     runs evaluation episodes, and produces a ranked list.
     """
-    print(f"📊 Evaluating {len(results)} trained agents...")
+    print(f"📊 Evaluating {len(training_results)} trained agents...")
+    assert len(training_results) == len(policy_checkpoints), "results and checkpoints must be parallel lists"
 
     eval_results = []
-    for result in results:
+    for result, checkpoint in zip(training_results, policy_checkpoints):
         vecenv, _, _ = _make_vecenv(
             result.env_name,
             vec={"num_envs": 1, "backend": "Serial"},
             env={"num_envs": 32},
         )
-        policy = _make_policy(vecenv, checkpoint_path=result.checkpoint_path)
+        policy = _make_policy(vecenv, checkpoint=checkpoint)
         rewards = _run_eval_episodes(policy, vecenv, eval_episodes)
         vecenv.close()
 
@@ -473,7 +518,7 @@ def evaluate_agents(
             eval_mean_reward=mean_r,
             eval_std_reward=std_r,
             eval_episodes=len(rewards),
-            checkpoint_path=result.checkpoint_path,
+            is_best=False,
         ))
         print(f"   {result.tag}: {mean_r:.2f} ± {std_r:.2f}")
 
@@ -588,44 +633,36 @@ def create_sweep_report(
     return HTMLString(html)
 
 
-@step
+@step(
+    output_materializers={"promoted_policy_checkpoints": PolicyCheckpointMaterializer},
+)
 def promote_best_policy(
     eval_results: list[EvalResult],
-) -> Annotated[dict, "promoted_policies"]:
+    policy_checkpoints: list[PolicyCheckpoint],
+) -> Annotated[
+    dict[str, PolicyCheckpoint],
+    ArtifactConfig(name="promoted_policy_checkpoints", artifact_type=ArtifactType.MODEL),
+]:
     """
     Promote the best policy via ZenML's Model Control Plane.
 
-    This step demonstrates the full model lifecycle:
-    1. The current model version (created by this pipeline run) holds all artifacts
-    2. We set the model version stage to "production" — visible in the dashboard
-    3. Metadata is attached so you can trace: promoted model → eval results →
-       training run → dataset → client/project (the full lineage for compliance)
-
-    In the dashboard, click any model version to see:
-    - Stage transitions (staging → production)
-    - All linked artifacts (datasets, checkpoints, eval results)
-    - The exact pipeline run, configs, and data that produced it
+    Returns the winning checkpoints as model artifacts — load them via
+    model_version.get_artifact("promoted_policy_checkpoints").load().
     """
-    winners = [r for r in eval_results if r.is_best]
+    assert len(eval_results) == len(policy_checkpoints), "eval_results and checkpoints must be parallel"
+    tag_to_checkpoint = {r.tag: c for r, c in zip(eval_results, policy_checkpoints)}
 
-    promoted = {}
+    winners = [r for r in eval_results if r.is_best]
+    promoted: dict[str, PolicyCheckpoint] = {}
+
     for winner in winners:
         print(f"🏆 Promoting {winner.tag} → "
               f"reward {winner.eval_mean_reward:.2f} ± {winner.eval_std_reward:.2f}")
+        promoted[winner.env_name] = tag_to_checkpoint[winner.tag]
 
-        promoted[winner.env_name] = {
-            "tag": winner.tag,
-            "eval_mean_reward": winner.eval_mean_reward,
-            "eval_std_reward": winner.eval_std_reward,
-            "checkpoint": winner.checkpoint_path,
-        }
-
-    # Transition model version stage — this is what shows up in the
-    # Model Control Plane dashboard as a stage badge (staging/production)
+    # Transition model version stage — stage badge in Model Control Plane
     client = Client()
-    latest_version = client.get_model_version(
-        model_name_or_id="rl_policy",
-    )
+    latest_version = client.get_model_version(model_name_or_id="rl_policy")
     client.update_model_version(
         model_name_or_id="rl_policy",
         version_name_or_id=latest_version.name,
@@ -634,10 +671,9 @@ def promote_best_policy(
     )
     print(f"📋 Model version '{latest_version.name}' → stage: production")
 
-    # Attach promoted policies as metadata — visible on model detail page
     log_metadata(
         metadata={
-            "promoted_policies": promoted,
+            "promoted_envs": list(promoted.keys()),
             "stage_transition": "staging → production",
             "promotion_criteria": "highest eval reward per environment",
         },
@@ -736,18 +772,24 @@ def rl_environment_sweep(
         device=device,
     )
 
-    # Step 3: Fan out — one training step per config
-    # Each becomes an independent, trackable step in the DAG
-    training_results = train_agent.map(configs)
+    # Step 3: Fan out — one training step per config (returns training_result + policy_checkpoint per run)
+    train_outputs = train_agent.map(configs)
+    training_results, policy_checkpoints = train_outputs.unpack()
 
-    # Step 4: Fan in — compare all trained policies
-    eval_results = evaluate_agents(training_results)
+    # Step 4: Fan in — compare all trained policies (checkpoints passed as artifacts)
+    eval_results = evaluate_agents(
+        training_results=training_results,
+        policy_checkpoints=policy_checkpoints,
+    )
 
     # Step 5: Create HTML report (leaderboard + training curves)
     create_sweep_report(training_results=training_results, eval_results=eval_results)
 
-    # Step 6: Promote the winner(s) — stage transition visible in Model Control Plane
-    promote_best_policy(eval_results)
+    # Step 6: Promote the winner(s) — returns promoted checkpoints as model artifacts
+    promote_best_policy(
+        eval_results=eval_results,
+        policy_checkpoints=policy_checkpoints,
+    )
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -763,12 +805,8 @@ if __name__ == "__main__":
     # Note: We use PufferLib's built-in Ocean envs here, but your custom
     # environments plug in the same way — just register with PufferLib.
     rl_environment_sweep(
-        env_names=[
-            "ocean-pong",         # Fast Atari-like env from PufferLib Ocean
-            "ocean-breakout",     # Another classic, C-based for speed
-            "ocean-connect4",     # Board game — different reward structure
-        ],
-        learning_rates=[3e-4, 1e-3],
+        env_names=["ocean-connect4"],
+        learning_rates=[1e-4, 3e-4, 1e-3, 3e-3, 1e-2],
         total_timesteps=100_000,
         device=device,
         # Data lineage: these tags make every artifact traceable to a client/project
