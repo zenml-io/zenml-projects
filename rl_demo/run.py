@@ -28,7 +28,7 @@ def main() -> None:
     rl_environment_sweep(
         env_names=["ocean-connect4"],
         learning_rates=[1e-4, 3e-4, 1e-3, 3e-3, 1e-2],
-        total_timesteps=100_000,
+        total_timesteps=200_000,
         device=device,
         client_id="acme-corp",
         project="rl-optimization",

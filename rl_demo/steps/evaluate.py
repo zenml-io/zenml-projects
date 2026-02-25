@@ -73,6 +73,7 @@ def evaluate_agents(
                 for r in sorted(eval_results, key=lambda r: -r.eval_mean_reward)
             }
         },
+        artifact_name="eval_results",
         infer_artifact=True,
     )
 

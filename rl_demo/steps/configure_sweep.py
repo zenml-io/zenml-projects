@@ -47,6 +47,7 @@ def configure_sweep(
             "client_id": dataset.client_id,
             "project": dataset.project,
         },
+        artifact_name="sweep_configs",
         infer_artifact=True,
     )
 

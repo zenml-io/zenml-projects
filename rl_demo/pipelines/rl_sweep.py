@@ -53,7 +53,7 @@ kubernetes_settings = KubernetesOrchestratorSettings(
 
 @pipeline(
     dynamic=True,
-    enable_cache=False,
+    enable_cache=True,
     model=Model(
         name="rl_policy",
         license="MIT",

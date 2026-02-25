@@ -19,6 +19,7 @@ from pufferlib.pufferl import PuffeRL
         "training_result": PydanticMaterializer,
         "policy_checkpoint": PolicyCheckpointMaterializer,
     },
+    enable_cache=False,
 )
 def train_agent(
     config: EnvConfig,

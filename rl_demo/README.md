@@ -55,9 +55,9 @@ The pipeline trains reinforcement learning agents on multiple game environments 
 | Step | Purpose |
 |------|---------|
 | **load_training_data** | Creates a versioned `DatasetMetadata` artifact with `client_id`, `project`, `data_source`, and `domain`. This is the **root of the lineage graph** — when legal says "delete all data for Client X", you can find every model version that touched that client's data. |
-| **configure_sweep** | Produces the Cartesian product of `env_names × learning_rates`. The number of downstream training steps is determined **at runtime** (dynamic pipeline), not hardcoded. |
-| **train_agent** | Uses PufferLib's PuffeRL trainer (PPO-style) to train an MLP policy on one environment. `.map()` creates one step per config; each runs in isolation with its own GPU. Returns `(TrainingResult, PolicyCheckpoint)` — checkpoints are dedicated artifacts, materialized and stored in the artifact store for cross-step access. |
-| **evaluate_agents** | Receives `training_results` and `policy_checkpoints` as artifacts. Runs 100 evaluation episodes per policy, computes mean ± std reward, marks the best per environment. |
+| **configure_sweep** | Produces the Cartesian product of `env_names × learning_rates`. The number of downstream training steps is determined **at runtime** (dynamic pipeline), not hardcoded. Returns `(sweep_configs, sweep_summary)` — the HTML summary displays the sweep table in the ZenML dashboard. |
+| **train_agent** | Uses PufferLib's PuffeRL trainer (PPO-style) to train an MLP policy on one environment. `.map()` creates one step per config; each runs in isolation with its own GPU. Returns `(TrainingResult, PolicyCheckpoint, training_summary)` — checkpoints are dedicated artifacts; the HTML summary shows per-run metrics (best reward, steps/sec, etc.) in the dashboard. |
+| **evaluate_agents** | Receives `training_results` and `policy_checkpoints` as artifacts. Runs 100 evaluation episodes per policy, computes mean ± std reward, marks the best per environment. Returns `(eval_results, leaderboard)` — the HTML leaderboard displays the ranked results in the ZenML dashboard. |
 | **create_sweep_report** | Renders an HTML report: leaderboard table + matplotlib training curves (mean reward, steps/sec). Displayed in the ZenML dashboard. |
 | **promote_best_policy** | Promotes the model version to `production` stage. Returns promoted checkpoints as **model artifacts** — load via `model_version.get_artifact("promoted_policy_checkpoints").load()` to get `dict[env_name, PolicyCheckpoint]`. |
 
