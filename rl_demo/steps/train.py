@@ -8,7 +8,7 @@ from zenml.materializers import PydanticMaterializer
 from zenml.types import HTMLString
 
 from materializers.policy_checkpoint_materializer import PolicyCheckpointMaterializer
-from steps.helpers import extract_logs, make_policy, make_vecenv
+from steps.helpers import extract_logs, make_policy, make_vecenv, resolve_device
 from steps.models import EnvConfig, PolicyCheckpoint, TrainingResult
 
 from pufferlib.pufferl import PuffeRL
@@ -42,6 +42,8 @@ def train_agent(
     """
     print(f"🎮 Training on {config.env_name} | lr={config.learning_rate}")
 
+    device = resolve_device(config.device)
+
     backend = "Serial" if config.num_workers <= 1 else "Multiprocessing"
     vec_overrides = {"num_envs": max(1, config.num_workers), "backend": backend}
     if backend == "Multiprocessing":
@@ -52,7 +54,7 @@ def train_agent(
         vec=vec_overrides,
         env={"num_envs": config.num_envs},
         train={
-            "device": config.device,
+            "device": device,
             "learning_rate": config.learning_rate,
             "batch_size": config.batch_size,
             "total_timesteps": config.total_timesteps,
@@ -63,7 +65,7 @@ def train_agent(
             "max_minibatch_size": config.batch_size,
         },
     )
-    policy = make_policy(vecenv, device=config.device)
+    policy = make_policy(vecenv, device=device)
     trainer = PuffeRL(dict(**args["train"], env=puffer_name), vecenv, policy)
 
     best_reward = float("-inf")

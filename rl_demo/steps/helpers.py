@@ -1,5 +1,7 @@
 """PufferLib env setup and policy (shared by train + eval steps)."""
 
+import sys
+
 import torch
 import torch.nn as nn
 
@@ -7,6 +9,23 @@ import pufferlib.pufferl as pufferl
 from pufferlib.pytorch import layer_init
 
 from steps.models import PolicyCheckpoint
+
+
+def resolve_device(requested: str) -> str:
+    """Resolve requested device to one available in the current environment.
+
+    MPS is Apple-only; CUDA requires GPU. When running in K8s/Linux containers,
+    'mps' from a Mac client will fail — fall back to cpu.
+    """
+    if requested == "cuda" and torch.cuda.is_available():
+        return "cuda"
+    if requested == "mps":
+        try:
+            if torch.backends.mps.is_available():
+                return "mps"
+        except (AttributeError, RuntimeError):
+            pass
+    return "cpu"
 
 
 def puffer_env_name(name: str) -> str:
@@ -19,7 +38,14 @@ def puffer_env_name(name: str) -> str:
 def make_vecenv(env_name: str, **overrides):
     """Create a PufferLib vectorized env with config overrides."""
     puffer_name = puffer_env_name(env_name)
-    args = pufferl.load_config(puffer_name)
+    # PufferLib's load_config() parses sys.argv; ZenML injects
+    # --entrypoint_config_source, --snapshot_id, --run_id which PufferLib rejects.
+    # Clear argv so parse_args() uses config defaults; we override via overrides below.
+    _argv, sys.argv = sys.argv, [sys.argv[0]]
+    try:
+        args = pufferl.load_config(puffer_name)
+    finally:
+        sys.argv = _argv
     for section, updates in overrides.items():
         args[section].update(updates)
     return pufferl.load_env(puffer_name, args), puffer_name, args

@@ -144,6 +144,21 @@ rl_environment_sweep(
 )
 ```
 
+## CodeBuild / Docker Hub rate limits
+
+If you see `BUILD_CONTAINER_UNABLE_TO_PULL_IMAGE` or `429 Too Many Requests` from CodeBuild:
+
+1. **Build environment image** — ZenML’s default `bentolor/docker-dind-awscli` is on Docker Hub and can hit rate limits. Switch to AWS’s managed image:
+
+   ```bash
+   zenml image-builder update <your-aws-image-builder-name> \
+     --build_image=aws/codebuild/standard:7.0
+   ```
+
+   Replace `<your-aws-image-builder-name>` with your actual component name (e.g. `aws_codebuild`).
+
+2. **Dockerfile base image** — This project uses `public.ecr.aws/docker/library/python:3.12-slim` instead of `python:3.12-slim` to avoid pulling from Docker Hub.
+
 ## Infrastructure
 
 The pipeline is infrastructure-agnostic. Switch stacks:
