@@ -73,6 +73,7 @@ etc.
 | [FloraCast](floracast)                                       | 📊 Data   | ⏱️ Timeseries Prediction, 📈 Forecasting, 🔄 Batch Inference | darts, pytorch, zenml, pandas        |
 | [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data   | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml               |
 | [Credit Scorer](credit-scorer)                               | 📊 Data   | 💰 Credit Risk, 📊 Explainability, 🇪🇺 EU AI Act             | scikit-learn, fairlearn, zenml       |
+| [RL Demo](rl_demo)                                           | 🎮 RL     | 🤖 PPO Training, 📊 Sweeps, 🚀 Policy Promotion              | pufferlib, zenml, pytorch             |
 
 # 💻 System Requirements
 
