@@ -13,12 +13,6 @@ Key properties:
    stages (staging → production) with full lineage in the dashboard.
 """
 
-from zenml import Model, pipeline
-from zenml.config import DockerSettings
-from zenml.integrations.kubernetes.flavors.kubernetes_orchestrator_flavor import (
-    KubernetesOrchestratorSettings,
-)
-
 from steps import (
     configure_sweep,
     create_sweep_report,
@@ -26,6 +20,11 @@ from steps import (
     load_training_data,
     promote_best_policy,
     train_agent,
+)
+from zenml import Model, pipeline
+from zenml.config import DockerSettings
+from zenml.integrations.kubernetes.flavors.kubernetes_orchestrator_flavor import (
+    KubernetesOrchestratorSettings,
 )
 
 docker_settings = DockerSettings(
@@ -95,7 +94,9 @@ def rl_environment_sweep(
         policy_checkpoints=policy_checkpoints,
     )
 
-    create_sweep_report(training_results=training_results, eval_results=eval_results)
+    create_sweep_report(
+        training_results=training_results, eval_results=eval_results
+    )
 
     promote_best_policy(
         eval_results=eval_results,

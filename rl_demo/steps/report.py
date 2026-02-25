@@ -4,10 +4,9 @@ import base64
 import io
 from typing import Annotated
 
+from steps.models import EvalResult, TrainingResult
 from zenml import step
 from zenml.types import HTMLString
-
-from steps.models import EvalResult, TrainingResult
 
 
 @step

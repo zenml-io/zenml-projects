@@ -8,7 +8,6 @@ Runs the dynamic RL training pipeline on Connect4 with 5 learning rates.
 """
 
 import torch
-
 from pipelines import rl_environment_sweep
 from zenml.logger import get_logger
 

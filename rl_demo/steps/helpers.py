@@ -2,12 +2,10 @@
 
 import sys
 
+import pufferlib.pufferl as pufferl
 import torch
 import torch.nn as nn
-
-import pufferlib.pufferl as pufferl
 from pufferlib.pytorch import layer_init
-
 from steps.models import PolicyCheckpoint
 
 

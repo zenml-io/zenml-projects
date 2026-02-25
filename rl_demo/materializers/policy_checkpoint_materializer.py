@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 
 import torch
-
 from zenml.io import fileio
 from zenml.materializers.base_materializer import BaseMaterializer
 

@@ -2,16 +2,19 @@
 
 from typing import Annotated
 
+from materializers.policy_checkpoint_materializer import (
+    PolicyCheckpointMaterializer,
+)
+from steps.models import EvalResult, PolicyCheckpoint
 from zenml import ArtifactConfig, log_metadata, step
 from zenml.client import Client
 from zenml.enums import ArtifactType, ModelStages
 
-from materializers.policy_checkpoint_materializer import PolicyCheckpointMaterializer
-from steps.models import EvalResult, PolicyCheckpoint
-
 
 @step(
-    output_materializers={"promoted_policy_checkpoint": PolicyCheckpointMaterializer},
+    output_materializers={
+        "promoted_policy_checkpoint": PolicyCheckpointMaterializer
+    },
 )
 def promote_best_policy(
     eval_results: list[EvalResult],
@@ -31,7 +34,9 @@ def promote_best_policy(
     assert len(eval_results) == len(policy_checkpoints), (
         "eval_results and checkpoints must be parallel"
     )
-    tag_to_checkpoint = {r.tag: c for r, c in zip(eval_results, policy_checkpoints)}
+    tag_to_checkpoint = {
+        r.tag: c for r, c in zip(eval_results, policy_checkpoints)
+    }
 
     winner = max(eval_results, key=lambda r: r.eval_mean_reward)
     promoted = tag_to_checkpoint[winner.tag]

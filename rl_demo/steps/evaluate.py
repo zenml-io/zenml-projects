@@ -2,11 +2,10 @@
 
 from typing import Annotated, Tuple
 
-from zenml import log_metadata, step
-from zenml.types import HTMLString
-
 from steps.helpers import make_policy, make_vecenv, run_eval_episodes
 from steps.models import EvalResult, PolicyCheckpoint, TrainingResult
+from zenml import log_metadata, step
+from zenml.types import HTMLString
 
 
 @step
@@ -69,8 +68,13 @@ def evaluate_agents(
     log_metadata(
         metadata={
             "leaderboard": {
-                r.tag: {"reward": float(r.eval_mean_reward), "std": float(r.eval_std_reward)}
-                for r in sorted(eval_results, key=lambda r: -r.eval_mean_reward)
+                r.tag: {
+                    "reward": float(r.eval_mean_reward),
+                    "std": float(r.eval_std_reward),
+                }
+                for r in sorted(
+                    eval_results, key=lambda r: -r.eval_mean_reward
+                )
             }
         },
         artifact_name="eval_results",

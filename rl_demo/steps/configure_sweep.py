@@ -2,10 +2,9 @@
 
 from typing import Annotated, Tuple
 
+from steps.models import DatasetMetadata, EnvConfig
 from zenml import log_metadata, step
 from zenml.types import HTMLString
-
-from steps.models import DatasetMetadata, EnvConfig
 
 
 @step

@@ -2,16 +2,21 @@
 
 from typing import Annotated, Tuple
 
+from materializers.policy_checkpoint_materializer import (
+    PolicyCheckpointMaterializer,
+)
+from pufferlib.pufferl import PuffeRL
+from steps.helpers import (
+    extract_logs,
+    make_policy,
+    make_vecenv,
+    resolve_device,
+)
+from steps.models import EnvConfig, PolicyCheckpoint, TrainingResult
 from zenml import ArtifactConfig, log_metadata, step
 from zenml.enums import ArtifactType
 from zenml.materializers import PydanticMaterializer
 from zenml.types import HTMLString
-
-from materializers.policy_checkpoint_materializer import PolicyCheckpointMaterializer
-from steps.helpers import extract_logs, make_policy, make_vecenv, resolve_device
-from steps.models import EnvConfig, PolicyCheckpoint, TrainingResult
-
-from pufferlib.pufferl import PuffeRL
 
 
 @step(
@@ -27,7 +32,9 @@ def train_agent(
     Annotated[TrainingResult, "training_result"],
     Annotated[
         PolicyCheckpoint,
-        ArtifactConfig(name="policy_checkpoint", artifact_type=ArtifactType.DATA),
+        ArtifactConfig(
+            name="policy_checkpoint", artifact_type=ArtifactType.DATA
+        ),
     ],
     Annotated[HTMLString, "training_summary"],
 ]:
@@ -45,7 +52,10 @@ def train_agent(
     device = resolve_device(config.device)
 
     backend = "Serial" if config.num_workers <= 1 else "Multiprocessing"
-    vec_overrides = {"num_envs": max(1, config.num_workers), "backend": backend}
+    vec_overrides = {
+        "num_envs": max(1, config.num_workers),
+        "backend": backend,
+    }
     if backend == "Multiprocessing":
         vec_overrides["num_workers"] = config.num_workers
 
@@ -80,13 +90,17 @@ def train_agent(
             best_reward = stats["mean_reward"]
 
         if logs is not None:
-            metrics_history.append({"iteration": len(metrics_history), **stats})
+            metrics_history.append(
+                {"iteration": len(metrics_history), **stats}
+            )
             log_metadata(
                 metadata={
-                    f"iter_{len(metrics_history)-1}/mean_reward": float(
+                    f"iter_{len(metrics_history) - 1}/mean_reward": float(
                         stats["mean_reward"]
                     ),
-                    f"iter_{len(metrics_history)-1}/sps": float(stats["sps"]),
+                    f"iter_{len(metrics_history) - 1}/sps": float(
+                        stats["sps"]
+                    ),
                 }
             )
 

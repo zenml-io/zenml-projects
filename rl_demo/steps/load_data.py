@@ -2,9 +2,8 @@
 
 from typing import Annotated
 
-from zenml import log_metadata, step
-
 from steps.models import DatasetMetadata
+from zenml import log_metadata, step
 
 
 @step
@@ -54,9 +53,13 @@ def load_training_data(
         infer_artifact=True,
     )
 
-    print(f"📦 Registered training dataset: client={client_id}, project={project}")
+    print(
+        f"📦 Registered training dataset: client={client_id}, project={project}"
+    )
     print(f"   Data source: {data_source} | Domain: {domain}")
     print(f"   Environments: {env_names}")
-    print(f"   → Full lineage tracked — traceable for data scrubbing/compliance")
+    print(
+        f"   → Full lineage tracked — traceable for data scrubbing/compliance"
+    )
 
     return metadata
