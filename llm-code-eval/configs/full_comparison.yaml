@@ -1,0 +1,45 @@
+enable_cache: true
+
+parameters:
+  models:
+    - "deepseek/deepseek-chat"          # DeepSeek V3 (swap to V4 on launch)
+    - "anthropic/claude-sonnet-4-5-20250514"  # Claude Sonnet 4.5
+    - "openai/gpt-4o"                   # GPT-4o
+    - "gemini/gemini-2.0-flash"         # Gemini 2.0 Flash
+  judge_model: "anthropic/claude-sonnet-4-5-20250514"
+  report_title: "DeepSeek V4 Coding Evaluation Results"
+
+steps:
+  load_test_cases:
+    parameters:
+      sample_size: 16
+      seed: 42
+      min_hard: 4
+
+  run_inference:
+    parameters:
+      temperature: 0.0
+      max_tokens: 1024
+      timeout_s: 180
+
+  evaluate_outputs:
+    parameters:
+      temperature: 0.0
+      max_tokens: 512
+
+  generate_report:
+    parameters:
+      include_per_problem_breakdown: true
+
+settings:
+  docker:
+    requirements: requirements.txt
+    python_package_installer: "uv"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_HOST: ${LANGFUSE_HOST}
