@@ -1,0 +1,6 @@
+zenml[server]
+pufferlib
+torch
+matplotlib
+numpy<3.0
+psutil
