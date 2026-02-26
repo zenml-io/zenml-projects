@@ -1,0 +1,69 @@
+# Kubernetes GPU training configuration
+#
+# For production training on a Kubernetes cluster with GPU nodes.
+# Requires a GPU step operator or node affinity configuration.
+#
+# Usage:
+#   python run.py --pipeline train --config configs/training_k8s.yaml
+
+model:
+  name: art-email-agent
+  description: "Email search agent trained with ART + LangGraph"
+  tags:
+    - art
+    - langgraph
+    - email-agent
+    - rl
+    - kubernetes
+
+parameters:
+  model_name: "art-email-agent"
+  project_name: "email-search-agent"
+  base_model: "Qwen/Qwen2.5-7B-Instruct"
+  groups_per_step: 2
+  num_epochs: 20
+  rollouts_per_group: 4
+  learning_rate: 1.0e-5
+  max_steps: 20
+  ruler_model: "openai/o4-mini"
+  art_path: "./.art"
+
+settings:
+  docker:
+    parent_image: pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
+    requirements: requirements.txt
+    python_package_installer: uv
+    apt_packages:
+      - git
+
+steps:
+  train_agent:
+    enable_cache: false
+    settings:
+      orchestrator.kubernetes:
+        pod_settings:
+          # GPU node affinity
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: nvidia.com/gpu
+                        operator: Exists
+          # GPU resource requests
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+            requests:
+              nvidia.com/gpu: "1"
+              memory: "32Gi"
+              cpu: "8"
+          # Shared memory for PyTorch DataLoader
+          volumes:
+            - emptyDir:
+                medium: Memory
+                sizeLimit: 16Gi
+              name: dshm
+          volume_mounts:
+            - mountPath: /dev/shm
+              name: dshm
