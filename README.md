@@ -74,6 +74,7 @@ etc.
 | [Bank Subscription Prediction](bank_subscription_prediction) | 📊 Data   | 💼 Classification, ⚖️ Imbalanced Data, 🔍 Feature Selection | xgboost, plotly, zenml               |
 | [Credit Scorer](credit-scorer)                               | 📊 Data   | 💰 Credit Risk, 📊 Explainability, 🇪🇺 EU AI Act             | scikit-learn, fairlearn, zenml       |
 | [RL Demo](rl_demo)                                           | 🎮 RL     | 🤖 PPO Training, 📊 Sweeps, 🚀 Policy Promotion              | pufferlib, zenml, pytorch             |
+| [S3-to-PVC Training Pipeline](s3_pvc_pipeline)                | 🚀 MLOps  | 📦 PVC cache, ☁️ S3, 🔄 Versioned data, ⚡ Fast I/O         | pytorch, lightning, kubernetes, s3   |
 
 # 💻 System Requirements
 
