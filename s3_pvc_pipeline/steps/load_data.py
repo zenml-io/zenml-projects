@@ -20,7 +20,7 @@ Expects S3 layout: s3://{bucket}/{prefix}/{data_version}/train.zip, test.zip
 
 import zipfile
 from pathlib import Path
-from typing import Annotated, Any, Dict, Tuple
+from typing import Annotated, Any, Tuple
 
 from zenml import step
 from zenml.client import Client

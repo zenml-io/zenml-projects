@@ -20,7 +20,7 @@ import io
 import random
 from collections import defaultdict
 from pathlib import Path
-from typing import Annotated, Any, Dict, List, Tuple
+from typing import Annotated, Any, Dict, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -88,11 +88,17 @@ def _build_html_report(
         c = per_class[idx]
         cls_acc = 100.0 * c["correct"] / c["total"] if c["total"] else 0.0
         bar_width = cls_acc
-        bar_color = "#22c55e" if cls_acc >= 80 else "#eab308" if cls_acc >= 60 else "#ef4444"
+        bar_color = (
+            "#22c55e"
+            if cls_acc >= 80
+            else "#eab308"
+            if cls_acc >= 60
+            else "#ef4444"
+        )
         class_rows += f"""
         <tr>
           <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-weight:500;">{name}</td>
-          <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">{c['correct']}/{c['total']}</td>
+          <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">{c["correct"]}/{c["total"]}</td>
           <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">{cls_acc:.1f}%</td>
           <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;width:120px;">
             <div style="background:#f3f4f6;border-radius:4px;height:14px;overflow:hidden;">
