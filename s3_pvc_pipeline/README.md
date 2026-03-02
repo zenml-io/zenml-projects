@@ -23,10 +23,10 @@ Many production ML workloads share the same data pattern:
 
 ### Why a naive approach fails
 
-| Approach | Problem |
-|---|---|
-| Download from S3 every run | Network I/O dominates wall-clock time. S3 GET costs add up. Cluster egress bills explode. |
-| Bake data into the Docker image | Images become huge (>50 GB). Build times skyrocket. Every version bump forces a full image rebuild + push. |
+| Approach                          | Problem                                                                                                                                 |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Download from S3 every run        | Network I/O dominates wall-clock time. S3 GET costs add up. Cluster egress bills explode.                                               |
+| Bake data into the Docker image   | Images become huge (>50 GB). Build times skyrocket. Every version bump forces a full image rebuild + push.                              |
 | Mount S3 via FUSE (s3fs / goofys) | Random-read latency is 10-100x worse than local disk. Training throughput collapses, especially for dataloaders with `num_workers > 0`. |
 
 ### The PVC-as-cache pattern
@@ -60,46 +60,46 @@ training within seconds.
 ZenML provides first-class primitives that make this pattern declarative and
 reproducible:
 
-| Concern | ZenML feature |
-|---|---|
-| **Attach a PVC to every step** | `KubernetesPodSettings` — declare volumes, volume mounts, and resource requests in Python. Applied uniformly to every step pod. |
-| **Authenticate to S3 without baked-in credentials** | **Service Connectors** — the pipeline references a connector by name; ZenML injects short-lived credentials into the pod at runtime. |
-| **Version-aware caching** | The `load_data` step writes to `/mnt/data/{data_version}/`. Switching from `v1` to `v2` is a config change — both versions can coexist on the PVC. |
-| **Reproducible config** | YAML run configuration (`config/config.yaml`) pins the data version, hyperparameters, and S3 coordinates. Every run is fully specified. |
-| **Metadata & visualization** | Steps log metrics via `log_metadata()` and return `HTMLString` visualizations visible in the ZenML dashboard. |
-| **Portable orchestration** | The same pipeline code runs on any Kubernetes cluster — EKS, GKE, AKS, on-prem — by swapping the ZenML stack. |
+| Concern                                             | ZenML feature                                                                                                                                      |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Attach a PVC to every step**                      | `KubernetesPodSettings` — declare volumes, volume mounts, and resource requests in Python. Applied uniformly to every step pod.                    |
+| **Authenticate to S3 without baked-in credentials** | **Service Connectors** — the pipeline references a connector by name; ZenML injects short-lived credentials into the pod at runtime.               |
+| **Version-aware caching**                           | The `load_data` step writes to `/mnt/data/{data_version}/`. Switching from `v1` to `v2` is a config change — both versions can coexist on the PVC. |
+| **Reproducible config**                             | YAML run configuration (`config/config.yaml`) pins the data version, hyperparameters, and S3 coordinates. Every run is fully specified.            |
+| **Metadata & visualization**                        | Steps log metrics via `log_metadata()` and return `HTMLString` visualizations visible in the ZenML dashboard.                                      |
+| **Portable orchestration**                          | The same pipeline code runs on any Kubernetes cluster — EKS, GKE, AKS, on-prem — by swapping the ZenML stack.                                      |
 
 ### Pipeline architecture
 
 ```
-                  ┌──────────────────────────────────────────────────────────────────────┐
+                  ┌───────────────────────────────────────────────────────────────────────┐
                   │                     Kubernetes Cluster (EKS)                          │
-                  │                                                                      │
-  ┌─────────┐    │  ┌───────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐ │
-  │  S3      │───▶│  │ load_data │───▶│ preprocess │───▶│ train_model │───▶│ test_model │ │
-  │ (source  │    │  └─────┬─────┘    └─────┬──────┘    └──────┬──────┘    └─────┬─────┘ │
+                  │                                                                       │
+  ┌──────────┐    │  ┌───────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐  │
+  │  S3      │───▶│  │ load_data │───▶│ preprocess │───▶│ train_model │───▶│ test_model│  │
+  │ (source  │    │  └─────┬─────┘    └─────┬──────┘    └──────┬──────┘    └─────┬─────┘  │
   │ of truth)│    │        │                │                  │                 │        │
   └──────────┘    │        ▼                ▼                  ▼                 ▼        │
                   │  ┌─────────────────────────────────────────────────────────────────┐  │
                   │  │               PVC  /mnt/data/{version}/                         │  │
                   │  │  raw/train/  raw/test/  preprocessed/train/ val/ test/          │  │
                   │  └─────────────────────────────────────────────────────────────────┘  │
-                  │                                                                      │
+                  │                                                                       │
                   │  ┌─────────────────────────────────────────────────────────────────┐  │
-                  │  │                ZenML Artifact Store (S3)                         │  │
+                  │  │                ZenML Artifact Store (S3)                        │  │
                   │  │      model checkpoints, metrics, visualizations                 │  │
                   │  └─────────────────────────────────────────────────────────────────┘  │
-                  └──────────────────────────────────────────────────────────────────────┘
+                  └───────────────────────────────────────────────────────────────────────┘
 ```
 
 **Steps:**
 
-| # | Step | What it does |
-|---|---|---|
-| 1 | `load_data` | Connects to S3 via ZenML Service Connector, downloads `train.zip` + `test.zip` for the requested `data_version`, extracts into PVC. Skips download if cached `.npy` files already exist. |
-| 2 | `preprocess` | Reads raw data from PVC, performs stratified train/val split, normalizes pixel values, writes processed splits back to PVC. Logs split sizes as metadata. |
-| 3 | `train_model` | Loads processed train/val data from PVC, trains a CNN (PyTorch Lightning), logs val loss/accuracy as metadata. Returns the trained `LightningModule`. |
-| 4 | `test_model` | Evaluates trained model on the test split, logs test metrics, generates a sample-predictions HTML visualization for the ZenML dashboard. |
+| #   | Step          | What it does                                                                                                                                                                             |
+| --- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `load_data`   | Connects to S3 via ZenML Service Connector, downloads `train.zip` + `test.zip` for the requested `data_version`, extracts into PVC. Skips download if cached `.npy` files already exist. |
+| 2   | `preprocess`  | Reads raw data from PVC, performs stratified train/val split, normalizes pixel values, writes processed splits back to PVC. Logs split sizes as metadata.                                |
+| 3   | `train_model` | Loads processed train/val data from PVC, trains a CNN (PyTorch Lightning), logs val loss/accuracy as metadata. Returns the trained `LightningModule`.                                    |
+| 4   | `test_model`  | Evaluates trained model on the test split, logs test metrics, generates a sample-predictions HTML visualization for the ZenML dashboard.                                                 |
 
 ---
 
@@ -127,13 +127,13 @@ You need a running Kubernetes cluster with:
 
 Register a ZenML stack with these components (all are required):
 
-| Component | Flavor | Example |
-|---|---|---|
-| **Orchestrator** | `kubernetes` | An EKS / GKE / AKS cluster |
-| **Artifact Store** | `s3` (or `gcs` / `azure`) | `s3://your-zenml-artifacts` |
-| **Container Registry** | `ecr` (or `gcr` / `acr` / `dockerhub`) | Your ECR repo URI |
-| **Image Builder** | `local` or `kaniko` or `aws_codebuild` | AWS CodeBuild recommended for EKS |
-| **Service Connector** | `aws` (type: `s3-bucket`) | Must grant read access to the data bucket |
+| Component              | Flavor                                 | Example                                   |
+| ---------------------- | -------------------------------------- | ----------------------------------------- |
+| **Orchestrator**       | `kubernetes`                           | An EKS / GKE / AKS cluster                |
+| **Artifact Store**     | `s3` (or `gcs` / `azure`)              | `s3://your-zenml-artifacts`               |
+| **Container Registry** | `ecr` (or `gcr` / `acr` / `dockerhub`) | Your ECR repo URI                         |
+| **Image Builder**      | `local` or `kaniko` or `aws_codebuild` | AWS CodeBuild recommended for EKS         |
+| **Service Connector**  | `aws` (type: `s3-bucket`)              | Must grant read access to the data bucket |
 
 Verify your stack:
 
@@ -191,11 +191,11 @@ AWS_PROFILE=<your-profile> uv run scripts/upload_mnist_to_s3.py --bucket persist
 The PVC name you create in Kubernetes **must match** the name the pipeline
 mounts into step pods. There are three places where PVC/mount settings live:
 
-| Setting | File | Default |
-|---|---|---|
-| PVC claim name | `pipelines/training.py` → `PREPROCESS_PVC_CLAIM_NAME` | `zenml-data-pvc` |
-| Mount path inside pods | `pipelines/training.py` → `PREPROCESS_MOUNT_PATH` | `/mnt/data` |
-| Mount path (runtime override) | `config/config.yaml` → `parameters.preprocess_mount_path` | `/mnt/data` |
+| Setting                       | File                                                      | Default          |
+| ----------------------------- | --------------------------------------------------------- | ---------------- |
+| PVC claim name                | `pipelines/training.py` → `PREPROCESS_PVC_CLAIM_NAME`     | `zenml-data-pvc` |
+| Mount path inside pods        | `pipelines/training.py` → `PREPROCESS_MOUNT_PATH`         | `/mnt/data`      |
+| Mount path (runtime override) | `config/config.yaml` → `parameters.preprocess_mount_path` | `/mnt/data`      |
 
 **Step 2a — Pick a PVC name and check your storage class:**
 
@@ -283,6 +283,12 @@ python run.py --config path/to/custom_config.yaml
 ```
 
 ### 5. View results in the ZenML dashboard
+
+<div align="center">
+   <img src="assets/pipeline-run.png" alt="Pipeline Run" width="40%" />
+   <br>
+   <i>Pipeline Run</i>
+</div>
 
 After the run completes:
 
