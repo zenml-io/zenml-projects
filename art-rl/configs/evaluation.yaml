@@ -1,0 +1,55 @@
+# Evaluation pipeline configuration
+#
+# Evaluates a trained model on test scenarios.
+# Requires GPU for inference.
+#
+# Usage:
+#   python run.py --pipeline eval --config configs/evaluation.yaml
+
+model:
+  name: art-email-agent
+  description: "Email search agent trained with ART + LangGraph"
+  tags:
+    - art
+    - langgraph
+    - email-agent
+    - evaluation
+
+parameters:
+  judge_model: "openai/gpt-4.1"
+  art_path: "./.art"
+
+settings:
+  docker:
+    parent_image: pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
+    requirements: requirements.txt
+    python_package_installer: uv
+    apt_packages:
+      - git
+
+steps:
+  run_inference:
+    settings:
+      orchestrator.kubernetes:
+        pod_settings:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: nvidia.com/gpu
+                        operator: Exists
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+            requests:
+              nvidia.com/gpu: "1"
+              memory: "32Gi"
+          volumes:
+            - emptyDir:
+                medium: Memory
+                sizeLimit: 16Gi
+              name: dshm
+          volume_mounts:
+            - mountPath: /dev/shm
+              name: dshm
