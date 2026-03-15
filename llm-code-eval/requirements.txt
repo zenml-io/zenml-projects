@@ -1,0 +1,9 @@
+zenml>=0.84.2
+litellm>=1.69.0
+langfuse>=2.60.0
+click>=8.0.0
+PyYAML>=6.0
+pydantic>=2.0.0,<3.0.0
+tenacity>=9.0.0
+# For regenerating HumanEval subsets (scripts/regenerate_humaneval_subset.py)
+datasets>=3.2.0

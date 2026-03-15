@@ -1,0 +1,8 @@
+[project]
+name = "llm-code-eval"
+version = "0.1.0"
+description = "LLM code evaluation pipeline using ZenML - comparing coding models with HumanEval"
+requires-python = ">=3.11,<3.13"
+
+[tool.ruff]
+line-length = 79
