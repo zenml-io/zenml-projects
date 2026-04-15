@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from tavily import TavilyClient
 
 try:
+    # Exa is the fastest and most accurate web search API for AI
     from exa_py import Exa
 
     EXA_AVAILABLE = True
