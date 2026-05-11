@@ -9,16 +9,11 @@ from zenml import step
 from zenml.types import HTMLString
 
 
-@step
-def create_sweep_report(
+def _render_sweep_report(
     training_results: list[TrainingResult],
     eval_results: list[EvalResult],
-) -> Annotated[HTMLString, "sweep_report"]:
-    """
-    Create an HTML visualization report: leaderboard table + training curves.
-
-    Returns HTMLString for display in the ZenML dashboard.
-    """
+) -> str:
+    """Pure renderer: returns the HTML body for the sweep report."""
     try:
         import matplotlib
 
@@ -77,7 +72,7 @@ def create_sweep_report(
         </div>
         """
 
-    html = f"""
+    return f"""
     <div style="font-family: system-ui, sans-serif; padding: 1.5rem; max-width: 900px;">
         <h2>RL Sweep Report</h2>
         <h3>Leaderboard</h3>
@@ -97,4 +92,12 @@ def create_sweep_report(
         {curve_html}
     </div>
     """
-    return HTMLString(html)
+
+
+@step
+def create_sweep_report(
+    training_results: list[TrainingResult],
+    eval_results: list[EvalResult],
+) -> Annotated[HTMLString, "sweep_report"]:
+    """HTML visualization report: leaderboard table + training curves."""
+    return HTMLString(_render_sweep_report(training_results, eval_results))
