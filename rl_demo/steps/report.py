@@ -114,6 +114,41 @@ def _reward_curve(training_results: list[TrainingResult]) -> str:
     return fig.to_html(include_plotlyjs="cdn", full_html=False)
 
 
+def _sps_curve(training_results: list[TrainingResult]) -> str:
+    """Render the interactive SPS-vs-iteration chart as a Plotly HTML fragment."""
+    runs = [r for r in training_results if r.metrics_history]
+    if not runs:
+        return ""
+    try:
+        import plotly.graph_objects as go
+    except ImportError:
+        return ""
+
+    fig = go.Figure()
+    for result in runs:
+        hist = result.metrics_history
+        iters = [h.get("iteration", i) for i, h in enumerate(hist)]
+        sps = [h.get("sps", 0) for h in hist]
+        fig.add_trace(
+            go.Scatter(
+                x=iters,
+                y=sps,
+                mode="lines+markers",
+                name=result.tag,
+                hovertemplate="iter %{x}<br>sps %{y:.0f}<extra>%{fullData.name}</extra>",
+            )
+        )
+    fig.update_layout(
+        title="Throughput (Steps per Second)",
+        xaxis_title="Iteration",
+        yaxis_title="Steps/sec",
+        height=350,
+        margin=dict(l=40, r=20, t=50, b=40),
+        legend=dict(orientation="h", y=-0.2),
+    )
+    return fig.to_html(include_plotlyjs="cdn", full_html=False)
+
+
 def _render_sweep_report(
     training_results: list[TrainingResult],
     eval_results: list[EvalResult],
@@ -125,12 +160,21 @@ def _render_sweep_report(
     chart_section = (
         f"<h3>Training: Mean Reward</h3>{reward_chart}" if reward_chart else ""
     )
+    sps_chart = _sps_curve(training_results)
+    sps_section = (
+        f"<details style=\"margin-top: 1rem;\">"
+        f"<summary>Throughput (Steps per Second)</summary>"
+        f"{sps_chart}</details>"
+        if sps_chart
+        else ""
+    )
     return f"""
     <div style="font-family: system-ui, sans-serif; padding: 1.5rem; max-width: 1100px;">
         <h2>RL Sweep Report</h2>
         {headline}
         {leaderboard}
         {chart_section}
+        {sps_section}
     </div>
     """
 

@@ -176,3 +176,17 @@ def test_reward_curve_includes_each_run_tag(training_results):
 def test_full_report_no_longer_uses_matplotlib_png(training_results, eval_results):
     html = _render_sweep_report(training_results, eval_results)
     assert "data:image/png;base64" not in html
+
+
+from steps.report import _sps_curve
+
+
+def test_sps_curve_uses_plotly(training_results):
+    html = _sps_curve(training_results)
+    assert "Plotly.newPlot" in html or "plotly-graph-div" in html
+
+
+def test_sps_chart_wrapped_in_collapsed_details(training_results, eval_results):
+    html = _render_sweep_report(training_results, eval_results)
+    assert "<details" in html
+    assert "Steps/sec" in html or "Steps per Second" in html
