@@ -18,6 +18,17 @@ from zenml.enums import ArtifactType
 from zenml.materializers import PydanticMaterializer
 from zenml.types import HTMLString
 
+# --- Weights & Biases (optional experiment tracking) ---------------------
+# To enable:
+#   1. zenml integration install wandb
+#   2. zenml experiment-tracker register wandb_tracker --flavor=wandb \
+#          --entity=<entity> --project_name=<project>
+#   3. zenml stack update -e wandb_tracker
+#   4. Set experiment_tracker="wandb_tracker" on the @step below
+#   5. Uncomment the `import wandb` line and the `wandb.log(...)` block
+#      inside the training loop. ZenML handles init/finish automatically.
+# import wandb
+
 
 @step(
     output_materializers={
@@ -25,7 +36,8 @@ from zenml.types import HTMLString
         "policy_checkpoint": PolicyCheckpointMaterializer,
     },
     enable_cache=False,
-    runtime="isolated"
+    runtime="isolated",
+    # experiment_tracker="wandb_tracker",  # uncomment after registering tracker
 )
 def train_agent(
     config: EnvConfig,
@@ -86,24 +98,46 @@ def train_agent(
         trainer.evaluate()
         logs = trainer.train()
 
+        # PuffeRL returns None on iters before the first full rollout is ready;
+        # those carry no usable metrics, so skip them entirely.
+        if logs is None:
+            continue
+
         stats = extract_logs(logs)
         if stats["mean_reward"] > best_reward:
             best_reward = stats["mean_reward"]
 
-        if logs is not None:
-            metrics_history.append(
-                {"iteration": len(metrics_history), **stats}
-            )
-            log_metadata(
-                metadata={
-                    f"iter_{len(metrics_history) - 1}/mean_reward": float(
-                        stats["mean_reward"]
-                    ),
-                    f"iter_{len(metrics_history) - 1}/sps": float(
-                        stats["sps"]
-                    ),
-                }
-            )
+        metrics_history.append(
+            {"iteration": len(metrics_history), **stats}
+        )
+        log_metadata(
+            metadata={
+                f"iter_{len(metrics_history) - 1}/mean_reward": float(
+                    stats["mean_reward"]
+                ),
+                f"iter_{len(metrics_history) - 1}/sps": float(
+                    stats["sps"]
+                ),
+            }
+        )
+
+        # --- W&B per-iteration logging stub ---
+        # wandb.log(
+        #     {
+        #         "train/mean_reward": stats["mean_reward"],
+        #         "train/mean_episode_length": stats["mean_episode_length"],
+        #         "train/policy_loss": stats["policy_loss"],
+        #         "train/value_loss": stats["value_loss"],
+        #         "train/entropy": stats["entropy"],
+        #         "train/sps": stats["sps"],
+        #     },
+        #     step=trainer.global_step,
+        # )
+
+    # If no rollout ever completed, best_reward is still -inf — surface 0
+    # so downstream artifacts stay JSON-serializable / comparable.
+    if best_reward == float("-inf"):
+        best_reward = 0.0
 
     total_steps = trainer.global_step
     trainer.utilization.stop()
