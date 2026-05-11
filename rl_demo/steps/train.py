@@ -25,6 +25,7 @@ from zenml.types import HTMLString
         "policy_checkpoint": PolicyCheckpointMaterializer,
     },
     enable_cache=False,
+    runtime="isolated"
 )
 def train_agent(
     config: EnvConfig,

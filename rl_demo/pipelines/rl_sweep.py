@@ -32,22 +32,41 @@ docker_settings = DockerSettings(
     python_package_installer="pip",
 )
 
-kubernetes_settings = KubernetesOrchestratorSettings(
-    pod_settings={
-        "resources": {
-            "requests": {
-                "cpu": "2",
-                "memory": "8Gi",
-                "ephemeral-storage": "20Gi",
-            },
-            "limits": {
-                "cpu": "4",
-                "memory": "16Gi",
-                "ephemeral-storage": "30Gi",
+settings = {
+    "docker": docker_settings,
+}
+
+kubernetes_settings = None
+from zenml.client import Client
+
+def is_active_k8s_stack():
+    try:
+        stack = Client().active_stack
+        return (
+            stack is not None
+            and hasattr(stack, "orchestrator")
+            and getattr(stack.orchestrator, "flavor", None) == "kubernetes"
+        )
+    except Exception:
+        return False
+
+if is_active_k8s_stack():
+    settings["orchestrator"] = KubernetesOrchestratorSettings(
+        pod_settings={
+            "resources": {
+                "requests": {
+                    "cpu": "2",
+                    "memory": "8Gi",
+                    "ephemeral-storage": "20Gi",
+                },
+                "limits": {
+                    "cpu": "4",
+                    "memory": "16Gi",
+                    "ephemeral-storage": "30Gi",
+                },
             },
         },
-    },
-)
+    )
 
 
 @pipeline(
@@ -58,7 +77,7 @@ kubernetes_settings = KubernetesOrchestratorSettings(
         license="MIT",
         description="PufferLib RL agents across multiple environments",
     ),
-    settings={"docker": docker_settings, "orchestrator": kubernetes_settings},
+    settings=settings,
 )
 def rl_environment_sweep(
     env_names: list[str],
