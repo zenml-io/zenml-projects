@@ -2,5 +2,6 @@ zenml[server]
 pufferlib
 torch
 matplotlib
+plotly
 numpy<3.0
 psutil
