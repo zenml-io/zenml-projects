@@ -155,3 +155,24 @@ def test_leaderboard_sorted_winner_first(training_results, eval_results):
     pos_winner = html.find("ocean-squared_lr0.05")
     pos_loser = html.find("ocean-squared_lr0.02")
     assert 0 <= pos_winner < pos_loser
+
+
+from steps.report import _reward_curve
+
+
+def test_reward_curve_uses_plotly(training_results):
+    html = _reward_curve(training_results)
+    # Plotly's to_html embeds either a "plotly-graph-div" class
+    # or a call to "Plotly.newPlot" — either is sufficient evidence.
+    assert "Plotly.newPlot" in html or "plotly-graph-div" in html
+
+
+def test_reward_curve_includes_each_run_tag(training_results):
+    html = _reward_curve(training_results)
+    assert "ocean-squared_lr0.05" in html
+    assert "ocean-squared_lr0.02" in html
+
+
+def test_full_report_no_longer_uses_matplotlib_png(training_results, eval_results):
+    html = _render_sweep_report(training_results, eval_results)
+    assert "data:image/png;base64" not in html
