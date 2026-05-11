@@ -2,7 +2,7 @@
 
 import pytest
 from steps.models import EvalResult, TrainingResult
-from steps.report import create_sweep_report
+from steps.report import create_sweep_report, _headline_callout, _render_sweep_report
 
 
 @pytest.fixture
@@ -89,3 +89,32 @@ def test_baseline_contains_tags_and_leaderboard(training_results, eval_results):
     assert "Leaderboard" in html
     assert "ocean-squared_lr0.05" in html
     assert "ocean-squared_lr0.02" in html
+
+
+def test_headline_shows_winner_and_delta(training_results, eval_results):
+    html = _headline_callout(eval_results)
+    assert "ocean-squared_lr0.05" in html
+    assert "12.40" in html  # winner eval reward
+    assert "+8.20" in html  # delta vs runner-up (12.4 - 4.2)
+
+
+def test_headline_with_single_run_omits_delta():
+    single = [
+        EvalResult(
+            env_name="ocean-squared",
+            tag="only-run",
+            eval_mean_reward=3.0,
+            eval_std_reward=0.1,
+            eval_episodes=10,
+            is_best=True,
+        )
+    ]
+    html = _headline_callout(single)
+    assert "only-run" in html
+    assert "3.00" in html
+    assert "+" not in html  # no delta string
+
+
+def test_headline_appears_in_full_report(training_results, eval_results):
+    html = _render_sweep_report(training_results, eval_results)
+    assert "+8.20" in html

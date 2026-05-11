@@ -9,6 +9,25 @@ from zenml import step
 from zenml.types import HTMLString
 
 
+def _headline_callout(eval_results: list[EvalResult]) -> str:
+    """Render the headline that names the winner and delta vs runner-up."""
+    if not eval_results:
+        return ""
+    ranked = sorted(eval_results, key=lambda r: -r.eval_mean_reward)
+    winner = ranked[0]
+    if len(ranked) >= 2:
+        delta = winner.eval_mean_reward - ranked[1].eval_mean_reward
+        delta_str = f" <span style=\"color: #2a7;\">(+{delta:.2f} over runner-up)</span>"
+    else:
+        delta_str = ""
+    return (
+        f"<p style=\"font-size: 1.1rem; margin: 0.5rem 0 1rem;\">"
+        f"🏆 <b>{winner.tag}</b> won eval: "
+        f"<b>{winner.eval_mean_reward:.2f}</b> reward{delta_str}"
+        f"</p>"
+    )
+
+
 def _render_sweep_report(
     training_results: list[TrainingResult],
     eval_results: list[EvalResult],
@@ -72,9 +91,11 @@ def _render_sweep_report(
         </div>
         """
 
+    headline = _headline_callout(eval_results)
     return f"""
     <div style="font-family: system-ui, sans-serif; padding: 1.5rem; max-width: 900px;">
         <h2>RL Sweep Report</h2>
+        {headline}
         <h3>Leaderboard</h3>
         <table style="border-collapse: collapse; width: 100%;">
             <thead>
