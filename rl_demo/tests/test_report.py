@@ -190,3 +190,22 @@ def test_sps_chart_wrapped_in_collapsed_details(training_results, eval_results):
     html = _render_sweep_report(training_results, eval_results)
     assert "<details" in html
     assert "Steps/sec" in html or "Steps per Second" in html
+
+
+from steps.report import _sweep_summary_card
+
+
+def test_sweep_summary_lists_envs_and_lrs(training_results):
+    html = _sweep_summary_card(training_results)
+    assert "ocean-squared" in html
+    assert "0.05" in html
+    assert "0.02" in html
+    # Show the number of runs:
+    assert "2" in html
+    # Show the per-run total_timesteps in some human form:
+    assert "1,000,000" in html or "1000000" in html
+
+
+def test_sweep_summary_card_appears_in_full_report(training_results, eval_results):
+    html = _render_sweep_report(training_results, eval_results)
+    assert "Sweep summary" in html

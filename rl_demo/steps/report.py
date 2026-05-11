@@ -7,6 +7,27 @@ from zenml import step
 from zenml.types import HTMLString
 
 
+def _sweep_summary_card(training_results: list[TrainingResult]) -> str:
+    """Render the top-of-report summary: envs, # runs, lrs, timesteps."""
+    if not training_results:
+        return ""
+    envs = sorted({r.env_name for r in training_results})
+    lrs = sorted({r.config.get("learning_rate") for r in training_results
+                  if r.config.get("learning_rate") is not None})
+    timesteps = sorted({r.total_timesteps for r in training_results})
+    timesteps_str = ", ".join(f"{t:,}" for t in timesteps)
+    return (
+        f"<div style=\"background: #f7f7f9; padding: 0.75rem 1rem; "
+        f"border-radius: 6px; margin: 0.5rem 0 1rem;\">"
+        f"<b>Sweep summary</b> &middot; "
+        f"<b>{len(training_results)}</b> runs &middot; "
+        f"envs: {', '.join(envs)} &middot; "
+        f"learning rates: {', '.join(str(lr) for lr in lrs)} &middot; "
+        f"timesteps per run: {timesteps_str}"
+        f"</div>"
+    )
+
+
 def _headline_callout(eval_results: list[EvalResult]) -> str:
     """Render the headline that names the winner and delta vs runner-up."""
     if not eval_results:
@@ -154,6 +175,7 @@ def _render_sweep_report(
     eval_results: list[EvalResult],
 ) -> str:
     """Pure renderer: returns the HTML body for the sweep report."""
+    summary = _sweep_summary_card(training_results)
     headline = _headline_callout(eval_results)
     leaderboard = _leaderboard_table(training_results, eval_results)
     reward_chart = _reward_curve(training_results)
@@ -171,6 +193,7 @@ def _render_sweep_report(
     return f"""
     <div style="font-family: system-ui, sans-serif; padding: 1.5rem; max-width: 1100px;">
         <h2>RL Sweep Report</h2>
+        {summary}
         {headline}
         {leaderboard}
         {chart_section}
