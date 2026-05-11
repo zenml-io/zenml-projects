@@ -209,3 +209,54 @@ def test_sweep_summary_lists_envs_and_lrs(training_results):
 def test_sweep_summary_card_appears_in_full_report(training_results, eval_results):
     html = _render_sweep_report(training_results, eval_results)
     assert "Sweep summary" in html
+
+
+def test_empty_metrics_history_omits_charts(eval_results):
+    bare = [
+        TrainingResult(
+            env_name="ocean-squared",
+            tag="ocean-squared_lr0.05",
+            mean_reward=0.0,
+            mean_episode_length=0.0,
+            total_timesteps=0,
+            steps_per_second=0.0,
+            policy_loss=0.0,
+            value_loss=0.0,
+            entropy=0.0,
+            config={"learning_rate": 0.05},
+            metrics_history=[],
+        ),
+    ]
+    html = _render_sweep_report(bare, eval_results[:1])
+    assert "Plotly.newPlot" not in html
+    assert "plotly-graph-div" not in html
+    # Leaderboard + summary still render:
+    assert "Leaderboard" in html
+    assert "Sweep summary" in html
+
+
+def test_single_run_no_delta_and_no_runner_up_row(training_results, eval_results):
+    html = _render_sweep_report(training_results[:1], eval_results[:1])
+    assert "+" not in _headline_callout(eval_results[:1])
+    # Only one tag in the leaderboard:
+    assert html.count("ocean-squared_lr0.05") >= 1
+    assert "ocean-squared_lr0.02" not in html
+
+
+def test_plotly_missing_falls_back_gracefully(monkeypatch, training_results, eval_results):
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name.startswith("plotly"):
+            raise ImportError("plotly disabled for this test")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    html = _render_sweep_report(training_results, eval_results)
+    assert "Plotly.newPlot" not in html
+    assert "plotly-graph-div" not in html
+    # Table + summary still render:
+    assert "Leaderboard" in html
+    assert "Sweep summary" in html
