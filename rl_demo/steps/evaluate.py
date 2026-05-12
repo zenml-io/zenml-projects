@@ -3,7 +3,10 @@
 from typing import Annotated, Tuple
 
 import wandb
-from steps.experiment_tracking import active_wandb_tracker_name
+from steps.experiment_tracking import (
+    active_wandb_tracker_name,
+    log_zenml_context_to_wandb,
+)
 from steps.helpers import make_policy, make_vecenv, run_eval_episodes
 from steps.models import EvalResult, PolicyCheckpoint, TrainingResult
 from zenml import log_metadata, step
@@ -29,6 +32,7 @@ def evaluate_agents(
     assert len(training_results) == len(policy_checkpoints), (
         "results and checkpoints must be parallel lists"
     )
+    log_zenml_context_to_wandb()
 
     eval_results = []
     for result, checkpoint in zip(training_results, policy_checkpoints):

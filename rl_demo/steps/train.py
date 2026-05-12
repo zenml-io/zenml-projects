@@ -7,7 +7,10 @@ from materializers.policy_checkpoint_materializer import (
     PolicyCheckpointMaterializer,
 )
 from pufferlib.pufferl import PuffeRL
-from steps.experiment_tracking import active_wandb_tracker_name
+from steps.experiment_tracking import (
+    active_wandb_tracker_name,
+    log_zenml_context_to_wandb,
+)
 from steps.helpers import (
     extract_logs,
     make_policy,
@@ -54,6 +57,7 @@ def train_agent(
     print(f"🎮 Training on {config.env_name} | lr={config.learning_rate}")
 
     device = resolve_device(config.device)
+    log_zenml_context_to_wandb()
     wandb.config.update(
         {
             **config.model_dump(),
