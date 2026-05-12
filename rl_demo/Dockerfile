@@ -16,4 +16,4 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir --no-build-isolation pufferlib
 
 # 3) Remaining runtime deps
-RUN pip install --no-cache-dir "zenml[server]" plotly psutil
+RUN pip install --no-cache-dir "zenml[server]" plotly psutil wandb

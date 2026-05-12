@@ -2,10 +2,12 @@
 
 from typing import Annotated, Tuple
 
+import wandb
 from materializers.policy_checkpoint_materializer import (
     PolicyCheckpointMaterializer,
 )
 from pufferlib.pufferl import PuffeRL
+from steps.experiment_tracking import active_wandb_tracker_name
 from steps.helpers import (
     extract_logs,
     make_policy,
@@ -18,17 +20,6 @@ from zenml.enums import ArtifactType
 from zenml.materializers import PydanticMaterializer
 from zenml.types import HTMLString
 
-# --- Weights & Biases (optional experiment tracking) ---------------------
-# To enable:
-#   1. zenml integration install wandb
-#   2. zenml experiment-tracker register wandb_tracker --flavor=wandb \
-#          --entity=<entity> --project_name=<project>
-#   3. zenml stack update -e wandb_tracker
-#   4. Set experiment_tracker="wandb_tracker" on the @step below
-#   5. Uncomment the `import wandb` line and the `wandb.log(...)` block
-#      inside the training loop. ZenML handles init/finish automatically.
-# import wandb
-
 
 @step(
     output_materializers={
@@ -37,7 +28,7 @@ from zenml.types import HTMLString
     },
     enable_cache=False,
     runtime="isolated",
-    # experiment_tracker="wandb_tracker",  # uncomment after registering tracker
+    experiment_tracker=active_wandb_tracker_name(),
 )
 def train_agent(
     config: EnvConfig,
@@ -63,6 +54,15 @@ def train_agent(
     print(f"🎮 Training on {config.env_name} | lr={config.learning_rate}")
 
     device = resolve_device(config.device)
+    wandb.config.update(
+        {
+            **config.model_dump(),
+            "resolved_device": device,
+            "trainer": "PuffeRL",
+            "policy": "RLPolicy",
+        },
+        allow_val_change=True,
+    )
 
     backend = "Serial" if config.num_workers <= 1 else "Multiprocessing"
     vec_overrides = {
@@ -121,18 +121,22 @@ def train_agent(
             }
         )
 
-        # --- W&B per-iteration logging stub ---
-        # wandb.log(
-        #     {
-        #         "train/mean_reward": stats["mean_reward"],
-        #         "train/mean_episode_length": stats["mean_episode_length"],
-        #         "train/policy_loss": stats["policy_loss"],
-        #         "train/value_loss": stats["value_loss"],
-        #         "train/entropy": stats["entropy"],
-        #         "train/sps": stats["sps"],
-        #     },
-        #     step=trainer.global_step,
-        # )
+        wandb.log(
+            {
+                "train/mean_reward": float(stats["mean_reward"]),
+                "train/best_reward": float(best_reward),
+                "train/mean_episode_length": float(
+                    stats["mean_episode_length"]
+                ),
+                "train/policy_loss": float(stats["policy_loss"]),
+                "train/value_loss": float(stats["value_loss"]),
+                "train/entropy": float(stats["entropy"]),
+                "train/sps": float(stats["sps"]),
+                "train/iteration": len(metrics_history) - 1,
+                "train/global_step": int(trainer.global_step),
+            },
+            step=trainer.global_step,
+        )
 
     # If no rollout ever completed, best_reward is still -inf — surface 0
     # so downstream artifacts stay JSON-serializable / comparable.
@@ -173,6 +177,20 @@ def train_agent(
         },
         artifact_name="training_result",
         infer_artifact=True,
+    )
+    wandb.log(
+        {
+            "summary/best_reward": float(best_reward),
+            "summary/total_steps": int(total_steps),
+            "summary/final_mean_episode_length": float(
+                final.get("mean_episode_length", 0)
+            ),
+            "summary/final_sps": float(final.get("sps", 0)),
+            "summary/final_policy_loss": float(final.get("policy_loss", 0)),
+            "summary/final_value_loss": float(final.get("value_loss", 0)),
+            "summary/final_entropy": float(final.get("entropy", 0)),
+        },
+        step=total_steps,
     )
 
     print(f"✅ {config.tag} → best reward: {best_reward:.2f}")

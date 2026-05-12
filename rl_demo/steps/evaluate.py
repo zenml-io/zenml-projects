@@ -2,13 +2,15 @@
 
 from typing import Annotated, Tuple
 
+import wandb
+from steps.experiment_tracking import active_wandb_tracker_name
 from steps.helpers import make_policy, make_vecenv, run_eval_episodes
 from steps.models import EvalResult, PolicyCheckpoint, TrainingResult
 from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 
-@step
+@step(experiment_tracker=active_wandb_tracker_name())
 def evaluate_agents(
     training_results: list[TrainingResult],
     policy_checkpoints: list[PolicyCheckpoint],
@@ -65,6 +67,43 @@ def evaluate_agents(
         )
         best.is_best = True
 
+    sorted_evals = sorted(eval_results, key=lambda r: -r.eval_mean_reward)
+    leaderboard_table = wandb.Table(
+        columns=[
+            "rank",
+            "tag",
+            "environment",
+            "eval_mean_reward",
+            "eval_std_reward",
+            "eval_episodes",
+            "is_best",
+        ]
+    )
+    for rank, result in enumerate(sorted_evals, start=1):
+        leaderboard_table.add_data(
+            rank,
+            result.tag,
+            result.env_name,
+            float(result.eval_mean_reward),
+            float(result.eval_std_reward),
+            int(result.eval_episodes),
+            result.is_best,
+        )
+    best_overall = sorted_evals[0] if sorted_evals else None
+    wandb_payload = {"eval/leaderboard": leaderboard_table}
+    if best_overall:
+        wandb_payload.update(
+            {
+                "eval/best_mean_reward": float(
+                    best_overall.eval_mean_reward
+                ),
+                "eval/best_std_reward": float(best_overall.eval_std_reward),
+            }
+        )
+        wandb.summary["best_eval_tag"] = best_overall.tag
+        wandb.summary["best_eval_env"] = best_overall.env_name
+    wandb.log(wandb_payload)
+
     log_metadata(
         metadata={
             "leaderboard": {
@@ -82,7 +121,6 @@ def evaluate_agents(
     )
 
     # HTML leaderboard for ZenML dashboard
-    sorted_evals = sorted(eval_results, key=lambda r: -r.eval_mean_reward)
     rows = "".join(
         f"<tr><td>{r.tag}</td><td>{r.eval_mean_reward:.2f} ± {r.eval_std_reward:.2f}</td>"
         f"<td>{r.eval_episodes}</td><td>{r.env_name}{' 🏆' if r.is_best else ''}</td></tr>"

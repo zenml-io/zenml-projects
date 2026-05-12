@@ -4,3 +4,4 @@ torch
 plotly
 numpy<3.0
 psutil
+wandb
