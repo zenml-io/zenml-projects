@@ -52,14 +52,10 @@ class Hazards:
 
     BIAS_PROTECTED_GROUPS = Hazard(
         description="Unfair bias against protected demographic groups",
-        trigger=lambda results, scores: (
-            any(
-                abs(v.get("selection_rate_disparity", 0)) > 0.2
-                for v in results["fairness"]
-                .get("fairness_metrics", {})
-                .values()
-                if isinstance(v, dict)
-            )
+        trigger=lambda results, scores: any(
+            abs(v.get("selection_rate_disparity", 0)) > 0.2
+            for v in results["fairness"].get("fairness_metrics", {}).values()
+            if isinstance(v, dict)
         ),
         severity=HazardSeverity.HIGH,
         mitigation=(

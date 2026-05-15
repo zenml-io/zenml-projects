@@ -105,6 +105,7 @@ celerybeat.pid
 
 # Environments
 .env
+.envrc
 .venv*
 env/
 venv/
@@ -176,3 +177,5 @@ nohup.out
 # design folder
 design/
 deep_research/design
+
+superpowers/*

@@ -123,6 +123,19 @@ uv run --active python run.py
    zenml connect
    ```
 
+3. **Weights & Biases**: Register a W&B experiment tracker and attach it to
+   your active stack. The pipeline reads the active tracker name via the ZenML
+   `Client`, so the component can use any name:
+   ```bash
+   zenml integration install wandb -y
+   zenml experiment-tracker register <tracker-name> \
+     --flavor=wandb \
+     --entity=<entity> \
+     --project_name=<project_name> \
+     --api_key=<api_key>
+   zenml stack update <your-stack-name> -e <tracker-name>
+   ```
+
 ### Example runs
 
 Default run (in `run.py`):

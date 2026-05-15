@@ -68,11 +68,9 @@ class DeriveAgeFeatures(BaseEstimator, TransformerMixin):
             # Add employment stability features
             df["IS_EMPLOYED"] = (employment_days < 0).astype(int)
             df["EMPLOYMENT_STABILITY"] = df["EMPLOYMENT_YEARS"].apply(
-                lambda x: "stable"
-                if x > 2
-                else "new"
-                if x > 0
-                else "unemployed"
+                lambda x: (
+                    "stable" if x > 2 else "new" if x > 0 else "unemployed"
+                )
             )
 
             df = df.drop(columns=["DAYS_EMPLOYED"])

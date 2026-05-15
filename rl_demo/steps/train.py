@@ -2,10 +2,15 @@
 
 from typing import Annotated, Tuple
 
+import wandb
 from materializers.policy_checkpoint_materializer import (
     PolicyCheckpointMaterializer,
 )
 from pufferlib.pufferl import PuffeRL
+from steps.experiment_tracking import (
+    active_wandb_tracker_name,
+    log_zenml_context_to_wandb,
+)
 from steps.helpers import (
     extract_logs,
     make_policy,
@@ -25,6 +30,13 @@ from zenml.types import HTMLString
         "policy_checkpoint": PolicyCheckpointMaterializer,
     },
     enable_cache=False,
+    runtime="isolated",
+    experiment_tracker=active_wandb_tracker_name(),
+    resources={
+        "cpu": 4,
+        "memory": "16Gi",
+        "gpu": 1,
+    },
 )
 def train_agent(
     config: EnvConfig,
@@ -50,6 +62,16 @@ def train_agent(
     print(f"🎮 Training on {config.env_name} | lr={config.learning_rate}")
 
     device = resolve_device(config.device)
+    log_zenml_context_to_wandb()
+    wandb.config.update(
+        {
+            **config.model_dump(),
+            "resolved_device": device,
+            "trainer": "PuffeRL",
+            "policy": "RLPolicy",
+        },
+        allow_val_change=True,
+    )
 
     backend = "Serial" if config.num_workers <= 1 else "Multiprocessing"
     vec_overrides = {
@@ -85,24 +107,46 @@ def train_agent(
         trainer.evaluate()
         logs = trainer.train()
 
+        # PuffeRL returns None on iters before the first full rollout is ready;
+        # those carry no usable metrics, so skip them entirely.
+        if logs is None:
+            continue
+
         stats = extract_logs(logs)
         if stats["mean_reward"] > best_reward:
             best_reward = stats["mean_reward"]
 
-        if logs is not None:
-            metrics_history.append(
-                {"iteration": len(metrics_history), **stats}
-            )
-            log_metadata(
-                metadata={
-                    f"iter_{len(metrics_history) - 1}/mean_reward": float(
-                        stats["mean_reward"]
-                    ),
-                    f"iter_{len(metrics_history) - 1}/sps": float(
-                        stats["sps"]
-                    ),
-                }
-            )
+        metrics_history.append({"iteration": len(metrics_history), **stats})
+        log_metadata(
+            metadata={
+                f"iter_{len(metrics_history) - 1}/mean_reward": float(
+                    stats["mean_reward"]
+                ),
+                f"iter_{len(metrics_history) - 1}/sps": float(stats["sps"]),
+            }
+        )
+
+        wandb.log(
+            {
+                "train/mean_reward": float(stats["mean_reward"]),
+                "train/best_reward": float(best_reward),
+                "train/mean_episode_length": float(
+                    stats["mean_episode_length"]
+                ),
+                "train/policy_loss": float(stats["policy_loss"]),
+                "train/value_loss": float(stats["value_loss"]),
+                "train/entropy": float(stats["entropy"]),
+                "train/sps": float(stats["sps"]),
+                "train/iteration": len(metrics_history) - 1,
+                "train/global_step": int(trainer.global_step),
+            },
+            step=trainer.global_step,
+        )
+
+    # If no rollout ever completed, best_reward is still -inf — surface 0
+    # so downstream artifacts stay JSON-serializable / comparable.
+    if best_reward == float("-inf"):
+        best_reward = 0.0
 
     total_steps = trainer.global_step
     trainer.utilization.stop()
@@ -138,6 +182,20 @@ def train_agent(
         },
         artifact_name="training_result",
         infer_artifact=True,
+    )
+    wandb.log(
+        {
+            "summary/best_reward": float(best_reward),
+            "summary/total_steps": int(total_steps),
+            "summary/final_mean_episode_length": float(
+                final.get("mean_episode_length", 0)
+            ),
+            "summary/final_sps": float(final.get("sps", 0)),
+            "summary/final_policy_loss": float(final.get("policy_loss", 0)),
+            "summary/final_value_loss": float(final.get("value_loss", 0)),
+            "summary/final_entropy": float(final.get("entropy", 0)),
+        },
+        step=total_steps,
     )
 
     print(f"✅ {config.tag} → best reward: {best_reward:.2f}")

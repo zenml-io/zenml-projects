@@ -131,7 +131,7 @@ class RLPolicy(nn.Module):
         self.critic = layer_init(nn.Linear(hidden, 1), std=1.0)
 
     def forward(self, observations, state=None):
-        features = self.encoder(observations)
+        features = self.encoder(observations.float())
         return self.actor(features), self.critic(features)
 
     def forward_eval(self, observations, state=None):

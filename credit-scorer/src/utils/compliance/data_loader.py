@@ -462,9 +462,12 @@ class ComplianceDataLoader:
                 )
                 # Standardize invalid values
                 risk_df["Status"] = risk_df["Status"].apply(
-                    lambda x: "PENDING"
-                    if x not in RISK_REGISTER_SCHEMA["valid_values"]["Status"]
-                    else x
+                    lambda x: (
+                        "PENDING"
+                        if x
+                        not in RISK_REGISTER_SCHEMA["valid_values"]["Status"]
+                        else x
+                    )
                 )
 
         if "Mitigation_status" in risk_df.columns:
@@ -490,12 +493,14 @@ class ComplianceDataLoader:
                 risk_df["Mitigation_status"] = risk_df[
                     "Mitigation_status"
                 ].apply(
-                    lambda x: "PENDING"
-                    if x
-                    not in RISK_REGISTER_SCHEMA["valid_values"][
-                        "Mitigation_status"
-                    ]
-                    else x
+                    lambda x: (
+                        "PENDING"
+                        if x
+                        not in RISK_REGISTER_SCHEMA["valid_values"][
+                            "Mitigation_status"
+                        ]
+                        else x
+                    )
                 )
 
         if "Risk_category" in risk_df.columns:
@@ -525,12 +530,14 @@ class ComplianceDataLoader:
                     "C": "CRITICAL",
                 }
                 risk_df["Risk_category"] = risk_df["Risk_category"].apply(
-                    lambda x: category_mapping.get(x, "MEDIUM")
-                    if x
-                    not in RISK_REGISTER_SCHEMA["valid_values"][
-                        "Risk_category"
-                    ]
-                    else x
+                    lambda x: (
+                        category_mapping.get(x, "MEDIUM")
+                        if x
+                        not in RISK_REGISTER_SCHEMA["valid_values"][
+                            "Risk_category"
+                        ]
+                        else x
+                    )
                 )
 
         # Validate Article values if present

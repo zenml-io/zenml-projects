@@ -7,7 +7,7 @@ from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 
-@step
+@step(enable_cache=False)
 def configure_sweep(
     dataset: DatasetMetadata,
     learning_rates: list[float],
