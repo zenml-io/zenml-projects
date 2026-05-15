@@ -71,7 +71,6 @@ if is_active_k8s_stack():
 
 @pipeline(
     dynamic=True,
-    enable_cache=False,
     model=Model(
         name="rl_policy",
         license="MIT",

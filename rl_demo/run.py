@@ -11,8 +11,13 @@ few hundred thousand steps on CPU/MPS. Swap `env_names` for richer envs
 configured the way you want.
 """
 
+import datetime
+
 import torch
 from pipelines import rl_environment_sweep
+from zenml.integrations.wandb.flavors.wandb_experiment_tracker_flavor import (
+    WandbExperimentTrackerSettings,
+)
 from zenml.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,9 +31,19 @@ def main() -> None:
         else ("mps" if torch.backends.mps.is_available() else "cpu")
     )
 
-    logger.info(f"Starting RL sweep pipeline (device: {device})")
+    # One W&B group per pipeline invocation: every train_agent run gets
+    # the same `group=` so the dashboard's Group view shows them as a
+    # single coordinated sweep.
+    wandb_group = f"rl_sweep_{datetime.datetime.now():%Y%m%d_%H%M%S}"
+    logger.info(f"Starting RL sweep pipeline (device: {device}, wandb group: {wandb_group})")
 
-    rl_environment_sweep(
+    rl_environment_sweep.with_options(
+        settings={
+            "experiment_tracker.wandb": WandbExperimentTrackerSettings(
+                settings={"run_group": wandb_group},
+            ),
+        }
+    )(
         env_names=["ocean-squared"],
         # PufferLib's stock squared config trains at lr=0.05 — bracket that
         # so some runs learn and some over/undershoot (good demo signal).

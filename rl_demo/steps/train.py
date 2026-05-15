@@ -32,6 +32,11 @@ from zenml.types import HTMLString
     enable_cache=False,
     runtime="isolated",
     experiment_tracker=active_wandb_tracker_name(),
+    resources={
+        "cpu": 4,
+        "memory": "16Gi",
+        "gpu": 1,
+    }
 )
 def train_agent(
     config: EnvConfig,

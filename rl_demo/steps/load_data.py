@@ -6,7 +6,7 @@ from steps.models import DatasetMetadata
 from zenml import log_metadata, step
 
 
-@step
+@step(enable_cache=True)
 def load_training_data(
     env_names: list[str],
     client_id: str = "acme-corp",
