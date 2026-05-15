@@ -36,7 +36,7 @@ from zenml.types import HTMLString
         "cpu": 4,
         "memory": "16Gi",
         "gpu": 1,
-    }
+    },
 )
 def train_agent(
     config: EnvConfig,
@@ -116,17 +116,13 @@ def train_agent(
         if stats["mean_reward"] > best_reward:
             best_reward = stats["mean_reward"]
 
-        metrics_history.append(
-            {"iteration": len(metrics_history), **stats}
-        )
+        metrics_history.append({"iteration": len(metrics_history), **stats})
         log_metadata(
             metadata={
                 f"iter_{len(metrics_history) - 1}/mean_reward": float(
                     stats["mean_reward"]
                 ),
-                f"iter_{len(metrics_history) - 1}/sps": float(
-                    stats["sps"]
-                ),
+                f"iter_{len(metrics_history) - 1}/sps": float(stats["sps"]),
             }
         )
 

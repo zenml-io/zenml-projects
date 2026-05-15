@@ -2,7 +2,11 @@
 
 import pytest
 from steps.models import EvalResult, TrainingResult
-from steps.report import create_sweep_report, _headline_callout, _render_sweep_report
+from steps.report import (
+    _headline_callout,
+    _render_sweep_report,
+    create_sweep_report,
+)
 
 
 @pytest.fixture
@@ -79,12 +83,16 @@ def eval_results():
 
 def _render(training_results, eval_results) -> str:
     """Call the step's underlying function and return raw HTML."""
-    return str(create_sweep_report.entrypoint(
-        training_results=training_results, eval_results=eval_results
-    ))
+    return str(
+        create_sweep_report.entrypoint(
+            training_results=training_results, eval_results=eval_results
+        )
+    )
 
 
-def test_baseline_contains_tags_and_leaderboard(training_results, eval_results):
+def test_baseline_contains_tags_and_leaderboard(
+    training_results, eval_results
+):
     html = _render(training_results, eval_results)
     assert "Leaderboard" in html
     assert "ocean-squared_lr0.05" in html
@@ -173,7 +181,9 @@ def test_reward_curve_includes_each_run_tag(training_results):
     assert "ocean-squared_lr0.02" in html
 
 
-def test_full_report_no_longer_uses_matplotlib_png(training_results, eval_results):
+def test_full_report_no_longer_uses_matplotlib_png(
+    training_results, eval_results
+):
     html = _render_sweep_report(training_results, eval_results)
     assert "data:image/png;base64" not in html
 
@@ -186,7 +196,9 @@ def test_sps_curve_uses_plotly(training_results):
     assert "Plotly.newPlot" in html or "plotly-graph-div" in html
 
 
-def test_sps_chart_wrapped_in_collapsed_details(training_results, eval_results):
+def test_sps_chart_wrapped_in_collapsed_details(
+    training_results, eval_results
+):
     html = _render_sweep_report(training_results, eval_results)
     assert "<details" in html
     assert "Steps/sec" in html or "Steps per Second" in html
@@ -206,7 +218,9 @@ def test_sweep_summary_lists_envs_and_lrs(training_results):
     assert "1,000,000" in html or "1000000" in html
 
 
-def test_sweep_summary_card_appears_in_full_report(training_results, eval_results):
+def test_sweep_summary_card_appears_in_full_report(
+    training_results, eval_results
+):
     html = _render_sweep_report(training_results, eval_results)
     assert "Sweep summary" in html
 
@@ -235,7 +249,9 @@ def test_empty_metrics_history_omits_charts(eval_results):
     assert "Sweep summary" in html
 
 
-def test_single_run_no_delta_and_no_runner_up_row(training_results, eval_results):
+def test_single_run_no_delta_and_no_runner_up_row(
+    training_results, eval_results
+):
     html = _render_sweep_report(training_results[:1], eval_results[:1])
     assert "+" not in _headline_callout(eval_results[:1])
     # Only one tag in the leaderboard:
@@ -243,7 +259,9 @@ def test_single_run_no_delta_and_no_runner_up_row(training_results, eval_results
     assert "ocean-squared_lr0.02" not in html
 
 
-def test_plotly_missing_falls_back_gracefully(monkeypatch, training_results, eval_results):
+def test_plotly_missing_falls_back_gracefully(
+    monkeypatch, training_results, eval_results
+):
     import builtins
 
     real_import = builtins.__import__

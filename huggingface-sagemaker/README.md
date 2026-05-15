@@ -220,7 +220,7 @@ At the end of the pipeline, the model will also be pushed the Huggingface, and a
 
 <img src="assets/training_pipeline_with_hf.png" alt="Training Pipeline with HF" width="800">
 
-Notice the linkage of the revision made on Huggingface to the metadata tracked on the ZenML pipeline. This estabilishes lineage.
+Notice the linkage of the revision made on Huggingface to the metadata tracked on the ZenML pipeline. This establishes lineage.
 
 You can watch a YouTube tutorial for this part of the tutorial [here](https://youtu.be/YoQoT5eSMek).
 
@@ -281,7 +281,7 @@ python app.py
 
 The demo has two modes: `sagemaker` and `local`. If sagemaker is selected, the client pings ZenML, finds the latest Production model, and uses the associated sagemaker endpoint to make the prediction. Otherwise, it just downloads the model and runs it locally. Naturally, the Sagemaker endpoint will usually be faster!
 
-And there you go, you have successfully trained and pushed a model to Huggingface, and deplyoed it to AWS Sagemaker, in a ZenML pipeline. Read more on the [ZenML docs](https://docs.zenml.io)
+And there you go, you have successfully trained and pushed a model to Huggingface, and deployed it to AWS Sagemaker, in a ZenML pipeline. Read more on the [ZenML docs](https://docs.zenml.io)
 
 </details>
 

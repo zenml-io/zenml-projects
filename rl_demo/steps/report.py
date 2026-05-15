@@ -12,13 +12,18 @@ def _sweep_summary_card(training_results: list[TrainingResult]) -> str:
     if not training_results:
         return ""
     envs = sorted({r.env_name for r in training_results})
-    lrs = sorted({r.config.get("learning_rate") for r in training_results
-                  if r.config.get("learning_rate") is not None})
+    lrs = sorted(
+        {
+            r.config.get("learning_rate")
+            for r in training_results
+            if r.config.get("learning_rate") is not None
+        }
+    )
     timesteps = sorted({r.total_timesteps for r in training_results})
     timesteps_str = ", ".join(f"{t:,}" for t in timesteps)
     return (
-        f"<div style=\"background: #f7f7f9; padding: 0.75rem 1rem; "
-        f"border-radius: 6px; margin: 0.5rem 0 1rem;\">"
+        f'<div style="background: #f7f7f9; padding: 0.75rem 1rem; '
+        f'border-radius: 6px; margin: 0.5rem 0 1rem;">'
         f"<b>Sweep summary</b> &middot; "
         f"<b>{len(training_results)}</b> runs &middot; "
         f"envs: {', '.join(envs)} &middot; "
@@ -36,11 +41,13 @@ def _headline_callout(eval_results: list[EvalResult]) -> str:
     winner = ranked[0]
     if len(ranked) >= 2:
         delta = winner.eval_mean_reward - ranked[1].eval_mean_reward
-        delta_str = f" <span style=\"color: #2a7;\">(+{delta:.2f} over runner-up)</span>"
+        delta_str = (
+            f' <span style="color: #2a7;">(+{delta:.2f} over runner-up)</span>'
+        )
     else:
         delta_str = ""
     return (
-        f"<p style=\"font-size: 1.1rem; margin: 0.5rem 0 1rem;\">"
+        f'<p style="font-size: 1.1rem; margin: 0.5rem 0 1rem;">'
         f"🏆 <b>{winner.tag}</b> won eval: "
         f"<b>{winner.eval_mean_reward:.2f}</b> reward{delta_str}"
         f"</p>"
@@ -62,9 +69,7 @@ def _leaderboard_table(
         best_train = f"{tr.mean_reward:.2f}" if tr else "—"
         total_steps = f"{tr.total_timesteps:,}" if tr else "—"
         badge = " 🏆" if ev.is_best else ""
-        row_style = (
-            ' style="background: #f3fbf3;"' if ev.is_best else ""
-        )
+        row_style = ' style="background: #f3fbf3;"' if ev.is_best else ""
         rows.append(
             f"<tr{row_style}>"
             f"<td>{rank}</td>"
@@ -184,7 +189,7 @@ def _render_sweep_report(
     )
     sps_chart = _sps_curve(training_results)
     sps_section = (
-        f"<details style=\"margin-top: 1rem;\">"
+        f'<details style="margin-top: 1rem;">'
         f"<summary>Throughput (Steps per Second)</summary>"
         f"{sps_chart}</details>"
         if sps_chart

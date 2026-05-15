@@ -39,6 +39,7 @@ settings = {
 kubernetes_settings = None
 from zenml.client import Client
 
+
 def is_active_k8s_stack():
     try:
         stack = Client().active_stack
@@ -49,6 +50,7 @@ def is_active_k8s_stack():
         )
     except Exception:
         return False
+
 
 if is_active_k8s_stack():
     settings["orchestrator"] = KubernetesOrchestratorSettings(

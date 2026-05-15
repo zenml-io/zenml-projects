@@ -35,7 +35,9 @@ def main() -> None:
     # the same `group=` so the dashboard's Group view shows them as a
     # single coordinated sweep.
     wandb_group = f"rl_sweep_{datetime.datetime.now():%Y%m%d_%H%M%S}"
-    logger.info(f"Starting RL sweep pipeline (device: {device}, wandb group: {wandb_group})")
+    logger.info(
+        f"Starting RL sweep pipeline (device: {device}, wandb group: {wandb_group})"
+    )
 
     rl_environment_sweep.with_options(
         settings={

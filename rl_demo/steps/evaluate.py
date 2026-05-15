@@ -98,9 +98,7 @@ def evaluate_agents(
     if best_overall:
         wandb_payload.update(
             {
-                "eval/best_mean_reward": float(
-                    best_overall.eval_mean_reward
-                ),
+                "eval/best_mean_reward": float(best_overall.eval_mean_reward),
                 "eval/best_std_reward": float(best_overall.eval_std_reward),
             }
         )

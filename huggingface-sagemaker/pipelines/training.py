@@ -53,7 +53,7 @@ def sentinment_analysis_training_pipeline(
     """
     Model training pipeline.
 
-    This is a pipeline that loads the datataset and tokenzier,
+    This is a pipeline that loads the datataset and tokenizer,
     tokenizes the dataset, trains a model and registers the model
     to the model registry.
 

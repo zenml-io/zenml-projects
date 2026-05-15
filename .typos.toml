@@ -58,6 +58,11 @@ yhat = "yhat"
 yhat_lower = "yhat_lower"
 yhat_upper = "yhat_upper"
 fpr = "fpr"
+# RL / PufferLib
+PufferLib = "PufferLib"
+PuffeRL = "PuffeRL"
+pufferlib = "pufferlib"
+vecenv = "vecenv"
 
 [default]
 locale = "en-us"

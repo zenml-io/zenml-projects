@@ -652,7 +652,9 @@ def create_forecast_dashboard(
             
             <div class="summary-card">
                 <h3>Top Performer</h3>
-                <div class="summary-value">{max(series_stats, key=lambda x: x["growth"])["series_id"]}</div>
+                <div class="summary-value">{max(series_stats, key=lambda x: x[
+            "growth"
+        ])["series_id"]}</div>
                 <p>Series with highest growth rate</p>
             </div>
         </div>
